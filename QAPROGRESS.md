@@ -1,6 +1,34 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P25 — 테스트41 대비: 게이지 P23 복원 + 활 조준 리티클 + 화살 액션 + 커서 기본숨김, 커밋 c2157a9b·f9448fbe)
+> **최종 갱신:** 2026-09-21 (P26 — Ctrl+우클릭 병사 이동 UX + 고품질 지속 지면 대상 링, 커밋 f10e2c17)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P26 — Ctrl+우클릭 병사 이동 + 지속 고품질 지면 대상 링 — 커밋 f10e2c17)
+
+> **입력**: "Ctrl 홀드+우클릭으로 병사를 원하는 곳으로 이동" + "지형 누르면 스타크래프트식 동그란 원형 UI로 위치 표시" + "UI는 항상 고품질". 계획서 승인("진행").
+
+### 조사 (근본원인)
+- 이동 엔진은 이미 존재: GuardSelectionManager(우클릭 캡처) → RTSCommandSystem(공격/이동 판정) → GuardPlaceholder.SetCommandTarget→ExecuteMovement(걷기·도달 ClearCommand).
+- **실제 블로커**: GuardSelectionManager:273이 우클릭을 `_selectedGuards.Count > 0`일 때만 RTS로 전달 → **선택 안 하면 우클릭 이동 자체가 불발**.
+- CommandMarker(이동 지점 링)가 1.5s 페이드형이라 목적지가 금방 사라짐(스타크래프트식 지속 표시 아님).
+
+### P26-1 미선택 폴백 (UX 갭 해소)
+- GuardSelectionManager가 우클릭을 **선택 유무 무관 전달**.
+- RTSCommandSystem: **Ctrl+우클릭 시 선택 없으면 전체 소속(포섭) 병사로 일괄 이동**(`GetFallbackGuards()` = `IsRecruited || tag "RecruitedSoldier"` — 선택 필터와 동일 기준). 비Ctrl 미선택은 "선택 필요" 안내만(일반 우클릭은 선택 기반 확산 이동 유지 — 요구 문맥 정확 반영).
+
+### P26-2 지속형 고품질 지면 대상 링 (스타크래프트식)
+- **신규 베이크 PNG `MoveTargetRing`**(256×256 골드: 외곽 두꺼운 링+내부 헤어라인 링+가벼운 내부 채움+4방향 틱, PIL 4배 슈퍼샘플+LANCZOS, meta isReadable:1).
+- CommandMarker에 **persistent 모드**(owner 병사): Quad 빌보드(탑다운 수평)에 MoveTargetRing 텍스처, **소유 병사 도착(`ClearCommand`)/취소(H)/사망 시 자동 소멸**, 도착 전 미세 펄스로 활성감. 오버레이 아님(월드 지점).
+- 일반 우클릭(공격)은 기존 1.5s 페이드형 유지(공격/이동 혼선 방지).
+- RTSCommandSystem이 활성 이동 마커 트래킹(`_activeMoveMarks`): 새 이동/H키 시 정리, Update에서 자동 소멸 추적. 이동/일제 이동 모두 병사별 목표 지점에 지속 링(일제 동일 지점=전원 도착까지 잔존).
+
+### 검증
+- 배치컴파일 **error CS=0** + EditMode **288/288**. 커밋 f10e2c17 푸시.
+- ⚠ 루프 문법: 이 엔진은 `for(var m : list)` **CS1003** → `foreach(var m in list)` 사용(컴파일 1회 수정).
+
+### Play 판정 대기 (테스트 42)
+①Ctrl+우클릭(선택 없이) → 소속 병사 전원이 지점으로 걸어감 + 그 지점에 골드 원형 링이 **도착까지 잔존**(펄스) ②개별 병사 도착 시 해당 링 소멸(마지막 도착 시 전체 소멸) ③Ctrl+좌클릭 드래그로 병사 선택 → Ctrl+우클릭 = 선택분만 이동 ④비Ctrl 우클릭(미선택)=이동 안 함, 안내 로그 ⑤H키 = 이동 중단+링 즉시 제거 ⑥공격 우클릭 = 기존 페이드 링 ⑦UI 클릭 회귀 없음
 
 ---
 

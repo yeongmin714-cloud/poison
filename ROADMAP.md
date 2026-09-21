@@ -3055,6 +3055,25 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ---
 
+## ⚔️ 2026-09-21: P26 — Ctrl+우클릭 병사 이동 UX + 고품질 지속 지면 대상 링 (P26-42)
+
+> **입력**: "Ctrl 홀드+우클릭으로 병사 이동" + "지형 누르면 스타크래프트식 원형 UI로 위치 표시" + "UI 항상 고품질". 커밋 f10e2c17.
+
+| 항목 | 뿌리 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 우클릭 이동 안 됨 | GuardSelectionManager가 우클릭을 `선택>0`일 때만 전달 → 미선택 시 불발 | 우클릭 무조건 전달 + RTSCommandSystem Ctrl+우클릭 미선택 폴백(전체 소속 병사, `GetFallbackGuards`) | ✅ |
+| 대상 표시 금방 사라짐 | CommandMarker 1.5s 페이드형 | CommandMarker **persistent 모드**(owner 병사): 도착/취소/사망까지 골드 링 잔존+펄스 | ✅ |
+| 고품질 | — | 신규 베이크 MoveTargetRing PNG(골드 256, 외곽링+내선+채움+4틱) + RTSCommandSystem 마커 트래킹(_activeMoveMarks) | ✅ |
+
+**행동**: Ctrl+우클릭(선택 없이)=전체 소속 병사 일제 이동 + 지점에 지속 골드 링(전원 도착까지) / Ctrl+드래그 선택 후=선택분만 이동 / 비Ctrl 미선택=안내만 / H=중단+링 제거 / 공격 우클릭=페이드 링 유지.
+
+⚠ 루프 문법: 이 엔진 `for(var m : list)`=CS1003 → `foreach(var m in list)`.
+
+### Play 판정 대기 (테스트 42)
+①Ctrl+우클릭 미선택→전원 이동+골드 링 도착까지 잔존(펄스) ②개별/전체 도착 시 링 소멸 ③선택 후 이동=선택분만 ④비Ctrl 미선택=안내 ⑤H=중단+링 제거 ⑥공격=페이드 링 ⑦UI 회귀 없음
+
+---
+
 ## Phase 68: 🎨 UI Toolkit 전면 마이그레이션 (1순위 — 진행 중)
 
 > **결정(2026-09-17):** 모든 UI = UI Toolkit(UXML/USS) 방식. IMGUI 신규 금지.
