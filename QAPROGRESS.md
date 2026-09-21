@@ -1,6 +1,35 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P23 — 테스트39 실측 3건 수리, 커밋 a821bec3)
+> **최종 갱신:** 2026-09-21 (P24 — 테스트40 사용자 지시 3건: 링 제거/커서 분류/게이지 고품질, 커밋 5b643071)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P24 — 테스트 40 사용자 지시 3건 — 커밋 5b643071)
+
+> **입력**: 테스트 40.mp4 + 사용자 지시 ①"사거리 표시 UI를 없애자" ②커서 "일반 커서 기본, 상호작용 시에만 표식 — 처음부터 삽이면 안 됨" ③체력/스태미너 바 "ui 예시 2 참고 고품질, 하트/번개 모양 불만" + 사용자 제공 텍스처(Assets/UserProvided/Gauges/heart.png, stamina.png).
+
+### P24-1 사거리 표시 UI 완전 제거
+- PlayerRangeRing.cs / WeaponRangeIndicator.cs **파일+meta 삭제** — PlayerCombat Ensure 호출·CurrentWeaponRange 프로퍼티 제거, TestSetup 2곳 주석 정리. 참조 전수 검색 0건(코드+GUID). SelectionRing(선택 링용)은 무수정.
+
+### P24-2 커서 오분류 — **이름 매칭 뿌리**
+- 뿌리: HoverTargetClassifier.ClassifyOne의 이름 매칭(`grass/풀/herb`→Gather, `farm/field`→Farm)이 **비인터랙티브 환경 장식(풀 프롭)까지 표식 판정** → 지형 위 상시 삽 커서(테스트 40 리포트 뿌리).
+- 수리: Farm=FarmPlot 컴포넌트만, Gather=GetComponentInParent<HerbPickup>만(하위 콜라이더 히트 커버 강화), ContainsAny 헬퍼+미사용 using 폐기. Ready 밭(FarmPlot+HerbPickup 동시)은 3단계 Farm 선산정이라 회귀 없음. 아이콘 규칙: 기본/지형/UI=화살표, 대상 호버 시에만 표식(적=검/광석=곡괭이/약초=삽/농지=호미).
+
+### P24-3 스테이터스 UI 고품질 재구성 (ui 예시 2 스펙)
+- **사용자 PNG 누끼 3패스 실패**(가짜 투명=체커보드 픽셀 굽음, 격자 AA가 플러드 차단, 프레임 회색이 격자 2색 사이 팔레트 충돌, 그림자/노이즈 겹침) → **제공 이미지를 디자인 레퍼런스로 동일 디자인 재베이크**:
+  - GaugeHPFrame 440×160(다크 메탈, 좌 라운드 캡+레드 하트+슬롯 웰 — 슬롯 rect 실측 u[0.3841,0.0688,0.9886,0.9313])
+  - GaugeHPFill 256×64 레드 그라데이션 / GaugeTipGlow 96×192 세로 타원 글로우 / GaugeStaminaIcon 256×256 다크 버튼+시안 번개
+- **신규 HPBarUTK**(72×198, 종횡비 고정): 프레임+fill 폭비례(9-슬라이스 중앙 신장)+팁 글로우(세로 타원, 종횡비 일치 무왜곡)+수치 라벨("36.6 / 40", F1).
+- UTKCircularGauge 확장: TrackColor(다크)/ShowSegmentTicks(12눈금 방향 스파이크)/ThicknessRatio(0.15~0.22) — 기존 API 무손상.
+- StatusGaugesUTK 재구성: HP바(72px)+스태미너 도넛(92px, 그린 fill/다크 트랙/눈금)+아이콘 64px 중앙. 전 요소 pickingMode=Ignore(P23-3 교훈). Ensure/폴링/캐시 재탐색 패턴 유지.
+- ⚠️ 컴파일 함정: **ScaleMode.Stretch는 UIElements에 미존재(GUI용 ScaleMode.StretchToFill과 혼동)** → fill=9슬라이스(unitySliceLeft/Right/Top/Bottom), tip=종횡비 일치 PNG+ScaleToFit으로 수리.
+
+### 검증
+- 배치컴파일 **error CS=0** + EditMode **전부 통과**. 커밋 5b643071 푸시.
+- 사용자 원본 PNG는 Assets/UserProvided/Gauges/에 보존(디자인 소스).
+
+### Play 판정 대기 (테스트 41)
+①사거리 링 완전 소멸(무기 장착 여부 무관) ②빈 지형=일반 화살표 커서, 풀 위에서도 삽 아님 ③적=검/광석=곡괭이/약초=삽/농지=호미 정상 표식 ④좌하단 고품질 HP바(프레임+fill+수치)+스태미너 도넛(눈금+시안 번개 버튼) ⑤UI 클릭 회귀 없음
 
 ---
 
