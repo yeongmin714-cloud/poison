@@ -34,6 +34,22 @@ public class GameSetup : MonoBehaviour
     {
         if (!_autoSetup) return;
 
+        // ── 지형 전용 모드 (Test_12_TerrainOnly): 씬 이름에 "TerrainOnly" 포함 시 ──
+        // 지형 파이프라인(메시 교체/텍스처/청크/데코) + 환경/조명/하늘만 실행.
+        // 플레이어 컴포넌트/동적 잔디/낚시/영지/게임플레이 시스템 생성은 생략하고,
+        // 씬에 실존하는 MonsterSpawner는 비활성화해 몬스터 스폰을 차단한다.
+        // (씬 YAML 수정 없이 씬 이름 기반으로만 감지 — 복사본 씬에도 즉시 적용)
+        var thisScene = gameObject.scene;
+        bool terrainOnly = thisScene != null
+            && !string.IsNullOrEmpty(thisScene.name)
+            && thisScene.name.Contains("TerrainOnly");
+        if (terrainOnly)
+        {
+            RunTerrainOnlySetup();
+            _autoSetup = false; // 한 번만 실행
+            return;
+        }
+
         // ── 메인 씬 모드 ────────────────────────
         SetupPlayerComponents();
 
@@ -88,6 +104,115 @@ public class GameSetup : MonoBehaviour
         EnsureTerritoryBuilder();
 
         _autoSetup = false; // 한 번만 실행
+    }
+
+    /// <summary>
+    /// 지형 전용(TerrainOnly) 부트: Test_12_TerrainOnly 같은 지형 관찰 테스트 씬용.
+    /// 실행: 지형 텍스처/국가 테마(TerrainTextureApplier/NationTerrainController) →
+    ///       메시 201×201 교체(TerrainHeightApplier) → 청크 지형(RuntimeTerrainChunkManager) →
+    ///       데코 부트스트랩(호수/프롭/흙길, BootstrapTerrainDeco) → 환경/조명/하늘
+    ///       (AmbianceBrightener/MoodProfileSetup/LightShaftBillboard).
+    /// 생략: SetupPlayerComponents / 동적 잔디(IdyllicGrassCover) / 낚시(FishingSystem) /
+    ///       영지(TerritoryBuilder) / 게임플레이 시스템 생성(MonsterSpawner·HUD·BuffManager·
+    ///       EventSystem·MinimapUI·LoadingManager).
+    /// 비활성화: 씬에 실존하는 MonsterSpawner(생성하지 않고 찾아서만 SetActive(false)).
+    /// 카메라/조명/GlobalVolume/지형/물/환경 오브젝트는 전혀 건드리지 않는다.
+    /// </summary>
+    private void RunTerrainOnlySetup()
+    {
+        Debug.Log("[GameSetup] 🏔️ TerrainOnly 모드 진입 — 지형/환경/조명/하늘만 부트 (낚시/영지/몬스터 스폰 생략)");
+
+        // 1) SetupWorldComponents 중 지형 관련만 (텍스처/국가 테마)
+        try { SetupTerrainVisualComponents(); }
+        catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainOnly 지형 비주얼 실패 — 계속: " + e); }
+
+        // 2) 지형 메시 201×201 런타임 교체 — 데코(흙길 정점색)보다 반드시 먼저
+        try { EnsureTerrainHeightApplier(); }
+        catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainHeightApplier 실패 — 계속: " + e); }
+
+        // 3) 청크 지형 — Ring1 1450m 커버 (메인 모드와 동일한 try-catch 격리)
+        try { gameObject.AddComponent<RuntimeTerrainChunkManager>(); }
+        catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainChunk 매니저 부착 실패 — 계속: " + e); }
+
+        // 4) 데코 부트스트랩 (CleanupLegacyDeco → 호수 → 프롭 → 흙길 → 잔디 정리)
+        try { BootstrapTerrainDeco(); }
+        catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainDeco 부트 실패 — 계속: " + e); }
+
+        // 5) 환경/조명/하늘 (안개/앰비언트/컬러그레이딩/god rays)
+        try
+        {
+            gameObject.AddComponent<AmbianceBrightener>();
+            if (GetComponent<MoodProfileSetup>() == null)
+                gameObject.AddComponent<MoodProfileSetup>();
+            if (GetComponent<LightShaftBillboard>() == null)
+                gameObject.AddComponent<LightShaftBillboard>();
+        }
+        catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainOnly 환경/조명 실패 — 계속: " + e); }
+
+        // 6) 몬스터 스폰 차단 — 씬에 실존하는 MonsterSpawner만 비활성화(제거 아님)
+        DisableMonsterSpawnerForTerrainOnly();
+
+        Debug.Log("[GameSetup] ✅ TerrainOnly 부트 완료 — 지형/환경/조명/하늘 (+카메라 유지)");
+    }
+
+    /// <summary>
+    /// SetupWorldComponents의 지형 비주얼 부분만 추출한 것 (TerrainOnly 모드 전용).
+    /// MonsterSpawner/HUD/BuffManager/EventSystem/MinimapUI/LoadingManager 생성은 포함하지 않는다.
+    /// </summary>
+    private void SetupTerrainVisualComponents()
+    {
+        // TerrainTextureApplier (Ground_Inner에 자동 부착)
+        if (FindAnyObjectByType<TerrainTextureApplier>() == null)
+        {
+            var ground = GameObject.Find("Ground_Inner");
+            if (ground != null && ground.GetComponent<TerrainTextureApplier>() == null)
+            {
+                ground.AddComponent<TerrainTextureApplier>();
+                Debug.Log("[GameSetup] ✅ TerrainTextureApplier → Ground_Inner에 추가");
+            }
+        }
+
+        // NationTerrainController
+        if (FindAnyObjectByType<NationTerrainController>() == null)
+        {
+            var ground = GameObject.Find("Ground_Inner");
+            if (ground != null && ground.GetComponent<NationTerrainController>() == null)
+            {
+                ground.AddComponent<NationTerrainController>();
+                Debug.Log("[GameSetup] ✅ NationTerrainController → Ground_Inner에 추가");
+            }
+            else
+            {
+                var ntcGO = new GameObject("NationTerrainController");
+                ntcGO.AddComponent<NationTerrainController>();
+                Debug.Log("[GameSetup] ✅ NationTerrainController 생성 (Ground 없음, 별도 오브젝트)");
+            }
+        }
+    }
+
+    /// <summary>
+    /// TerrainOnly 모드: 씬에 실존하는 MonsterSpawner 오브젝트를 비활성화해 몬스터 스폰을 차단.
+    /// 없으면 생성하지 않는다(그 자체로 스폰 차단). 제거가 아닌 비활성화 — 되돌리기 안전.
+    /// </summary>
+    private void DisableMonsterSpawnerForTerrainOnly()
+    {
+        try
+        {
+            var spawner = FindAnyObjectByType<MonsterSpawner>();
+            if (spawner != null)
+            {
+                spawner.gameObject.SetActive(false);
+                Debug.Log($"[GameSetup] 🚫 TerrainOnly: MonsterSpawner '{spawner.gameObject.name}' 비활성화 (몬스터 스폰 차단)");
+            }
+            else
+            {
+                Debug.Log("[GameSetup] 🚫 TerrainOnly: MonsterSpawner 없음 — 생성하지 않음 (스폰 차단 유지)");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[GameSetup] MonsterSpawner 비활성화 실패(무시): " + e.Message);
+        }
     }
 
     /// <summary>
