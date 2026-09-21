@@ -49,6 +49,11 @@
 - 진단: 5개 방어구 슬롯은 `GuardVisualAttachSystem` 0.35s 폴링이 프로퍼티 직접 읽어 **이미 자동 반영**. **무기(WeaponItem)은 미보장** → `VisualSlot.Weapon`+뼈 매핑(hand.R/forearm.R) + `ResolveWeaponVisualId`(id→{tier}_{kind}.glb, 폴백 steel→stone→wood→crystal) 신규. `RequestRefreshFor(GuardPlaceholder)` 즉시 재부착 훅.
 - `GuardPlaceholder.EquipAllyItem` 성공 지점에 `RequestRefreshFor(this)`+log → 장비 등록 시 월드 병사 rig 즉시 갱신. 데이터/인벤 로직 불변.
 
+### Test_12_TerrainOnly — 메인씬 지형만 테스트씬 (커밋 bcc5c995)
+- `GameSetup.cs`: `gameObject.scene.name.Contains("TerrainOnly")` 기반 지형 전용 모드 — 지형 파이프라인(EnsureTerrainHeightApplier→RuntimeTerrainChunkManager→BootstrapTerrainDeco→AmbianceBrightener→MoodProfileSetup→LightShaftBillboard)+TerrainTextureApplier/NationTerrainController만 실행, 낚시/영지/게임플레이시스템 생략, MonsterSpawner 비활성. 메인 씬 흐름 무변경(Start 최상단 early-return).
+- `Assets/Scenes/TestScenes/Test_12_TerrainOnly.unity`: MainScene 복사본(158,877줄, YAML 수동편집 0, 씬 이름으로 자동 감지).
+- 배치컴파일 error CS 0. QaValidator 전체 씬 로드/미싱스크립트 통과. 사용법: 이 씬 열어 Play = 지형+환경+조명+하늘 관찰.
+
 ## 📌 세션 스냅샷 (2026-09-21 ✅ P29-B — 낚시대 크래프트 + 미니게임 고품질화 — 커밋 6e29fb95)
 
 > **입력**: "낚시대를 크래프트에서도 얻을 수 있게 추가하고 고품질화 진행".
