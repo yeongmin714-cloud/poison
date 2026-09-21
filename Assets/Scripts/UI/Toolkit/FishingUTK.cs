@@ -210,8 +210,19 @@ namespace ProjectName.UI.Toolkit
                 if (root != null && window != null && window.parent == null)
                     root.Add(window);
 
-                if (window == null || !window.IsOpen) return;
                 var fs = FishingSystem.Instance;
+                if (fs == null) return;
+
+                // [P29] 낚시 상태 폴링 자동 오픈/닫기 — Systems→UI 순환참조 없이
+                // UI가 상태(대기/미니게임)를 보고 스스로 표시/숨김.
+                bool active = fs.IsWaitingForBite || fs.IsMinigameActive;
+                bool shouldOpen = window != null && fs.IsFishing && active;
+                if (shouldOpen && !FishingUTK.Instance.IsOpen)
+                    FishingUTK.Open();
+                else if (!shouldOpen && FishingUTK.Instance.IsOpen)
+                    FishingUTK.CloseUI();
+
+                if (window == null || !window.IsOpen) return;
                 if (fs == null || !fs.IsMinigameActive) return;
 
                 if (Input.GetKeyDown(KeyCode.Space))

@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.UI;
+using ProjectName.UI.Toolkit;   // FishingUTK (낚시 미니게임 UI)
 using Unity.Cinemachine;
 
 /// <summary>
@@ -75,6 +76,11 @@ public class GameSetup : MonoBehaviour
             gameObject.AddComponent<MoodProfileSetup>();
         if (GetComponent<LightShaftBillboard>() == null)
             gameObject.AddComponent<LightShaftBillboard>();
+
+        // ── FISHING SYSTEM (P29): 호수(Water 태그) 위에서 낚시 가능 ──────────
+        // BootstrapTerrainDeco(호수 생성) 이후에 배선 — 물가 부재 시에도 시스템은 멱등 생성된다.
+        EnsureFishingSystem();
+        GiveStarterFishingRod();
 
         // ── TERRITORY BUILDER 보장 (Phase S1 후속) ────────────────────
         // GameManager가 씬에 없어 EnsureTerritoryManager가 실행되지 않던 문제 수리.
@@ -719,6 +725,72 @@ public class GameSetup : MonoBehaviour
             var eqGO = new GameObject("EquipmentManager");
             eqGO.AddComponent<EquipmentManager>();
             Debug.Log("[GameSetup] ✅ EquipmentManager 생성 — 장비 슬롯 관리 활성화 (Awake)");
+        }
+    }
+
+    // ─────────────────────────  P29 적용 붕근 시스템 배선  ─────────────────────────
+
+    /// <summary>
+    /// [P29] 낚시 시스템 + 미니게임 UI 보장 (멱등).
+    /// BootstrapTerrainDeco(호수 생성) 이후 호출 — 물가(Water 태그) 위 E키 낚시 활성화.
+    /// - FishingSystem: 싱글턴(Instance). 자기 Update에서 E키/물가 판정 — 별도 오브젝트에 부착.
+    /// - FishingUTK.Ensure(): 미니게임 UI 인스턴스화 — 자체 50ms Updater가 낚시 상태를 폴링해
+    ///   자동 오픈/닫기 한다(원본 FishingUI는 씬 배치 상시 표시였으나, 여기선 상태 폴링으로 전환).
+    /// Systems(FishingSystem)는 UI를 직접 참조하지 않으므로(순환참조 회피) UI가 상태 폴링으로 자동 표시.
+    /// </summary>
+    private void EnsureFishingSystem()
+    {
+        try
+        {
+            if (FishingSystem.Instance == null)
+            {
+                var fishGO = new GameObject("FishingSystem");
+                fishGO.AddComponent<FishingSystem>();
+                Debug.Log("[GameSetup] ✅ FishingSystem 생성 (물가 E키 낚시 활성화)");
+            }
+            else
+            {
+                Debug.Log("[GameSetup] ✅ FishingSystem 기존 Instance 재사용");
+            }
+
+            // 미니게임 UI — FishingUTK 자체 50ms Updater가 낚시 상태 폴링으로 자동 오픈/닫기.
+            FishingUTK.Ensure();
+        }
+        catch (System.Exception fishEx)
+        {
+            Debug.LogError($"[GameSetup] ⚠️ 낚시 시스템 배선 실패 — 나머지 부트 계속: {fishEx.Message}");
+        }
+    }
+
+    /// <summary>
+    /// [P29] 플레이어 시작 인벤토리에 낚시대(FishingRodItem, id=fishing_rod) 지급 (멱등).
+    /// FishingSystem.IsNearWater → HasItem("fishing_rod") 체크하므로 이 아이디와 일치시킨다.
+    /// (기존 상점은 FishingRod(tool_fishing_rod)를 팔지만, 시스템 기준은 fishing_rod — 혼동 방지로
+    ///  스타터 지급은 시스템이 체크하는 FishingRodItem로 통일.)
+    /// </summary>
+    private void GiveStarterFishingRod()
+    {
+        try
+        {
+            var inv = PlayerInventory.Instance;
+            if (inv == null)
+            {
+                Debug.LogWarning("[GameSetup] PlayerInventory.Instance 없음 — 낚시대 스타터 지급 보류");
+                return;
+            }
+            if (inv.HasItem("fishing_rod"))
+            {
+                Debug.Log("[GameSetup] ✅ 낚시대(fishing_rod) 이미 보유");
+                return;
+            }
+            if (inv.AddItem(PlayerInventory.FishingRodItem, 1))
+                Debug.Log("[GameSetup] ✅ 스타터 낚시대(FishingRodItem) 1개 지급");
+            else
+                Debug.LogWarning("[GameSetup] ⚠️ 낚시대 지급 실패 (인벤 가득 참)");
+        }
+        catch (System.Exception rodEx)
+        {
+            Debug.LogError($"[GameSetup] ⚠️ 낚시대 스타터 지급 실패: {rodEx.Message}");
         }
     }
 

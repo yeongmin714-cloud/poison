@@ -196,7 +196,7 @@ namespace ProjectName.UI
                 // 도구
                 _shopInventory.Add(new ShopItem { item = PlayerInventory.Pickaxe,    price = 60,  stock = 3,  isRare = false });
                 _shopInventory.Add(new ShopItem { item = PlayerInventory.Axe,        price = 60,  stock = 3,  isRare = false });
-                _shopInventory.Add(new ShopItem { item = PlayerInventory.FishingRod, price = 40,  stock = 5,  isRare = false });
+                _shopInventory.Add(new ShopItem { item = PlayerInventory.FishingRodItem, price = 40,  stock = 5,  isRare = false });   // [P29] 시스템 기준(fishing_rod)과 통일
             }
 
             // ===== C9-27: 씨앗 랜덤 재고 — 초기화 시점에도 1회 추첨 =====

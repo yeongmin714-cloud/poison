@@ -287,7 +287,8 @@ namespace ProjectName.Core
         // 기본 도구
         public static readonly ItemData Pickaxe      = new ItemData { id = "tool_pickaxe",     displayName = "곡괭이",  description = "광석 채굴용 도구.",          category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
         public static readonly ItemData Axe          = new ItemData { id = "tool_axe",         displayName = "도끼",     description = "벌목용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
-        public static readonly ItemData FishingRod   = new ItemData { id = "tool_fishing_rod", displayName = "낚싯대",   description = "낚시용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 20 };
+        // [P29] 낚시대는 FishingRodItem(id=fishing_rod)이 단일 정의 — 시스템(HasItem("fishing_rod")) 기준과 일치.
+        //       (기존 중복 FishingRod(tool_fishing_rod)는 사용처 0건이라 제거 — 상점/시스템 아이디 불일치 버그 방지)
 
         // ===== [Milestone B] 광물 재료 (채광 산출 → 무기/방어구/장신구 재료) =====
         public static readonly ItemData Mat_Wood  = new ItemData { id = "mat_wood",     displayName = "통나무", description = "채광/벌목으로 얻는 기본 목재. Wood 티어 장비 재료.", category = ItemCategory.Material, maxStack = 99 };
