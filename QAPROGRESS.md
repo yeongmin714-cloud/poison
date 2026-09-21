@@ -1,6 +1,36 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P28 — Ctrl+좌클릭 대상 관찰: 병사 상호작용 + 몬스터 정보창, 커밋 95339851)
+> **최종 갱신:** 2026-09-21 (P29 — 낚시 시스템 메인 씬 배선 Phase 1·2, 커밋 7918c5cb)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P29 — 낚시 시스템 배선 Phase 1·2 — 커밋 7918c5cb)
+
+> **입력**: "낚시 시스템을 구현하자" + "계획 짜봐" + "호수는 메인씬에 배치되어 있을텐데 거기서 낚시 가능하게" + "낚시대도 GLB 추가 목록에 + Phase 1부터 진행".
+
+### 조사 (근본원인 — "코드는 있는데 씬 배선 0")
+- 낚시 본체는 **이미 존재**: `FishingSystem.cs`(물가 E키→입질 대기→핀 미니게임→시간/날씨 보정 확률→물고기 3등급) + `FishingUTK.cs`(프로그레스바+스위트스팟+핀, Space/ESC).
+- **그러나 씬 배선이 0건** — `AddComponent<FishingSystem>`·`FishingUTK.Open` 호출이 전무 → Instance null, Play에서 미동작.
+- 호수는 **메인 게임 씬에 실제 존재**: `GameSetup.cs:137` → `LakeGenerator.GenerateAllLakes()` → `Water` 태그 부착. 즉 물 배치는 이미 완료 — 낚시 배선만 필요.
+- **낚시대 아이디 불일치 버그 발견**: 상점 2곳(ShopWindowUTK/ShopWindow)이 `FishingRod`(id=`tool_fishing_rod`)를 파는데 시스템은 `HasItem("fishing_rod")`(FishingRodItem) 체크 → **상점에서 사도 낚시 불가**.
+
+### P29-1 메인 씬 배선 (GameSetup.Start)
+- `BootstrapTerrainDeco`(호수 생성) 직후 `EnsureFishingSystem()` — `AddComponent<FishingSystem>`(Instance 보장) + `FishingUTK.Ensure()`.
+- `GiveStarterFishingRod()` — 스타터 낚시대(`FishingRodItem`/fishing_rod) 멱등 지급(시스템 체크 아이디와 일치).
+
+### P29-2 FishingUTK 자동 오픈/닫기 (상태 폴링, 순환참조 회피)
+- 기존 50ms `Updater.Update`에 낚시 상태(IsWaitingForBite/IsMinigameActive/IsFishing) 폴링 추가 → **대기/미니게임 중엔 자동 Open, 종료 시 CloseUI** (시스템-UI asmdef 순환참조 없이 UI가 스스로 표시). 기존 Space/ESC 입력 유지.
+
+### P29-3 낚시대 아이디 통일 (구매 후 실제 낚시 가능)
+- 상점 2곳 → `FishingRodItem`(fishing_rod)로 변경 (시스템 기준 통일).
+- 사용처 0건이 된 중복 정의 `FishingRod`(tool_fishing_rod) 제거.
+
+### P29-4 GLB 추가 목록
+- `docs/ASSET_LIST.md` — **낚시대** 추가 (P5-0, 정적 오브젝트 + 낚시 캐스팅 Two Bone IK 팔).
+
+### 검증
+- 배치컴파일 **error CS=0** + EditMode **passed**. 커밋 7918c5cb 6파일(+90/-5).
+- ⚠ 미니게임 UI는 여전히 풀 프리미티브(회색바/초록사각/빨강핀) — **Phase 3 고품질화는 별도 Phase**로 남김(이번 범위는 배선·정합). 플레이 판정 후 진행 예정.
 
 ---
 

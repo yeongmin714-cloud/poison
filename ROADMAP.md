@@ -3074,6 +3074,25 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ---
 
+## ⚔️ 2026-09-21: P29 — 낚시 시스템 메인 씬 배선 (Phase 1·2) (P29-45)
+
+> **입력**: "낚시 구현하자" + "계획 짜봐" + "호수는 메인씬에 배치되어 있을텐데 거기서 낚시 가능하게" + "낚시대 GLB 목록 추가 + Phase 1부터 진행". 커밋 7918c5cb.
+
+| 항목 | 뿌리 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 낚시 미동작 | FishingSystem/FishingUTK 코드는 존재하나 **씬 배선 0건**(Instance null) | GameSetup.Start에 EnsureFishingSystem(AddComponent+FishingUTK.Ensure) — 호수(BootstrapTerrainDeco) 이후 배선 | ✅ |
+| 물가 없음? | (사실 **이미 있음** — GameSetup가 LakeGenerator.GenerateAllLakes로 Water 태그 호수 생성) | 물 배치 불필요 — 메인 씬 호수에서 낚시 발동 | ✅ |
+| UI 표시 | FishingUTK Open 호출 0 | 자체 50ms Updater에 낚시 상태 폴링 추가 → 대기/미니게임 자동 Open, 종료 CloseUI(순환참조 회피) | ✅ |
+| 낚시대 정합 | 상점이 tool_fishing_rod 파는데 시스템은 fishing_rod 체크 → 구매해도 낚시 불가 | 상점 2곳 FishingRodItem으로 통일 + 중복 FishingRod 정의 제거 + 스타터 지급 | ✅ |
+| 낚시대 GLB | (미제작) | docs/ASSET_LIST.md 낚시대 추가 — 후속 제작 | ⬜ |
+
+**Phase 완료**: Phase 1(배선)·2(정합) ✅ / **Phase 3(고품질 미니게임 UI — 프리미티브 회색바 상향)은 별도 Phase로 남김**.
+
+### Play 판정 대기 (테스트 45)
+①메인 씬 호수가(Water 위)에서 E키 → 낚시 시작(입질 대기) ②입질 후 미니게임(프로그레스바+스위트스팟+핀) ③Space=잡기, ESC=취소 ④스타터/상점 낚시대 보유 확인 ⑤물가 밖 E키는 기존 상호작용(상점/대화/침대)으로 회귀 없음
+
+---
+
 ## ⚔️ 2026-09-21: P28 — Ctrl+좌클릭 대상 관찰 (병사 상호작용 + 몬스터 정보창) (P28-44)
 
 > **입력**: "Ctrl 누른 채 병사 좌클릭하면 F키와 동일한 병사 상호작용 창, 몬스터 클릭하면 몬스터 정보가 나오게" + "몬스터 정보에 이름/체력/스탯/레벨 UI 포함해 계획에 넣어 진행" + "진행". 커밋 95339851.
