@@ -3084,9 +3084,9 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 물가 없음? | (사실 **이미 있음** — GameSetup가 LakeGenerator.GenerateAllLakes로 Water 태그 호수 생성) | 물 배치 불필요 — 메인 씬 호수에서 낚시 발동 | ✅ |
 | UI 표시 | FishingUTK Open 호출 0 | 자체 50ms Updater에 낚시 상태 폴링 추가 → 대기/미니게임 자동 Open, 종료 CloseUI(순환참조 회피) | ✅ |
 | 낚시대 정합 | 상점이 tool_fishing_rod 파는데 시스템은 fishing_rod 체크 → 구매해도 낚시 불가 | 상점 2곳 FishingRodItem으로 통일 + 중복 FishingRod 정의 제거 + 스타터 지급 | ✅ |
-|| 낚시대 GLB | (미제작) | docs/ASSET_LIST.md 낚시대 추가 — 후속 제작 | ⬜ |
-|| 낚시대 크래프트 | (레시피 없음) | WeaponCraftDatabase Wood 티어 제작 레시피(통나무2+토끼털1, Lv2) → WeaponForgeUTK 표시 | ✅ |
-|| 미니게임 고품질화 | 프리미티브(회색바/초록사각/빨강핀) | 베이크 PNG 4종(FishingBarFrame/Sweetspot/Pin/Bite) + UTKTextureSafe.ScaleToFit + 대기 찌 표시 | ✅ |
+| 낚시대 GLB | (미제작) | docs/ASSET_LIST.md 낚시대 추가 — 후속 제작 | ⬜ |
+| 낚시대 크래프트 | (레시피 없음) | WeaponCraftDatabase Wood 티어 제작 레시피(통나무2+토끼털1, Lv2) → WeaponForgeUTK 표시 | ✅ |
+| 미니게임 고품질화 | 프리미티브(회색바/초록사각/빨강핀) | 베이크 PNG 4종(FishingBarFrame/Sweetspot/Pin/Bite) + UTKTextureSafe.ScaleToFit + 대기 찌 표시 | ✅ |
 
 **Phase 완료**: Phase 1(배선)·2(정합)·3(고품질 미니게임 UI) ✅ / GLB 낚시대는 에셋 도착 후 진행(⬜).
 
