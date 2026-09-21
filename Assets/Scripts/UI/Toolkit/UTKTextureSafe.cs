@@ -61,19 +61,41 @@ namespace ProjectName.UI.Toolkit
                 };
                 copy.SetPixels(source.GetPixels());
                 copy.Apply(false, true);   // read/write 비활성화 — GPU 전용 업로드
-                _copies[id] = copy;
-                _fifo.AddLast(copy);
-                int copyId = copy.GetInstanceID();
-                _copySource[copyId] = id;
-                _copyBorn[copyId] = Time.unscaledTime;
-                EvictOverflow();
-                return copy;
+                return RegisterCopy(id, copy);
             }
-            catch (System.Exception e)
+            catch (System.Exception)
             {
-                Debug.LogWarning("[UTKTextureSafe] 복사 실패: " + e.Message);
-                return null;
+                // [P23] CPU 읽기 실패(isReadable=0) 시 GPU CopyTexture 폴백 — UI 렌더는 CPU 읽기 불필요
+                try
+                {
+                    var gcopy = new Texture2D(source.width, source.height, source.format, source.mipmapCount > 1, false)
+                    {
+                        hideFlags = HideFlags.HideAndDontSave,
+                        name = "UTKSafe_" + source.name
+                    };
+                    UnityEngine.Graphics.CopyTexture(source, gcopy);
+                    if (gcopy == null)
+                        throw new System.InvalidOperationException("GPU 복사 실패: " + source.name);
+                    return RegisterCopy(id, gcopy);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning("[UTKTextureSafe] 복사 실패: " + e.Message);
+                    return null;
+                }
             }
+        }
+
+        /// <summary>복사본 캐시 등록(dict/FIFO/역매핑/생성시각) + 축출 후 반환 — 등록 중복 제거 헬퍼.</summary>
+        private static Texture2D RegisterCopy(int sourceId, Texture2D copy)
+        {
+            _copies[sourceId] = copy;
+            _fifo.AddLast(copy);
+            int copyId = copy.GetInstanceID();
+            _copySource[copyId] = sourceId;
+            _copyBorn[copyId] = Time.unscaledTime;
+            EvictOverflow();
+            return copy;
         }
 
         /// <summary>Background 생성 헬퍼 — 무효 텍스처면 StyleKeyword.Null.</summary>

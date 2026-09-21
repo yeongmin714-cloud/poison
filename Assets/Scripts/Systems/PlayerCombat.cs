@@ -153,7 +153,8 @@ namespace ProjectName.Systems
         {
             _mainCamera = Camera.main;
             // [P22-4] 무기 사거리 링 — 폴리곤 원 대신 SelectionRing 셰이더 고품질 링
-            PlayerRangeRing.Ensure(gameObject, () => CurrentWeaponRange);
+            // [P23] 반경 소스 = 무기 타입(Ring 내부에서 WeaponEquipManager.CurrentType 사용) — provider 폐지
+            PlayerRangeRing.Ensure(gameObject, null);
             if (_mainCamera != null)
             {
                 // Initialize Cinemachine Impulse Source

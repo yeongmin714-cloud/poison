@@ -45,6 +45,7 @@ namespace ProjectName.UI.Toolkit
             style.top = 0f;
 
             _icon = new VisualElement();
+            _icon.pickingMode = PickingMode.Ignore;     // [P23] 기본값 Position은 픽커블 — 44px 아이콘이 모든 포인터 이벤트(클릭/드래그)를 흡수하는 버그. 루트와 동일하게 시각 전용 유지
             _icon.style.width = Size;
             _icon.style.height = Size;
             _icon.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;

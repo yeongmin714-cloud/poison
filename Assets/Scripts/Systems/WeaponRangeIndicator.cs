@@ -4,6 +4,7 @@ using ProjectName.Core;
 namespace ProjectName.Systems
 {
     /// <summary>
+    /// [P23] 렌더링은 PlayerRangeRing(SelectionRing 셰이더)로 이관 — 본 클래스는 반경 데이터 단일 소스(RangeOf)만 유지. EnsureOn은 기존 경로 폴백용으로 잔존.
     /// 공격 범위 표시기 (2026-09-11 신규):
     /// 플레이어 발 아래 지면에 무기 타입별 사거리 원형 링(LineRenderer 64분할) + 전방 사거리 방향
     /// 화살 표시를 부착한다. 활(Bow)은 링 가장자리(10m)까지 이어지는 전방 방향 선, 근접(검/창)은
@@ -181,7 +182,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>타입별 사거리 — WeaponData 정적 스탯 단일 소스(타입 고정, 등급 배율 무관).</summary>
-        static float RangeOf(WeaponType type)
+        public static float RangeOf(WeaponType type)
         {
             switch (type)
             {
