@@ -17,6 +17,12 @@ namespace ProjectName.Systems
     ///   - Mine 위    → 선택 병사 전원 GuardTask.Mine 배정 + 좌클릭 소비.
     ///   그 외 좌클릭(플레이어 공격)과 Ctrl+드래그(박스 선택)는 기존 흐름 유지.
     ///
+    ///   [신규] 단순 클릭 확정 시 커서 아래 실제 GameObject를 레이캐스트로 직접 판정해
+    ///   (a) GuardPlaceholder → 병사 상호작용 통합창(F키와 동일, SoldierInteractBridge 경유),
+    ///   (b) AnimalAI(몬스터) → 몬스터 정보창(SoldierInteractBridge 몬스터 이벤트 경유 —
+    ///       Systems→UI 어셈블리 순환참조 회피) 을 우선 처리하고, 둘 다 아니면
+    ///   (c) 기존 switch(kind) 로직(Enemy/Farm/Gather/Mine)을 그대로 따른다(회귀 방지).
+    ///
     /// 드래그 선택과의 공존 (이동량으로 구분):
     ///   GuardSelectionManager는 Ctrl+좌클릭 down 시 드래그를 시작하고, 이동량이 _clickThreshold(10px)
     ///   초과한 채 release 되면 박스 선택을 확정한다. 본 라우터는 down 시 "대기 클릭"으로만 기록하고,
@@ -120,6 +126,10 @@ namespace ProjectName.Systems
             var gsm = GuardSelectionManager.Instance;
             if (gsm == null || gsm.SelectedCount == 0) return;
 
+            // [신규] 커서 아래 실제 GameObject 직접 분기 — 병사 상호작용 > 몬스터 정보 우선.
+            //   직접 대상(GuardPlaceholder/AnimalAI)을 못 찾으면 false → 기존 switch(kind) 로직 유지(회귀 방지).
+            if (TryRouteDirectTarget(mouse)) return;
+
             HoverTargetClassifier.TargetKind kind = HoverTargetClassifier.ClassifyAt(mouse);
             switch (kind)
             {
@@ -132,6 +142,61 @@ namespace ProjectName.Systems
                     AssignWorkTask(gsm, kind, mouse);
                     break;
             }
+        }
+
+        /// <summary>
+        /// [신규] Ctrl+좌클릭(단순 클릭) 대상 직접 라우팅 — 레이캐스트로 커서 아래 실제 GameObject 획득.
+        ///   (a) GuardPlaceholder → SoldierInteractBridge.RaiseInteract(guard) — 병사 상호작용 통합창
+        ///       (F키와 동일 경로) + 좌클릭 소비 후 true.
+        ///   (b) AnimalAI(태그 Monster 몬스터) → 몬스터 정보창 + 좌클릭 소비 후 true.
+        ///       Systems 어셈블리에서 UI(MonsterInfoUTK)를 직접 호출하면 asmdef 순환참조라
+        ///       SoldierInteractBridge 몬스터 이벤트(RaiseMonsterInfo)로 발화한다(동일 확립 패턴).
+        ///   둘 다 아니면 false — 호출부의 기존 switch(kind) 로직이 그대로 실행된다.
+        ///
+        /// 레이캐스트 수식은 HoverTargetClassifier.ClassifyAt과 동일:
+        ///   Camera.main.ScreenPointToRay(mouse) + Physics.RaycastAll(ray, 200f, ~0, QueryTriggerInteraction.Collide).
+        /// 몬스터는 종종 부모 루트에 AnimalAI가 있고 자식 콜라이더가 히트되므로 GetComponentInParent 필수.
+        /// </summary>
+        private static bool TryRouteDirectTarget(Vector2 mouse)
+        {
+            Camera cam = Camera.main;
+            if (cam == null) return false;
+
+            Ray ray = cam.ScreenPointToRay(mouse);
+            RaycastHit[] hits = Physics.RaycastAll(ray, 200f, ~0, QueryTriggerInteraction.Collide);
+            if (hits == null || hits.Length == 0) return false;
+
+            // RaycastAll 결과 순서는 거리 비보장 — 가장 가까운 히트부터 판정(전경 대상 우선).
+            System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            foreach (RaycastHit hit in hits)
+            {
+                if (hit.collider == null) continue;
+                var hitGo = hit.collider.gameObject;
+                if (hitGo == null) continue;
+
+                // (a) 병사 — 자식 콜라이더 히트도 부모 체인 검색으로 커버. 사망 병사는 기존 분류 로직에 위임.
+                var guard = hitGo.GetComponentInParent<GuardPlaceholder>();
+                if (guard != null && guard.IsAlive)
+                {
+                    SoldierInteractBridge.RaiseInteract(guard);   // F키 상호작용창과 동일 경로
+                    ConsumeLeftClick();
+                    Debug.Log($"[ContextCommandRouter] 병사 상호작용창 → {guard.GuardName} (직접 레이캐스트)");
+                    return true;
+                }
+
+                // (b) 몬스터 — GetComponentInParent 필수(자식 콜라이더 히트 커버). 사망체는 기존 분류 로직에 위임.
+                var ai = hitGo.GetComponentInParent<AnimalAI>();
+                if (ai != null && ai.IsAlive)
+                {
+                    SoldierInteractBridge.RaiseMonsterInfo(ai);   // MonsterInfoUTK 정보창 (브리지 이벤트 경유)
+                    ConsumeLeftClick();
+                    Debug.Log($"[ContextCommandRouter] 몬스터 정보창 → {ai.MonsterId} (직접 레이캐스트)");
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>적 위 Ctrl+좌클릭 — 기존 RTS 공격 경로 유지(회귀 방지) + 좌클릭 소비.</summary>
