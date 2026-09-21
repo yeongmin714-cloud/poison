@@ -1,6 +1,30 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P29 — 낚시 시스템 메인 씬 배선 Phase 1·2, 커밋 7918c5cb)
+> **최종 갱신:** 2026-09-21 (P29 완결 — 낚시 배선+크래프트+미니게임 고품질화, 커밋 7918c5cb+6e29fb95)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P29-B — 낚시대 크래프트 + 미니게임 고품질화 — 커밋 6e29fb95)
+
+> **입력**: "낚시대를 크래프트에서도 얻을 수 있게 추가하고 고품질화 진행".
+
+### P29-B-1 낚시대 크래프트 추가
+- `WeaponCraftDatabase._recipes`에 **낚시대(fishing_rod)** Wood 티어 레시피(**통나무2 + 토끼털1, Lv2**, Common) 추가 → `WeaponForgeUTK`(무기/도구 제작대)에 자동 표시, 제작 가능.
+- RecipeDB_SO 에셋이 존재하지 않아 정적 `_recipes` 폴백 경로 적용 — 추가 레시피가 즉시 유효.
+- 결과 아이디 `fishing_rod`는 시스템 체크(`HasItem("fishing_rod")`)·스타터 지급·상점과 **완전 일치**.
+
+### P29-B-2 미니게임 UI 고품질화 (프리미티브 제거)
+- 기존 **풀 프리미티브**(회색 바 / 초록 사각 / 빨강 4px 핀) 제거 → **베이크 PNG 4종** 신규:
+  - `FishingBarFrame`(300×34) — 진한 남-터쿼이즈 물결 트랙 + 상하 청동 베벨 테두리.
+  - `FishingSweetspot`(34×38) — 황금 발광 외곽 + 내부 청록 물색 타원(성공 구간).
+  - `FishingPin`(24×40) — 빨강-주황 유선형 화살표 핀.
+  - `FishingBite`(48×36) — 대기 중 **물결 찌**(입질 대기 표시, 신규).
+- `UTKTextureSafe.ToBackground(Resources.Load<Texture2D>("UI/<name>"))` + `ScaleMode.ScaleToFit` 적용(StatusGaugesUTK 패턴), `AddToClassList("utk-slot")`. meta `isReadable:1`.
+- `Refresh()` — 입질 대기(`IsWaitingForBite`) 시 찌 표시 + 힌트 "🎣 입질을 기다리는 중... (ESC: 취소)" 분기.
+
+### P29-B-3 검증
+- 베이크 PNG 비주얼 **vision_analyze 3회 수렴**(바=물결+청동베벨, 스위트=황금발광+청록입체, 핀=유선형볼륨).
+- 배치컴파일 **error CS=0** + EditMode **passed**. 커밋 6e29fb95 10파일(+570/-10).
 
 ---
 
