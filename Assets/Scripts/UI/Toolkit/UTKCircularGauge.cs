@@ -15,15 +15,9 @@ namespace ProjectName.UI.Toolkit
         private Color _fillColor = new Color(0.2f, 0.75f, 0.35f, 1f);
         private int _segments = 96;
         private bool _dirty;
-        private Color _trackColor = new Color(0.10f, 0.11f, 0.13f, 0.92f);  // 배경 링(트랙) — 다크
-        private bool _showTicks;
-        private Color _tickColor = new Color(0.03f, 0.04f, 0.05f, 0.6f);    // 세그먼트 마디 색
-        private float _thicknessRatio = 0.20f;                              // 반지름 대비 링 두께 비율(0.15~0.22)
-        private const int TickCount = 12;                                   // 세그먼트 마디 개수
 
         public UTKCircularGauge()
         {
-            pickingMode = PickingMode.Ignore;   // [P23-3] 게이지 루트 클릭 흡수 방지
             generateVisualContent += OnGenerateVisualContent;
         }
 
@@ -46,35 +40,6 @@ namespace ProjectName.UI.Toolkit
             set { _fillColor = value; _dirty = true; }
         }
 
-        /// <summary>배경 링(트랙) 색 — 기본 다크 rgba(0.10,0.11,0.13,0.92).</summary>
-        public Color TrackColor
-        {
-            get => _trackColor;
-            set { _trackColor = value; _dirty = true; }
-        }
-
-        /// <summary>세그먼트 마디 표시 — 링 두께를 가로지르는 방향 눈금 12개(12시부터 30° 간격).</summary>
-        public void ShowSegmentTicks(bool show)
-        {
-            if (_showTicks == show) return;
-            _showTicks = show;
-            _dirty = true;
-        }
-
-        /// <summary>세그먼트 눈금 색.</summary>
-        public Color SegmentTickColor
-        {
-            get => _tickColor;
-            set { _tickColor = value; _dirty = true; }
-        }
-
-        /// <summary>링 두께 비율(반지름 대비) — 0.15~0.22 클램프.</summary>
-        public float ThicknessRatio
-        {
-            get => _thicknessRatio;
-            set { _thicknessRatio = Mathf.Clamp(value, 0.15f, 0.22f); _dirty = true; }
-        }
-
         /// <summary>값 변경을 다음 틱에 반영 (외부 폴링 루프에서 호출).</summary>
         public void CommitIfDirty()
         {
@@ -90,17 +55,14 @@ namespace ProjectName.UI.Toolkit
             float w = resolvedStyle.width, h = resolvedStyle.height;
             if (w <= 0 || h <= 0) return;
             float radius = Mathf.Min(w, h) * 0.5f;
-            float thickness = radius * _thicknessRatio;    // 링 두께(비율 프라퍼티)
+            float thickness = radius * 0.28f;              // 링 두께
             float midR = radius - thickness * 0.5f - 2f;
 
-            // 배경 링(전원) — 트랙색
-            WriteRing(mc, midR, thickness, 1f, _trackColor);
+            // 배경 링(전원) — 디머
+            WriteRing(mc, midR, thickness, 1f, new Color(0f, 0f, 0f, 0.45f));
             // 전경 링 — 시계방향 fill (12시 시작)
             if (_fraction > 0.001f)
                 WriteRing(mc, midR, thickness, _fraction, _fillColor);
-            // 세그먼트 마디 — 링 위 방향 눈금
-            if (_showTicks)
-                WriteTicks(mc, midR, thickness, _tickColor);
         }
 
         /// <summary>호 링 메시 기록 — startAngle=12시(-90°), 시계방향 sweep.</summary>
@@ -137,37 +99,6 @@ namespace ProjectName.UI.Toolkit
                     tris[o] = (ushort)a; tris[o + 1] = (ushort)c; tris[o + 2] = (ushort)b;
                     tris[o + 3] = (ushort)b; tris[o + 4] = (ushort)c; tris[o + 5] = (ushort)d;
                 }
-            }
-
-            var mwd = mc.Allocate(verts.Length, tris.Length);
-            mwd.SetAllVertices(verts);
-            mwd.SetAllIndices(tris);
-        }
-
-        /// <summary>세그먼트 마디 — 링 두께를 가로지르는 짧은 방향 스파이크 12개(정점 4/눈금).</summary>
-        private void WriteTicks(MeshGenerationContext mc, float midR, float thickness, Color color)
-        {
-            float w = resolvedStyle.width, h = resolvedStyle.height;
-            var center = new Vector2(w * 0.5f, h * 0.5f);
-
-            float halfLen = thickness * 0.62f;   // 링 두께를 살짝 넘게 가로지름
-            float halfW = 1.1f;                  // 눈금 선두께(px)
-            var verts = new Vertex[TickCount * 4];
-            var tris = new ushort[TickCount * 6];
-
-            for (int i = 0; i < TickCount; i++)
-            {
-                float ang = (-90f + i * 360f / TickCount) * Mathf.Deg2Rad;   // 12시 시작 시계방향
-                var dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
-                var perp = new Vector2(-dir.y, dir.x);
-                int b = i * 4;
-                verts[b] = new Vertex { position = center + dir * (midR - halfLen) - perp * halfW, tint = color };
-                verts[b + 1] = new Vertex { position = center + dir * (midR + halfLen) - perp * halfW, tint = color };
-                verts[b + 2] = new Vertex { position = center + dir * (midR + halfLen) + perp * halfW, tint = color };
-                verts[b + 3] = new Vertex { position = center + dir * (midR - halfLen) + perp * halfW, tint = color };
-                int o = i * 6;
-                tris[o] = (ushort)b; tris[o + 1] = (ushort)(b + 2); tris[o + 2] = (ushort)(b + 1);
-                tris[o + 3] = (ushort)(b + 1); tris[o + 4] = (ushort)(b + 2); tris[o + 5] = (ushort)(b + 3);
             }
 
             var mwd = mc.Allocate(verts.Length, tris.Length);
