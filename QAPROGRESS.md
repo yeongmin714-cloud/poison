@@ -1,6 +1,33 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-21 (P31 — 국가별 마을 6개 배치 + 흙길 + 상점 실외 + 북쪽 눈밭 복원)
+> **최종 갱신:** 2026-09-22 (P32 — Figma→Unity 파이프라인 테스트: 인벤 우드/양피지 리스타일, 커밋 e6c92a9c)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ P32 — Figma→Unity 파이프라인 테스트: 인벤 리스타일 — 커밋 e6c92a9c)
+
+> **입력**: Figma Design 파일(02vPXOGzFJUUYTaEPSVz3R "제목 없음" — wood-rpg-inventory 컴포지션)+개인 토큰. "테스트로 인벤토리만 UI 변경해봐바 실제 적용되는지 확인".
+
+### P32-A Figma API 파이프라인 검증
+- 토큰(/home/korea/.hermes/figma_token, 600) → `/v1/files` 노드트리 파싱(이름/size/fills/radius/텍스트 수치화) → `/v1/images?ids=..&scale=2` 렌더 → S3 다운로드 → PIL 알파 실측.
+- **진짜 알파 확인**: 패널 노드(3:5) 렌더 = 투명 14.9%+모서리 (0,0,0,0) — P24 가짜투명 문제 원천 차단.
+- **함정 규약 확정**: 최상위 프레임(wood-rpg-inventory)은 크림 배경 fill 포함 렌더(알파 100% 불투명) → **에셋은 배경 없는 요소 노드 단위로 뽑는다**.
+- Make 파일(figma.com/make)은 files API 미지원("File type not supported") — Design 파일만 가능.
+
+### P32-B 디자인 스펙 추출 (노드트리 실측)
+- 패널 #F4E7D8 r=16 / 잉크·라벨 #6B4A36 / 빈슬롯 패턴 #5A3B2B / 액센트 앰버 #E4A163 / 디바이더 #D8C1A8 / 닫기버튼 #3A221C r=6 / 레어도 채움: 주황 #FF7700·퍼플 #9F3FF0·블루 #0099FF·브라운 #85583E / 슬롯 컨테이너 68×68 r=8.
+
+### P32-C 에셋 배선+리스타일 (기능 무수정 — 인벤 창 한정)
+- Figma 렌더 에셋 2종: **InventorySlotWood** 168×168(빈 슬롯 컨테이너 @2x)+**InventoryCloseBtnWood** 56×56 → Resources/UI+meta isReadable:1.
+- InventoryWindowUTK 인라인 리스타일: 패널 양피지+1px 라인+r16, 잉크색 라벨, 슬롯=베이크 PNG ScaleToFit(장비 8슬롯+그리드 전체 — 공용 UTKSlot 미수정, 타창 회귀 0), 레어도 팔레트 정렬, 호버 앰버 틴트(등급색 복원 userData), 닫기 버튼 베이크 적용(✕ 글리프 포함).
+- 유지 실측: 드래그/드롭/우클릭/설명/폴링/P16-3 가드/GetAllSlots 전부 원본.
+- ⚠️ 수리: **CS1061 — IStyle에 borderWidth/borderColor 쇼트핸드 없음(USS 문법과 C# 혼동)** → borderTop/Bottom/Left/Right Width/Color 개별 속성으로.
+
+### 검증
+- 배치컴파일 **error CS=0** + EditMode **전부 통과**. 커밋 e6c92a9c 푸시.
+
+### Play 판정 대기 (테스트 43)
+①인벤 창이 양피지(크림) 배경+라운드로 변경 ②슬롯이 우드 베이크 스타일(빈 슬롯=어두운 패턴) ③등급 테두리가 팔레트색(블루/퍼플/주황/브라운) ④라벨 다크브라운 ⑤닫기 버튼 베이크 외형 ⑥드래그/우클릭/설명 기능 회귀 없음 ⑦타 창(창고/설명) 미변경 확인
 
 ---
 
