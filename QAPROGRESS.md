@@ -1,6 +1,35 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-20 (P22 — 고품질 시각/액션 전환 7건, 커밋 2d7dc525 / QAPROGRESS 복구 커밋)
+> **최종 갱신:** 2026-09-21 (P23 — 테스트39 실측 3건 수리, 커밋 a821bec3)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-21 ✅ P23 — 테스트 39 실측 3건 수리 — 커밋 a821bec3)
+
+> **입력**: 테스트 39.mp4(테스트 10 씬) + 사용자 리포트 3건(플레이어 주위 이상한 푸른 원 / Ctrl 시 커서 미등장 / UI창 좌·우클릭 무반응) + 로그 `[UTKTextureSafe] 복사 실패 (Texture 'cursor_arrow')`.
+
+### P23-1 이상한 푸른 거대 원 — **P22-4 링의 잘못된 반경 소스 + 중복 링**
+- 로그 실측: `[WeaponRangeIndicator] 부착` + `[Range] 사거리 갱신: Spear 4m`(구형 링 정상)과 **동시에** P22-4 PlayerRangeRing 상시 표시 — **링 2개 중복**.
+- 뿌리: PlayerCombat.Start가 `Ensure(gameObject, () => CurrentWeaponRange)`로 부착하고 `CurrentWeaponRange = max(_maxRange 8, _autoAimRange 15) = 15m` → **지름 30m 링이 맨손 포함 항상 켜짐**(영상 f12 실측: 화면 가로 150~200% 거대 링, SelectionRing 회전 호라 계속 도는 것처럼 보임). 자동조준 범위를 사거리 링으로 그린 설계 오류.
+- 수리: PlayerRangeRing을 **WeaponEquipManager.CurrentType 기반**으로 교체(반경=WeaponRangeIndicator.RangeOf — Sword 2.5/Spear 4/Bow 10/Fist 2, **맨손(Fist) 숨김** — 구형 지표와 동일 조건) + TestSetup 2곳(TestTerritoryCombatSetup/TestAllInOneSetup)의 구형 EnsureOn 주석화(중복 제거). WeaponRangeIndicator.RangeOf만 public 승격(반경 데이터 단일 소스), 렌더링은 PlayerRangeRing 담당.
+- 추가 수리: 발 위치 보정 — 루트=캡슐 중심 계약이라 기존 localPosition (0,0.02,0)은 허리 높이에 붙는 결함 → `0.02 - (cc.height/2 - cc.center.y)` **매 프레임 보정**(구르기 중 cc.height 50% Lerp 대응).
+
+### P23-2 커서 미표시 — **PNG 임포트 isReadable 뿌리**
+- 로그 실측: `[UTKTextureSafe] 복사 실패: GetPixels ... not readable (Texture 'cursor_arrow')`. 커서 PNG 5종(+GaugeHeart/Bolt)이 Unity 기본 임포트 `isReadable: 0` → GetPixels 예외 → ToBackground가 StyleKeyword.Null → 아이콘 배경 없음 → **OS 커서는 CursorVisibilityController가 항상 숨김이라 커서가 아예 안 보임**. 파일 추가 불필요(아이콘 파일은 존재).
+- 수리: ①UTKTextureSafe.GetSafe에 **GPU CopyTexture 폴백** — GetPixels 실패 시 `new Texture2D(w,h,source.format,mip>1)` + `Graphics.CopyTexture`(CPU 읽기 불필요, UI 렌더용) 2단계 폴백, 캐시 등록은 RegisterCopy 헬퍼로 단일화 ②meta isReadable 0→1×7.
+
+### P23-3 UI창 좌/우클릭 무반응 — **커서 오버레이 자식이 클릭 흡수**
+- 뿌리: UTKCursorOverlay 루트는 PickingMode.Ignore인데 **자식 _icon이 기본값(픽커블)** → 44px 아이콘이 항상 마우스 밑에 BringToFront(16ms) → **모든 포인터 이벤트(좌/우/드래그)가 커서 아이콘에 흡수**되어 창/버튼/월드 클릭 전부 차단.
+- 수리: `_icon.pickingMode = PickingMode.Ignore` 1줄. 교훈: **마우스 위치에 상시 배치되는 오버레이의 자식 요소는 반드시 pickingMode Ignore — 루트만 Ignore하면 자식이 그대로 클릭을 먹는다.**
+
+### 컴파일 수리
+- CS0234 1건: `UnityEngine.Rendering.Graphics` 미존재 → **UnityEngine.Graphics.CopyTexture**(Graphics는 루트 네임스페이스).
+
+### 검증
+- 배치컴파일 **error CS=0** + EditMode **전부 통과**. 커밋 a821bec3 푸시.
+
+### Play 판정 대기 (테스트 40)
+①맨손=링 0개 / 무기 장착 시 타입별 1개 링(창 8m 지름 — 지름=2×RangeOf, 구형보다 2배 넓게 보임은 지름=반경×2 계약상 정상) ②거대 30m 링 소멸 ③마우스 따라오는 커서 아이콘(검/곡괭이/삽/호미/화살표) 표시 ④UI창(인벤/창고) 좌·우클릭 정상 ⑤하트/번개 게이지 아이콘 표시 ⑥Ctrl 컨텍스트 커서 동작
 
 ---
 

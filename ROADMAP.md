@@ -3000,6 +3000,22 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 
 ---
 
+## ⚔️ 2026-09-21: P23 — 테스트39 실측 3건 수리 (P23-39)
+
+> **입력**: 테스트 39 영상 + 사용자 리포트 3건 + Editor.log. 커밋 a821bec3.
+
+| 항목 | 뿌리 원인 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 이상한 푸른 거대 원(상시 회전 링) | P22-4 PlayerRangeRing이 CurrentWeaponRange=max(8,15)=15m(지름 30m)을 맨손 상시 표시 + 구형 WeaponRangeIndicator와 링 중복 | 반경/표시 = WeaponEquipManager.CurrentType 기반(RangeOf 단일 소스, Fist 숨김) + TestSetup 구형 EnsureOn 제거 + 발 위치 매 프레임 보정 | ✅ |
+| Ctrl 커서 미표시 | cursor PNG 5종(+GaugeHeart/Bolt) isReadable:0 → GetPixels 실패 → 아이콘 배경 Null(OS 커서는 숨김 상태) | UTKTextureSafe GPU CopyTexture 폴백 + meta isReadable 0→1×7 | ✅ |
+| UI창 좌/우클릭 무반응 | 커서 오버레이 자식 _icon 기본 픽커블 + 마우스 밑 BringToFront(16ms) → 모든 포인터 이벤트 흡수 | _icon.pickingMode=Ignore | ✅ |
+| 검증 | — | 배치컴파일 CS=0(UnityEngine.Graphics 네임스페이스 수리 1건) + EditMode 전부 통과 | ✅ |
+
+### Play 판정 대기 (테스트 40)
+①맨손=링 없음 / 무기별 타입 링 1개 ②30m 링 소멸 ③커서 아이콘 표시+추적 ④UI창 클릭 정상 ⑤게이지 아이콘 ⑥Ctrl 컨텍스트 커서
+
+---
+
 ## Phase 68: 🎨 UI Toolkit 전면 마이그레이션 (1순위 — 진행 중)
 
 > **결정(2026-09-17):** 모든 UI = UI Toolkit(UXML/USS) 방식. IMGUI 신규 금지.
