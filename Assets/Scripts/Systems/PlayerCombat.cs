@@ -192,12 +192,18 @@ namespace ProjectName.Systems
                 if (_bowDrawing)
                 {
                     _bowDrawHeldTime += Time.deltaTime;
+                    BowAimState.UpdatePower(Mathf.Clamp01(_bowDrawHeldTime / BowDrawMaxHold)); // [P25-C1] 리티클 파워
                 }
                 if (Mouse.current.leftButton.wasReleasedThisFrame && _bowDrawing)
                 {
                     bool wasDrawing = _bowDrawing;
                     _bowDrawing = false;
-                    if (wasDrawing) ReleaseBow(Mathf.Clamp01(_bowDrawHeldTime / BowDrawMaxHold));
+                    if (wasDrawing)
+                    {
+                        float relPower = Mathf.Clamp01(_bowDrawHeldTime / BowDrawMaxHold);
+                        BowAimState.Release(relPower >= BowMinFire, relPower);   // [P25-C1] 릴리즈(탭 캔슬/발사 페이드)
+                        ReleaseBow(relPower);
+                    }
                 }
             }
 
@@ -247,6 +253,7 @@ namespace ProjectName.Systems
                 {
                     _bowDrawing = true;
                     _bowDrawHeldTime = 0f;
+                    BowAimState.Begin();   // [P25-C1] 리티클 드로 시작
                     AttackSoundLayerManager.PlayBowDraw(); // [활 드로] 좌클릭 press — 당김 스트레치 사운드 발화
                     return;
                 }
@@ -563,6 +570,8 @@ namespace ProjectName.Systems
             // [70차 후속19/C1·C6] 발사 성공 — 소형 카메라 킥(활 전용) + 파워 기억(명중 시 크리틱 연출용)
             CombatCameraEffects.PlayFireKick();
             LastBowPower = power;
+            // [P25-C2] 발사 머즐 퍼프 — 활 위치에서 작은 먼지 퍼프(발사 연출).
+            ArrowProjectile.SpawnMuzzlePuff(origin);
             // [TEST25-66차] 발사 성공 실측 로그 — 화살 비행(ArrowProjectile) + ArcheryShot(발사 애니) 동시 고정.
             Debug.Log("[PlayerCombat] 🏹 활 발사 성공 — 화살 비행(ArrowProjectile) + ArcheryShot(활 사격 애니)");
 

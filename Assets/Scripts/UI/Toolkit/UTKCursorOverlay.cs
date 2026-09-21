@@ -82,13 +82,37 @@ namespace ProjectName.UI.Toolkit
             style.left = px - Size * 0.5f;   // 아이콘 중심 = 마우스 포인터
             style.top = py - Size * 0.5f;
             BringToFront();
+
+            // [P25-B] 기본 숨김 게이트 — 16ms(빠른 응답)로 갱신. Ctrl 홀드(컨텍스트 아이콘)
+            //   또는 UI 호버(화살표 반투명)에서만 표시. 활 드로 중엔 리티클이 대체하므로 숨김.
+            UpdateVisibility();
+        }
+
+        /// <summary>[P25-B] 표시 조건: ①Ctrl 홀드 or ②UI 호버 or ③활 드로(리티클 대체) — 그 외엔 숨김.</summary>
+        private void UpdateVisibility()
+        {
+            bool drawing = ProjectName.Systems.BowAimState.Drawing;
+            if (drawing)
+            {
+                if (_icon.style.display != DisplayStyle.None) _icon.style.display = DisplayStyle.None;
+                return;
+            }
+            bool ctrlHeld = UnityEngine.InputSystem.Keyboard.current != null
+                && (UnityEngine.InputSystem.Keyboard.current.ctrlKey.isPressed
+                    || UnityEngine.InputSystem.Keyboard.current.leftCtrlKey.isPressed
+                    || UnityEngine.InputSystem.Keyboard.current.rightCtrlKey.isPressed);
+            bool overUI = ProjectName.Core.UITransitionState.PointerOverUI;
+            bool show = ctrlHeld || overUI;
+            _icon.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            _icon.style.opacity = overUI ? 0.45f : 0.92f;
         }
 
         private void UpdateKind()
         {
-            // UI 위에서는 화살표 유지(반투명) — 버튼 호버 가독성
+            // [P25-B] 숨김 상태(기본/드로/비 Ctrl)에서는 분류 생략
+            if (_icon.style.display == DisplayStyle.None) return;
+
             bool overUI = ProjectName.Core.UITransitionState.PointerOverUI;
-            _icon.style.opacity = overUI ? 0.45f : 0.92f;
             if (overUI) { if (_lastKind != HoverTargetClassifier.TargetKind.None) { SetIcon(_arrow); _lastKind = HoverTargetClassifier.TargetKind.None; } return; }
 
             var kind = HoverTargetClassifier.ClassifyAt(

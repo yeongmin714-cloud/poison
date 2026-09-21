@@ -18,6 +18,7 @@ namespace ProjectName.Systems
         private float _elapsed = 0f;
         private Rigidbody _rb;
         private Collider _collider;
+        private TrailRenderer _trail;      // [P25-C3] 소형 밝은 트레일
         private bool _stuck = false;    // 명중/지면 꽂힘 시 true — 회전 정렬·충돌 재처리 방지
         private float _wobbleTime = -1f;   // [P22-3] 박힘 직후 미세 진동 타이머
         private Quaternion _stuckRotation;
@@ -29,10 +30,22 @@ namespace ProjectName.Systems
         {
             _rb = GetComponent<Rigidbody>();
             _collider = GetComponent<Collider>();
-            // [P20-4 수리] 트레일 완전 제거 — "긴 선만 뒤따라 화살이 날아가는 느낌이 안 든다" 요구.
-            //   TrailRenderer 부착/설정 코드 전면 삭제. 꼬리 없이 화살 본체만 비행.
-            var legacyTrail = GetComponent<TrailRenderer>();
-            if (legacyTrail != null) Destroy(legacyTrail);
+            // [P25-C3] 소형 밝은 트레일 복원 — P20-4가 "긴 선"이라 제거했던 원인은 과장된
+            //   시간(1.6s)·폭(0.45) 때문. 예시(BotW) 스타일: 짧고(0.4s) 가는(0.10→0.02)
+            //   화이트→하늘색 테이퍼로 비행 감을 살린다. 박힘 시 _trail.enabled=false로 제거.
+            _trail = GetComponent<TrailRenderer>();
+            if (_trail == null) _trail = gameObject.AddComponent<TrailRenderer>();
+            _trail.time = 0.4f;
+            _trail.startWidth = 0.10f;
+            _trail.endWidth = 0.02f;
+            _trail.minVertexDistance = 0.05f;
+            var trailShader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            _trail.material = new Material(trailShader != null ? trailShader : Shader.Find("Sprites/Default"));
+            var tgrad = new Gradient();
+            tgrad.SetKeys(
+                new[] { new GradientColorKey(new Color(1f, 0.98f, 0.9f), 0f), new GradientColorKey(new Color(0.75f, 0.85f, 1f), 1f) },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.85f, 0.25f), new GradientAlphaKey(0.15f, 0.7f), new GradientAlphaKey(0f, 1f) });
+            _trail.colorGradient = tgrad;
         }
 
         /// <summary>화살 발사</summary>
@@ -383,6 +396,107 @@ namespace ProjectName.Systems
             Object.Destroy(go, 1.2f);
         }
 
+        /// <summary>[P25-C3] 박힘 시 트레일 제거 헬퍼.</summary>
+        private void DisableTrail()
+        {
+            if (_trail != null) _trail.enabled = false;
+        }
+
+        /// <summary>[P25-C2] 발사 머즐 퍼프 — 활 위치에서 짧고 작게(0.25s, 6입자).</summary>
+        public static void SpawnMuzzlePuff(Vector3 pos)
+        {
+            var soft = Resources.Load<Texture2D>("UI/shadow_glow");
+            var go = new GameObject("BowMuzzlePuff");
+            go.transform.position = pos;
+            var ps = go.AddComponent<ParticleSystem>();
+            var main = ps.main;
+            main.duration = 0.25f;
+            main.loop = false;
+            main.startLifetime = 0.22f;
+            main.startSpeed = 0.6f;
+            main.startSize = 0.18f;
+            main.startColor = new Color(0.85f, 0.8f, 0.7f, 0.85f);
+            main.gravityModifier = -0.05f;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Hemisphere;
+            shape.radius = 0.06f;
+            var emission = ps.emission;
+            emission.rateOverTime = 0f;
+            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 6) });
+            var tex = soft != null ? soft : Texture2D.whiteTexture;
+            var mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
+            mat.mainTexture = tex;
+            mat.color = new Color(0.9f, 0.85f, 0.75f, 0.8f);
+            var renderer = go.GetComponent<ParticleSystemRenderer>();
+            if (renderer != null)
+            {
+                renderer.material = mat;
+                renderer.renderMode = ParticleSystemRenderMode.Billboard;
+            }
+            var col2 = ps.colorOverLifetime;
+            col2.enabled = true;
+            var grad = new Gradient();
+            grad.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(0.8f, 0f), new GradientAlphaKey(0f, 1f) });
+            col2.color = grad;
+            Object.Destroy(go, 0.6f);
+        }
+
+        /// <summary>[P25-C4] 명중 별 섬광 — StarFlare 텍스처 Quad 빌보드, 0.15s 스케일업+페이드 후 소멸.</summary>
+        public static void SpawnStarFlare(Vector3 pos)
+        {
+            var tex = Resources.Load<Texture2D>("UI/StarFlare");
+            if (tex == null) return;
+            try
+            {
+                var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                go.name = "ArrowStarFlare";
+                go.transform.position = pos + new Vector3(0f, 0.7f, 0f);
+                go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);   // 탑다운 카메라 기준 수평 빌보드
+                go.transform.localScale = Vector3.one * 0.35f;
+                var mr = go.GetComponent<MeshRenderer>();
+                if (mr != null)
+                {
+                    var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                    mat.mainTexture = tex;
+                    mat.color = new Color(1f, 1f, 0.95f, 1f);
+                    mr.material = mat;
+                }
+                go.AddComponent<StarFlareAnim>();
+            }
+            catch (System.Exception e)
+            {
+                Debug.Log("[Arrow][P25-C4] 별 섬광 생성 실패: " + e.ToString());
+            }
+        }
+
+        /// <summary>별 섬광 애니 — 0.15s 스케일업(0.35→1.0) + 0.2s 알파 페이드 후 소멸.</summary>
+        private class StarFlareAnim : MonoBehaviour
+        {
+            private float _t = 0f;
+            private Material _mat;
+            private void Awake()
+            {
+                var mr = GetComponent<MeshRenderer>();
+                if (mr != null) _mat = mr.material;
+            }
+            private void Update()
+            {
+                _t += Time.deltaTime;
+                float grow = Mathf.Clamp01(_t / 0.15f);          // 0.15s 스케일업
+                transform.localScale = Vector3.one * (0.35f + 0.65f * grow);
+                float fadeStart = 0.15f;
+                if (_t > fadeStart && _mat != null)
+                {
+                    float f = Mathf.Clamp01((_t - fadeStart) / 0.2f);  // 0.2s 페이드
+                    _mat.color = new Color(1f, 1f, 0.95f, 1f - f);
+                }
+                if (_t > 0.4f) { Object.Destroy(gameObject); }
+            }
+        }
+
         private void OnTriggerEnter(Collider other)
         {
             // 적 감지 — 몬스터/적 병사 + 영주. [TEST21-FOLLOWUP] Guard/DraculaLord 추가.
@@ -417,23 +531,11 @@ namespace ProjectName.Systems
                 CombatVFXController.ShowDamageNumber(other.transform.position + Vector3.up * 1.0f,
                     Mathf.RoundToInt(_damage), new Color(1f, 0.85f, 0.4f));
 
-                // [2026-09-17] 박힘(stick) — 즉시 제거 대신 화살을 타겟의 자식으로 부모 변경해
-                //   6초간 몸통에 박힌 채 잔존시킨다. worldPositionStays:true로 월드 위치/회전 유지.
-                _stuck = true;
-                _wobbleTime = 0f;                                // [P22-3] 타겟 박힘 진동
-                _stuckRotation = transform.rotation;
-                _lifetime = Mathf.Min(_lifetime, _elapsed + 6f); // 타겟에 6초간 박힘
-                if (_rb != null)
-                {
-                    _rb.isKinematic = true;
-                    _rb.useGravity = false;
-                    _rb.linearVelocity = Vector3.zero;
-                }
-                if (_collider != null) _collider.enabled = false; // 중복 재명중 방지
-                if (hitGO != null)
-                {
-                    transform.SetParent(hitGO.transform, true);
-                }
+                // [P25-C4 안1] 적 명중 = 별 섬광 + 화살 소멸(예시 소멸형 절충).
+                //   기존 6초 타겟 박힘은 소멸로 대체 — 섬광/데미지 숫자/히트스톱/임팩트음이 즉각 피드백.
+                DisableTrail();
+                SpawnStarFlare(hitPoint);
+                Destroy(gameObject);
             }
             else if (isOwnSoldier)
             {
@@ -446,6 +548,7 @@ namespace ProjectName.Systems
                 _lifetime = Mathf.Min(_lifetime, _elapsed + 2f); // 2초 후 소멸
                 if (_rb != null) _rb.linearVelocity = Vector3.zero;
                 if (_collider != null) _collider.enabled = false; // 중복 충돌 방지
+                DisableTrail();                                  // [P25-C3] 박힘 트레일 제거
 
                 // [P22-3] 박힘 진동 시작 + 지면 먼지 퍼프 1회(베이크 소프트 텍스처 파티클 — 과장 없음)
                 _wobbleTime = 0f;

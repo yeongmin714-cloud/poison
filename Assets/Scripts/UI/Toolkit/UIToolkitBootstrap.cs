@@ -70,6 +70,8 @@ namespace ProjectName.UI.Toolkit
             StatusGaugesUTK.Ensure();
             // [P22-2] 화면 커서 오버레이 (3D 앵커 커서 폐기 — 항상 정확히 마우스 위치 표시)
             UTKCursorOverlay.Ensure();
+            // [P25-C1] 활 조준 리티클 (기본 숨김 — 드로 시 표시)
+            BowAimReticleUTK.Ensure();
             // [UTK] 원본 IMGUI 이름표/헤드UI 3종 은퇴 — NameplateOverlayUTK가 데이터·표시 규칙을 계승.
             ProjectName.Systems.GuardHeadUI.s_retired = true;
             ProjectName.Systems.MonsterHeadUI.s_retired = true;
