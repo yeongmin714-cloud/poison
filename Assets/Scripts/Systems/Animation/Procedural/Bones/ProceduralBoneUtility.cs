@@ -521,7 +521,9 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 }
                 var sortedPairs = pairs.OrderBy(p =>
                 {
-                    if (!hasHead) return 0f;
+                    // [2026-09-22 수리] head판정=False일 때 정렬 키가 전부 0 → 앞/뒤 배치가 임의가 되는
+                    // 회귀 수리 — 이전 휴리스틱(z 평균)으로 폴백.
+                    if (!hasHead) return -(p.a.local.z + p.b.local.z) * 0.5f;
                     Vector3 midW = (p.a.chain[0].position + p.b.chain[0].position) * 0.5f;
                     return -Vector3.Distance(midW, headTip); // 머리에서 가까운 페어 = 앞다리
                 }).ToList();
