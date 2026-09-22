@@ -75,9 +75,7 @@ public static class FixMainScene
             "ProjectName.Systems.AutoMissionManager",
             "ProjectName.Systems.ArenaSystem",
             "ProjectName.Systems.AssassinationCutscene",
-            "ProjectName.Systems.Animation.Neural.BatchInferenceManager",
-            "ProjectName.Systems.Animation.Neural.MLRuntimeManager",
-            "ProjectName.Systems.Animation.Neural.ProgressiveRolloutManager",
+            // [2026-09-22 뉴럴 애니 제거] BatchInferenceManager/MLRuntimeManager/ProgressiveRolloutManager 등록 항목 퇴역.
             // UI
             "ProjectName.UI.UIManager",
             "ProjectName.UI.AchievementSystem",
@@ -287,9 +285,8 @@ public static class FixMainScene
         mountSys.enabled = false;
 
         // ================================================================
-        // 14. NeuralModelAutoSetup (Editor script, no namespace)
+        // 14. [2026-09-22 뉴럴 애니 제거] NeuralModelAutoSetup 호출 퇴역(스크립트 삭제).
         // ================================================================
-        NeuralModelAutoSetup.AutoSetupModelDatabase();
 
         // ================================================================
         // 15. SpecialCreatureAnimator Stub (if missing)
@@ -1196,11 +1193,7 @@ namespace ProjectName.Systems.Animation.Procedural
             }
         }
 
-        var db = Resources.Load<ProjectName.Systems.Animation.Neural.NeuralModelDatabase>("NeuralModelDatabase");
-        if (db != null)
-            Debug.Log($"NeuralModelDatabase: {db.Count} policies registered");
-        else
-            Debug.LogWarning("NeuralModelDatabase not found!");
+        // [2026-09-22 뉴럴 애니 제거] NeuralModelDatabase 점검 블록 퇴역(시스템 삭제).
 
         // Save the scene
         EditorSceneManager.SaveScene(scene, "Assets/Scenes/MainScene.unity");

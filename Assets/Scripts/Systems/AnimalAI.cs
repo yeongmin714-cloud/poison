@@ -4,7 +4,6 @@ using UnityEngine;
 using System.Collections; // [Phase L] 사망 시 다운 모션 + 지연 파괴 코루틴용
 using ProjectName.Core;
 using ProjectName.Core.Data;
-using ProjectName.Systems.Animation.Neural;
 // [2026-09-14(50차)] 2족 절차 애니 연결 — IVelocityProvider/ProceduralAnimationController 참조용
 using ProjectName.Systems.Animation.Procedural;
 #pragma warning disable 0414
@@ -80,7 +79,6 @@ namespace ProjectName.Systems
         // Rig animation
         private RigAnimationController _rigAnim;
         private AnimationRiggingSetup _rigSetup;
-        private NeuralAnimationController _neuralAnim;
 
         // [2026-09-14(49차)] 4족 절차 애니메이션 연결 — AI 이동 속도를 애니에 피드(다리 미동작 수리).
         // ModelAnimatorAssigner.SetupQuadruped가 몬스터에 늦게 부착할 수 있어 지연 탐색 재시도.
@@ -195,11 +193,7 @@ namespace ProjectName.Systems
                     _rigAnim = gameObject.AddComponent<RigAnimationController>();
                 }
             }
-
-            // NeuralAnimationController 설정
-            _neuralAnim = GetComponent<NeuralAnimationController>();
-            if (_neuralAnim == null)
-                _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
+            // [2026-09-22 뉴럴 애니 제거] NeuralAnimationController 부착 경로 퇴역 — 절차/클립 경로 단일화.
         }
 
         private void Start()
@@ -783,9 +777,6 @@ namespace ProjectName.Systems
                     Debug.LogWarning($"[AnimalAI] ⚠️ {_monsterId}: RigAnimationController/QuadrupedProceduralAnimation 없음 → 공격 애니메이션 미출력");
                 }
             }
-
-            // Neural Animation: Combat 정책으로 전환
-            _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Combat);
 
             // 🐉 MonsterSkillSystem: 스킬이 있는 몬스터는 스킬 우선 사용
             if (MonsterSkillSystem.Instance != null)
@@ -1468,9 +1459,6 @@ namespace ProjectName.Systems
                     Debug.LogWarning($"[AnimalAI] ⚠️ {_monsterId}: RigAnimationController/QuadrupedProceduralAnimation 없음 → 공격 애니메이션 미출력 (어그로)");
                 }
             }
-
-            // Neural Animation: Combat 정책으로 전환
-            _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Combat);
 
             // 🐉 MonsterSkillSystem: 스킬이 있는 몬스터는 스킬 우선 사용
             if (MonsterSkillSystem.Instance != null && _aggroTarget != null)

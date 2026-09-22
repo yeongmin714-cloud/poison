@@ -259,8 +259,7 @@ namespace ProjectName.UI
         {
             DestroyAll<ProjectName.Systems.Animation.ModelAnimatorAssigner>(root);
             DestroyAll<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>(root);
-            DestroyAll<ProjectName.Systems.Animation.Neural.NeuralAnimationController>(root);
-            DestroyAll<ProjectName.Systems.Animation.Neural.HybridAnimationController>(root);
+            // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid 컴포넌트 정리 라인 퇴역(시스템 삭제).
             DestroyAll<ProjectName.Systems.Animation.Procedural.Bones.ProceduralBoneMap>(root); // 마지막
         }
 

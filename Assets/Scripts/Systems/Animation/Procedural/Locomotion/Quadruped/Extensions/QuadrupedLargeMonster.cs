@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -371,7 +371,7 @@ namespace ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped.Extensio
     /// 대형 몬스터용 MonoBehaviour 확장 포인트.
     /// 이 컴포넌트를 대형 몬스터 프리팹에 추가.
     /// </summary>
-    [Obsolete("Use NeuralAnimationController with ONNX policies instead. See MIGRATION_GUIDE_PHASE46.md", false)]
+    [Obsolete("Legacy path — use the clip/procedural pipeline (HumanoidClipDriver+*_AC or Quadruped/Procedural controllers).", false)]
     public class QuadrupedLargeMonster : MonoBehaviour
     {
         [Header("크기 & 질량")]

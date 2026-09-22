@@ -3,7 +3,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Systems.Animation.Procedural;
-using ProjectName.Systems.Animation.Neural;
 using System.Linq;
 using ProjectName.Core;
 
@@ -148,10 +147,6 @@ namespace ProjectName.Systems
         // Procedural animation (PlayerModel 자식에 있음)
         private ProceduralAnimationController _proceduralAnim;
 
-        // Neural animation (같은 GameObject에 있음)
-        private NeuralAnimationController _neuralAnim;
-        private HybridAnimationController _hybridAnim;
-
         // AA3: 접지감용 동적 블롭 섀도우 (Start에서 1회 GetOrAdd 부착)
         private BlobShadow _blobShadow;
 
@@ -227,10 +222,7 @@ namespace ProjectName.Systems
                             _proceduralAnim = model.GetComponent<ProceduralAnimationController>();
                     }
 
-                    // 애니 정책(2026-09-05): Neural/Hybrid 보류 — Player_AC(HumanoidClipDriver) 단일 경로.
-                    // Phase 67 유산 자동부착 제거. _neuralAnim/_hybridAnim은 씬에 명시 배치된 경우에만 GetComponent로 획득.
-                    _neuralAnim = GetComponent<NeuralAnimationController>();
-                    _hybridAnim = GetComponent<HybridAnimationController>();
+                    // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid 획득 경로 퇴역 — Player_AC(HumanoidClipDriver) 단일 경로.
 
                     // 스폰 위치 적용 (PlayerSpawnConfig에서 읽어옴 — 테스트씬과 MainScene 동기화)
                     Vector3 spawnPos = PlayerSpawnConfig.SpawnPosition;

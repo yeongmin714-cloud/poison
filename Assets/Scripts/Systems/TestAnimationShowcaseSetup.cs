@@ -1,4 +1,12 @@
-// Test_11_AnimationShowcase (2026-09-20): 몬스터 22종 / 병사 3모델 / NPC 11종 애니메이션 쇼케이스 테스트 씬 셋업.
+// Test_11_AnimationShowcase (2026-09-22 수리): 몬스터 6종(외형군 대표 1마리) / 병사 3모델 / NPC 1명 애니메이션 쇼케이스 셋업.
+// [2026-09-22 수리 배경] 22종 전량 스폰 시 ①렉(NeuralsModels 정책 파일 부재 상태에서 몬스터마다
+//   "Unity Sentis initialized" ×22 + NeuralModelDatabase 12종 경고 ×22 + HybridAnimationController 부착)
+//   ②전 종 동결(GLB 동물 리그가 익명 뼈 bone_0..N — ProceduralBoneMap 이름 매칭 3뼈뿐 → 4족 다리 IK
+//   대상 미매핑) ③분류 불일치(2족/특수형도 isHuman=false → 4족 분기 + 특수형 이중 부착 충돌).
+// [수리 내용] ①수량: 외형 유형군(작은털4족/파충류/조류/점액정령/거대인간형/신화) 대표 1마리씩 6종,
+//   병사 3명 유지, NPC 1명(영주) ②렉: ModelAnimatorAssigner.SuppressNeuralBoot로 Sentis/Neural/Hybrid
+//   부트 차단(메인 씬 불변 — static 기본 false) ③분류: Force 계열 API로 3-way 강제 정합(이중 부착 제거)
+//   ④보증: ShowcaseMonitor(본 무변화 감지 → 폴백 호흡 애니) + Time.timeScale=1 방어.
 // 기존 패턴 재사용 (파일 직접 수정 없음 — 로직만 복사):
 //  - 지형/라이트/카메라/스카이박스: TestAllInOneSetup.SetupGround/SetupLight/SetupCamera/SetupSkybox 패턴
 //  - 몬스터 생성: MonsterSpawner.CreateMonster(470~546행) + CreatePrimitiveMonster(674~710행)
@@ -18,9 +26,9 @@ namespace ProjectName.Systems
     /// <summary>
     /// Test_11_AnimationShowcase 씬 전용 셋업.
     /// 런타임 Awake에서 지형/라이트/카메라 생성 후:
-    ///  1) 몬스터 존(Z=-15): MonsterDatabase 22종 각 1마리 (간격 2.2m, X 중앙 정렬)
+    ///  1) 몬스터 존(Z=-15): 외형 유형군 대표 6종 각 1마리 (간격 3.4m, X 중앙 정렬)
     ///  2) 병사 존(Z=0): 병사 FBX 3종(lv1-20 / lv20-40 / lv40-50) 각 1명 (간격 3m)
-    ///  3) NPC 존(Z=15): NPC GLB 11종 각 1명 (간격 2.4m)
+    ///  3) NPC 존(Z=15): NPC GLB 1명(영주) — 중앙
     /// 각 유닛 머리 위에 TextMesh 이름 라벨을 부착해 구분한다.
     /// </summary>
     public class TestAnimationShowcaseSetup : MonoBehaviour
@@ -29,57 +37,35 @@ namespace ProjectName.Systems
         [SerializeField] private bool _verbose = true;
 
         [Header("Layout (X spacing / Z rows)")]
-        [SerializeField] private float _monsterSpacing = 2.2f;
-        [SerializeField] private float _monsterGroupGap = 1.0f; // 군 사이 추가 간격
+        [SerializeField] private float _monsterSpacing = 3.4f; // 6종 대형 포함 — 기존 2.2에서 확대
         [SerializeField] private float _monsterRowZ = -15f;
         [SerializeField] private float _guardSpacing = 3f;
         [SerializeField] private float _guardRowZ = 0f;
         [SerializeField] private float _npcSpacing = 2.4f;
         [SerializeField] private float _npcRowZ = 15f;
 
-        // ---- 몬스터 22종 (MonsterSpawner.GetMonsterModelPath 641행 맵 복사) ----
+        // ---- 몬스터 6종 (외형 유형군 대표 1마리씩 — 2026-09-22 렉 완화 + 애니 확인 목적) ----
         private static readonly string[] MonsterIds =
         {
-            // 1) 작은 털 4족 동물
-            "rabbit", "deer", "wolf", "boar", "giant_rat", "electric_porcupine",
-            // 2) 파충류/비늘
-            "poison_snake", "fire_lizard", "salamander", "swamp_croc",
-            // 3) 조류/비행
-            "crow", "bat", "griffin",
-            // 4) 점액·정령·영혼
-            "slime", "forest_spirit", "banshee",
-            // 5) 거대 인간형괴수
-            "stone_golem", "wild_troll", "ogre", "minotaur",
-            // 6) 신화 하이브리드·은신자
-            "manticore", "shadow_assassin"
+            "rabbit",       // 작은 털 4족 동물 (도약 보행 프로필)
+            "swamp_croc",   // 파충류/비늘 (척추 파동 + 저속 스트라이드)
+            "griffin",      // 조류/비행 (대형 포식자 스트라이드)
+            "slime",        // 점액/정령 (특수형 — 스케일 펄스 자율 애니)
+            "minotaur",     // 거대 인간형 (2족 보행)
+            "manticore"     // 신화 하이브리드 (대형 포식자 보행)
         };
 
-        // 군 시작 인덱스 (군1=0, 군2=6, 군3=10, 군4=13, 군5=16, 군6=20 — 첫 군 0 제외 5회 간격 누적)
-        private static readonly int[] MonsterGroupStarts = { 0, 6, 10, 13, 16, 20 };
-
-        // ---- NPC 11종 (RuntimeModelLoader alias 89~99행 키 + 한글 표시명) ----
-        private static readonly string[] NpcKeys =
-        {
-            "lord", "king", "shop_npc", "man1", "man2",
-            "girl1", "girl2", "girl3", "oldman1", "oldman2", "dracula"
-        };
-        private static readonly string[] NpcNames =
-        {
-            "영주", "왕", "상인", "남자1", "남자2",
-            "소녀1", "소녀2", "소녀3", "노인1", "노인2", "드라큘라"
-        };
+        // ---- NPC 1명 (2026-09-22 축소 — 대표 영주) ----
+        private static readonly string[] NpcKeys = { "lord" };
+        private static readonly string[] NpcNames = { "영주" };
         // RuntimeModelLoader alias 실제키(소문자) — CopyMaterialsFromGlb GLB 재질 이식용
-        private static readonly string[] NpcGlbKeys =
-        {
-            "npc_lord_rigged", "npc_king_rigged", "npc_shop_rigged", "npc_man1_rigged",
-            "npc_man2_rigged", "npc_girl1_rigged", "npc_girl2_rigged", "npc_girl3_rigged",
-            "npc_oldman1_rigged", "npc_oldman2_rigged", "npc_dracula_rigged"
-        };
+        private static readonly string[] NpcGlbKeys = { "npc_lord_rigged" };
 
         private void Awake()
         {
             Debug.Log("[TestAnimShowcase] 🚀 애니메이션 쇼케이스 셋업 시작...");
 
+            // [2026-09-22 뉴럴 애니 제거] Neural/Sentis 경로 자체가 퇴역 — 별도 부트 차단 불필요.
             SetupGround();
             SetupLight();
             SetupSkybox();
@@ -89,7 +75,10 @@ namespace ProjectName.Systems
             SpawnGuardShowcase();
             SpawnNpcShowcase();
 
-            Debug.Log("[TestAnimShowcase] ✅ 몬스터 22종 / 병사 3모델 / NPC 11종 쇼케이스 설정 완료!");
+            // 관찰 씬 동결 방어 — 타 시스템(ESC 메뉴 등)의 Time.timeScale=0 잔존을 초기화.
+            Time.timeScale = 1f;
+
+            Debug.Log("[TestAnimShowcase] ✅ 몬스터 6종(외형군 대표) / 병사 3모델 / NPC 1명 쇼케이스 설정 완료!");
         }
 
         private void Log(string msg)
@@ -244,21 +233,16 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // 1) 몬스터 존 (Z=-15, 22종 각 1마리) — MonsterSpawner.CreateMonster 재현
+        // 1) 몬스터 존 (Z=-15, 외형군 대표 6종 각 1마리) — MonsterSpawner.CreateMonster 재현
         // ================================================================
 
         private void SpawnMonsterShowcase()
         {
             int count = MonsterIds.Length;
             float startX = -(count - 1) * _monsterSpacing * 0.5f;
-            float gapAcc = 0f; // 군 경계에서 누적되는 추가 간격
 
             for (int i = 0; i < count; i++)
             {
-                // 군 시작 인덱스 도달 시 추가 간격 누적 (첫 군 시작 0 제외)
-                if (i > 0 && System.Array.IndexOf(MonsterGroupStarts, i) >= 0)
-                    gapAcc += _monsterGroupGap;
-
                 MonsterDef def = MonsterDatabase.Get(MonsterIds[i]);
                 if (def == null)
                 {
@@ -266,7 +250,7 @@ namespace ProjectName.Systems
                     continue;
                 }
 
-                float x = startX + i * _monsterSpacing + gapAcc;
+                float x = startX + i * _monsterSpacing;
                 Vector3 pos = new Vector3(x, 0f, _monsterRowZ);
                 pos.y = GroundY(x, _monsterRowZ);
 
@@ -300,27 +284,46 @@ namespace ProjectName.Systems
             go.name = "Monster_" + def.id;
             go.tag = "Monster";
 
-            // ② ModelAnimatorAssigner (GLB 타입 자동 감지 → Biped/Quadruped/Special 분기)
+            // ② ModelAnimatorAssigner — 3-way 분류 강제 정합(2026-09-22 수리).
+            //    자동감지는 익명 리그 isHuman=false → 전원 4족 분기라 2족/특수형과 충돌했다.
+            //    Force 계열(RemoveAll+Setup 재실행)로 몬스터 계열당 정확히 하나의 애니 패밀리를 보장한다.
             var assigner = go.GetComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
             if (assigner == null)
                 assigner = go.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
 
+            ShowcaseMonitor.MonitorFamily family;
+            if (def.isQuadruped)
+            {
+                assigner.ForceQuadruped(true);   // QuadrupedProceduralLocomotion(+Animation) — 다리 IK 보행
+                family = ShowcaseMonitor.MonitorFamily.Quadruped;
+            }
+            else if (IsBiped(def.id))
+            {
+                assigner.ForceBiped(true);       // ProceduralAnimationController — 2족 보행(IVelocityProvider 경로)
+                family = ShowcaseMonitor.MonitorFamily.Biped;
+            }
+            else
+            {
+                var specialType = GetSpecialCreatureType(def.id);
+                assigner.ForceSpecialCreature(specialType);
+                // ForceSpecialCreature는 RemoveAll 후 신규 부착이라 creatureType를 부착 후 재지정해야 한다.
+                var specialCtrl = assigner.SpecialCreatureController;
+                if (specialCtrl != null) specialCtrl.creatureType = specialType;
+                family = ShowcaseMonitor.MonitorFamily.Special;
+            }
+
             // ③ ShowcaseWanderDriver + SetMonsterId — Player/AnimalAI 없이 자율 배회(걷기/대기 애니 독립 재생).
-            //    AnimalAI는 Player 부재 시 Update에서 Idle+속도 0으로 되돌려 22종 전부 얼어붙는다
+            //    AnimalAI는 Player 부재 시 Update에서 Idle+속도 0으로 되돌려 전 종 얼어붙는다
             //    (AnimalAI.cs 503~514행). 애니 피드는 드라이버가 ModelAnimatorAssigner가 부착한
             //    컨트롤러(4족 QuadrupedProceduralAnimation / 2족 ProceduralAnimationController)에 수행한다.
             var wander = go.GetComponent<ShowcaseWanderDriver>();
             if (wander == null) wander = go.AddComponent<ShowcaseWanderDriver>();
             wander.SetMonsterId(def.id);
 
-            // ④ SpecialCreatureAnimator — non-biped/non-quadruped 전용 (Spider/Clam/Slime/Spirit)
-            if (!def.isQuadruped && !IsBiped(def.id))
-            {
-                var special = go.GetComponent<ProjectName.Systems.Animation.Procedural.SpecialCreatureAnimator>();
-                if (special == null)
-                    special = go.AddComponent<ProjectName.Systems.Animation.Procedural.SpecialCreatureAnimator>();
-                special.creatureType = GetSpecialCreatureType(def.id);
-            }
+            // ④ ShowcaseMonitor — 본 매핑 성패와 무관하게 움직임을 보증(무변화 감지 → 폴백 호흡).
+            var monitor = go.GetComponent<ShowcaseMonitor>();
+            if (monitor == null) monitor = go.AddComponent<ShowcaseMonitor>();
+            monitor.Setup($"{def.displayName} ({def.id})", family);
 
             // 접지 — 모델 bounds 최저점을 raycast 지면에 정렬
             GroundModelToY(go, position.y);
@@ -574,12 +577,17 @@ namespace ProjectName.Systems
             if (attachedBody == null)
                 Debug.LogWarning($"[TestAnimShowcase] ⚠️ 병사 GLB/FBX 모두 미로드 — 캡슐 유지: {goName}");
 
+            // 가시성 관측자 — 휴머노이드 클립 경로는 폴백 미적용(관측+경고만)
+            var monitor = guardGO.GetComponent<ShowcaseMonitor>();
+            if (monitor == null) monitor = guardGO.AddComponent<ShowcaseMonitor>();
+            monitor.Setup(guardName, ShowcaseMonitor.MonitorFamily.HumanoidClip);
+
             AttachLabel(guardGO, $"병사 Lv{level}", labelColor);
             return guardGO;
         }
 
         // ================================================================
-        // 3) NPC 존 (Z=15, 11종 각 1명) — TerritoryNPCSpawner.SpawnNPC 93~250행 재현
+        // 3) NPC 존 (Z=15, 1명 — 영주) — TerritoryNPCSpawner.SpawnNPC 93~250행 재현
         // ================================================================
 
         private void SpawnNpcShowcase()
@@ -624,6 +632,7 @@ namespace ProjectName.Systems
                 {
                     // FBX 골격 교체 성공 — 접지만 보정
                     GroundModelToY(npcGO, position.y);
+                    AttachShowcaseNpcMonitor(npcGO, npcName);
                     return npcGO;
                 }
 
@@ -634,6 +643,7 @@ namespace ProjectName.Systems
                 var assigner = instance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
                 assigner.ForceBiped(true);
                 GroundModelToY(npcGO, position.y);
+                AttachShowcaseNpcMonitor(npcGO, npcName);
                 return npcGO;
             }
 
@@ -653,7 +663,16 @@ namespace ProjectName.Systems
             if (bodyCol != null) Destroy(bodyCol);
 
             Debug.LogWarning($"[TestAnimShowcase] ⚠️ NPC GLB 미로드 — 프리미티브 폴백: {npcName} ({aliasKey})");
+            AttachShowcaseNpcMonitor(npcGO, npcName);
             return npcGO;
+        }
+
+        /// <summary>NPC 가시성 관측자 부착 — HumanoidClip 계열(폴백 미적용, 관측+경고만).</summary>
+        private static void AttachShowcaseNpcMonitor(GameObject npcGO, string npcName)
+        {
+            var monitor = npcGO.GetComponent<ShowcaseMonitor>();
+            if (monitor == null) monitor = npcGO.AddComponent<ShowcaseMonitor>();
+            monitor.Setup($"NPC: {npcName}", ShowcaseMonitor.MonitorFamily.HumanoidClip);
         }
 
         /// <summary>

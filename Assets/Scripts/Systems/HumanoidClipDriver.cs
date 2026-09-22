@@ -276,10 +276,9 @@ namespace ProjectName.Systems
                 int mrCount = meshRend != null ? meshRend.Length : 0;
                 Debug.Log($"[HumanoidClipDriver][DD2] PlayerBody 렌더러: SkinnedMesh={smCount}(enabled={smEnabled}, {smDetail}), Mesh={mrCount}(enabled={mrEnabled})");
 
-                // 루트(Player)에 붙은 골격 개입 컴포넌트 존재 여부 — Hybrid 골격 덮어쓰기 용의 판별
+                // 루트(Player)에 붙은 골격 개입 컴포넌트 존재 여부 — 골격 덮어쓰기 용의 판별
+                // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid 카운트 퇴역 — Procedural/BoneMap/RigAnim만 점검.
                 var root = _anim.transform.root;
-                int hasNeural = root.GetComponent<ProjectName.Systems.Animation.Neural.NeuralAnimationController>() != null ? 1 : 0;
-                int hasHybrid = root.GetComponent<ProjectName.Systems.Animation.Neural.HybridAnimationController>() != null ? 1 : 0;
                 int hasProc = root.GetComponent<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>() != null ? 1 : 0;
                 int hasBoneMap = root.GetComponent<ProjectName.Systems.Animation.Procedural.Bones.ProceduralBoneMap>() != null ? 1 : 0;
                 int hasRigAnim = root.GetComponent<RigAnimationController>() != null ? 1 : 0;
@@ -291,7 +290,7 @@ namespace ProjectName.Systems
                         if (i > 0) sbA.Append(", ");
                         sbA.Append(rootAnims[i].gameObject.name);
                     }
-                Debug.Log($"[HumanoidClipDriver][DD2] 루트 컴포넌트: Neural={hasNeural} Hybrid={hasHybrid} Procedural={hasProc} BoneMap={hasBoneMap} RigAnim={hasRigAnim} Animator(루트포함전체)=[{sbA}]");
+                Debug.Log($"[HumanoidClipDriver][DD2] 루트 컴포넌트: Procedural={hasProc} BoneMap={hasBoneMap} RigAnim={hasRigAnim} Animator(루트포함전체)=[{sbA}]");
             }
             // DD3-1: 아바타 매핑 덤프(1회) — humanDescription.human 비어있음 가설 검증.
             // 매핑 본수=0이면 휴머노이드 리타깃이 전혀 안 되어 클립 재생(normT 진행)과 무관하게 포즈가 동결한다.

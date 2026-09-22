@@ -4,7 +4,6 @@ using ProjectName.Core.Data;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Systems.Animation;
-using ProjectName.Systems.Animation.Neural;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems

@@ -32,8 +32,7 @@ public class AddMissingPlayerComponents
             ("ProjectName.Systems.PlayerMovement, Assembly-CSharp", "PlayerMovement"),
             ("ProjectName.Systems.PlayerCombat, Assembly-CSharp", "PlayerCombat"),
             ("ProjectName.Systems.Animation.Procedural.RigAnimationController, Assembly-CSharp", "RigAnimationController"),
-            ("ProjectName.Systems.Animation.Neural.NeuralAnimationController, Assembly-CSharp", "NeuralAnimationController"),
-            ("ProjectName.Systems.Animation.Neural.HybridAnimationController, Assembly-CSharp", "HybridAnimationController"),
+            // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid 부착 항목 퇴역(시스템 삭제).
             ("UnityEngine.InputSystem.PlayerInput, Unity.InputSystem", "PlayerInput"),
         };
 
@@ -104,61 +103,7 @@ public class AddMissingPlayerComponents
                 Debug.Log("[AddMissingPlayerComponents] PlayerInput 설정 완료");
             }
         }
-
-        // NeuralAnimationController, HybridAnimationController에 VelocityProvider 연결
-        var pmType = System.Type.GetType("ProjectName.Systems.PlayerMovement, Assembly-CSharp");
-        if (pmType != null)
-        {
-            var pm = player.GetComponent(pmType);
-            if (pm != null)
-            {
-                var neuralType = System.Type.GetType("ProjectName.Systems.Animation.Neural.NeuralAnimationController, Assembly-CSharp");
-                if (neuralType != null)
-                {
-                    var na = player.GetComponent(neuralType);
-                    if (na != null)
-                    {
-                        var method = neuralType.GetMethod("SetVelocityProvider");
-                        if (method != null) method.Invoke(na, new object[] { pm });
-                    }
-                }
-
-                var hybridType = System.Type.GetType("ProjectName.Systems.Animation.Neural.HybridAnimationController, Assembly-CSharp");
-                if (hybridType != null)
-                {
-                    var ha = player.GetComponent(hybridType);
-                    if (ha != null)
-                    {
-                        var method = hybridType.GetMethod("SetVelocityProvider");
-                        if (method != null) method.Invoke(ha, new object[] { pm });
-                    }
-                }
-            }
-        }
-
-        // ProgressiveRolloutManager 등록
-        var prmType = System.Type.GetType("ProjectName.Systems.Animation.Neural.ProgressiveRolloutManager, Assembly-CSharp");
-        if (prmType != null)
-        {
-            var instanceProp = prmType.GetProperty("Instance");
-            if (instanceProp != null)
-            {
-                var instance = instanceProp.GetValue(null);
-                if (instance != null)
-                {
-                    var hybridType = System.Type.GetType("ProjectName.Systems.Animation.Neural.HybridAnimationController, Assembly-CSharp");
-                    if (hybridType != null)
-                    {
-                        var method = prmType.GetMethod("ConfigureHybridController");
-                        if (method != null)
-                        {
-                            var hybrid = player.GetComponent(hybridType);
-                            if (hybrid != null) method.Invoke(instance, new object[] { hybrid });
-                        }
-                    }
-                }
-            }
-        }
+        // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid VelocityProvider 연결 + ProgressiveRolloutManager 등록 블록 퇴역(시스템 삭제).
 
         // 씬 저장
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());

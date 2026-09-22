@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ namespace ProjectName.Systems.Animation.Procedural
     /// Procedural animation state machine - manages state transitions.
     /// States: Locomotion, Jump, Airborne, Landing, Attack, Gather, Roll, Climb, Stagger, Death
     /// </summary>
-    [Obsolete("Use HybridAnimationController with NeuralAnimationController instead. See MIGRATION_GUIDE_PHASE46.md", false)]
+    [Obsolete("Legacy path — use the clip/procedural pipeline (HumanoidClipDriver+*_AC or Quadruped/Procedural controllers).", false)]
     public class ProceduralAnimStateMachine : MonoBehaviour
     {
         public enum State

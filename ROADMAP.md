@@ -3246,3 +3246,23 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | O9 | LLM NPC (NPC_MONSTER_AI) | ⬜ |
 | O10 | 생활 컨텐츠 번들 (FISHING/HUNGER/MOUNTS) | ⬜ |
 | O11 | 지형/강/날씨 리워크 | 🅿️ PARKED |
+
+---
+
+## ⚔️ 2026-09-22: Test_11 애니 쇼케이스 수리 + 뉴럴 애니 전면 퇴역 (T11-N)
+
+> **입력**: "test 11 씬에서 몬스터 애니메이션이 안 움직여 + 렉이 심하니 NPC 1명/몬스터는 외형 유형별 1마리씩, 애니 등록해서 움직이게" → "뉴럴애니메이션 관련은 이제 사용하지 않는 거니 모두 없애줘".
+
+### Test_11 수리 (Showcase)
+| 항목 | 뿌리 | 수리 | 상태 |
+|:---|:---|:---|:---:|
+| 전 종 동결 | 동물 GLB=익명 뼈(bone_N)+클립 0개 → 뼈맵 3개뿐 → 4족 다리 IK 미매핑 | ShowcaseMonitor(신규): 본 무변화 2.5s 감지→폴백 호흡 애니 보증 | ✅ |
+| 22종 전원 4족 분기 | isHuman=false 자동감지+특수형 이중 부착 충돌 | Force 계열 3-way 강제 정합(4족/2족/특수형 각 1개만) | ✅ |
+| 스폰 렉 | 몬스터마다 Sentis 초기화(×22)+NeuralModelDatabase 경고 12종×22+Hybrid 부착 — 정책 모델 미배치라 실익 0 | **뉴럴 경로 자체 퇴역**(아래) | ✅ |
+| 수량 | 22종+11NPC | 몬스터 6종(외형군 대표: rabbit/swamp_croc/griffin/slime/minotaur/manticore)+NPC 1명(영주), 병사 3명 유지 | ✅ |
+
+### 뉴럴 애니 전면 퇴역 (2026-09-22 사용자 결정 — 사유: 미사용)
+- **삭제**: `Animation/Neural/` 폴더 16종(NeuralAnimationController/HybridAnimationController/MLRuntimeManager/PolicySelector/NeuralModelDatabase/ProgressiveRolloutManager/Evaluation/ModelManagement), `Editor/Neural/` 5종+NeuralAnimationAutoSetup+NeuralModelAutoSetup, `Resources/NeuralModels/`(ONNX 41MB)+NeuralModelDatabase.asset, `Assets/Training/`, `Scripts/.bak_p45/`, 패키지 `com.unity.sentis` 1.4.0.
+- **정리**(메인 동작 불변 확인): PlayerMovement(Phase67 획득 경로)/PlayerCombat/MountSystem(SwitchPolicy 2곳)/AnimalAI(부착+Combat 2곳)/MonsterSpawner(IsQuadruped 설정)/GuardManager·HumanoidClipDriver(진단 카운트)/TestPlayerSetup(4·5순위 부착+모델 로드)/TestPlayerAnimatorBoot·TerritoryNPCSpawner(정리 라인)/ModelAnimatorAssigner(neural·hybrid 경로 완전 제거)/에디터 수리 스크립트 4종. Test_01_Player.unity의 Neural/Hybrid 컴포넌트 YAML 블록 제거.
+- **남는 애니 경로(단일 계약)**: 4족=QuadrupedProcedural(Locomotion+Animation) / 2족=ProceduralAnimationController / 특수형=SpecialCreatureAnimator / 휴머노이드=HumanoidClipDriver+*_AC 클립.
+- **검증**: 배치컴파일 error CS 0 + EditMode 전부 통과. 라이브 MainScene은 뉴럴 GUID 참조 0건(backup 3파일만 잔존 — 미로드 파일).

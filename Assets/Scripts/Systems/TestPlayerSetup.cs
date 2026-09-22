@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Bones;
-using ProjectName.Systems.Animation.Neural;
 using ProjectName.Systems; // for PlayerMovement, IVelocityProvider
 using ProjectName.Core;
 
@@ -26,9 +25,6 @@ public class TestPlayerSetup : MonoBehaviour
     [Header("Camera Settings")]
     [SerializeField] private float _orbitRadius = 15f;
     [SerializeField] private float _defaultPitch = 45f;
-
-    private NeuralAnimationController _neuralAnim;
-    private HybridAnimationController _hybridAnim;
 
     private void Awake()
     {
@@ -102,19 +98,7 @@ public class TestPlayerSetup : MonoBehaviour
             player.AddComponent<ProceduralBoneMap>();
         }
 
-        // 4순위: NeuralAnimationController — ONNX 정책 추론
-        _neuralAnim = player.GetComponent<NeuralAnimationController>();
-        if (_neuralAnim == null)
-            _neuralAnim = player.AddComponent<NeuralAnimationController>();
-
-        // 5순위: HybridAnimationController — Procedural + Neural 브리지 (마지막에 추가, ProcAnim 참조 가능)
-        _hybridAnim = player.GetComponent<HybridAnimationController>();
-        if (_hybridAnim == null)
-            _hybridAnim = player.AddComponent<HybridAnimationController>();
-
-        // ProgressiveRolloutManager에 등록
-        if (ProgressiveRolloutManager.Instance != null)
-            ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
+        // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid 4·5순위 부착 경로 퇴역 — 절차 컨트롤러 단일 경로.
 
         // PlayerPlaceholder 활성화 — GLB 모델 로드 및 본 매핑 자동 처리
         var placeholder = player.GetComponent<PlayerPlaceholder>();
@@ -124,7 +108,7 @@ public class TestPlayerSetup : MonoBehaviour
         }
         // GLB 모델이 없으면 캡슐 폴백 생성 (PlayerPlaceholder.Start에서 처리)
 
-        // PlayerMovement — 이동 제어 + IVelocityProvider (NeuralAnimationController 연동용)
+        // PlayerMovement — 이동 제어 + IVelocityProvider
         var playerMovement = player.GetComponent<PlayerMovement>();
         if (playerMovement == null)
         {
@@ -136,65 +120,19 @@ public class TestPlayerSetup : MonoBehaviour
             pmType.GetField("_jumpHeight", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.SetValue(playerMovement, _jumpHeight);
         }
 
-        // VelocityProvider 설정 (모든 컨트롤러에)
-        if (_neuralAnim != null)
-            _neuralAnim.SetVelocityProvider(playerMovement);
+        // VelocityProvider 설정 — 절차 컨트롤러에만 공급
+        // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid velocity 공급 퇴역.
         if (procAnim != null)
             procAnim.SetVelocityProvider(playerMovement);
-        if (_hybridAnim != null)
-            _hybridAnim.SetVelocityProvider(playerMovement);
 
-        Debug.Log("[TestPlayerSetup] ✅ Player 설정 완료 (ProceduralAnimationController + Neural + Hybrid)");
-
-        // NeuralModelDatabase에서 ONNX 모델 자동 로드
-        LoadNeuralModelsFromDatabase();
+        Debug.Log("[TestPlayerSetup] ✅ Player 설정 완료 (ProceduralAnimationController 경로)");
 
         // GLB 로드 후 플레이어 위치 보정 및 GLB 콜라이더 제거
         StartCoroutine(EnsurePlayerOnGroundAfterGLBLoad(player));
     }
 
     /// <summary>
-            /// NeuralModelDatabase.asset에서 정책별 모델 경로를 읽어 NeuralAnimationController에 비동기 로드.
-            /// 테스트 씬에서 별도 메뉴 실행 없이 바로 신경망 애니메이션 확인 가능.
-            /// </summary>
-            private void LoadNeuralModelsFromDatabase()
-            {
-                var db = Resources.Load<NeuralModelDatabase>("NeuralModelDatabase");
-                if (db == null)
-                {
-                    Debug.LogWarning("[TestPlayerSetup] NeuralModelDatabase not found. Run Tools/Neural/Auto-Setup Model Database first.");
-                    return;
-                }
-
-                if (_neuralAnim == null)
-                {
-                    Debug.LogWarning("[TestPlayerSetup] NeuralAnimationController not found.");
-                    return;
-                }
-
-                int loaded = 0;
-                foreach (var entry in db.Policies)
-                {
-                    if (!string.IsNullOrEmpty(entry.modelPath))
-                    {
-                        Debug.Log($"[TestPlayerSetup] Loading neural model: {entry.policyType} -> {entry.modelPath}");
-                        _neuralAnim.LoadModelAsync(entry.policyType, entry.modelPath);
-                        loaded++;
-                    }
-                }
-
-                if (loaded > 0)
-                {
-                    Debug.Log($"[TestPlayerSetup] 🧠 Neural models loading started: {loaded} policies from database.");
-                }
-                else
-                {
-                    Debug.LogWarning("[TestPlayerSetup] No valid model entries in NeuralModelDatabase.");
-                }
-            }
-
-    /// <summary>
-            /// GLB 모델 로드 완료 후 플레이어를 바닥에 정확히 위치시키고 GLB 콜라이더 제거
+    /// GLB 모델 로드 완료 후 플레이어를 바닥에 정확히 위치시키고 GLB 콜라이더 제거
             /// </summary>
             private System.Collections.IEnumerator EnsurePlayerOnGroundAfterGLBLoad(GameObject player)
             {

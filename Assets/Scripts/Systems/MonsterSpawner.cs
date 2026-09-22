@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
 using ProjectName.Systems.Animation;
-using ProjectName.Systems.Animation.Neural;
 using ProjectName.Systems.Animation.Procedural;
 #pragma warning disable 0414
 
@@ -519,10 +518,6 @@ namespace ProjectName.Systems
             AnimalAI ai = go.GetComponent<AnimalAI>();
             if (ai == null) ai = go.AddComponent<AnimalAI>();
             ai.SetMonsterId(def.id);
-
-            // [핵심] NeuralAnimationController IsQuadruped 설정 (ModelAnimatorAssigner가 처리하므로 참고용)
-            NeuralAnimationController nac = go.GetComponent<NeuralAnimationController>();
-            if (nac != null) nac.IsQuadruped = def.isQuadruped;
 
             // [핵심] MonsterSkillSystem 부착 (몬스터별 고유 스킬 패턴)
             var skillSys = go.GetComponent<MonsterSkillSystem>();

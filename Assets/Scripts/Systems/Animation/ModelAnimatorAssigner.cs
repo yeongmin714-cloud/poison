@@ -1,8 +1,11 @@
 // U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
+// [2026-09-22 뉴럴 애니 제거] NeuralAnimationController/HybridAnimationController/ProgressiveRolloutManager
+//   전면 퇴역 — ONNX 정책 모델이 미배치 상태로 부착만 하고 출력이 0인 경로(스폰 렉+경고 소음의 뿌리)였다.
+//   애니 경로는 이제 단일 계약: 4족=QuadrupedProcedural(Locomotion+Animation) / 2족=ProceduralAnimationController
+//   / 특수형=SpecialCreatureAnimator / 휴머노이드(병사·NPC·플레이어)=HumanoidClipDriver+*_AC 클립.
 #pragma warning disable 618
 using UnityEngine;
 using UnityEditor;
-using ProjectName.Systems.Animation.Neural;
 using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
 using ProjectName.Systems.Animation.Procedural.Bones;
@@ -23,16 +26,10 @@ namespace ProjectName.Systems.Animation
         [SerializeField] bool _forceQuadruped = false;
         [SerializeField] bool _isSpecialCreature = false;
 
-        [Header("Neural Animation")]
-        [SerializeField] bool _enableNeural = true;
-        [SerializeField] NeuralAnimationController.PolicyType _defaultPolicy = NeuralAnimationController.PolicyType.Locomotion;
-
         Animator _animator;
         ProceduralBoneMap _boneMap;
         Rigidbody _rigidbody;
-        NeuralAnimationController _neuralAnim;
         ProceduralAnimationController _proceduralAnim;
-        HybridAnimationController _hybridAnim;
         QuadrupedProceduralLocomotion _quadrupedLocomotion;
         SpecialCreatureAnimator _specialCreatureAnim;
 
@@ -83,21 +80,6 @@ namespace ProjectName.Systems.Animation
             {
                 SetupSpecialCreature();
             }
-
-            // HybridAnimationController는 항상 부착 (블렌딩용)
-            SetupHybrid();
-
-            // ProgressiveRolloutManager로 설정
-            if (ProgressiveRolloutManager.Instance != null)
-            {
-                ProgressiveRolloutManager.Instance.ConfigureHybridController(_hybridAnim);
-            }
-
-            // NeuralAnimationController 모델 로드
-            if (_enableNeural && _neuralAnim != null)
-            {
-                LoadNeuralModels();
-            }
         }
 
         void SetupBiped()
@@ -109,38 +91,16 @@ namespace ProjectName.Systems.Animation
                 _proceduralAnim = gameObject.AddComponent<ProceduralAnimationController>();
             }
             _proceduralAnim.SetBoneMap(_boneMap);
-
-            // NeuralAnimationController (Combat/React/Interact/Fly/Swim/Mount/Climb 등)
-            if (_enableNeural)
-            {
-                _neuralAnim = GetComponent<NeuralAnimationController>();
-                if (_neuralAnim == null)
-                {
-                    _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
-                }
-                _neuralAnim.SetBoneMap(_boneMap);
-            }
         }
 
         void SetupQuadruped()
         {
             // QuadrupedProceduralLocomotion (Walk/Trot/Pace/Gallop 자동 전이)
+            // RequireComponent로 QuadrupedProceduralAnimation이 함께 부착된다.
             _quadrupedLocomotion = GetComponent<QuadrupedProceduralLocomotion>();
             if (_quadrupedLocomotion == null)
             {
                 _quadrupedLocomotion = gameObject.AddComponent<QuadrupedProceduralLocomotion>();
-            }
-
-            // NeuralAnimationController for quadruped policies
-            if (_enableNeural)
-            {
-                _neuralAnim = GetComponent<NeuralAnimationController>();
-                if (_neuralAnim == null)
-                {
-                    _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
-                }
-                _neuralAnim.IsQuadruped = true;
-                _neuralAnim.SetBoneMap(_boneMap);
             }
         }
 
@@ -151,57 +111,6 @@ namespace ProjectName.Systems.Animation
             {
                 _specialCreatureAnim = gameObject.AddComponent<SpecialCreatureAnimator>();
             }
-
-            // Neural for special creature policies (if any)
-            if (_enableNeural)
-            {
-                _neuralAnim = GetComponent<NeuralAnimationController>();
-                if (_neuralAnim == null)
-                {
-                    _neuralAnim = gameObject.AddComponent<NeuralAnimationController>();
-                }
-                _neuralAnim.SetBoneMap(_boneMap);
-            }
-        }
-
-        void SetupHybrid()
-        {
-            _hybridAnim = GetComponent<HybridAnimationController>();
-            if (_hybridAnim == null)
-            {
-                _hybridAnim = gameObject.AddComponent<HybridAnimationController>();
-            }
-        }
-
-        void LoadNeuralModels()
-        {
-            if (_neuralAnim == null) return;
-
-            var db = Resources.Load<NeuralModelDatabase>("NeuralModelDatabase");
-            if (db == null)
-            {
-                Debug.LogWarning("[ModelAnimatorAssigner] NeuralModelDatabase not found in Resources. Run Tools/Neural/Auto-Setup Model Database");
-                return;
-            }
-
-            // PolicyType별로 모델 경로 조회 후 MLRuntimeManager로 로드
-            var policyTypes = System.Enum.GetValues(typeof(NeuralAnimationController.PolicyType));
-            foreach (NeuralAnimationController.PolicyType policy in policyTypes)
-            {
-                if (db.HasPolicy(policy))
-                {
-                    string modelPath = db.GetModelPath(policy);
-                    if (!string.IsNullOrEmpty(modelPath))
-                    {
-                        // NeuralAnimationController 내부에서 MLRuntimeManager.LoadModel 호출
-                        // SwitchPolicy 시 자동으로 로드됨
-                        Debug.Log($"[ModelAnimatorAssigner] Policy {policy} mapped to {modelPath}");
-                    }
-                }
-            }
-
-            // 기본 정책 설정
-            _neuralAnim.SwitchPolicy(_defaultPolicy);
         }
 
         // ================================================================
@@ -243,8 +152,6 @@ namespace ProjectName.Systems.Animation
         void RemoveAllAnimationComponents()
         {
             if (_proceduralAnim != null) DestroyImmediate(_proceduralAnim);
-            if (_neuralAnim != null) DestroyImmediate(_neuralAnim);
-            if (_hybridAnim != null) DestroyImmediate(_hybridAnim);
             if (_quadrupedLocomotion != null) DestroyImmediate(_quadrupedLocomotion);
             if (_specialCreatureAnim != null) DestroyImmediate(_specialCreatureAnim);
             // 자동감지가 먼저 부착했다가 ForceBiped 재정렬 시 잔존하는 컴포넌트 정리.
@@ -254,9 +161,7 @@ namespace ProjectName.Systems.Animation
                 DestroyImmediate(quadrupedAnim);
         }
 
-        public NeuralAnimationController NeuralController => _neuralAnim;
         public ProceduralAnimationController ProceduralController => _proceduralAnim;
-        public HybridAnimationController HybridController => _hybridAnim;
         public QuadrupedProceduralLocomotion QuadrupedController => _quadrupedLocomotion;
         public SpecialCreatureAnimator SpecialCreatureController => _specialCreatureAnim;
     }

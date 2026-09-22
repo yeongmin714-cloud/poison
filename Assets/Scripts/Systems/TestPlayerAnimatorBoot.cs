@@ -146,8 +146,7 @@ namespace ProjectName.Systems
         {
             DestroyAll<ProjectName.Systems.Animation.ModelAnimatorAssigner>(root, removed);
             DestroyAll<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>(root, removed);
-            DestroyAll<ProjectName.Systems.Animation.Neural.NeuralAnimationController>(root, removed);
-            DestroyAll<ProjectName.Systems.Animation.Neural.HybridAnimationController>(root, removed);
+            // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid 컴포넌트 정리 라인 퇴역(시스템 삭제).
             DestroyAll<ProjectName.Systems.QuadrupedProceduralAnimation>(root, removed);
             DestroyAll<ProjectName.Systems.Animation.Procedural.Bones.ProceduralBoneMap>(root, removed); // 마지막
         }

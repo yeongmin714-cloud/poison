@@ -1,6 +1,60 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-22 (P32 — Figma→Unity 파이프라인 테스트: 인벤 우드/양피지 리스타일, 커밋 e6c92a9c)
+> **최종 갱신:** 2026-09-22 (뉴럴 애니 전면 퇴역 — 폴더/에셋/패키지 삭제, 컴파일 CS 0)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ 뉴럴 애니메이션 전면 퇴역 — 사용자 결정 "모두 없애줘")
+
+> **입력**: "뉴럴애니메이션 관련은 이제 사용하지 않는 거니 모두 없애줘. 그래도 게임진행엔 아무 문제 없는거지?"
+> **근거**: 뉴럴 경로는 ONNX 정책 모델 미배치 상태로 부착+초기화만 하고 출력 0(스킬/로그 실측 "Neural-only mode — Inference disabled"). 실제 캐릭터 모션은 전부 절차(Quadruped/Procedural/SpecialCreature)와 믹사모 클립(HumanoidClipDriver+*_AC)이 담당 → 제거가 게임 동작에 영향 0.
+
+### 삭제
+| 대상 | 내용 |
+|:--|:--|
+| `Assets/Scripts/Systems/Animation/Neural/` | 16종 (NeuralAnimationController/HybridAnimationController/MLRuntimeManager/PolicySelector/NeuralModelDatabase/ProgressiveRolloutManager/AnimationPolicy/RolloutPhaseConfig/BatchInferenceManager/Evaluation 4종/ModelManagement 3종) |
+| `Assets/Editor/Neural/` + AutoSetup 2종 | TrainingDashboard/PolicyInspector/TransitionDesigner/StyleEditor/TestRunner + NeuralAnimationAutoSetup/NeuralModelAutoSetup |
+| `Assets/Resources/NeuralModels/` | ONNX 모델 41MB (미배치 정책 경로의 원인이던 에셋군) |
+| `Assets/Resources/NeuralModelDatabase.asset` | 정책 DB |
+| `Assets/Training/` | DataPipeline/output 학습 출력물 |
+| `Assets/Scripts/.bak_p45/` | 구버전 백업(뉴럴 참조 컴파일 대상 포함) |
+| `Packages/manifest.json` | `com.unity.sentis: 1.4.0` 제거 |
+
+### 참조 정리 (메인 게임 동작 불변)
+- PlayerMovement: Phase67 뉴럴 획득 2줄+필드 제거(Player_AC 단일 경로 주석 유지) / PlayerCombat: SwitchPolicy(Combat)+필드 / MountSystem: Mount·Locomotion SwitchPolicy 2곳+필드 / AnimalAI: 부착 블록+Combat SwitchPolicy 2곳+필드 / MonsterSpawner: IsQuadruped 설정 블록 / GuardManager: using / HumanoidClipDriver: DD2 진단 카운트(Procedural/BoneMap/RigAnim만) / TestPlayerSetup: 4·5순위 부착+SetVelocityProvider+LoadNeuralModelsFromDatabase 메서드 전체 / TestPlayerAnimatorBoot·TerritoryNPCSpawner: DestroyAll(Neural/Hybrid) 라인 / ModelAnimatorAssigner: neural/hybrid 필드·SetupHybrid·LoadNeuralModels·SuppressNeuralBoot 완전 제거(절차 3-family만) / 에디터 수리 4종(AddMissingPlayerComponents/FinalCompleteRepair/FixAllCriticalIssues/FixMainScene): 뉴럴 항목·블록 제거 / Test_01_Player.unity: Neural+Hybrid MonoBehaviour 블록+m_Component 참조 제거(YAML 스크립트, 블록 2개+참조 2개) / Procedural 7파일: [Obsolete] 메시지 문자열만 클립/절차 경로 안내로 갱신.
+- ⚠ 라이브 MainScene은 뉴럴 GUID 참조 0건 확인(MainScene.backup/.bak/.bak2 3개 백업본에만 잔존 — Unity 미로드 파일, 무해).
+
+### 검증
+- 배치컴파일 **error CS = 0** (FixMainScene NeuralModelAutoSetup 잔존 호출 CS0103 1건 → 퇴역 주석 수리 후 재컴파일 통과) + EditMode **전부 통과**.
+- 잔존 참조 전수 grep CLEAN(Neural*/Hybrid*/PolicySelector/MLRuntime*/NeuralModelDatabase/ProgressiveRolloutManager/BatchInference/DynamicModelLoader/AnimationPolicy/RolloutPhaseConfig — 코드 0건, 주석 2건만).
+
+### 게임 진행 영향 평가
+- **영향 0**: 뉴럴 출력이 0이던 경로의 제거 — 플레이어/병사/몬스터 애니는 전부 절차+클립 경로가 담당(이번 Test_11 수리와 동일 계약). 오히려 스폰 시 Sentis 초기화 비용·경고 소음·부착 컴포넌트가 사라져 성능 개선.
+- 롤백이 필요하면 git 히스토리(삭제 커밋 revert)로 복구 가능.
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ Test_11_AnimationShowcase 애니메이션 수리 — 분류 정합 + 렉 차단 + 움직임 보증)
+
+> **입력**: "test 11 씬에서 몬스터 애니메이션을 확인하려 하는데 모든 캐릭터가 애니메이션이 안 움직여. 너무 렉이 걸리니깐 npc는 1명, 병사는 그대로, 몬스터는 외형에 따라 같은 유형이면 한 마리씩만 넣고 애니메이션을 등록해서 움직이게 해줘".
+
+### 진단 (Editor.log 실측 + 코드 + GLB 실측)
+- **동결 뿌리①**: 동물 GLB 리그가 **익명 뼈(bone_0..N) + 임베디드 애니 0개**(Rabbit 29 joints 전부 bone_N, anims[]) → ProceduralBoneMap 이름 매칭이 **3뼈뿐** → 4족 다리 IK 대상(L_Foot/R_Foot/Knee) 미매핑 → 보행 애니 구동 불가.
+- **동결 뿌리②**: 익명 리그 `isHuman=false` → ModelAnimatorAssigner가 **22종 전원 4족 분기** — 2족(미노타우르스 등)/특수형(슬라임 등)도 4족 컨트롤러에 물리고, 셋업 수동 SpecialCreatureAnimator와 **이중 부착 충돌**.
+- **렉 뿌리**: 몬스터마다 `NeuralAnimationController` 부착 → **"Unity Sentis initialized" 스폰당 1회(×22)** + NeuralModelDatabase 12종 "ModelAsset not found" 경고 ×22 + HybridAnimationController("Neural-only mode") 부착 + ProceduralBoneMap 3회 리빌드. 정책 모델 파일(NeuralsModels/*.sentis) 자체가 미배치라 실익 0.
+
+### 수리 (3파일 — 메인 씬 불변)
+- **ModelAnimatorAssigner.cs**: `public static bool SuppressNeuralBoot = false` 신설 — true 시 NeuralAnimationController 부착/모델 로드/HybridAnimationController 부착 전부 스킵(neuralOn 게이트, SetupBiped/Quadruped/Special 시그니처 +bool). 기본 false라 메인 완전 불변.
+- **TestAnimationShowcaseSetup.cs**: ①몬스터 22→**6종**(외형군 대표: rabbit/swamp_croc/griffin/slime/minotaur/manticore, 간격 2.2→3.4, MonsterGroupStarts 삭제) ②NPC 11→**1명(영주)** ③병사 3명 그대로 ④**3-way 분류 강제 정합** — def.isQuadruped→ForceQuadruped / IsBiped→ForceBiped / 그 외→ForceSpecialCreature(+**부착 후 creatureType 재지정** — Force 계열이 RemoveAll 후 신규 부착이라 기본값 Spider로 남는 함정) ⑤수동 SpecialCreature 부착 블록 삭제 ⑥Awake에서 `SuppressNeuralBoot=true`(몬스터 AddComponent 전) + `Time.timeScale=1` 방어 ⑦전 유닛 ShowcaseMonitor 부착.
+- **ShowcaseMonitor.cs (신규)**: 0.5s 간격 관측 — 이동 중 대표 본(rootBone→bones[0]) localRotation Δ 무변화 **2.5s 연속 → 폴백 호흡 애니**(localRotation sin 롤/피치, 이동 중 ±2.5°/2.2Hz, 정지 ±0.8°/1.1Hz) + 경고 로그 1회. **루트 position/rotation 미기입**(ShowcaseWanderDriver 소유 규약). HumanoidClip(병사/NPC)은 골격 오염 방지로 경고만(폴백 미적용). base는 Start 1회 포착 후 고정(활성 중 재포착=드리프트 누적 함정 회피).
+
+### 검증
+- 배치컴파일 **error CS = 0** + "Exiting batchmode successfully". EditMode **전부 통과**.
+- 6종 isQuadruped 실측 정합(MonsterData.cs): rabbit/swamp_croc/griffin/manticore=true(4족), slime=false→special, minotaur=false→biped(IsBiped 로컬 복사판).
+- 무인자 SetupXxx() 잔존/삭제 필드 잔존/for(var x:) 문법/bare base 식별자 전부 CLEAN.
+
+### Play 판정 대기
+①몬스터 6마리만 스폰, 스폰 즉시 렉 없음(Sentis 로그 0건) ②각 몬스터가 배회하며 "본 애니 또는 폴백 호흡"으로 시각적 움직임 ③병사 3명/NPC 영주 1명 Idle 재생 ④콘솔에 `[ShowcaseWander] 연결 완료` family 정합 + 무변화 감지 시 `[ShowcaseMonitor] ⚠️ 폴백 구동` 1회 ⑤ESC 눌러도 씬 정지 상태 미유지(timeScale=1 방어)
 
 ---
 

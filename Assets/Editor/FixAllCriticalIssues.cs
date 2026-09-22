@@ -279,7 +279,6 @@ public class FixAllCriticalIssues
         // 이 문제는 코드 레벨에서 NativeArray/NativeList Dispose 패턴 필요
         // 여기서는 주요 시스템들에 Dispose 패턴 적용 안내
         Debug.Log("[FixJobLeak] Job memory leaks require code fixes in:");
-        Debug.Log("  - NeuralAnimationController: NativeArray allocations need Dispose");
         Debug.Log("  - ProceduralAnimationController: NativeList allocations need Dispose");
         Debug.Log("  - MonsterSpawner: Job allocations need proper cleanup");
         Debug.Log("  - Use Allocator.TempJob with using blocks or try/finally Dispose");

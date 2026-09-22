@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
 using ProjectName.Systems.Animation.Procedural;
-using ProjectName.Systems.Animation.Neural;
 using Unity.Cinemachine;
 
 namespace ProjectName.Systems
@@ -47,7 +46,6 @@ namespace ProjectName.Systems
         // ===== 애니메이션 =====
         private RigAnimationController _rigAnim;
         private ProceduralAnimationController _proceduralAnim;
-        private NeuralAnimationController _neuralAnim;
         // P6 (2026-09-11): 활(Bow) 좌클릭 발사용 — HumanoidClipDriver 공용 트리거(ArcheryShot) 접근
         private HumanoidClipDriver _clipDriver;
 
@@ -163,9 +161,6 @@ namespace ProjectName.Systems
 
             // P6: 활 발사 애니(ArcheryShot) 명시 트리거용 — 드라이버는 PlayerCombat 자식 계층에 위치
             _clipDriver = GetComponentInChildren<HumanoidClipDriver>();
-
-            // Neural 보류(2026-09-05): 자동부착 금지 — 씬에 명시 배치된 경우만 사용
-            _neuralAnim = GetComponent<NeuralAnimationController>();
         }
 
         private void Update()
@@ -437,7 +432,6 @@ namespace ProjectName.Systems
             // 공격 애니메이션 트리거
             _rigAnim?.Attack();
             _proceduralAnim?.TriggerAction("attack");
-            _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Combat);
 
             // C4-08: 커서 방향으로 자동 조준 먼저 시도
             bool hitAny = false; // 미스 판정용 — 어떤 경로로든 AttackTarget 도달 시 true

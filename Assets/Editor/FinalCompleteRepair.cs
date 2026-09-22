@@ -202,63 +202,7 @@ public class FinalCompleteRepair
             Debug.Log("[FinalRepair] RigAnimationController 컴포넌트 추가됨");
         }
 
-        // NeuralAnimationController
-        var neuralType = System.Type.GetType("ProjectName.Systems.Animation.Neural.NeuralAnimationController, Assembly-CSharp");
-        if (neuralType != null && player.GetComponent(neuralType) == null)
-        {
-            var na = player.AddComponent(neuralType);
-            var pmType2 = System.Type.GetType("ProjectName.Systems.PlayerMovement, Assembly-CSharp");
-            if (pmType2 != null)
-            {
-                var pm = player.GetComponent(pmType2);
-                if (pm != null)
-                {
-                    var method = neuralType.GetMethod("SetVelocityProvider");
-                    if (method != null) method.Invoke(na, new object[] { pm });
-                }
-            }
-            count++;
-            Debug.Log("[FinalRepair] NeuralAnimationController 컴포넌트 추가됨");
-        }
-
-        // HybridAnimationController
-        var hybridType = System.Type.GetType("ProjectName.Systems.Animation.Neural.HybridAnimationController, Assembly-CSharp");
-        if (hybridType != null && player.GetComponent(hybridType) == null)
-        {
-            var ha = player.AddComponent(hybridType);
-            var pmType3 = System.Type.GetType("ProjectName.Systems.PlayerMovement, Assembly-CSharp");
-            if (pmType3 != null)
-            {
-                var pm = player.GetComponent(pmType3);
-                if (pm != null)
-                {
-                    var method = hybridType.GetMethod("SetVelocityProvider");
-                    if (method != null) method.Invoke(ha, new object[] { pm });
-                }
-            }
-            count++;
-            Debug.Log("[FinalRepair] HybridAnimationController 컴포넌트 추가됨");
-        }
-
-        // ProgressiveRolloutManager 등록
-        var prmType = System.Type.GetType("ProjectName.Systems.Animation.Neural.ProgressiveRolloutManager, Assembly-CSharp");
-        if (prmType != null)
-        {
-            var instanceProp = prmType.GetProperty("Instance");
-            if (instanceProp != null)
-            {
-                var instance = instanceProp.GetValue(null);
-                if (instance != null)
-                {
-                    var method = prmType.GetMethod("ConfigureHybridController");
-                    if (method != null)
-                    {
-                        var hybrid = player.GetComponent(hybridType);
-                        if (hybrid != null) method.Invoke(instance, new object[] { hybrid });
-                    }
-                }
-            }
-        }
+        // [2026-09-22 뉴럴 애니 제거] Neural/Hybrid 부착 + ProgressiveRolloutManager 등록 블록 퇴역(시스템 삭제).
 
         // CharacterController
         if (player.GetComponent<CharacterController>() == null)

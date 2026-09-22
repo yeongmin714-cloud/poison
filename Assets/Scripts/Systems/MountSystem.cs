@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
 using ProjectName.Systems.Animation.Procedural;
-using ProjectName.Systems.Animation.Neural;
 #pragma warning disable 0414
 
 namespace ProjectName.Systems
@@ -59,7 +58,6 @@ namespace ProjectName.Systems
 
         // 애니메이션
         private RigAnimationController _rigAnim;
-        private NeuralAnimationController _neuralAnim;
 
         // ===== Public Properties =====
 
@@ -209,7 +207,6 @@ namespace ProjectName.Systems
             _playerMovement = playerObj.GetComponent<PlayerMovement>();
             _characterController = playerObj.GetComponent<CharacterController>();
             _rigAnim = playerObj.GetComponent<RigAnimationController>();
-            _neuralAnim = playerObj.GetComponent<NeuralAnimationController>();
 
             // 카메라 참조
             if (_cameraController == null)
@@ -434,9 +431,6 @@ namespace ProjectName.Systems
             _mountHP = _maxMountHP;
             _isSprinting = false;
 
-            // Neural Animation: Mount 정책으로 전환
-            _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Mount);
-
             // 플레이어를 말 위치로 이동
             Transform playerTransform = _playerMovement != null ? _playerMovement.transform : null;
             if (playerTransform != null)
@@ -531,9 +525,6 @@ namespace ProjectName.Systems
             _isSprinting = false;
             _currentHorse = null;
             _currentHorseSpawner = null;
-
-            // Neural Animation: Locomotion 정책으로 복귀
-            _neuralAnim?.SwitchPolicy(NeuralAnimationController.PolicyType.Locomotion);
 
             // 이벤트 발생
             OnMountStateChanged?.Invoke(false);
