@@ -1,6 +1,58 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-22 (P-ANIM6 Phase 1~2: 2족 회전 보행 전환 + ShowcaseMonitor 재설계 — 컴파일 CS 0, EditMode 통과, QA PASS)
+> **최종 갱신:** 2026-09-22 (P-ANIM7 Phase 1~3: 4족 회전 보행 접선 + 절차 idle 전 계열 — 컴파일 CS 0, EditMode 통과, QA PASS)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ P-ANIM7 Phase 1~3 — 4족 회전 접선 + idle + 날개/슬라임)
+
+> **입력**: "테스트 13 영상 확인 — 미노타우르스는 정상, 나머지 몬스터 미구현" → 영상 타일시트 분석(4판)+Editor.log 교차로
+> 뿌리 4건 확정(docs/TEST11_ANIM_POLISH_PLAN7.md) → "진행" 지시로 Phase 1~3 구현.
+> **성공 확인(테스트13)**: 미노타우르스 걷기+정지 복원 정상 · 폴백 경고 0건 · JobTempAlloc **0건** — P-ANIM6 유효.
+
+### 뿌리 확정 (테스트13 + 코드 교차)
+1. **4족 다리 경직/미끄러짐**: `ApplyRotationGait()`가 **호출부 0건 사장 코드**(P-ANIM5-B에서 정의만, 49차 리팩터에서 유실 추정)
+   → 실제 구동은 구식 FABRIK IK(ApplyFootIK→Solve)가 계속 담당. 본 회전 스윙은 전무.
+2. **정지 시 전 몬스터 바인드 포즈 조각상**: 절차 idle 부재 — 4족 speed≈0 → 위상 정지+IK 타겟 정지, 2족은 RestoreGaitBase가 바인드 복원.
+3. **날개(griffin/manticore) 경직**: 4족 경로에 어깨 본 구동 경로 없음.
+4. **슬라임 이동 미끄러짐**: 펄스는 작동, 홉 없음.
+
+### Phase 1 — 4족 회전 기반 보행 실제 접선 (QuadrupedProceduralAnimation.cs, +107/-14)
+- **게이트 복원**: ApplyProceduralPose에서 `if (_rotationGait && 지상 && speed>0.1 && 액션None) ApplyRotationGait(); else { 원복 + ApplyFootIK(); }`
+  — 사장 코드였던 본 회전 스윙을 구동 경로로, IK와의 이중 구동(경합) 제거. 액션 중엔 IK 유지 경로로 회귀(Action 코드 포즈 인계).
+- **SwingLeg→SwingLegChain 확장**: 힙 ±sin(P-ANIM5-B 수식 그대로) + **무릎 굽힘** `max(0,-cos(2πφ))`(스윙 전반부=발 들기, 2족 P-ANIM6 이식)
+  + **발목 역굽힘**(무릎 굽힘×0.5 반대부호 — 발바닥 수평 보정). 뒷다리는 전용 역할(L_HindHip/Knee/Ankle) 매핑 시에만 스윙(미매핑 시
+  앞다리 역할 폴백과 이중 구동 방지 — Has() 가드).
+- **정지/액션 복원**: RestoreGaitBase(base 복원+캐시 클리어) — 스윙 자세 잔존 방지.
+- **튜닝 필드 5개 인스펙터 노출**: 스윙속도계수 6/최소 10°/최대 32°/무릎굽힘 0.5/발목역굽힘 0.5 (2족과 동일 규약).
+
+### Phase 2 — 절차 idle 전 계열 (정지 조각상 해소)
+- **4족**(QuadrupedProceduralAnimation): ApplyBodyLean else 분기에 골반(Root) 미세 상하 호흡 1.1Hz(±0.012m) —
+  스파인 파동은 Locomotion.ApplySpineWave가 시간 기반으로 계속 흔들어 경합 회피, 머리는 HeadLook 담당.
+  `_idleHz`/`_idleBreathAmp` 노출.
+- **2족**(ProceduralAnimationController): ApplyBipedIdle(어깨 호흡 롤 ±1.8°+척추0 피치 0.5배) — 익명 리그 전용 경로
+  (플레이어=잡 경로 무영향). BreatheBone(base 캐시 절대세팅)+별도 _idleBaseRot 캐시, idle↔gait/액션 전환 시 원복 인수인계.
+  `_idleHz`/`_idleBreathDeg` 노출.
+- **슬라임**(SpecialCreatureAnimator): 이동 홉 — `_moveT` 블렌드 |sin| 홉(y만 — wander 규약 분리), 펄스 위상 동기(뻗을 때 이륙),
+  `_slimeHopAmp`(0.12m) 노출. `_bodyIsSelf` 가드 유지.
+
+### Phase 3 — 날개 플랩 (QuadrupedProceduralAnimation)
+- ApplyWingFlap: 어깨 역할 본(L/R_Shoulder)이 매핑되고 **앞다리 힙과 다른 본**일 때만 플랩(어깨=힙 재사용 리그 스킵).
+  이동 중 날갯짓 강화(속도 블렌드), 정지 중 35% 진폭 미세 펄럭(idle 생동감). `_wingBaseRot` 별도 캐시(gait 캐시 클리어와 무관).
+  `_wingFlapHz`(2.2)/`_wingFlapDeg`(26°) 노출. 액션 중 스킵.
+- ⚠️ 참고(QA): 4족 토폴로지 경로는 FillArmRoles 미호출 → L_Shoulder 미매핑이 기본 → 이름 사전 매핑("arm.l"류) 리그에서만 발동.
+
+### 검증
+- 배치컴파일 **error CS = 0** (Phase별 3회+QA수리 재컴파일 전부 0) · **EditMode 전부 통과**
+- 독립 QA 에이전트 PASS: 게이트 상호배타(회전↔IK 경합 소멸)/L_HindKnee·Ankle enum 존재+Has 가드/플래그 짝 정확/
+  idle-보행 본 독점 분리(4족 골반↔스파인·2족 어깨/척추)/날개 힙재사용 스킵/brace 86·190·51 균형 — **치명 0건**
+- QA 경미 1건 **수리 완료**: 슬라임 정지 시 마지막 홉 높이 잔존 동결(게이트 하한 0.01 비연속) → else 원복 브랜치 추가
+- 커밋: `f18cc7ab`(Phase1) → `45940b2a`(Phase2 2족 idle) → `835db826`(Phase2+3 4족 idle+슬라임+날개) → `58879d76`(QA수리) — 푸시 완료
+
+### Play 판정 대기 (Phase 4 라운드)
+①4족 걷기 — 다리 교차+무릎 굽힘(발 들기) 보이는지, 미끄러짐/부유 0 ②정지 3초 — 전 몬스터 호흡(조각상 0) ③griffin/manticore 날개
+펄럭(어깨 매핑 리그인지 로그/영상 확인) ④슬라임 이동 홉+정지 펄스 ⑤미노타우르스 회귀 없음(걷기/정지 복원) ⑥JobTempAlloc 0 유지
+⑦폴백 오탐 0. 굽힘 부호가 리그마다 반대면 인스펙터 튜닝 필드로 라운드 반복.
 
 ---
 
