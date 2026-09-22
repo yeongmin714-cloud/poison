@@ -71,6 +71,20 @@ namespace ProjectName.Systems.Animation.Procedural
         [SerializeField] LayerMask groundMask = ~0;
         [SerializeField, Range(0.5f, 2f)] float groundCheckDistance = 1.0f;
 
+        [Header("Job IK / Rotation Gait")]
+        // [P-ANIM6 Phase1] 잡(IJob) IK 체인 게이트 — 기본 꺼짐. 익명 리그(isHuman=false, 미노타우르스 등)
+        // 2족은 회전 기반 보행으로 전환해 프레임당 잡 5종(footPlanner/hipShift/spineCounter/leftIK/rightIK)
+        // 미스케줄 = JobTempAlloc temp 누수 0건. 휴머노이드 아바타(플레이어)는 이 값과 무관하게 항상
+        // 잡 경로 유지(UseJobIK 게이트 — 걷기 회귀 방지). true로 두면 익명 리그에서도 잡 경로 강제(디버그용).
+        [SerializeField] bool _useJobIK = false;
+
+        // [P-ANIM6 Phase3 튜닝용] 회전 보행 파라미터 — 4족 ApplyRotationGait(P-ANIM5-B) 패턴 이식.
+        [SerializeField, Range(1f, 12f)] float _gaitSwingSpeedFactor = 6f;  // 스윙각 = 속도×이 계수
+        [SerializeField, Range(0f, 45f)] float _gaitMinSwingDeg = 10f;      // 최소 스윙각(저속 하한)
+        [SerializeField, Range(5f, 60f)] float _gaitMaxSwingDeg = 32f;      // 최대 스윙각(고속 상한)
+        [SerializeField, Range(0f, 1.5f)] float _gaitKneeBendFactor = 0.5f; // 무릎 굽힘량(스윙각 대비)
+        [SerializeField, Range(0f, 1.5f)] float _gaitArmSwingFactor = 0.4f; // 팔 스윙량(다리 진폭 대비)
+
         // ──────────────────────────────────────────────
         // 컴포넌트
         // ──────────────────────────────────────────────
@@ -80,6 +94,17 @@ namespace ProjectName.Systems.Animation.Procedural
         ProceduralBoneMap _boneMap;
         ProceduralAnimStateMachine _stateMachine;
         ProceduralLODManager _lodManager;
+
+        // [P-ANIM6 Phase1] 회전 보행 상태 — 기준 localRotation 캐시(4족 _gaitBaseRot 동일 패턴).
+        // 적용 중 플래그: 정지/액션 전환 시 1회 기본 포즈 복원(스윙 자세 잔존 방지).
+        readonly Dictionary<Transform, Quaternion> _gaitBaseRot = new Dictionary<Transform, Quaternion>();
+        bool _gaitActive;
+
+        /// <summary>
+        /// [P-ANIM6 Phase1] 잡 경로 게이트 — 플레이어 보호: 휴머노이드 아바타(isHuman=true)는
+        /// _useJobIK 값과 무관하게 항상 잡 경로 유지. 익명 리그(2족 몬스터)만 회전 보행으로 전환.
+        /// </summary>
+        bool UseJobIK => (_animator != null && _animator.isHuman) || _useJobIK;
 
         // 외부 속도 공급자 (PlayerMovement 등 CharacterController 기반 이동 시스템)
         IVelocityProvider _velocityProvider;
@@ -556,7 +581,9 @@ namespace ProjectName.Systems.Animation.Procedural
             UpdateLegPhases();
             UpdateHeadLookTarget();
 
-            ScheduleLocomotionJobs();
+            // [P-ANIM6 Phase1] 회전 보행 모드(익명 리그)에선 잡 0 스케줄 — JobTempAlloc temp 누수 원천 차단.
+            if (UseJobIK)
+                ScheduleLocomotionJobs();
         }
 
         void FixedUpdate()
@@ -570,13 +597,23 @@ namespace ProjectName.Systems.Animation.Procedural
             _locomotionJobHandle.Complete();
             DisposeLocomotionTempArrays();
             UpdateGroundDetection();
-            ScheduleIKJobs();
-            ApplyProceduralPose();
+
+            // [P-ANIM6 Phase1] 잡 경로(isHuman 플레이어=기존 동작 무변경) vs 회전 보행(익명 리그) 분기.
+            if (UseJobIK)
+            {
+                ScheduleIKJobs();
+                ApplyProceduralPose();
+            }
+            else
+            {
+                ApplyBipedRotationGait();
+            }
         }
 
         void OnAnimatorIK(int layerIndex)
         {
             if (layerIndex != 0) return;
+            if (!UseJobIK) return; // [P-ANIM6] 회전 보행 모드 — 잡 결과가 없으므로 Animator IK 미적용
             _ikJobHandle.Complete();
             ApplyIKToAnimator();
         }
@@ -1174,6 +1211,115 @@ namespace ProjectName.Systems.Animation.Procedural
             ApplyHeadLook();
             ApplyBodyLean();
             ApplyHipShift();
+        }
+
+        // ──────────────────────────────────────────────
+        // [P-ANIM6 Phase1] 회전 기반 2족 보행 — 잡(IJob) 체인 완전 우회
+        // 4족 ApplyRotationGait(P-ANIM5-B) 패턴 이식: 월드 기준 회전 + 기준 localRotation 캐시.
+        // 익명 리그(isHuman=false, 미노타우르스 등) 전용 — 플레이어 휴머노이드는 UseJobIK 게이트로 잡 경로 유지.
+        // 다리=L_Hip/R_Hip 전후 스윙(좌우 0.5 위상 교차), 무릎=스윙 전반부(발 들기) 굽힘,
+        // 팔=L_Shoulder/R_Shoulder 다리 역위상 스윙(진폭 40%). Root 본은 건드리지 않는다(바운스 경합 방지).
+        // ──────────────────────────────────────────────
+
+        void ApplyBipedRotationGait()
+        {
+            // HumanoidClipDriver 충돌 회피 — ApplyProceduralPose와 동일 규약(클립 애니와 골격 공유 방지).
+            if (GetComponentInParent<HumanoidClipDriver>() != null ||
+                GetComponentInChildren<HumanoidClipDriver>() != null) return;
+
+            bool canGait = _actionState == ActionState.None && IsGrounded && _currentSpeed > 0.1f;
+            if (!canGait)
+            {
+                // 정지/공중/액션 — 회전 보행 중단. 스윙 자세 잔존 방지로 1회 기본 포즈 복원.
+                if (_gaitActive) RestoreGaitBase();
+                return;
+            }
+
+            // [P-ANIM2/4족 수리 동일] 스윙 각도 = 실속도 비례 클램프 — 보폭과 이동속도 동기(발 미끄러짐 제거)
+            float swingDeg = Mathf.Clamp(_currentSpeed * _gaitSwingSpeedFactor, _gaitMinSwingDeg, _gaitMaxSwingDeg);
+            Vector3 axis = transform.right; // 진행 방향에 수직 — 전후 스윙
+
+            // 위상은 UpdateLegPhases의 _leftLegPhase(초기 0)/_rightLegPhase(초기 0.5) 재사용 —
+            // 좌우 이미 0.5 교차 상태라 별도 오프셋 없이 소비(속도/스텝길이 동기 유지 = 발 미끄러짐 방지).
+            SwingBipedLeg(BoneRole.L_Hip, BoneRole.L_Knee, _leftLegPhase, axis, swingDeg);
+            SwingBipedLeg(BoneRole.R_Hip, BoneRole.R_Knee, _rightLegPhase, axis, swingDeg);
+
+            // 팔 — 다리와 역위상(좌팔=우다리 위상, 우팔=좌다리 위상): 자연스러운 팔 흔들기.
+            SwingBipedArm(BoneRole.L_Shoulder, _rightLegPhase, axis, swingDeg);
+            SwingBipedArm(BoneRole.R_Shoulder, _leftLegPhase, axis, swingDeg);
+
+            _gaitActive = true;
+        }
+
+        /// <summary>[P-ANIM6] 다리 스윙 — 힙 전후 스윙(±sin) + 무릎 굽힘(스윙 전반부=발 들기). </summary>
+        void SwingBipedLeg(BoneRole hipRole, BoneRole kneeRole, float phase, Vector3 axis, float swingDeg)
+        {
+            // 다리 스윙 — 4족 SwingLeg와 동일한 월드 기준 회전 합성(축 불변).
+            Transform hip = _boneMap.Has(hipRole) ? _boneMap.Get(hipRole) : null;
+            if (hip != null && hip.parent != null)
+            {
+                if (!_gaitBaseRot.TryGetValue(hip, out var hipBase))
+                {
+                    _gaitBaseRot[hip] = hip.localRotation; // 첫 프레임은 기준 포착만
+                }
+                else
+                {
+                    // 양의 회전각=발 후방(Unity 오른손 축 관례) — 전방 스윙이 음의 각.
+                    float hipAngle = Mathf.Sin(phase * Mathf.PI * 2f) * swingDeg;
+                    Quaternion hipBaseWorld = hip.parent.rotation * hipBase;
+                    Quaternion hipTargetWorld = hipBaseWorld * Quaternion.AngleAxis(hipAngle, axis);
+                    hip.localRotation = Quaternion.Inverse(hip.parent.rotation) * hipTargetWorld;
+                }
+            }
+
+            // 무릎 굽힘 — 다리가 후방→전방으로 지나가는 전반부만 굽힘(발 들기 흉내).
+            // 다리가 중립을 전방 방향으로 통과할 때(cos 피크) 굽힘 최대 — 보행 사이클과 정합.
+            Transform knee = _boneMap.Has(kneeRole) ? _boneMap.Get(kneeRole) : null;
+            if (knee != null && knee.parent != null)
+            {
+                if (!_gaitBaseRot.TryGetValue(knee, out var kneeBase))
+                {
+                    _gaitBaseRot[knee] = knee.localRotation; // 첫 프레임은 기준 포착만
+                }
+                else
+                {
+                    float bend = Mathf.Max(0f, -Mathf.Cos(phase * Mathf.PI * 2f))
+                               * _gaitKneeBendFactor * swingDeg;
+                    Quaternion kneeBaseWorld = knee.parent.rotation * kneeBase;
+                    Quaternion kneeTargetWorld = kneeBaseWorld * Quaternion.AngleAxis(bend, axis);
+                    knee.localRotation = Quaternion.Inverse(knee.parent.rotation) * kneeTargetWorld;
+                }
+            }
+        }
+
+        /// <summary>[P-ANIM6] 팔 스윙 — 같은 축 전후 스윙, 진폭은 다리의 _gaitArmSwingFactor 배(기본 40%).</summary>
+        void SwingBipedArm(BoneRole shoulderRole, float phase, Vector3 axis, float swingDeg)
+        {
+            Transform shoulder = _boneMap.Has(shoulderRole) ? _boneMap.Get(shoulderRole) : null;
+            if (shoulder == null || shoulder.parent == null) return;
+
+            if (!_gaitBaseRot.TryGetValue(shoulder, out var baseLocal))
+            {
+                _gaitBaseRot[shoulder] = shoulder.localRotation; // 첫 프레임은 기준 포착만
+                return;
+            }
+
+            float angle = Mathf.Sin(phase * Mathf.PI * 2f) * swingDeg * _gaitArmSwingFactor;
+            Quaternion baseWorld = shoulder.parent.rotation * baseLocal;
+            Quaternion targetWorld = baseWorld * Quaternion.AngleAxis(angle, axis);
+            shoulder.localRotation = Quaternion.Inverse(shoulder.parent.rotation) * targetWorld;
+        }
+
+        /// <summary>[P-ANIM6] 회전 보행 종료/정지 시 캐시된 기준 localRotation 복원(스윙 자세 잔존 방지).
+        /// 캐시까지 클리어 — 다음 보행 세션에서 골격 기저 변화(프로필 재적용 등)를 재포착한다.</summary>
+        void RestoreGaitBase()
+        {
+            foreach (var kvp in _gaitBaseRot)
+            {
+                if (kvp.Key != null) kvp.Key.localRotation = kvp.Value;
+            }
+            _gaitBaseRot.Clear();
+            _gaitActive = false;
         }
 
         void ApplyFootIK()
