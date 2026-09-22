@@ -335,6 +335,59 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// [Phase F-1] 영주 성 실내 수비 병사 스폰 — Phase A 성향 배분(interiorDefenseSoldiers)만큼
+        /// roomCenter 주변에 병사를 배치하고 플레이어 적대 설정. 소프트 게이트(야외 문지기 전원 포섭)를
+        /// 뚫은 플레이어가 실내 진입 시, 성 내부 미배치 수비병이 전원 공격하도록 한다.
+        /// (실내 상점/크래프트는 플레이어 소유 성으로 이관 — 타 영주 성은 영주실+수비병만)
+        /// </summary>
+        /// <param name="roomCenter">성 내부 방 중심 (BuildCastleInterior 반환 transform.position, 실내 바닥 y=0)</param>
+        /// <param name="nationStyle">국가 스타일 (로그용)</param>
+        /// <param name="territoryKey">영지 키 (예: "East_01") — 성향 배분 조회용</param>
+        public static void SpawnInteriorDefenseGuards(Vector3 roomCenter, string nationStyle, string territoryKey)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(territoryKey)) return;
+                var db = TerritoryDatabase.Instance;
+                if (db == null) return;
+
+                var state = db.GetState(territoryKey);
+                if (state == null) return;
+                var def = db.GetDefinition(state.id);
+                if (def.id.nation == NationType.None) return; // 판정 불가 — 스폰 생략
+
+                int count = LordPersonalitySystem.GetDeploymentPlan(def.id).interiorDefenseSoldiers;
+                if (count <= 0) return;
+
+                int baseLevel = GetBaseGuardLevel(def.difficulty);
+                for (int i = 0; i < count; i++)
+                {
+                    float lat = ((i % 2) == 0 ? 1f : -1f) * (2f + (i / 2) * 2f); // ±2, ∓2, ±4, ∓4 ...
+                    float dep = 2f + (i / 2) * 3f; // 왕좌 앞쪽으로 깊이 배치
+                    Vector3 pos = new Vector3(roomCenter.x + lat, roomCenter.y, roomCenter.z + dep);
+                    var go = CreateGuard($"InteriorGuard_{i + 1}", pos, GetGuardName(def.nation), baseLevel + (i % 3), def.nation);
+                    if (go == null) continue;
+
+                    // 실내 바닥 y 고정(월드 지형 높이 오염 방지 — CreateGuard는 GetHeightAt 보정함)
+                    go.transform.position = new Vector3(pos.x, roomCenter.y + 0.05f, pos.z);
+
+                    var ph = go.GetComponent<GuardPlaceholder>();
+                    if (ph != null)
+                    {
+                        ph.SetInCombat(true);
+                        ph.HostileToPlayerFaction = true; // 실내 진입자 플레이어 공격 대상(실외 영지 기반 GuardHostilitySystem은 실내 미적용)
+                    }
+                    Debug.Log($"[TerritoryBuilder] 영주 성 실내 수비 병사 배치: {go.name} (Lv.{baseLevel + (i % 3)})");
+                }
+                Debug.Log($"[TerritoryBuilder] 영주 성 실내 수비 병사 {count}명 배치 완료 (style: {nationStyle}, {territoryKey})");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[TerritoryBuilder] 실내 수비 병사 배치 실패: {e.Message}");
+            }
+        }
+
+        /// <summary>
         /// 국가별 성문(castle) GLB 모델 키를 반환합니다.
         /// </summary>
         private static string GetCastleModelKey(NationType nation)

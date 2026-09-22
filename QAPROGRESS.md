@@ -97,6 +97,29 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-F1/F2: 실내 전투 + 실내 단순화 코어)
+
+> **범위**: ①영주 성 실내 수비 병사 스폰·적대(실내 전투) ②타 영주 성의 실내 상점/크래프트 제거(플레이어 성만) → 마을로 기능 이관.
+> ⚠ F는 대형 리팩토링이라 조사 delegate 2회 연속 600s 타임아웃 → **부모 직접 + 스코프 분할(F-1/F-2/F-3)**.
+
+### 발견 (실내 구조)
+- 실내는 **Additive 별도 씬**(IndoorScene, 월드 언로드, `IsIndoor` 게이트로 실외 AI 차단) — 실내 병사는 야외 영지와 분리·신규 스폰 필요.
+- `CastleInteriorBuilder`(타 영주 성)에 **병사 스폰 0건**.
+- `TerritoryBuilder.SpawnInteriorFixtures`가 성 내부(R2)에 **상점+크래프트** 배치 — 기존엔 `_pendingIsPlayerOwned` 무관하게 타 영주 성에도 붙어있었음(사용자 "타 영주=병사+영주실만" 요구 위반이던 원인).
+- `IndoorSceneTransition` castle 분기(L195-201)에서 소유 분기(PlayerOwned→PlayerCastleInteriorBuilder / 영주→CastleInteriorBuilder), `_pendingTerritoryKey`로 성향 조회 가능.
+
+### 구현 (부모 직접, 컴파일 error CS 0)
+- **`TerritoryBuilder.cs`**: 신규 `SpawnInteriorDefenseGuards(Vector3 roomCenter, string nationStyle, string territoryKey)` — `LordPersonalitySystem.GetDeploymentPlan(def.id).interiorDefenseSoldiers`(성향 배분 실내 몫)만큼 `CreateGuard` 스폰 + 실내 바닥 y 고정 + `SetInCombat(true)`·`HostileToPlayerFaction=true`(실내 진입자 공격; 실외 영지 기반 GuardHostilitySystem은 실내 미적용). ex/판정불가 방어.
+- **`IndoorSceneTransition.cs`** castle 분기: `_pendingIsPlayerOwned`면 기존 `SpawnInteriorFixtures`(상점/크래프트), 영주 성이면 `SpawnInteriorDefenseGuards` 호출 → **플레이어 성=혼자/기능, 영주 성=병사 동행/전투** 구조 달성.
+- F-3(마을 이관): `TownBuilder`가 이미 상점/크래프트 건물 배치 → 영주 성에서 기능 제거해 마을로 통일(중복 제거). 마을 자체 기능은 기존 재활용.
+
+### 검증 & ⚠ 후속
+- 배치컴파일 **error CS 0**, return 0. 게임 흐름 회귀 없음 (플레이어 성 배선 유지).
+- ⚠ **실내 수비 병사의 실전 공격 동작은 Play 검증 필요** (실내 AI가 플레이어를 추적/공격하는지 — 컴파일로는 불가). 사용자 Play 시 `[TerritoryBuilder] 영주 성 실내 수비 병사 N명` 로그 + 실내 진입 시 병사 공격 확인.
+- F-3 마을 이관 세부(마을 배치/진입 트리거)는 후속 정합 검토 대상.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-22 ✅ 뉴럴 애니메이션 전면 퇴역 — 사용자 결정 "모두 없애줘")
 
 > **입력**: "뉴럴애니메이션 관련은 이제 사용하지 않는 거니 모두 없애줘. 그래도 게임진행엔 아무 문제 없는거지?"

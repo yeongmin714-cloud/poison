@@ -197,7 +197,13 @@ namespace ProjectName.UI
                             ? PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, layoutVariant)
                             : CastleInteriorBuilder.BuildCastleInterior(nation, layoutVariant);
                         if (hqRoom != null)
-                            TerritoryBuilder.SpawnInteriorFixtures(hqRoom.transform.position, nation);
+                        {
+                            // [Phase F] 플레이어 소유 성: 상점/크래프트 기능 배치 / 영주 성: 성향 배분 실내 수비 병사 스폰+적대
+                            if (_pendingIsPlayerOwned)
+                                TerritoryBuilder.SpawnInteriorFixtures(hqRoom.transform.position, nation);
+                            else
+                                TerritoryBuilder.SpawnInteriorDefenseGuards(hqRoom.transform.position, nation, _pendingTerritoryKey);
+                        }
                         break;
                     case "barn":
                         BarnInteriorBuilder.BuildBarnInterior();          // void 반환 — Room 탐색 폴백
