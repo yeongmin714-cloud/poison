@@ -510,8 +510,21 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             }
             else
             {
-                // 4족: 페어 2개 — z가 큰 쪽=앞다리(앞좌/앞우), 작은 쪽=뒷다리(Hind)
-                var sortedPairs = pairs.OrderByDescending(p => (p.a.local.z + p.b.local.z) * 0.5f).ToList();
+                // 4족: 페어 2개 — [2026-09-22] 머리 체인(비다리 최고점) 기준으로 앞/뒤 판정.
+                // 기존 z>=0 가정은 리그 forward가 -Z인 리그에서 전/후 스왑(앞다리에 뒷다리 굽힘)을 만들었다.
+                Vector3 headTip = Vector3.zero; float bestY = float.MinValue; bool hasHead = false;
+                foreach (var c in chains)
+                {
+                    if (legChains.Exists(l => l[0] == c[0])) continue; // 다리 체인 제외
+                    var tip = c[c.Count - 1];
+                    if (tip.position.y > bestY) { bestY = tip.position.y; headTip = tip.position; hasHead = true; }
+                }
+                var sortedPairs = pairs.OrderBy(p =>
+                {
+                    if (!hasHead) return 0f;
+                    Vector3 midW = (p.a.chain[0].position + p.b.chain[0].position) * 0.5f;
+                    return -Vector3.Distance(midW, headTip); // 머리에서 가까운 페어 = 앞다리
+                }).ToList();
                 if (sortedPairs.Count >= 2)
                 {
                     var frontPair = sortedPairs[0];
@@ -526,6 +539,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                     FillLegRoles(map, bRight, true, false);
                     spineLegBones.UnionWith(fLeft); spineLegBones.UnionWith(fRight);
                     spineLegBones.UnionWith(bLeft); spineLegBones.UnionWith(bRight);
+                    UnityEngine.Debug.Log($"[ProceduralBoneUtility] 4족 배치: 앞[{fLeft[0].name},{fRight[0].name}] 뒤[{bLeft[0].name},{bRight[0].name}] head판정={hasHead}");
                 }
                 else if (sortedPairs.Count == 1)
                 {
