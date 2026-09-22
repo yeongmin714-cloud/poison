@@ -160,18 +160,18 @@ namespace ProjectName.Systems
             cam.nearClipPlane = 0.1f;
             cam.farClipPlane = 500f;
 
-            // 고정 탑다운: (0,45,-30)에서 60° 하향 — 몬스터행(-15)/병사행(0)/NPC행(+15) 전부 화면에
-            camGO.transform.position = new Vector3(0f, 45f, -30f);
+            // 고정 탑다운: (0,28,-20)에서 60° 하향 — 2026-09-22 "캐릭터들 근처로" 요청으로 근접(기존 0,45,-30)
+            camGO.transform.position = new Vector3(0f, 28f, -20f);
             camGO.transform.rotation = Quaternion.Euler(60f, 0f, 0f);
 
-            // 휠 줌 (2026-09-22) — 자세 유지한 채 돌리 확대/축소(ShowcaseCameraZoom)
+            // 줌 (2026-09-22) — 자세 유지 돌리 줌(ShowcaseCameraZoom): 휠 2경로+PageUp/Down+우클릭 드래그
             if (camGO.GetComponent<ShowcaseCameraZoom>() == null)
                 camGO.AddComponent<ShowcaseCameraZoom>();
 
             if (camGO.GetComponent<AudioListener>() == null)
                 camGO.AddComponent<AudioListener>();
 
-            Log("[TestAnimShowcase] ✅ 고정 탑다운 카메라 설정 (0,45,-30 / 60°) + 휠 줌 (6~65m)");
+            Log("[TestAnimShowcase] ✅ 탑다운 카메라 설정 (0,28,-20 / 60°, 근접) + 줌 (4~45m: 휠/PageUp·Down/우클릭 드래그)");
         }
 
         // ================================================================

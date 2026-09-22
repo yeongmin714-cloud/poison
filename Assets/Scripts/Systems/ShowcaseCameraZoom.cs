@@ -1,10 +1,10 @@
-// Test_11_AnimationShowcase (2026-09-22): 쇼케이스 카메라 휠 줌.
-// 요구: "테스트 씬에서도 뷰를 확대할 수 있게" — 기존 고정 탑다운 카메라(0,45,-30 / 60°)의 자세를
-// 유지한 채 마우스 휠로 전진/후퇴(돌리 줌)한다.
-//  - 줌 중심(pivot) = 카메라 초기 시선이 닿는 지면 지점(Raycast, 실패 시 52m 전방) — 자세/프레이밍 보존.
-//  - 거리 클램프 [min, max], 지수 평홴으로 부드럽게. 휠 위(+노치)=확대(거리 감소).
-//  - Input System 전용 프로젝트(activeInputHandler=1) — Mouse.current.scroll 사용(노치 정규화 /120).
-// TopDownCameraController는 Player 태그 필수라 Player 없는 쇼케이스 씬에서 미작동 → 전용 경량 컴포넌트.
+// Test_11_AnimationShowcase (2026-09-22 수리): 쇼케이스 카메라 줌 — 다중 입력 채널 무장화.
+// 요구: "여전히 휠로 확대 안되니 해결하고 카메라를 캐릭터들 근처로".
+// [수리] 휠 1경로(Mouse.current.scroll)만 있어 환경에 따라 무시될 수 있던 것을 4채널로 확장:
+//  ①Input System 휠 ②레거시 Input.mouseScrollDelta(try/catch — activeInputHandler=2 Both 모드에서
+//  유효, CameraZoomControllerRuntime 선례) ③PageUp(확대)/PageDown(축소) 키 ④우클릭 드래그 상하.
+// 채널별 최초 수신 1회 로그로 입력 수신 경로를 콘솔에서 증명한다.
+// 자세(60° 톱다운) 유지 돌리 줌 — 줌 중심=초기 시선 지면 지점(Raycast, 실패 시 40m 전방).
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,49 +14,100 @@ namespace ProjectName.Systems
     public class ShowcaseCameraZoom : MonoBehaviour
     {
         [Header("Distance Clamp")]
-        [SerializeField] private float _minDistance = 6f;
-        [SerializeField] private float _maxDistance = 65f;
+        [SerializeField] private float _minDistance = 4f;
+        [SerializeField] private float _maxDistance = 45f;
 
         [Header("Zoom Feel")]
-        [SerializeField] private float _zoomStepPerNotch = 4f; // 휠 노치당 거리 변화
-        [SerializeField] private float _smoothTime = 0.12f;    // 지수 평활 시정수
+        [SerializeField] private float _zoomStepPerNotch = 3f;   // 휠 노치당 거리 변화
+        [SerializeField] private float _keyZoomSpeed = 12f;      // PageUp/Down 초당
+        [SerializeField] private float _dragZoomSensitivity = 0.06f; // 우클릭 드래그 px당
+        [SerializeField] private float _smoothTime = 0.1f;       // 지수 평활 시정수
 
         private Vector3 _pivot;
         private Vector3 _forward;
         private float _distance;
         private float _targetDistance;
 
+        // 입력 채널 진단 — 최초 수신 1회 로그(콘솔에서 어떤 경로로 들어오는지 증명)
+        private bool _loggedIS, _loggedLegacy, _loggedKey, _loggedDrag;
+        private bool _legacyBroken; // Input-System-only 모드 legacy 예외 1회 캐시(재시도 없음)
+
         private void Start()
         {
             _forward = transform.forward.normalized;
 
-            // 줌 중심 = 초기 시선이 닿는 지면 지점(지형/평면 콜라이더). 실패 시 52m 전방 폴백.
-            _pivot = transform.position + _forward * 52f;
-            if (Physics.Raycast(transform.position, _forward, out RaycastHit hit, 200f))
+            // 줌 중심 = 초기 시선이 닿는 지면 지점(지형/평면 콜라이더). 실패 시 40m 전방 폴백.
+            _pivot = transform.position + _forward * 40f;
+            if (Physics.Raycast(transform.position, _forward, out RaycastHit hit, 300f))
                 _pivot = hit.point;
 
             _distance = Vector3.Distance(transform.position, _pivot);
             _targetDistance = _distance;
-            Debug.Log($"[ShowcaseCameraZoom] 휠 줌 활성 — pivot={_pivot:F1}, dist={_distance:F1}m (범위 {_minDistance}~{_maxDistance}m, 휠=확대/축소)");
+            Debug.Log($"[ShowcaseCameraZoom] 줌 활성 — pivot={_pivot:F1}, dist={_distance:F1}m (범위 {_minDistance}~{_maxDistance}m) | 입력: 휠 / PageUp·PageDown / 우클릭 드래그 상하");
         }
 
         private void Update()
         {
-            // 휠 입력 — Input System(노치 정규화: Windows 기준 한 노치 = 120)
+            // ① Input System 휠
             if (Mouse.current != null)
             {
-                float scrollY = Mouse.current.scroll.ReadValue().y;
-                if (Mathf.Abs(scrollY) > 0.01f)
+                float sy = Mouse.current.scroll.ReadValue().y;
+                if (Mathf.Abs(sy) > 0.01f)
                 {
-                    float notches = scrollY / 120f;
+                    if (!_loggedIS) { _loggedIS = true; Debug.Log("[ShowcaseCameraZoom] 휠 입력 수신 (Input System)"); }
                     _targetDistance = Mathf.Clamp(
-                        _targetDistance - notches * _zoomStepPerNotch,
-                        _minDistance, _maxDistance);
+                        _targetDistance - (sy / 120f) * _zoomStepPerNotch, _minDistance, _maxDistance);
                 }
             }
 
-            // 지수 평활 + 고정 자세 돌리 이동 — 카메라 자세(60° 톱다운)는 유지
-            float k = 1f - Mathf.Exp(-(_smoothTime <= 0.0001f ? 0.0001f : _smoothTime) * 20f * Time.deltaTime);
+            // ② 레거시 휠 — Both 모드에서 유효(선례: CameraZoomControllerRuntime).
+            //    Input-System-only 모드면 예외 1회 후 채널 폐기(무시).
+            if (!_legacyBroken)
+            {
+                try
+                {
+                    float ly = Input.mouseScrollDelta.y;
+                    if (Mathf.Abs(ly) > 0.01f)
+                    {
+                        if (!_loggedLegacy) { _loggedLegacy = true; Debug.Log("[ShowcaseCameraZoom] 휠 입력 수신 (Legacy Input)"); }
+                        _targetDistance = Mathf.Clamp(
+                            _targetDistance - ly * _zoomStepPerNotch, _minDistance, _maxDistance);
+                    }
+                }
+                catch (System.Exception)
+                {
+                    _legacyBroken = true;
+                }
+            }
+
+            // ③ 키보드 폴백 — PageUp=확대(거리 감소) / PageDown=축소. 휠 환경 무관 항상 동작.
+            if (Keyboard.current != null)
+            {
+                float key = 0f;
+                if (Keyboard.current.pageUpKey.isPressed) key = -1f;
+                else if (Keyboard.current.pageDownKey.isPressed) key = +1f;
+                if (key != 0f)
+                {
+                    if (!_loggedKey) { _loggedKey = true; Debug.Log("[ShowcaseCameraZoom] 키보드 줌 수신 (PageUp/Down)"); }
+                    _targetDistance = Mathf.Clamp(
+                        _targetDistance + key * _keyZoomSpeed * Time.deltaTime, _minDistance, _maxDistance);
+                }
+            }
+
+            // ④ 우클릭 드래그 상하 — 드래그 위=확대(거리 감소). 마우스 휠 불가 환경 폴백.
+            if (Mouse.current != null && Mouse.current.rightButton.isPressed)
+            {
+                float dy = Mouse.current.delta.ReadValue().y;
+                if (Mathf.Abs(dy) > 0.5f)
+                {
+                    if (!_loggedDrag) { _loggedDrag = true; Debug.Log("[ShowcaseCameraZoom] 우클릭 드래그 줌 수신"); }
+                    _targetDistance = Mathf.Clamp(
+                        _targetDistance - dy * _dragZoomSensitivity, _minDistance, _maxDistance);
+                }
+            }
+
+            // 지수 평활 + 자세 고정 돌리 이동 — 카메라 자세(60° 톱다운)는 유지
+            float k = 1f - Mathf.Exp(-Time.deltaTime / Mathf.Max(0.001f, _smoothTime));
             _distance = Mathf.Lerp(_distance, _targetDistance, k);
 
             transform.position = _pivot - _forward * _distance;

@@ -65,6 +65,12 @@
 - **신규 `ShowcaseCameraZoom.cs`**: SetupCamera가 카메라에 부착. 고정 자세(60° 톱다운) 유지한 채 **마우스 휠 돌리 줌** — 줌 중심=초기 시선 지면 지점(Raycast, 실패 시 52m 전방), 거리 클램프 6~65m, 노치당 4m, 지수 평활. Input System(Mouse.current.scroll, 노치 /120 정규화) — TopDownCameraController는 Player 태그 필수라 Player 없는 쇼케이스에서 미작동 → 전용 경량 컴포넌트.
 - 검증: 배치컴파일 CS=0 + EditMode 통과.
 
+### 줌 무장화 + 카메라 근접 (동일 세션 후속 — "여전히 휠로 확대 안되니 해결하고 카메라를 캐릭터들 근처로")
+- **진단**: ProjectSettings `activeInputHandler: 2`(Both 모드 — 레거시 Input도 유효, CameraZoomControllerRuntime 선례). Editor.log 로테이션으로 최근 플레이 흔적 부재 — 입력 경로 단일(Mouse.current.scroll)에 환경 의존 가능성을 배제 못 함.
+- **수리 `ShowcaseCameraZoom` 4채널 무장화**: ①Input System 휠 ②레거시 Input.mouseScrollDelta(try/catch, 예외 시 채널 폐기) ③PageUp=확대/PageDown=축소 키 ④우클릭 드래그 상하(위=확대). 채널별 최초 수신 1회 로그(`휠 입력 수신 (Input System/Legacy)` 등)로 콘솔에서 경로 증명. 지수 평활+자세 고정 돌리 유지.
+- **카메라 근접**: 초기 위치 (0,45,-30)→**(0,28,-20)**(60° 유지, 시선 거리 52→33m) + 줌 범위 6~65→**4~45m**(노치당 4→3m).
+- 검증: 배치컴파일 CS=0 + EditMode 통과.
+
 ---
 
 ## 📌 세션 스냅샷 (2026-09-22 ✅ P32 — Figma→Unity 파이프라인 테스트: 인벤 리스타일 — 커밋 e6c92a9c)
