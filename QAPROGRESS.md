@@ -1,6 +1,62 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-22 (Phase R-A: 영주 성향 파라미터 시스템 — 컴파일 CS 0, QA PASS)
+> **최종 갱신:** 2026-09-22 (P-ANIM6 Phase 1~2: 2족 회전 보행 전환 + ShowcaseMonitor 재설계 — 컴파일 CS 0, EditMode 통과, QA PASS)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ P-ANIM6 Phase 1~2 — 2족 회전 보행 전환 + 모니터 재설계)
+
+> **입력**: "메모리와 QAPROGRESS/ROADMAP 읽고 P-ANIM6 계획대로 진행" — 계획서 docs/TEST11_ANIM_POLISH_PLAN6.md.
+> **뿌리(확정)**: JobTempAlloc 누수 = 2족 ProceduralAnimationController 프레임당 커스텀 잡 5종
+> (footPlanner/hipShift/spineCounter/leftIK/rightIK, 912~1042행) TempJob 할당 미해제.
+> 2족 보행의 잡 체인이 곧 구동부라 제거만으론 안 됨 → **회전 기반 보행으로 전환**하며 잡 제거.
+> 최우선 제약: **플레이어 무영향**.
+
+### Phase 1 — 2족 회전 기반 보행 전환 (ProceduralAnimationController.cs, +149/-3)
+- **잡 게이트 `UseJobIK => (_animator != null && _animator.isHuman) || _useJobIK`** (플레이어 보호):
+  - 휴머노이드 아바타(isHuman=true, 플레이어) = 잡 경로 **무조건 유지**(기존 동작 무변경)
+  - 익명 리그(isHuman=false, 미노타우르스 등 2족 몬스터) = 회전 보행 — 잡 0 스케줄 = JobTempAlloc 0건
+  - `[SerializeField] bool _useJobIK = false` — 익명 리그에서 잡 강제 시에만 true(디버그용)
+  - 게이트 적용 3경로: Update의 ScheduleLocomotionJobs / LateUpdate의 ScheduleIKJobs+ApplyProceduralPose / OnAnimatorIK
+  - TempJob 할당 41건 전부 게이트 메서드 내부(QA grep 검증) — 게이트 밖은 Persistent(Awake 1회, OnDestroy Dispose)만 존재
+- **신규 ApplyBipedRotationGait()** (4족 ApplyRotationGait P-ANIM5-B 패턴 이식):
+  - 다리 L_Hip/R_Hip ±sin 전후 스윙 — 위상은 기존 _leftLegPhase(0)/_rightLegPhase(0.5) 재사용(좌우 이미 교차, 별도 오프셋 불필요)
+  - 무릎 L_Knee/R_Knee 스윙 전반부만 굽힘(`max(0, -cos(2πφ))`) — 발 들기 흉내
+  - 팔 L_Shoulder/R_Shoulder 다리 역위상 스윙(좌팔=우다리 위상), 진폭 40%
+  - 월드 기준 회전 + 기준 localRotation 캐시(Dictionary) — 첫 프레임 포착만, 4족 SwingLeg 동일 수식
+  - 스윙각 = Clamp(speed×6, 10, 32) — 4족 수리와 동일한 속도 동기
+  - 정지/공중/액션 중 = gait 중단 + 기본 포즈 1회 복원(스윙 잔존 방지)+ 캐시 클리어(기저 재포착)
+  - Root 본 미접촉(바운스/모니터 경합 방지), HumanoidClipDriver 조재 시 스킵(클립 충돌 회피)
+- **튜닝 필드 5개 인스펙터 노출**(Phase 3 라운드용): 스윙속도계수 6 / 최소 10° / 최대 32° / 무릎굽힘 0.5 / 팔스윙 0.4
+- NativeArray 할당(AllocateNativeArrays)/Dispose 로직 유지 — 다른 곳 참조 가능성 보존
+
+### Phase 2 — ShowcaseMonitor 재설계 (진단 신뢰성, ShowcaseMonitor.cs + TestAnimationShowcaseSetup.cs)
+- **①구동 본 직접 관측**: `Setup(label, family, Transform[] watchBones)` 오버로드 —
+  TestAnimationShowcaseSetup.ExtractWatchBones(신규)가 ProceduralBoneMap 매핑에서
+  L_Hip/R_Hip/L_HindHip/R_HindHip/Spine0 추출해 전달(매핑 0개=null → 기존 SMR 추정 경로 폴백).
+  SMR bones[0]/중앙/맨끝 추정은 구동 본을 놓쳐 IK 정상 작동 중에도 폴백 오탐하던 뿌리.
+  병사/NPC(HumanoidClip) 호출부는 기존 2인자 Setup 그대로.
+- **②폴백 스티키 해제**: 활성 중 3초 재검증 → 정상 애니 변화 감지 시 폴백 해제 + "폴백 해제 — 애니 정상화" 로그(각 1회)
+  + `_breathBone.localRotation = _breathBaseRot` 자세 복원. 폴백이 스스로 흔드는 본의 Δ는 관측 제외(자기 구동 오염 차단).
+- **③Special(slime) 관측 교정**: 스케일 관측 대상을 SMR transform이 아닌 **펄스 실제 대상**으로 교체 —
+  SpecialCreatureAnimator.CacheBody(349행) 미러링: Root 본 → 렌더러 자식 → 자기 transform 폴백.
+
+### 검증
+- 배치컴파일 **error CS = 0** (Phase1·Phase2·경미수리 후 각 재컴파일 모두 0)
+- **EditMode 전부 통과** (run_tests.sh editmode — exit 0)
+- 독립 QA 에이전트 PASS: 게이트 3경로 완전성/TempJob 격리(41건 전부 내부)/플레이어 보호/위상 초기값(0/0.5)/
+  API 무손상/brace 균형 185·39·105/CacheBody 미러링 우선순위 일치 — **치명 0건**
+- 커밋 분리 3건 + 푸시 완료: `77846b4e`(4족 잔재: 스윙각 속도비례+바운스 ±대칭) → `b2680381`(Phase1) → `5551f910`(Phase2)
+
+### QA 경미 노트(수리 완료 2건)
+- ShowcaseMonitor 주석 "관측 본 3개" → 실제 2본(후방이 중앙 덮어씀) 주석 교정
+- RestoreGaitBase 캐시 클리어 추가(프로필 재적용 대비 기저 재포착)
+
+### Play 판정 대기 (Phase 3 튜닝 라운드 진입 조건)
+①Test_12 Play: JobTempAlloc 경고 **0건**(미노타우르스 이동 시) ②미노타우르스 걷기 — 다리 교차 스윙/무릎 굽힘/팔 자연 스윙 ③
+정상 구동 몬스터 `[ShowcaseMonitor] ⚠️ 폴백` 경고 0건 + 진짜 고장만 경고 + 폴백 해제 로그 확인 ④**플레이어 걷기 회귀 없음**(잡 경로 유지 — isHuman 게이트) ⑤
+공격 애니(잡 불의존 본 직접 회전) 영향 없음 — 영상/타일시트로 미끄러짐·부유·역꺾임 재평가 → 인스펙터 튜닝 필드(5개)로 라운드 반복.
+⚠️ GLB가 휴머노이드 아바타로 임포트된 2족 몬스터는 isHuman=true라 잡 경로 유지(누수 재발 시 _animator.isHuman 로그 확인 필요 — 의도된 플레이어 보호 트레이드오프).
 
 ---
 

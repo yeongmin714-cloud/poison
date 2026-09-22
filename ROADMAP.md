@@ -3284,3 +3284,28 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | G | 처형 공격병사 포섭 | ✅ |
 | H | 하루 전투 로그 알림 | ✅ |
 | I | QA·기록·커밋 | ✅ (각 Phase별 QA + ROADMAP/QAPROGRESS + 커밋·푸시 수행) |
+
+---
+
+## ⚔️ 2026-09-22: P-ANIM6 — 2족 회전 보행 전환 + 모니터 재설계 (Phase 1~2 완료, Phase 3~4 Play 라운드 대기)
+
+> **계획서**: docs/TEST11_ANIM_POLISH_PLAN6.md. 뿌리 확정: JobTempAlloc 누수 = 2족 컨트롤러(ProceduralAnimationController)
+> 프레임당 커스텀 잡 5종(footPlanner/hipShift/spineCounter/leftIK/rightIK) TempJob 미해제 → 잡 체인이 곧 2족 보행
+> 구동부라 **회전 기반 보행으로 전환**하며 잡 제거. 플레이어 무영향 최우선 제약.
+
+| Phase | 이름 | 상태 |
+|:------|:-----|:----:|
+| 1 | 2족 회전 기반 보행 전환 (ApplyBipedRotationGait + 잡 isHuman 게이트) | ✅ (CS=0, EditMode 통과, QA PASS) |
+| 2 | ShowcaseMonitor 재설계 (구동 본 관측/스티키 폴백 해제/Special Root 스케일) | ✅ (동일) |
+| 3 | 보행 튜닝 라운드 (수리→Play→영상/타일시트 분석→판정 반복) | ⏳ Play 판정 대기 |
+| 4 | 전 몬스터/병사/NPC 종합 판정 + JobTempAlloc 0건 + 기록 | ⏳ Phase 3 후 |
+
+### 핵심 설계
+- **게이트** `UseJobIK = (_animator.isHuman) || _useJobIK(false)` — 플레이어(휴머노이드)=잡 경로 유지(무영향),
+  익명 리그 2족(미노타우르스)=회전 보행 → 잡 0 스케줄 = JobTempAlloc 0건. 게이트 3경로(Update/LateUpdate/OnAnimatorIK).
+- **회전 보행**: 다리 ±sin 스윙(위상 재사용 L=0/R=0.5) + 무릎 스윙전반부 굽힘 + 팔 역위상 40% +
+  월드축/base캐시 + 속도비례 클램프(4족 P-ANIM5-B 수식 동일) + 정지·액션 시 기본포즈 복원. Root 본 미접촉.
+- **모니터**: 관측 본 = boneMap 구동 본(L_Hip/R_Hip/L_HindHip/R_HindHip/Spine0) 직접 전달, 폴백 3초 재검증 자동 해제
+  (자기 구동 본 Δ 제외), Special 스케일 = CacheBody 미러링(Root 본).
+- **튜닝 필드 5개** 인스펙터 노출(Phase 3 라운드용): 스윙속도계수/최소·최대 스윙각/무릎굽힘/팔스윙.
+- 커밋: 77846b4e(4족 잔재 수리) → b2680381(Phase1) → 5551f910(Phase2) — 푸시 완료.
