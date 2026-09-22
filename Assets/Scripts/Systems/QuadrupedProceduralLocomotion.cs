@@ -323,13 +323,23 @@ namespace ProjectName.Systems
 
             if (spine0 == null || spine1 == null || spine2 == null) return;
 
+            // [2026-09-22 누적 드리프트 수리] 기존 Rotate()는 매 프레임 '누적'되어 sin이 반전돼도
+            // 이전 누적이 남아 C자 과굴곡이 생겼다. 기준 회전 캐시 + 절대 세팅으로 물결만 적용.
+            if (_spine0Ref != spine0) { _spine0Ref = spine0; _spine0Base = spine0.localRotation; }
+            if (_spine1Ref != spine1) { _spine1Ref = spine1; _spine1Base = spine1.localRotation; }
+            if (_spine2Ref != spine2) { _spine2Ref = spine2; _spine2Base = spine2.localRotation; }
+
             float time = Time.time * _spineWaveFrequency;
             float wave = Mathf.Sin(time) * _spineWaveAmplitude;
 
-            spine0.Rotate(Vector3.up, wave * 0.3f, Space.Self);
-            spine1.Rotate(Vector3.up, wave * 0.6f, Space.Self);
-            spine2.Rotate(Vector3.up, wave * 0.1f, Space.Self);
+            spine0.localRotation = _spine0Base * Quaternion.Euler(0f, wave * 0.3f, 0f);
+            spine1.localRotation = _spine1Base * Quaternion.Euler(0f, wave * 0.6f, 0f);
+            spine2.localRotation = _spine2Base * Quaternion.Euler(0f, wave * 0.1f, 0f);
         }
+
+        // [2026-09-22] 척추 기준 회전 캐시 — 드리프트 방지용
+        private Transform _spine0Ref, _spine1Ref, _spine2Ref;
+        private Quaternion _spine0Base, _spine1Base, _spine2Base;
 
         private void ApplyNeckStabilization()
         {

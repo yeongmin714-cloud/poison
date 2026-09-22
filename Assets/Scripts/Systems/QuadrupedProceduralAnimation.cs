@@ -38,7 +38,7 @@ namespace ProjectName.Systems
         [Header("IK Weights")]
         [SerializeField, Range(0f, 1f)] private float _footIKWeight = 1f;
         [SerializeField, Range(0f, 1f)] private float _spineIKWeight = 0.7f;
-        [SerializeField, Range(0f, 1f)] private float _headLookWeight = 0.8f;
+        [SerializeField, Range(0f, 1f)] private float _headLookWeight = 0.35f; // 0.8→0.35 — 머리가 몸통에서 따로 노는 것 완화
 
         [Header("Procedural")]
         [SerializeField] private float _stepLength = 0.6f;
@@ -221,8 +221,20 @@ namespace ProjectName.Systems
             // 힌트
             var lfKnee = _boneMap.Get(BoneRole.L_Knee);
             var rfKnee = _boneMap.Get(BoneRole.R_Knee);
-            if (lfKnee != null) LF_Hint = lfKnee.position + Vector3.right * 0.2f;
-            if (rfKnee != null) RF_Hint = rfKnee.position + Vector3.left * 0.2f;
+            // [2026-09-22] 무릎 힌트를 '몸 기준 외측'으로 — 고정 right/left는 좌우 판정이 뒤집힌
+            // 익명 리그에서 무릎이 몸 반대편으로 꺾이는 과교차를 만들었다.
+            if (lfKnee != null)
+            {
+                float side = Mathf.Abs(lfKnee.position.x - transform.position.x) > 0.01f
+                    ? Mathf.Sign(lfKnee.position.x - transform.position.x) : 1f;
+                LF_Hint = lfKnee.position + Vector3.right * 0.2f * side;
+            }
+            if (rfKnee != null)
+            {
+                float side = Mathf.Abs(rfKnee.position.x - transform.position.x) > 0.01f
+                    ? Mathf.Sign(rfKnee.position.x - transform.position.x) : -1f;
+                RF_Hint = rfKnee.position + Vector3.right * 0.2f * side;
+            }
         }
 
         // ──────────────────────────────────────────────
@@ -372,7 +384,7 @@ namespace ProjectName.Systems
                 case "swamp_croc": // 천천히 기어가는 악어 — 척추 파동 강화(몸통 굽힘)
                     _walkSpeed = 1f; _trotSpeed = 2f; _gallopSpeed = 4f;
                     _stepLength = 0.8f; _stepHeight = 0.06f;
-                    if (_locomotion != null) _locomotion.SetSpineWave(0.12f, 1.5f);
+                    if (_locomotion != null) _locomotion.SetSpineWave(0.05f, 1.5f); // 0.12→0.05 — 누적 드리프트 제거 후 과굴곡 완화
                     break;
                 case "griffin": // 대형 맹수
                 case "manticore":
