@@ -531,6 +531,47 @@ namespace ProjectName.Systems
             // 척추를 Rotate 누적해 croc 파동이 겹치고 SetSpineWave 조정이 묻혔다.
             ApplyHeadLook();
             ApplyBodyLean();
+
+            // [P-ANIM7 Phase3] 날개 플랩 — griffin/manticore 등 날개 보유 4족(어깨 본이 다리 힙과
+            // 다른 본으로 매핑된 경우에만). 보행/IK 게이트와 독립 구동(경합 본 없음).
+            ApplyWingFlap();
+        }
+
+        // [P-ANIM7 Phase3] 날개 플랩 — 어깨 역할 본(L_Shoulder/R_Shoulder)이 매핑되고 앞다리 힙과
+        // 다른 본일 때만(어깨=앞다리 매핑 리그는 날개가 아니므로 스킵). 이동 중 날갯짓 강화,
+        // 정지 중엔 미세 접힘 수준의 낮은 진폭(생동감). SpecialCreatureAnimator.TryFlapWings 동일 수식(Z축 대칭).
+        private readonly Dictionary<Transform, Quaternion> _wingBaseRot = new Dictionary<Transform, Quaternion>();
+        [SerializeField, Range(0.5f, 6f)] private float _wingFlapHz = 2.2f;   // 날갯짓 주파수(Hz)
+        [SerializeField, Range(0f, 60f)] private float _wingFlapDeg = 26f;    // 날갯짓 진폭(도, 최대)
+
+        private void ApplyWingFlap()
+        {
+            if (_actionState != ActionState.None) return; // 액션 중 날개 원복 유지(Action 코드 포즈 인계)
+
+            Transform lWing = _boneMap.Has(BoneRole.L_Shoulder) ? _boneMap.Get(BoneRole.L_Shoulder) : null;
+            Transform rWing = _boneMap.Has(BoneRole.R_Shoulder) ? _boneMap.Get(BoneRole.R_Shoulder) : null;
+            if (lWing == null || rWing == null || lWing.parent == null || rWing.parent == null) return;
+
+            // 날개 아님 판정 — 어깨 역할이 앞다리 힙 역할과 같은 본이면(4족 배치 재사용) 플랩 스킵.
+            if (lWing == _boneMap.Get(BoneRole.L_Hip) || rWing == _boneMap.Get(BoneRole.R_Hip)) return;
+
+            if (!_wingBaseRot.TryGetValue(lWing, out var lBase))
+            {
+                _wingBaseRot[lWing] = lWing.localRotation;
+                return;
+            }
+            if (!_wingBaseRot.TryGetValue(rWing, out var rBase))
+            {
+                _wingBaseRot[rWing] = rWing.localRotation;
+                return;
+            }
+
+            // 이동 중 날갯짓 강화(비행감) — 정지 중엔 25% 진폭의 미세 펄럭임(idle 생동감).
+            float speed01 = Mathf.Clamp01(_currentSpeed / Mathf.Max(0.1f, _stepLength * 2f));
+            float blend = 0.35f + 0.65f * Mathf.Clamp01(speed01 * 2f);
+            float flap = Mathf.Sin(Time.time * _wingFlapHz * 2f * Mathf.PI) * _wingFlapDeg * blend;
+            lWing.localRotation = lBase * Quaternion.Euler(0f, 0f, flap);
+            rWing.localRotation = rBase * Quaternion.Euler(0f, 0f, -flap);
         }
 
         // [P-ANIM5-B] 회전 기반 절차 보행 — 발 IK(Solve) 대신 다리 체인 루트에 사인 위상 회전.
@@ -771,12 +812,21 @@ namespace ProjectName.Systems
             }
             else
             {
-                pelvis.localPosition = _pelvisBasePos;
+                // [P-ANIM7 Phase2] 정지 idle — 호흡(골반=Root 미세 상하, 저주파). 스파인 파동은
+                // Locomotion.ApplySpineWave가 시간 기반으로 계속 흔들어 idle 생동감을 제공하고,
+                // 머리는 HeadLook이 담당 — 본 idle은 조각상 해소용 호흡만 담당(경합 본 회피).
+                float breathe = Mathf.Sin(Time.time * _idleHz * 2f * Mathf.PI) * _idleBreathAmp;
+                Vector3 pos = _pelvisBasePos;
+                pos.y += breathe;
+                pelvis.localPosition = pos;
             }
         }
 
         // [P-ANIM2 Phase A] 체중이동 파라미터/기준 캐시
         [SerializeField, Range(0f, 0.2f)] private float _weightBob = 0.03f; // 골반 바운스 진폭(±대칭)
+        // [P-ANIM7 Phase2] 정지 idle 호흡 파라미터 — 속도 0.1 이하일 때 골반 미세 상하(조각상 해소).
+        [SerializeField, Range(0.5f, 3f)] private float _idleHz = 1.1f;         // 호흡 주파수(Hz)
+        [SerializeField, Range(0f, 0.05f)] private float _idleBreathAmp = 0.012f; // 호흡 진폭(m)
         private Transform _pelvisRef;
         private Vector3 _pelvisBasePos;
 

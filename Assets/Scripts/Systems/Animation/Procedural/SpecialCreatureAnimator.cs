@@ -33,6 +33,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
         [Header("Motion Tuning (49차)")]
         [SerializeField] float _slimePulseFreq = 2.2f;   // 슬라임 점액 펄스 주파수(Hz)
+        [SerializeField] float _slimeHopAmp = 0.12f;     // [P-ANIM7 Phase2] 이동 홉 진폭(m) — 실 이동 중에만 작동
         [SerializeField] float _spiritFloatFreq = 1.4f;  // 숲정령 부유 주파수
         [SerializeField] float _spiritGlowFreq = 1.8f;   // 숲정령 발광 펄스 주파수
         [SerializeField] float _clamCycleFreq = 0.5f;    // 조개 여닫이 주파수(느리게)
@@ -203,6 +204,15 @@ namespace ProjectName.Systems.Animation.Procedural
                 scale.y += 0.1f * _moveT;
             }
             ApplyBodyScale(scale);
+
+            // [P-ANIM7 Phase2] 이동 홉 — 실 이동 중에만 몸통을 수직으로 튕겨 올려 '구르는 미끄러짐' 인상 제거.
+            // y만 홉(수평 이동은 wander/AnimalAI 소유 — 규약 분리). 펄스 위상과 동기 — 뻗을 때(sy 피크) 이륙.
+            // _bodyIsSelf(자기 transform 폴백)면 위치 쓰기 금지 규약 유지 — 스케일 펄스만.
+            if (_moveT > 0.01f && !_bodyIsSelf)
+            {
+                float hop = Mathf.Abs(Mathf.Sin(_phase * _slimePulseFreq * Mathf.PI)) * _slimeHopAmp * _moveT;
+                _body.localPosition = _bodyBasePos + Vector3.up * hop;
+            }
         }
 
         /// <summary>
