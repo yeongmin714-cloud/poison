@@ -339,6 +339,10 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
 
                 foreach (var c in candidateSet)
                 {
+                    // [2026-09-22 치명 버그 수리] current 자신도 IsDescendantOf(자기자신)=true로
+                    // 후보에 들어 max descendants=자기자신 → 즉시 break → chain이 항상 비었다.
+                    // 이것이 전 몬스터 spine=없음(3뼈만 매핑)의 진짜 뿌리.
+                    if (c == current) continue;
                     if (IsDescendantOf(c, current))
                     {
                         int desc = CountDescendants(c, candidateSet);
