@@ -450,68 +450,111 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 return;
             }
 
-            if (hint == BoneFamilyHint.Biped || (hint == BoneFamilyHint.None && legChains.Count <= 3))
+            // [2026-09-22 수리] 좌우 미러 페어링 — 다리는 반드시 X가 대칭인 쌍으로 존재한다.
+            // 미페어 체인(꼬리/날개/뿔)은 다리 후보에서 제외한다. 구버전은 "가장 긴 4개"를 골라
+            // 꼬리가 다리 자리를 차지하고 실제 다리가 매핑 누락되어 몸이 뒤틀렸다.
+            var pairs = new List<((List<Transform> chain, Vector3 local, float spanY) a, (List<Transform> chain, Vector3 local, float spanY) b)>();
+            var used = new HashSet<int>();
+            for (int i = 0; i < scored.Count; i++)
             {
-                // 2족: 아래 체인 2개=다리(좌/우), 그 다음 긴 체인 2개=팔
-                var legs = new List<(List<Transform> c, Vector3 local)>();
-                var arms = new List<(List<Transform> c, Vector3 local)>();
-                foreach (var s in scored)
+                if (used.Contains(i)) continue;
+                for (int j = i + 1; j < scored.Count; j++)
                 {
-                    if (legs.Count < 2) legs.Add((s.chain, s.local));
-                    else arms.Add((s.chain, s.local));
+                    if (used.Contains(j)) continue;
+                    var A = scored[i]; var B = scored[j];
+                    bool mirrorX = Mathf.Abs(A.local.x + B.local.x) <= Mathf.Max(0.08f, 0.25f * Mathf.Max(Mathf.Abs(A.local.x), Mathf.Abs(B.local.x)));
+                    bool similarSpan = Mathf.Abs(A.spanY - B.spanY) <= 0.35f * Mathf.Max(A.spanY, B.spanY, 0.01f);
+                    if (mirrorX && similarSpan)
+                    {
+                        pairs.Add((A, B));
+                        used.Add(i); used.Add(j);
+                        break;
+                    }
                 }
-                if (legs.Count == 2)
+            }
+
+            var spineLegBones = new HashSet<Transform>(); // 다리로 소비된 뼈 — 척추 매핑에서 제외
+            if (pairs.Count == 0 && scored.Count >= 2)
+            {
+                // 페어링 실패 폴백 — 상위 2개를 좌/우 다리로(구동 보장 우선)
+                pairs.Add((scored[0], scored[1]));
+            }
+
+            bool bipedMode = hint == BoneFamilyHint.Biped || (hint == BoneFamilyHint.None && pairs.Count == 1);
+
+            if (bipedMode)
+            {
+                // 2족: 페어 1개=다리, 남은 체인 2개=팔
+                var pr = pairs[0];
+                var leftLeg = pr.a.local.x <= pr.b.local.x ? pr.a.chain : pr.b.chain;
+                var rightLeg = pr.a.local.x <= pr.b.local.x ? pr.b.chain : pr.a.chain;
+                FillLegRoles(map, leftLeg, false, true);
+                FillLegRoles(map, rightLeg, false, false);
+                spineLegBones.UnionWith(leftLeg); spineLegBones.UnionWith(rightLeg);
+
+                var armCands = scored.Where(s => !spineLegBones.Contains(s.chain[0])).ToList();
+                if (armCands.Count >= 2)
                 {
-                    bool lFirst = legs[0].local.x <= legs[1].local.x;
-                    var leftLeg = lFirst ? legs[0].c : legs[1].c;
-                    var rightLeg = lFirst ? legs[1].c : legs[0].c;
+                    var lArm = armCands[0].local.x <= armCands[1].local.x ? armCands[0].chain : armCands[1].chain;
+                    var rArm = armCands[0].local.x <= armCands[1].local.x ? armCands[1].chain : armCands[0].chain;
+                    FillArmRoles(map, lArm, true);
+                    FillArmRoles(map, rArm, false);
+                    spineLegBones.UnionWith(lArm); spineLegBones.UnionWith(rArm);
+                }
+            }
+            else
+            {
+                // 4족: 페어 2개 — z가 큰 쪽=앞다리(앞좌/앞우), 작은 쪽=뒷다리(Hind)
+                var sortedPairs = pairs.OrderByDescending(p => (p.a.local.z + p.b.local.z) * 0.5f).ToList();
+                if (sortedPairs.Count >= 2)
+                {
+                    var frontPair = sortedPairs[0];
+                    var backPair = sortedPairs[1];
+                    var fLeft = frontPair.a.local.x <= frontPair.b.local.x ? frontPair.a.chain : frontPair.b.chain;
+                    var fRight = frontPair.a.local.x <= frontPair.b.local.x ? frontPair.b.chain : frontPair.a.chain;
+                    var bLeft = backPair.a.local.x <= backPair.b.local.x ? backPair.a.chain : backPair.b.chain;
+                    var bRight = backPair.a.local.x <= backPair.b.local.x ? backPair.b.chain : backPair.a.chain;
+                    FillLegRoles(map, fLeft, false, true);
+                    FillLegRoles(map, fRight, false, false);
+                    FillLegRoles(map, bLeft, true, true);
+                    FillLegRoles(map, bRight, true, false);
+                    spineLegBones.UnionWith(fLeft); spineLegBones.UnionWith(fRight);
+                    spineLegBones.UnionWith(bLeft); spineLegBones.UnionWith(bRight);
+                }
+                else if (sortedPairs.Count == 1)
+                {
+                    // 페어 1개뿐(4족 리그에서 뒷다리 미검출) — 앞다리로만 배치(구동 보장)
+                    var pr = sortedPairs[0];
+                    var leftLeg = pr.a.local.x <= pr.b.local.x ? pr.a.chain : pr.b.chain;
+                    var rightLeg = pr.a.local.x <= pr.b.local.x ? pr.b.chain : pr.a.chain;
                     FillLegRoles(map, leftLeg, false, true);
                     FillLegRoles(map, rightLeg, false, false);
+                    spineLegBones.UnionWith(leftLeg); spineLegBones.UnionWith(rightLeg);
                 }
-                if (arms.Count >= 2)
-                {
-                    bool lFirst = arms[0].local.x <= arms[1].local.x;
-                    var leftArm = lFirst ? arms[0].c : arms[1].c;
-                    var rightArm = lFirst ? arms[1].c : arms[0].c;
-                    FillArmRoles(map, leftArm, true);
-                    FillArmRoles(map, rightArm, false);
-                }
-                return;
             }
 
-            // 4족(기본): 4개 다리 — 전/후(z), 좌/우(x) 사분면 배치
-            var quad = scored.Take(4).ToList();
-            if (quad.Count < 4)
+            // [2026-09-22 수리] 척추/목/머리 — 다리로 소비된 뼈를 '제외한' 남은 뼈에서만 최장 체인.
+            // 구버전은 전체 뼈에서 최장 체인을 골라 다리 뼈가 Head/Neck에 배치되고 ApplyHeadLook이
+            // 다리 뼈를 회전시켜 몸이 뒤틀렸다. 판단이 서지 않으면 Head/Neck은 null로 남긴다
+            // (ApplyHeadLook은 Head 미매핑 시 안전한 no-op).
+            if (spineLegBones.Count > 0)
             {
-                // 4개 미만이면 2족 배치로 폴백
-                if (quad.Count >= 2)
+                var remaining = set.Where(b => !spineLegBones.Contains(b)).ToList();
+                var spineChain = FindLongestChain(treeRoot, remaining);
+                if (spineChain.Count >= 3)
                 {
-                    var leftLeg = quad[0].local.x <= quad[1].local.x ? quad[0].chain : quad[1].chain;
-                    var rightLeg = quad[0].local.x <= quad[1].local.x ? quad[1].chain : quad[0].chain;
-                    FillLegRoles(map, leftLeg, false, true);
-                    FillLegRoles(map, rightLeg, false, false);
+                    map[BoneRole.Spine0] = spineChain[0];
+                    map[BoneRole.Spine1] = spineChain[1];
+                    map[BoneRole.Spine2] = spineChain[2];
+                    float centerY = (minY + maxY) * 0.5f;
+                    if (spineChain.Count >= 4 && spineChain[spineChain.Count - 2].position.y >= centerY)
+                        map[BoneRole.Neck] = spineChain[spineChain.Count - 2];
+                    if (spineChain[spineChain.Count - 1].position.y >= centerY)
+                        map[BoneRole.Head] = spineChain[spineChain.Count - 1];
                 }
-                return;
+                // 매핑 결과 진단 로그(1회/리그) — 어떤 체인이 다리로 배치됐는지 즉시 검증 가능
+                UnityEngine.Debug.Log($"[ProceduralBoneUtility] 토폴로지 매핑: {treeRoot.name} legs={spineLegBones.Count}개 뼈, spine={(map[BoneRole.Spine0] != null ? map[BoneRole.Spine0].name : "없음")}, head={(map[BoneRole.Head] != null ? map[BoneRole.Head].name : "없음(HeadLook 생략)")}");
             }
-
-            List<(List<Transform> chain, Vector3 local, float spanY)> front = new(), back = new();
-            foreach (var s in quad)
-            {
-                if (s.local.z >= 0f) front.Add(s); else back.Add(s);
-            }
-            // 경계 밀림 보정 — 한쪽이 비면 z 평균 순으로 재배치
-            if (front.Count == 0) { front.Add(back[0]); back.RemoveAt(0); }
-            if (back.Count == 0) { back.Add(front[front.Count - 1]); front.RemoveAt(front.Count - 1); }
-
-            var fLeft = front[0].local.x <= front[front.Count - 1].local.x ? front[0].chain : front[front.Count - 1].chain;
-            var fRight = front[0].local.x <= front[front.Count - 1].local.x ? front[front.Count - 1].chain : front[0].chain;
-            var bLeft = back[0].local.x <= back[back.Count - 1].local.x ? back[0].chain : back[back.Count - 1].chain;
-            var bRight = back[0].local.x <= back[back.Count - 1].local.x ? back[back.Count - 1].chain : back[0].chain;
-
-            FillLegRoles(map, fLeft, false, true);   // 앞-왼쪽 → L_Hip/Knee/Ankle/Foot
-            FillLegRoles(map, fRight, false, false); // 앞-오른쪽 → R_*
-            FillLegRoles(map, bLeft, true, true);    // 뒤-왼쪽 → L_Hind*
-            FillLegRoles(map, bRight, true, false);  // 뒤-오른쪽 → R_Hind*
         }
 
         /// <summary>다리 체인 → Hip/Knee/Ankle/Foot(또는 Hind* 역할) 배치. 짧은 체인은 끝뼈로 폴백.</summary>

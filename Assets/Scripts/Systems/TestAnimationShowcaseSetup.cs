@@ -596,6 +596,26 @@ namespace ProjectName.Systems
             if (attachedBody == null)
                 Debug.LogWarning($"[TestAnimShowcase] ⚠️ 병사 GLB/FBX 모두 미로드 — 캡슐 유지: {goName}");
 
+            // [2026-09-22] FBX 임포트 자세 자동 교정 — 영상 실측(테스트 41): lv40-50 FBX가 180° 뒤집힌 채
+            // 스폰(머리뼈.y < 발뼈.y). FBX 파일별 임포트 방향이 상이한 케이스를 스폰 시 자동 판별·교정한다.
+            if (attachedBody != null)
+            {
+                Transform headBone = null, footBone = null;
+                foreach (var t in attachedBody.GetComponentsInChildren<Transform>(true))
+                {
+                    string n = t.name;
+                    if (headBone == null && (n.Contains("Head") || n.Contains("head"))) headBone = t;
+                    if (footBone == null && (n.Contains("Foot") || n.Contains("foot") || n.Contains("Toe"))) footBone = t;
+                    if (headBone != null && footBone != null) break;
+                }
+                if (headBone != null && footBone != null && headBone.position.y < footBone.position.y)
+                {
+                    attachedBody.transform.localRotation = Quaternion.Euler(180f, 0f, 0f) * attachedBody.transform.localRotation;
+                    GroundModelToY(attachedBody, pos.y);
+                    Debug.LogWarning($"[TestAnimShowcase] ⚠️ {goName} FBX가 뒤집힌 자세(head.y < foot.y) — 180° 자동 교정 적용");
+                }
+            }
+
             // [2026-09-22] 병사 배회 — HumanoidClipDriver(Soldier 모드)가 위치 델타로 Speed를 계산하므로
             // 이동시키기만 하면 걷기/대기 클립이 자동 전환된다(플레이어와 동일 클립 경로).
             var guardWander = guardGO.GetComponent<ShowcaseWanderDriver>();
