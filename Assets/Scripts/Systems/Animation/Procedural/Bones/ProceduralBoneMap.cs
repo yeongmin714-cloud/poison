@@ -22,11 +22,24 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
     {
         [SerializeField] Animator _animator;
         [SerializeField] BoneEntry[] _bones = new BoneEntry[0];
+        BoneFamilyHint _familyHint = BoneFamilyHint.None; // 마지막 Initialize의 계열 힌트(재빌드 시 유지)
 
         Dictionary<BoneRole, Transform> _boneDict = new Dictionary<BoneRole, Transform>();
 
         public void Initialize(Animator animator = null)
         {
+            Initialize(animator, _familyHint);
+        }
+
+        /// <summary>
+        /// 계열 힌트 지정 초기화 — [2026-09-22] 익명 리그(bone_N) 토폴로지 매핑이 힌트에 따라
+        /// 4족(앞/뒤 4다리)/2족(2다리+2팔)/특수형(Root만)으로 배치를 다르게 한다.
+        /// ModelAnimatorAssigner/QuadrupedProceduralAnimation/ProceduralAnimationController가 각자 호출해도
+        /// 동일 계열 힌트로 재빌드되므로 결과가 일관된다.
+        /// </summary>
+        public void Initialize(Animator animator, BoneFamilyHint familyHint)
+        {
+            _familyHint = familyHint;
             if (animator != null) _animator = animator;
             if (_animator == null) _animator = GetComponentInChildren<Animator>();
 
@@ -44,7 +57,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             _boneDict.Clear();
 
             // Auto-map using utility
-            var utilityMap = ProceduralBoneUtility.BuildMap(_animator);
+            var utilityMap = ProceduralBoneUtility.BuildMap(_animator, _familyHint);
             foreach (var kvp in utilityMap)
             {
                 if (kvp.Value != null)

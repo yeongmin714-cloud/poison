@@ -90,7 +90,7 @@ namespace ProjectName.Systems.Animation.Procedural
                 _animator.updateMode = AnimatorUpdateMode.Fixed;
                 _animator.animatePhysics = true;
             }
-            if (_boneMap != null) _boneMap.Initialize(_animator); // animator null이어도 Initialize가 자체 폴백 처리
+            if (_boneMap != null) _boneMap.Initialize(_animator, BoneFamilyHint.Special); // animator null이어도 Initialize가 자체 폴백 처리
         }
 
         void Start()

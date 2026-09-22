@@ -71,6 +71,18 @@
 - **카메라 근접**: 초기 위치 (0,45,-30)→**(0,28,-20)**(60° 유지, 시선 거리 52→33m) + 줌 범위 6~65→**4~45m**(노치당 4→3m).
 - 검증: 배치컴파일 CS=0 + EditMode 통과.
 
+### 토폴로지 뼈 매핑 + 병사/NPC 배회 + WASD (동일 세션 후속 — 콘솔 로그 실측 기반 최종 수리)
+> **플레이 로그 실측(사용자 제공)**: ①컨트롤러/프로필 전부 정상 부착("4족 연결 완료"/보행 프로필 적용)인데 전 몬스터 `ShowcaseMonitor 폴백` 발동 — 뼈맵 3개뿐이 원인 확정 ②병사/NPC는 아바타/매핑 22/55/SMR 외부골격 0으로 **완전 정상** — 제자리라 걷기 트리거가 안 걸린 것 ③`Setting linear velocity of a kinematic body` 경고(접지 수리 부작용) ④줌은 "휠 입력 수신 (Input System)+(Legacy)"로 **해결 확인**.
+
+- **[뿌리] `ProceduralBoneUtility.FindLimbChains` 결함 확정**: Root의 **직계 자식만** 검사하고 4개 이상을 요구 → GLB 동물 리그(다리가 척추 노드 깊숙이에서 갈라짐)에서 전부 실패 → Spine0-2 등 3뼈만 매핑.
+- **[수리① 익명 리그 토폴로지 매핑]** FindLimbChains 전면 재작성 — 전체 트리에서 "분기 노드→잎" 체인을 모두 수집, **아래로 뻗은 체인=다리**(drop ≥ 리그 높이 15%)로 분류, 트리루트 로컬 기준 전/후(z)·좌/우(x) 사분면 배치. `BoneFamilyHint` 신설(Biped/Quadruped/Special/None): 4족=앞쌍 L_Hip/Knee/Ankle/Foot+R_* / 뒷쌍 **L_HindHip/Knee/Ankle/Foot+R_Hind**(신규 BoneRole 8종), 2족=아래 2체인 다리+긴 2체인 팔(Shoulder/Elbow/Wrist/Hand), 특수형=Root만. 힌트는 Assigner(계열 확정 후)·4족·2족·특수형 Awake가 각자 전달 — 재빌드도 동일 힌트라 일관.
+- **[수리② 4족 컨트롤러 뒷다리]** ApplyFootIK 뒷다리 섹션이 앞다리 체인을 재사용해 사실상 2다리만 구동 → **L_Hind*/R_Hind* 전용 체인으로 4다리 완전 구동**(미매핑 시 기존 재사용 폴백). InitializeIKTargets/지면 감지도 hind 발뼈 우선. SetAiDriven의 키네마틱 rb velocity 쓰기 경고 — `!isKinematic` 가드(메인 무영향).
+- **[수리③ 병사/NPC 걷기]** ShowcaseWanderDriver에 `SetClipDriven(true)` 신설 — HumanoidClipDriver(Soldier 모드)는 **자기 위치 델타로 Speed를 계산**하므로 드라이버가 배회시키면 걷기/대기 클립이 자동 전환(플레이어와 동일 클립 경로). 병사 3명+NPC 영주에 부착(절차 컨트롤러 탐색/경고 생략).
+- **[수리④ 모니터 스케일 관측]** ShowcaseMonitor가 SMR transform localScale Δ도 관측 — SpecialCreatureAnimator(슬라임 펄스)의 스케일 변형을 무변화로 오판하던 것 수정.
+- **[수리⑤ WASD 카메라]** ShowcaseCameraZoom에 WASD 팬 — 카메라 시선 지면 투영 전/우 방향, Shift 2배속, 시점 y 고정(지면 수준).
+- 검증: 배치컴파일 **CS=0**(튜플 멤버명 불일치+Linq using 27건 수리) + EditMode 통과.
+- **Play 판정 항목**: ①콘솔에 몬스터별 `Mapped ~N bones`(3 이상 증가) ②토끼/악어/그리핀/만티코어 4다리 보행 IK 가동 ③슬라임 펄스(폴백 오탐 소멸) ④미노타우르스 2족 보행 ⑤병사 3명/NPC가 배회하며 걷기↔대기 클립 전환 ⑥WASD/Shift로 시점 이동.
+
 ---
 
 ## 📌 세션 스냅샷 (2026-09-22 ✅ P32 — Figma→Unity 파이프라인 테스트: 인벤 리스타일 — 커밋 e6c92a9c)

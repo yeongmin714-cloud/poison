@@ -596,6 +596,12 @@ namespace ProjectName.Systems
             if (attachedBody == null)
                 Debug.LogWarning($"[TestAnimShowcase] ⚠️ 병사 GLB/FBX 모두 미로드 — 캡슐 유지: {goName}");
 
+            // [2026-09-22] 병사 배회 — HumanoidClipDriver(Soldier 모드)가 위치 델타로 Speed를 계산하므로
+            // 이동시키기만 하면 걷기/대기 클립이 자동 전환된다(플레이어와 동일 클립 경로).
+            var guardWander = guardGO.GetComponent<ShowcaseWanderDriver>();
+            if (guardWander == null) guardWander = guardGO.AddComponent<ShowcaseWanderDriver>();
+            guardWander.SetClipDriven(true);
+
             // 가시성 관측자 — 휴머노이드 클립 경로는 폴백 미적용(관측+경고만)
             var monitor = guardGO.GetComponent<ShowcaseMonitor>();
             if (monitor == null) monitor = guardGO.AddComponent<ShowcaseMonitor>();
@@ -686,9 +692,14 @@ namespace ProjectName.Systems
             return npcGO;
         }
 
-        /// <summary>NPC 가시성 관측자 부착 — HumanoidClip 계열(폴백 미적용, 관측+경고만).</summary>
+        /// <summary>NPC 가시성 관측자 + 배회 부착 — HumanoidClip 계열(폴백 미적용, 관측+경고만).</summary>
         private static void AttachShowcaseNpcMonitor(GameObject npcGO, string npcName)
         {
+            // [2026-09-22] NPC 배회 — 병사와 동일: 이동 → HumanoidClipDriver Speed → 걷기/대기 클립.
+            var wander = npcGO.GetComponent<ShowcaseWanderDriver>();
+            if (wander == null) wander = npcGO.AddComponent<ShowcaseWanderDriver>();
+            wander.SetClipDriven(true);
+
             var monitor = npcGO.GetComponent<ShowcaseMonitor>();
             if (monitor == null) monitor = npcGO.AddComponent<ShowcaseMonitor>();
             monitor.Setup($"NPC: {npcName}", ShowcaseMonitor.MonitorFamily.HumanoidClip);

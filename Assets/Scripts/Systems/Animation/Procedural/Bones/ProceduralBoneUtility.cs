@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace ProjectName.Systems.Animation.Procedural.Bones
@@ -237,7 +238,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
         /// <summary>
         /// Build bone role → Transform mapping from Animator.
         /// </summary>
-        public static Dictionary<BoneRole, Transform> BuildMap(Animator animator)
+        public static Dictionary<BoneRole, Transform> BuildMap(Animator animator, BoneFamilyHint hint = BoneFamilyHint.None)
         {
             var map = new Dictionary<BoneRole, Transform>();
             foreach (BoneRole role in System.Enum.GetValues(typeof(BoneRole)))
@@ -267,7 +268,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 map[BoneRole.Hip] = map[BoneRole.Root];
 
             // Numbered bone heuristic (bone_0, bone_1...)
-            ApplyNumberedBoneHeuristic(map, allTransforms);
+            ApplyNumberedBoneHeuristic(map, allTransforms, hint);
 
             // Validate
             ValidateCriticalBones(map, animator.transform);
@@ -279,7 +280,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
         // Numbered Bone Heuristic (bone_0, bone_1...)
         // ──────────────────────────────────────────────
 
-        static void ApplyNumberedBoneHeuristic(Dictionary<BoneRole, Transform> map, Transform[] allTransforms)
+        static void ApplyNumberedBoneHeuristic(Dictionary<BoneRole, Transform> map, Transform[] allTransforms, BoneFamilyHint hint)
         {
             var numberedBones = new List<Transform>();
             foreach (var t in allTransforms)
@@ -312,8 +313,10 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 }
             }
 
-            // Find 4 limb chains
-            FindLimbChains(numberedBones, map);
+            // Find limb chains — [2026-09-22 수리] 전체 트리 탐색 토폴로지 매핑으로 재작성.
+            // 구현은 Root 직계 자식만 보고 >=4개를 요구해 GLB 동물 리그(다리가 척추 노드에서
+            // 갈라지는 구조)에서 전부 실패 → 3뼈만 매핑되어 보행 애니가 구동 불능이었다.
+            FindLimbChains(numberedBones, map, hint);
         }
 
         static int GetDepth(Transform t)
@@ -372,65 +375,183 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             return count;
         }
 
-        static void FindLimbChains(List<Transform> numberedBones, Dictionary<BoneRole, Transform> map)
+        static void FindLimbChains(List<Transform> numberedBones, Dictionary<BoneRole, Transform> map, BoneFamilyHint hint)
         {
-            var hips = map[BoneRole.Root];
-            if (hips == null) return;
+            // [2026-09-22 전면 재작성 — 익명 리그 토폴로지 매핑]
+            // 전체 트리에서 "가지 노드에서 뻗어 잎까지 이어지는 체인"을 모두 수집해,
+            // 지면(아래) 방향 체인=다리, 위/옆 체인=팔(2족)로 분류한다.
+            // 뼈 위치는 트리 루트 기준 로컬좌표로 판정(회전 무관).
+            var set = new HashSet<Transform>(numberedBones);
+            if (set.Count < 8) return;
 
-            var limbRoots = new List<Transform>();
-            foreach (Transform child in hips)
+            // 트리 루트 = 집합 내 부모가 없는 뼈
+            Transform treeRoot = null;
+            foreach (var b in set)
             {
-                if (numberedBones.Contains(child))
-                    limbRoots.Add(child);
+                if (b.parent == null || !set.Contains(b.parent)) { treeRoot = b; break; }
+            }
+            if (treeRoot == null) return;
+
+            // 잎 체인 수집 — 잎에서 위로 올라가 분기 노드(자식 2+) 직전까지
+            var chains = new List<List<Transform>>();
+            foreach (var leaf in set)
+            {
+                if (CountChildrenInSet(leaf, set) != 0) continue; // 잎만
+
+                var chain = new List<Transform>();
+                var cur = leaf;
+                while (cur != null && set.Contains(cur) && cur != treeRoot && CountChildrenInSet(cur, set) <= 1)
+                {
+                    chain.Add(cur);
+                    cur = cur.parent;
+                }
+                chain.Reverse();
+                if (chain.Count >= 2)
+                    chains.Add(chain);
+            }
+            if (chains.Count == 0) return;
+
+            // 리그 기하: 높이/중심 — 다리 판정 임계용
+            float minY = float.MaxValue, maxY = float.MinValue;
+            foreach (var b in set)
+            {
+                minY = Mathf.Min(minY, b.position.y);
+                maxY = Mathf.Max(maxY, b.position.y);
+            }
+            float rigHeight = Mathf.Max(0.05f, maxY - minY);
+
+            // 다리 후보: 체인 끝(잎)이 체인 시작보다 유의미하게 아래로 뻗은 체인
+            var legChains = new List<List<Transform>>();
+            foreach (var c in chains)
+            {
+                float drop = c[0].position.y - c[c.Count - 1].position.y;
+                if (drop >= rigHeight * 0.15f) legChains.Add(c);
+            }
+            // 다리가 아래로 뻗지 않는 리그(뱀/장어 등) — None 힌트에선 판정 보류
+            if (legChains.Count < 2) return;
+
+            // 전/후·좌/우 분류 — 트리 루트 기준 평균 로컬 위치
+            var scored = new List<(List<Transform> chain, Vector3 local, float spanY)>();
+            foreach (var c in legChains)
+            {
+                Vector3 sum = Vector3.zero;
+                foreach (var b in c) sum += b.position;
+                Vector3 avg = sum / c.Count;
+                Vector3 local = treeRoot.InverseTransformPoint(avg);
+                float span = Mathf.Abs(c[c.Count - 1].position.y - c[0].position.y);
+                scored.Add((c, local, span));
+            }
+            // 긴 체인 우선(다리 스트라이드 품질)
+            scored.Sort((a, b) => b.spanY.CompareTo(a.spanY));
+
+            if (hint == BoneFamilyHint.Special)
+            {
+                // 특수형은 Root만 필요 — 다리/팔 역할 배치 생략
+                return;
             }
 
-            // Sort by descendant count (legs have more)
-            limbRoots.Sort((a, b) => CountDescendants(b, new HashSet<Transform>(numberedBones))
-                                    .CompareTo(CountDescendants(a, new HashSet<Transform>(numberedBones))));
-
-            if (limbRoots.Count >= 4)
+            if (hint == BoneFamilyHint.Biped || (hint == BoneFamilyHint.None && legChains.Count <= 3))
             {
-                // Legs (more descendants)
-                map[BoneRole.L_Hip] = limbRoots[0];
-                map[BoneRole.R_Hip] = limbRoots[1];
-                MapLimbChain(limbRoots[0], map, true, true);  // Left leg
-                MapLimbChain(limbRoots[1], map, true, false); // Right leg
-
-                // Arms
-                map[BoneRole.L_Shoulder] = limbRoots[2];
-                map[BoneRole.R_Shoulder] = limbRoots[3];
-                MapLimbChain(limbRoots[2], map, false, true); // Left arm
-                MapLimbChain(limbRoots[3], map, false, false); // Right arm
+                // 2족: 아래 체인 2개=다리(좌/우), 그 다음 긴 체인 2개=팔
+                var legs = new List<(List<Transform> c, Vector3 local)>();
+                var arms = new List<(List<Transform> c, Vector3 local)>();
+                foreach (var s in scored)
+                {
+                    if (legs.Count < 2) legs.Add((s.chain, s.local));
+                    else arms.Add((s.chain, s.local));
+                }
+                if (legs.Count == 2)
+                {
+                    bool lFirst = legs[0].local.x <= legs[1].local.x;
+                    var leftLeg = lFirst ? legs[0].c : legs[1].c;
+                    var rightLeg = lFirst ? legs[1].c : legs[0].c;
+                    FillLegRoles(map, leftLeg, false, true);
+                    FillLegRoles(map, rightLeg, false, false);
+                }
+                if (arms.Count >= 2)
+                {
+                    bool lFirst = arms[0].local.x <= arms[1].local.x;
+                    var leftArm = lFirst ? arms[0].c : arms[1].c;
+                    var rightArm = lFirst ? arms[1].c : arms[0].c;
+                    FillArmRoles(map, leftArm, true);
+                    FillArmRoles(map, rightArm, false);
+                }
+                return;
             }
+
+            // 4족(기본): 4개 다리 — 전/후(z), 좌/우(x) 사분면 배치
+            var quad = scored.Take(4).ToList();
+            if (quad.Count < 4)
+            {
+                // 4개 미만이면 2족 배치로 폴백
+                if (quad.Count >= 2)
+                {
+                    var leftLeg = quad[0].local.x <= quad[1].local.x ? quad[0].chain : quad[1].chain;
+                    var rightLeg = quad[0].local.x <= quad[1].local.x ? quad[1].chain : quad[0].chain;
+                    FillLegRoles(map, leftLeg, false, true);
+                    FillLegRoles(map, rightLeg, false, false);
+                }
+                return;
+            }
+
+            List<(List<Transform> chain, Vector3 local, float spanY)> front = new(), back = new();
+            foreach (var s in quad)
+            {
+                if (s.local.z >= 0f) front.Add(s); else back.Add(s);
+            }
+            // 경계 밀림 보정 — 한쪽이 비면 z 평균 순으로 재배치
+            if (front.Count == 0) { front.Add(back[0]); back.RemoveAt(0); }
+            if (back.Count == 0) { back.Add(front[front.Count - 1]); front.RemoveAt(front.Count - 1); }
+
+            var fLeft = front[0].local.x <= front[front.Count - 1].local.x ? front[0].chain : front[front.Count - 1].chain;
+            var fRight = front[0].local.x <= front[front.Count - 1].local.x ? front[front.Count - 1].chain : front[0].chain;
+            var bLeft = back[0].local.x <= back[back.Count - 1].local.x ? back[0].chain : back[back.Count - 1].chain;
+            var bRight = back[0].local.x <= back[back.Count - 1].local.x ? back[back.Count - 1].chain : back[0].chain;
+
+            FillLegRoles(map, fLeft, false, true);   // 앞-왼쪽 → L_Hip/Knee/Ankle/Foot
+            FillLegRoles(map, fRight, false, false); // 앞-오른쪽 → R_*
+            FillLegRoles(map, bLeft, true, true);    // 뒤-왼쪽 → L_Hind*
+            FillLegRoles(map, bRight, true, false);  // 뒤-오른쪽 → R_Hind*
         }
 
-        static void MapLimbChain(Transform root, Dictionary<BoneRole, Transform> map, bool isLeg, bool isLeft)
+        /// <summary>다리 체인 → Hip/Knee/Ankle/Foot(또는 Hind* 역할) 배치. 짧은 체인은 끝뼈로 폴백.</summary>
+        static void FillLegRoles(Dictionary<BoneRole, Transform> map, List<Transform> chain, bool hind, bool left)
         {
-            var chain = new List<Transform>();
-            Transform current = root;
-            while (current != null)
-            {
-                chain.Add(current);
-                Transform next = null;
-                foreach (Transform c in current)
-                    if (c != current) { next = c; break; }
-                current = next;
-            }
+            BoneRole hip = hind ? (left ? BoneRole.L_HindHip : BoneRole.R_HindHip)
+                                : (left ? BoneRole.L_Hip : BoneRole.R_Hip);
+            BoneRole knee = hind ? (left ? BoneRole.L_HindKnee : BoneRole.R_HindKnee)
+                                 : (left ? BoneRole.L_Knee : BoneRole.R_Knee);
+            BoneRole ankle = hind ? (left ? BoneRole.L_HindAnkle : BoneRole.R_HindAnkle)
+                                  : (left ? BoneRole.L_Ankle : BoneRole.R_Ankle);
+            BoneRole foot = hind ? (left ? BoneRole.L_HindFoot : BoneRole.R_HindFoot)
+                                 : (left ? BoneRole.L_Foot : BoneRole.R_Foot);
 
-            if (isLeg)
-            {
-                if (chain.Count >= 1) { if (isLeft) map[BoneRole.L_Hip] = chain[0]; else map[BoneRole.R_Hip] = chain[0]; }
-                if (chain.Count >= 2) { if (isLeft) map[BoneRole.L_Knee] = chain[1]; else map[BoneRole.R_Knee] = chain[1]; }
-                if (chain.Count >= 3) { if (isLeft) map[BoneRole.L_Ankle] = chain[2]; else map[BoneRole.R_Ankle] = chain[2]; }
-                if (chain.Count >= 4) { if (isLeft) map[BoneRole.L_Foot] = chain[3]; else map[BoneRole.R_Foot] = chain[3]; }
-            }
-            else
-            {
-                if (chain.Count >= 1) { if (isLeft) map[BoneRole.L_Shoulder] = chain[0]; else map[BoneRole.R_Shoulder] = chain[0]; }
-                if (chain.Count >= 2) { if (isLeft) map[BoneRole.L_Elbow] = chain[1]; else map[BoneRole.R_Elbow] = chain[1]; }
-                if (chain.Count >= 3) { if (isLeft) map[BoneRole.L_Wrist] = chain[2]; else map[BoneRole.R_Wrist] = chain[2]; }
-                if (chain.Count >= 4) { if (isLeft) map[BoneRole.L_Hand] = chain[3]; else map[BoneRole.R_Hand] = chain[3]; }
-            }
+            map[hip] = chain[0];
+            map[knee] = chain.Count > 1 ? chain[1] : chain[chain.Count - 1];
+            map[ankle] = chain.Count > 2 ? chain[2] : chain[chain.Count - 1];
+            map[foot] = chain[chain.Count - 1];
+        }
+
+        /// <summary>팔 체인 → Shoulder/Elbow/Wrist/Hand 배치(2족 전용).</summary>
+        static void FillArmRoles(Dictionary<BoneRole, Transform> map, List<Transform> chain, bool left)
+        {
+            BoneRole shoulder = left ? BoneRole.L_Shoulder : BoneRole.R_Shoulder;
+            BoneRole elbow = left ? BoneRole.L_Elbow : BoneRole.R_Elbow;
+            BoneRole wrist = left ? BoneRole.L_Wrist : BoneRole.R_Wrist;
+            BoneRole hand = left ? BoneRole.L_Hand : BoneRole.R_Hand;
+
+            map[shoulder] = chain[0];
+            map[elbow] = chain.Count > 1 ? chain[1] : chain[chain.Count - 1];
+            map[wrist] = chain.Count > 2 ? chain[2] : chain[chain.Count - 1];
+            map[hand] = chain[chain.Count - 1];
+        }
+
+        static int CountChildrenInSet(Transform t, HashSet<Transform> set)
+        {
+            int count = 0;
+            foreach (Transform c in t)
+                if (set.Contains(c)) count++;
+            return count;
         }
 
         static void ValidateCriticalBones(Dictionary<BoneRole, Transform> map, Transform animatorRoot)

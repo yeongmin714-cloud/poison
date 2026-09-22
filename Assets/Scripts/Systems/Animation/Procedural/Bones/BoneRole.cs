@@ -49,5 +49,26 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
         R_Ankle,
         R_Foot,
         R_Toes,
+
+        // Quadruped hind legs (2026-09-22 익명 리그 토폴로지 매핑 — 앞/뒷다리 4개 체인 완전 구동용)
+        L_HindHip,
+        L_HindKnee,
+        L_HindAnkle,
+        L_HindFoot,
+        R_HindHip,
+        R_HindKnee,
+        R_HindAnkle,
+        R_HindFoot,
+    }
+
+    /// <summary>
+    /// 익명 리그(bone_N) 토폴로지 매핑의 계열 힌트 — 4족은 앞/뒤 4다리, 2족은 2다리+2팔로 배치한다.
+    /// </summary>
+    public enum BoneFamilyHint
+    {
+        None,
+        Biped,
+        Quadruped,
+        Special,
     }
 }

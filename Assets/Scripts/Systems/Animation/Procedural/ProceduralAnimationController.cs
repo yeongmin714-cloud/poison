@@ -422,7 +422,7 @@ namespace ProjectName.Systems.Animation.Procedural
             _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
             _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
-            _boneMap.Initialize(_animator);
+            _boneMap.Initialize(_animator, BoneFamilyHint.Biped);
             AllocateNativeArrays();
         }
 

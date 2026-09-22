@@ -63,6 +63,23 @@ namespace ProjectName.Systems
         // Rig 애니(Animator controller 보유 모델) — 있으면 상태 피드, 없으면 무해 no-op
         private RigAnimationController _rigAnim;
 
+        // [2026-09-22] 클립 구동 모드 — 병사/NPC(HumanoidClipDriver+Soldier 모드)용.
+        // HumanoidClipDriver는 자기 transform 위치 델타로 Speed를 계산하므로, 이 드라이버가
+        // 배회시키기만 하면 걷기/대기 클립이 자동 전환된다. 4족/2족 절차 컨트롤러 탐색/피드 생략.
+        private bool _clipDriven;
+
+        /// <summary>클립 구동 모드 설정(병사/NPC) — 절차 컨트롤러 피드 로직을 생략한다.</summary>
+        public void SetClipDriven(bool clipDriven)
+        {
+            _clipDriven = clipDriven;
+            if (clipDriven)
+            {
+                _quadConfigured = true;   // 탐색/타임아웃 경로 완전 우회
+                _bipedConfigured = true;
+                _warnedNoFeedController = true; // 경고 억제(클립 경로가 정식 피드 담당)
+            }
+        }
+
         // ===================== IVelocityProvider 구현 [AnimalAI와 동일 계약] =====================
         /// <summary>현재 이동 속도 벡터 — 2족 ProceduralAnimationController의 보행 위상/조향 판정용.</summary>
         public Vector3 CurrentVelocity { get; private set; }

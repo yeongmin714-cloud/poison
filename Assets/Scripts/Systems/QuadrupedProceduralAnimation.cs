@@ -145,7 +145,7 @@ namespace ProjectName.Systems
             _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 
             if (_boneMap != null)
-                _boneMap.Initialize(_animator);
+                _boneMap.Initialize(_animator, BoneFamilyHint.Quadruped);
         }
 
         private void Start()
@@ -208,8 +208,9 @@ namespace ProjectName.Systems
         {
             var lf = _boneMap.Get(BoneRole.L_Foot);
             var rf = _boneMap.Get(BoneRole.R_Foot);
-            var lh = _boneMap.Get(BoneRole.L_Foot); // Hind uses same role names for now
-            var rh = _boneMap.Get(BoneRole.R_Foot);
+            // [2026-09-22] 뒷다리 전용 발뼈(토폴로지 매핑) — 미매핑 시 기존 폴백(앞발+후방 오프셋)
+            var lh = _boneMap.Has(BoneRole.L_HindFoot) ? _boneMap.Get(BoneRole.L_HindFoot) : _boneMap.Get(BoneRole.L_Foot);
+            var rh = _boneMap.Has(BoneRole.R_HindFoot) ? _boneMap.Get(BoneRole.R_HindFoot) : _boneMap.Get(BoneRole.R_Foot);
 
             // 임시: 앞다리/뒷다리 구분 필요시 본 역할 추가
             if (lf != null) LF_Target = lf.position;
@@ -291,7 +292,8 @@ namespace ProjectName.Systems
                 _targetSpeed = 0f;
                 _currentVelocity = Vector3.zero;
                 _currentSpeed = 0f;
-                if (_rigidbody != null)
+                // [2026-09-22] 키네마틱 rb(쇼케이스 접지 고정)에는 velocity 쓰기 미지원 — 비키네마틱만 0화.
+                if (_rigidbody != null && !_rigidbody.isKinematic)
                     _rigidbody.linearVelocity = new Vector3(0f, _rigidbody.linearVelocity.y, 0f);
             }
         }
@@ -556,16 +558,22 @@ namespace ProjectName.Systems
                 }
             }
 
-            // Hind legs - reuse for now (need proper hind bone roles)
-            if (_boneMap.Has(BoneRole.L_Hip) &&
-                _boneMap.Has(BoneRole.L_Knee) &&
-                _boneMap.Has(BoneRole.L_Ankle))
+            // Hind legs - [2026-09-22 익명 리그 토폴로지 매핑] 뒷다리 전용 역할(L_Hind*/R_Hind*) 우선,
+            // 미매핑 시 기존 앞다리 재사용 폴백 유지.
+            var lHindHip = _boneMap.Has(BoneRole.L_HindHip) ? _boneMap.Get(BoneRole.L_HindHip) : _boneMap.Get(BoneRole.L_Hip);
+            var lHindKnee = _boneMap.Has(BoneRole.L_HindKnee) ? _boneMap.Get(BoneRole.L_HindKnee) : _boneMap.Get(BoneRole.L_Knee);
+            var lHindAnkle = _boneMap.Has(BoneRole.L_HindAnkle) ? _boneMap.Get(BoneRole.L_HindAnkle) : _boneMap.Get(BoneRole.L_Ankle);
+            var rHindHip = _boneMap.Has(BoneRole.R_HindHip) ? _boneMap.Get(BoneRole.R_HindHip) : _boneMap.Get(BoneRole.R_Hip);
+            var rHindKnee = _boneMap.Has(BoneRole.R_HindKnee) ? _boneMap.Get(BoneRole.R_HindKnee) : _boneMap.Get(BoneRole.R_Knee);
+            var rHindAnkle = _boneMap.Has(BoneRole.R_HindAnkle) ? _boneMap.Get(BoneRole.R_HindAnkle) : _boneMap.Get(BoneRole.R_Ankle);
+
+            if (lHindHip != null && lHindKnee != null && lHindAnkle != null)
             {
                 var chain = new Chain
                 {
-                    Root = _boneMap.Get(BoneRole.L_Hip),
-                    Mid = _boneMap.Get(BoneRole.L_Knee),
-                    Tip = _boneMap.Get(BoneRole.L_Ankle)
+                    Root = lHindHip,
+                    Mid = lHindKnee,
+                    Tip = lHindAnkle
                 };
                 ComputeLengths(ref chain);
                 var result = Solve(chain, LH_Target, LF_Hint); // reuse hint
@@ -577,15 +585,13 @@ namespace ProjectName.Systems
                 }
             }
 
-            if (_boneMap.Has(BoneRole.R_Hip) &&
-                _boneMap.Has(BoneRole.R_Knee) &&
-                _boneMap.Has(BoneRole.R_Ankle))
+            if (rHindHip != null && rHindKnee != null && rHindAnkle != null)
             {
                 var chain = new Chain
                 {
-                    Root = _boneMap.Get(BoneRole.R_Hip),
-                    Mid = _boneMap.Get(BoneRole.R_Knee),
-                    Tip = _boneMap.Get(BoneRole.R_Ankle)
+                    Root = rHindHip,
+                    Mid = rHindKnee,
+                    Tip = rHindAnkle
                 };
                 ComputeLengths(ref chain);
                 var result = Solve(chain, RH_Target, RF_Hint);

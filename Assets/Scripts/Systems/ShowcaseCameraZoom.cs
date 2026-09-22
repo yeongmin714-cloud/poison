@@ -23,10 +23,15 @@ namespace ProjectName.Systems
         [SerializeField] private float _dragZoomSensitivity = 0.06f; // 우클릭 드래그 px당
         [SerializeField] private float _smoothTime = 0.1f;       // 지수 평활 시정수
 
+        [Header("WASD Pan (2026-09-22)")]
+        [SerializeField] private float _panSpeed = 8f;           // WASD 이동 속도(m/s)
+        [SerializeField] private float _panSprint = 2f;          // Shift 배속
+
         private Vector3 _pivot;
         private Vector3 _forward;
         private float _distance;
         private float _targetDistance;
+        private float _pivotY; // WASD 이동 시 고정되는 시점 높이(지면)
 
         // 입력 채널 진단 — 최초 수신 1회 로그(콘솔에서 어떤 경로로 들어오는지 증명)
         private bool _loggedIS, _loggedLegacy, _loggedKey, _loggedDrag;
@@ -43,7 +48,8 @@ namespace ProjectName.Systems
 
             _distance = Vector3.Distance(transform.position, _pivot);
             _targetDistance = _distance;
-            Debug.Log($"[ShowcaseCameraZoom] 줌 활성 — pivot={_pivot:F1}, dist={_distance:F1}m (범위 {_minDistance}~{_maxDistance}m) | 입력: 휠 / PageUp·PageDown / 우클릭 드래그 상하");
+            _pivotY = _pivot.y; // WASD 팬에서 y는 이 값으로 고정(지면 수준)
+            Debug.Log($"[ShowcaseCameraZoom] 줌 활성 — pivot={_pivot:F1}, dist={_distance:F1}m (범위 {_minDistance}~{_maxDistance}m) | 입력: 휠 / PageUp·PageDown / 우클릭 드래그 상하 / WASD 이동(Shift 가속)");
         }
 
         private void Update()
@@ -103,6 +109,26 @@ namespace ProjectName.Systems
                     if (!_loggedDrag) { _loggedDrag = true; Debug.Log("[ShowcaseCameraZoom] 우클릭 드래그 줌 수신"); }
                     _targetDistance = Mathf.Clamp(
                         _targetDistance - dy * _dragZoomSensitivity, _minDistance, _maxDistance);
+                }
+            }
+
+            // WASD 팬 — 카메라 기준 수평 이동(지면 투영), Shift 가속. [2026-09-22]
+            if (Keyboard.current != null)
+            {
+                float x = 0f, z = 0f;
+                if (Keyboard.current.wKey.isPressed) z += 1f;
+                if (Keyboard.current.sKey.isPressed) z -= 1f;
+                if (Keyboard.current.dKey.isPressed) x += 1f;
+                if (Keyboard.current.aKey.isPressed) x -= 1f;
+
+                if (x != 0f || z != 0f)
+                {
+                    float speed = _panSpeed * (Keyboard.current.leftShiftKey.isPressed ? _panSprint : 1f);
+                    // 카메라 시선을 지면에 투영한 전/우 방향 — 각도 불변, 시점만 이동
+                    Vector3 flatFwd = Vector3.ProjectOnPlane(_forward, Vector3.up).normalized;
+                    Vector3 flatRight = Vector3.Cross(Vector3.up, flatFwd).normalized;
+                    _pivot += (flatFwd * z + flatRight * x) * speed * Time.deltaTime;
+                    _pivot.y = _pivotY; // 시점 높이 고정 — 지면 수준 유지
                 }
             }
 

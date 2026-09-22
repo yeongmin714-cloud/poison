@@ -49,6 +49,7 @@ namespace ProjectName.Systems
         private Quaternion _lastRotA = Quaternion.identity;
         private Quaternion _lastRotB = Quaternion.identity;
         private Vector3 _lastScale;
+        private Transform _scaleProbe;  // [2026-09-22] SMR 본 스케일 관측(SpecialCreature 펄스 오탐 방지)
         private bool _hasScaleProbe;
 
         // 폴백 대상 본 + 기준 회전
@@ -95,6 +96,11 @@ namespace ProjectName.Systems
                     _hasScaleProbe = true;
                     _lastScale = transform.localScale;
                 }
+
+                // [2026-09-22] 스케일 관측 프루브 — 뼈 유무 무관 SMR transform을 관측(SpecialCreature 펄스)
+                _scaleProbe = smr.transform;
+                _lastScale = _scaleProbe.localScale;
+                _hasScaleProbe = true;
             }
             else
             {
@@ -134,11 +140,13 @@ namespace ProjectName.Systems
             if (_monitorBoneA != null) _lastRotA = _monitorBoneA.localRotation;
             if (_monitorBoneB != null) _lastRotB = _monitorBoneB.localRotation;
 
-            if (_hasScaleProbe)
+            // [2026-09-22] 스케일 변화도 "애니"로 인정 — SpecialCreatureAnimator(슬라임 펄스 등)는
+            // 본 스케일을 변형하므로 회전만 보면 오탐(무변화 오판)했다.
+            if (_scaleProbe != null)
             {
-                float scaleDelta = Vector3.Distance(_lastScale, transform.localScale);
-                angleDelta += scaleDelta * 100f; // 도 환산 대용량화 — 스케일 변화도 "변화"로 인정
-                _lastScale = transform.localScale;
+                float sDelta = Vector3.Distance(_lastScale, _scaleProbe.localScale);
+                angleDelta += sDelta * 100f;
+                _lastScale = _scaleProbe.localScale;
             }
 
             bool animChanged = angleDelta > 0.05f;

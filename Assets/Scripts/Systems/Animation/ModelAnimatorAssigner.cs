@@ -58,15 +58,20 @@ namespace ProjectName.Systems.Animation
                 _rigidbody = gameObject.AddComponent<Rigidbody>();
             }
 
-            _animator.applyRootMotion = false;
-            _animator.updateMode = AnimatorUpdateMode.Fixed;
-            _animator.animatePhysics = true;
-            _boneMap.Initialize(_animator);
-
             // 타입 감지 및 분기
             bool isBiped = _forceBiped || (!_forceQuadruped && !_isSpecialCreature && _animator.isHuman);
             bool isQuadruped = _forceQuadruped || (!_forceBiped && !_isSpecialCreature && !_animator.isHuman);
             bool isSpecial = _isSpecialCreature || (!isBiped && !isQuadruped);
+
+            // 뼈맵 초기화 — 계열 확정 '후'에 힌트를 전달해 익명 리그 토폴로지 매핑이 계열에 맞게 배치된다
+            // [2026-09-22] 4족=앞/뒤 4다리, 2족=2다리+2팔, 특수형=Root
+            _animator.applyRootMotion = false;
+            _animator.updateMode = AnimatorUpdateMode.Fixed;
+            _animator.animatePhysics = true;
+            BoneFamilyHint hint = isSpecial ? BoneFamilyHint.Special
+                                : isQuadruped ? BoneFamilyHint.Quadruped
+                                : BoneFamilyHint.Biped;
+            _boneMap.Initialize(_animator, hint);
 
             if (isBiped)
             {
