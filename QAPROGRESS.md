@@ -61,6 +61,10 @@
 - **수리**: CreateShowcaseMonster에서 루트 rb **키네마틱 고정(중력 off)** + 자식 콜라이더 전부 제거 → ShowcaseWanderDriver의 kinematic 경로(transform.position, y=_groundY)가 스폰 지면값에 정확 고정. 쇼케이스는 충돌/레이캐스트 요구 0이라 무손실.
 - 검증: 배치컴파일 CS=0 + EditMode 통과.
 
+### 휠 줌 추가 (동일 세션 후속 — "테스트 씬에서도 뷰를 확대할 수 있게")
+- **신규 `ShowcaseCameraZoom.cs`**: SetupCamera가 카메라에 부착. 고정 자세(60° 톱다운) 유지한 채 **마우스 휠 돌리 줌** — 줌 중심=초기 시선 지면 지점(Raycast, 실패 시 52m 전방), 거리 클램프 6~65m, 노치당 4m, 지수 평활. Input System(Mouse.current.scroll, 노치 /120 정규화) — TopDownCameraController는 Player 태그 필수라 Player 없는 쇼케이스에서 미작동 → 전용 경량 컴포넌트.
+- 검증: 배치컴파일 CS=0 + EditMode 통과.
+
 ---
 
 ## 📌 세션 스냅샷 (2026-09-22 ✅ P32 — Figma→Unity 파이프라인 테스트: 인벤 리스타일 — 커밋 e6c92a9c)

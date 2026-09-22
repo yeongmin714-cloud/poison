@@ -164,10 +164,14 @@ namespace ProjectName.Systems
             camGO.transform.position = new Vector3(0f, 45f, -30f);
             camGO.transform.rotation = Quaternion.Euler(60f, 0f, 0f);
 
+            // 휠 줌 (2026-09-22) — 자세 유지한 채 돌리 확대/축소(ShowcaseCameraZoom)
+            if (camGO.GetComponent<ShowcaseCameraZoom>() == null)
+                camGO.AddComponent<ShowcaseCameraZoom>();
+
             if (camGO.GetComponent<AudioListener>() == null)
                 camGO.AddComponent<AudioListener>();
 
-            Log("[TestAnimShowcase] ✅ 고정 탑다운 카메라 설정 (0,45,-30 / 60°)");
+            Log("[TestAnimShowcase] ✅ 고정 탑다운 카메라 설정 (0,45,-30 / 60°) + 휠 줌 (6~65m)");
         }
 
         // ================================================================
