@@ -213,6 +213,12 @@ namespace ProjectName.Systems.Animation.Procedural
                 float hop = Mathf.Abs(Mathf.Sin(_phase * _slimePulseFreq * Mathf.PI)) * _slimeHopAmp * _moveT;
                 _body.localPosition = _bodyBasePos + Vector3.up * hop;
             }
+            else if (!_bodyIsSelf && _moveT <= 0.01f)
+            {
+                // [P-ANIM7 QA수리] 정지 완료 — 마지막 홉 높이 잔존 방지(게이트 하한 0.01은 비연속이라
+                // 마지막 프레임 홉값이 동결될 수 있음 → base로 원복).
+                _body.localPosition = _bodyBasePos;
+            }
         }
 
         /// <summary>
