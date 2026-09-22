@@ -509,7 +509,23 @@ namespace ProjectName.Systems
 
         private void ApplyProceduralPose()
         {
-            ApplyFootIK();
+            // [P-ANIM7 Phase1] 회전 기반 보행 게이트 — 이동 중엔 본 회전 스윙, 그 외엔 기존 FABRIK IK.
+            // ApplyRotationGait는 P-ANIM5-B에서 정의만 존재하고 호출부 0건이었던 사장 코드라,
+            // 실제 다리 구동이 계속 IK 경로(Solve)로 흐르며 과신전/비틀림/미끄러짐이 남아 있었다.
+            // 2족 P-ANIM6와 동일 패턴: 회전 모드에서 IK 적용을 생략해 이중 구동(경합)을 제거한다.
+            // 액션(공격/섭취 등) 중엔 Action 코드의 본 직접 회전과 경합하지 않게 IK 유지 경로로 회귀.
+            bool rotationGaitActive = _rotationGait && _isGrounded
+                && _currentSpeed > 0.1f && _actionState == ActionState.None;
+            if (rotationGaitActive)
+            {
+                ApplyRotationGait();
+                _rotationGaitActive = true;
+            }
+            else
+            {
+                if (_rotationGaitActive) RestoreGaitBase(); // 스윙 → 정지/IK 전환: 기본 포즈 1회 복원
+                ApplyFootIK();
+            }
             // [2026-09-14(49차 후속)] ApplySpineIK 제거 — 척추 파동은 QuadrupedProceduralLocomotion.ApplySpineWave가
             // 단일 담당한다. 기존엔 이곳(하드코딩 0.05@2Hz)과 Locomotion.ApplySpineWave가 이중으로
             // 척추를 Rotate 누적해 croc 파동이 겹치고 SetSpineWave 조정이 묻혔다.
@@ -519,34 +535,111 @@ namespace ProjectName.Systems
 
         // [P-ANIM5-B] 회전 기반 절차 보행 — 발 IK(Solve) 대신 다리 체인 루트에 사인 위상 회전.
         // 앞/뒤 교차 위상(LF+RH / RF+LH) + 축 불변(월드 기준 스윙) — 과신전·비틀림 원천 소멸.
+        // [P-ANIM7 Phase1] 호출부 복원 + 무릎/발목 체인 굽힘(발 들기) 확장 — 2족 SwingBipedLeg(P-ANIM6) 이식.
         private void ApplyRotationGait()
         {
             // [P-ANIM2 Phase A-2] 스윙 각도 = 실속도 비례 — 보폭과 이동속도 동기(발 미끄러짐 제거)
-            float swingDeg = Mathf.Clamp(_currentSpeed * 6f, 10f, 32f);
+            float swingDeg = Mathf.Clamp(_currentSpeed * _gaitSwingSpeedFactor, _gaitMinSwingDeg, _gaitMaxSwingDeg);
             Vector3 axis = transform.right; // 진행 방향에 수직 — 전후 스윙
 
-            SwingLeg(_boneMap.Get(BoneRole.L_Hip), LF_Phase, axis, swingDeg);
-            SwingLeg(_boneMap.Get(BoneRole.R_Hip), RF_Phase, axis, swingDeg);
-            if (_boneMap.Has(BoneRole.L_HindHip)) SwingLeg(_boneMap.Get(BoneRole.L_HindHip), LH_Phase, axis, swingDeg);
-            if (_boneMap.Has(BoneRole.R_HindHip)) SwingLeg(_boneMap.Get(BoneRole.R_HindHip), RH_Phase, axis, swingDeg);
+            SwingLegChain(BoneRole.L_Hip, BoneRole.L_Knee, BoneRole.L_Ankle, LF_Phase, axis, swingDeg);
+            SwingLegChain(BoneRole.R_Hip, BoneRole.R_Knee, BoneRole.R_Ankle, RF_Phase, axis, swingDeg);
+            // 뒷다리 — 전용 역할(L_Hind*/R_Hind*)이 매핑된 경우에만 스윙(미매핑 시 폴백 재사용은 IK 경로 규약).
+            // 전용 무릎/발목 미매핑 시 앞다리 역할과 이중 구동(경합)이 생기므로 굽힘은 전용 역할 매핑 시에만.
+            if (_boneMap.Has(BoneRole.L_HindHip))
+                SwingLegChain(BoneRole.L_HindHip, BoneRole.L_HindKnee, BoneRole.L_HindAnkle, LH_Phase, axis, swingDeg);
+            if (_boneMap.Has(BoneRole.R_HindHip))
+                SwingLegChain(BoneRole.R_HindHip, BoneRole.R_HindKnee, BoneRole.R_HindAnkle, RH_Phase, axis, swingDeg);
         }
 
-        private void SwingLeg(Transform hip, float phase, Vector3 axis, float swingDeg)
+        /// <summary>
+        /// [P-ANIM7 Phase1] 다리 체인 스윙 — 힙 전후 스윙(±sin) + 무릎 굽힘(스윙 전반부=발 들기) +
+        /// 발목 역굽힘(발 수평 보정). 히프는 P-ANIM5-B SwingLeg 수식 그대로(월드 기준 회전+base 캐시).
+        /// 무릎/발목 역할이 미매핑이면 해당 본은 스윙하지 않는다(히프 스윙만으로 보행 — 안전 폴백).
+        /// </summary>
+        private void SwingLegChain(BoneRole hipRole, BoneRole kneeRole, BoneRole ankleRole,
+            float phase, Vector3 axis, float swingDeg)
         {
+            Transform hip = _boneMap.Has(hipRole) ? _boneMap.Get(hipRole) : null;
             if (hip == null || hip.parent == null) return;
-            if (!_gaitBaseRot.TryGetValue(hip, out var baseLocal))
+
+            if (!_gaitBaseRot.TryGetValue(hip, out var hipBase))
             {
-                _gaitBaseRot[hip] = hip.localRotation;
-                return; // 첫 프레임은 기준 포착만
+                _gaitBaseRot[hip] = hip.localRotation; // 첫 프레임은 기준 포착만
             }
-            float angle = Mathf.Sin(phase * Mathf.PI * 2f) * swingDeg;
-            Quaternion baseWorld = hip.parent.rotation * baseLocal;
-            Quaternion targetWorld = baseWorld * Quaternion.AngleAxis(angle, axis);
-            hip.localRotation = Quaternion.Inverse(hip.parent.rotation) * targetWorld;
+            else
+            {
+                float hipAngle = Mathf.Sin(phase * Mathf.PI * 2f) * swingDeg;
+                Quaternion hipBaseWorld = hip.parent.rotation * hipBase;
+                Quaternion hipTargetWorld = hipBaseWorld * Quaternion.AngleAxis(hipAngle, axis);
+                hip.localRotation = Quaternion.Inverse(hip.parent.rotation) * hipTargetWorld;
+            }
+
+            // 무릎 굽힘 — 다리가 후방→전방으로 지나가는 전반부만 굽힘(발 들기 흉내).
+            // 전방 통과(cos 피크) 때 최대 — 보행 사이클과 정합. 2족과 동일 수식.
+            if (_boneMap.Has(kneeRole))
+            {
+                Transform knee = _boneMap.Get(kneeRole);
+                if (knee != null && knee.parent != null)
+                {
+                    if (!_gaitBaseRot.TryGetValue(knee, out var kneeBase))
+                    {
+                        _gaitBaseRot[knee] = knee.localRotation;
+                    }
+                    else
+                    {
+                        float bend = Mathf.Max(0f, -Mathf.Cos(phase * Mathf.PI * 2f))
+                                   * _gaitKneeBendFactor * swingDeg;
+                        Quaternion kneeBaseWorld = knee.parent.rotation * kneeBase;
+                        Quaternion kneeTargetWorld = kneeBaseWorld * Quaternion.AngleAxis(bend, axis);
+                        knee.localRotation = Quaternion.Inverse(knee.parent.rotation) * kneeTargetWorld;
+                    }
+                }
+            }
+
+            // 발목 역굽힘 — 무릎 굽힘의 절반을 반대로 돌려 발바닥 수평 유지(끌림/뒤집힘 방지).
+            if (_boneMap.Has(ankleRole))
+            {
+                Transform ankle = _boneMap.Get(ankleRole);
+                if (ankle != null && ankle.parent != null)
+                {
+                    if (!_gaitBaseRot.TryGetValue(ankle, out var ankleBase))
+                    {
+                        _gaitBaseRot[ankle] = ankle.localRotation;
+                    }
+                    else
+                    {
+                        float counter = -Mathf.Max(0f, -Mathf.Cos(phase * Mathf.PI * 2f))
+                                      * _gaitKneeBendFactor * _gaitAnkleCounterFactor * swingDeg;
+                        Quaternion ankleBaseWorld = ankle.parent.rotation * ankleBase;
+                        Quaternion ankleTargetWorld = ankleBaseWorld * Quaternion.AngleAxis(counter, axis);
+                        ankle.localRotation = Quaternion.Inverse(ankle.parent.rotation) * ankleTargetWorld;
+                    }
+                }
+            }
         }
 
         [SerializeField] private bool _rotationGait = true; // [P-ANIM5-B] 회전 기반 보행 스위치
         private readonly Dictionary<Transform, Quaternion> _gaitBaseRot = new Dictionary<Transform, Quaternion>();
+        private bool _rotationGaitActive; // [P-ANIM7] 회전 스윙 적용 중 — 정지/액션 전환 시 1회 기본 포즈 복원
+
+        // [P-ANIM7 Phase1] 회전 보행 튜닝 파라미터 — 2족(P-ANIM6)과 동일한 인스펙터 노출 규약.
+        [SerializeField, Range(1f, 12f)] private float _gaitSwingSpeedFactor = 6f;  // 스윙각 = 속도×이 계수
+        [SerializeField, Range(0f, 45f)] private float _gaitMinSwingDeg = 10f;     // 최소 스윙각(저속 하한)
+        [SerializeField, Range(5f, 60f)] private float _gaitMaxSwingDeg = 32f;     // 최대 스윙각(고속 상한)
+        [SerializeField, Range(0f, 1.5f)] private float _gaitKneeBendFactor = 0.5f; // 무릎 굽힘량(스윙각 대비)
+        [SerializeField, Range(0f, 1.5f)] private float _gaitAnkleCounterFactor = 0.5f; // 발목 역굽힘 배율
+
+        /// <summary>[P-ANIM7] 회전 보행 종료 시 캐시된 기준 localRotation 복원 + 캐시 클리어(기저 재포착).</summary>
+        private void RestoreGaitBase()
+        {
+            foreach (var kvp in _gaitBaseRot)
+            {
+                if (kvp.Key != null) kvp.Key.localRotation = kvp.Value;
+            }
+            _gaitBaseRot.Clear();
+            _rotationGaitActive = false;
+        }
 
         private void ApplyFootIK()
                 {
