@@ -85,6 +85,10 @@ namespace ProjectName.Systems.Animation.Procedural
         [SerializeField, Range(0f, 1.5f)] float _gaitKneeBendFactor = 0.5f; // 무릎 굽힘량(스윙각 대비)
         [SerializeField, Range(0f, 1.5f)] float _gaitArmSwingFactor = 0.4f; // 팔 스윙량(다리 진폭 대비)
 
+        // [P-ANIM7 Phase2] 정지 idle 호흡 파라미터 — 어깨 롤+척추 피치(익명 리그 2족 전용).
+        [SerializeField, Range(0.5f, 3f)] float _idleHz = 1.1f;         // 호흡 주파수(Hz)
+        [SerializeField, Range(0f, 8f)] float _idleBreathDeg = 1.8f;    // 호흡 진폭(도)
+
         // ──────────────────────────────────────────────
         // 컴포넌트
         // ──────────────────────────────────────────────
@@ -99,6 +103,11 @@ namespace ProjectName.Systems.Animation.Procedural
         // 적용 중 플래그: 정지/액션 전환 시 1회 기본 포즈 복원(스윙 자세 잔존 방지).
         readonly Dictionary<Transform, Quaternion> _gaitBaseRot = new Dictionary<Transform, Quaternion>();
         bool _gaitActive;
+
+        // [P-ANIM7 Phase2] 정지 idle 상태 — 어깨 호흡+척추 미세 피치(조각상 해소). 별도 캐시로
+        // gait 캐시와 분리 — idle↔gait 전환 시 각각 base 복원 후 재포착한다.
+        readonly Dictionary<Transform, Quaternion> _idleBaseRot = new Dictionary<Transform, Quaternion>();
+        bool _idleActive;
 
         /// <summary>
         /// [P-ANIM6 Phase1] 잡 경로 게이트 — 플레이어 보호: 휴머노이드 아바타(isHuman=true)는
@@ -1232,8 +1241,16 @@ namespace ProjectName.Systems.Animation.Procedural
             {
                 // 정지/공중/액션 — 회전 보행 중단. 스윙 자세 잔존 방지로 1회 기본 포즈 복원.
                 if (_gaitActive) RestoreGaitBase();
+                // [P-ANIM7 Phase2] 지상 정지 중엔 idle 호흡 인수(액션/공중은 본 건드리지 않음).
+                if (_actionState == ActionState.None && IsGrounded && _currentSpeed <= 0.1f)
+                    ApplyBipedIdle();
+                else if (_idleActive)
+                    RestoreIdleBase(); // 액션 시작/이륙 — idle 자세 원복(Action 코드에 포즈 인계)
                 return;
             }
+
+            // idle → gait 전환: idle 자세 원복 후 스윙(base 재포착).
+            if (_idleActive) RestoreIdleBase();
 
             // [P-ANIM2/4족 수리 동일] 스윙 각도 = 실속도 비례 클램프 — 보폭과 이동속도 동기(발 미끄러짐 제거)
             float swingDeg = Mathf.Clamp(_currentSpeed * _gaitSwingSpeedFactor, _gaitMinSwingDeg, _gaitMaxSwingDeg);
@@ -1320,6 +1337,47 @@ namespace ProjectName.Systems.Animation.Procedural
             }
             _gaitBaseRot.Clear();
             _gaitActive = false;
+        }
+
+        // ──────────────────────────────────────────────
+        // [P-ANIM7 Phase2] 정지 idle — 어깨 호흡 + 척추 미세 피치
+        // 익명 리그 2족 전용(UseJobIK=false 경로에서만 호출 — 플레이어는 잡 경로라 무영향).
+        // 회전 모드에선 다른 시스템이 어깨/척추를 구동하지 않아 경합 없음. base 캐시 절대 세팅(드리프트 없음).
+        // ──────────────────────────────────────────────
+
+        /// <summary>정지 중 생동감 — 어깨 미세 롤(호흡) + 척추0 미세 피치. 매 프레임 절대 세팅(누적 없음).</summary>
+        void ApplyBipedIdle()
+        {
+            float t = Time.time * _idleHz * 2f * Mathf.PI;
+            float breath = Mathf.Sin(t);
+            BreatheBone(BoneRole.L_Shoulder, _idleBreathDeg, breath);
+            BreatheBone(BoneRole.R_Shoulder, _idleBreathDeg, breath);
+            BreatheBone(BoneRole.Spine0, _idleBreathDeg * 0.5f, Mathf.Sin(t * 0.5f));
+            _idleActive = true;
+        }
+
+        /// <summary>idle 호흡 단일 본 적용 — 첫 프레임은 기준 포착만(2족 gait 캐시와 동일 규약).</summary>
+        void BreatheBone(BoneRole role, float ampDeg, float wave)
+        {
+            Transform b = _boneMap.Has(role) ? _boneMap.Get(role) : null;
+            if (b == null || b.parent == null) return;
+            if (!_idleBaseRot.TryGetValue(b, out var baseLocal))
+            {
+                _idleBaseRot[b] = b.localRotation;
+                return;
+            }
+            b.localRotation = baseLocal * Quaternion.Euler(wave * ampDeg, 0f, wave * ampDeg * 0.3f);
+        }
+
+        /// <summary>[P-ANIM7] idle 종료 시 캐시된 기준 localRotation 복원 + 클리어.</summary>
+        void RestoreIdleBase()
+        {
+            foreach (var kvp in _idleBaseRot)
+            {
+                if (kvp.Key != null) kvp.Key.localRotation = kvp.Value;
+            }
+            _idleBaseRot.Clear();
+            _idleActive = false;
         }
 
         void ApplyFootIK()
