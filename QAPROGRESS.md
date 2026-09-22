@@ -56,6 +56,11 @@
 ### Play 판정 대기
 ①몬스터 6마리만 스폰, 스폰 즉시 렉 없음(Sentis 로그 0건) ②각 몬스터가 배회하며 "본 애니 또는 폴백 호흡"으로 시각적 움직임 ③병사 3명/NPC 영주 1명 Idle 재생 ④콘솔에 `[ShowcaseWander] 연결 완료` family 정합 + 무변화 감지 시 `[ShowcaseMonitor] ⚠️ 폴백 구동` 1회 ⑤ESC 눌러도 씬 정지 상태 미유지(timeScale=1 방어)
 
+### 접지 수리 (동일 세션 후속 — "몬스터가 지형에 접지 못한다")
+- **뿌리**: ModelAnimatorAssigner가 루트에 **비키네마틱 Rigidbody** 자동 부착(RequireComponent) → GroundModelToY로 bounds 정렬해도 이동/대기 중 y가 콜라이더 물리 잔류 높이로 결정(GLB 콜라이더 형상≠메시 바닥 → 뜨거나 파묻힘) + 콜라이더 상호 밀침.
+- **수리**: CreateShowcaseMonster에서 루트 rb **키네마틱 고정(중력 off)** + 자식 콜라이더 전부 제거 → ShowcaseWanderDriver의 kinematic 경로(transform.position, y=_groundY)가 스폰 지면값에 정확 고정. 쇼케이스는 충돌/레이캐스트 요구 0이라 무손실.
+- 검증: 배치컴파일 CS=0 + EditMode 통과.
+
 ---
 
 ## 📌 세션 스냅샷 (2026-09-22 ✅ P32 — Figma→Unity 파이프라인 테스트: 인벤 리스타일 — 커밋 e6c92a9c)

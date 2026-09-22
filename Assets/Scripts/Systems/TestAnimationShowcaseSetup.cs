@@ -325,6 +325,21 @@ namespace ProjectName.Systems
             if (monitor == null) monitor = go.AddComponent<ShowcaseMonitor>();
             monitor.Setup($"{def.displayName} ({def.id})", family);
 
+            // ⑤ 접지 확정 — 물리 경합 제거(2026-09-22 접지 수리).
+            //    ModelAnimatorAssigner가 루트에 비키네마틱 Rigidbody를 자동 부착해, 지면 정렬 후에도
+            //    중력+콜라이더 잔류 높이가 bounds 정렬을 이기고 뜨거나 파묻히는 문제(사용자 보고).
+            //    쇼케이스는 충돌/레이캐스트 요구가 없으므로: 루트 rb 키네마틱 고정(중력 off) + 자식 콜라이더 전부 제거
+            //    → ShowcaseWanderDriver의 kinematic 경로(transform.position, y=_groundY 고정)가 정확히 접지 유지.
+            var rootRb = go.GetComponent<Rigidbody>();
+            if (rootRb != null)
+            {
+                rootRb.isKinematic = true;
+                rootRb.useGravity = false;
+            }
+            var modelColliders = go.GetComponentsInChildren<Collider>(true);
+            for (int c = 0; c < modelColliders.Length; c++)
+                if (modelColliders[c] != null) Destroy(modelColliders[c]);
+
             // 접지 — 모델 bounds 최저점을 raycast 지면에 정렬
             GroundModelToY(go, position.y);
 
