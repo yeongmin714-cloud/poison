@@ -237,6 +237,31 @@ namespace ProjectName.Systems.Animation.Procedural.IK
                 }
             }
 
+            // [2026-09-22 굽힘 방향 강제(치명 수리)] 구현은 FABRIK 반복풀이로 hint를 '전혀 사용하지 않아'
+            // 무릎 굽힘 방향이 현재 자세 추종 → 다리가 뒤로 꺾여 걷는 원인. 힌트를 pole 벡터로 강제 적용:
+            // 중간 관절을 (루트→끝 축)에 수직인 평면에서 힌트 쪽으로 밀어 굽힘 방향을 지정한다.
+            if (distToTarget <= totalLen * 0.999f && hint.sqrMagnitude > 0.000001f)
+            {
+                Vector3 axis = tipPos - rootPos;
+                float axisLen = axis.magnitude;
+                if (axisLen > 0.0001f)
+                {
+                    Vector3 axisN = axis / axisLen;
+                    Vector3 linePt = rootPos + axisN * Vector3.Dot(midPos - rootPos, axisN);
+                    Vector3 poleDir = hint - linePt;
+                    poleDir -= axisN * Vector3.Dot(poleDir, axisN);
+                    if (poleDir.sqrMagnitude > 0.000001f)
+                    {
+                        Vector3 away = midPos - linePt;
+                        float awayLen = away.magnitude;
+                        midPos = linePt + poleDir.normalized * awayLen;
+                        Vector3 midToTip2 = tipPos - midPos;
+                        if (midToTip2.magnitude > 0.0001f)
+                            tipPos = midPos + midToTip2.normalized * lowerLen;
+                    }
+                }
+            }
+
             Quaternion rootRot = Quaternion.LookRotation((midPos - rootPos).normalized, Vector3.up);
             Quaternion midRot = Quaternion.LookRotation((tipPos - midPos).normalized, Vector3.up);
             Quaternion tipRot = Quaternion.LookRotation((tipPos - midPos).normalized, Vector3.up);
