@@ -293,6 +293,10 @@ namespace ProjectName.Systems
             state.lordDefeated = true;
             state.lordSurrendered = true;
 
+            // [Phase D] 점령 몰수 — 금고 시딩(멱등) 후 재화/아이템/병사 몰수
+            TerritoryLootSystem.EnsureTerritoryGold(territoryId);
+            TerritoryLootSystem.ConfiscateOnCapture(territoryId);
+
             // Lord Placeholder 제거
             DestroyLordObject(territoryId);
 
@@ -324,6 +328,10 @@ namespace ProjectName.Systems
             state.lordSpared = true;
             state.lordSurrendered = true;
             state.loyaltyToPlayer = Mathf.Clamp(state.loyaltyToPlayer + 30f, 0f, 100f);
+
+            // [Phase D] 점령 몰수 — 살려주기 경로도 PlayerOwned 점령이므로 몰수(멱등 가드로 중복 지급 없음)
+            TerritoryLootSystem.EnsureTerritoryGold(territoryId);
+            TerritoryLootSystem.ConfiscateOnCapture(territoryId);
 
             // Lord Placeholder 제거 (또는 유지 — 영주가 영지에 남음)
             DestroyLordObject(territoryId);

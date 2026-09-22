@@ -392,6 +392,10 @@ namespace ProjectName.Systems
             _poisonFlags[territoryId] = true;
             _poisonTimers[territoryId] = 0f;
 
+            // [Phase D] 점령 몰수 — 금고 시딩(멱등) 후 재화/아이템/병사 몰수
+            TerritoryLootSystem.EnsureTerritoryGold(territoryId);
+            TerritoryLootSystem.ConfiscateOnCapture(territoryId);
+
             // 점령 완료 등록
             _takenOver.Add(territoryId);
 

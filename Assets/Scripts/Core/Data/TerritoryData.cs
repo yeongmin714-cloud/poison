@@ -182,6 +182,9 @@ namespace ProjectName.Core.Data
         // ===== P30-A: 마약 오염도 (TerritoryDrugSystem 연동) =====
         [SerializeField] private float _drugContamination = 0f;       // 0~100, 영지 단위 마약 오염도
 
+        // ===== Phase D: 영지 금고 (TerritoryLootSystem 연동) =====
+        [SerializeField] private int _territoryGold = 0;              // 영지 금고 (점령 시 몰수 대상, 미시딩=0)
+
         public TerritoryId id => _id;
         public TerritoryOwnership ownership { get => _ownership; set => _ownership = value; }
 
@@ -229,6 +232,16 @@ namespace ProjectName.Core.Data
         {
             get => _drugContamination;
             set => _drugContamination = Mathf.Clamp(value, 0f, 100f);
+        }
+
+        /// <summary>
+        /// [Phase D] 영지 금고 (0 이상). TerritoryLootSystem이 난이도 기반으로 시딩하며,
+        /// 플레이어 점령 시 몰수 후 0으로 초기화됩니다. setter가 자동으로 0 이상으로 클램핑합니다.
+        /// </summary>
+        public int territoryGold
+        {
+            get => _territoryGold;
+            set => _territoryGold = Mathf.Max(0, value);
         }
 
         // ===== 병사 배치 프로퍼티 (TerritoryDeploymentSystem 연동) =====

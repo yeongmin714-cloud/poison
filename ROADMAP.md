@@ -3266,3 +3266,21 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 - **정리**(메인 동작 불변 확인): PlayerMovement(Phase67 획득 경로)/PlayerCombat/MountSystem(SwitchPolicy 2곳)/AnimalAI(부착+Combat 2곳)/MonsterSpawner(IsQuadruped 설정)/GuardManager·HumanoidClipDriver(진단 카운트)/TestPlayerSetup(4·5순위 부착+모델 로드)/TestPlayerAnimatorBoot·TerritoryNPCSpawner(정리 라인)/ModelAnimatorAssigner(neural·hybrid 경로 완전 제거)/에디터 수리 스크립트 4종. Test_01_Player.unity의 Neural/Hybrid 컴포넌트 YAML 블록 제거.
 - **남는 애니 경로(단일 계약)**: 4족=QuadrupedProcedural(Locomotion+Animation) / 2족=ProceduralAnimationController / 특수형=SpecialCreatureAnimator / 휴머노이드=HumanoidClipDriver+*_AC 클립.
 - **검증**: 배치컴파일 error CS 0 + EditMode 전부 통과. 라이브 MainScene은 뉴럴 GUID 참조 0건(backup 3파일만 잔존 — 미로드 파일).
+
+---
+
+## ⚔️ Phase R 시리즈: 영주 성향 & 영지 전쟁 확장 (진행 중)
+
+> **설계 확정 (2026-09-22)**: 영주 성격(LordPersonality, 결정 시드)을 **공격성 A / 방어성 D=1-A** 수치로 매핑 → 병력을 **[공격 파견 / 문지기 / 실내 수비]** 3방향으로 배분. 물리 병사 이동 시뮬레이션 전쟁(WarMarchSimulation) + 하루 단위 전투 로그 알림. 영지 레벨↑=재화·아이템·병사수↑, 점령 시 전리품·병사 몰수. 유지비·고용 시장(급료/인상 이벤트/방출/타 영주 재고용). 실내 단순화(병사+영주실+교회) + 나머지 기능 마을 이관. 병사 영구사망=하드코어 모드(보류 — 기본은 부활 유지).
+
+| Phase | 이름 | 상태 |
+|:------|:-----|:----:|
+| A | 영주 성향 파라미터 (LordPersonalitySystem — 공격/문지기/실내수비 배분) | ✅ |
+| B | 성향↔공격 연동 (AIWarSystem/WarMarchSimulation 파견 빈도·병력) | ✅ |
+| C | 성향↔수비 연동 (문지기·게이트 강도) | ✅ |
+| D | 영지 레벨 & 전리품·병사 몰수 | ✅ |
+| E-2 | 유지비·고용 시스템 (급료/인상 이벤트/방출/고용시장/타 영주 재고용) | ✅ |
+| F | 실내 단순화 + 마을 이관 + 실내 전투 | ⬜ |
+| G | 처형 공격병사 포섭 | ⬜ |
+| H | 하루 전투 로그 알림 | ⬜ |
+| I | QA·기록·커밋 | ⬜ |

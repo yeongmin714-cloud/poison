@@ -1,6 +1,99 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-22 (뉴럴 애니 전면 퇴역 — 폴더/에셋/패키지 삭제, 컴파일 CS 0)
+> **최종 갱신:** 2026-09-22 (Phase R-A: 영주 성향 파라미터 시스템 — 컴파일 CS 0, QA PASS)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-A: 영주 성향 파라미터 시스템)
+
+> **입력**: 영주가 문지기/실내 수비 배치와 공격 파견 수를 AI로 자율 결정하도록 — 공격적 성향은 공격에 몰빵(문지기 적게), 소극적 성향은 문지기 위주(공격 적게). 유지비·고용, 영지 몰수, 하루 전투 로그, 실내 단순화 계획을 함께 수립.
+> **범위(이번)**: Phase A — 신규 성향 시스템 구축 + 컴파일/VQA 통과. (후속 Phase B~I는 R 시리즈 로드맵에 분리)
+
+### 신규 파일
+- **`Assets/Scripts/Systems/LordPersonalitySystem.cs`** (+ .meta): 영주 성격(LordPersonality 7종) → 공격성 A / 방어성 D=1-A 매핑. `LordDeploymentPlan{attackSoldiers / gatekeeperSoldiers / interiorDefenseSoldiers}` 배분 계산. 합계=총병력 항상 보존, 3역할 최소 1명(total≥3), total=0 전부 0, 결정론(System.Random 미사용). 조회 API: `GetAggression/GetDefensiveness/GetDeploymentPlan`(TerritoryId/LordPersonality overload).
+  - 성향 예시: Brave 0.80, Cruel 0.90, Greedy 0.60, Neutral/Wise 0.50, Suspicious 0.30, Cowardly 0.15. 공격=round(total×A×0.6), 문지기=round(total×(0.25+(1−A)×0.35)), 실내=잔여.
+- 보호 파일(AIWarSystem/TerritoryWarManager/WarMarchSimulation/TerritoryData/TerritoryDatabase) **무수정 확인 (git status clean)**.
+
+### 검증 (독립 QA 에이전트 PASS)
+- 배치컴파일 **error CS = 0**, Exit return code 0 (`unity_compile_lordpersonality.log`).
+- float32 정밀 재현 스윕 A 21종×total 0~60: 합계==total, 실내 음수 0, total=0 → 0, 최소보정 불변 위반 0건.
+- 반올림 RoundHalfUp(banker's와 다름) 정확, 결정론·네임스페이스 규약 준수.
+- ⚠ 범위 외: `ShowcaseMonitor.cs` +13줄 미커밋 diff 존재(이전 세션 잔재 — 후속 커밋 시 병합/확인).
+
+### 후속
+- Phase R-B~I 진행 예정: B 성향↔공격 / C 성향↔수비 / D 영지 몰수 / E-2 유지비·고용 / F 실내 단순화+마을 / G 처형 포섭 / H 하루 전투로그 / I QA·커밋.
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-B: 성향↔공격 연동)
+
+> **범위**: AI 영주 공격 성향 A가 공격 파견 병력 수 + 전쟁 발화 빈도·공격자 선정에 반영되도록 기존 전쟁 시스템에 연동. (Phase A의 LordPersonalitySystem 소비 1차)
+
+### 수정
+- **`WarMarchSimulation.cs`**: 공격 파견 병력 수를 `Clamp(LordPersonalitySystem.GetDeploymentPlan(attackerDef.id).attackSoldiers, 1, MAX_SOLDIERS=5)`로 전환. 공격적 영주(Cruel 0.9)=5명 / 소극적(Cowardly 0.15)=1명. SpawnGarrison 후 `_attackForce` 초과분 역방향 안전 파괴(RemoveAt 병행). 행진/교전(HasCommand)/정리(Release) 흐름 불변.
+- **`AIWarSystem.cs`**: `CheckAutoWars`에서 공격자 후보를 aggression 내림차순 정렬 복제 → 상위 K=3 중 무작위 추출(고성향 영주 공격자 우선). 발화 빈도 `warCount = Min(Max(1, Round(avg×3)), Min(3, pool/2))` — 공격적 AI 다수일수록 더 많은 전쟁. 동일국가 금지·ValidateWar·쿨다운·MAX_CONCURRENT_WARS=5 보존.
+- 금지 파일(TerritoryWarManager/TerritoryData/TerritoryDatabase/LordPersonalitySystem) **무수정 (git status+mtime 검증)**.
+
+### 검증 (독립 QA PASS)
+- 컴파일 error CS 0, return code 0 (`unity_compile_phaseB.log`). 수정 2파일 관련 경고 0.
+- 로직: 파견 병력 클램프·역방향 파괴 안전·행진/정리 불변 / 공격자 상위 K=3 가중·warCount 상한(3·pool/2)·기존 가드 로직 전부 보존·경계 회귀 없음.
+- [경미] AIWarSystem 273행: 정렬 복제본이 Remove 후 미갱신 → 동일 호출 내 재선택 가능하나 StartAIWar·ValidateWar가 중복 참전 거부 → 런타임 무해(회귀 아님).
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-C: 성향↔수비(문지기) 연동)
+
+> **범위**: 영주 방어 성향 D가 문지기 배치 수에 반영 — 소극/방어 영지=문지기 많음(게이트 강), 공격 영지=문지기 적음(게이트 약). A~C를 하나의 배분 모델(GetDeploymentPlan)로 통일.
+
+### 수정
+- **`TerritoryBuilder.cs`**: `BuildGuardsAt(...)` 시그니처에 `TerritoryId territoryId` 추가(호출부 L193에서 `def.id` 전달). `gatekeeperCount`를 기존 `difficulty switch`(Ring3=3, Ring4/Empire=4, 그 외 2) → `Mathf.Clamp(LordPersonalitySystem.GetDeploymentPlan(territoryId).gatekeeperSoldiers, 1, 5)`로 교체. 게이트 강도는 전원 포섭 소프트 게이트 구조상 문지기 수 자체가 곧 강도 → 방어 성향이 곧 성문 단단함.
+- 난이도별 레벨(GetBaseGuardLevel)/배치 좌표/for 루프/CreateGuard 흐름 불변. 호출부 전 코드베이스 1곳뿐 → 파급 없음.
+- 금지 7종(TerritoryGateSystem/GuardHostilitySystem/AIWarSystem/WarMarchSimulation/LordPersonalitySystem/TerritoryData/TerritoryDatabase) **무수정** (컴파일 로그 changed=1로 물증).
+
+### 검증 (독립 QA PASS)
+- 컴파일 error CS 0, return code 0 (`unity_compile_phaseC.log`).
+- 성향 산식: 방어적(A=0.15) 3~5명/공격적(A=0.9) 1명 (total 10 기준).
+- [권고] clamp 상한 5 포화: Ring4/Empire(병력 12~50)는 전부 5로 포화 → 성향 구분은 중저난이도에서만 체감. 밸런스 후속 개선 후보.
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-D: 영지 레벨 & 전리품·병사 몰수)
+
+> **범위**: 영지 레벨(난이도 링) 기반 재화·아이템·병사 + 플레이어 점령 시 몰수. (영지 금고는 TerritoryState 신규 필드, 아이템창고는 기존 WarehouseSystem 재사용, 병사는 기존 포섭 로직 재사용)
+> ⚠ 구현 서브에이전트 600s 타임아웃 → **산출물은 완결**(컴파일 phaseD 로그 return 0·error CS 0) — 부모가 정적 QA로 완결성 판정·PASS.
+
+### 신규
+- **`TerritoryLootSystem.cs`**: 영지 금고 결정론 롤링(Ring1=50~150…Empire=3000, 고정 시드 `DeterministicHash`), `EnsureTerritoryGold`(멱등 시딩·소유 이탈 시 재몰수 허용), `ConfiscateOnCapture` = ①금고→`PlayerStats.AddGold(gold,"confiscate")` 후 0처리 ②창고 아이템→`PlayerInventory` 이관(빈 창고면 난이도 기반 1~3종 시딩 후 몰수) ③생존 미포섭 병사→`GuardRecruitSystem.GetMaxRecruits(level)` 상한 내 `SetRecruited(true)`. 세션 멱등 가드 + 예외 가드.
+
+### 수정
+- **`TerritoryData.cs`**: `TerritoryState._territoryGold` 필드(0 이상 클램프 프로퍼티). (drugContamination과 동일 — 미저장, Phase D 스코프 밖)
+- **`AssassinationCutscene.cs`**: `state.ownership = PlayerOwned` 직접 대입(L252) → `db.SetOwnership(...)` 경유(OwnershipChanged 발화) + 점령 몰수 추가.
+- **`LordSurrenderSystem.cs`** (ExecuteExecution 처형 + SpareLord 살려주기) / **`PoisonTakeoverSystem.cs`** (ExecutePoisonTakeover): 기존 SetOwnership 뒤에 점령 몰수 추가.
+- 플레이어 점령 4경로(처형/살려주기/독살/암살) 전부 몰수 적용. AI-AI 전쟁(LordOwned)·세이브 복원(OwnershipRestoreMode)·RegisterPlayerTerritory는 몰수 대상 아님.
+
+### 검증
+- 컴파일 error CS 0, return code 0 (`unity_compile_phaseD.log`, 서브에이전트 산출 후 부모 재확인).
+- 정적 QA: 멱등(중복 지급 없음), 예외 시 부분 완료·금고 손실 방지, AssassinationCutscene 직접대입→SetOwnership 수정으로 이벤트 누락 해소.
+- 보호 파일(TerritoryGateSystem/GuardHostilitySystem/LordPersonalitySystem) 무수정.
+
+---
+
+## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-E2: 유지비·고용 시스템)
+
+> **범위**: 병사 레벨/스탯↑=유지비↑ → 게임일 경계 일일 청구 → 골드 부족 시 병사 방출 → 고용시장 풀 등록 → AI 영주(특히 공격 성향) 재고용. (경제적 병력 상한 형성)
+
+### 신규 (병렬 위임 성공)
+- **`GuardSalarySystem.cs`** (static): `GetDailyCost`= base2 + Level×2 + MaxHP×0.05 + 스탯합/2 + 충성도 낮을수록 가산 + 인상수락 보너스(+5). `GetTotalDailyCost()`, `TryPayDailyWages(int day)`(동일일차 멱등, 골드 부족 시 최고가 병사부터 `LaborMarketSystem.ReleaseGuard` 방출 후 재시도 최대 100회·중복방출 차단). 인상 이벤트 `RequestPayRaise`/`HandlePayRaiseResponse`(수락 +10, 거절 −20, 멱등)/`HasPendingRaise`/`HasRaised`.
+- **`LaborMarketSystem.cs`** (static): `ReleaseGuard`(SetRecruited(false)+풀 등록+중복/사망 방어), `ProcessAILordHiring(int day)`(동일일차 멱등, LordOwned AI 영지 중 `GetAggression` 내림차순 상위가 결정론 시드 해시로 0~2명 고용, `_hiredCounts` 인메모리 — guardCount 변조 안 함), `TotalHiredByAI()`.
+- **`GuardSalaryManager.cs`** (sealed : MonoBehaviour): `TimeManager.OnDayStart` 구독 → `TryPayDailyWages` → `ProcessAILordHiring` → 인상 요구 발생(포섭 병사 중 HasRaised/HasPendingRaise 아닌 것만 — 스팸 방지). 싱글턴.
+
+### 수정
+- **`GameSetup.cs`**: Start에서 `EnsureGuardSalaryManager()`(EnsureFishingSystem 뒤) + 헬퍼(try/catch 멱등) 추가. +27/−0 순수 추가(기존 배선 무손상).
+
+### QA (독립 PASS)
+- 컴파일 error CS 0, return 0 + 독립 재실행 확인. GameSetup 회귀 +27/-0, 기존 시스템 무수정.
+- [통합 결함 #1 → 픽스] 방출 병사가 `SetRecruited(false)`만 돼 GuardManager 목록에 잔존하던 문제: ①`GetDailyCost`에 `!IsRecruited → 0`(방출 즉시 유지비 미부과) ②`LaborMarketSystem` 아군 판정을 `IsRecruited`(true) 기준으로(방출 병사 고용 풀 유지 → AI 재고용 루프 복원). 재컴파일 통과.
+- ✅ 완성 루프: 청구 → 부족 시 방출 → 풀 → AI(공격 성향) 재고용 → 내 병사가 적 영주 군단으로 복귀.
 
 ---
 

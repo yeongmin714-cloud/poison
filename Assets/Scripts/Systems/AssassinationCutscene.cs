@@ -248,11 +248,15 @@ namespace ProjectName.Systems
             var state = db.GetState(territoryId);
             if (state == null) return;
 
-            // 영지 소유권 변경
-            state.ownership = TerritoryOwnership.PlayerOwned;
+            // 영지 소유권 변경 — [Phase D] SetOwnership 경유(OwnershipChanged 발화 → conquest 칭호 카운터)
+            db.SetOwnership(territoryId, TerritoryOwnership.PlayerOwned);
             state.lordExecuted = true;
             state.lordDefeated = true;
             state.lordSurrendered = true;
+
+            // [Phase D] 점령 몰수 — 금고 시딩(멱등) 후 재화/아이템/병사 몰수
+            TerritoryLootSystem.EnsureTerritoryGold(territoryId);
+            TerritoryLootSystem.ConfiscateOnCapture(territoryId);
 
             OnAssassinationExecuted?.Invoke(territoryId);
 

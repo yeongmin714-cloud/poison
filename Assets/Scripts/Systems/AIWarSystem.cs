@@ -45,6 +45,9 @@ namespace ProjectName.Systems
         /// <summary>최소 전쟁 간격 (같은 영지, 게임 시간 일)</summary>
         public const int MIN_WAR_COOLDOWN_DAYS = 10;
 
+        /// <summary>Phase B: 공격자 가중 선정 후보군 크기 — 공격 성향 상위 K개 중 무작위로 공격자 선정</summary>
+        private const int AttackerCandidateTopCount = 3;
+
         // ===== 데이터 =====
 
         /// <summary>AI 전쟁 데이터 구조체</summary>
@@ -210,7 +213,8 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// AI 자동 전쟁 시작을 체크합니다. 매 CHECK_INTERVAL_DAYS마다 호출됩니다.
-        /// 무작위 AI 영지 쌍을 선택하여 전쟁을 시작합니다.
+        /// Phase B: 발화 빈도는 풀의 평균 공격 성향(aggression)에 비례하며,
+        /// 공격자는 공격 성향 상위 후보군(상위 K개) 중 무작위로 선정됩니다.
         /// </summary>
         /// <param name="currentDay">현재 게임 일자</param>
         public static void CheckAutoWars(int currentDay)
@@ -246,13 +250,35 @@ namespace ProjectName.Systems
 
             if (aiTerritoriesPool.Count < 2) return; // 전쟁에 필요한 영지 부족
 
-            // 무작위 전쟁 쌍 선택 (3쌍 이하)
-            int warCount = Mathf.Min(Random.Range(1, 4), aiTerritoriesPool.Count / 2);
+            // ── Phase B: 발화 빈도를 공격 성향에 비례 ──
+            // 풀의 평균 aggression(0~1)이 높을수록(공격적 AI일수록) 더 많은 전쟁을 발화.
+            // 최소 1쌍, 최대 3쌍 + 풀 절반 이내 — 기존 warCount 상한(1~3, pool/2) 범위 유지.
+            var aggressionCache = new Dictionary<TerritoryId, float>(aiTerritoriesPool.Count);
+            float avgAggression = 0f;
+            foreach (var id in aiTerritoriesPool)
+            {
+                float aggression = LordPersonalitySystem.GetAggression(id);
+                aggressionCache[id] = aggression;
+                avgAggression += aggression;
+            }
+            avgAggression /= aiTerritoriesPool.Count;
+
+            int warCount = Mathf.Min(Mathf.Max(1, Mathf.RoundToInt(avgAggression * 3f)), Mathf.Min(3, aiTerritoriesPool.Count / 2));
+            Debug.Log($"[AIWarSystem] 자동 전쟁 체크: 후보 {aiTerritoriesPool.Count}개, 평균 공격성 {avgAggression:0.00} → 발화 {warCount}쌍");
+
+            // ── Phase B: 공격 성향이 높은 영지가 공격자로 우선되도록 가중 선정 ──
+            // 풀을 aggression 내림차순으로 정렬한 복제본을 만들고, 상위 K개 중 무작위로 공격자를 뽑음.
+            // 방어자는 기존과 동일하게 전체 풀에서 무작위 추출. aiTerritoriesPool 자체는 방어자 후보 +
+            // 중복 제거 관리용으로 유지 (공격자 후보도 pool에 항상 존재하므로 아래 Remove가 정상 동작).
+            List<TerritoryId> attackerCandidates = new List<TerritoryId>(aiTerritoriesPool);
+            attackerCandidates.Sort((a, b) => aggressionCache[b].CompareTo(aggressionCache[a]));
+            int topCandidateCount = Mathf.Min(AttackerCandidateTopCount, attackerCandidates.Count);
+
             for (int w = 0; w < warCount; w++)
             {
                 if (_activeWars.Count >= MAX_CONCURRENT_WARS) break;
 
-                // 무작위로 공격자와 방어자 선택 (100회 시도, 실패 시 건너뜀)
+                // 공격자(성향 상위 K 중 무작위)와 방어자(전체 풀에서 무작위) 선택 (100회 시도, 실패 시 건너뜀)
                 int maxPairAttempts = 100;
                 bool foundPair = false;
                 TerritoryId attacker = default;
@@ -260,21 +286,20 @@ namespace ProjectName.Systems
 
                 for (int attempt = 0; attempt < maxPairAttempts; attempt++)
                 {
-                    int aIdx = Random.Range(0, aiTerritoriesPool.Count);
-                    int dIdx = Random.Range(0, aiTerritoriesPool.Count);
-                    if (aIdx != dIdx)
-                    {
-                        attacker = aiTerritoriesPool[aIdx];
-                        defender = aiTerritoriesPool[dIdx];
+                    attacker = attackerCandidates[Random.Range(0, topCandidateCount)];
+                    defender = aiTerritoriesPool[Random.Range(0, aiTerritoriesPool.Count)];
 
-                        // 같은 국가 내 전쟁 금지 (ValidateWar에서 추가 검증, 여기서 미리 거름)
-                        var defA = db.GetDefinition(attacker);
-                        var defD = db.GetDefinition(defender);
-                        if (defA.nation != defD.nation)
-                        {
-                            foundPair = true;
-                            break;
-                        }
+                    // 공격자와 방어자가 같은 영지인 경우 재추출
+                    if (attacker.Equals(defender))
+                        continue;
+
+                    // 같은 국가 내 전쟁 금지 (ValidateWar에서 추가 검증, 여기서 미리 거름)
+                    var defA = db.GetDefinition(attacker);
+                    var defD = db.GetDefinition(defender);
+                    if (defA.nation != defD.nation)
+                    {
+                        foundPair = true;
+                        break;
                     }
                 }
 

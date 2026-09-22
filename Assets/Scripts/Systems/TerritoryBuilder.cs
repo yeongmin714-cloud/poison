@@ -188,8 +188,9 @@ namespace ProjectName.Systems
             // 성(castle) 생성 (국가별 GLB 중심)
             BuildBuildingsAt(parentGo.transform, center, def.nation);
 
-            // 문지기 생성 (성문 앞 2~4명, guardCount는 전쟁 페이즈 데이터로 유지)
-            BuildGuardsAt(parentGo.transform, center, def.guardCount, def.difficulty, def.nation);
+            // 문지기 생성 (성문 앞 2~5명, guardCount는 전쟁 페이즈 데이터로 유지)
+            // Phase C: 문지기 수 = 영주 방어 성향 기반 배분(LordPersonalitySystem) — territoryId 전달 필요
+            BuildGuardsAt(parentGo.transform, center, def.id, def.guardCount, def.difficulty, def.nation);
         }
 
         /// <summary>이미 생성되었는지 확인 (부모 컨테이너 이름으로 체크)</summary>
@@ -388,10 +389,12 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 성문(GateAnchor) 앞에 문지기 2~4명을 배치합니다.
+        /// 성문(GateAnchor) 앞에 문지기를 배치합니다.
+        /// 문지기 수는 영주 방어 성향 기반 — 방어적/소극적 영주는 문지기가 많아 게이트가 강하고,
+        /// 공격적 영주는 문지기가 적어 게이트가 약하다 (Phase C: LordPersonalitySystem 배분 모델 통일, 클램프 1~5).
         /// (guardCount는 전체 주둔군 수 — 전쟁 페이즈에서 사용하도록 그대로 유지하며 여기서는 문지기만 배치)
         /// </summary>
-        private void BuildGuardsAt(Transform parent, Vector3 center, int guardCount, TerritoryDifficulty difficulty, NationType nation)
+        private void BuildGuardsAt(Transform parent, Vector3 center, TerritoryId territoryId, int guardCount, TerritoryDifficulty difficulty, NationType nation)
         {
             int baseLevel = GetBaseGuardLevel(difficulty);
 
@@ -399,14 +402,10 @@ namespace ProjectName.Systems
             Vector3 c2 = new Vector3(center.x, 0, center.z);
             Vector3 gateDir = c2.sqrMagnitude < 0.0001f ? Vector3.back : Vector3.Normalize(c2);
 
-            // 문지기 수: Ring1/Ring2=2, Ring3=3, Ring4=4
-            int gatekeeperCount = difficulty switch
-            {
-                TerritoryDifficulty.Ring3 => 3,
-                TerritoryDifficulty.Ring4 => 4,
-                TerritoryDifficulty.Empire => 4,
-                _ => 2, // Ring1 / Ring2 / Dracula
-            };
+            // 영주 성향(D) 기반 문지기 수 — 공격적 영주=적게, 방어적 영주=많게 (Phase A 배분 모델 통일)
+            // 판정 불가(영지 미확인 등 gatekeeperSoldiers=0)여도 clamp 하한 1로 문지기 최소 보장
+            int gatekeeperCount = Mathf.Clamp(
+                LordPersonalitySystem.GetDeploymentPlan(territoryId).gatekeeperSoldiers, 1, 5);
 
             // GateAnchor 월드 위치 (Castle 아래)
             Transform gateAnchor = null;

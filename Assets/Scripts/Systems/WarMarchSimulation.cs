@@ -9,7 +9,7 @@ namespace ProjectName.Systems
     /// 전쟁이 콘솔 로그가 아니라 '병사가 실제로 움직이는' 장면으로 보이도록 한다.
     ///
     /// 흐름:
-    ///  1. 공격군 병사 그룹(2~5명)을 공격측 영지에 스폰한다.
+    ///  1. 공격군 병사 그룹(Phase B: 영주 성향 A에 비례한 1~5명)을 공격측 영지에 스폰한다.
     ///  2. 각 공격 병사에 SetCommandTarget(방어측 영지, 공격 명령=true)를 발동해 목표 영지로 행진(실제 이동).
     ///  3. GuardPlaceholder의 ExecuteMovement가 프레임마다 자동 이동 → 목표 도달 시 자동 근접 공격(플린치 파티클).
     ///  3'. 방어군 병사도 방어측 영지에 스폰하여 가시적 교전 대상으로 삼는다.
@@ -29,6 +29,7 @@ namespace ProjectName.Systems
         private readonly List<GameObject> _defenders = new List<GameObject>();
 
         private Vector3 _targetPos;
+        private int _attackForce; // Phase B: 영주 성향(A) 기반 공격 파견 병력 수 [1, MAX_SOLDIERS]
         private float _elapsedHold;
         private bool _arrivalLogged;
         private bool _releasing;
@@ -49,7 +50,7 @@ namespace ProjectName.Systems
             var sim = go.AddComponent<WarMarchSimulation>();
             sim.Begin(attackerDef, fromPos, targetPos, defenderDef);
             _activeMarches++;
-            Debug.Log($"[WarMarchSimulation] ⚔️ 행진 시작 — {attackerDef.territoryName} → {targetPos} (병사 {sim._attackers.Count}명, 활성 {_activeMarches}/{MAX_CONCURRENT})");
+            Debug.Log($"[WarMarchSimulation] ⚔️ 행진 시작 — {attackerDef.territoryName} → {targetPos} (성향 A={LordPersonalitySystem.GetAggression(attackerDef.id):0.00}, 파견 {sim._attackForce}명 / 스폰 {sim._attackers.Count}명, 활성 {_activeMarches}/{MAX_CONCURRENT})");
             return true;
         }
 
@@ -58,9 +59,12 @@ namespace ProjectName.Systems
         {
             _targetPos = targetPos;
 
-            // ── 공격군 병사 그룹 스폰 (수 상한 2~5 유지) ──
+            // ── 공격군 병사 그룹 스폰 ──
+            // Phase B: 공격 파견 수를 영주 성향 A에 비례 — attackSoldiers(전체 병력 중 공격 파견 몫)를
+            // 행진 그룹 규모 파라미터로 [1, MAX_SOLDIERS] 클램프해 사용 (공격적 영주 = 대규모 파견).
+            _attackForce = Mathf.Clamp(LordPersonalitySystem.GetDeploymentPlan(attackerDef.id).attackSoldiers, 1, MAX_SOLDIERS);
             var attackerGarrison = TerritoryBuilder.SpawnGarrison(attackerDef, fromPos);
-            for (int i = attackerGarrison.Count - 1; i >= MAX_SOLDIERS; i--)
+            for (int i = attackerGarrison.Count - 1; i >= _attackForce; i--)
             {
                 var extra = attackerGarrison[i];
                 if (extra != null) Destroy(extra);

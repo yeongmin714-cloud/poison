@@ -98,6 +98,10 @@ public class GameSetup : MonoBehaviour
         EnsureFishingSystem();
         GiveStarterFishingRod();
 
+        // ── GUARD SALARY (Phase E-2): 일일 유지비·고용 틱 ──────────────
+        // OnDayStart 구독: 병사 급료 청구 + AI 영주 재고용 + 고용비 인상 요구.
+        EnsureGuardSalaryManager();
+
         // ── TERRITORY BUILDER 보장 (Phase S1 후속) ────────────────────
         // GameManager가 씬에 없어 EnsureTerritoryManager가 실행되지 않던 문제 수리.
         // TerritoryManager 존재 여부와 무관하게 TerritoryBuilder가 없으면 추가.
@@ -884,6 +888,29 @@ public class GameSetup : MonoBehaviour
         catch (System.Exception fishEx)
         {
             Debug.LogError($"[GameSetup] ⚠️ 낚시 시스템 배선 실패 — 나머지 부트 계속: {fishEx.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Phase E-2: 유지비·고용 일일 틱 매니저(GuardSalaryManager) 부착 (멱등).
+    /// OnDayStart 구독으로 병사 급료 청구(GuardSalarySystem) + AI 영주 재고용(LaborMarketSystem) +
+    /// 고용비 인상 요구 발생을 매일 구동한다. Systems(GuardSalarySystem/LaborMarketSystem)는
+    /// 순수 static 로직이며, 이 매니저가 게임일 경계에 연결한다.
+    /// </summary>
+    private void EnsureGuardSalaryManager()
+    {
+        try
+        {
+            if (GuardSalaryManager.Instance == null)
+            {
+                var salaryGO = new GameObject("GuardSalaryManager");
+                salaryGO.AddComponent<GuardSalaryManager>();
+                Debug.Log("[GameSetup] ✅ GuardSalaryManager 생성 (일일 유지비·고용 틱 활성화)");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[GameSetup] ⚠️ 유지비 매니저 배선 실패 — 나머지 부트 계속: {ex.Message}");
         }
     }
 
