@@ -262,9 +262,22 @@ namespace ProjectName.Systems.Animation.Procedural.IK
                 }
             }
 
-            Quaternion rootRot = Quaternion.LookRotation((midPos - rootPos).normalized, Vector3.up);
-            Quaternion midRot = Quaternion.LookRotation((tipPos - midPos).normalized, Vector3.up);
-            Quaternion tipRot = Quaternion.LookRotation((tipPos - midPos).normalized, Vector3.up);
+            // [2026-09-22 치명 수리] 구 LookRotation 방식은 '본의 +Z축 = 뼈 방향' 가정인데 익명 리그(bone_N)는
+            // 본 축이 제각각이라 회전이 시각적으로 반대 방향(다리 뒤로 꺾임)으로 나왔다.
+            // 본의 '현재 시각 방향 → 목표 방향' 델타 회전만 적용 — 임의 본 축에도 올바르게 작동.
+            Vector3 curMidDir = (chain.Mid.position - chain.Root.position);
+            Vector3 wantMidDir = (midPos - rootPos);
+            Quaternion rootRot = chain.Root.rotation;
+            if (curMidDir.sqrMagnitude > 0.000001f && wantMidDir.sqrMagnitude > 0.000001f)
+                rootRot = Quaternion.FromToRotation(curMidDir.normalized, wantMidDir.normalized) * chain.Root.rotation;
+
+            Vector3 curTipDir = (chain.Tip.position - chain.Mid.position);
+            Vector3 wantTipDir = (tipPos - midPos);
+            Quaternion midRot = chain.Mid.rotation;
+            if (curTipDir.sqrMagnitude > 0.000001f && wantTipDir.sqrMagnitude > 0.000001f)
+                midRot = Quaternion.FromToRotation(curTipDir.normalized, wantTipDir.normalized) * chain.Mid.rotation;
+
+            Quaternion tipRot = chain.Tip.rotation; // 엔드 이펙터 — 방향 유지
 
             return new SolveResult
             {
