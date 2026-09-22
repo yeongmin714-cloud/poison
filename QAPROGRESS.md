@@ -120,6 +120,22 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-H: 하루 전투 로그 알림)
+
+> **범위**: "하루마다 전쟁 전보(어제 점령/상실/개전)가 플레이어에게 날아온다" — AI 전쟁 이벤트를 누적해 게임일 경계에 요약 표시.
+
+### 구현 (부모 직접, 컴파일 error CS 0)
+- **신규 `DailyWarLogSystem.cs`** (static): `RecordWarStarted/TerritoryConquered/TerritoryLost`로 전쟁 이벤트 문자열 로그 누적, `FlushDayLog()`가 "📜 어제 전역 전보" 요약을 `WarNotificationUI.ShowNotification(Info)`로 표시 후 클리어.
+- **`AIWarSystem.cs`**: `StartAIWar`(전쟁 시작), `CompleteWar`(점령+영토 상실)에 로그 기록 추가.
+- **`GuardSalaryManager.cs`** OnDayStart: 기존 유지비/고용/인상요구에 **`AIWarSystem.UpdateAIWars(); CheckAutoWars(day)`(AI 전쟁 일일 틱) + `DailyWarLogSystem.FlushDayLog()`(전보 요약)** 추가.
+- ⭐ **발견**: `AIWarSystem.UpdateAIWars()/CheckAutoWars()`의 **호출부가 0건**(배선 부재)이었음 — Phase B 성향 공격이 실제로는 미발동 상태였음. H가 게임일 틱으로 배선해 **Phase B 성향 AI 전쟁도 실제 발동**하게 됨(시너지 해소).
+
+### 검증
+- 배치컴파일 error CS 0, return 0. DailyWarLogSystem→WarNotificationUI(둘 다 Systems, 어셈블리 OK).
+- Play 시 전쟁 발화 → 다음 날 아침 `[DailyWarLog] 전역 전보: ⚔️ ... | 🏴 ...` + "📜 어제 전역 전보" 배너 확인.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-22 ✅ 뉴럴 애니메이션 전면 퇴역 — 사용자 결정 "모두 없애줘")
 
 > **입력**: "뉴럴애니메이션 관련은 이제 사용하지 않는 거니 모두 없애줘. 그래도 게임진행엔 아무 문제 없는거지?"

@@ -166,6 +166,9 @@ namespace ProjectName.Systems
 
             OnWarStarted?.Invoke(warData);
 
+            // [Phase H] 일일 전쟁 전보(하루 종합 로그)에 시작 기록
+            DailyWarLogSystem.RecordWarStarted(attacker, defender);
+
             // R3-2: 전쟁 시작 시 양측 영지에서 주둔군이 성 내부→외부로 출격
             var attackerGarrison = TerritoryBuilder.SpawnGarrison(defAttacker, defAttacker.worldPosition);
             var defenderGarrison = TerritoryBuilder.SpawnGarrison(defDefender, defDefender.worldPosition);
@@ -472,6 +475,10 @@ namespace ProjectName.Systems
             WarNotificationUI.ShowNotification(
                 $"🏴 {defDefender.territoryName} 영토 상실",
                 WarNotificationUI.NotificationType.TerritoryLost);
+
+            // [Phase H] 일일 전쟁 전보(하루 종합 로그)에 점령/상실 기록
+            DailyWarLogSystem.RecordTerritoryConquered(war.attackerTerritoryId, war.defenderTerritoryId);
+            DailyWarLogSystem.RecordTerritoryLost(war.defenderTerritoryId);
         }
 
         /// <summary>

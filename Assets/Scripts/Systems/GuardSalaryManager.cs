@@ -59,7 +59,14 @@ namespace ProjectName.Systems
             try { LaborMarketSystem.ProcessAILordHiring(day); }
             catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] AI 고용 실패: {ex.Message}"); }
 
+            // [Phase H] AI 전쟁 일일 틱(진행/완료 + 발화) — 배선 부재였던 AIWarSystem을 게임일 경계에 연결
+            try { AIWarSystem.UpdateAIWars(); AIWarSystem.CheckAutoWars(day); }
+            catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] AI 전쟁 틱 실패: {ex.Message}"); }
+
             TryTriggerPayRaiseRequests();
+
+            // [Phase H] 하루 전쟁 전보(전투 로그) 요약 표시
+            DailyWarLogSystem.FlushDayLog();
         }
 
         /// <summary>
