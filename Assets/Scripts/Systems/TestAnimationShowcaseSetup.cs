@@ -44,6 +44,10 @@ namespace ProjectName.Systems
         [SerializeField] private float _npcSpacing = 2.4f;
         [SerializeField] private float _npcRowZ = 15f;
 
+        [Header("Guard Pose Tuning (2026-09-22)")]
+        [Tooltip("lv40-50 큰 병사의 어깨 말림 보정(도). 음수=어깨 아래로. 인스펙터에서 조정 가능.")]
+        [SerializeField] private float _bigGuardShoulderPitch = -6f;
+
         // ---- 몬스터 6종 (외형 유형군 대표 1마리씩 — 2026-09-22 렉 완화 + 애니 확인 목적) ----
         private static readonly string[] MonsterIds =
         {
@@ -616,6 +620,23 @@ namespace ProjectName.Systems
                 }
             }
 
+            // [2026-09-22] 큰 병사(lv40-50) 어깨 말림 보정 — 어깨 본(Shoulder)에 피치 오프셋 적용.
+            // 인스펙터 _bigGuardShoulderPitch로 방향/강도 조정(0=무효).
+            if (level >= 40 && attachedBody != null && Mathf.Abs(_bigGuardShoulderPitch) > 0.01f)
+            {
+                int adjusted = 0;
+                foreach (var t in attachedBody.GetComponentsInChildren<Transform>(true))
+                {
+                    if (t.name.Contains("Shoulder"))
+                    {
+                        t.localRotation = Quaternion.Euler(_bigGuardShoulderPitch, 0f, 0f) * t.localRotation;
+                        adjusted++;
+                    }
+                }
+                if (adjusted > 0)
+                    Log($"[TestAnimShowcase] 어깨 보정 적용: {goName} Shoulder×{adjusted} pitch={_bigGuardShoulderPitch}°");
+            }
+
             // [2026-09-22] 병사 배회 — HumanoidClipDriver(Soldier 모드)가 위치 델타로 Speed를 계산하므로
             // 이동시키기만 하면 걷기/대기 클립이 자동 전환된다(플레이어와 동일 클립 경로).
             var guardWander = guardGO.GetComponent<ShowcaseWanderDriver>();
@@ -764,8 +785,8 @@ namespace ProjectName.Systems
             var driver = npcGO.AddComponent<HumanoidClipDriver>();
             driver.mode = HumanoidClipDriver.DriveMode.Soldier;
 
-            // NPC GLB 재질 이식(외형 유지)
-            HumanoidClipDriver.CopyMaterialsFromGlb(fbxBody, "Models/UserProvided/" + glbAliasKey);
+            // NPC GLB 재질 이식(외형 유지) — [2026-09-22] UV 미스매치 시 귀족색 틴트 폴백(깨진 메시 방지)
+            HumanoidClipDriver.CopyMaterialsFromGlb(fbxBody, "Models/UserProvided/" + glbAliasKey, new Color(0.70f, 0.62f, 0.86f, 1f));
 
             LogStatic($"[TestAnimShowcase] ✅ NPC Humanoid FBX 부착: {npcName} (SoldierShield_AC+드라이버, 재질={glbAliasKey})");
             return true;

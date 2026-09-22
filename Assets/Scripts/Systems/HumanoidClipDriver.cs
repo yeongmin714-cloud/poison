@@ -1204,7 +1204,7 @@ namespace ProjectName.Systems
         /// Blender FBX export는 텍스처를 유실하므로 흰색으로 보이는 문제의 해결책.
         /// URP Lit 재생성 + GLB의 _BaseMap 텍스처 이식.
         /// </summary>
-        public static void CopyMaterialsFromGlb(GameObject fbxBody, string glbResourcePath)
+        public static void CopyMaterialsFromGlb(GameObject fbxBody, string glbResourcePath, Color fallbackTint = default)
         {
             var glbPrefab = Resources.Load<GameObject>(glbResourcePath);
             if (glbPrefab == null)
@@ -1229,18 +1229,43 @@ namespace ProjectName.Systems
                 Color baseCol = src != null && src.HasProperty("_BaseColor")
                     ? src.GetColor("_BaseColor") : Color.white;
 
+                // [2026-09-22 UV 정합 검증] GLB 본체와 FBX 대상의 메시 정점수가 다르면 UV 배치가 달라
+                // 텍스처가 뭉개져 '메시가 깨진 것처럼' 보인다(영주 실측). 이 경우 텍스처 복사를 생략하고
+                // 틴트 폴백 재질로 대체한다.
+                var srcMesh = GetRendererMesh(srcRends[0]);
+                var dstMesh = GetRendererMesh(dstRends[0]);
+                bool uvMismatch = srcMesh != null && dstMesh != null
+                    && Mathf.Abs(srcMesh.vertexCount - dstMesh.vertexCount) > dstMesh.vertexCount * 0.05f;
+
                 var urpLit = Shader.Find("Universal Render Pipeline/Lit");
                 var mat = new Material(urpLit);
-                if (baseTex != null) mat.SetTexture("_BaseMap", baseTex);
-                mat.SetColor("_BaseColor", baseCol);
+                if (uvMismatch)
+                {
+                    Color tint = fallbackTint.a > 0.01f ? fallbackTint : new Color(0.82f, 0.78f, 0.72f);
+                    mat.SetColor("_BaseColor", tint);
+                    Debug.LogWarning($"[HumanoidClipDriver] UV 미스매치(정점 GLB={srcMesh.vertexCount} vs FBX={dstMesh.vertexCount}) — 텍스처 복사 생략, 틴트 폴백({tint})");
+                }
+                else
+                {
+                    if (baseTex != null) mat.SetTexture("_BaseMap", baseTex);
+                    mat.SetColor("_BaseColor", baseCol);
+                }
                 foreach (var r in dstRends)
                     if (r != null) r.sharedMaterial = mat;
-                Debug.Log($"[HumanoidClipDriver] 머티리얼 복사 완료: 대상 {dstRends.Length}개, 텍스처={(baseTex != null ? baseTex.name : "없음")}");
+                Debug.Log($"[HumanoidClipDriver] 머티리얼 적용 완료: 대상 {dstRends.Length}개, 텍스처={(baseTex != null && !uvMismatch ? baseTex.name : "생략(UV미스매치/없음)")}");
             }
             finally
             {
                 Object.Destroy(temp);
             }
+        }
+
+        /// <summary>렌더러에서 메시 추출(SMR=sharedMesh, MR=MeshFilter).</summary>
+        private static Mesh GetRendererMesh(Renderer r)
+        {
+            if (r is SkinnedMeshRenderer smr) return smr.sharedMesh;
+            var mf = r.GetComponent<MeshFilter>();
+            return mf != null ? mf.sharedMesh : null;
         }
 
         // ───────────────────── 외부 트리거 ─────────────────────

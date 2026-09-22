@@ -392,7 +392,9 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             }
             if (treeRoot == null) return;
 
-            // 잎 체인 수집 — 잎에서 위로 올라가 분기 노드(자식 2+) 직전까지
+            // 잎 체인 수집 — 잎에서 위로 올라가 분기 노드(자식 2+) 직전까지.
+            // [2026-09-22 수리] 체인 길이 캡(4뼈) — 캡 없이는 단일 자식 연쇄를 타고 골반·척추까지
+            // 흡수해 전 몬스터 spine=없음이 되고, IK가 척추 뼈를 무릎처럼 꺾어 몸이 뒤틀렸다.
             var chains = new List<List<Transform>>();
             foreach (var leaf in set)
             {
@@ -400,7 +402,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
 
                 var chain = new List<Transform>();
                 var cur = leaf;
-                while (cur != null && set.Contains(cur) && cur != treeRoot && CountChildrenInSet(cur, set) <= 1)
+                while (chain.Count < 4 && cur != null && set.Contains(cur) && cur != treeRoot && CountChildrenInSet(cur, set) <= 1)
                 {
                     chain.Add(cur);
                     cur = cur.parent;

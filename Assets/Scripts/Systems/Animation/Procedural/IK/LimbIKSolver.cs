@@ -175,6 +175,16 @@ namespace ProjectName.Systems.Animation.Procedural.IK
         /// </summary>
         public static SolveResult Solve(Chain chain, Vector3 target, Vector3 hint, int iterations = 2)
         {
+            // [2026-09-22 사거리 클램프] 목표가 체인 최대 도달거리(Upper+Lower)를 넘으면 가장자리로 당겨
+            // 무리한 과신전(뼈 과꺾임/메시 찢어짐)을 방지한다. ComputeLengths 미호출 체인(길이 0)은 스킵.
+            float maxReach = (chain.UpperLength + chain.LowerLength) * 0.97f;
+            if (maxReach > 0.001f && chain.Root != null)
+            {
+                Vector3 offset = target - chain.Root.position;
+                float len = offset.magnitude;
+                if (len > maxReach)
+                    target = chain.Root.position + offset * (maxReach / len);
+            }
             if (chain.Root == null || chain.Mid == null || chain.Tip == null)
                 return new SolveResult { Success = false };
 

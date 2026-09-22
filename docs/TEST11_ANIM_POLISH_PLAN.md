@@ -66,3 +66,20 @@
 ## 진행 규칙
 - Phase별 커밋 분리 · 배치컴파일 CS=0 + EditMode 필수 · QAPROGRESS/ROADMAP 기록
 - 메인 씬 무영향 원칙: 토폴로지 매핑/IK 클램프는 메인 몬스터에도 적용되므로 컴파일+메인 스폰 경로 회귀 점검 포함
+
+---
+
+## 📌 실행 기록 (2026-09-22 — P-ANIM Phase 1·3·4 실행, 커밋 본 커밋)
+
+### Phase 1 (완료) — 체인 흡수 차단 + IK 사거리 클램프
+- **체인 길이 캡(4뼈)**: FindLimbChains의 잎→위 탐색에 `chain.Count < 4` 제한 — 골반·척추 흡수 원천 차단(전 몬스터 `spine=없음`의 뿌리). 이제 Spine0/1/2 + Neck/Head 재매핑이 실제로 발동 → SpineWave(보행 몸통 물결)/HeadLook 복귀.
+- **IK 사거리 클램프**: LimbIKSolver.Solve 진입부에서 목표가 최대 도달거리(Upper+Lower)×0.97을 넘으면 가장자리로 당김 — 4족 4섹션 + 2족 전 IK 호출부 동시 커버(호출부 수정 불필요). ComputeLengths 미호출 체인은 스킵(안전).
+### Phase 3 (완료) — 영주 재질 UV 정합 검증
+- CopyMaterialsFromGlb에 **GLB/FBX 정점수 정합 검증**(±5% 임계) — 미스매치 시 텍스처 복사 생략 + 틴트 폴백 재질(영주=귀족 보라빛 0.70/0.62/0.86). GetRendererMesh 헬퍼 신설. 경고 로그에 정점수 출력.
+### Phase 4 (완료) — 큰 병사 어깨 보정
+- `_bigGuardShoulderPitch` 인스펙터 필드 신설(기본 -6°) — lv40-50 병사의 Shoulder 본에 피치 오프셋, 방향/강도 인스펙터 조정 가능(0=무효). 적용 로그 출력.
+### Phase 2/5 (보류) — 보행 리듬 튜닝과 비교 루프는 Phase 1~4 Play 판정 후 진행(판정 없이 튜닝하면 기준 불명).
+
+### 검증
+- 배치컴파일 **error CS = 0** + EditMode **전부 통과**.
+- **Play 판정 항목**: ①콘솔 `spine=bone_N, head=bone_M` 복귀 확인 ②악어/미노타우르스 척추 꺾임·메시 찢어짐 소멸 ③보행 중 몸통 물결(SpineWave) 재생 ④영주 메시 깨짐 소멸(UV미스매치 경고+보라 틴트) ⑤큰 병사 어깨(-6°) 자연스러움 — 인스펙터에서 조정 가능.
