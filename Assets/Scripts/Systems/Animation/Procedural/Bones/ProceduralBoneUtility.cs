@@ -543,11 +543,13 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             {
                 var remaining = set.Where(b => !spineLegBones.Contains(b)).ToList();
                 var spineChain = FindLongestChain(treeRoot, remaining);
-                if (spineChain.Count >= 3)
+                // [2026-09-22 수리] 임계 3→2 — 익명 리그의 척추는 1~2뼈로 짧아 Count>=3에서 전부 누락됐다
+                // (실측: 캡 적용 후에도 전 몬스터 spine=없음). 2뼈부터 Spine0/1 배치.
+                if (spineChain.Count >= 2)
                 {
                     map[BoneRole.Spine0] = spineChain[0];
-                    map[BoneRole.Spine1] = spineChain[1];
-                    map[BoneRole.Spine2] = spineChain[2];
+                    if (spineChain.Count > 1) map[BoneRole.Spine1] = spineChain[1];
+                    if (spineChain.Count > 2) map[BoneRole.Spine2] = spineChain[2];
                     float centerY = (minY + maxY) * 0.5f;
                     if (spineChain.Count >= 4 && spineChain[spineChain.Count - 2].position.y >= centerY)
                         map[BoneRole.Neck] = spineChain[spineChain.Count - 2];
