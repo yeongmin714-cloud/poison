@@ -424,6 +424,32 @@ namespace ProjectName.Systems.Animation.Procedural
 
             _boneMap.Initialize(_animator, BoneFamilyHint.Biped);
             AllocateNativeArrays();
+            NormalizeArmPose(); // [P-ANIM4 Phase 3] 팔 포즈 자동 교정
+        }
+
+        /// <summary>
+        /// [P-ANIM4 Phase 3] 팔 포즈 자동 교정 — 익명 리그의 팔이 몸 뒤쪽으로 쓸린 바인드 포즈
+        /// (미노타우르스 실측)를 수직 아래로 편다. 팔이 이미 자연스럽게 내려와 있으면(전방 도트 ≥ 임계)
+        /// no-op — 플레이어 같은 정상 휴머노이드 무영향.
+        /// </summary>
+        private void NormalizeArmPose()
+        {
+            if (_boneMap == null) return;
+            var lSh = _boneMap.Get(BoneRole.L_Shoulder);
+            var lHand = _boneMap.Get(BoneRole.L_Hand);
+            var rSh = _boneMap.Get(BoneRole.R_Shoulder);
+            var rHand = _boneMap.Get(BoneRole.R_Hand);
+            if (lSh == null || lHand == null) return; // 팔 미매핑 — 정상 폴백
+
+            Vector3 cur = (lHand.position - lSh.position).normalized;
+            // 팔이 몸 '뒤'로 쓸린 경우만 교정 (진행 방향과 반대 도트)
+            if (Vector3.Dot(cur, transform.forward) < -0.05f)
+            {
+                Quaternion delta = Quaternion.FromToRotation(cur, Vector3.down);
+                lSh.localRotation = delta * lSh.localRotation;
+                if (rSh != null) rSh.localRotation = delta * rSh.localRotation;
+                UnityEngine.Debug.Log($"[ProceduralAnimationController] 팔 포즈 교정 적용 — 뒤로 쓸린 팔을 수직 아래로 ({transform.name})");
+            }
         }
 
         void AllocateNativeArrays()
