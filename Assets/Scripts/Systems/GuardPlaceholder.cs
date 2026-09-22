@@ -514,9 +514,24 @@ namespace ProjectName.Systems
             TakeDamage(damageInfo.amount, damageInfo.knockback.normalized, "melee");
         }
 
+        /// <summary>[Phase G] AI 영주가 파견한 공격부대 표식 — 전투에서 쓰러지면 전멸 대신
+        /// 플레이어 소속(노획)으로 전환되어 승자 군단에 편입된다.</summary>
+        public bool IsWartimeCapturable;
+
         private void Die()
         {
             if (_isDead) return;
+
+            // [Phase G] 파견 공격부대 노획 — 전투에서 패배해도 전멸하지 않고 아군이 된다.
+            // (AI 자동 전쟁의 가시/수치 파견부대가 전투에서 쓰러지는 순간, 사망 처리 대신 포섭)
+            if (IsWartimeCapturable && !_isRecruited)
+            {
+                SetRecruited(true);
+                SetHP(Mathf.Max(1f, _maxHP * 0.1f));
+                Debug.Log($"[Phase G] ⚔️ AI 파견 공격부대 병사 '{guardName}' 노획 — 플레이어 군단으로 편입!");
+                CombatLog.AddEntry($"{guardName} 노획(포섭)", LogType.Kill);
+                return; // 사망 처리 중단 (부활 시스템 불필요 — 아군으로 재기)
+            }
             // ⏱️ 전투 로그: 병사 처치 기록
             CombatLog.AddEntry($"{guardName} 처치!", LogType.Kill);
 

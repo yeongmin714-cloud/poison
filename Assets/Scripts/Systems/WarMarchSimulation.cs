@@ -76,7 +76,11 @@ namespace ProjectName.Systems
                 _attackers.Add(soldier);
                 var ph = soldier.GetComponent<GuardPlaceholder>();
                 if (ph != null)
+                {
                     ph.SetCommandTarget(_targetPos, true); // → 실화 이동(ExecuteMovement 자동)
+                    // [Phase G] AI 파견 공격부대 노획 가능 표식 — 전투에서 쓰러지면 아군으로 전환
+                    ph.IsWartimeCapturable = true;
+                }
             }
 
             // ── 방어군 병사 스폰 (가시 교전 대상 — 공격군 도달 시 근접 공격으로 플린치 발생) ──

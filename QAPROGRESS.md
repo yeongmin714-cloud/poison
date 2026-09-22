@@ -127,6 +127,22 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-G: 처형 파견병사 포섭)
+
+> **범위**: AI 영주가 파견한 공격부대 병사가 전투에서 쓰러지면 전멸 대신 **플레이어 소속(노획)으로 전환** — 승자가 적 파견부대를 포섭해 군단에 편입.
+
+### 구현 (부모 직접, 컴파일 error CS 0)
+- **`GuardPlaceholder.cs`**: `public bool IsWartimeCapturable` 표식 추가. **`Die()` 첫머리에 노획 훅** — `IsWartimeCapturable && !_isRecruited`면 사망 처리 대신 `SetRecruited(true)` + `SetHP(MaxHP×10%)` + 로그(`노획(포섭)`) 후 `return`(부활 시스템 불필요 — 아군으로 재기).
+- **`WarMarchSimulation.cs`** `Begin`: 공격자 생성 시 `ph.IsWartimeCapturable = true` — AI 파견 공격부대에 노획 가능 표식.
+
+### 검증 & ⚠ 후속
+- 배치컴파일 error CS 0, return 0. 노획은 사망 처리(경험치/전리품/GuardManager 제거)를 건너뛰므로 부활/전리품 로직 불간섭.
+- ⚠ **Play 검증 필요(사용자 "나중에 확인" 동의)**: AI 전쟁 파견부대가 전투 패배 시 `[Phase G] AI 파견 공격부대 병사 'N' 노획` 로그 + 해당 병사가 아군(IsRecruited)으로 재기하는지.
+
+---
+
+---
+
 ---
 
 ## 📌 세션 스냅샷 (2026-09-22 ✅ Phase R-H: 하루 전투 로그 알림)
