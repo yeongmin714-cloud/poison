@@ -517,9 +517,39 @@ namespace ProjectName.Systems
             ApplyBodyLean();
         }
 
-        private void ApplyFootIK()
+        // [P-ANIM5-B] 회전 기반 절차 보행 — 발 IK(Solve) 대신 다리 체인 루트에 사인 위상 회전.
+        // 앞/뒤 교차 위상(LF+RH / RF+LH) + 축 불변(월드 기준 스윙) — 과신전·비틀림 원천 소멸.
+        private void ApplyRotationGait()
         {
-            // Front Left
+            const float swingDeg = 20f;
+            Vector3 axis = transform.right; // 진행 방향에 수직 — 전후 스윙
+
+            SwingLeg(_boneMap.Get(BoneRole.L_Hip), LF_Phase, axis, swingDeg);
+            SwingLeg(_boneMap.Get(BoneRole.R_Hip), RF_Phase, axis, swingDeg);
+            if (_boneMap.Has(BoneRole.L_HindHip)) SwingLeg(_boneMap.Get(BoneRole.L_HindHip), LH_Phase, axis, swingDeg);
+            if (_boneMap.Has(BoneRole.R_HindHip)) SwingLeg(_boneMap.Get(BoneRole.R_HindHip), RH_Phase, axis, swingDeg);
+        }
+
+        private void SwingLeg(Transform hip, float phase, Vector3 axis, float swingDeg)
+        {
+            if (hip == null || hip.parent == null) return;
+            if (!_gaitBaseRot.TryGetValue(hip, out var baseLocal))
+            {
+                _gaitBaseRot[hip] = hip.localRotation;
+                return; // 첫 프레임은 기준 포착만
+            }
+            float angle = Mathf.Sin(phase * Mathf.PI * 2f) * swingDeg;
+            Quaternion baseWorld = hip.parent.rotation * baseLocal;
+            Quaternion targetWorld = baseWorld * Quaternion.AngleAxis(angle, axis);
+            hip.localRotation = Quaternion.Inverse(hip.parent.rotation) * targetWorld;
+        }
+
+        [SerializeField] private bool _rotationGait = true; // [P-ANIM5-B] 회전 기반 보행 스위치
+        private readonly Dictionary<Transform, Quaternion> _gaitBaseRot = new Dictionary<Transform, Quaternion>();
+
+        private void ApplyFootIK()
+                {
+                    // Front Left
             if (_boneMap.Has(BoneRole.L_Hip) &&
                 _boneMap.Has(BoneRole.L_Knee) &&
                 _boneMap.Has(BoneRole.L_Ankle))
@@ -628,7 +658,9 @@ namespace ProjectName.Systems
 
             // [P-ANIM2 Phase A] 체중이동 — 보행 주기(스트라이드)에 동기화된 골반 상하 바운스.
             // 주파수 = 실속도/스텝길이 → 발 사이클과 골반 진동이 일치(미끄러짐·부유감 완화).
-            var pelvis = _boneMap.Has(BoneRole.Hip) ? _boneMap.Get(BoneRole.Hip) : root;
+            // [P-ANIM5 수리] 바운스 대상을 Root(몸통 상위)로 제한 — Hip은 다리 체인의 루트 본이어서
+            // 골반 바운스 localPosition과 다리 IK rotation이 같은 본에서 경합해 다리 과신전을 일으켰다.
+            var pelvis = root;
             if (pelvis == null) return;
             if (_pelvisRef != pelvis) { _pelvisRef = pelvis; _pelvisBasePos = pelvis.localPosition; }
 
