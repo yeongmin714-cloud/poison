@@ -625,7 +625,32 @@ namespace ProjectName.Systems
             var root = _boneMap.Get(BoneRole.Root);
             if (root != null)
                 root.localRotation = _bodyLeanRotation;
+
+            // [P-ANIM2 Phase A] 체중이동 — 보행 주기(스트라이드)에 동기화된 골반 상하 바운스.
+            // 주파수 = 실속도/스텝길이 → 발 사이클과 골반 진동이 일치(미끄러짐·부유감 완화).
+            var pelvis = _boneMap.Has(BoneRole.Hip) ? _boneMap.Get(BoneRole.Hip) : root;
+            if (pelvis == null) return;
+            if (_pelvisRef != pelvis) { _pelvisRef = pelvis; _pelvisBasePos = pelvis.localPosition; }
+
+            float speed = _currentSpeed;
+            if (speed > 0.1f)
+            {
+                float strideFreq = Mathf.Max(0.5f, speed / Mathf.Max(0.1f, _stepLength)) * Mathf.PI * 2f;
+                float bob = Mathf.Abs(Mathf.Sin(Time.time * strideFreq)) * _weightBob;
+                Vector3 pos = _pelvisBasePos;
+                pos.y += bob;
+                pelvis.localPosition = pos;
+            }
+            else
+            {
+                pelvis.localPosition = _pelvisBasePos;
+            }
         }
+
+        // [P-ANIM2 Phase A] 체중이동 파라미터/기준 캐시
+        [SerializeField, Range(0f, 0.2f)] private float _weightBob = 0.05f; // 골반 바운스 진폭
+        private Transform _pelvisRef;
+        private Vector3 _pelvisBasePos;
 
         // ──────────────────────────────────────────────
         // Animator IK
