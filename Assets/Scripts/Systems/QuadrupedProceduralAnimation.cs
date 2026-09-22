@@ -219,22 +219,13 @@ namespace ProjectName.Systems
             if (rh != null) RH_Target = rh.position;
 
             // 힌트
+            // [2026-09-22 수리] 무릎 힌트(pole)를 '진행 방향(앞쪽)'으로 — 기존 옆(right/left) 힌트는
+            // 무릎이 옆/뒤로 꺾이는 보행(사용자 보고: 다리가 뒤로 꺾인채 걷는다)을 만들었다.
+            // 2본 IK의 굽힘 방향은 힌트가 결정하므로, 앞쪽 힌트 = 무릎 정방향 굽힘.
             var lfKnee = _boneMap.Get(BoneRole.L_Knee);
             var rfKnee = _boneMap.Get(BoneRole.R_Knee);
-            // [2026-09-22] 무릎 힌트를 '몸 기준 외측'으로 — 고정 right/left는 좌우 판정이 뒤집힌
-            // 익명 리그에서 무릎이 몸 반대편으로 꺾이는 과교차를 만들었다.
-            if (lfKnee != null)
-            {
-                float side = Mathf.Abs(lfKnee.position.x - transform.position.x) > 0.01f
-                    ? Mathf.Sign(lfKnee.position.x - transform.position.x) : 1f;
-                LF_Hint = lfKnee.position + Vector3.right * 0.2f * side;
-            }
-            if (rfKnee != null)
-            {
-                float side = Mathf.Abs(rfKnee.position.x - transform.position.x) > 0.01f
-                    ? Mathf.Sign(rfKnee.position.x - transform.position.x) : -1f;
-                RF_Hint = rfKnee.position + Vector3.right * 0.2f * side;
-            }
+            if (lfKnee != null) LF_Hint = lfKnee.position + transform.forward * 0.2f;
+            if (rfKnee != null) RF_Hint = rfKnee.position + transform.forward * 0.2f;
         }
 
         // ──────────────────────────────────────────────

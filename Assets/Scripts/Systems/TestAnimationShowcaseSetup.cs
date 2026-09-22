@@ -48,6 +48,10 @@ namespace ProjectName.Systems
         [Tooltip("lv40-50 큰 병사의 어깨 말림 보정(도). 음수=어깨 아래로. 인스펙터에서 조정 가능.")]
         [SerializeField] private float _bigGuardShoulderPitch = -6f;
 
+        [Header("Debug (2026-09-22)")]
+        [Tooltip("머리 위 이름 라벨 표시 — 영상 촬영 시 화면 가림 방지 위해 기본 끔.")]
+        [SerializeField] private bool _showLabels = false;
+
         // ---- 몬스터 6종 (외형 유형군 대표 1마리씩 — 2026-09-22 렉 완화 + 애니 확인 목적) ----
         private static readonly string[] MonsterIds =
         {
@@ -265,7 +269,8 @@ namespace ProjectName.Systems
                 GameObject go = CreateShowcaseMonster(def, pos);
                 if (go == null) continue;
 
-                AttachLabel(go, $"몬스터: {def.displayName} / {def.id}", Color.white);
+                if (_showLabels)
+                    AttachLabel(go, $"몬스터: {def.displayName} / {def.id}", Color.white);
                 Log($"[TestAnimShowcase] 🐾 몬스터 {i + 1}/{count}: {def.displayName} ({def.id}) at {pos}");
             }
         }
@@ -648,7 +653,8 @@ namespace ProjectName.Systems
             if (monitor == null) monitor = guardGO.AddComponent<ShowcaseMonitor>();
             monitor.Setup(guardName, ShowcaseMonitor.MonitorFamily.HumanoidClip);
 
-            AttachLabel(guardGO, $"병사 Lv{level}", labelColor);
+            if (_showLabels)
+                AttachLabel(guardGO, $"병사 Lv{level}", labelColor);
             return guardGO;
         }
 
@@ -670,7 +676,8 @@ namespace ProjectName.Systems
                 GameObject npcGO = CreateShowcaseNpc(NpcKeys[i], NpcGlbKeys[i], NpcNames[i], pos);
                 if (npcGO == null) continue;
 
-                AttachLabel(npcGO, $"NPC: {NpcNames[i]}", Color.white);
+                if (_showLabels)
+                    AttachLabel(npcGO, $"NPC: {NpcNames[i]}", Color.white);
                 Log($"[TestAnimShowcase] 🧍 NPC {i + 1}/{count}: {NpcNames[i]} ({NpcKeys[i]}) at {pos}");
             }
         }
