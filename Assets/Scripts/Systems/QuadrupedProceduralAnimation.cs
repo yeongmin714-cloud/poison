@@ -521,7 +521,8 @@ namespace ProjectName.Systems
         // 앞/뒤 교차 위상(LF+RH / RF+LH) + 축 불변(월드 기준 스윙) — 과신전·비틀림 원천 소멸.
         private void ApplyRotationGait()
         {
-            const float swingDeg = 20f;
+            // [P-ANIM2 Phase A-2] 스윙 각도 = 실속도 비례 — 보폭과 이동속도 동기(발 미끄러짐 제거)
+            float swingDeg = Mathf.Clamp(_currentSpeed * 6f, 10f, 32f);
             Vector3 axis = transform.right; // 진행 방향에 수직 — 전후 스윙
 
             SwingLeg(_boneMap.Get(BoneRole.L_Hip), LF_Phase, axis, swingDeg);
@@ -668,7 +669,9 @@ namespace ProjectName.Systems
             if (speed > 0.1f)
             {
                 float strideFreq = Mathf.Max(0.5f, speed / Mathf.Max(0.1f, _stepLength)) * Mathf.PI * 2f;
-                float bob = Mathf.Abs(Mathf.Sin(Time.time * strideFreq)) * _weightBob;
+                // [P-ANIM2 Phase A-2] Abs(sin) 제거 — 상단 편향(평균적으로 몸이 떠 있는 부유감) 소멸,
+                // ± 대칭 진동으로 지면 기준 중심 유지
+                float bob = Mathf.Sin(Time.time * strideFreq) * _weightBob;
                 Vector3 pos = _pelvisBasePos;
                 pos.y += bob;
                 pelvis.localPosition = pos;
@@ -680,7 +683,7 @@ namespace ProjectName.Systems
         }
 
         // [P-ANIM2 Phase A] 체중이동 파라미터/기준 캐시
-        [SerializeField, Range(0f, 0.2f)] private float _weightBob = 0.05f; // 골반 바운스 진폭
+        [SerializeField, Range(0f, 0.2f)] private float _weightBob = 0.03f; // 골반 바운스 진폭(±대칭)
         private Transform _pelvisRef;
         private Vector3 _pelvisBasePos;
 
