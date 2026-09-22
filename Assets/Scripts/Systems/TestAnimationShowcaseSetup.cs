@@ -17,9 +17,11 @@
 //  - 몬스터 이동: AnimalAI 대신 ShowcaseWanderDriver 부착 — Player 없이 leash 배회+애니 피드(2026-09-20)
 //  - 접지: SurfaceY(수식) 대신 요청대로 Physics.Raycast로 지면 y 계산
 #pragma warning disable 0414
+using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Systems.Animation.Procedural.Bones;
 
 namespace ProjectName.Systems
 {
@@ -334,9 +336,12 @@ namespace ProjectName.Systems
             wander.SetMonsterId(def.id);
 
             // ④ ShowcaseMonitor — 본 매핑 성패와 무관하게 움직임을 보증(무변화 감지 → 폴백 호흡).
+            //    [P-ANIM6] 관측 본을 추정(SMR bones)이 아닌 실제 구동 본으로 — ProceduralBoneMap 매핑
+            //    결과에서 다리 체인 루트(L_Hip/R_Hip/L_HindHip/R_HindHip)와 척추(Spine0)를 추출해 전달.
+            //    매핑 0개면 null 전달 → 모니터가 기존 SMR 추정 경로로 폴백한다.
             var monitor = go.GetComponent<ShowcaseMonitor>();
             if (monitor == null) monitor = go.AddComponent<ShowcaseMonitor>();
-            monitor.Setup($"{def.displayName} ({def.id})", family);
+            monitor.Setup($"{def.displayName} ({def.id})", family, ExtractWatchBones(go));
 
             // ⑤ 접지 확정 — 물리 경합 제거(2026-09-22 접지 수리).
             //    ModelAnimatorAssigner가 루트에 비키네마틱 Rigidbody를 자동 부착해, 지면 정렬 후에도
@@ -357,6 +362,34 @@ namespace ProjectName.Systems
             GroundModelToY(go, position.y);
 
             return go;
+        }
+
+        /// <summary>
+        /// [P-ANIM6] ShowcaseMonitor 관측 본 추출 — ProceduralBoneMap 매핑 결과에서 실제 구동 본
+        /// (다리 체인 루트 L_Hip/R_Hip/L_HindHip/R_HindHip + 척추 Spine0)만 골라 Transform 배열로.
+        /// 매핑 0개면 null — 모니터가 기존 SMR 추정 경로로 폴백한다.
+        /// </summary>
+        private static Transform[] ExtractWatchBones(GameObject go)
+        {
+            var boneMap = go.GetComponent<ProceduralBoneMap>();
+            if (boneMap == null) return null;
+
+            var roles = new[]
+            {
+                BoneRole.L_Hip, BoneRole.R_Hip, BoneRole.L_HindHip, BoneRole.R_HindHip, BoneRole.Spine0
+            };
+
+            List<Transform> bones = null;
+            foreach (var role in roles)
+            {
+                if (!boneMap.Has(role)) continue;
+                var bone = boneMap.Get(role);
+                if (bone == null) continue;
+                if (bones == null) bones = new List<Transform>();
+                if (!bones.Contains(bone)) bones.Add(bone);
+            }
+
+            return bones != null && bones.Count > 0 ? bones.ToArray() : null;
         }
 
         private GameObject CreatePrimitiveShowcaseMonster(MonsterDef def, Vector3 position)
