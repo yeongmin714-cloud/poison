@@ -3379,3 +3379,15 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | 4 | 상호작용 액션 그리드(SoldierInteract 2x2) + 월드맵 GitHub-dark | ✅ 커밋 0a753921, d1c7cb1e |
 
 - 배경 제외 원칙(월드맵만 배경 포함), 게임 해상도 기준 스케일, UTK 고품질(베이크 PNG/셰이더).
+
+## 🌲 2026-09-23: GNB — Idyllic 자연 다양화 (새 GLB 팩 통합)
+> 목표: 메인씬 지형/장식(`IdyllicPrefabs` 풀)에 새 `새로운 glb/nature` 팩(480파일·테마×상태)을 추가 배치해 나무/돌/풀/꽃 다양성을 극대화. 기존 프리팹 156개는 유지.
+
+| Phase | 항목 | 상태 |
+|:--|:--|:--:|
+| A | 새 GLB를 `IdyllicPrefabs` 풀 필터명(WillowTree/Broadleaf_색/Fir/BlossomTree/Rock_Big|Med|Small/Grass/Flower_*/Bush_*/Cattail/Reeds)으로 프리팹 추가 — 테마×destroyed 포함 480종 | 🔄 P-A 대기 |
+| B | 바이옴별 종 교체·스케일·컬라이더 보정 (동=활엽/북=Fir·설암/서=화산암/남=사막) | ⏳ 대기 |
+| C | 과일나무→Gather, 허브·꽃→HerbPickup, 돌→ResourceNode(채굴) 배선 | ⏳ 대기 |
+| D | 연못가·수변 재배치 + 크기 Play 스샷 수렴 | ⏳ 대기 |
+- 접근: Editor 배치(`-executeMethod`)로 GLB 모델 → Idyllic 프리팹 구조(루트+LODGroup+LOD0/1/2+콜라이더) 합성. 대안 저위험: GLB 모델 자산을 카테고리 폴더에 직접 배치 후 `Resources.LoadAll<GameObject>` 수용 여부 확인.
+- 전제: 컴파일·EditMode는 검증, 최종 크기/어색함은 Play 스샷 피드백으로 수렴.
