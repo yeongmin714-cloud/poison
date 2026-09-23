@@ -3391,5 +3391,6 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | GA | crops-fish 팩: crop 100종 HerbPickup 채집노드 + fish 50종 낚시드롭·수변장식 | ✅ 커밋 973ca298, 배치컴파일 error CS 0 |
 | GA-C | 과일·작물 ItemData 12종 + 요리 38→50종 + 과일=나무채집/작물=농경 분리 | ✅ 커밋 7bec5da0, error CS 0 |
 | D | 연못가·수변 재배치 + 크기 Play 스샷 수렴 | ⏳ 대기 |
+| GA-T | 지형 다양화: 높낮이 강화(Outcrop/Ridge/사구) + 식생 색감(꽃밭) + 호수·흙길 리파인 | ✅ 커밋 9a0c03da, error CS 0 |
 - 접근: Editor 배치(`-executeMethod`)로 GLB 모델 → Idyllic 프리팹 구조(루트+LODGroup+LOD0/1/2+콜라이더) 합성. 대안 저위험: GLB 모델 자산을 카테고리 폴더에 직접 배치 후 `Resources.LoadAll<GameObject>` 수용 여부 확인.
 - 전제: 컴파일·EditMode는 검증, 최종 크기/어색함은 Play 스샷 피드백으로 수렴.

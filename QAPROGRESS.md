@@ -3753,3 +3753,20 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 - 배치컴파일(6000.4.10f1) `CompileScripts: 24363ms`, **error CS 0**.
 - 과일/작물 ItemData 12종·HerbType 10·CreateCropNode 순환·요리 50행 전부 적용 확인.
 - 사용자 확인 대기: 과일/작물 채집·농경 동작, 요리 제작 가능 여부 Play 스샷.
+
+## 📌 세션 스냅샷 (2026-09-23 ✅ GA-T — 지형 다양화: 높낮이 + 식생 색감 + 호수/흙길 — 커밋 9a0c03da)
+> **입력**: "메인씬 지형이 단조롭다. 예시 2~13을 레퍼런스로 지형을 다양하게 (흙길/숲/호수 등)". 예시 12장(젤다/원신풍) 공통: 언덕·절벽 고저차 + 개방형 숲 + 바위 뼈대 + 국가별 색감 식생 + 흙길·호수.
+> 사용자 확인: "접지 문제 없지?" → **GetHeightAt 단일소스**(플레이어/병사/몬스터/그림자/장식/자원 전부 `1f+GetHeightAt(x,z,Plains,42)` 공유)라 높낮이 변경은 자동 일관 접지. 별도 GLB 산/바위 배치는 콜라이더 검증 필요 — 검증 불가라 지금은 보류. "모두 진행" 확정.
+
+### 변경
+- **TerrainGenerator.cs** (실제 높이 경로 — 접지 안전): OutcropAmp 동8→12/서10→16/남6→10/북9→13/엠파4→5, RidgeBoostAmp 상향, SUB_DUNE_AMP 0.5→0.9. **Empire 중앙 평탄 3중 보호(EMPIRE_RADIUS 50 크로스페이드/ProtectionAnchors 성40m/호수제외150m) 유지 확인**.
+- **BiomeData.cs**: Plains/Forest/Desert/Volcanic/Rocky amplitude 상향. ⚠️ **중요 발견: BiomeData.noiseAmplitude는 실제 GetHeightAt 경로에서 미사용**(ComputeBaseHeight가 호출부 없는 레거시) — 실제 높이는 TerrainGenerator의 Outcrop/Ridge/SUB_* 델타. 그래서 BiomeData 변경은 무해(접지 불변), 효과는 TerrainGenerator 상향으로 났음.
+- **IdyllicDecoPlacer.cs** (식생): FM_SPACING 26→20 (꽃밭 밀도 ×1.3), 꽃밭 색 국가별 — 동(East)=Pink 강조+혼합 병합(예시12·13), 북(North)=White 우선(설원)·보라 폴백, 남=Red/서=Orange 유지.
+- **호수/흙길**: REEDS_PER_LAKE 128→147, LILIES_PER_LAKE 8→10, 수변바위 5~10→6~12. 흙길은 이미 Z4 사인곡선+호수 우회로 자연스러움 → 무변경.
+
+### 보류 (접지 검증 필요)
+- **TerrainModelPlacer(별도 산/바위 GLB)는 여전히 GameSetup 289행 주석** — 기존 지면 위 별도 물리체라 콜라이더 없는 모델은 캐릭터가 겉돎. Play 검증 가능해지면 콜라이더 부착 모델만 배치 재활성.
+
+### 검증
+- 배치컴파일(6000.4.10f1) `CompileScripts: 23809ms`, **error CS 0**.
+- ⚠️ **Play 검증 대기 (사용자 후속)**: ①높낮이 강화 후 플레이어/몬스터/병사가 실제로 땅에 잘 붙는지 ②언덕·꽃밭·수변이 예시처럼 보이는지 ③성 위치/낚시 물깊이/흙길 경사가 자연스러운지. 접지는 GetHeightAt 단일소스라 이론상 안전이나, Play로 최종 확정 필요.
