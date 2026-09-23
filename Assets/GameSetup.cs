@@ -126,6 +126,9 @@ public class GameSetup : MonoBehaviour
     {
         Debug.Log("[GameSetup] 🏔️ TerrainOnly 모드 진입 — 지형/환경/조명/하늘만 부트 (낚시/영지/몬스터 스폰 생략)");
 
+        // [GNB] 지형 관찰 전용: UI 전체 비활성(렉 제거) — 월드 이름표/커서/게이지/HUD/퀵슬롯 숨김
+        ProjectName.UI.Toolkit.UIToolkitBootstrap.SetDisabled(true);
+
         // 1) SetupWorldComponents 중 지형 관련만 (텍스처/국가 테마)
         try { SetupTerrainVisualComponents(); }
         catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ TerrainOnly 지형 비주얼 실패 — 계속: " + e); }

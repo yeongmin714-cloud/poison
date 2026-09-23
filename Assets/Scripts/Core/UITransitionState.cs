@@ -20,5 +20,9 @@ namespace ProjectName.Core
         /// <summary>[P14] 실내 씬 활성 — 병사/몬스터 AI가 플레이어 추적/어그로를 실내로 끌고 오는 것 차단.
         ///   IndoorSceneTransition(Enter/Exit)에서 갱신, Systems AI 루프가 게이트로 읽음(Core 양방향 공용 규약).</summary>
         public static bool IndoorActive;
+
+        /// <summary>[GNB] 지형 관찰 테스트씬(TerrainOnly)에서 UI 전체 비활성 — UIToolkitBootstrap이 루트를 숨기고
+        ///   신규 UI 생성을 막는 게이트. GameSetup.RunTerrainOnlySetup이 세팅.</summary>
+        public static bool DisableAllUi;
     }
 }

@@ -29,6 +29,18 @@ namespace ProjectName.UI.Toolkit
         /// <summary>부트스트랩이 이미 완료(중복 가드)되었는지.</summary>
         public static bool IsReady => _document != null;
 
+        /// <summary>[GNB] 지형 관찰 씬에서 UI 전체 비활성 상태 여부.</summary>
+        public static bool IsDisabled() => ProjectName.Core.UITransitionState.DisableAllUi;
+
+        /// <summary>[GNB] TerrainOnly 씬용 — true 시 기존 UTK 루트를 숨기고 신규 UI 생성을 막는다.</summary>
+        public static void SetDisabled(bool v)
+        {
+            ProjectName.Core.UITransitionState.DisableAllUi = v;
+            if (_document != null && _document.rootVisualElement != null)
+                _document.rootVisualElement.style.visibility = v ? Visibility.Hidden : Visibility.Visible;
+            if (v) ProjectName.Core.UITransitionState.UtkActive = false;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
         {
@@ -38,6 +50,9 @@ namespace ProjectName.UI.Toolkit
         /// <summary>외부 강제 보장용 — 멱등(중복 실행 무시). CoreSystemsBootstrap Ensure 스타일.</summary>
         public static void Ensure()
         {
+            // [GNB] 지형 관찰 씬 — UI 부트스트랩 생략(렉 제거)
+            if (ProjectName.Core.UITransitionState.DisableAllUi)
+                return;
             if (_document != null)
                 return;
 
