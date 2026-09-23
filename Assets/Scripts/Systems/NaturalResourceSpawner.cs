@@ -290,12 +290,22 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>crops 노드: HerbPickup 부착(Gather 분류) — 과일=Red, 작물=Green 결정론 교대.</summary>
+        /// <summary>
+        /// crops 노드: HerbPickup 부착(Gather 분류) — 과일/작물 5종 결정론 순환.
+        /// index%5: 0=사과(나무채집/Fruit_Apple), 1=당근, 2=옥수수, 3=호박, 4=무(땅작물/Crop_*).
+        /// 과일 1 : 땅작물 4 비율. FarmPlot(영지 농경)도 같은 HerbType을 AttachHerbPickup으로 부착하므로 자동 연결.
+        /// </summary>
         static System.Action<GameObject> CreateCropNode(int index, DetRng rng)
         {
-            HerbPickup.HerbType type = (index % 2 == 0)
-                ? HerbPickup.HerbType.Red
-                : HerbPickup.HerbType.Green;
+            HerbPickup.HerbType[] cropCycle = new HerbPickup.HerbType[]
+            {
+                HerbPickup.HerbType.Fruit_Apple,
+                HerbPickup.HerbType.Crop_Carrot,
+                HerbPickup.HerbType.Crop_Corn,
+                HerbPickup.HerbType.Crop_Pumpkin,
+                HerbPickup.HerbType.Crop_Radish,
+            };
+            HerbPickup.HerbType type = cropCycle[index % cropCycle.Length];
             return go =>
             {
                 var herb = go.AddComponent<HerbPickup>();

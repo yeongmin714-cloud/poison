@@ -22,7 +22,16 @@ namespace ProjectName.Systems
             Purple, // 독나물
             Yellow, // 황혼초
             Silver, // 은빛 이끼
-            Green   // 피어리
+            Green,  // 피어리
+
+            // 과일 (나무채집 — FruitTree/Gather)
+            Fruit_Apple,    // 사과
+
+            // 땅작물 (농경 — FarmPlot/Crop)
+            Crop_Carrot,    // 당근
+            Crop_Corn,      // 옥수수
+            Crop_Pumpkin,   // 호박
+            Crop_Radish     // 무
         }
 
         [Header("설정")]
@@ -70,6 +79,11 @@ namespace ProjectName.Systems
             (HerbType.Yellow, PlayerInventory.Herb_Yellow),
             (HerbType.Silver, PlayerInventory.Herb_Silver),
             (HerbType.Green,  PlayerInventory.Herb_Green),
+            (HerbType.Fruit_Apple, PlayerInventory.Fruit_Apple),
+            (HerbType.Crop_Carrot, PlayerInventory.Crop_Carrot),
+            (HerbType.Crop_Corn,   PlayerInventory.Crop_Corn),
+            (HerbType.Crop_Pumpkin, PlayerInventory.Crop_Pumpkin),
+            (HerbType.Crop_Radish,  PlayerInventory.Crop_Radish),
         };
 
         private PlayerInventory.ItemData GetItemData()
@@ -95,6 +109,11 @@ namespace ProjectName.Systems
                 case HerbType.Yellow: return PlayerInventory.Seed_Yellow;
                 case HerbType.Silver: return PlayerInventory.Seed_Silver;
                 case HerbType.Green:  return PlayerInventory.Seed_Green;
+                case HerbType.Fruit_Apple: return PlayerInventory.Fruit_AppleSeed;   // 과일나무 → 사과씨
+                case HerbType.Crop_Carrot: return PlayerInventory.Crop_CarrotSeed;   // 작물 → 파종용 씨앗
+                case HerbType.Crop_Corn:   return PlayerInventory.Crop_CornSeed;
+                case HerbType.Crop_Pumpkin: return PlayerInventory.Crop_PumpkinSeed;
+                case HerbType.Crop_Radish:  return PlayerInventory.Crop_RadishSeed;
                 default:              return PlayerInventory.Seed_Red;
             }
         }

@@ -245,6 +245,22 @@ namespace ProjectName.Core
         public static readonly ItemData Herb_Silver = new ItemData { id = "herb_silver", displayName = "은빛 이끼", description = "은색 이끼. 해독 성분.",        category = ItemCategory.Herb,    maxStack = 20 };
         public static readonly ItemData Herb_Green  = new ItemData { id = "herb_green",  displayName = "피어리",   description = "초록 약초. 재생/회복 성분.",   category = ItemCategory.Herb,    maxStack = 20 };
 
+        // ===== 과일 (나무채집 — HerbType.Fruit_Apple) =====
+        public static readonly ItemData Fruit_Apple      = new ItemData { id = "fruit_apple",      displayName = "사과",   description = "달콤한 과일. 나무에서 따서 먹을 수 있다.", category = ItemCategory.Food, maxStack = 99 };
+        public static readonly ItemData Fruit_AppleSeed  = new ItemData { id = "fruit_apple_seed", displayName = "사과씨", description = "과일나무를심을 수 있는 씨앗.",             category = ItemCategory.Food, maxStack = 20 };
+
+        // ===== 땅작물 (농경 — HerbType.Crop_*, FarmPlot) =====
+        public static readonly ItemData Crop_Carrot  = new ItemData { id = "crop_carrot",  displayName = "당근",   description = "땅에서 재배한 당근.",       category = ItemCategory.Food, maxStack = 99 };
+        public static readonly ItemData Crop_Corn    = new ItemData { id = "crop_corn",    displayName = "옥수수", description = "옥수수. 노란 알갱이.",       category = ItemCategory.Food, maxStack = 99 };
+        public static readonly ItemData Crop_Pumpkin = new ItemData { id = "crop_pumpkin", displayName = "호박",   description = "주황색 호박.",             category = ItemCategory.Food, maxStack = 99 };
+        public static readonly ItemData Crop_Radish  = new ItemData { id = "crop_radish",  displayName = "무",     description = "땅속에서 자라는 무.",       category = ItemCategory.Food, maxStack = 99 };
+
+        // ===== 작물 씨앗 (파종용 — FarmPlot 파종 시 1개 소모) =====
+        public static readonly ItemData Crop_CarrotSeed  = new ItemData { id = "crop_carrot_seed",  displayName = "당근씨",   description = "당근을 심을 수 있는 씨앗. 밭에 파종해 재배한다.",   category = ItemCategory.Food, maxStack = 20 };
+        public static readonly ItemData Crop_CornSeed    = new ItemData { id = "crop_corn_seed",    displayName = "옥수수씨", description = "옥수수를 심을 수 있는 씨앗. 밭에 파종해 재배한다.", category = ItemCategory.Food, maxStack = 20 };
+        public static readonly ItemData Crop_PumpkinSeed = new ItemData { id = "crop_pumpkin_seed", displayName = "호박씨",   description = "호박을 심을 수 있는 씨앗. 밭에 파종해 재배한다.",   category = ItemCategory.Food, maxStack = 20 };
+        public static readonly ItemData Crop_RadishSeed  = new ItemData { id = "crop_radish_seed",  displayName = "무씨",     description = "무를 심을 수 있는 씨앗. 밭에 파종해 재배한다.",     category = ItemCategory.Food, maxStack = 20 };
+
         // ===== 씨앗 아이템 (약초 채집 시 확률 드랍, FarmPlot 파종 시 1개 소모) =====
         // ItemCategory에 Seed 전용 항목이 없어 Material 사용 — id("herb_seed_*")와 displayName으로 식별
         public static readonly ItemData Seed_Red    = new ItemData { id = "herb_seed_red",    displayName = "치유초 씨앗",   description = "치유초를 심을 수 있는 씨앗. 밭에 파종해 재배한다.",  category = ItemCategory.Material, maxStack = 20 };
