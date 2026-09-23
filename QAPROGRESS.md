@@ -3711,3 +3711,22 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 - 검증: compile error CS=0, EditMode 전체 통과. 커밋 ec54b9b5(푸시).
 - ⚠ 리플렉션 어셈블리명 "ProjectName.UI" 확인. CookingBench 타입 존재 안 함(null, 무해).
 - 잔여: 화면 운커서 실제 전환 Play 확인(예시2~13.PNG 대조).
+
+## 📌 세션 스냅샷 (2026-09-23 ✅ GA — crops 채집노드 100종 + fish 50종 낚시·수변장식 — 커밋 973ca298)
+> **입력**: "crops-fish 팩의 과일·작물 모두 넣고, 생선은 50종만 넣어줄 수 있어?" → 사용자 확정 "둘 다 — 낚시 드롭 + 물가 장식에 씀".
+
+### GA-A crops 100종 채집노드 (`NaturalResourceSpawner.cs`)
+- `crops-fish/crop-*.glb` **실존 100파일 전체**(apple/carrot/corn/pumpkin/radish + c002~c100, 결측 c031/c041/c042/c076 제외)를 `CropGlbPaths` 배열로 추가.
+- `EnsureNaturalResources`에 `PlaceCategory` 1회 추가 → `CreateCropNode`(HerbPickup/Gather, 과일=Red·작물=Green 교대)로 배치. 스케일 0.7~1.4, CROP_TARGET=40, 간격 10m, 호수/스폰/엠파이어 제외, 지표면 정렬.
+- `CropAcceptance`: East 1.0 / South 0.8 / North 0.2 / West 0.15 / 기타 0 (농지 중심).
+
+### GA-B fish 50종 낚시 드롭 + 수변 장식
+- **`FishCatalog.cs`(신규)**: fish 300종 중 결정론 50종(이름형 5:salmmon/catfish/clownfish/mackerel/olive-flounder + 번호형 stride 6·오프셋 4로 45종). 등급 밴드 Common[0..29]/Rare[30..44]/Legendary[45..49]. ItemData id `fish_glb_*`(기존 fish_common/rare/legendary와 충돌 없음).
+- **`FishLakeshoreDecorator.cs`(신규)**: 16호수 수변(반경×0.98~1.15)에 50종 시각 장식 배치(순수 장식, 콜라이더 없음), 호수당 8기, 지표면 정렬.
+- **`FishingSystem.cs`**: 기존 3티어 롤(60/30/10 + 밤2배/비1.5배) 보존, `GetRandomFish()` 최종 반환만 `FishCatalog.GetRandomFishItem(tier)`로 얹음 → 성공 시 50종 중 1종 지급.
+- **`GameSetup.cs`**: `EnsureNaturalResources` 직후 `EnsureLakeshoreFish` try-catch 멱등 배선.
+
+### 검증
+- 배치컴파일(6000.4.10f1 `-batchmode -nographics`) `CompileScripts: 22640ms` 성공, **error CS 0**.
+- System.Random 0건(신규는 전부 xorshift 결정론). 기존 3티어 물고기/TestTerritoryCombatSetup 호출부 보존. ItemData(id/displayName/description/category/maxStack/rarity) 필드·ItemRarity 참조 검증.
+- 사용자 확인 대기: crops/fish 크기·위치·노드 동작 Play 스샷, 낚시 드롭 실제 확인.
