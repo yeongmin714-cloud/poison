@@ -3770,3 +3770,22 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 ### 검증
 - 배치컴파일(6000.4.10f1) `CompileScripts: 23809ms`, **error CS 0**.
 - ⚠️ **Play 검증 대기 (사용자 후속)**: ①높낮이 강화 후 플레이어/몬스터/병사가 실제로 땅에 잘 붙는지 ②언덕·꽃밭·수변이 예시처럼 보이는지 ③성 위치/낚시 물깊이/흙길 경사가 자연스러운지. 접지는 GetHeightAt 단일소스라 이론상 안전이나, Play로 최종 확정 필요.
+
+## 📌 세션 스냅샷 (2026-09-23 ✅ GA-T2 — 영지·마을 평탄화 + 산/바위 콜라이더 배치 — 커밋 04ff4789)
+> **입력**: "영지나 마을이라 지정한 곳은 평지로 만들어줘. 나머지 단계들도 내게 묻지말고 쭉 진행해줘". → 자율 실행.
+
+### 영지·마을 평탄화 (TerrainGenerator.cs)
+- `PROTECT_CLIFF_RADIUS 40→60m` — 마을이 성에서 38~46m 오프셋이라 60m가 성+마을 전체 커버.
+- `ProtectionAnchors`에 **마을 24개 중심**(`VillagePlacementSystem.GetAllVillages().center`, 동일 ProjectName.Systems 어셈블리 → asmdef 순환 없음) + `TerritoryFlatAnchors`(성+마을 전용) 추가.
+- `ApplyTerritoryFlattening`(ComputeTerrainHeight 마지막, 519행): 앵커 45m 안 **언덕융기(Outcrop/Ridge/SUB 바이옴)까지 제거 = 완전 평지**, 45~60m smoothstep 페이드. `_flattenResolveGuard` 재귀가드+시드별 1회 캐시(결정론+성능).
+- GetHeightAt 단일소스 내부에서만 처리 → 메시·충돌·캐릭터·그림자·장식·자원노드 접지 전부 자동 평탄(안전).
+
+### 산/바위 절벽·군락 배치 재활성 (TerrainModelPlacer.cs + GameSetup.cs)
+- `PlaceAllIfNeeded` 재활성(GameSetup 291행 try/catch 멱등): `Resources/Models/UserProvided/terrain/rocks/` GLB를 **국가별 East6/North10/West10/South8 = 최대 34개** 소수 배치(기존 대량 ~500/400은 보존·호출 주석).
+- **`AttachGroundColliders`: 자식 MeshFilter 전수에 정적 MeshCollider 부착 + BoxCollider 폴백** → 캐릭터/몬스터가 절벽 표면을 정확히 밟음(겉돎·통과 방지). 밑면 지표 정렬+0.8m 침하.
+- 절벽형(능선)=경사14°+ 지점 3개/국가 + 대형 스케일 3~5, 바위군락 스케일 1.5~2.8. 최소간격 90m. 결정론.
+- 제외존: 흙길10m·영지성60m·마을·자원노드8m·호수×1.15·스폰·엠파이어120·±950.
+
+### 검증
+- 배치컴파일(6000.4.10f1) `CompileScripts: 14886ms`, **error CS 0**.
+- ⚠️ **Play 검증 대기**: ①영지·마을이 진짜 평지인지(성 45m 안 언덕 없음) ②산/바위에 캐릭터/몬스터가 잘 밟고 겉도는지(콜라이더) ③산이 성/자원노드/흙길과 안 겹치는지.
