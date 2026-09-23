@@ -287,11 +287,14 @@ namespace ProjectName.Systems
             float totalWeight = commonWeight + rareWeight + legendaryWeight;
             float roll = Random.Range(0f, totalWeight);
 
+            // 09-23: 기존 3티어 롤(가중치/시간대/날씨 보정)은 그대로 유지하고,
+            // 그 위에 FishCatalog 결정론 50종 중 해당 등급 밴드 1종을 얹는다.
+            // (기존 Fish_Common/Rare/Legendary 정의·다른 호출부는 보존 — 세이브 호환)
             if (roll < legendaryWeight)
-                return PlayerInventory.Fish_Legendary;
+                return FishCatalog.GetRandomFishItem(FishCatalog.FishTier.Legendary);
             if (roll < legendaryWeight + rareWeight)
-                return PlayerInventory.Fish_Rare;
-            return PlayerInventory.Fish_Common;
+                return FishCatalog.GetRandomFishItem(FishCatalog.FishTier.Rare);
+            return FishCatalog.GetRandomFishItem(FishCatalog.FishTier.Common);
         }
 
         // ===== 팝업 =====

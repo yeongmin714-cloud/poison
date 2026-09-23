@@ -347,6 +347,14 @@ public class GameSetup : MonoBehaviour
         {
             Debug.LogError("[GameSetup][TerrainDeco] ❌ 자원 노드 스폰 실패 (게임 계속): " + e.ToString());
         }
+
+        // ── 호수 수변 물고기 장식 (09-23): FishCatalog 결정론 50종 GLB를 수변 밴드에 순수 시각 배치 ──
+        // 채집/채굴 아님(컴포넌트 미부착) — 낚시 드롭과 모델만 공유하는 장식 노드.
+        try { FishLakeshoreDecorator.EnsureLakeshoreFish(decoGO.transform); }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[GameSetup][TerrainDeco] ❌ 수변 물고기 장식 스폰 실패 (게임 계속): " + e.ToString());
+        }
     }
 
     /// <summary>

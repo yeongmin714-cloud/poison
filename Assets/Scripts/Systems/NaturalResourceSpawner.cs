@@ -53,7 +53,12 @@ namespace ProjectName.Systems
         const float FRUIT_MIN_DIST = 24f;          // 수관 간섭 방지 간격
         const float HERB_MIN_DIST = 7f;            // 허브 밀집 허용(자연 군락)
 
+        const int CROP_TARGET = 40;                // crops(과일·작물) 목표 수 — 농경지 과밀 방지
+        const int CROP_ATTEMPTS = 700;
+        const float CROP_MIN_DIST = 10f;           // 농작물 간격
+
         const string GLB_DIR = "Assets/새로운 glb/nature/";
+        const string GLB_DIR2 = "Assets/새로운 glb/crops-fish/";   // crops(과일·작물) GLB 폴더
 
         // GLB 에셋 경로(에디터 로드 우선) — 실존 확인된 신규 nature GLB만 사용
         static readonly string[] RockGlbPaths =
@@ -71,6 +76,112 @@ namespace ProjectName.Systems
         {
             GLB_DIR + "angular-common-nature-broad-fern-clump-streamline-normal.glb",
             GLB_DIR + "angular-common-nature-bluebell-flower-cluster-streamline-normal.glb",
+        };
+
+        // crops(과일·작물) GLB 경로 — crops-fish 폴더의 crop-*.glb 전체(실존 100개, 결측 번호 제외).
+        // 과일(apple)·작물(carrot/corn/pumpkin/radish) + 숫자형 crop-c002~c100.
+        static readonly string[] CropGlbPaths =
+        {
+            GLB_DIR2 + "crop-apple.glb",
+            GLB_DIR2 + "crop-carrot.glb",
+            GLB_DIR2 + "crop-corn.glb",
+            GLB_DIR2 + "crop-pumpkin.glb",
+            GLB_DIR2 + "crop-radish.glb",
+            GLB_DIR2 + "crop-c002.glb",
+            GLB_DIR2 + "crop-c003.glb",
+            GLB_DIR2 + "crop-c004.glb",
+            GLB_DIR2 + "crop-c005.glb",
+            GLB_DIR2 + "crop-c006.glb",
+            GLB_DIR2 + "crop-c007.glb",
+            GLB_DIR2 + "crop-c008.glb",
+            GLB_DIR2 + "crop-c009.glb",
+            GLB_DIR2 + "crop-c010.glb",
+            GLB_DIR2 + "crop-c011.glb",
+            GLB_DIR2 + "crop-c012.glb",
+            GLB_DIR2 + "crop-c013.glb",
+            GLB_DIR2 + "crop-c014.glb",
+            GLB_DIR2 + "crop-c015.glb",
+            GLB_DIR2 + "crop-c016.glb",
+            GLB_DIR2 + "crop-c017.glb",
+            GLB_DIR2 + "crop-c018.glb",
+            GLB_DIR2 + "crop-c019.glb",
+            GLB_DIR2 + "crop-c020.glb",
+            GLB_DIR2 + "crop-c021.glb",
+            GLB_DIR2 + "crop-c022.glb",
+            GLB_DIR2 + "crop-c023.glb",
+            GLB_DIR2 + "crop-c024.glb",
+            GLB_DIR2 + "crop-c025.glb",
+            GLB_DIR2 + "crop-c026.glb",
+            GLB_DIR2 + "crop-c027.glb",
+            GLB_DIR2 + "crop-c028.glb",
+            GLB_DIR2 + "crop-c029.glb",
+            GLB_DIR2 + "crop-c030.glb",
+            GLB_DIR2 + "crop-c032.glb",
+            GLB_DIR2 + "crop-c033.glb",
+            GLB_DIR2 + "crop-c034.glb",
+            GLB_DIR2 + "crop-c035.glb",
+            GLB_DIR2 + "crop-c036.glb",
+            GLB_DIR2 + "crop-c037.glb",
+            GLB_DIR2 + "crop-c038.glb",
+            GLB_DIR2 + "crop-c039.glb",
+            GLB_DIR2 + "crop-c040.glb",
+            GLB_DIR2 + "crop-c043.glb",
+            GLB_DIR2 + "crop-c044.glb",
+            GLB_DIR2 + "crop-c045.glb",
+            GLB_DIR2 + "crop-c046.glb",
+            GLB_DIR2 + "crop-c047.glb",
+            GLB_DIR2 + "crop-c048.glb",
+            GLB_DIR2 + "crop-c049.glb",
+            GLB_DIR2 + "crop-c050.glb",
+            GLB_DIR2 + "crop-c051.glb",
+            GLB_DIR2 + "crop-c052.glb",
+            GLB_DIR2 + "crop-c053.glb",
+            GLB_DIR2 + "crop-c054.glb",
+            GLB_DIR2 + "crop-c055.glb",
+            GLB_DIR2 + "crop-c056.glb",
+            GLB_DIR2 + "crop-c057.glb",
+            GLB_DIR2 + "crop-c058.glb",
+            GLB_DIR2 + "crop-c059.glb",
+            GLB_DIR2 + "crop-c060.glb",
+            GLB_DIR2 + "crop-c061.glb",
+            GLB_DIR2 + "crop-c062.glb",
+            GLB_DIR2 + "crop-c063.glb",
+            GLB_DIR2 + "crop-c064.glb",
+            GLB_DIR2 + "crop-c065.glb",
+            GLB_DIR2 + "crop-c066.glb",
+            GLB_DIR2 + "crop-c067.glb",
+            GLB_DIR2 + "crop-c068.glb",
+            GLB_DIR2 + "crop-c069.glb",
+            GLB_DIR2 + "crop-c070.glb",
+            GLB_DIR2 + "crop-c071.glb",
+            GLB_DIR2 + "crop-c072.glb",
+            GLB_DIR2 + "crop-c073.glb",
+            GLB_DIR2 + "crop-c074.glb",
+            GLB_DIR2 + "crop-c075.glb",
+            GLB_DIR2 + "crop-c077.glb",
+            GLB_DIR2 + "crop-c078.glb",
+            GLB_DIR2 + "crop-c079.glb",
+            GLB_DIR2 + "crop-c080.glb",
+            GLB_DIR2 + "crop-c081.glb",
+            GLB_DIR2 + "crop-c082.glb",
+            GLB_DIR2 + "crop-c083.glb",
+            GLB_DIR2 + "crop-c084.glb",
+            GLB_DIR2 + "crop-c085.glb",
+            GLB_DIR2 + "crop-c086.glb",
+            GLB_DIR2 + "crop-c087.glb",
+            GLB_DIR2 + "crop-c088.glb",
+            GLB_DIR2 + "crop-c089.glb",
+            GLB_DIR2 + "crop-c090.glb",
+            GLB_DIR2 + "crop-c091.glb",
+            GLB_DIR2 + "crop-c092.glb",
+            GLB_DIR2 + "crop-c093.glb",
+            GLB_DIR2 + "crop-c094.glb",
+            GLB_DIR2 + "crop-c095.glb",
+            GLB_DIR2 + "crop-c096.glb",
+            GLB_DIR2 + "crop-c097.glb",
+            GLB_DIR2 + "crop-c098.glb",
+            GLB_DIR2 + "crop-c099.glb",
+            GLB_DIR2 + "crop-c100.glb",
         };
 
         /// <summary>
@@ -124,12 +235,17 @@ namespace ProjectName.Systems
                 HERB_TARGET, HERB_ATTEMPTS, HERB_MIN_DIST, HerbAcceptance,
                 0.8f, 1.2f, "NaturalResource_Herb", CreateHerbNode);
 
+            int crops = PlaceCategory(container.transform, rng, hash,
+                LoadVisualPrefabs(CropGlbPaths, "IdyllicPrefabs/Flowers", "Crop_"),
+                CROP_TARGET, CROP_ATTEMPTS, CROP_MIN_DIST, CropAcceptance,
+                0.7f, 1.4f, "NaturalResource_Crop", CreateCropNode);
+
             // 배치 마커 (중복 실행 방지)
             var marker = new GameObject(MARKER_NAME);
             marker.transform.SetParent(container.transform, false);
             marker.SetActive(false);
 
-            Debug.Log($"[NaturalResourceSpawner] ✅ 자원 노드 배치 완료 — 돌(Stone) {rocks}/{ROCK_TARGET}, 과일나무(Gather) {fruits}/{FRUIT_TARGET}, 허브(Gather) {herbs}/{HERB_TARGET}");
+            Debug.Log($"[NaturalResourceSpawner] ✅ 자원 노드 배치 완료 — 돌(Stone) {rocks}/{ROCK_TARGET}, 과일나무(Gather) {fruits}/{FRUIT_TARGET}, 허브(Gather) {herbs}/{HERB_TARGET}, crops(Gather) {crops}/{CROP_TARGET}");
         }
 
         // ================================================================
@@ -159,6 +275,32 @@ namespace ProjectName.Systems
                 case NationType.South: return 0.05f;
                 default:               return 0f;
             }
+        }
+
+        // crops(과일·작물): 동/남 농경지 중심, 북/서 극소량
+        static float CropAcceptance(NationType n)
+        {
+            switch (n)
+            {
+                case NationType.East:  return 1.0f;
+                case NationType.South: return 0.8f;
+                case NationType.North: return 0.2f;
+                case NationType.West:  return 0.15f;
+                default:               return 0f;
+            }
+        }
+
+        /// <summary>crops 노드: HerbPickup 부착(Gather 분류) — 과일=Red, 작물=Green 결정론 교대.</summary>
+        static System.Action<GameObject> CreateCropNode(int index, DetRng rng)
+        {
+            HerbPickup.HerbType type = (index % 2 == 0)
+                ? HerbPickup.HerbType.Red
+                : HerbPickup.HerbType.Green;
+            return go =>
+            {
+                var herb = go.AddComponent<HerbPickup>();
+                SetPrivateField(herb, "_herbType", type);
+            };
         }
 
         // 허브: 동(초원) 군락 중심, 북 숲 가장자리 소량, 서/남 드묾
