@@ -202,20 +202,20 @@ namespace ProjectName.Systems
         //   · cliffSuppression을 곱해 스폰/성/호수/방위경계 보호 구역에서는 0
         //     (기존 절벽 억제 마스크 재사용 → CC slopeLimit(45°) 초과 급경사 재발 방지)
         //   · Mathf.PerlinNoise 기반 순수 float 연산, 객체 생성 없음, 고정 시드 → 결정론
-        //   · 각 레이어 최대 경사 ≈ amp×2π×freq×1.5 ≤ ~18° (메사 가장자리 ~21° — 모두 45° 이내)
+        //   · 각 레이어 최대 경사 ≈ amp×2π×freq×1.5 ≤ ~20° (메사 가장자리 ~21° — 모두 45° 이내, 09-24 진폭 상향 반영)
 
         private const float SUB_ROLL_FREQ   = 0.006f;   // 동·롤링힐 파장 ~170m
-        private const float SUB_ROLL_AMP    = 2.6f;
+        private const float SUB_ROLL_AMP    = 3.4f;     // 언덕 강화(09-24): 2.6→3.4 — 초원 완만한 구릉 ±3.4m (경사 ~11°)
         private const float SUB_FOREST_FREQ = 0.0045f;  // 동·숲 완구릉 파장 ~220m
-        private const float SUB_FOREST_AMP  = 1.8f;
+        private const float SUB_FOREST_AMP  = 2.4f;     // 언덕 강화(09-24): 1.8→2.4 — 숲 완구릉 강화
         private const float SUB_RIDGE_FREQ  = 0.014f;   // 서·잔능선 파장 ~70m
         private const float SUB_RIDGE_AMP   = 2.2f;
         private const float SUB_GULLY_FREQ  = 0.008f;   // 서·골짜기 절삭 파장 ~125m
         private const float SUB_GULLY_AMP   = 1.6f;
         private const float SUB_DUNE_FREQ   = 0.02f;    // 남·사구 물결 파장 ~50m
-        private const float SUB_DUNE_AMP    = 0.5f;
+        private const float SUB_DUNE_AMP    = 0.9f;     // 언덕 강화(09-24): 0.5→0.9 — 모래언덕 물결 강화 (경사 ~10° 이내)
         private const float SUB_PEAK_FREQ   = 0.009f;   // 북·첨봉 파장 ~110m
-        private const float SUB_PEAK_AMP    = 3.5f;
+        private const float SUB_PEAK_AMP    = 4.2f;     // 언덕 강화(09-24): 3.5→4.2 — 눈언덕/첨봉 강화 (고도 게이트 유지)
         private const float SUB_GARDEN_FREQ = 0.005f;   // 황제국·미세 기복 파장 ~200m
         private const float SUB_GARDEN_AMP  = 0.8f;
         // 남·소메사 — TerrainShape.MesaLift(6m/140m 셀)와 별개의 소형 메사 레이어
@@ -336,31 +336,38 @@ namespace ProjectName.Systems
             return d + BASIN_WALL_HEIGHT * ring * wedge;
         }
 
-        /// <summary>방위별 노출 암반 융기 진폭 (m) — T-D2 09-08. South 낮게, Empire 미미하게.</summary>
+        /// <summary>
+        /// 방위별 노출 암반 융기 진폭 (m) — T-D2 09-08 / 언덕 강화(09-24): 절벽·바위 뼈대 상향.
+        /// South는 10 상한 (화산 과다 융기로 성 파묻힘 방지), Empire는 5로 미미하게 (중앙 평탄 유지).
+        /// 마스크가 smoothstep 기반이므로 진폭 상향에도 융기는 부드럽게 이어진다 (접지 단차 없음).
+        /// </summary>
         private static float OutcropAmp(NationType nation)
         {
             switch (nation)
             {
-                case NationType.East:   return 8f;
-                case NationType.West:   return 10f;
-                case NationType.South:  return 6f;
-                case NationType.North:  return 9f;
-                case NationType.Empire: return 4f;
-                default:                return 8f;
+                case NationType.East:   return 12f;   // 언덕 강화(09-24): 8→12
+                case NationType.West:   return 16f;   // 언덕 강화(09-24): 10→16 — 서 절벽/바위 뼈대
+                case NationType.South:  return 10f;   // 언덕 강화(09-24): 6→10 (상한 준수 — over-sever 방지)
+                case NationType.North:  return 13f;   // 언덕 강화(09-24): 9→13
+                case NationType.Empire: return 5f;    // 언덕 강화(09-24): 4→5 (보호 마스크로 중앙 평탄 유지)
+                default:                return 8f;    // 미지정 국가 기본값 (기존 유지)
             }
         }
 
-        /// <summary>방위별 능선 부스트 국소 진폭 델타 (m) — T-D3 T1-2 09-08. 능선 길이 방향 +30% 체감 (전체 진폭 불변).</summary>
+        /// <summary>
+        /// 방위별 능선 부스트 국소 진폭 델타 (m) — T-D3 T1-2 09-08 / 언덕 강화(09-24) 상향.
+        /// 능선 길이 방향 국소 진폭 가산. Empire는 3.5로 미미하게 (중앙 평탄 유지).
+        /// </summary>
         private static float RidgeBoostAmp(NationType nation)
         {
             switch (nation)
             {
-                case NationType.East:   return 3.5f;
-                case NationType.West:   return 4.5f;
-                case NationType.South:  return 3f;
-                case NationType.North:  return 5f;
-                case NationType.Empire: return 3f;
-                default:                return 3.5f;
+                case NationType.East:   return 4.5f;   // 언덕 강화(09-24): 3.5→4.5
+                case NationType.West:   return 5.5f;   // 언덕 강화(09-24): 4.5→5.5
+                case NationType.South:  return 4f;     // 언덕 강화(09-24): 3→4
+                case NationType.North:  return 6f;     // 언덕 강화(09-24): 5→6
+                case NationType.Empire: return 3.5f;   // 언덕 강화(09-24): 3→3.5 (보호 마스크로 중앙 평탄)
+                default:                return 4.5f;   // 미지정 국가 기본값 (East 상향에 맞춤)
             }
         }
 

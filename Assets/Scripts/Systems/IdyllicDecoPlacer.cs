@@ -97,7 +97,7 @@ namespace ProjectName.Systems
         const float GRASS_MASK_HI = 0.50f;    // 꽃밭/숲 마스크 고밀도 임계
         const float GRASS_DENSE_SUB = 4f;     // 마스크 내부 4×4 서브그리드 (GRASS_SPACING 6.5m 셀 어디서든 최대 포장 — 4/㎡ 근사)
 
-        const float FM_SPACING = 26f;         // FlowerMeadow 패치 마스크 스캔 격자
+        const float FM_SPACING = 20f;         // 식생 다양화(09-23): 26→20 — 꽃밭 스캔 밀도 ×1.3, FM_CAP 160 유지로 성능 보수
         const float FM_JITTER = 6f;
         const float FM_MIN_DIST = 20f;        // 패치간 최소간격
         const float FM_MASK_HI = 0.58f;       // B2: 0.62→0.58 — 패치 후보 면적 확대
@@ -111,8 +111,8 @@ namespace ProjectName.Systems
         const float LAKE_LILY_OUT = 0.80f;
         const float LAKE_TREE_IN = 1.24f;
         const float LAKE_TREE_OUT = 1.75f;
-        const int REEDS_PER_LAKE = 128;     // CC2: 46→85 → T-D3 B2: 85→128 (1.5배 상한, Cattail_01~03 혼입 유지)
-        const int LILIES_PER_LAKE = 8;
+        const int REEDS_PER_LAKE = 147;     // U9-R1: 128→147 (×1.15 보수적 상향, waterLevel 게이트 유지)
+        const int LILIES_PER_LAKE = 10;     // U9-R1: 8→10 (×1.2 보수적 상향, 수면 게이트 유지)
         const int LAKE_TREES_PER_LAKE = 10; // CC2: 7→10 (호수 인근 나무 밀도 ×1.5)
 
         // T-D3 B2 (09-08): 수면 바위(T2-1) / 연잎·연꽃 군집(T2-2) / 수변 수양버들 밴드(T2-4)
@@ -580,7 +580,7 @@ namespace ProjectName.Systems
             if (med.Count == 0) return 0;
             var small = cat.rockSmall.Count > 0 ? cat.rockSmall : med;
             var big = cat.rockBig.Count > 0 ? cat.rockBig : med;
-            int target = 5 + rng.Next(6);   // 5~10
+            int target = 6 + rng.Next(7);   // U9-R1: 5~10 → 6~12 (수변 바위 소폭 상향, waterLevel+0.4m 게이트 유지)
             int placed = 0;
             var rockHash = new SpatialHash(3f);
             int attempts = target * 12;
@@ -771,8 +771,10 @@ namespace ProjectName.Systems
             switch (p.nation)
             {
                 case NationType.North:
-                    var northPool = FilterPrefabs(meadows, "FlowerMeadow", "Purple");
-                    prefPool = northPool.Count > 0 ? northPool : p.meadows;
+                    // 설원 — 흰꽃 우선, 부재 시 보라 폴백 (기존 유지+White 추가)
+                    var northWhite = FilterPrefabs(meadows, "FlowerMeadow", "White");
+                    if (northWhite.Count > 0) { prefPool = northWhite; }
+                    else { var northPool = FilterPrefabs(meadows, "FlowerMeadow", "Purple"); prefPool = northPool.Count > 0 ? northPool : p.meadows; }
                     break;
                 case NationType.South:
                     var southPool = FilterPrefabs(meadows, "FlowerMeadow", "Red");
@@ -784,8 +786,17 @@ namespace ProjectName.Systems
                     break;
                 case NationType.East:
                 default:
-                    var mixed = FilterPrefabs(meadows, "FlowerMeadow", "OrangePinkRedPurpleBlue");
-                    prefPool = mixed.Count > 0 ? mixed : p.meadows;
+                    // 동 초원 — 분홍(Pink) 강조 + 기존 혼합 병합 (예시 12·13 분홍 꽃밭)
+                    var eastPink = FilterPrefabs(meadows, "FlowerMeadow", "Pink");
+                    var eastMixed = FilterPrefabs(meadows, "FlowerMeadow", "OrangePinkRedPurpleBlue");
+                    if (eastPink.Count > 0 && eastMixed.Count > 0)
+                    {
+                        var merged = new List<WPrefab>();
+                        for (int i = 0; i < eastMixed.Count; i++) merged.Add(eastMixed[i]);
+                        for (int i = 0; i < eastPink.Count; i++) merged.Add(eastPink[i]);
+                        prefPool = merged;
+                    }
+                    else { var mixed = FilterPrefabs(meadows, "FlowerMeadow", "OrangePinkRedPurpleBlue"); prefPool = mixed.Count > 0 ? mixed : p.meadows; }
                     break;
             }
             int placed = 0;

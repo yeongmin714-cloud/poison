@@ -57,8 +57,8 @@ namespace ProjectName.Core.Data
                 type = BiomeType.Plains,
                 displayName = "초원",
                 surfaceColor = new Color(0.3f, 0.7f, 0.3f),
-                noiseAmplitude = 0.5f,
-                noiseFrequency = 3.0f,
+                noiseAmplitude = 1.6f,              // 언덕 강화(09-24): 0.5→1.6 — 초원 완만한 구릉 (외곽 3~6m 목표)
+                noiseFrequency = 2.8f,              // 언덕 강화(09-24): 3.0→2.8 — 파형 확대로 부드러운 언덕
                 waterThreshold = 0f,
                 waterColor = Color.clear,
                 moveSpeedModifier = 1.0f
@@ -69,8 +69,8 @@ namespace ProjectName.Core.Data
                 type = BiomeType.Forest,
                 displayName = "숲",
                 surfaceColor = new Color(0.2f, 0.5f, 0.2f),
-                noiseAmplitude = 1.0f,
-                noiseFrequency = 4.0f,
+                noiseAmplitude = 2.2f,              // 언덕 강화(09-24): 1.0→2.2 — 숲 완구릉 강화
+                noiseFrequency = 3.2f,              // 언덕 강화(09-24): 4.0→3.2 — 큰 파형 (부드러운 언덕)
                 waterThreshold = 0f,
                 waterColor = Color.clear,
                 moveSpeedModifier = 0.8f
@@ -81,9 +81,9 @@ namespace ProjectName.Core.Data
                 type = BiomeType.Lake,
                 displayName = "호수",
                 surfaceColor = new Color(0.4f, 0.3f, 0.2f),
-                noiseAmplitude = 0.3f,
+                noiseAmplitude = 0.3f,              // 호수 평탄 유지(09-24) — 변경 금지 (수면/낚시 정합)
                 noiseFrequency = 2.0f,
-                waterThreshold = 0.4f,
+                waterThreshold = 0.4f,              // 호수 물 임계값 유지
                 waterColor = new Color(0.2f, 0.4f, 0.8f, 0.8f),
                 moveSpeedModifier = 0.6f
             };
@@ -93,7 +93,7 @@ namespace ProjectName.Core.Data
                 type = BiomeType.Rocky,
                 displayName = "바위",
                 surfaceColor = new Color(0.5f, 0.5f, 0.5f),
-                noiseAmplitude = 2.0f,
+                noiseAmplitude = 3.0f,              // 언덕 강화(09-24): 2.0→3.0 — 서 바위 구릉 강화
                 noiseFrequency = 3.5f,
                 waterThreshold = 0f,
                 waterColor = Color.clear,
@@ -117,8 +117,8 @@ namespace ProjectName.Core.Data
                 type = BiomeType.Desert,
                 displayName = "사막",
                 surfaceColor = new Color(0.8f, 0.7f, 0.4f),
-                noiseAmplitude = 1.0f,
-                noiseFrequency = 2.0f,
+                noiseAmplitude = 1.8f,              // 언덕 강화(09-24): 1.0→1.8 — 사막 모래언덕 기복
+                noiseFrequency = 2.4f,              // 언덕 강화(09-24): 2.0→2.4 — 사구 파형
                 waterThreshold = 0f,
                 waterColor = Color.clear,
                 moveSpeedModifier = 0.9f
@@ -129,7 +129,7 @@ namespace ProjectName.Core.Data
                 type = BiomeType.Volcanic,
                 displayName = "화산",
                 surfaceColor = new Color(0.5f, 0.1f, 0.1f),
-                noiseAmplitude = 2.5f,
+                noiseAmplitude = 3.6f,              // 언덕 강화(09-24): 2.5→3.6 — 남 화산 암반 상한 (3.6 초과 금지)
                 noiseFrequency = 3.0f,
                 waterThreshold = 0f,
                 waterColor = Color.clear,
@@ -165,7 +165,7 @@ namespace ProjectName.Core.Data
                 type = BiomeType.Empire,
                 displayName = "황제국",
                 surfaceColor = new Color(0.9f, 0.8f, 0.3f),
-                noiseAmplitude = 0.3f,
+                noiseAmplitude = 0.3f,              // 황제국 중앙 평탄 유지(09-24) — 변경 금지 (성 보호)
                 noiseFrequency = 1.0f,
                 waterThreshold = 0f,
                 waterColor = Color.clear,
