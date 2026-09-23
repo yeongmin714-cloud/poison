@@ -61,8 +61,16 @@ namespace ProjectName.Systems
         // === 절벽 보호 구역 상수 (스폰/성/호수/경계) ===
         // 스폰·성·호수 반경 PROTECT_CLIFF_RADIUS 내 절벽 마스크 0 강제 (통행 방지,
         // 계획 리스크 매트릭스 "스폰/성/호수 반경 40m는 절벽 금지"). PROTECT_FADE는 복귀 페이드폭.
-        private const float PROTECT_CLIFF_RADIUS = 40f;
+        // 2026-09-24: 40→60m 확대 — 마을(성 중심에서 38~46m 오프셋, VillagePlacementSystem)이
+        // 성 앵커 절벽 보호 반경 안에 들어오도록 커버 (마을 로드 실패 시에도 성 반경으로 보호).
+        private const float PROTECT_CLIFF_RADIUS = 60f;
         private const float PROTECT_CLIFF_FADE = 15f;
+        // === 영지·마을 완전 평탄화 상수 (2026-09-24) ===
+        // 절벽 억제(suppression)만으로는 FBM base 언덕(완구릉·사구·첨봉 등)이 앵커 반경 안에 남는다.
+        // ApplyTerritoryFlattening: 성(영지)+마을 앵커 반경 45m 안은 언덕 융기까지 제거한
+        // 절대 평탄(앵커 자체 높이로 고정), 45..60m 구간은 smoothstep 페이드로 원래 지형 복귀.
+        private const float TERRITORY_FLAT_RADIUS = 45f;
+        private const float TERRITORY_FLAT_FADE = 15f;     // 45..60m 페이드
         // 방위 경계선(45/135/225/315°) 반경 BOUNDARY_CLIFF_BAN 안 절벽 금지 —
         // 경계 크로스페이드 구간을 평탄한 구릉으로 유지해 |Δh|<0.5m 연속성 보증 (Test b).
         private const float BOUNDARY_CLIFF_BAN = 35f;
@@ -504,6 +512,11 @@ namespace ProjectName.Systems
             // === 4) 스폰지 평탄화 ===
             // PlayerSpawnConfig.SpawnPosition 반경 30m 절대 평탄 (상수 고도), 그 밖은 원래 지형.
             h = ApplySpawnFlattening(x, z, h, seed, suppression);
+
+            // === 5) 영지·마을 완전 평탄화 (2026-09-24) ===
+            // 성(영지)+마을 앵커 반경 45m 절대 평탄(언덕 융기까지 제거), 45..60m smoothstep 복귀.
+            // 공통 관통 경로 마지막 단계 → 메시/충돌/캐릭터/장식 전부 GetHeightAt 단일 소스로 자동 일관.
+            h = ApplyTerritoryFlattening(x, z, h, seed);
 
             return h;
         }
@@ -1111,14 +1124,151 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
+        // 영지·마을 완전 평탄화 (2026-09-24)
+        // "영지나 마을이라 지정한 곳은 평지" — 절벽 억제(suppression)만으로는 FBM base 언덕이
+        // 앵커 반경 안에 남으므로, 성(영지)+마을 앵커 반경 45m를 절대 평탄으로 클램프한다.
+        // ================================================================
+
+        /// <summary>
+        /// 영지·마을 완전 평탄화: TerritoryDatabase 성(영지) + VillagePlacementSystem 마을 앵커 중
+        /// 가장 가까운 앵커 기준으로, 반경 TERRITORY_FLAT_RADIUS(45m) 내는 언덕 융기까지 제거한
+        /// 절대 평탄(그 앵커 위치의 비평탄 순수 지형 높이로 고정), TERRITORY_FLAT_FADE(15m) 구간
+        /// 45..60m는 smoothstep으로 원래 지형에 부드럽게 복귀. 60m 밖은 무영향(대부분 조기 종료).
+        /// 앵커 높이는 재귀 가드(_flattenResolveGuard)로 평탄화 없는 순수 지형에서 시드별 1회 계산해 캐시
+        /// (호수는 ≥150m 이격 배제됐고, 앵커 높이는 전체 파이프라인 경유라 카브/크로스페이드도 반영).
+        /// ComputeTerrainHeight 마지막 단계에서만 호출 → GetHeightAt 단일 소스로 메시·충돌·캐릭터·장식 자동 일관.
+        /// </summary>
+        private static float ApplyTerritoryFlattening(float x, float z, float height, int seed)
+        {
+            if (_flattenResolveGuard)
+                return height;                                 // 앵커 높이 계산 중 — 재귀 차단
+
+            var anchors = TerritoryFlatAnchors;
+            int count = anchors.Count;
+            if (count == 0)
+                return height;                                 // 앵커 없음 (로드 실패 등) — 무영향
+
+            float[] anchorHeights = GetTerritoryAnchorHeights(seed, count);
+
+            // 가장 가까운 앵커 탐색 (제곱거리 비교 — Sqrt 1회만)
+            float outer = TERRITORY_FLAT_RADIUS + TERRITORY_FLAT_FADE;   // 60m
+            float outerSqr = outer * outer;
+            float bestD2 = outerSqr;
+            float bestH = height;
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 a = anchors[i];
+                float dx = x - a.x;
+                float dz = z - a.z;
+                float d2 = dx * dx + dz * dz;
+                if (d2 < bestD2)
+                {
+                    bestD2 = d2;
+                    bestH = anchorHeights[i];
+                }
+            }
+            if (bestD2 >= outerSqr)
+                return height;                                 // 60m 밖 — 원래 지형
+
+            float d = Mathf.Sqrt(bestD2);
+            if (d <= TERRITORY_FLAT_RADIUS)
+                return bestH;                                  // 45m 내 — 절대 평탄 (언덕 융기 제거)
+
+            // 45..60m — smoothstep으로 원래 지형에 복귀
+            float t = (d - TERRITORY_FLAT_RADIUS) / TERRITORY_FLAT_FADE;
+            float blend = t * t * (3f - 2f * t);
+            return Mathf.Lerp(bestH, height, blend);
+        }
+
+        // 재귀 방지 가드 — 앵커 자체 높이를 계산할 때 평탄화를 다시 적용하지 않도록 차단.
+        private static bool _flattenResolveGuard = false;
+
+        // 캐시된 앵커 평탄 고도 (시드별 1회 계산 — 결정론, 성능)
+        private static float[] _territoryAnchorHeights;
+        private static int _territoryAnchorHeightSeed = int.MinValue;
+
+        private static float[] GetTerritoryAnchorHeights(int seed, int count)
+        {
+            if (_territoryAnchorHeightSeed == seed &&
+                _territoryAnchorHeights != null && _territoryAnchorHeights.Length == count)
+                return _territoryAnchorHeights;
+
+            _flattenResolveGuard = true;
+            try
+            {
+                var arr = new float[count];
+                var anchors = TerritoryFlatAnchors;
+                for (int i = 0; i < count; i++)
+                {
+                    Vector3 a = anchors[i];
+                    // 앵커 위치의 "평탄화 없는" 순수 지형 높이 (전체 파이프라인 경유 — 결정론)
+                    arr[i] = ComputeTerrainHeight(a.x, a.z, BiomeType.Plains, seed);
+                }
+                _territoryAnchorHeights = arr;
+                _territoryAnchorHeightSeed = seed;
+            }
+            finally
+            {
+                _flattenResolveGuard = false;
+            }
+            return _territoryAnchorHeights;
+        }
+
+        // 영지 평탄화 앵커(성+마을) — 결정론 정적 캐시 (지연 1회 구축).
+        private static List<Vector3> _territoryFlatAnchors;
+        private static bool _territoryFlatBuilt = false;
+
+        private static List<Vector3> TerritoryFlatAnchors
+        {
+            get
+            {
+                if (_territoryFlatBuilt)
+                    return _territoryFlatAnchors;
+
+                _territoryFlatBuilt = true;
+                _territoryFlatAnchors = new List<Vector3>();
+
+                try
+                {
+                    // 성/영지 (TerritoryDatabase worldPosition) — null 안전
+                    if (ProjectName.Core.Data.TerritoryDatabase.Instance != null)
+                    {
+                        foreach (var def in ProjectName.Core.Data.TerritoryDatabase.Instance.GetAllDefinitions())
+                        {
+                            Vector3 p = def.worldPosition;
+                            if (p.sqrMagnitude > 0.001f)
+                                _territoryFlatAnchors.Add(p);
+                        }
+                    }
+
+                    // 마을 24개 (VillagePlacementSystem 결정론) — 같은 어셈블리(ProjectName.Systems)
+                    // 직접 참조 (asmdef 순환 없음). 로드 실패 시 조용히 스킵 (성 앵커가 커버).
+                    foreach (var v in VillagePlacementSystem.GetAllVillages())
+                    {
+                        Vector3 p = v.center;
+                        if (p.sqrMagnitude > 0.001f)
+                            _territoryFlatAnchors.Add(p);
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    // EditMode/테스트 등 씬 미구성 시에도 지형 생성은 안전해야 함
+                    Debug.LogWarning("[TerrainGenerator] 영지 평탄화 앵커 구축 실패 (마을 등 생략): " + e.Message);
+                }
+
+                return _territoryFlatAnchors;
+            }
+        }
+
+        // ================================================================
         // 절벽 보호 (스폰/성/호수/방위경계) — 절벽 마스크 0 강제
         // 리스크 완화(계획 §6): "스폰/성/호수 반경 40m는 절벽 금지" + 경계 연속성(|Δh|<0.5)
         // ================================================================
 
         /// <summary>
         /// 위치 (x,z)의 절벽 억제 마스크 [0,1].
-        ///   ·  스폰 / 각 호수 / 각 성(영지) / 황제국 성 반경 40m        → 0 (절벽 금지)
-        ///   ·  40..55m 페이드                                            → 0..1
+        ///   ·  스폰 / 각 호수 / 각 성(영지)·마을 / 황제국 성 반경 60m     → 0 (절벽 금지)
+        ///   ·  60..75m 페이드                                            → 0..1
         ///   ·  방위 경계선(45/135/225/315°) 반경 35m                    → 0 (경계 단차 차단)
         ///   ·  35..55m 페이드                                            → 0..1
         ///   ·  그 외                                                      → 1 (절벽 허용)
@@ -1173,8 +1323,8 @@ namespace ProjectName.Systems
         /// 위치 (x,z)의 Base/Valley 완만화 디테일 계수 [0,1] (T-R2).
         /// 경계 크로스페이드 연속성(|Δh|&lt;0.5, Test b)과 보호 앵커(스폰/성/호수/황제국)
         /// 주변의 완만한 구릉을 보증한다.
-        ///   ·  절벽 금지 앵커 반경 40m                      → 0 (최저옥타브·저진폭 구릉만)
-        ///   ·  40..55m 페이드                               → 0..1
+        ///   ·  절벽 금지 앵커 반경 60m                      → 0 (최저옥타브·저진폭 구릉만)
+        ///   ·  60..75m 페이드                               → 0..1
         ///   ·  방위 경계선(45/135/225/315°) 반경 35m       → 0 (경계부 평탄한 구릉 유지)
         ///   ·  35..55m 페이드                               → 0..1
         ///   ·  그 외                                          → 1 (원본 방위 디테일)
@@ -1248,6 +1398,17 @@ namespace ProjectName.Systems
                             if (p.sqrMagnitude > 0.001f)
                                 _protectionAnchors.Add(p);
                         }
+                    }
+
+                    // 마을 24개 (VillagePlacementSystem 결정론, 4국가 × 6) — TerrainGenerator와
+                    // 같은 어셈블리(ProjectName.Systems)라 직접 참조 가능 (asmdef 순환 없음).
+                    // 마을 중심(성에서 38~46m)을 앵커로 추가해 절벽/디테일 억제가 마을에도 적용.
+                    // 로드 실패 시 조용히 스킵 — 성 앵커 반경 60m 확대가 마을 영역을 대신 커버.
+                    foreach (var v in VillagePlacementSystem.GetAllVillages())
+                    {
+                        Vector3 p = v.center;
+                        if (p.sqrMagnitude > 0.001f)
+                            _protectionAnchors.Add(p);
                     }
 
                     // 호수 10개 (LCG 시드 유지 — 위치 불변 원칙)

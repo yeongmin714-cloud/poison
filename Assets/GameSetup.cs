@@ -284,10 +284,15 @@ public class GameSetup : MonoBehaviour
         IdyllicDecoPlacer.PlaceSpawnProps(decoGO.transform);
         Debug.Log("[GameSetup][TerrainDeco] ✅ IdyllicDecoPlacer.PlaceSpawnProps 완료");
 
-        // ── GLB 모델 배치 (나무~500/바위~400) ────────────────────────
-        // [T-R1 09-04] 기존 GLB 나무~500/바위~400 대량 배치 제거(사용자 지시) — IdyllicDecoPlacer로 통일
-        // TerrainModelPlacer.PlaceAllIfNeeded(decoGO.transform);
-        // Debug.Log("[GameSetup][TerrainDeco] ✅ TerrainModelPlacer.PlaceAllIfNeeded 완료");
+        // ── GLB 산/바위 절벽·군락 소수 배치 (국가별 6~10개, 콜라이더 부착) ──
+        // [T-R1 09-04] 대량 배치(나무~500/바위~400)는 비활성 유지 — 식생은 IdyllicDecoPlacer 담당.
+        // [R-접지 09-24] 산/절벽·바위군락만 국가별 6~10개 소수 재활성 (MeshCollider 접지 + 제외존 확장).
+        // 멱등: TerrainModelPlacer 내부 마커 가드(TerrainModelPlacer_Marker)로 중복 실행 스킵.
+        try { TerrainModelPlacer.PlaceAllIfNeeded(decoGO.transform); }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[GameSetup][TerrainDeco] ❌ 산/바위 GLB 배치 실패 (게임 계속): " + e.Message);
+        }
 
         // ── Idyllic 프리팹 국가별 테마 배치 (P-4) ─────────────────────
         // Resources/IdyllicPrefabs(나무/바위/꽃/갈대)를 국가별 테마로 절차 배치.
