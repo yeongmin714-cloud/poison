@@ -3702,3 +3702,12 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 
 ### Play 판정 대기
 ①모든 창/슬롯/버튼의 노란 경고 플레이스홀더 소멸 ②창 배경 우드 그라데이션·버튼 베벨·슬롯 인셋 정상 렌더 ③**소프트 드롭섀도우가 이번엔 실제로 보임**(역사상 첫 렌더) ④아이템 아이콘 정상 유지
+
+### F-UI Phase 0 (커서+자산, 2026-09-23)
+- Figma API로 46프레임 역설계: GitHub-dark 디자인 시스템(배경 #0B0E14/패널 #161B22/#21262D/강조 #58A6FF/#E3B341, Roboto+Geist Mono).
+- 아이콘 19종 export(PNG 알파 확인) → cursor_* 9종(128px)+icons/* 19종(256px) 메타 isReadable:1 배치.
+- HoverTargetClassifier 확장: ResourceNode→Mine, AnimalAI→Monster, LockedDoor→Door, UI타입 리플렉션→Cook/Shop, GuardPlaceholder→Ally/EnemyGuard(IsRecruited), NpcQuestGiver/NPCAmbientDialogue→NPC.
+- UTKCursorOverlay: Figma 9종 매핑(Monster/EnemyGuard는 Ctrl로 monster/interact 분기).
+- 검증: compile error CS=0, EditMode 전체 통과. 커밋 ec54b9b5(푸시).
+- ⚠ 리플렉션 어셈블리명 "ProjectName.UI" 확인. CookingBench 타입 존재 안 함(null, 무해).
+- 잔여: 화면 운커서 실제 전환 Play 확인(예시2~13.PNG 대조).
