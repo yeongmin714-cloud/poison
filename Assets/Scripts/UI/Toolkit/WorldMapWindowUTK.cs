@@ -90,13 +90,28 @@ namespace ProjectName.UI.Toolkit
         // 원본 핫키 런타임 조율 플래그 (소스 무수정)
         private static bool _legacyHotkeySuppressed;
 
-        // ===== 색상 팔레트 (원본 Colors와 동일 톤) =====
-        private static readonly Color ColorInk      = new Color(0.243f, 0.173f, 0.098f, 1f);
-        private static readonly Color ColorInkSoft  = new Color(0.36f, 0.28f, 0.18f, 0.9f);
-        private static readonly Color ColorSepiaFrame = new Color(0.366f, 0.255f, 0.145f, 1f);
-        private static readonly Color ColorGold     = new Color(0.95f, 0.76f, 0.28f, 1f);
-        private static readonly Color ColorWar      = new Color(0.90f, 0.18f, 0.14f, 1f);
-        private static readonly Color ColorPlayer   = new Color(0.30f, 0.72f, 1f, 1f);
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 월드맵 시각 스펙 — 기능 무수정, 이 창 한정 인라인 오버라이드.
+        //  Theme.uss / 공용 UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  창 크롬/헤더/마커 가시 요소는 GitHub-dark 팔레트로 — 단, 지도 양피지 배경 텍스처는
+        //  사용자 확정에 따라 그대로 유지(제거/교체 없음). 좌표 산식·텍스처 로직·마커 데이터 무수정.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(타이틀바/범례 스트립)
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조 — 플레이어 마커/펄스
+            public static readonly Color Gold     = Hex(0xE3B341);   // 몬스터/영지 마커 강조(★ 내 영지·황제국)
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트(범례)
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/지도 프레임 stroke
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
+        // 전쟁(Contested) 펄스 붉은 테두리 — 범례 문구("붉은 테두리")와 정합, 스펙 불명이라 원본 톤 유지
+        private static readonly Color ColorWar = new Color(0.90f, 0.18f, 0.14f, 1f);
 
         // =====================================================================
         //  생성
@@ -110,8 +125,26 @@ namespace ProjectName.UI.Toolkit
             var legend = new Label("● 영지   ★ 내 영지   붉은 테두리: 전쟁 중   👑 황제국   🧛 드라큘라");
             legend.AddToClassList("utk-title-label");
             legend.style.fontSize = 13f;
-            legend.style.color = new StyleColor(ColorInkSoft);
+            legend.style.color = new StyleColor(GitHubDark.TextSub);
             legend.style.whiteSpace = WhiteSpace.Normal;
+            // 헤더 범례 스트립 — 보조 패널 바탕 + 1px 스트로크 + r6 (GitHub-dark 서브 헤더)
+            legend.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
+            legend.style.paddingTop = 6f;
+            legend.style.paddingBottom = 6f;
+            legend.style.paddingLeft = 8f;
+            legend.style.paddingRight = 8f;
+            legend.style.borderTopWidth = 1f;
+            legend.style.borderBottomWidth = 1f;
+            legend.style.borderLeftWidth = 1f;
+            legend.style.borderRightWidth = 1f;
+            legend.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+            legend.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+            legend.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+            legend.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            legend.style.borderTopLeftRadius = 6f;
+            legend.style.borderTopRightRadius = 6f;
+            legend.style.borderBottomLeftRadius = 6f;
+            legend.style.borderBottomRightRadius = 6f;
             _content.Add(legend);
 
             // 지도 캔버스 — 양피지 배경 + 마커 절대배치 호스트
@@ -128,10 +161,10 @@ namespace ProjectName.UI.Toolkit
             _mapCanvas.style.borderRightWidth = 2f;
             _mapCanvas.style.borderTopWidth = 2f;
             _mapCanvas.style.borderBottomWidth = 2f;
-            _mapCanvas.style.borderLeftColor = new StyleColor(ColorSepiaFrame);
-            _mapCanvas.style.borderRightColor = new StyleColor(ColorSepiaFrame);
-            _mapCanvas.style.borderTopColor = new StyleColor(ColorSepiaFrame);
-            _mapCanvas.style.borderBottomColor = new StyleColor(ColorSepiaFrame);
+            _mapCanvas.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+            _mapCanvas.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            _mapCanvas.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+            _mapCanvas.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
             _mapCanvas.style.overflow = Overflow.Hidden;
             _content.Add(_mapCanvas);
 
@@ -153,10 +186,10 @@ namespace ProjectName.UI.Toolkit
             _playerHalo.style.borderRightWidth = 2f;
             _playerHalo.style.borderTopWidth = 2f;
             _playerHalo.style.borderBottomWidth = 2f;
-            _playerHalo.style.borderLeftColor = new StyleColor(ColorPlayer);
-            _playerHalo.style.borderRightColor = new StyleColor(ColorPlayer);
-            _playerHalo.style.borderTopColor = new StyleColor(ColorPlayer);
-            _playerHalo.style.borderBottomColor = new StyleColor(ColorPlayer);
+            _playerHalo.style.borderLeftColor = new StyleColor(GitHubDark.Accent);
+            _playerHalo.style.borderRightColor = new StyleColor(GitHubDark.Accent);
+            _playerHalo.style.borderTopColor = new StyleColor(GitHubDark.Accent);
+            _playerHalo.style.borderBottomColor = new StyleColor(GitHubDark.Accent);
             _playerHalo.style.borderTopLeftRadius = 8f;
             _playerHalo.style.borderTopRightRadius = 8f;
             _playerHalo.style.borderBottomLeftRadius = 8f;
@@ -164,11 +197,60 @@ namespace ProjectName.UI.Toolkit
             _playerMarker.Add(_playerHalo);
             _mapCanvas.Add(_playerMarker);
 
+            // 창 크롬(본체/타이틀바/닫기) GitHub-dark 리스타일 — 생성 시 1회
+            ApplyGitHubDarkWindowStyle();
+
             // 기본 숨김 + 중앙 배치 (드래그 전까지)
             style.display = DisplayStyle.None;
             style.left = Length.Percent(50f);
             style.top = Length.Percent(50f);
             style.translate = new Translate(Length.Percent(-50f), Length.Percent(-50f));
+        }
+
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 이 창 한정 인라인 오버라이드(생성 시 1회).</summary>
+        private void ApplyGitHubDarkWindowStyle()
+        {
+            // 창 본체: 우드 베이크 이미지/브론즈 베벨 2px → 다크 패널 + 1px 스트로크 + r8 (이 창에서만.
+            // 지도 양피지 배경(_mapCanvas backgroundImage)은 유지 — 본체 크롬만 교체)
+            style.backgroundColor = GitHubDark.Panel;
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
+
+            // 타이틀 바(헤더): 보조 패널 #21262D + 하단 1px 스트로크 (상단 코너 r8 — 창 클리핑 정합)
+            var titleBar = this.Q("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+            }
+
+            // 타이틀 라벨: 기본 텍스트
+            if (_titleLabel != null)
+                _titleLabel.style.color = GitHubDark.TextMain;
+
+            // 닫기 버튼: 보조 패널 바탕 + r4(작은배지). 베이크 텍스처 미사용 — 기본 ✕ 텍스트 유지.
+            var closeBtn = this.Q<Button>("CloseButton");
+            if (closeBtn != null)
+            {
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;            // 작은배지 r4
+                closeBtn.style.color = GitHubDark.TextMain;
+            }
         }
 
         // =====================================================================
@@ -351,7 +433,7 @@ namespace ProjectName.UI.Toolkit
         {
             if (_playerTransform == null) return;
             float pulse = 0.5f + 0.5f * UnityEngine.Mathf.Sin(now * 4f);
-            Color halo = ColorPlayer;
+            Color halo = GitHubDark.Accent;
             halo.a = 0.35f + 0.45f * pulse;
             var c = new StyleColor(halo);
             _playerHalo.style.borderLeftColor = c;
@@ -423,7 +505,7 @@ namespace ProjectName.UI.Toolkit
                 case NationType.West: return new Color(0.26f, 0.66f, 0.30f, 1f);
                 case NationType.South: return new Color(0.88f, 0.30f, 0.22f, 1f);
                 case NationType.North: return new Color(0.58f, 0.36f, 0.85f, 1f);
-                case NationType.Empire: return new Color(0.92f, 0.74f, 0.26f, 1f);
+                case NationType.Empire: return GitHubDark.Gold;   // 황제국 — 영지 마커 강조 골드 #E3B341
                 case NationType.Dracula: return new Color(0.36f, 0.07f, 0.10f, 1f);
                 default: return new Color(0.45f, 0.40f, 0.35f, 1f);
             }
@@ -562,10 +644,25 @@ namespace ProjectName.UI.Toolkit
                 _dot.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
                 Add(_dot);
 
-                // ★ 내 영지 표식 (소유 시에만 표시)
+                // ★ 내 영지 표식 (소유 시에만 표시) — 강조 골드 #E3B341 + 다크 칩(양피지 위 가독성)
                 _star = new Label("★");
                 _star.style.fontSize = 13f;
-                _star.style.color = new StyleColor(ColorGold);
+                _star.style.color = new StyleColor(GitHubDark.Gold);
+                _star.style.backgroundColor = new StyleColor(MarkerChipBg());
+                _star.style.paddingLeft = 3f;
+                _star.style.paddingRight = 3f;
+                _star.style.borderTopWidth = 1f;
+                _star.style.borderBottomWidth = 1f;
+                _star.style.borderLeftWidth = 1f;
+                _star.style.borderRightWidth = 1f;
+                _star.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+                _star.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+                _star.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+                _star.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+                _star.style.borderTopLeftRadius = 4f;
+                _star.style.borderTopRightRadius = 4f;
+                _star.style.borderBottomLeftRadius = 4f;
+                _star.style.borderBottomRightRadius = 4f;
                 _star.style.display = DisplayStyle.None;
                 _star.pickingMode = PickingMode.Ignore;
                 Add(_star);
@@ -575,7 +672,25 @@ namespace ProjectName.UI.Toolkit
                                 def.nation == NationType.Dracula ? "🧛 " : "";
                 _name = new Label(prefix + def.territoryName);
                 _name.style.fontSize = 11f;
-                _name.style.color = new StyleColor(ColorInk);
+                // 이름 칩 — 다크 패널 바탕 + 1px 스트로크 + r4 (양피지 위 가독성 확보, GitHub-dark 서브 배지)
+                _name.style.color = new StyleColor(GitHubDark.TextMain);
+                _name.style.backgroundColor = new StyleColor(MarkerChipBg());
+                _name.style.paddingLeft = 4f;
+                _name.style.paddingRight = 4f;
+                _name.style.paddingTop = 1f;
+                _name.style.paddingBottom = 1f;
+                _name.style.borderTopWidth = 1f;
+                _name.style.borderBottomWidth = 1f;
+                _name.style.borderLeftWidth = 1f;
+                _name.style.borderRightWidth = 1f;
+                _name.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+                _name.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+                _name.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+                _name.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+                _name.style.borderTopLeftRadius = 4f;
+                _name.style.borderTopRightRadius = 4f;
+                _name.style.borderBottomLeftRadius = 4f;
+                _name.style.borderBottomRightRadius = 4f;
                 _name.style.whiteSpace = WhiteSpace.NoWrap;
                 _name.style.marginTop = 2f;
                 _name.pickingMode = PickingMode.Ignore;
@@ -600,7 +715,7 @@ namespace ProjectName.UI.Toolkit
                     _dot.style.backgroundColor = new StyleColor(NationColor(Def.nation));
                     if (own == TerritoryOwnership.PlayerOwned)
                     {
-                        SetDotBorder(ColorGold, 2f);
+                        SetDotBorder(GitHubDark.Gold, 2f);   // 내 영지 — 강조 골드 #E3B341
                     }
                     else if (own == TerritoryOwnership.Contested)
                     {
@@ -610,12 +725,20 @@ namespace ProjectName.UI.Toolkit
                     }
                     else
                     {
-                        SetDotBorder(new Color(0.22f, 0.15f, 0.08f, 0.75f), 1f);
+                        SetDotBorder(GitHubDark.Stroke, 1f);   // 영주 소유 — 보더 스트로크 #2E343D
                     }
                 }
 
                 _star.style.display = (own == TerritoryOwnership.PlayerOwned)
                     ? DisplayStyle.Flex : DisplayStyle.None;
+            }
+
+            /// <summary>양피지 위 가독성용 마커 칩 바닥 — 패널 #161B22 @ 85% 알파 (지도 배경 위 칩 전용).</summary>
+            private static Color MarkerChipBg()
+            {
+                Color c = GitHubDark.Panel;
+                c.a = 0.85f;
+                return c;
             }
 
             private void SetDotBorder(Color c, float w)
