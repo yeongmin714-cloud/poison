@@ -339,6 +339,14 @@ public class GameSetup : MonoBehaviour
         //     Debug.Log("[GameSetup][TerrainDeco] ✅ GrassRenderer.Bootstrap 완료 (잔디 렌더러)");
         // }
         Debug.Log("[GameSetup][TerrainDeco] 잔디는 사용자 요청으로 비활성화됨 (GrassRenderer 코드 보존)");
+
+        // ── 자연 자원 노드 (09-23 신규): 돌(Stone 채굴)/과일나무·허브(채집) 오픈월드 결정론 배치 ──
+        // TerrainOnly(지형 관찰) 씬에서는 내부 가드(씬 이름/UITransitionState.DisableAllUi)로 스폰 생략.
+        try { NaturalResourceSpawner.EnsureNaturalResources(decoGO.transform); }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[GameSetup][TerrainDeco] ❌ 자원 노드 스폰 실패 (게임 계속): " + e.ToString());
+        }
     }
 
     /// <summary>

@@ -3385,9 +3385,9 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 | Phase | 항목 | 상태 |
 |:--|:--|:--:|
-| A | 새 GLB를 `IdyllicPrefabs` 풀 필터명으로 프리팹 추가 — 테마×destroyed 포함 480종 | ✅ 415개 합성(기존 74→489)·컴파일/EditMode 통과 |
-| B | 바이옴별 종 교체·스케일·컬라이더 보정 (동=활엽/북=Fir·설암/서=화산암/남=사막) | ⏳ 대기 |
-| C | 과일나무→Gather, 허브·꽃→HerbPickup, 돌→ResourceNode(채굴) 배선 | ⏳ 대기 |
+| A | 새 GLB를 `IdyllicPrefabs` 풀 필터명으로 프리팹 추가 — 테마×destroyed 포함 480종 | ✅ 415개 합성(기존 74→489) |
+| B | 카테고리 기준 크기 보정(나무8.6/돌3.7/다1.9/꽃0.57/풀0.70/수변2.03...) + Test12 UI 제거 | ✅ 커밋 64b0be95, 7d44a69e |
+| C | NaturalResourceSpawner: 돌→ResourceNode(채굴) / 과일·허브→HerbPickup(Gather) 오픈월드 배치 | ✅ 배선·컴파일·EditMode 통과 |
 | D | 연못가·수변 재배치 + 크기 Play 스샷 수렴 | ⏳ 대기 |
 - 접근: Editor 배치(`-executeMethod`)로 GLB 모델 → Idyllic 프리팹 구조(루트+LODGroup+LOD0/1/2+콜라이더) 합성. 대안 저위험: GLB 모델 자산을 카테고리 폴더에 직접 배치 후 `Resources.LoadAll<GameObject>` 수용 여부 확인.
 - 전제: 컴파일·EditMode는 검증, 최종 크기/어색함은 Play 스샷 피드백으로 수렴.
