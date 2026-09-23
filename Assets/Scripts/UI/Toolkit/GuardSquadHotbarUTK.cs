@@ -68,14 +68,15 @@ namespace ProjectName.UI.Toolkit
         private const float NumBoxGap    = 6f;
         private const float AvatarSize   = 56f;
 
-        // 다크 테마 색상 (원본 톤 유지)
-        private static readonly Color ColorPanelBg   = new Color(0.06f, 0.06f, 0.08f, 0.72f);
-        private static readonly Color ColorSlotBg    = new Color(0.13f, 0.13f, 0.16f, 0.88f);
-        private static readonly Color ColorSlotEmpty = new Color(0.13f, 0.13f, 0.16f, 0.40f);
-        private static readonly Color ColorKeyBox    = new Color(0.10f, 0.10f, 0.12f, 0.90f);
-        private static readonly Color ColorText      = new Color(0.88f, 0.88f, 0.88f, 1f);
-        private static readonly Color ColorTextDim   = new Color(0.70f, 0.70f, 0.74f, 0.9f);
-        private static readonly Color ColorCount     = new Color(1f, 0.95f, 0.75f, 1f);
+        // [GitHub-dark] 핫바 팔레트 — 배경 #0B0E14 / 패널 #161B22 / 보조 #21262D / 텍스트 #F0F6FC·#8B949E /
+        //   골드 #E3B341 정렬. 상시 HUD 특성상 원본 반투명 계열은 유지(게임 화면 가독성).
+        private static readonly Color ColorPanelBg   = new Color32(0x0B, 0x0E, 0x14, 0xD6);   // 배경 #0B0E14 (알파 0.84)
+        private static readonly Color ColorSlotBg    = new Color32(0x16, 0x1B, 0x22, 0xE6);   // 패널 #161B22
+        private static readonly Color ColorSlotEmpty = new Color32(0x16, 0x1B, 0x22, 0x66);   // 패널 반투명 — 빈 슬롯
+        private static readonly Color ColorKeyBox    = new Color32(0x21, 0x26, 0x2D, 0xE6);   // 보조 패널 #21262D
+        private static readonly Color ColorText      = new Color32(0xF0, 0xF6, 0xFC, 0xFF);   // 기본 텍스트
+        private static readonly Color ColorTextDim   = new Color32(0x8B, 0x94, 0x9E, 0xE6);   // 보조 텍스트
+        private static readonly Color ColorCount     = new Color32(0xE3, 0xB3, 0x41, 0xFF);   // 골드 — 생존 인원
 
         // 국적색 (동=빨강, 서=파랑, 남=초록, 북=보라, 기타=회색)
         private static readonly Color ColorNationEast   = new Color(0.92f, 0.28f, 0.26f, 1f);
@@ -149,10 +150,15 @@ namespace ProjectName.UI.Toolkit
                 bg.style.borderRightWidth = 1f;
                 bg.style.borderBottomWidth = 1f;
                 bg.style.borderLeftWidth = 1f;
-                bg.style.borderTopColor = new StyleColor(new Color(1f, 1f, 1f, 0.15f));
-                bg.style.borderRightColor = new StyleColor(new Color(1f, 1f, 1f, 0.15f));
-                bg.style.borderBottomColor = new StyleColor(new Color(1f, 1f, 1f, 0.15f));
-                bg.style.borderLeftColor = new StyleColor(new Color(1f, 1f, 1f, 0.15f));
+                // [GitHub-dark] 슬롯 스트로크 — 반투명 화이트 → #2E343D + 서브 반경 r6
+                bg.style.borderTopColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+                bg.style.borderRightColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+                bg.style.borderBottomColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+                bg.style.borderLeftColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+                bg.style.borderTopLeftRadius = 6f;
+                bg.style.borderTopRightRadius = 6f;
+                bg.style.borderBottomLeftRadius = 6f;
+                bg.style.borderBottomRightRadius = 6f;
                 bg.style.position = Position.Relative;
                 bg.style.alignItems = Align.Center;
                 bg.style.justifyContent = Justify.Center;
@@ -209,6 +215,10 @@ namespace ProjectName.UI.Toolkit
                 keyBox.style.width = 26f;
                 keyBox.style.height = NumBoxHeight;
                 keyBox.style.backgroundColor = new StyleColor(ColorKeyBox);
+                keyBox.style.borderTopLeftRadius = 4f;   // [GitHub-dark] 작은배지 r4
+                keyBox.style.borderTopRightRadius = 4f;
+                keyBox.style.borderBottomLeftRadius = 4f;
+                keyBox.style.borderBottomRightRadius = 4f;
                 keyBox.style.alignItems = Align.Center;
                 keyBox.style.justifyContent = Justify.Center;
                 keyBox.style.marginTop = NumBoxGap;

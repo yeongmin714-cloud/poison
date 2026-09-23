@@ -74,6 +74,109 @@ namespace ProjectName.UI.Toolkit
         private const float WinH = 560f;
         private const long RefreshMs = 400L;
 
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 퀘스트 목록 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
+        //  Theme.uss / 공용 UTKButton·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(행/버튼)
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트) — 진행/목표
+            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/보상/수락가능/골드
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
+            public static readonly Color Success  = Hex(0x3FB950);   // success 그린 — 완료
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
+        /// <summary>GitHub-dark 버튼 인라인 오버라이드(이 창 한정) — IStyle 쇼트핸드 없음 → 4면 개별 대입.</summary>
+        private static void StyleButton(Button btn, UTKButton.Variant variant)
+        {
+            if (btn == null) return;
+            Color baseBg, hoverBg, textColor;
+            switch (variant)
+            {
+                case UTKButton.Variant.Primary:
+                    baseBg = GitHubDark.Accent; hoverBg = new Color32(0x79, 0xC0, 0xFF, 0xFF); textColor = GitHubDark.Panel; break;
+                case UTKButton.Variant.Danger:
+                    baseBg = new Color32(0xF8, 0x51, 0x49, 0xFF); hoverBg = new Color32(0xDA, 0x36, 0x33, 0xFF); textColor = GitHubDark.TextMain; break;
+                default:
+                    baseBg = GitHubDark.PanelSub; hoverBg = GitHubDark.Stroke; textColor = GitHubDark.TextMain; break;
+            }
+
+            btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            btn.style.backgroundColor = baseBg;
+            btn.style.color = textColor;
+            btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
+            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(baseBg);
+            btn.style.borderTopLeftRadius = 6f;
+            btn.style.borderTopRightRadius = 6f;
+            btn.style.borderBottomLeftRadius = 6f;
+            btn.style.borderBottomRightRadius = 6f;
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = hoverBg);
+            btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = baseBg);
+        }
+
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
+        private void ApplyGitHubDarkStyle()
+        {
+            style.backgroundColor = GitHubDark.Panel;
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
+
+            var titleBar = this.Q("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+            }
+
+            if (_titleLabel != null)
+                _titleLabel.style.color = GitHubDark.TextMain;
+
+            var closeBtn = this.Q<Button>("CloseButton");
+            if (closeBtn != null)
+            {
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;            // 작은배지 r4
+                closeBtn.style.color = GitHubDark.TextMain;
+            }
+        }
+
+        /// <summary>GitHub-dark 리스트 행(퀘스트/체인 박스) — 보조 패널 #21262D + 1px 스트로크 + r6 (이 창 한정).</summary>
+        private static void ApplyDarkRowStyle(VisualElement row)
+        {
+            if (row == null) return;
+            row.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            row.style.backgroundColor = GitHubDark.PanelSub;
+            row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 1f;
+            row.style.borderTopColor = row.style.borderBottomColor = row.style.borderLeftColor = row.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            row.style.borderTopLeftRadius = 6f;
+            row.style.borderTopRightRadius = 6f;
+            row.style.borderBottomLeftRadius = 6f;
+            row.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+        }
+
         // ===== 레퍼런스 =====
         private readonly ScrollView _list;
         private Label _statActive, _statCompleted, _statAvailable, _statChain;
@@ -108,6 +211,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(_list);
 
             ApplyUIToolkitFont(this);
+            ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬 리스타일 — 이 창 한정 인라인
             style.display = DisplayStyle.None;
             style.left = 40f;
             style.top = 80f;
@@ -118,7 +222,7 @@ namespace ProjectName.UI.Toolkit
             var l = new Label(text ?? "");
             l.style.width = 185f;
             l.style.fontSize = 14f;
-            l.style.color = new StyleColor(UTKColor.TextPrimary);
+            l.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 통계 라벨 — 기본 텍스트
             return l;
         }
 
@@ -222,7 +326,7 @@ namespace ProjectName.UI.Toolkit
 
             if (available.Count == 0 && active.Count == 0 && completed.Count == 0 && chains.Count == 0)
             {
-                var empty = MkLabel("퀘스트가 없습니다. NPC를 찾아 퀘스트를 수락하세요.", 15, UTKColor.TextSecondary, TextAnchor.UpperLeft);
+                var empty = MkLabel("퀘스트가 없습니다. NPC를 찾아 퀘스트를 수락하세요.", 15, GitHubDark.TextSub, TextAnchor.UpperLeft);   // [GitHub-dark] 보조 텍스트
                 empty.style.flexGrow = 1f;
                 _list.Add(empty);
             }
@@ -230,7 +334,7 @@ namespace ProjectName.UI.Toolkit
 
         private VisualElement BuildChainHeader()
         {
-            var h = MkLabel("🔗 활성 퀘스트 체인", 17, UTKColor.AccentRare, TextAnchor.MiddleLeft);
+            var h = MkLabel("🔗 활성 퀘스트 체인", 17, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [GitHub-dark] 섹션 제목 — 액센트
             h.style.marginTop = 6f;
             h.style.marginBottom = 2f;
             return h;
@@ -243,6 +347,7 @@ namespace ProjectName.UI.Toolkit
 
             var box = new VisualElement();
             box.AddToClassList("utk-slot");
+            ApplyDarkRowStyle(box);   // [GitHub-dark] 체인 박스 = 보조 패널 리스트 아이템 (bg #21262D + 스트로크 + r6)
             box.style.flexDirection = FlexDirection.Column;
             box.style.marginTop = 3f;
             box.style.marginBottom = 3f;
@@ -252,7 +357,7 @@ namespace ProjectName.UI.Toolkit
             string progressStr = chainData.nodes != null
                 ? $"{progress.completedNodeIds.Count}/{chainData.nodes.Length}"
                 : "0/0";
-            var title = MkLabel($"{chainData.chainTitle}  [{progressStr}]", 15, UTKColor.AccentRare, TextAnchor.MiddleLeft);
+            var title = MkLabel($"{chainData.chainTitle}  [{progressStr}]", 15, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [GitHub-dark] 체인명 — 액센트
             box.Add(title);
 
             string nodeTitle = "알 수 없음";
@@ -266,7 +371,7 @@ namespace ProjectName.UI.Toolkit
                 hasChoices = node.choices != null && node.choices.Length > 0;
             }
 
-            var desc = MkLabel($"▸ 현재: {nodeTitle}  {nodeDesc}", 13, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            var desc = MkLabel($"▸ 현재: {nodeTitle}  {nodeDesc}", 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [GitHub-dark] 보조 텍스트
             desc.style.whiteSpace = WhiteSpace.Normal;
             box.Add(desc);
 
@@ -283,6 +388,7 @@ namespace ProjectName.UI.Toolkit
                 Debug.Log($"[QuestWindowUTK] 체인 노드 진행({chainId}, 자동): 성공={ok}");
                 RefreshDisplay();
             }, UTKButton.Variant.Primary);
+            StyleButton(btn, UTKButton.Variant.Primary);   // [GitHub-dark] 진행 버튼 인라인 리스타일
             btn.style.alignSelf = Align.FlexEnd;
             box.Add(btn);
 
@@ -293,6 +399,7 @@ namespace ProjectName.UI.Toolkit
         {
             var box = new VisualElement();
             box.AddToClassList("utk-slot");
+            ApplyDarkRowStyle(box);   // [GitHub-dark] 퀘스트 박스 = 보조 패널 리스트 아이템 (bg #21262D + 스트로크 + r6)
             box.style.flexDirection = FlexDirection.Column;
             box.style.marginTop = 4f;
             box.style.marginBottom = 4f;
@@ -302,13 +409,14 @@ namespace ProjectName.UI.Toolkit
             // 이름 + 상태
             string stateStr = state == QuestState.Active ? "🔄 진행 중"
                 : state == QuestState.Completed ? "✅ 완료" : "🆕 수락 가능";
-            Color stateColor = state == QuestState.Active ? UTKColor.AccentRare
-                : state == QuestState.Completed ? UTKColor.GuildGreen : UTKColor.AccentMagic;
+            // [GitHub-dark] 상태 배지 — 진행=액센트 / 완료=그린 / 수락가능=골드
+            Color stateColor = state == QuestState.Active ? GitHubDark.Accent
+                : state == QuestState.Completed ? GitHubDark.Success : GitHubDark.Gold;
 
             var row1 = new VisualElement();
             row1.style.flexDirection = FlexDirection.Row;
             row1.style.alignItems = Align.Center;
-            var nameLabel = MkLabel(quest.questName, 16, UTKColor.TextPrimary, TextAnchor.MiddleLeft);
+            var nameLabel = MkLabel(quest.questName, 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [GitHub-dark] 기본 텍스트
             nameLabel.style.flexGrow = 1f;
             row1.Add(nameLabel);
             var stateLabel = MkLabel(stateStr, 13, stateColor, TextAnchor.MiddleRight);
@@ -320,7 +428,7 @@ namespace ProjectName.UI.Toolkit
             // 설명
             if (!string.IsNullOrEmpty(quest.description))
             {
-                var desc = MkLabel(quest.description, 13, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+                var desc = MkLabel(quest.description, 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [GitHub-dark] 보조 텍스트
                 desc.style.whiteSpace = WhiteSpace.Normal;
                 box.Add(desc);
             }
@@ -330,7 +438,7 @@ namespace ProjectName.UI.Toolkit
             {
                 var obj = quest.objectives[0];
                 string prog = obj.requiredCount > 0 ? $" ({obj.currentCount}/{obj.requiredCount})" : "";
-                var objLabel = MkLabel($"▸ {obj.description}{prog}", 13, UTKColor.AccentMagic, TextAnchor.MiddleLeft);
+                var objLabel = MkLabel($"▸ {obj.description}{prog}", 13, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [GitHub-dark] 목표 — 액센트
                 objLabel.style.whiteSpace = WhiteSpace.Normal;
                 box.Add(objLabel);
             }
@@ -339,7 +447,7 @@ namespace ProjectName.UI.Toolkit
             string reward = QuestRewardPreview.GetRewardSummary(quest);
             if (!string.IsNullOrEmpty(reward))
             {
-                var rewardLabel = MkLabel(reward, 13, UTKColor.AccentRare, TextAnchor.MiddleLeft);
+                var rewardLabel = MkLabel(reward, 13, GitHubDark.Gold, TextAnchor.MiddleLeft);   // [GitHub-dark] 보상 — 골드
                 box.Add(rewardLabel);
             }
 
@@ -353,6 +461,7 @@ namespace ProjectName.UI.Toolkit
                     Debug.Log($"[QuestWindowUTK] 퀘스트 수락 시도({qid}): 성공={ok}");
                     RefreshDisplay();
                 }, UTKButton.Variant.Primary);
+                StyleButton(btn, UTKButton.Variant.Primary);   // [GitHub-dark] 수락 버튼 인라인 리스타일
                 btn.style.alignSelf = Align.FlexEnd;
                 box.Add(btn);
             }
@@ -367,6 +476,7 @@ namespace ProjectName.UI.Toolkit
                     RefreshDisplay();
                 }, UTKButton.Variant.Danger);
                 btn.SetEnabled(completeable);
+                StyleButton(btn, UTKButton.Variant.Danger);   // [GitHub-dark] 완료 버튼 인라인 리스타일
                 btn.style.alignSelf = Align.FlexEnd;
                 box.Add(btn);
             }

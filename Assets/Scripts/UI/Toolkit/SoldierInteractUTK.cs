@@ -64,6 +64,133 @@ namespace ProjectName.UI.Toolkit
         private const float MaxInteractDistance = 4.5f;   // IMGUI 시절 _interactRange(3m)×1.5 — 동일 임계 유지
         private const long PollMs = 200L;                 // 유효성/거리/상태메시지 폴링 주기
 
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 병사 상호작용 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
+        //  Theme.uss / 공용 UTKButton·UTKSlot·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경 — 슬롯 인셋 바닥
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(타이틀바/버튼)
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트)
+            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/활성/골드
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
+            public static readonly Color Danger   = Hex(0xF85149);   // danger 버튼
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
+        /// <summary>GitHub-dark 버튼 인라인 오버라이드(이 창 한정) — IStyle 쇼트핸드 없음 → 4면 개별 대입.</summary>
+        private static void StyleButton(Button btn, UTKButton.Variant variant)
+        {
+            if (btn == null) return;
+            Color baseBg, hoverBg, textColor;
+            switch (variant)
+            {
+                case UTKButton.Variant.Primary:
+                    baseBg = GitHubDark.Accent; hoverBg = new Color32(0x79, 0xC0, 0xFF, 0xFF); textColor = GitHubDark.Panel; break;
+                case UTKButton.Variant.Danger:
+                    baseBg = GitHubDark.Danger; hoverBg = new Color32(0xDA, 0x36, 0x33, 0xFF); textColor = GitHubDark.TextMain; break;
+                default:
+                    baseBg = GitHubDark.PanelSub; hoverBg = GitHubDark.Stroke; textColor = GitHubDark.TextMain; break;
+            }
+
+            btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            btn.style.backgroundColor = baseBg;
+            btn.style.color = textColor;
+            btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
+            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(baseBg);
+            btn.style.borderTopLeftRadius = 6f;
+            btn.style.borderTopRightRadius = 6f;
+            btn.style.borderBottomLeftRadius = 6f;
+            btn.style.borderBottomRightRadius = 6f;
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = hoverBg);
+            btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = baseBg);
+        }
+
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
+        private void ApplyGitHubDarkStyle()
+        {
+            style.backgroundColor = GitHubDark.Panel;
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
+
+            var titleBar = this.Q("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+            }
+
+            if (_titleLabel != null)
+                _titleLabel.style.color = GitHubDark.TextMain;
+
+            var closeBtn = this.Q<Button>("CloseButton");
+            if (closeBtn != null)
+            {
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;            // 작은배지 r4
+                closeBtn.style.color = GitHubDark.TextMain;
+            }
+        }
+
+        /// <summary>다크 슬롯 베이스 — 공용 UTKSlot 인스턴스 한정 인라인(클래스 미수정): 인셋 바닥 #0B0E14.</summary>
+        private static void ApplyDarkSlotBase(UTKSlot slot)
+        {
+            if (slot == null) return;
+            slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);   // 우드 베이크 이미지 제거
+            slot.style.backgroundColor = GitHubDark.BgBase;                        // 인셋 다크 바닥 #0B0E14
+            slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = 1f;
+            slot.style.borderTopLeftRadius = 6f;
+            slot.style.borderTopRightRadius = 6f;
+            slot.style.borderBottomLeftRadius = 6f;
+            slot.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+        }
+
+        /// <summary>GitHub-dark 레어도 팔레트 — epic 퍼플 #A371F7, 희귀/전설/유니크 금색 #E3B341(인벤 패턴 동일).</summary>
+        private static Color? RankColor(int rarityIndex)
+        {
+            switch (rarityIndex)
+            {
+                case 0: return GitHubDark.TextSub;                            // common — 보조그레이
+                case 1:
+                case 2: return GitHubDark.Accent;                             // uncommon/rare — 액센트
+                case 3: return new Color32(0xA3, 0x71, 0xF7, 0xFF);           // epic — 퍼플
+                case 4:
+                case 5: return GitHubDark.Gold;                               // legendary/unique — 금색
+                default: return null;                                         // 범위 밖 — 스트로크 유지
+            }
+        }
+
+        /// <summary>슬롯 테두리에 레어도 색 인라인 적용(utk-rank--* USS 대체 — 이 창 한정).</summary>
+        private static void ApplySlotRankBorder(UTKSlot slot, int rarityIndex)
+        {
+            if (slot == null) return;
+            var rank = RankColor(rarityIndex);
+            var c = rank ?? GitHubDark.Stroke;
+            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(c);
+        }
+
         private enum ItemMode { None, Food, Drug }
         private ItemMode _itemMode = ItemMode.None;
 
@@ -87,6 +214,7 @@ namespace ProjectName.UI.Toolkit
             BuildMenu();
             BuildItemSection();
             ApplyUIToolkitFont(this);
+            ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬 리스타일 — 이 창 한정 인라인
             style.display = DisplayStyle.None;
         }
 
@@ -99,7 +227,7 @@ namespace ProjectName.UI.Toolkit
             _headerLabel = new Label("");
             _headerLabel.name = "GuardHeader";
             _headerLabel.style.fontSize = 17f;
-            _headerLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            _headerLabel.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 기본 텍스트
             _headerLabel.style.marginLeft = 10f;
             _headerLabel.style.marginTop = 4f;
             _headerLabel.style.whiteSpace = WhiteSpace.Normal;
@@ -108,7 +236,7 @@ namespace ProjectName.UI.Toolkit
             _statusLabel = new Label("");
             _statusLabel.name = "GuardStatus";
             _statusLabel.style.fontSize = 13f;
-            _statusLabel.style.color = new StyleColor(UTKColor.AccentMagic);
+            _statusLabel.style.color = new StyleColor(GitHubDark.Accent);   // [GitHub-dark] 상태 메시지 — 액센트
             _statusLabel.style.marginLeft = 10f;
             _statusLabel.style.marginTop = 2f;
             _statusLabel.style.whiteSpace = WhiteSpace.Normal;
@@ -162,6 +290,7 @@ namespace ProjectName.UI.Toolkit
         private void AddMenuButton(string text, System.Action onClick, UTKButton.Variant variant)
         {
             var btn = UTKButton.Create(text, onClick, variant);
+            StyleButton(btn, variant);   // [GitHub-dark] 메뉴 버튼 인라인 리스타일
             btn.style.height = 44f;
             btn.style.marginTop = 6f;
             btn.style.marginLeft = 10f;
@@ -181,7 +310,7 @@ namespace ProjectName.UI.Toolkit
             _itemTitleLabel = new Label("🥩 음식 선택");
             _itemTitleLabel.name = "ItemTitle";
             _itemTitleLabel.style.fontSize = 17f;
-            _itemTitleLabel.style.color = new StyleColor(UTKColor.AccentRare);
+            _itemTitleLabel.style.color = new StyleColor(GitHubDark.Gold);   // [GitHub-dark] 섹션 제목 — 골드
             _itemTitleLabel.style.marginLeft = 10f;
             _itemTitleLabel.style.marginTop = 4f;
             _itemSection.Add(_itemTitleLabel);
@@ -198,7 +327,7 @@ namespace ProjectName.UI.Toolkit
             _itemEmptyLabel = new Label("보유한 아이템이 없습니다.");
             _itemEmptyLabel.name = "ItemEmpty";
             _itemEmptyLabel.style.fontSize = 13f;
-            _itemEmptyLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _itemEmptyLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 보조 텍스트
             _itemEmptyLabel.style.marginLeft = 10f;
             _itemEmptyLabel.style.marginTop = 10f;
             _itemSection.Add(_itemEmptyLabel);
@@ -406,27 +535,30 @@ namespace ProjectName.UI.Toolkit
 
             var slot = new UTKSlot();
             slot.name = "ItemIcon";
+            ApplyDarkSlotBase(slot);   // [GitHub-dark] 슬롯 = 인셋 다크 바닥 (bg_slot.png 제거)
             slot.style.width = 38f;
             slot.style.height = 38f;
             slot.style.flexShrink = 0f;
             slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(item));
             slot.SetRank(UTKRarity.ClassForIndex((int)item.rarity));
+            ApplySlotRankBorder(slot, (int)item.rarity);   // [GitHub-dark] 레어도 테두리 인라인
             row.Add(slot);
 
             var name = new Label(!string.IsNullOrEmpty(item.displayName) ? item.displayName : item.id);
             name.style.fontSize = 14f;
-            name.style.color = new StyleColor(UTKColor.TextPrimary);
+            name.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 기본 텍스트
             name.style.marginLeft = 8f;
             name.style.flexGrow = 1f;
             row.Add(name);
 
             var countLabel = new Label("x" + count);
             countLabel.style.fontSize = 13f;
-            countLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            countLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 보조 텍스트
             countLabel.style.marginRight = 8f;
             row.Add(countLabel);
 
             var giveBtn = UTKButton.Create("주기", () => GiveItem(item), UTKButton.Variant.Primary);
+            StyleButton(giveBtn, UTKButton.Variant.Primary);   // [GitHub-dark] 지급 버튼 인라인 리스타일
             giveBtn.style.width = 64f;
             giveBtn.style.height = 30f;
             giveBtn.style.flexShrink = 0f;

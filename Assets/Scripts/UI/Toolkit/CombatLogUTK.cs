@@ -32,6 +32,58 @@ namespace ProjectName.UI.Toolkit
         private bool _isVisible;
         private int _lastRenderCount = -1;
 
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 전투로그 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
+        //  Theme.uss / 공용 UTKButton·타 UTK 창은 절대 수정하지 않는다.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트)
+            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/활성/골드
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
+            public static readonly Color Danger   = Hex(0xF85149);   // danger 레드(GitHub-dark 토큰)
+            public static readonly Color Success  = Hex(0x3FB950);   // success 그린
+            public static readonly Color Warn     = Hex(0xD29922);   // attention 옐로
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
+        /// <summary>GitHub-dark 버튼 인라인 오버라이드(이 창 한정) — IStyle에 borderWidth 쇼트핸드가
+        ///   없어 4면 개별 대입. 호버는 진입/이탈 콜백으로 밝기 계층만 토글(시각만).</summary>
+        private static void StyleButton(Button btn, UTKButton.Variant variant)
+        {
+            if (btn == null) return;
+            Color baseBg, hoverBg, textColor;
+            switch (variant)
+            {
+                case UTKButton.Variant.Primary:
+                    baseBg = GitHubDark.Accent; hoverBg = new Color32(0x79, 0xC0, 0xFF, 0xFF); textColor = GitHubDark.BgBase; break;
+                case UTKButton.Variant.Danger:
+                    baseBg = GitHubDark.Danger; hoverBg = new Color32(0xDA, 0x36, 0x33, 0xFF); textColor = GitHubDark.TextMain; break;
+                default:
+                    baseBg = GitHubDark.PanelSub; hoverBg = GitHubDark.Stroke; textColor = GitHubDark.TextMain; break;
+            }
+
+            btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);   // 우드 베이크 이미지 제거
+            btn.style.backgroundColor = baseBg;
+            btn.style.color = textColor;
+            btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
+            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(baseBg);
+            btn.style.borderTopLeftRadius = 6f;
+            btn.style.borderTopRightRadius = 6f;
+            btn.style.borderBottomLeftRadius = 6f;
+            btn.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = hoverBg);
+            btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = baseBg);
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
@@ -66,22 +118,27 @@ namespace ProjectName.UI.Toolkit
             style.top = 60f;
             style.width = 500f;
             style.height = 450f;
-            style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            // [GitHub-dark] 창 본체 — 브론즈 베벨 제거, 다크 패널 + 1px 스트로크 + r8 (이 창 한정)
+            style.backgroundColor = new StyleColor(GitHubDark.Panel);
             style.borderTopWidth = 1f;
             style.borderBottomWidth = 1f;
             style.borderLeftWidth = 1f;
             style.borderRightWidth = 1f;
-            style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
-            style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
-            style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+            style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+            style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+            style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
             style.display = DisplayStyle.None;
 
             // 제목
             var title = new Label("⚔️ 전투 기록");
             title.style.fontSize = 15f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.color = new StyleColor(UTKColor.TextPrimary);
+            title.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 기본 텍스트
             title.style.paddingTop = 5f;
             title.style.paddingBottom = 4f;
             Add(title);
@@ -105,6 +162,7 @@ namespace ProjectName.UI.Toolkit
                 Debug.Log("[CombatLogUTK] 전체 로그 지움 (원본 CombatLog.Clear)");
             }, UTKButton.Variant.Danger);
             _clearBtn.style.marginTop = 6f;
+            StyleButton(_clearBtn, UTKButton.Variant.Danger);   // [GitHub-dark] danger 버튼 인라인 리스타일
             Add(_clearBtn);
 
             UTKWindowBase.ApplyUIToolkitFont(this);
@@ -168,7 +226,7 @@ namespace ProjectName.UI.Toolkit
                 var ts = new Label($"[{minutes:D2}:{seconds:D2}]");
                 ts.style.width = 62f;
                 ts.style.fontSize = 11f;
-                ts.style.color = new StyleColor(UTKColor.TextSecondary);
+                ts.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 타임스탬프 — 보조 텍스트/모노 톤
                 row.Add(ts);
 
                 // 메시지 (타입별 색상)
@@ -187,11 +245,11 @@ namespace ProjectName.UI.Toolkit
         {
             switch (type)
             {
-                case ProjectName.Systems.LogType.Damage:  return new Color(0.9f, 0.3f, 0.3f);
-                case ProjectName.Systems.LogType.Heal:    return new Color(0.3f, 0.9f, 0.4f);
-                case ProjectName.Systems.LogType.Kill:    return new Color(0.95f, 0.85f, 0.3f);
-                case ProjectName.Systems.LogType.Warning: return new Color(1f, 0.5f, 0.0f);
-                default:              return new Color(0.7f, 0.7f, 0.7f);
+                case ProjectName.Systems.LogType.Damage:  return GitHubDark.Danger;    // [GitHub-dark] danger 레드 #F85149
+                case ProjectName.Systems.LogType.Heal:    return GitHubDark.Success;   // success 그린 #3FB950
+                case ProjectName.Systems.LogType.Kill:    return GitHubDark.Gold;      // 골드 #E3B341
+                case ProjectName.Systems.LogType.Warning: return GitHubDark.Warn;      // attention #D29922
+                default:              return GitHubDark.TextSub;                       // 노멀 — 보조 텍스트 #8B949E
             }
         }
 

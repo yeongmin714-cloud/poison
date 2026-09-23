@@ -54,6 +54,107 @@ namespace ProjectName.UI.Toolkit
         private const float WinH = 560f;
         private const long RefreshMs = 250L;
 
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 영지 배치 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
+        //  Theme.uss / 공용 UTKButton·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(행/버튼)
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트)
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
+        /// <summary>GitHub-dark 버튼 인라인 오버라이드(이 창 한정) — IStyle 쇼트핸드 없음 → 4면 개별 대입.</summary>
+        private static void StyleButton(Button btn, UTKButton.Variant variant)
+        {
+            if (btn == null) return;
+            Color baseBg, hoverBg, textColor;
+            switch (variant)
+            {
+                case UTKButton.Variant.Primary:
+                    baseBg = GitHubDark.Accent; hoverBg = new Color32(0x79, 0xC0, 0xFF, 0xFF); textColor = GitHubDark.Panel; break;
+                case UTKButton.Variant.Danger:
+                    baseBg = new Color32(0xF8, 0x51, 0x49, 0xFF); hoverBg = new Color32(0xDA, 0x36, 0x33, 0xFF); textColor = GitHubDark.TextMain; break;
+                default:
+                    baseBg = GitHubDark.PanelSub; hoverBg = GitHubDark.Stroke; textColor = GitHubDark.TextMain; break;
+            }
+
+            btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            btn.style.backgroundColor = baseBg;
+            btn.style.color = textColor;
+            btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
+            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(baseBg);
+            btn.style.borderTopLeftRadius = 6f;
+            btn.style.borderTopRightRadius = 6f;
+            btn.style.borderBottomLeftRadius = 6f;
+            btn.style.borderBottomRightRadius = 6f;
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = hoverBg);
+            btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = baseBg);
+        }
+
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
+        private void ApplyGitHubDarkStyle()
+        {
+            style.backgroundColor = GitHubDark.Panel;
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
+
+            var titleBar = this.Q("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+            }
+
+            if (_titleLabel != null)
+                _titleLabel.style.color = GitHubDark.TextMain;
+
+            var closeBtn = this.Q<Button>("CloseButton");
+            if (closeBtn != null)
+            {
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;            // 작은배지 r4
+                closeBtn.style.color = GitHubDark.TextMain;
+            }
+        }
+
+        /// <summary>GitHub-dark 리스트 행(영지 항목) — 보조 패널 #21262D + 1px 스트로크 + r6 (이 창 한정).</summary>
+        private static void ApplyDarkRowStyle(VisualElement row)
+        {
+            if (row == null) return;
+            row.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            row.style.backgroundColor = GitHubDark.PanelSub;
+            row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 1f;
+            row.style.borderTopColor = row.style.borderBottomColor = row.style.borderLeftColor = row.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            row.style.borderTopLeftRadius = 6f;
+            row.style.borderTopRightRadius = 6f;
+            row.style.borderBottomLeftRadius = 6f;
+            row.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+        }
+
         // ===== 레퍼런스 =====
         private readonly VisualElement _list;
         private Label _summaryLabel;
@@ -71,6 +172,7 @@ namespace ProjectName.UI.Toolkit
             _summaryLabel = new Label("⚔️ 영지 병사 배치");
             _summaryLabel.AddToClassList("utk-title-label");
             _summaryLabel.style.fontSize = 18f;
+            _summaryLabel.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 요약 제목 — 기본 텍스트
             _content.Add(_summaryLabel);
 
             _list = new VisualElement();
@@ -80,6 +182,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(_list);
 
             ApplyUIToolkitFont(this);
+            ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬 리스타일 — 이 창 한정 인라인
 
             // 기본 숨김 + 위치
             style.display = DisplayStyle.None;
@@ -163,13 +266,14 @@ namespace ProjectName.UI.Toolkit
 
                 var row = new VisualElement();
                 row.name = "TerrRow_" + seen;
+                ApplyDarkRowStyle(row);   // [GitHub-dark] 영지 행 = 보조 패널 리스트 아이템 (bg #21262D + 스트로크 + r6)
                 row.style.flexDirection = FlexDirection.Column;
-                row.style.borderTopWidth = 1f;
-                row.style.borderTopColor = new StyleColor(UTKColor.IronLine);
+                row.style.paddingLeft = 6f;   // 다크 행 배경 내 여백 (가시 전용)
+                row.style.paddingRight = 6f;
                 row.style.paddingTop = 4f;
                 row.style.paddingBottom = 6f;
 
-                row.Add(MakeLabel($"◆ {def.territoryName}  [병사 {count} · {role}]", UTKColor.TextPrimary));
+                row.Add(MakeLabel($"◆ {def.territoryName}  [병사 {count} · {role}]", GitHubDark.TextMain));   // [GitHub-dark] 기본 텍스트
 
                 // ── 역할 버튼 세로: 2개 행에 나눔 (행당 4개) ──
                 AddButtonRow(row,
@@ -197,10 +301,10 @@ namespace ProjectName.UI.Toolkit
                 {
                     var targets = GetAttackTargets(def.id);
                     if (targets.Count == 0)
-                        row.Add(MakeLabel("(대상 영지 없음)", UTKColor.TextSecondary));
+                        row.Add(MakeLabel("(대상 영지 없음)", GitHubDark.TextSub));   // [GitHub-dark] 보조 텍스트
                     else
                     {
-                        row.Add(MakeLabel("🕵️ 특사 대상 영지 선택:", UTKColor.TextSecondary));
+                        row.Add(MakeLabel("🕵️ 특사 대상 영지 선택:", GitHubDark.TextSub));   // [GitHub-dark] 보조 텍스트
                         foreach (var targetDef in targets)
                         {
                             var tBtn = UTKButton.Create(
@@ -212,6 +316,7 @@ namespace ProjectName.UI.Toolkit
                                     RefreshList();
                                 },
                                 UTKButton.Variant.Primary);
+                            StyleButton(tBtn, UTKButton.Variant.Primary);   // [GitHub-dark] 대상 버튼 인라인 리스타일
                             row.Add(tBtn);
                         }
                         row.Add(UTKButton.Create("선택 취소", () =>

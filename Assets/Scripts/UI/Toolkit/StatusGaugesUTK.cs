@@ -16,6 +16,19 @@ namespace ProjectName.UI.Toolkit
     {
         private static StatusGaugesUTK _instance;
 
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 상태 게이지 한정 인라인 오버라이드 — 링 fill 색만 GitHub-dark
+        //  토큰(danger 레드/success 그린)으로 정렬. 데이터/폴링 로직 무수정.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color Danger  = Hex(0xF85149);   // 체력 링 — danger 레드
+            public static readonly Color Success = Hex(0x3FB950);   // 스태미너 링 — success 그린
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
         private UTKCircularGauge _hp;
         private UTKCircularGauge _stamina;
         private IVisualElementScheduledItem _poll;
@@ -48,7 +61,7 @@ namespace ProjectName.UI.Toolkit
             _stamina.style.position = Position.Absolute;
             _stamina.style.left = 0f;
             _stamina.style.top = 0f;
-            _stamina.FillColor = new Color(0.25f, 0.8f, 0.4f, 1f);
+            _stamina.FillColor = GitHubDark.Success;   // [GitHub-dark] success 그린 #3FB950
             Add(_stamina);
 
             // 안쪽 링: 체력(레드) — 스태미너 링 안에 겹침
@@ -58,7 +71,7 @@ namespace ProjectName.UI.Toolkit
             _hp.style.position = Position.Absolute;
             _hp.style.left = 18f;
             _hp.style.top = 18f;
-            _hp.FillColor = new Color(0.9f, 0.25f, 0.2f, 1f);
+            _hp.FillColor = GitHubDark.Danger;   // [GitHub-dark] danger 레드 #F85149
             Add(_hp);
 
             // 중앙 아이콘: 하트(베이크 PNG) + 좌상단 소형 번개
