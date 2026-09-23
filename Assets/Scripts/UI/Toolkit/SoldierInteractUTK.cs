@@ -249,6 +249,11 @@ namespace ProjectName.UI.Toolkit
             _menuSection.name = "MenuSection";
             _menuSection.style.flexGrow = 1f;
             _menuSection.style.marginTop = 8f;
+            // [F-UI Phase4] Figma interaction-panel — 2×2 액션 그리드(wrap row, 버튼 50%폭)
+            _menuSection.style.flexDirection = FlexDirection.Row;
+            _menuSection.style.flexWrap = Wrap.Wrap;
+            _menuSection.style.alignItems = Align.Stretch;
+            _menuSection.style.justifyContent = Justify.FlexStart;
             _content.Add(_menuSection);
 
             // [P30-B] 버튼은 여기서 채우지 않는다 — 생성 시점엔 _guard가 null(OpenForGuard에서 세팅).
@@ -256,46 +261,48 @@ namespace ProjectName.UI.Toolkit
         }
 
         /// <summary>
-        /// [P30-B] 메뉴 2분기 재구성 — _guard.IsAlly에 따라 _menuSection을 다시 채운다 (멱등, OpenForGuard/Show에서 호출).
-        ///  적병사(!IsAlly): 🗣️ 말걸기 / 💰 뇌물주기(신규) / 💊 약주기 / 🤝 포섭 / 📋 병사 정보보기 / 🔙 닫기
-        ///  아군병사(IsAlly): 기존 메뉴 그대로 유지 — 아군 전용 신규 기능은 Phase 3.
+        /// [P30-B] 메뉴 재구성 — _guard.IsAlly에 따라 _menuSection을 다시 채운다 (멱등).
+        /// [F-UI Phase4] Figma 액션 그리드 순서: 상태보기 / 대화하기 / [맥락1] / [맥락2]
+        ///  적병사(!IsAlly): 상태보기 / 대화하기 / 뇌물주기 / 포섭하기
+        ///  아군병사(IsAlly): 상태보기 / 대화하기 / 물약주기 / 음식주기
+        /// 상단 헤더 ✕ 버튼이 닫기 역할(메뉴에 별도 닫기 미포함 — Figma 4칸 그리드와 정합).
         /// </summary>
         private void RebuildMenuForGuard()
         {
             if (_menuSection == null) return;
             _menuSection.Clear();
 
-            AddMenuButton("🗣️ 말걸기", OnTalkClicked, UTKButton.Variant.Secondary);
+            // 1) 상태보기 / 2) 대화하기 (공통)
+            AddMenuButton("상태보기", OnInfoClicked, UTKButton.Variant.Primary);
+            AddMenuButton("대화하기", OnTalkClicked, UTKButton.Variant.Secondary);
 
             if (_guard != null && _guard.IsAlly)
             {
-                // 아군 — 기존 메뉴 그대로 (음식/약/포섭/정보). 신규 기능 추가 없음(Phase 3 담당).
-                AddMenuButton("🥩 음식주기", () => ShowItemSection(ItemMode.Food), UTKButton.Variant.Secondary);
-                AddMenuButton("💊 약주기", () => ShowItemSection(ItemMode.Drug), UTKButton.Variant.Secondary);
-                AddMenuButton("🤝 포섭", OnRecruitClicked, UTKButton.Variant.Secondary);
+                // 아군병사 — 물약주기 / 음식주기 (맥락 페어)
+                AddMenuButton("물약주기", () => ShowItemSection(ItemMode.Drug), UTKButton.Variant.Secondary);
+                AddMenuButton("음식주기", () => ShowItemSection(ItemMode.Food), UTKButton.Variant.Secondary);
             }
             else
             {
-                // 적병사 — 💰 뇌물주기 신규(레벨 스케일 단가 표시). 클릭 핸들러에서도 아군이면 무시.
+                // 적병사 — 뇌물주기 / 포섭하기 (맥락 페어), 뇌물 단가 표시
                 int bribeCost = _guard != null ? GuardLoyaltySystem.GetBribeCost(_guard.Level) : GuardLoyaltySystem.GetBribeCost(1);
-                AddMenuButton($"💰 뇌물주기 ({bribeCost}골드)", OnBribeClicked, UTKButton.Variant.Secondary);
-                AddMenuButton("💊 약주기", () => ShowItemSection(ItemMode.Drug), UTKButton.Variant.Secondary);
-                AddMenuButton("🤝 포섭", OnRecruitClicked, UTKButton.Variant.Secondary);
+                AddMenuButton($"뇌물주기 ({bribeCost}골드)", OnBribeClicked, UTKButton.Variant.Secondary);
+                AddMenuButton("포섭하기", OnRecruitClicked, UTKButton.Variant.Secondary);
             }
-
-            AddMenuButton("📋 병사 정보보기", OnInfoClicked, UTKButton.Variant.Primary);
-            AddMenuButton("🔙 닫기", Close, UTKButton.Variant.Danger);
         }
 
         private void AddMenuButton(string text, System.Action onClick, UTKButton.Variant variant)
         {
             var btn = UTKButton.Create(text, onClick, variant);
             StyleButton(btn, variant);   // [GitHub-dark] 메뉴 버튼 인라인 리스타일
-            btn.style.height = 44f;
-            btn.style.marginTop = 6f;
-            btn.style.marginLeft = 10f;
-            btn.style.marginRight = 10f;
-            btn.style.fontSize = 16f;
+            // [F-UI Phase4] Figma 2×2 액션 그리드 — 버튼 50%폭(2열 wrap), compact
+            btn.style.width = new Length(50f, LengthUnit.Percent);
+            btn.style.height = 48f;
+            btn.style.marginTop = 4f;
+            btn.style.marginBottom = 2f;
+            btn.style.marginLeft = 3f;
+            btn.style.marginRight = 3f;
+            btn.style.fontSize = 15f;
             _menuSection.Add(btn);
         }
 
