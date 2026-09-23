@@ -64,9 +64,10 @@ namespace ProjectName.UI.Toolkit
         private const float  NpcH              = 26f;   // NPC 이름표 높이
 
         // 라벨 배경 (다크 갈색 아크릴 반투명) — 요구 rgba(30,24,18,0.82)
-        private static readonly Color LabelBgColor   = new Color(30 / 255f, 24 / 255f, 18 / 255f, 0.82f);
-        private static readonly Color GoldRing       = new Color(0xC9 / 255f, 0xA2 / 255f, 0x27 / 255f, 1f);
-        private static readonly Color TroughBg       = new Color(0.045f, 0.033f, 0.022f, 1f); // 거의 검정 트로프
+        // [F-UI Phase1] GitHub-dark 팔레트 — Figma reference-monster-health-bar(어두운 트로프+적색 채움)
+        private static readonly Color LabelBgColor   = new Color(0.086f, 0.114f, 0.133f, 0.92f); // #161B22 패널
+        private static readonly Color GoldRing       = new Color(46 / 255f, 52 / 255f, 61 / 255f, 1f); // #2E343D 슬레이트 스트로크
+        private static readonly Color TroughBg       = new Color(0x45 / 255f, 0x12 / 255f, 0x12 / 255f, 1f); // #451212 다크 적색 트로프(HP바 트랙)
         private static readonly Color BevelTopHi     = new Color(1f, 1f, 1f, 0.16f);          // 상좌 밝은 하이라이트
         private static readonly Color BevelBottomLo  = new Color(0f, 0f, 0f, 0.45f);          // 하우 어두운 베벨
 

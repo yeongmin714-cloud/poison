@@ -95,8 +95,11 @@ namespace ProjectName.UI.Toolkit
                 keyLabel.style.height = 20f;
                 keyLabel.style.fontSize = 12f;
                 keyLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-                keyLabel.style.color = new StyleColor(UTKColor.TextSecondary);
-                keyLabel.style.backgroundColor = new StyleColor(new Color(0.10f, 0.10f, 0.12f, 0.9f));
+                // [F-UI Phase1] Figma 퀵슬롯 HotkeyBadge — 밝은 배지 #F0F3F5 + 다크 텍스트 #1A1D20 + r4
+                keyLabel.style.color = new StyleColor(new Color(0.10f, 0.11f, 0.13f, 1f));
+                keyLabel.style.backgroundColor = new StyleColor(UTKColor.TextPrimary);
+                keyLabel.style.borderTopLeftRadius = 4f; keyLabel.style.borderTopRightRadius = 4f;
+                keyLabel.style.borderBottomLeftRadius = 4f; keyLabel.style.borderBottomRightRadius = 4f;
                 cell.Add(keyLabel);
 
                 _slots[i] = slot;
