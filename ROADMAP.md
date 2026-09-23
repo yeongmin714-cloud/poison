@@ -3385,7 +3385,7 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 | Phase | 항목 | 상태 |
 |:--|:--|:--:|
-| A | 새 GLB를 `IdyllicPrefabs` 풀 필터명(WillowTree/Broadleaf_색/Fir/BlossomTree/Rock_Big|Med|Small/Grass/Flower_*/Bush_*/Cattail/Reeds)으로 프리팹 추가 — 테마×destroyed 포함 480종 | 🔄 P-A 대기 |
+| A | 새 GLB를 `IdyllicPrefabs` 풀 필터명으로 프리팹 추가 — 테마×destroyed 포함 480종 | ✅ 415개 합성(기존 74→489)·컴파일/EditMode 통과 |
 | B | 바이옴별 종 교체·스케일·컬라이더 보정 (동=활엽/북=Fir·설암/서=화산암/남=사막) | ⏳ 대기 |
 | C | 과일나무→Gather, 허브·꽃→HerbPickup, 돌→ResourceNode(채굴) 배선 | ⏳ 대기 |
 | D | 연못가·수변 재배치 + 크기 Play 스샷 수렴 | ⏳ 대기 |
