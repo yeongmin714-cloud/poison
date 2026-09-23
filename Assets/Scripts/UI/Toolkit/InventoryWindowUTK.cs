@@ -64,123 +64,104 @@ namespace ProjectName.UI.Toolkit
         private const long RefreshMs = 250L;
 
         // =====================================================================
-        //  [Figma 리스타일] 우드/양피지 인벤 시각 스펙 — 기능 무수정, 이 창 한정 인라인 오버라이드.
+        //  [Figma GitHub-dark 리스타일] 인벤 시각 스펙 — 기능 무수정, 이 창 한정 인라인 오버라이드.
         //  Theme.uss / 공용 UTKSlot·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  우드/양피지 배경 이미지 제거 → 다크 #161B22 패널 + 보조 #21262D + 스트로크 #2E343D.
         //  =====================================================================
-        private static class Parchment
+        private static class GitHubDark
         {
-            public static readonly Color Paper         = Hex(0xF4E7D8);   // 창 배경(양피지)
-            public static readonly Color Line          = Hex(0xD8C1A8);   // 경계/디바이더 1px
-            public static readonly Color Ink           = Hex(0x6B4A36);   // 라벨/수치 다크 브라운
-            public static readonly Color Amber         = Hex(0xE4A163);   // 액센트 — 호버 틴트
-            public static readonly Color CloseDark     = Hex(0x3A221C);   // 닫기 버튼 바닥색
-            public static readonly Color RankCommon    = Hex(0x85583E);   // common/일반재료 — 브라운
-            public static readonly Color RankBlue      = Hex(0x0099FF);   // uncommon/rare — 블루
-            public static readonly Color RankEpic      = Hex(0x9F3FF0);   // epic — 퍼플
-            public static readonly Color RankLegendary = Hex(0xFF7700);   // legendary 계열 — 주황
+            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경 — 슬롯 인셋 바닥
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(타이틀바/닫기버튼)
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트) — 호버
+            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/활성/골드
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/슬롯 stroke
+
+            // 레어도 링 — GitHub-dark 팔레트 정렬(epic은 프라이머 퍼플 #A371F7)
+            public static readonly Color RankCommon    = TextSub;
+            public static readonly Color RankBlue      = Accent;
+            public static readonly Color RankEpic      = Hex(0xA371F7);
+            public static readonly Color RankLegendary = Gold;
+            public static readonly Color RankUnique    = Gold;
 
             private static Color Hex(uint rgb) =>
                 new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
         }
 
-        // 베이크 에셋 캐시 — 실패 반복 로드 방지(tried 플래그)
-        private static Texture2D _woodSlotTex;
-        private static bool _woodSlotTried;
-        private static Texture2D WoodSlotTex
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
+        private void ApplyGitHubDarkWindowStyle()
         {
-            get
-            {
-                if (_woodSlotTex == null && !_woodSlotTried)
-                {
-                    _woodSlotTried = true;
-                    _woodSlotTex = Resources.Load<Texture2D>("UI/InventorySlotWood");
-                }
-                return _woodSlotTex;
-            }
-        }
-        private static Texture2D _closeBtnTex;
-        private static bool _closeBtnTried;
-        private static Texture2D CloseBtnTex
-        {
-            get
-            {
-                if (_closeBtnTex == null && !_closeBtnTried)
-                {
-                    _closeBtnTried = true;
-                    _closeBtnTex = Resources.Load<Texture2D>("UI/InventoryCloseBtnWood");
-                }
-                return _closeBtnTex;
-            }
-        }
-
-        /// <summary>창 크롬(본체/타이틀바/닫기버튼) 양피지 리스타일 — 생성 시 1회.</summary>
-        private void ApplyParchmentWindowStyle()
-        {
-            // 창 본체: bg_window.png/브론즈 베벨 2px → 양피지 + 1px 라인 + r16 (이 창에서만)
-            style.backgroundColor = Parchment.Paper;
+            // 창 본체: bg_window.png/브론즈 베벨 2px → 다크 패널 + 1px 스트로크 + r8 (이 창에서만)
+            style.backgroundColor = GitHubDark.Panel;
             style.backgroundImage = new StyleBackground(StyleKeyword.None);
             style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
-            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = Parchment.Line;
-            style.borderTopLeftRadius = 16f;
-            style.borderTopRightRadius = 16f;
-            style.borderBottomLeftRadius = 16f;
-            style.borderBottomRightRadius = 16f;
-            style.color = Parchment.Ink;   // 명시색 없는 라벨 상속색 — 다크 브라운
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
 
-            // 타이틀 바: 다크 배경 투명화 + 하단 1px 디바이더
+            // 타이틀 바: 보조 패널 #21262D + 하단 1px 스트로크 (상단 코너 r8 — 창 클리핑 정합)
             var titleBar = this.Q("TitleBar");
             if (titleBar != null)
             {
-                titleBar.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
                 titleBar.style.borderBottomWidth = 1f;
-                titleBar.style.borderBottomColor = Parchment.Line;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
             }
 
-            // 타이틀 라벨: 잉크색
+            // 타이틀 라벨: 기본 텍스트
             if (_titleLabel != null)
-                _titleLabel.style.color = Parchment.Ink;
+                _titleLabel.style.color = GitHubDark.TextMain;
 
-            // 닫기 버튼: Figma 베이크 적용 — ✕ 글리프가 이미지에 포함되어 텍스트는 숨김(클릭 로직 무관).
-            //   텍스처 로드 실패 시 기본 ✕ 유지(회귀 없음).
+            // 닫기 버튼: 보조 패널 바탕 + 스트로크 + r4(작은배지). 베이크 텍스처 미사용 — 기본 ✕ 텍스트 유지.
             var closeBtn = this.Q<Button>("CloseButton");
-            if (closeBtn != null && CloseBtnTex != null)
+            if (closeBtn != null)
             {
-                closeBtn.style.backgroundImage = UTKTextureSafe.ToBackground(CloseBtnTex);
-                closeBtn.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
-                closeBtn.style.backgroundColor = Parchment.CloseDark;   // 라운드 코너 알파 뒤 바닥
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
                 closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
-                closeBtn.style.borderTopLeftRadius = 6f;
-                closeBtn.style.borderTopRightRadius = 6f;
-                closeBtn.style.borderBottomLeftRadius = 6f;
-                closeBtn.style.borderBottomRightRadius = 6f;            // Figma r=6
-                closeBtn.text = "";
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;            // 작은배지 r4
+                closeBtn.style.color = GitHubDark.TextMain;
             }
         }
 
-        /// <summary>우드 슬롯 베이스 — Theme bg_slot.png/음각 베벨을 베이크 이미지로 대체(인벤 창 한정).
-        ///   기존 USS 호버 골드 글로우는 인라인 배경에 가려지므로, 앰버 테두리 틴트 콜백으로 톤만 유지(시각만).</summary>
-        private static void ApplyWoodSlotBase(UTKSlot slot)
+        /// <summary>다크 슬롯 베이스 — Theme bg_slot.png/음각 베벨을 제거하고 다크 인셋 패널로 대체(인벤 창 한정).
+        ///   USS 호버 골드 글로우는 인라인 배경에 가려지므로, 액센트 테두리 틴트 콜백으로 톤만 유지(시각만).</summary>
+        private static void ApplyDarkSlotBase(UTKSlot slot)
         {
             if (slot == null) return;
-            var tex = WoodSlotTex;
-            if (tex != null)
-            {
-                slot.style.backgroundImage = UTKTextureSafe.ToBackground(tex);
-                slot.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));   // 코너 알파 뒤 어두운 바닥 제거
-                slot.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
-            }
+            slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);   // 우드 베이크 이미지 제거
+            slot.style.backgroundColor = GitHubDark.BgBase;                        // 인셋 다크 바닥 #0B0E14
+            slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = 1f;
+            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            slot.style.borderTopLeftRadius = 6f;
+            slot.style.borderTopRightRadius = 6f;
+            slot.style.borderBottomLeftRadius = 6f;
+            slot.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+            var countLabel = slot.Q<Label>("Count");
+            if (countLabel != null) countLabel.style.color = GitHubDark.TextMain;
 
-            // 호버 강조(시각만): 진입=앰버 테두리, 이탈=현재 등급색 복원(userData 경유 — 등급 갱신 추적)
-            slot.RegisterCallback<PointerEnterEvent>(_ => SetBorderColorAll(slot, Parchment.Amber));
+            // 호버 강조(시각만): 진입=액센트 테두리, 이탈=현재 등급색 복원(userData 경유 — 등급 갱신 추적)
+            slot.RegisterCallback<PointerEnterEvent>(_ => SetBorderColorAll(slot, GitHubDark.Accent));
             slot.RegisterCallback<PointerLeaveEvent>(_ =>
             {
                 var rank = RankColor(slot.userData is int i ? i : 0);
                 if (rank.HasValue) SetBorderColorAll(slot, rank.Value);
-                else ClearInlineBorderColor(slot);   // unique 등 — Theme 기본 등급색 복귀
+                else ClearInlineBorderColor(slot);   // Theme 기본 등급색 복귀
             });
         }
 
-        /// <summary>등급 테두리 색 정렬 — 기존 utk-rank--* 클래스 로직 유지, 색만 Figma 팔레트로(인벤 창 한정 인라인).</summary>
+        /// <summary>등급 테두리 색 정렬 — 기존 utk-rank--* 클래스 로직 유지, 색만 GitHub-dark 팔레트로(인벤 창 한정 인라인).</summary>
         private static void ApplyRankBorder(UTKSlot slot, int rarityIndex)
         {
             if (slot == null) return;
@@ -210,17 +191,18 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
-        /// <summary>Figma 레어도 팔레트 — 미지정(unique)은 null로 Theme 기본 유지.</summary>
+        /// <summary>GitHub-dark 레어도 팔레트 — 희귀/전설/유니크는 금색 #E3B341로 통일.</summary>
         private static Color? RankColor(int rarityIndex)
         {
             switch (rarityIndex)
             {
-                case 0: return Parchment.RankCommon;     // common/일반재료 — 브라운 #85583E
+                case 0: return GitHubDark.RankCommon;     // common — 보조그레이 #8B949E
                 case 1:
-                case 2: return Parchment.RankBlue;       // uncommon/rare — 블루 #0099FF
-                case 3: return Parchment.RankEpic;       // epic — 퍼플 #9F3FF0
-                case 4: return Parchment.RankLegendary;  // legendary 계열 — 주황 #FF7700
-                default: return null;                    // unique — Theme 골드 유지(스펙 미지정)
+                case 2: return GitHubDark.RankBlue;       // uncommon/rare — 액센트 #58A6FF
+                case 3: return GitHubDark.RankEpic;       // epic — 퍼플 #A371F7
+                case 4:
+                case 5: return GitHubDark.RankLegendary;  // legendary/unique — 금색 #E3B341
+                default: return null;                     // 범위 밖 — Theme 기본 유지
             }
         }
 
@@ -276,7 +258,7 @@ namespace ProjectName.UI.Toolkit
 
             var equipTitle = new Label("장비");
             equipTitle.style.fontSize = 17f;
-            equipTitle.style.color = new StyleColor(Parchment.Ink);   // [Figma] 라벨 다크 브라운(기존 AccentRare 골드 대체)
+            equipTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 라벨 기본 텍스트
             equipTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             leftCol.Add(equipTitle);
 
@@ -290,7 +272,7 @@ namespace ProjectName.UI.Toolkit
 
             var bagTitle = new Label("가방");
             bagTitle.style.fontSize = 17f;
-            bagTitle.style.color = new StyleColor(Parchment.Ink);   // [Figma] 라벨 다크 브라운(기존 TextPrimary 웜화이트 대체)
+            bagTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 라벨 기본 텍스트
             bagTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             leftCol.Add(bagTitle);
 
@@ -304,7 +286,7 @@ namespace ProjectName.UI.Toolkit
 
             _selectedLabel = new Label("");
             _selectedLabel.style.fontSize = 13f;
-            _selectedLabel.style.color = new StyleColor(Parchment.Ink);   // [Figma] 수치/설명 텍스트 다크 브라운(기존 TextSecondary 대체)
+            _selectedLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 수치/설명 보조 텍스트
             _selectedLabel.style.whiteSpace = WhiteSpace.Normal;
             _selectedLabel.style.marginTop = 4f;
             leftCol.Add(_selectedLabel);
@@ -313,8 +295,8 @@ namespace ProjectName.UI.Toolkit
 
             ApplyUIToolkitFont(this);
 
-            // [Figma 리스타일] 우드/양피지 창 크롬 — 시각 전용, 기능 경로 무관(테스트 범위: 이 창 한정)
-            ApplyParchmentWindowStyle();
+            // [Figma GitHub-dark 리스타일] 다크 창 크롬 — 시각 전용, 기능 경로 무관(테스트 범위: 이 창 한정)
+            ApplyGitHubDarkWindowStyle();
 
             // 윈도우 자체 = ②Loot 수령 / ③패널 위 인벤 취소 타겟 (슬롯보다 하위 우선).
             UTKDragDrop.RegisterDropTarget(this, this);
@@ -392,8 +374,8 @@ namespace ProjectName.UI.Toolkit
                 equipSlot.style.height = 44f;
                 equipSlot.style.flexShrink = 0f;
                 equipSlot.SetRank("common");
-                ApplyWoodSlotBase(equipSlot);   // [Figma] 빈 슬롯=베이크 우드 이미지 + 호버 앰버 틴트 (인벤 창 한정)
-                ApplyRankBorder(equipSlot, 0);  // [Figma] common 브라운 링
+                ApplyDarkSlotBase(equipSlot);   // [GitHub-dark] 빈 슬롯=다크 인셋 + 호버 액센트 틴트 (인벤 창 한정)
+                ApplyRankBorder(equipSlot, 0);  // [GitHub-dark] common 보조그레이 링
                 row.Add(equipSlot);
                 _equipSlotIcons[slot.ToString()] = equipSlot;
 
@@ -431,13 +413,13 @@ namespace ProjectName.UI.Toolkit
                     {
                         iconSlot.SetIcon(ItemIconDatabase.GetOrCreateIcon(itemData));
                         iconSlot.SetRank(UTKRarity.ClassForIndex((int)itemData.rarity));
-                        ApplyRankBorder(iconSlot, (int)itemData.rarity);   // [Figma] 등급색 팔레트 정렬(인라인)
+                        ApplyRankBorder(iconSlot, (int)itemData.rarity);   // [GitHub-dark] 등급색 팔레트 정렬(인라인)
                     }
                     else
                     {
                         iconSlot.SetIcon(null);
                         iconSlot.SetRank("common");
-                        ApplyRankBorder(iconSlot, 0);   // [Figma] common 브라운 링
+                        ApplyRankBorder(iconSlot, 0);   // [GitHub-dark] common 보조그레이 링
                     }
                 }
             }
@@ -582,7 +564,7 @@ namespace ProjectName.UI.Toolkit
             cell.style.marginBottom = 2f;
             cell.style.marginLeft = 3f;
             cell.style.marginRight = 3f;
-            ApplyWoodSlotBase(cell);   // [Figma] 모든 그리드 셀에 우드 베이크 이미지 + 호버 앰버 틴트 (인벤 창 한정)
+            ApplyDarkSlotBase(cell);   // [GitHub-dark] 모든 그리드 셀 다크 인셋 + 호버 액센트 틴트 (인벤 창 한정)
 
             if (idx < total && slots[idx] != null && slots[idx].item != null && slots[idx].count > 0)
             {
@@ -590,7 +572,7 @@ namespace ProjectName.UI.Toolkit
                 cell.SetIcon(ItemIconDatabase.GetOrCreateIcon(slotData.item));
                 cell.SetCount(slotData.count);
                 cell.SetRank(UTKRarity.ClassForIndex((int)slotData.item.rarity));
-                ApplyRankBorder(cell, (int)slotData.item.rarity);   // [Figma] 등급색 팔레트 정렬(인라인)
+                ApplyRankBorder(cell, (int)slotData.item.rarity);   // [GitHub-dark] 등급색 팔레트 정렬(인라인)
 
                 // ③ 인벤 소스 드래그(좌/우) + 좌클릭 설명 + 우클릭 비드래그=사용/장착
                 int globalIdx = idx;
@@ -608,7 +590,7 @@ namespace ProjectName.UI.Toolkit
             else
             {
                 cell.SetRank("common");   // 빈 셀 가이드
-                ApplyRankBorder(cell, 0);   // [Figma] 빈 슬롯 common 브라운 링
+                ApplyRankBorder(cell, 0);   // [GitHub-dark] 빈 슬롯 common 보조그레이 링
             }
 
             return cell;

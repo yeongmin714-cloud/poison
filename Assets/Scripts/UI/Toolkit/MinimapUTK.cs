@@ -59,6 +59,7 @@ namespace ProjectName.UI.Toolkit
         private VisualElement _mapFrame;       // 원형 마스킹용 오버레이 프레임
         private VisualElement _markerHost;     // 영지/퀘스트 마커 (절대배치)
         private VisualElement _playerMarker;   // 플레이어 삼각/사각 마커
+        private VisualElement _bezel;          // [Figma] MinimapBezel.png 베젤 오버레이
         private Label _tempText;               // 온도 수치
         private Label _soundText;              // 소음 수치
         private Label _weatherText;            // 날씨 아이콘
@@ -106,6 +107,24 @@ namespace ProjectName.UI.Toolkit
             _mapFrame.style.borderBottomLeftRadius = radius;
             _mapFrame.style.borderBottomRightRadius = radius;
             Add(_mapFrame);
+
+            // [Figma GitHub-dark] MinimapBezel.png 베젤 링 오버레이 — 맵 프레임 테두리를
+            // 베젤 텍스처 링이 살짝 덮는 방식 (원형 지도 위 스트랩). pickingMode=Ignore.
+            _bezel = new VisualElement();
+            _bezel.name = "MapBezel";
+            _bezel.style.position = Position.Absolute;
+            _bezel.style.left = 0f;
+            _bezel.style.top = 0f;
+            _bezel.style.width = Diameter;
+            _bezel.style.height = Diameter;
+            _bezel.pickingMode = PickingMode.Ignore;
+            var bezelTex = Resources.Load<Texture2D>("UI/MinimapBezel");
+            if (bezelTex != null)
+            {
+                _bezel.style.backgroundImage = UTKTextureSafe.ToBackground(bezelTex);
+                _bezel.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+            }
+            Add(_bezel);
 
             _mapCanvas = new VisualElement();
             _mapCanvas.name = "MapCanvas";

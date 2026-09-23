@@ -71,6 +71,18 @@ namespace ProjectName.UI.Toolkit
         private VisualElement _ringHpFill;      // [예시 정합] 원형 HP 게이지
         private VisualElement _ringStaminaFill; // [예시 정합] 원형 스태미너 게이지
         private UnityEngine.UIElements.IVisualElementScheduledItem _pollTask; // [U8] 폴링
+
+        // [Figma GitHub-dark] 우상단 원형 게이지 2종 — HudGaugeRing.png + UTKCircularGauge + 아이콘
+        private const float  GaugeSize       = 240f;  // 게이지 지름 (Figma 요구)
+        private const float  GaugeGap        = 24f;
+        private const float  GaugeIconSize   = 72f;   // 중앙 아이콘 (heart/flash)
+        private readonly Color _gaugeStColor = new Color(0.247f, 0.725f, 0.314f, 1f); // GitHub green #3FB950 (청록/녹)
+        private VisualElement    _circularHost;   // 우상단 게이지 호스트
+        private UTKCircularGauge _hpGauge;        // 원형 HP 게이지 (빨강/심장색)
+        private UTKCircularGauge _staminaGauge;   // 원형 스테미너 게이지 (녹)
+        private Texture2D        _gaugeRingTex;   // UI/HudGaugeRing
+        private Texture2D        _heartTex;       // UI/icons/heart
+        private Texture2D        _flashTex;       // UI/icons/flash
         // [U8 정리] 퀵슬롯 섹션 제거 — HotbarUIUTK(아이템 핫바 1~8)가 담당 (중복 슬롯 은퇴)
 
         private HUDUTK()
@@ -82,6 +94,7 @@ namespace ProjectName.UI.Toolkit
             pickingMode = PickingMode.Ignore;
 
             BuildRings();
+            BuildCircularGauges();   // [Figma] 우상단 원형 HP/스테미너 게이지 추가
             // [U8 은퇴] EXP/상태 바 제거 — 사용자 지정 (핫바 위 녹색 바)
 
             UTKWindowBase.ApplyUIToolkitFont(this);
@@ -107,6 +120,80 @@ namespace ProjectName.UI.Toolkit
                 _ringHpFill.style.height = new Length(hpRatio * 100f, LengthUnit.Percent);
             if (_ringStaminaFill != null)
                 _ringStaminaFill.style.height = new Length(stRatio * 100f, LengthUnit.Percent);
+
+            // [Figma] 우상단 원형 게이지 — 벡터 아크 갱신 (기존 250ms 폴링 루틴 통합)
+            if (_hpGauge != null)
+            {
+                _hpGauge.Fraction = hpRatio;
+                _hpGauge.CommitIfDirty();
+            }
+            if (_staminaGauge != null)
+            {
+                _staminaGauge.Fraction = stRatio;
+                _staminaGauge.CommitIfDirty();
+            }
+        }
+
+        /// <summary>[Figma GitHub-dark] 우상단 원형 게이지 2종 (240px) — HP 빨강/스테미너 녹.
+        ///  구성: HudGaugeRing.png 링 배경 + UTKCircularGauge 벡터 아크 + 중앙 heart/flash 아이콘.
+        ///  미니맵(우상단 right:20, 온도게이지 left:-22)과 겹치지 않게 그 왼쪽에 배치. pickingMode=Ignore.</summary>
+        private void BuildCircularGauges()
+        {
+            _gaugeRingTex = Resources.Load<Texture2D>("UI/HudGaugeRing");
+            _heartTex     = Resources.Load<Texture2D>("UI/icons/heart");
+            _flashTex     = Resources.Load<Texture2D>("UI/icons/flash");
+
+            _circularHost = new VisualElement();
+            _circularHost.name = "CircularGauges";
+            _circularHost.style.position = Position.Absolute;
+            _circularHost.style.top = 20f;
+            // 미니맵(right:20, 220px, 온도게이지 -22) 왼쪽 여백 확보
+            _circularHost.style.right = 20f + 220f + 30f + GaugeSize + GaugeGap;
+            _circularHost.style.flexDirection = FlexDirection.Row;
+            _circularHost.pickingMode = PickingMode.Ignore;
+            Add(_circularHost);
+
+            _hpGauge      = BuildOneCircularGauge("HpGauge", _heartTex, _heartColor);
+            _staminaGauge = BuildOneCircularGauge("StaminaGauge", _flashTex, _gaugeStColor);
+
+            // 폴링 첫 틱 전 기본값 (가득 찬 오표시 방지 — 데이터 준비되면 즉시 보정)
+            if (_hpGauge != null)      _hpGauge.Fraction = 0f;
+            if (_staminaGauge != null) _staminaGauge.Fraction = 0f;
+        }
+
+        /// <summary>단일 원형 게이지 빌드 — 링 배경 + 벡터 아크 + 중앙 아이콘. 반환: 아크 컨트롤.</summary>
+        private UTKCircularGauge BuildOneCircularGauge(string gaugeName, Texture2D iconTex, Color fill)
+        {
+            var gauge = new UTKCircularGauge();
+            gauge.name = gaugeName;
+            gauge.style.width = GaugeSize;
+            gauge.style.height = GaugeSize;
+            gauge.style.marginRight = GaugeGap;
+            gauge.FillColor = fill;
+            gauge.pickingMode = PickingMode.Ignore;
+            if (_gaugeRingTex != null)
+            {
+                gauge.style.backgroundImage = UTKTextureSafe.ToBackground(_gaugeRingTex);
+                gauge.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+            }
+            _circularHost.Add(gauge);
+
+            if (iconTex != null)
+            {
+                var icon = new VisualElement();
+                icon.name = gaugeName + "Icon";
+                icon.style.position = Position.Absolute;
+                float iconLeft = (GaugeSize - GaugeIconSize) * 0.5f;
+                icon.style.left = iconLeft;
+                icon.style.top = iconLeft;
+                icon.style.width = GaugeIconSize;
+                icon.style.height = GaugeIconSize;
+                icon.style.backgroundImage = UTKTextureSafe.ToBackground(iconTex);
+                icon.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+                icon.pickingMode = PickingMode.Ignore;
+                gauge.Add(icon);
+            }
+            return gauge;
         }
 
         /// <summary>[예시 정합] 스태미너 바 갱신 — PlayerMovement.StaminaRatio 실측.</summary>

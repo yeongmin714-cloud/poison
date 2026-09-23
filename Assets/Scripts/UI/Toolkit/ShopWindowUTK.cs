@@ -61,6 +61,165 @@ namespace ProjectName.UI.Toolkit
             (PlayerInventory.Seed_Green,  false),
         };
 
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 이 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
+        //  Theme.uss / 공용 UTKButton·UTKSlot·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  우드 배경 이미지 제거 → 다크 #161B22 패널 + 보조 #21262D + 스트로크 #2E343D.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경 — 슬롯 인셋 바닥
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(타이틀바/버튼/행)
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트)
+            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/활성/골드(가격·잔액)
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/행 구분선
+            public static readonly Color Danger   = Hex(0xF85149);   // danger 버튼(GitHub-dark danger 토큰)
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
+        private static Color Hex(uint rgb) =>
+            new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+
+        /// <summary>GitHub-dark 버튼 인라인 오버라이드(이 창 한정) — Theme bg_button.png/브론즈 베벨 대체.
+        ///   IStyle에 borderWidth 쇼트핸드가 없어 4면 개별 대입한다. 호버는 인라인 배경이 USS :hover를
+        ///   가리므로 진입/이탈 콜백으로 밝기 계층만 토글.</summary>
+        private static void StyleButton(Button btn, UTKButton.Variant variant)
+        {
+            if (btn == null) return;
+            Color baseBg, hoverBg, textColor;
+            switch (variant)
+            {
+                case UTKButton.Variant.Primary:
+                    baseBg = GitHubDark.Accent; hoverBg = Hex(0x79C0FF); textColor = GitHubDark.BgBase; break;
+                case UTKButton.Variant.Danger:
+                    baseBg = GitHubDark.Danger; hoverBg = Hex(0xDA3633); textColor = GitHubDark.TextMain; break;
+                default:
+                    baseBg = GitHubDark.PanelSub; hoverBg = GitHubDark.Stroke; textColor = GitHubDark.TextMain; break;
+            }
+
+            btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);   // 우드 베이크 이미지 제거
+            btn.style.backgroundColor = baseBg;
+            btn.style.color = textColor;
+            btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
+            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(baseBg);
+            btn.style.borderTopLeftRadius = 6f;
+            btn.style.borderTopRightRadius = 6f;
+            btn.style.borderBottomLeftRadius = 6f;
+            btn.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = hoverBg);
+            btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = baseBg);
+        }
+
+        /// <summary>[GitHub-dark] 탭 버튼 상태 스타일 — SwitchTab마다 인라인 값만 갱신(호버 콜백 미등록).</summary>
+        private static void StyleTabButton(Button tab, bool active, bool danger)
+        {
+            if (tab == null) return;
+            Color baseBg = active ? (danger ? GitHubDark.Danger : GitHubDark.Accent) : GitHubDark.PanelSub;
+            Color line   = active ? baseBg : GitHubDark.Stroke;
+            tab.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            tab.style.backgroundColor = baseBg;
+            tab.style.color = active && !danger ? GitHubDark.BgBase : GitHubDark.TextMain;
+            tab.style.borderTopWidth = tab.style.borderBottomWidth = tab.style.borderLeftWidth = tab.style.borderRightWidth = 1f;
+            tab.style.borderTopColor = tab.style.borderBottomColor = tab.style.borderLeftColor = tab.style.borderRightColor = new StyleColor(line);
+            tab.style.borderTopLeftRadius = 6f;
+            tab.style.borderTopRightRadius = 6f;
+            tab.style.borderBottomLeftRadius = 6f;
+            tab.style.borderBottomRightRadius = 6f;
+        }
+
+        /// <summary>[GitHub-dark] 상점 리스트 행 — 보조 패널 bg + 1px 스트로크 + r6 (우드 디바이더 대체).</summary>
+        private static void StyleListRow(VisualElement row)
+        {
+            if (row == null) return;
+            row.style.backgroundColor = GitHubDark.PanelSub;
+            row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 1f;
+            row.style.borderTopColor = row.style.borderBottomColor = row.style.borderLeftColor = row.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            row.style.borderTopLeftRadius = 6f;
+            row.style.borderTopRightRadius = 6f;
+            row.style.borderBottomLeftRadius = 6f;
+            row.style.borderBottomRightRadius = 6f;
+        }
+
+        /// <summary>[GitHub-dark] 상점 슬롯 인셋 — Theme bg_slot.png/베벨 제거, 다크 바닥 + 레어도 링(기본 스트로크).</summary>
+        private static void StyleShopSlot(UTKSlot slot, Color ring)
+        {
+            if (slot == null) return;
+            slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            slot.style.backgroundColor = GitHubDark.BgBase;
+            slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = 1f;
+            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(ring);
+            slot.style.borderTopLeftRadius = 6f;
+            slot.style.borderTopRightRadius = 6f;
+            slot.style.borderBottomLeftRadius = 6f;
+            slot.style.borderBottomRightRadius = 6f;
+            var countLabel = slot.Q<Label>("Count");
+            if (countLabel != null) countLabel.style.color = GitHubDark.TextMain;
+        }
+
+        /// <summary>GitHub-dark 레어도 링 — uncommon/rare=액센트, epic=프라이머 퍼플, 전설/유니크=금색.</summary>
+        private static Color RankRing(int rarityIndex)
+        {
+            switch (rarityIndex)
+            {
+                case 1:
+                case 2: return GitHubDark.Accent;
+                case 3: return Hex(0xA371F7);
+                case 4:
+                case 5: return GitHubDark.Gold;
+                case 0: return GitHubDark.TextSub;
+                default: return GitHubDark.Stroke;
+            }
+        }
+
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
+        private void ApplyGitHubDarkStyle()
+        {
+            // 창 본체: bg_window.png/브론즈 베벨 2px → 다크 패널 + 1px 스트로크 + r8 (이 창에서만)
+            style.backgroundColor = GitHubDark.Panel;
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;
+
+            // 타이틀 바: 보조 패널 + 하단 1px 스트로크 (상단 코너 r8 — 창 클리핑 정합)
+            var titleBar = this.Q("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+            }
+            if (_titleLabel != null)
+                _titleLabel.style.color = GitHubDark.TextMain;
+
+            // 닫기 버튼: 보조 패널 바탕 + r4(작은배지)
+            var closeBtn = this.Q<Button>("CloseButton");
+            if (closeBtn != null)
+            {
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;
+                closeBtn.style.color = GitHubDark.TextMain;
+            }
+        }
+
         // ===== 상점 인벤토리 (원본과 동일 소스로 초기화) =====
         private readonly List<ShopItem> _shopInventory = new List<ShopItem>();
 
@@ -88,10 +247,13 @@ namespace ProjectName.UI.Toolkit
         // ───────────────────────────────────────────────
         public ShopWindowUTK() : base("🏪 상점", new Vector2(440f, 600f))
         {
+            // [Figma GitHub-dark 리스타일] 다크 창 크롬 — 시각 전용, 기능 경로 무관(테스트 범위: 이 창 한정)
+            ApplyGitHubDarkStyle();
+
             // ── 골드 잔액 ──
             _goldLabel = new Label("골드: 0");
             _goldLabel.style.fontSize = 20f;
-            _goldLabel.style.color = UTKColor.AccentRare;
+            _goldLabel.style.color = GitHubDark.Gold;   // [GitHub-dark] 골드=금색
             _goldLabel.style.marginBottom = 6f;
             _goldLabel.AddToClassList("utk-title-label");
             Content.Add(_goldLabel);
@@ -139,7 +301,7 @@ namespace ProjectName.UI.Toolkit
             // ── 상태 라벨 ──
             _statusLabel = new Label("");
             _statusLabel.style.fontSize = 14f;
-            _statusLabel.style.color = UTKColor.TextSecondary;
+            _statusLabel.style.color = GitHubDark.TextSub;   // [GitHub-dark] 보조 텍스트
             _statusLabel.style.marginTop = 6f;
             _statusLabel.style.minHeight = 20f;
             Content.Add(_statusLabel);
@@ -372,6 +534,11 @@ namespace ProjectName.UI.Toolkit
                     break;
             }
 
+            // [GitHub-dark] 탭 인라인 스타일 — 활성 탭 강조(주요=액센트 채움, 밀매=Danger 레드)
+            StyleTabButton(_tabBuy, tab == ShopTab.Buy, false);
+            StyleTabButton(_tabSell, tab == ShopTab.Sell, false);
+            StyleTabButton(_tabSmuggle, tab == ShopTab.Smuggle, true);
+
             RefreshBuyList();
             RefreshSellList();
             if (tab == ShopTab.Smuggle) RefreshSmuggleList();
@@ -396,7 +563,7 @@ namespace ProjectName.UI.Toolkit
             {
                 var head = new Label("🔮 비밀상점 — 은밀한 상인");
                 head.style.fontSize = 18f;
-                head.style.color = UTKColor.AccentRare;
+                head.style.color = GitHubDark.Gold;   // [GitHub-dark] 비밀/희귀=금색
                 head.style.marginBottom = 6f;
                 head.style.marginTop = 4f;
                 _buyScroll.Add(head);
@@ -411,7 +578,7 @@ namespace ProjectName.UI.Toolkit
                 }
                 if (!anySecret)
                 {
-                    _buyScroll.Add(new Label("판매 중인 비밀 아이템이 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                    _buyScroll.Add(new Label("판매 중인 비밀 아이템이 없습니다.") { style = { fontSize = 16f, color = GitHubDark.TextSub } });
                 }
 
                 var spacer = new VisualElement { style = { height = 12f } };
@@ -420,7 +587,7 @@ namespace ProjectName.UI.Toolkit
 
             if (_shopInventory.Count == 0)
             {
-                _buyScroll.Add(new Label("판매 중인 아이템이 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                _buyScroll.Add(new Label("판매 중인 아이템이 없습니다.") { style = { fontSize = 16f, color = GitHubDark.TextSub } });
                 return;
             }
 
@@ -444,8 +611,12 @@ namespace ProjectName.UI.Toolkit
             row.style.paddingBottom = 4f;
             row.style.paddingLeft = 4f;
             row.style.paddingRight = 4f;
-            row.style.borderTopWidth = 1f;
-            row.style.borderTopColor = new Color(0.7f, 0.5f, 0.1f);
+            // [GitHub-dark] 비밀상점 행 — 금색 링 + 보조 패널 bg + r6
+            StyleListRow(row);
+            row.style.borderTopColor = new StyleColor(GitHubDark.Gold);
+            row.style.borderBottomColor = new StyleColor(GitHubDark.Gold);
+            row.style.borderLeftColor = new StyleColor(GitHubDark.Gold);
+            row.style.borderRightColor = new StyleColor(GitHubDark.Gold);
 
             var slot = new UTKSlot();
             slot.style.width = 64f;
@@ -453,6 +624,7 @@ namespace ProjectName.UI.Toolkit
             slot.style.marginRight = 8f;
             slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(item));
             slot.SetRank("unique");
+            StyleShopSlot(slot, GitHubDark.Gold);   // [GitHub-dark] 비밀 아이템 슬롯 금색 링
             row.Add(slot);
 
             var info = new VisualElement();
@@ -460,21 +632,21 @@ namespace ProjectName.UI.Toolkit
 
             var nameLabel = new Label(item.displayName);
             nameLabel.style.fontSize = 18f;
-            nameLabel.style.color = UTKColor.AccentRare;
+            nameLabel.style.color = GitHubDark.Gold;   // [GitHub-dark] 비밀 아이템명=금색
             info.Add(nameLabel);
 
             if (!string.IsNullOrEmpty(item.description))
             {
                 var desc = new Label(item.description);
                 desc.style.fontSize = 13f;
-                desc.style.color = UTKColor.TextSecondary;
+                desc.style.color = GitHubDark.TextSub;
                 desc.style.whiteSpace = WhiteSpace.Normal;
                 info.Add(desc);
             }
 
             var priceLabel = new Label($"가격: {price}G");
             priceLabel.style.fontSize = 14f;
-            priceLabel.style.color = UTKColor.AccentMagic;
+            priceLabel.style.color = GitHubDark.Accent;   // [GitHub-dark] 가격=액센트
             info.Add(priceLabel);
 
             row.Add(info);
@@ -488,6 +660,7 @@ namespace ProjectName.UI.Toolkit
                 RefreshBuyList();
             }, UTKButton.Variant.Primary);
             buyBtn.SetEnabled(canAfford);
+            StyleButton(buyBtn, UTKButton.Variant.Primary);
             row.Add(buyBtn);
 
             UTKWindowBase.ApplyUIToolkitFont(row);
@@ -504,8 +677,7 @@ namespace ProjectName.UI.Toolkit
             row.style.paddingBottom = 4f;
             row.style.paddingLeft = 4f;
             row.style.paddingRight = 4f;
-            row.style.borderTopWidth = 1f;
-            row.style.borderTopColor = UTKColor.IronLine;
+            StyleListRow(row);   // [GitHub-dark] 보조 패널 행 + 1px 스트로크 + r6
             row.RegisterCallback<PointerDownEvent>(_ => { _selectedBuyIndex = index; });
 
             // 아이콘 (UTKSlot — 등급 테두리 + 호버 글로우)
@@ -515,6 +687,7 @@ namespace ProjectName.UI.Toolkit
             slot.style.marginRight = 8f;
             slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(shopItem.item));
             slot.SetRank(shopItem.isRare ? "unique" : "common");
+            StyleShopSlot(slot, shopItem.item != null ? RankRing((int)shopItem.item.rarity) : GitHubDark.Stroke);   // [GitHub-dark] 레어도 링
             row.Add(slot);
 
             // 정보 컬럼
@@ -523,14 +696,14 @@ namespace ProjectName.UI.Toolkit
 
             var nameLabel = new Label(shopItem.item != null ? shopItem.item.displayName : "[데이터 없음]");
             nameLabel.style.fontSize = 18f;
-            nameLabel.style.color = shopItem.isRare ? UTKColor.AccentRare : UTKColor.TextPrimary;
+            nameLabel.style.color = shopItem.isRare ? GitHubDark.Gold : GitHubDark.TextMain;   // [GitHub-dark] 희귀=금색
             info.Add(nameLabel);
 
             if (shopItem.isRare)
             {
                 var rare = new Label("[희귀]");
                 rare.style.fontSize = 13f;
-                rare.style.color = UTKColor.AccentMagic;
+                rare.style.color = GitHubDark.Gold;   // [GitHub-dark] 희귀 배지=금색
                 info.Add(rare);
             }
 
@@ -538,7 +711,7 @@ namespace ProjectName.UI.Toolkit
             {
                 var desc = new Label(shopItem.item.description);
                 desc.style.fontSize = 13f;
-                desc.style.color = UTKColor.TextSecondary;
+                desc.style.color = GitHubDark.TextSub;
                 desc.style.whiteSpace = WhiteSpace.Normal;
                 info.Add(desc);
             }
@@ -552,7 +725,7 @@ namespace ProjectName.UI.Toolkit
 
             var priceLabel = new Label($"{priceText}  {stockText}");
             priceLabel.style.fontSize = 14f;
-            priceLabel.style.color = UTKColor.AccentMagic;
+            priceLabel.style.color = GitHubDark.Accent;   // [GitHub-dark] 가격=액센트
             info.Add(priceLabel);
 
             row.Add(info);
@@ -562,6 +735,7 @@ namespace ProjectName.UI.Toolkit
             bool inStock = shopItem.stock == -1 || shopItem.stock > 0;
             var buyBtn = UTKButton.Create("구매", () => BuyAtIndex(index), UTKButton.Variant.Primary);
             buyBtn.SetEnabled(canAfford && inStock);
+            StyleButton(buyBtn, UTKButton.Variant.Primary);
             row.Add(buyBtn);
 
             UTKWindowBase.ApplyUIToolkitFont(row);
@@ -578,7 +752,7 @@ namespace ProjectName.UI.Toolkit
             var slots = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetAllSlots() : null;
             if (slots == null)
             {
-                _sellScroll.Add(new Label("인벤토리를 불러올 수 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                _sellScroll.Add(new Label("인벤토리를 불러올 수 없습니다.") { style = { fontSize = 16f, color = GitHubDark.TextSub } });
                 return;
             }
 
@@ -592,7 +766,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             if (!any)
-                _sellScroll.Add(new Label("판매할 아이템이 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                _sellScroll.Add(new Label("판매할 아이템이 없습니다.") { style = { fontSize = 16f, color = GitHubDark.TextSub } });
         }
 
         private VisualElement BuildSellRow(PlayerInventory.ItemSlot slot)
@@ -605,8 +779,7 @@ namespace ProjectName.UI.Toolkit
             row.style.paddingBottom = 4f;
             row.style.paddingLeft = 4f;
             row.style.paddingRight = 4f;
-            row.style.borderTopWidth = 1f;
-            row.style.borderTopColor = UTKColor.IronLine;
+            StyleListRow(row);   // [GitHub-dark] 보조 패널 행 + 1px 스트로크 + r6
 
             var slotBox = new UTKSlot();
             slotBox.style.width = 64f;
@@ -615,6 +788,7 @@ namespace ProjectName.UI.Toolkit
             slotBox.SetIcon(ItemIconDatabase.GetOrCreateIcon(slot.item));
             slotBox.SetRank(slot.item.rarity.ToString());
             slotBox.SetCount(slot.count);
+            StyleShopSlot(slotBox, RankRing((int)slot.item.rarity));   // [GitHub-dark] 레어도 링
             row.Add(slotBox);
 
             var info = new VisualElement();
@@ -622,7 +796,7 @@ namespace ProjectName.UI.Toolkit
 
             var nameLabel = new Label(slot.item.displayName);
             nameLabel.style.fontSize = 18f;
-            nameLabel.style.color = UTKColor.TextPrimary;
+            nameLabel.style.color = GitHubDark.TextMain;   // [GitHub-dark] 기본 텍스트
             info.Add(nameLabel);
 
             int sellPrice = CalculateSellPrice(slot.item);
@@ -631,13 +805,14 @@ namespace ProjectName.UI.Toolkit
                 : $"x{slot.count}   판매 불가";
             var priceLabel = new Label(priceText);
             priceLabel.style.fontSize = 14f;
-            priceLabel.style.color = UTKColor.GuildGreen;
+            priceLabel.style.color = GitHubDark.Gold;   // [GitHub-dark] 판매 수익=금색
             info.Add(priceLabel);
 
             row.Add(info);
 
             var sellBtn = UTKButton.Create("판매", () => SellSlot(slot), UTKButton.Variant.Danger);
             sellBtn.SetEnabled(sellPrice > 0); // 0G 판매 방지
+            StyleButton(sellBtn, UTKButton.Variant.Danger);
             row.Add(sellBtn);
 
             UTKWindowBase.ApplyUIToolkitFont(row);
@@ -785,7 +960,7 @@ namespace ProjectName.UI.Toolkit
             string denyReason;
             if (!IsSmuggleAllowed(out denyReason))
             {
-                _smuggleScroll.Add(new Label(denyReason) { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                _smuggleScroll.Add(new Label(denyReason) { style = { fontSize = 16f, color = GitHubDark.TextSub } });
                 _tabSmuggle.SetEnabled(false);
                 return;
             }
@@ -795,7 +970,7 @@ namespace ProjectName.UI.Toolkit
             var slots = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetAllSlots() : null;
             if (slots == null)
             {
-                _smuggleScroll.Add(new Label("인벤토리를 불러올 수 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                _smuggleScroll.Add(new Label("인벤토리를 불러올 수 없습니다.") { style = { fontSize = 16f, color = GitHubDark.TextSub } });
                 return;
             }
 
@@ -809,7 +984,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             if (!any)
-                _smuggleScroll.Add(new Label("밀매할 마약성 약물이 없습니다.") { style = { fontSize = 16f, color = UTKColor.TextSecondary } });
+                _smuggleScroll.Add(new Label("밀매할 마약성 약물이 없습니다.") { style = { fontSize = 16f, color = GitHubDark.TextSub } });
         }
 
         private VisualElement BuildSmuggleRow(PlayerInventory.ItemSlot slot)
@@ -822,8 +997,7 @@ namespace ProjectName.UI.Toolkit
             row.style.paddingBottom = 4f;
             row.style.paddingLeft = 4f;
             row.style.paddingRight = 4f;
-            row.style.borderTopWidth = 1f;
-            row.style.borderTopColor = UTKColor.IronLine;
+            StyleListRow(row);   // [GitHub-dark] 보조 패널 행 + 1px 스트로크 + r6
 
             var slotBox = new UTKSlot();
             slotBox.style.width = 64f;
@@ -832,6 +1006,7 @@ namespace ProjectName.UI.Toolkit
             slotBox.SetIcon(ItemIconDatabase.GetOrCreateIcon(slot.item));
             slotBox.SetRank(slot.item.rarity.ToString());
             slotBox.SetCount(slot.count);
+            StyleShopSlot(slotBox, RankRing((int)slot.item.rarity));   // [GitHub-dark] 레어도 링
             row.Add(slotBox);
 
             var info = new VisualElement();
@@ -839,19 +1014,20 @@ namespace ProjectName.UI.Toolkit
 
             var nameLabel = new Label(slot.item.displayName);
             nameLabel.style.fontSize = 18f;
-            nameLabel.style.color = UTKColor.TextPrimary;
+            nameLabel.style.color = GitHubDark.TextMain;   // [GitHub-dark] 기본 텍스트
             info.Add(nameLabel);
 
             int price = CalculateSmugglePrice(slot.item);
             var priceLabel = new Label($"{slot.item.rarity.ToString()} · 밀매가 {price}G");
             priceLabel.style.fontSize = 14f;
-            priceLabel.style.color = UTKColor.AccentMagic;
+            priceLabel.style.color = GitHubDark.Gold;   // [GitHub-dark] 밀매 수익=금색
             info.Add(priceLabel);
 
             row.Add(info);
 
             var smuggleBtn = UTKButton.Create("밀매", () => SmuggleSlot(slot), UTKButton.Variant.Danger);
             smuggleBtn.SetEnabled(price > 0);
+            StyleButton(smuggleBtn, UTKButton.Variant.Danger);
             row.Add(smuggleBtn);
 
             UTKWindowBase.ApplyUIToolkitFont(row);

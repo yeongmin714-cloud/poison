@@ -68,6 +68,104 @@ namespace ProjectName.UI.Toolkit
         private const float WinH = 660f;
         private const long RefreshMs = 250L;
 
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 이 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
+        //  Theme.uss / 공용 UTKButton·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  우드 배경 이미지 제거 → 다크 #161B22 패널 + 보조 #21262D + 스트로크 #2E343D.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(타이틀바/버튼/행)
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트) — 선택/주요 버튼
+            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/활성/골드
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
+            public static readonly Color Danger   = Hex(0xF85149);   // danger 버튼(GitHub-dark danger 토큰)
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
+        /// <summary>GitHub-dark 버튼 인라인 오버라이드(이 창 한정) — Theme bg_button.png/브론즈 베벨 대체.
+        ///   IStyle에 borderWidth 쇼트핸드가 없어 4면 개별 대입한다. 호버는 인라인 배경이 USS :hover를
+        ///   가리므로 진입/이탈 콜백으로 밝기 계층(액센트/화이트 오버레이)만 토글.</summary>
+        private static void StyleButton(Button btn, UTKButton.Variant variant)
+        {
+            if (btn == null) return;
+            Color baseBg, hoverBg, textColor;
+            switch (variant)
+            {
+                case UTKButton.Variant.Primary:
+                    baseBg = GitHubDark.Accent; hoverBg = Hex(0x79C0FF); textColor = GitHubDark.BgBase; break;
+                case UTKButton.Variant.Danger:
+                    baseBg = GitHubDark.Danger; hoverBg = Hex(0xDA3633); textColor = GitHubDark.TextMain; break;
+                default:
+                    baseBg = GitHubDark.PanelSub; hoverBg = GitHubDark.Stroke; textColor = GitHubDark.TextMain; break;
+            }
+
+            btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);   // 우드 베이크 이미지 제거
+            btn.style.backgroundColor = baseBg;
+            btn.style.color = textColor;
+            btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
+            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(baseBg);
+            btn.style.borderTopLeftRadius = 6f;
+            btn.style.borderTopRightRadius = 6f;
+            btn.style.borderBottomLeftRadius = 6f;
+            btn.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = hoverBg);
+            btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = baseBg);
+        }
+
+        private static Color Hex(uint rgb) =>
+            new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
+        private void ApplyGitHubDarkStyle()
+        {
+            // 창 본체: bg_window.png/브론즈 베벨 2px → 다크 패널 + 1px 스트로크 + r8 (이 창에서만)
+            style.backgroundColor = GitHubDark.Panel;
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;
+
+            // 타이틀 바: 보조 패널 + 하단 1px 스트로크 (상단 코너 r8 — 창 클리핑 정합)
+            var titleBar = this.Q("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+            }
+            if (_titleLabel != null)
+                _titleLabel.style.color = GitHubDark.TextMain;
+
+            // 닫기 버튼: 보조 패널 바탕 + r4(작은배지)
+            var closeBtn = this.Q<Button>("CloseButton");
+            if (closeBtn != null)
+            {
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;
+                closeBtn.style.color = GitHubDark.TextMain;
+            }
+        }
+
         // ===== 선택 레시피 표현 =====
         private sealed class RecipeEntry
         {
@@ -115,6 +213,8 @@ namespace ProjectName.UI.Toolkit
             BuildFooter();
 
             ApplyUIToolkitFont(this);
+            // [Figma GitHub-dark 리스타일] 다크 창 크롬 — 시각 전용, 기능 경로 무관(테스트 범위: 이 창 한정)
+            ApplyGitHubDarkStyle();
             RefreshRecipeData();
             RefreshDisplay();
 
@@ -137,18 +237,21 @@ namespace ProjectName.UI.Toolkit
 
             var allBtn = UTKButton.Create("📜 전체 레시피", () => { _favoritesOnly = false; RefreshRecipeData(); RefreshDisplay(); }, UTKButton.Variant.Primary);
             allBtn.style.width = 130f;
+            StyleButton(allBtn, UTKButton.Variant.Primary);
             top.Add(allBtn);
 
             var favBtn = UTKButton.Create("📌 즐겨찾기", () => { _favoritesOnly = true; RefreshRecipeData(); RefreshDisplay(); }, UTKButton.Variant.Secondary);
             favBtn.style.width = 130f;
+            StyleButton(favBtn, UTKButton.Variant.Secondary);
             top.Add(favBtn);
 
             var sep = new Label("  |  ");
-            sep.style.color = new StyleColor(UTKColor.TextSecondary);
+            sep.style.color = new StyleColor(GitHubDark.TextSub);
             top.Add(sep);
 
             var presetLoad = UTKButton.Create("📂 프리셋", TogglePresetDropdown, UTKButton.Variant.Secondary);
             presetLoad.style.width = 120f;
+            StyleButton(presetLoad, UTKButton.Variant.Secondary);
             top.Add(presetLoad);
 
             _content.Add(top);
@@ -172,6 +275,7 @@ namespace ProjectName.UI.Toolkit
             var leftTitle = new Label("레시피 북");
             leftTitle.AddToClassList("utk-title-label");
             leftTitle.style.fontSize = 18f;
+            leftTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 섹션 제목 기본 텍스트
             left.Add(leftTitle);
 
             _recipeList = new ScrollView();
@@ -193,29 +297,31 @@ namespace ProjectName.UI.Toolkit
             var rightTitle = new Label("레시피 상세");
             rightTitle.AddToClassList("utk-title-label");
             rightTitle.style.fontSize = 18f;
+            rightTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 섹션 제목 기본 텍스트
             right.Add(rightTitle);
 
-            _detailName = MkLabel("—", 24, UTKColor.AccentRare, TextAnchor.MiddleLeft);
+            _detailName = MkLabel("—", 24, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [GitHub-dark] 레시피명 액센트
             right.Add(_detailName);
 
-            _detailEffect = MkLabel("", 14, UTKColor.TextSecondary, TextAnchor.UpperLeft);
+            _detailEffect = MkLabel("", 14, GitHubDark.TextSub, TextAnchor.UpperLeft);
             _detailEffect.style.whiteSpace = WhiteSpace.Normal;
             right.Add(_detailEffect);
 
             AddSeparator(right);
 
-            var ingTitle = MkLabel("재료 요구 / 보유", 15, UTKColor.TextPrimary, TextAnchor.MiddleLeft);
+            var ingTitle = MkLabel("재료 요구 / 보유", 15, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             ingTitle.style.marginTop = 4f;
             right.Add(ingTitle);
 
-            _ingA = MkLabel("—", 16, UTKColor.TextPrimary, TextAnchor.MiddleLeft);
+            _ingA = MkLabel("—", 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             right.Add(_ingA);
-            _ingB = MkLabel("—", 16, UTKColor.TextPrimary, TextAnchor.MiddleLeft);
+            _ingB = MkLabel("—", 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             right.Add(_ingB);
 
             _craftBtn = UTKButton.Create("⚒ 제작하기", ExecuteCraftForSelected, UTKButton.Variant.Primary);
             _craftBtn.style.height = 42f;
             _craftBtn.style.marginTop = 10f;
+            StyleButton(_craftBtn, UTKButton.Variant.Primary);
             right.Add(_craftBtn);
 
             var presetRow = new VisualElement();
@@ -223,17 +329,18 @@ namespace ProjectName.UI.Toolkit
             presetRow.style.marginTop = 8f;
             right.Add(presetRow);
 
-            var presetInfo = MkLabel("선택 레시피를 프리셋으로 저장합니다.", 13, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            var presetInfo = MkLabel("선택 레시피를 프리셋으로 저장합니다.", 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             presetRow.Add(presetInfo);
 
             var saveBtn = UTKButton.Create("💾 프리셋 저장", OpenNameModal, UTKButton.Variant.Secondary);
             saveBtn.style.marginLeft = 8f;
+            StyleButton(saveBtn, UTKButton.Variant.Secondary);
             presetRow.Add(saveBtn);
         }
 
         private void BuildFooter()
         {
-            _footerLabel = MkLabel("", 13, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            _footerLabel = MkLabel("", 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             _footerLabel.style.marginTop = 6f;
             _content.Add(_footerLabel);
         }
@@ -242,7 +349,7 @@ namespace ProjectName.UI.Toolkit
         {
             var sep = new VisualElement();
             sep.style.height = 1f;
-            sep.style.backgroundColor = new StyleColor(UTKColor.IronLine);
+            sep.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
             sep.style.marginTop = 6f;
             sep.style.marginBottom = 6f;
             parent.Add(sep);
@@ -379,7 +486,7 @@ namespace ProjectName.UI.Toolkit
                 string msg = _favoritesOnly
                     ? "즐겨찾기한 레시피가 없습니다. ★을 눌러 추가하세요."
                     : "아직 발견한 레시피가 없습니다.";
-                var empty = MkLabel(msg, 14, UTKColor.TextSecondary, TextAnchor.UpperLeft);
+                var empty = MkLabel(msg, 14, GitHubDark.TextSub, TextAnchor.UpperLeft);
                 empty.style.whiteSpace = WhiteSpace.Normal;
                 _recipeList.Add(empty);
                 return;
@@ -626,6 +733,7 @@ namespace ProjectName.UI.Toolkit
                 var nameBtn = UTKButton.Create(preset.presetName, () => ApplyPresetByName(preset.presetName), UTKButton.Variant.Secondary);
                 nameBtn.style.flexGrow = 1f;
                 nameBtn.style.unityTextAlign = TextAnchor.MiddleLeft;
+                StyleButton(nameBtn, UTKButton.Variant.Secondary);
                 row.Add(nameBtn);
 
                 var delBtn = UTKButton.Create("✕", () =>
@@ -635,6 +743,7 @@ namespace ProjectName.UI.Toolkit
                     Debug.Log($"[CraftUTK] 프리셋 삭제: {preset.presetName}");
                 }, UTKButton.Variant.Danger);
                 delBtn.style.width = 40f;
+                StyleButton(delBtn, UTKButton.Variant.Danger);
                 row.Add(delBtn);
 
                 _presetDropPanel.Add(row);
@@ -706,7 +815,17 @@ namespace ProjectName.UI.Toolkit
             var title = new Label("프리셋 이름 입력");
             title.AddToClassList("utk-title-label");
             title.style.fontSize = 18f;
+            title.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 모달 제목 기본 텍스트
             _nameModal.Add(title);
+
+            // [GitHub-dark] 모달 박스: 다크 패널 + 1px 스트로크 + r8 (utk-modal 우드 배경 대체)
+            _nameModal.style.backgroundColor = GitHubDark.Panel;
+            _nameModal.style.borderTopWidth = _nameModal.style.borderBottomWidth = _nameModal.style.borderLeftWidth = _nameModal.style.borderRightWidth = 1f;
+            _nameModal.style.borderTopColor = _nameModal.style.borderBottomColor = _nameModal.style.borderLeftColor = _nameModal.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            _nameModal.style.borderTopLeftRadius = 8f;
+            _nameModal.style.borderTopRightRadius = 8f;
+            _nameModal.style.borderBottomLeftRadius = 8f;
+            _nameModal.style.borderBottomRightRadius = 8f;
 
             _nameField = new TextField("") { value = _selected.resultName };
             _nameField.style.marginTop = 8f;
@@ -736,10 +855,12 @@ namespace ProjectName.UI.Toolkit
                 RefreshDisplay();
                 Debug.Log($"[CraftUTK] 프리셋 저장: {name} (재료 {ingredientIds.Count}개, 결과: {resultId})");
             }, UTKButton.Variant.Primary);
+            StyleButton(save, UTKButton.Variant.Primary);
             btnRow.Add(save);
 
             var cancel = UTKButton.Create("취소", () => CloseNameModal(), UTKButton.Variant.Secondary);
             cancel.style.marginLeft = 6f;
+            StyleButton(cancel, UTKButton.Variant.Secondary);
             btnRow.Add(cancel);
 
             _nameModal.Add(btnRow);
@@ -783,16 +904,28 @@ namespace ProjectName.UI.Toolkit
                 Root.style.paddingBottom = 2f;
                 Root.style.paddingLeft = 4f;
                 Root.style.paddingRight = 4f;
-                Root.style.borderTopWidth = 1f;
-                Root.style.borderTopColor = new StyleColor(UTKColor.IronLine);
+                // [GitHub-dark] 레시피 행 = 보조 패널 리스트 아이템 (bg #21262D + 1px 스트로크 + r6)
+                Root.style.backgroundColor = GitHubDark.PanelSub;
+                Root.style.borderTopWidth = Root.style.borderBottomWidth = Root.style.borderLeftWidth = Root.style.borderRightWidth = 1f;
+                Root.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+                Root.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+                Root.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+                Root.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+                Root.style.borderTopLeftRadius = 6f;
+                Root.style.borderTopRightRadius = 6f;
+                Root.style.borderBottomLeftRadius = 6f;
+                Root.style.borderBottomRightRadius = 6f;
+                Root.style.marginBottom = 4f;
 
                 var nameBtn = UTKButton.Create(entry.resultName, () => owner.SelectRecipe(entry), UTKButton.Variant.Secondary);
                 nameBtn.style.flexGrow = 1f;
                 nameBtn.style.unityTextAlign = TextAnchor.MiddleLeft;
+                StyleButton(nameBtn, UTKButton.Variant.Secondary);
                 Root.Add(nameBtn);
 
                 _favBtn = UTKButton.Create("★", ToggleFav, UTKButton.Variant.Secondary);
                 _favBtn.style.width = 38f;
+                StyleButton(_favBtn, UTKButton.Variant.Secondary);
                 Root.Add(_favBtn);
             }
 
@@ -803,7 +936,7 @@ namespace ProjectName.UI.Toolkit
                 mgr.ToggleFavorite(_entry.resultName);
                 bool isFav = mgr.IsFavorite(_entry.resultName);
                 _favBtn.text = isFav ? "★" : "☆";
-                _favBtn.style.color = new StyleColor(isFav ? UTKColor.AccentRare : UTKColor.TextSecondary);
+                _favBtn.style.color = new StyleColor(isFav ? GitHubDark.Gold : GitHubDark.TextSub);   // [GitHub-dark] 활성 즐겨찾기=금색
                 Debug.Log($"[CraftUTK] 즐겨찾기 토글: {_entry.resultName} → {(isFav ? "★" : "☆")}");
                 _owner.RefreshDisplay();
             }
@@ -815,12 +948,31 @@ namespace ProjectName.UI.Toolkit
                 bool isFav = mgr != null && mgr.IsFavorite(_entry.resultName);
 
                 _favBtn.text = isFav ? "★" : "☆";
-                _favBtn.style.color = new StyleColor(isFav ? UTKColor.AccentRare : UTKColor.TextSecondary);
+                _favBtn.style.color = new StyleColor(isFav ? GitHubDark.Gold : GitHubDark.TextSub);   // [GitHub-dark] 활성 즐겨찾기=금색
 
                 // 선택 행 강조 (테두리/글자색)
                 Root.RemoveFromClassList("utk-selected-row");
                 if (isSel)
                     Root.AddToClassList("utk-selected-row");
+
+                // [GitHub-dark] 선택 행 인라인 강조 — 액센트 링 + 반투명 화이트 0.08 오버레이
+                //   (utk-selected-row의 골드 USS는 인라인 배경에 가려지므로 시각을 여기서 통일)
+                if (isSel)
+                {
+                    Root.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.08f));
+                    Root.style.borderTopColor = new StyleColor(GitHubDark.Accent);
+                    Root.style.borderBottomColor = new StyleColor(GitHubDark.Accent);
+                    Root.style.borderLeftColor = new StyleColor(GitHubDark.Accent);
+                    Root.style.borderRightColor = new StyleColor(GitHubDark.Accent);
+                }
+                else
+                {
+                    Root.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
+                    Root.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+                    Root.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+                    Root.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+                    Root.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+                }
             }
         }
 
