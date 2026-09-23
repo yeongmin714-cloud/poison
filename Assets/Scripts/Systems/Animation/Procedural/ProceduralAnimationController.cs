@@ -84,6 +84,9 @@ namespace ProjectName.Systems.Animation.Procedural
         [SerializeField, Range(5f, 60f)] float _gaitMaxSwingDeg = 32f;      // 최대 스윙각(고속 상한)
         [SerializeField, Range(0f, 1.5f)] float _gaitKneeBendFactor = 0.5f; // 무릎 굽힘량(스윙각 대비)
         [SerializeField, Range(0f, 1.5f)] float _gaitArmSwingFactor = 0.4f; // 팔 스윙량(다리 진폭 대비)
+        // [P-ANIM8 Phase2] 보행 시 골반 체중이동 진폭, 척추는 역위상으로 일부 상쇄.
+        [SerializeField, Range(0f, 8f)] float _gaitPelvisRollDeg = 2.5f;
+        [SerializeField, Range(0f, 1f)] float _gaitSpineCounterFactor = 0.5f;
 
         // [P-ANIM7 Phase2] 정지 idle 호흡 파라미터 — 어깨 롤+척추 피치(익명 리그 2족 전용).
         [SerializeField, Range(0.5f, 3f)] float _idleHz = 1.1f;         // 호흡 주파수(Hz)
@@ -1264,6 +1267,7 @@ namespace ProjectName.Systems.Animation.Procedural
             // 팔 — 다리와 역위상(좌팔=우다리 위상, 우팔=좌다리 위상): 자연스러운 팔 흔들기.
             SwingBipedArm(BoneRole.L_Shoulder, _rightLegPhase, axis, swingDeg);
             SwingBipedArm(BoneRole.R_Shoulder, _leftLegPhase, axis, swingDeg);
+            ApplyBipedGaitUpperBody(_leftLegPhase, transform.forward);
 
             _gaitActive = true;
         }
@@ -1325,6 +1329,33 @@ namespace ProjectName.Systems.Animation.Procedural
             Quaternion baseWorld = shoulder.parent.rotation * baseLocal;
             Quaternion targetWorld = baseWorld * Quaternion.AngleAxis(angle, axis);
             shoulder.localRotation = Quaternion.Inverse(shoulder.parent.rotation) * targetWorld;
+        }
+
+        /// <summary>[P-ANIM8 Phase2] 이동 중 골반 체중이동 + 척추 카운터 롤. Root object 자체는 변경하지 않는다.</summary>
+        void ApplyBipedGaitUpperBody(float phase, Vector3 rollAxis)
+        {
+            Transform pelvis = _boneMap.Get(BoneRole.Root);
+            if (pelvis != null && pelvis != transform && pelvis.parent != null)
+                ApplyGaitRoll(pelvis, BipedGaitUpperBody.PelvisWave(phase) * _gaitPelvisRollDeg, rollAxis);
+
+            Transform spine = _boneMap.Get(BoneRole.Spine0);
+            bool spineAlreadyDrivenByHipSwing = spine == _boneMap.Get(BoneRole.L_Hip)
+                || spine == _boneMap.Get(BoneRole.R_Hip);
+            if (spine != null && spine != transform && spine != pelvis && !spineAlreadyDrivenByHipSwing && spine.parent != null)
+                ApplyGaitRoll(spine, BipedGaitUpperBody.SpineWave(phase)
+                    * _gaitPelvisRollDeg * _gaitSpineCounterFactor, rollAxis);
+        }
+
+        void ApplyGaitRoll(Transform bone, float angle, Vector3 axis)
+        {
+            if (!_gaitBaseRot.TryGetValue(bone, out var baseLocal))
+            {
+                _gaitBaseRot[bone] = bone.localRotation;
+                return;
+            }
+            Quaternion baseWorld = bone.parent.rotation * baseLocal;
+            Quaternion targetWorld = baseWorld * Quaternion.AngleAxis(angle, axis);
+            bone.localRotation = Quaternion.Inverse(bone.parent.rotation) * targetWorld;
         }
 
         /// <summary>[P-ANIM6] 회전 보행 종료/정지 시 캐시된 기준 localRotation 복원(스윙 자세 잔존 방지).
@@ -1594,5 +1625,12 @@ namespace ProjectName.Systems.Animation.Procedural
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(_headLookTarget, 0.15f);
         }
+    }
+
+    /// <summary>Phase-synchronous biped gait torso weight-shift waves.</summary>
+    internal static class BipedGaitUpperBody
+    {
+        internal static float PelvisWave(float phase) => Mathf.Sin(Mathf.Repeat(phase, 1f) * Mathf.PI * 2f);
+        internal static float SpineWave(float phase) => -PelvisWave(phase);
     }
 }

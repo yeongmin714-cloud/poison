@@ -253,7 +253,10 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 if (t == animator.transform) continue;
 
                 var role = DetectRoleFromName(t.name);
-                if (role != BoneRole.Root && !map.ContainsKey(role))
+                // [2026-09-23 수리] 구버전 조건 !map.ContainsKey(role)은 위 prefill(전 역할 null 초기화)로
+                // 항상 false → 이름 사전 매핑이 전혀 동작하지 않는 사코드였다. 첫 매칭 1본만 채택하도록 수정
+                // (null인 역할만 — 후속 토폴로지 매핑이 다리/척추를 덮어쓰고, 어깨 등은 이 이름 매핑이 우선 유지).
+                if (role != BoneRole.Root && map[role] == null)
                 {
                     map[role] = t;
                 }
@@ -294,11 +297,8 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             // Sort by hierarchy depth (root first)
             numberedBones.Sort((a, b) => GetDepth(a).CompareTo(GetDepth(b)));
 
-            // First bone = Root/Hips
-            if (map[BoneRole.Root] == null && numberedBones.Count > 0)
-                map[BoneRole.Root] = numberedBones[0];
-
-            // Find longest chain from root = spine
+            // The Animator root is already assigned above. Keep it unchanged; bone_0 can be a translated pelvis
+            // joint (or root fallback), and replacing the root with the first-depth candidate destabilizes transforms.
             var root = map[BoneRole.Root];
             if (root != null)
             {
@@ -431,19 +431,80 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             foreach (var c in chains)
             {
                 float drop = c[0].position.y - c[c.Count - 1].position.y;
-                if (drop >= rigHeight * 0.15f) legChains.Add(c);
+                // 사지 체인은 전신 높이의 15%보다 짧을 수 있다(특히 토끼 뒷다리/악어 다리).
+                // 체인 자체 길이와 하강 방향을 같이 확인해 장식 체인은 배제하되, 짧은 다리 누락을 막는다.
+                float chainLength = 0f;
+                for (int i = 1; i < c.Count; i++) chainLength += Vector3.Distance(c[i - 1].position, c[i].position);
+                float minDrop = Mathf.Min(rigHeight * 0.15f, chainLength * 0.18f);
+                bool downwardLimb = drop >= minDrop && chainLength >= rigHeight * 0.12f;
+                // 하강 체인만 후보 풀에 넣는다. 아래로 처진 꼬리를 후보로 삼지 않도록
+                // 옆으로 뻗은 악어 사지는 아래의 분기-미러 경로에서 별도 확인한다.
+                if (downwardLimb) legChains.Add(c);
             }
             // 다리가 아래로 뻗지 않는 리그(뱀/장어 등) — None 힌트에선 판정 보류
+            // [2026-09-23 phase1 수리] 보수적 구조 인지 다리 후보 확정.
+            // 다리 체인은 반드시 구조적 근거 중 하나를 가져야 한다:
+            //  (a) 부착 루트 X가 좌우 대칭인 형제 체인(일반 사지 — 좌/우 한 쌍), 또는
+            //  (b) 같은 위치에서 갈라져 원위부 팁 X가 좌우 대칭인 형제(악어 분기 어깨 22/26처럼
+            //      겹친 루트에서 하위 관절 회전으로 원위부가 벌어지는 구조).
+            // 두 근거가 없는 긴 하강 체인(만티코어 꼬리 31→34)은 spanY가 커도 다리 후보에서
+            // 제외한다 — spanY 정렬 최상위 꼬리가 L_Hip을 차지하던 버그의 뿌리.
+            // 부착/팁 X는 트리 루트 기준 로컬 좌표로 판정(회전 무관).
+            var tipXByChain = new Dictionary<List<Transform>, float>();
+            foreach (var c in legChains)
+            {
+                tipXByChain[c] = treeRoot.InverseTransformPoint(c[c.Count - 1].position).x;
+            }
+
+            bool IsMirroredPair(float xA, float xB, float minMagnitude)
+            {
+                if (Mathf.Abs(xA) < minMagnitude || Mathf.Abs(xB) < minMagnitude) return false;
+                if (Mathf.Sign(xA) == Mathf.Sign(xB)) return false;
+                return Mathf.Abs(xA + xB) <= Mathf.Max(0.06f, 0.25f * Mathf.Max(Mathf.Abs(xA), Mathf.Abs(xB)));
+            }
+
+            var structureLegChains = new List<List<Transform>>();
+            foreach (var c in legChains)
+            {
+                bool keep = false;
+                float tipX = tipXByChain[c];
+                foreach (var o in legChains)
+                {
+                    if (o == c) continue;
+                    float rootX = treeRoot.InverseTransformPoint(c[0].position).x;
+                    float otherRootX = treeRoot.InverseTransformPoint(o[0].position).x;
+                    if (IsMirroredPair(rootX, otherRootX, 0.04f)) { keep = true; break; }
+                }
+                if (!keep && hint == BoneFamilyHint.Quadruped)
+                {
+                    foreach (var candidate in chains)
+                    {
+                        if (candidate == c || !HasSharedBranchRoot(c, candidate, set)) continue;
+                        float candidateLength = 0f;
+                        for (int k = 1; k < candidate.Count; k++)
+                            candidateLength += Vector3.Distance(candidate[k - 1].position, candidate[k].position);
+                        float candidateDrop = candidate[0].position.y - candidate[candidate.Count - 1].position.y;
+                        bool candidateSideReach = candidateLength >= rigHeight * 0.12f
+                            && candidate[0].position.y <= (minY + maxY) * 0.7f;
+                        if (!candidateSideReach) continue;
+                        float candidateTipX = treeRoot.InverseTransformPoint(candidate[candidate.Count - 1].position).x;
+                        if (IsMirroredPair(tipX, candidateTipX, 0.03f)) { keep = true; break; }
+                    }
+                }
+                if (keep) structureLegChains.Add(c);
+            }
+            legChains = structureLegChains;
             if (legChains.Count < 2) return;
 
-            // 전/후·좌/우 분류 — 트리 루트 기준 평균 로컬 위치
+            // 전/후·좌/우 분류 — [2026-09-23 phase1 수리] 좌우 서명은 사지 '부착 루트' X 기준
+            // (해부학적 힙 위치). 평균 위치는 사슬 휘어짐에 희석되어 중앙으로 수렴해 오분류를 낳는다.
+            // 부착 X가 0에 가깝지만 원위부 팁이 좌우로 벌어진 분기 어깨(악어)는 팁 X로 서명한다.
             var scored = new List<(List<Transform> chain, Vector3 local, float spanY)>();
             foreach (var c in legChains)
             {
-                Vector3 sum = Vector3.zero;
-                foreach (var b in c) sum += b.position;
-                Vector3 avg = sum / c.Count;
-                Vector3 local = treeRoot.InverseTransformPoint(avg);
+                Vector3 local = treeRoot.InverseTransformPoint(c[0].position);
+                if (Mathf.Abs(local.x) < 0.03f && Mathf.Abs(tipXByChain[c]) >= 0.03f)
+                    local.x = tipXByChain[c];
                 float span = Mathf.Abs(c[c.Count - 1].position.y - c[0].position.y);
                 scored.Add((c, local, span));
             }
@@ -469,8 +530,22 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                     if (used.Contains(j)) continue;
                     var A = scored[i]; var B = scored[j];
                     bool mirrorX = Mathf.Abs(A.local.x + B.local.x) <= Mathf.Max(0.08f, 0.25f * Mathf.Max(Mathf.Abs(A.local.x), Mathf.Abs(B.local.x)));
+                    bool distinctSides = Mathf.Sign(A.local.x) != Mathf.Sign(B.local.x)
+                        && Mathf.Abs(A.local.x) >= 0.04f && Mathf.Abs(B.local.x) >= 0.04f;
+                    // [2026-09-23 phase1 수리] distinctRoots — 겹친 루트(거리 <0.02, 서로 다른 본)에서
+                    // 갈라진 두 사슬은 원위부 팁 X가 좌우 대칭이면 유효한 좌/우 쌍이다(악어 분기 어깨).
+                    // 서명은 이미 팁 X로 대체되어 있으므로 local.x 대칭으로 판정한다.
+                    float rootDist = Vector3.Distance(A.chain[0].position, B.chain[0].position);
+                    bool distinctRoots;
+                    if (rootDist >= 0.08f)
+                        distinctRoots = true;
+                    else if (rootDist < 0.02f && A.chain[0] != B.chain[0])
+                        distinctRoots = Mathf.Sign(A.local.x) != Mathf.Sign(B.local.x)
+                            && Mathf.Abs(A.local.x) >= 0.03f && Mathf.Abs(B.local.x) >= 0.03f;
+                    else
+                        distinctRoots = false; // 중간 거리(0.02~0.08)는 기존과 같이 거부
                     bool similarSpan = Mathf.Abs(A.spanY - B.spanY) <= 0.35f * Mathf.Max(A.spanY, B.spanY, 0.01f);
-                    if (mirrorX && similarSpan)
+                    if (mirrorX && distinctSides && distinctRoots && similarSpan)
                     {
                         pairs.Add((A, B));
                         used.Add(i); used.Add(j);
@@ -482,8 +557,10 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             var spineLegBones = new HashSet<Transform>(); // 다리로 소비된 뼈 — 척추 매핑에서 제외
             if (pairs.Count == 0 && scored.Count >= 2)
             {
-                // 페어링 실패 폴백 — 상위 2개를 좌/우 다리로(구동 보장 우선)
-                pairs.Add((scored[0], scored[1]));
+                // 페어링 실패 폴백은 금지한다. 좌우 X가 0에 겹친 중앙/몸통 체인을
+                // 두 다리로 강제하면 악어 로그처럼 같은 위치 본이 좌/우 다리가 되어 뒤틀림을 유발한다.
+                // 검증된 미러 페어가 없으면 다리 역할을 비워 두고, 추측 매핑보다 미구동을 택한다.
+                return;
             }
 
             bool bipedMode = hint == BoneFamilyHint.Biped || (hint == BoneFamilyHint.None && pairs.Count == 1);
@@ -525,7 +602,7 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                     // 회귀 수리 — 이전 휴리스틱(z 평균)으로 폴백.
                     if (!hasHead) return -(p.a.local.z + p.b.local.z) * 0.5f;
                     Vector3 midW = (p.a.chain[0].position + p.b.chain[0].position) * 0.5f;
-                    return -Vector3.Distance(midW, headTip); // 머리에서 가까운 페어 = 앞다리
+                    return Vector3.Distance(midW, headTip); // LINQ OrderBy 오름차순: 머리에 가까운 페어가 앞다리
                 }).ToList();
                 if (sortedPairs.Count >= 2)
                 {
@@ -555,6 +632,16 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 }
             }
 
+            // [2026-09-23 수리] 날개(어깨) 매핑 — 4족 토폴로지 경로는 FillArmRoles 미호출이라
+            // L_Shoulder/R_Shoulder가 항상 null → ApplyWingFlap이 이름 사전 매핑("arm.l"류) 리그에서만
+            // 발동하는 뿌리(QAPROGRESS P-ANIM7 ⚠️). 다리로 소비되지 않은 남은 체인에서 좌우 미러 페어를
+            // 어깨 역할로 배치한다(griffin/manticore 등 익명 리그 날개 플랩 활성화).
+            // 척추 매핑 '전에' 실행해 날개 뼈를 척추 후보에서도 제외 — 최장 체인 탐색이 날개로 새는 것 방지.
+            if (!bipedMode)
+            {
+                MapWingChains(chains, legChains, spineLegBones, map, treeRoot, rigHeight, minY, maxY);
+            }
+
             // [2026-09-22 수리] 척추/목/머리 — 다리로 소비된 뼈를 '제외한' 남은 뼈에서만 최장 체인.
             // 구버전은 전체 뼈에서 최장 체인을 골라 다리 뼈가 Head/Neck에 배치되고 ApplyHeadLook이
             // 다리 뼈를 회전시켜 몸이 뒤틀렸다. 판단이 서지 않으면 Head/Neck은 null로 남긴다
@@ -579,6 +666,93 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 // 매핑 결과 진단 로그(1회/리그) — 어떤 체인이 다리로 배치됐는지 즉시 검증 가능
                 UnityEngine.Debug.Log($"[ProceduralBoneUtility] 토폴로지 매핑: {treeRoot.name} legs={spineLegBones.Count}개 뼈, spine={(map[BoneRole.Spine0] != null ? map[BoneRole.Spine0].name : "없음")}, head={(map[BoneRole.Head] != null ? map[BoneRole.Head].name : "없음(HeadLook 생략)")}");
             }
+        }
+
+        /// <summary>
+        /// [2026-09-23 수리] 4족 날개(어깨) 매핑 — 다리로 소비되지 않은 남은 잎 체인에서 좌우 미러 페어를
+        /// 골라 L/R_Shoulder 역할로 배치한다(ApplyWingFlap 구동 대상 — griffin/manticore 익명 리그).
+        /// 보수 판정(장식 오탐 방지): ①이름 사전 매핑으로 어깨가 이미 확보됐으면 스킵(덮어쓰기 없음)
+        /// ②부착 높이 상반부(어깨는 몸 위쪽 — 꼬리 제외) ③체인 세계길이 ≥ 리그 높이×0.3(귀·뿔 등 짧은 장식 제외)
+        /// ④부착 |X| ≥ 다리힙 평균 폭×0.4(몸 중앙 부착 머리 장식 제외). 채택 페어는 부착 높이가 가장 높은 1개.
+        /// </summary>
+        static void MapWingChains(List<List<Transform>> chains, List<List<Transform>> legChains,
+            HashSet<Transform> consumed, Dictionary<BoneRole, Transform> map,
+            Transform treeRoot, float rigHeight, float minY, float maxY)
+        {
+            if (map[BoneRole.L_Shoulder] != null || map[BoneRole.R_Shoulder] != null)
+                return; // 이름 사전 매핑 등으로 이미 확보 — 토폴로지 추정으로 덮어쓰지 않는다
+
+            // 날개 후보 체인 — 다리 판정 체인과 소비 뼈(다리)가 섞인 체인 제외
+            var leftovers = new List<List<Transform>>();
+            foreach (var c in chains)
+            {
+                if (legChains.Exists(l => l[0] == c[0])) continue;
+                bool hasConsumed = false;
+                foreach (var b in c)
+                {
+                    if (consumed.Contains(b)) { hasConsumed = true; break; }
+                }
+                if (hasConsumed) continue;
+                leftovers.Add(c);
+            }
+            if (leftovers.Count < 2) return;
+
+            // 판정 임계 — 다리힙 평균 |X|(몸 폭 절반 근사), 리그 중심 높이, 리그 높이 기반 최소 체인 길이
+            float legHipWidth = 0f;
+            foreach (var l in legChains)
+                legHipWidth += Mathf.Abs(treeRoot.InverseTransformPoint(l[0].position).x);
+            legHipWidth = legHipWidth > 0f ? legHipWidth / legChains.Count : 0.1f;
+
+            float centerY = (minY + maxY) * 0.5f;
+            float minSpan = Mathf.Max(0.05f, rigHeight * 0.3f);
+            float minOffsetX = legHipWidth * 0.4f;
+
+            var scored = new List<(List<Transform> chain, Vector3 local, float span)>();
+            foreach (var c in leftovers)
+            {
+                Vector3 sum = Vector3.zero;
+                foreach (var b in c) sum += b.position;
+                Vector3 local = treeRoot.InverseTransformPoint(sum / c.Count);
+                float span = Vector3.Distance(c[0].position, c[c.Count - 1].position);
+                if (c[0].position.y < centerY) continue;       // 하반부 부착 = 날개 아님(꼬리 등)
+                if (Mathf.Abs(local.x) < minOffsetX) continue; // 중앙 부착 = 날개 아님(머리 장식 등)
+                if (span < minSpan) continue;                  // 너무 짧음 = 장식(귀·뿔 등)
+                scored.Add((c, local, span));
+            }
+            if (scored.Count < 2) return;
+
+            // 좌우 미러 페어링 — 다리 페어링과 동일 판정(mirrorX + 유사 세계길이). 미페어(뿔 1개 등) 제외.
+            (List<Transform> chain, Vector3 local, float span) bestA = default, bestB = default;
+            float bestAttachY = float.MinValue;
+            var used = new HashSet<int>();
+            for (int i = 0; i < scored.Count; i++)
+            {
+                if (used.Contains(i)) continue;
+                for (int j = i + 1; j < scored.Count; j++)
+                {
+                    if (used.Contains(j)) continue;
+                    var A = scored[i]; var B = scored[j];
+                    bool mirrorX = Mathf.Abs(A.local.x + B.local.x)
+                        <= Mathf.Max(0.08f, 0.25f * Mathf.Max(Mathf.Abs(A.local.x), Mathf.Abs(B.local.x)));
+                    bool similarSpan = Mathf.Abs(A.span - B.span) <= 0.35f * Mathf.Max(A.span, B.span, 0.01f);
+                    if (!mirrorX || !similarSpan) continue;
+
+                    float attachY = (A.chain[0].position.y + B.chain[0].position.y) * 0.5f;
+                    if (attachY > bestAttachY) { bestAttachY = attachY; bestA = A; bestB = B; }
+                    used.Add(i); used.Add(j);
+                    break;
+                }
+            }
+            if (bestA.chain == null) return;
+
+            var left = bestA.local.x <= bestB.local.x ? bestA.chain : bestB.chain;
+            var right = bestA.local.x <= bestB.local.x ? bestB.chain : bestA.chain;
+            FillArmRoles(map, left, true);
+            FillArmRoles(map, right, false);
+            consumed.UnionWith(left);  // 척추 매핑 후보에서도 제외(최장 체인이 날개로 새는 것 방지)
+            consumed.UnionWith(right);
+
+            UnityEngine.Debug.Log($"[ProceduralBoneUtility] 날개 배치: L[{left[0].name}..{left[left.Count - 1].name}] R[{right[0].name}..{right[right.Count - 1].name}] → 어깨 역할 부여(플랩 대상)");
         }
 
         /// <summary>다리 체인 → Hip/Knee/Ankle/Foot(또는 Hind* 역할) 배치. 짧은 체인은 끝뼈로 폴백.</summary>
@@ -611,6 +785,14 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             map[elbow] = chain.Count > 1 ? chain[1] : chain[chain.Count - 1];
             map[wrist] = chain.Count > 2 ? chain[2] : chain[chain.Count - 1];
             map[hand] = chain[chain.Count - 1];
+        }
+
+        static bool HasSharedBranchRoot(List<Transform> a, List<Transform> b, HashSet<Transform> set)
+        {
+            Transform parentA = a[0] != null ? a[0].parent : null;
+            Transform parentB = b[0] != null ? b[0].parent : null;
+            if (parentA == null || parentA != parentB || !set.Contains(parentA)) return false;
+            return CountChildrenInSet(parentA, set) > 2;
         }
 
         static int CountChildrenInSet(Transform t, HashSet<Transform> set)

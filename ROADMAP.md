@@ -3334,3 +3334,35 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 - 커밋: f18cc7ab(Phase1) → 45940b2a(Phase2) → 835db826(Phase2+3) → 58879d76(QA수리) — 푸시 완료.
 - ⚠️ 4족 토폴로지 경로는 FillArmRoles 미호출 → 날개 플랩은 이름 사전 매핑("arm.l"류) 리그에서만 발동.
+
+## 🐾 2026-09-23: P-ANIM8 — Test_11 매핑 보정 + 결정론적 정지/이동 관측 사이클
+
+> **기반 증거**: 사용자 제공 `[ShowcaseDiag]` 몬스터별 role map / 속도 / gait / 1초 변화 로그와 `Screenshots/` 종별 클립. Unity 컴파일·Play 재검증은 별도 판정 대기.
+
+| Phase | 이름 | 상태 |
+|:------|:-----|:----:|
+| 1 | 4족 머리-거리 판정 부호 수정 — LINQ OrderBy 오름차순에서 가까운 쌍이 앞다리 | ✅ 구현 (정적 QA/Play 판정 대기) |
+| 2 | 좌우 미러쌍 최소 구분 — X부호/간격 겹친 중복 체인을 앞다리 쌍으로 허용하지 않음 | ✅ 구현 (정적 QA/Play 판정 대기) |
+| 3 | 회전 포함 실 GLB 근거가 부족한 악어 앞/뒤 역할은 추측 배정 금지; 단순 번역 테스트는 겹친 중앙 체인 거부와 꼬리 비할당만 검증 | ✅ 부분 안전화 (정면/옆면 Play 판정 대기) |
+| 4 | Test_11 몬스터 전용 정지 2.5s → 이동 3.0s → 정지 반복, 종별 첫 이동 스태거; 병사/NPC/메인씬 기존 랜덤 동작 유지 | ✅ 구현 (Play 판정 대기) |
+| 5 | 컴파일 + EditMode 재검증 — `_syncedGaitOverride` CS0103 수리, `SeparationSystem` obsolete 검색 경고 수정 | ✅ `compile_test.sh` exit=0 / CS=0, `run_tests.sh editmode` 통과 |
+| 6 | Play 재검증 — 토끼 front/hind 역할, 악어 실제 앞다리, 이동 피드 0→양수→0, 전체 6종 회귀 | ⏳ 에디터 Play + 종별 영상 로그 대기 |
+
+- 변경 대상: `ProceduralBoneUtility.cs`, `ShowcaseWanderDriver.cs`, `TestAnimationShowcaseSetup.cs`, `Tests/EditMode/RabbitCrocodileAnimationMappingTests.cs`.
+- 현재 확인된 뿌리: 토끼의 `OrderBy(-Distance(headTip))`가 가장 먼 페어를 먼저 골라 앞다리와 뒷다리 역할을 반전. 악어의 `bone_22/bone_26` 로그는 동일 부모·동일 근접 위치·X≈0의 체인을 앞다리 좌우쌍으로 오인했을 가능성; 실제 회전 포함 GLB/영상으로 최종 확인 필요.
+- 검증: 오류 수정 후 `./compile_test.sh` exit=0, `compile.log`의 error CS=0, `./run_tests.sh editmode` 통과. CS0618 SeparationSystem 경고도 보고 위치에서 `FindObjectsByType<GuardPlaceholder>()`로 수정.
+- 잔여: 악어의 정확한 역할 체인과 보행 자세는 회전 포함 GLB/Play 프레임으로 판정. 에디터 Play에서 `[ShowcaseDiag]`와 `[ShowcaseWander] [Cycle]` 속도 변화를 비교한 뒤 완료 확정.
+
+## 🐾 2026-09-23: P-ANIM9 — 악어·만티코어 다리 매핑 + 이족 보행 상체 연동
+
+> 요청 범위: 악어 손/다리, 만티코어 다리 우선 해결; 미노타우르스 등 이족 몬스터는 다리 보행과 함께 상체 반응을 더한다.
+
+| Phase | 항목 | 상태 |
+|:--|:--|:--:|
+| 1 | 익명 GLB 다리 후보에 구조 검사 추가: 악어 공통 분기 어깨 밑 좌우 분기 사슬은 원위부 미러로 판정; 미페어 하강 꼬리는 다리 후보에서 제외 | 🔄 구현·EditMode 대기 |
+| 2 | 이족 보행 상체 체중 이동: 좌우 위상 동기 골반 롤 + 반대 위상 척추 카운터 롤; root GameObject 미수정, gait base 캐시로 정지/액션 복원 | 🔄 구현·EditMode 대기 |
+| 3 | 대표 GLB 체인 회귀 테스트 (악어 공통 베이스·원위부 좌우, 만티코어 4 limb+tail, biped torso waveform) | 🔄 구현·검증 대기 |
+| 4 | Unity 컴파일·EditMode·Test_11 Play 시각 확인 및 6종 회귀 | ⏳ Play 판정 대기 |
+
+- 현재 작업은 미커밋이다. Play 검증 이전에는 화면상 개선 완료로 표기하지 않는다.
+- Play 증거 기준: 최종 per-monster role map, 이동 피드 >0, 같은 실행의 종별 근접 영상(정면/측면)과 정지→이동→정지.
