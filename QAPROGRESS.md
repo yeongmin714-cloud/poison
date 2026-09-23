@@ -3730,3 +3730,26 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 - 배치컴파일(6000.4.10f1 `-batchmode -nographics`) `CompileScripts: 22640ms` 성공, **error CS 0**.
 - System.Random 0건(신규는 전부 xorshift 결정론). 기존 3티어 물고기/TestTerritoryCombatSetup 호출부 보존. ItemData(id/displayName/description/category/maxStack/rarity) 필드·ItemRarity 참조 검증.
 - 사용자 확인 대기: crops/fish 크기·위치·노드 동작 Play 스샷, 낚시 드롭 실제 확인.
+
+## 📌 세션 스냅샷 (2026-09-23 ✅ GA-C — 과일·작물 ItemData + 요리 50종 + 채집/농경 분리 — 커밋 7bec5da0)
+> **입력**: "glb에따라 itemdata도 추가하고, 작물·생선 연계 요리 개수 늘리고, 과일=나무에서 채집·땅작물=농경으로".
+
+### ItemData (PlayerInventory.cs)
+- **과일**: `Fruit_Apple`(사과,Food,max99)/`Fruit_AppleSeed`(사과씨,Food,max20)
+- **땅작물**: `Crop_Carrot`(당근)/`Crop_Corn`(옥수수)/`Crop_Pumpkin`(호박)/`Crop_Radish`(무) 전부 Food,max99 + 씨앗 4종(`<작물>씨`,Food,max20)
+- 생선은 기존 FishCatalog(fish_glb_* 50종) 유지.
+
+### 채집/농경 분리 (HerbPickup.cs + NaturalResourceSpawner.cs)
+- HerbPickup `HerbType` 5→10: `Fruit_Apple` + `Crop_Carrot/Corn/Pumpkin/Radish` 추가. HerbMap/GetItemData → 과일·작물 ItemData 반환. SeedItemForCrop → 해당 씨앗 case.
+- CreateCropNode `index%5` 결정론 순환: 0=사과(나무채집), 1~4=당근/옥수수/호박/무(작물) → 과일:작물 1:4. GLB 순환과 무관하게 종 결정.
+- FarmPlot은 이미 HerbPickup AddComponent → 새 HerbType 전달 시 동일 ItemData 흐름에 자동 연결(FarmPlot 직접 무수정).
+
+### 요리 확장 (GAME_DATA.md)
+- 요리 38→**50종**: 과일·작물·생선 재료 12행 추가(39~50). 과일=사과 파이/샐러드, 작물=당근/옥수수/호박/무 요리, 생선=고등어/메기/연어/흰동가리/광어/잡어 구이.
+- ⚠ 파서 마커 `"## 🍲 4. 요리 (Cooking) — 38종 레시피"`는 **그대로 유지**(CookingDatabase/DishDatabase startMarker 탐색 보호) — 행만 추가해 런타임 50종 로드.
+- 조합재료는 실재 HerbData displayName(회복꽃/활력잎/근육강화풀 등)으로 교체해 런타임 매칭 보장.
+
+### 검증
+- 배치컴파일(6000.4.10f1) `CompileScripts: 24363ms`, **error CS 0**.
+- 과일/작물 ItemData 12종·HerbType 10·CreateCropNode 순환·요리 50행 전부 적용 확인.
+- 사용자 확인 대기: 과일/작물 채집·농경 동작, 요리 제작 가능 여부 Play 스샷.
