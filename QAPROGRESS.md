@@ -1,6 +1,36 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-24 (HUD 게이지 통합: 핫바 옆 원형 하트/번개 하나로 + 중복 체력바 제거 — 컴파일 0)
+> **최종 갱신:** 2026-09-24 (F4: 아이템 상세창 DetailPanel 표준 재생 — 컴파일 0)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-24 ✅ F4 — 아이템 상세창 Figma DetailPanel 표준 + GitHub-dark)
+
+> **입력**: "일단 확인은 나중에, 다음 계획 진행" → UI-F 순서대로 **F4 DetailPanel 표준화**.
+> **기준**: Figma `DetailPanel`(15:141, 480×608): PanelHeader('상세 정보'/'SPECIFICATIONS') + ItemNameSection(56px) + ItemImageSection(320px) + DescriptionSection(100px).
+
+### 조사 (delegate 590s, READ ONLY)
+- UTK 창 88개 중 아이템 상세 관련 ~18개. 등급 배지 전용 컨트롤·통일 스탯 그리드·통일 데이터 소스는 **전무**(각자 ItemData+ItemIconDatabase 직접 조립, 등급 색 5원화: UTKRarity/USS/UTKColor.Rank/EquipmentRarityData/GitHubDark.RankColor).
+- **준수 후보**: `ItemDescriptionWindowUTK`(I키, 활성 — 아이콘→이름→메타→설명 표준 순서 유일하게 보유, 440×700) · `HarvestResultUTK`(F3, TierStrip+Specs 구조 보유).
+- **미배선(호출부 0) → F4 제외**: EquipmentWindowUTK·CookingWindowUTK·CraftingWindowUTK·RepairStationUTK (부활/폐기 결정 선행 필요).
+
+### 구현 (부모 직접 — 단일 창 리스타일, ShopWindow 3열 선례)
+- **`ItemDescriptionWindowUTK.cs` 전면 재작성** (480×608, GitHub-dark 이 창 한정):
+  - PanelHeader: subtitle `SPECIFICATIONS`.
+  - ItemNameSection: 아이템명(24px Bold, 등급색) + TierBadge(`"전설 CLASS"`, 등급색 r4 배지).
+  - ItemImageSection: **TierStrip 4px**(등급색) + 아이콘 220px(창 비율상 320 축소) Inset 박스.
+  - StatsGrid: **SpecBox 3칸**(등급/수량/카테고리) — 유일한 스탯 그리드 표준.
+  - DescriptionSection: 헤더('아이템 설명' 액센트) + 본문(설명+내구도+세트 보너스 C-O1-04 보존).
+  - 기능 `ShowItem/Clear/Open/Hide/SyncWithInventory/CenterOnScreen` 기존 동작 유지.
+- 등급 색 = `EquipmentRarityData.GetRarityColor/GetRarityDisplayName`(공용 — 통일 소스).
+
+### 검증
+- 배치컴파일 **error CS = 0** (build_f4.txt "Exiting batchmode successfully now!"). 
+- `ApplyF4GitHubDarkStyle` 생성자 2회 중복 호출 → 종료 시 1회로 정리(타이틀바/닫기 노드 생성 후 적용).
+
+### Play 판정 대기
+- I키 인벤 → 슬롯 클릭 시 설명창이 480×608 GitHub-dark, 상단 등급 스트립색 + '전설 CLASS' 배지 + 3칸 StatsGrid(등급/수량/카테고리) + 설명·세트 표시.
+- 회귀: ESC/X/I 3경로 닫힘·인벤 쌍 토글·세트 보너스 표시 무영향.
 
 ---
 
