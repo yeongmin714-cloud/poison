@@ -1,6 +1,39 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-24 (UI-W / F3: 상점 3열+밀매 창 분리 + 낚시·채집·광질 공용 결과 팝업 — 컴파일 0)
+> **최종 갱신:** 2026-09-24 (HUD 게이지 통합: 핫바 옆 원형 하트/번개 하나로 + 중복 체력바 제거 — 컴파일 0)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-24 ✅ HUD — 체력/스태미너 원형 게이지 통합 (Figma 게이지만 남김))
+
+> **입력**: "물방울과 번개모양 UI(핫바 옆 조그맣게, 빨강/노랑, 시계방향)" → 레퍼런스 확인 후 "물방울은 레퍼런스일 뿐, 그 자리에 **피그마에서 만든 하트**를 동일하게" + "체력바가 너무 겹친다 — Figma 게이지 아니면 잔존 체력바/스태미나 바 모두 제거".
+> **스크린샷 실측**(ui 예시.PNG): 핫바 바로 옆(왼쪽) 원형 링 2개 — 하트(체력)/번개(스태미나).
+
+### 발견 (게임에 체력바/스태미나 바가 4종 중복)
+- `StatusGaugesUTK`(좌하단 132px 하트+번개) — UIToolkitBootstrap.Ensure
+- `HUDUTK.BuildRings`(하단 46px ❤/⚡ 사각 채움 금테두리) — HUDUTK 생성자
+- `HUDUTK.BuildCircularGauges`(우상단 240px 하트+플래시) — HUDUTK 생성자
+- IMGUI `HUD.cs` 하트/EXP — ⚠ **이미 UtkActive 은퇴 게이트(436행)로 숨김** — 정상, 수정 불필요.
+- → 원인: 이전 세션들이 Figma 게이지를 "추가"만 하고 기존 것을 안 지워 **화면에 3개 겹침**.
+
+### 구현 (부모 직접 — 새 위젯 + 중복 제거)
+- **`HUDUTK.cs` 전면 재작성**: 
+  - `BuildHotbarGauges()` 신규 — **핫바 바로 옆(왼쪽)에 원형 링 2개 조그맣게(54px)**: 번개(스태미나, 노랑 `_stColor`) + 하트(체력, 빨강 `_hpColor`). `UTKCircularGauge`(12시 시작 시계방향 fill) = **값 감소 시계방향 소모**.
+  - 아이콘: `UI/GaugeHeart`(피그마 하트)·`UI/GaugeBolt`(번개) — 욜방울 대신 피그마에서 만든 하트 사용.
+  - `PositionHost()` — 폴링 첫 틱에 panel width 실측, 핫바(중앙 8슬롯≈568px) 좌측 12px 여백 정렬.
+  - 기존 `BuildRings` + `BuildCircularGauges`(우상단 240px) 제거.
+- **`StatusGaugesUTK.cs` 삭제** + `UIToolkitBootstrap`의 `StatusGaugesUTK.Ensure()` 호출 제거(중복 게이지 소멸).
+- 잔존 참조는 전부 주석뿐(PlayerMovement 1547 / TestTerritoryCombatSetup 59 주석) — 파일 삭제 후 컴파일 무영향.
+
+### 검증
+- 배치컴파일 **error CS = 0** (build_gauge.txt "Exiting batchmode successfully now!").
+- GaugeHeart = 피그마 그라데이션 빨간 하트(128px, isReadable:1), GaugeBolt = 번개 — 시각 확인.
+- 새 HUD는 UTKCircularGauge만 사용(사각 채움·우상단 대형 게이지·좌하단 게이지 전부 미생성).
+
+### Play 판정 대기
+- 화면 하단 핫바 **왼쪽 옆**에 조그맣게 원형 링 2개(하트 빨강 / 번개 노랑)만 보임 — 다른 체력바 0개.
+- 체력 감소 → 하트 링이 **시계방향**으로 줄어들고, 스태미너 소모 → 번개 링 시계방향 소모.
+- 미니맵(우상단)·퀵슬롯·이름표·적 병사/몬스터 머리 위 체력바 무영향.
 
 ---
 

@@ -81,8 +81,7 @@ namespace ProjectName.UI.Toolkit
             ProjectName.Core.UITransitionState.UtkActive = true;   // [U8 은퇴 게이트] 원본 HUD류 자가 은퇴 트리거
             // [U8] 월드 이름표 오버레이 — UIRoot "먼저"(index 0) 부착되어 모든 창보다 아래 깔림.
             NameplateOverlayUTK.Ensure();
-            // [P22-5] 좌하단 원형 스테이터스 게이지 (IMGUI 스태미나 바/하트 HUD 대체)
-            StatusGaugesUTK.Ensure();
+            // [통합 09-24] 핫바 옆 HP/스태미나 원형 게이지는 HUDUTK(자동 부트)가 담당 — StatusGaugesUTK 제거(중복)
             // [P22-2] 화면 커서 오버레이 (3D 앵커 커서 폐기 — 항상 정확히 마우스 위치 표시)
             UTKCursorOverlay.Ensure();
             // [P25-C1] 활 조준 리티클 (기본 숨김 — 드로 시 표시)
