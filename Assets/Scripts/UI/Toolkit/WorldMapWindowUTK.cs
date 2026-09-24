@@ -81,6 +81,13 @@ namespace ProjectName.UI.Toolkit
         private VisualElement _playerHalo;
         private readonly List<TerritoryMarker> _territoryMarkers = new List<TerritoryMarker>(96);
 
+        // [F5] HUDHeader 좌표 + TacticalCompass 나침반
+        private readonly Label _locLabel;
+        private readonly Label _coordLabel;
+        private readonly VisualElement _compass;
+        private readonly Label _compassN;
+        private VisualElement _compassRose;
+
         private UnityEngine.UIElements.IVisualElementScheduledItem _keyTask;
         private UnityEngine.UIElements.IVisualElementScheduledItem _pollTask;
 
@@ -147,6 +154,27 @@ namespace ProjectName.UI.Toolkit
             legend.style.borderBottomRightRadius = 6f;
             _content.Add(legend);
 
+            // [F5] HUDHeader — 현재 위치 + 좌표 (Figma medieval-world-map-ui HUDHeader)
+            var hudRow = new VisualElement();
+            hudRow.style.flexDirection = FlexDirection.Row;
+            hudRow.style.alignItems = Align.Center;
+            hudRow.style.marginTop = 4f;
+            hudRow.style.marginBottom = 4f;
+            _content.Add(hudRow);
+
+            _locLabel = new Label("현재 위치: —");
+            _locLabel.style.fontSize = 13f;
+            _locLabel.style.color = new StyleColor(GitHubDark.TextSub);
+            _locLabel.style.flexGrow = 1f;
+            _locLabel.style.whiteSpace = WhiteSpace.NoWrap;
+            hudRow.Add(_locLabel);
+
+            _coordLabel = new Label("좌표: —");
+            _coordLabel.style.fontSize = 13f;
+            _coordLabel.style.color = new StyleColor(GitHubDark.TextSub);
+            _coordLabel.style.whiteSpace = WhiteSpace.NoWrap;
+            hudRow.Add(_coordLabel);
+
             // 지도 캔버스 — 양피지 배경 + 마커 절대배치 호스트
             _mapCanvas = new VisualElement();
             _mapCanvas.name = "MapCanvas";
@@ -167,6 +195,44 @@ namespace ProjectName.UI.Toolkit
             _mapCanvas.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
             _mapCanvas.style.overflow = Overflow.Hidden;
             _content.Add(_mapCanvas);
+
+            // [F5] TacticalCompass — 우상단 원형 나침반(N 고정) + 플레이어 yaw 회전 장미
+            _compass = new VisualElement();
+            _compass.name = "TacticalCompass";
+            _compass.style.position = Position.Absolute;
+            _compass.style.width = 64f;
+            _compass.style.height = 64f;
+            _compass.style.right = 12f;
+            _compass.style.top = 12f;
+            _compass.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
+            _compass.style.borderTopWidth = 1f; _compass.style.borderBottomWidth = 1f;
+            _compass.style.borderLeftWidth = 1f; _compass.style.borderRightWidth = 1f;
+            _compass.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+            _compass.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+            _compass.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+            _compass.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            _compass.style.borderTopLeftRadius = 32f; _compass.style.borderTopRightRadius = 32f;
+            _compass.style.borderBottomLeftRadius = 32f; _compass.style.borderBottomRightRadius = 32f;
+            _compass.pickingMode = PickingMode.Ignore;
+            _mapCanvas.Add(_compass);
+
+            _compassRose = new VisualElement();
+            _compassRose.style.flexGrow = 1f;
+            _compassRose.style.alignItems = Align.Center;
+            _compassRose.style.justifyContent = Justify.Center;
+            _compassRose.pickingMode = PickingMode.Ignore;
+            _compass.Add(_compassRose);
+
+            _compassN = new Label("N");
+            _compassN.style.position = Position.Absolute;
+            _compassN.style.left = 0f; _compassN.style.right = 0f;
+            _compassN.style.top = 4f;
+            _compassN.style.fontSize = 14f;
+            _compassN.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
+            _compassN.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _compassN.style.color = new StyleColor(GitHubDark.TextMain);
+            _compassN.pickingMode = PickingMode.Ignore;
+            _compass.Add(_compassN);
 
             // 컨테이너 폰트 (이미지 배경/Label용) — 생성 시점 레이어 포함
             ApplyUIToolkitFont(this);
@@ -343,6 +409,7 @@ namespace ProjectName.UI.Toolkit
         {
             _mapCanvas.Clear();
             _mapCanvas.Add(_playerMarker);   // 플레이어 마커는 최상위 유지
+            if (_compass != null) _mapCanvas.Add(_compass);   // [F5] 나침반 재추가 (Clear로 소실 방지)
 
             _territoryMarkers.Clear();
             var db = TerritoryDatabase.Instance;
@@ -419,6 +486,43 @@ namespace ProjectName.UI.Toolkit
             float v = WorldV(_playerTransform.position);
             _playerMarker.style.left = Length.Percent(u * 100f);
             _playerMarker.style.top = Length.Percent((1f - v) * 100f);
+
+            UpdateHeaderAndCompass();
+        }
+
+        // [F5] HUDHeader 좌표/위치 + TacticalCompass 회전 (플레이어 yaw → N 위쪽)
+        private void UpdateHeaderAndCompass()
+        {
+            Vector3 p = _playerTransform.position;
+
+            // 좌표
+            if (_coordLabel != null)
+                _coordLabel.text = $"좌표: X: {p.x:F1} / Y: {p.z:F1}";
+
+            // 위치명 — 영지 해석 (TerritoryDatabase.ResolveTerritoryAt)
+            if (_locLabel != null)
+            {
+                string loc = "야외";
+                var td = TerritoryDatabase.Instance;
+                if (td != null)
+                {
+                    var tid = td.ResolveTerritoryAt(p, WorldU(p) >= 0f ? 80f : 80f);
+                    if (tid.HasValue)
+                    {
+                        var def = td.GetDefinition(tid.Value);
+                        if (!string.IsNullOrEmpty(def.territoryName))
+                            loc = def.territoryName;
+                    }
+                }
+                _locLabel.text = $"현재 위치: {loc}";
+            }
+
+            // 나침반 — 플레이어 forward의 XZ yaw로 회전 (위쪽이 북쪽)
+            if (_compass != null && _playerTransform != null)
+            {
+                float yaw = _playerTransform.eulerAngles.y;   // 0 = -Z (북) 기준
+                _compass.style.rotate = new Rotate(new Angle(yaw, AngleUnit.Degree));
+            }
         }
 
         private void TryFindPlayer()
