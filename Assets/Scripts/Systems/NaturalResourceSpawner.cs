@@ -78,111 +78,17 @@ namespace ProjectName.Systems
             GLB_DIR + "angular-common-nature-bluebell-flower-cluster-streamline-normal.glb",
         };
 
-        // crops(과일·작물) GLB 경로 — crops-fish 폴더의 crop-*.glb 전체(실존 100개, 결측 번호 제외).
-        // 과일(apple)·작물(carrot/corn/pumpkin/radish) + 숫자형 crop-c002~c100.
-        static readonly string[] CropGlbPaths =
+        /// <summary>
+        /// crops(과일·작물) GLB 경로 — 이름 개편된 crop-*.glb 100종 전체.
+        /// CropCatalog.Keys 순서(결정론 고정) 기준으로 런타임에 조립 — 죽은 경로 리터럴 제거.
+        /// </summary>
+        static string[] CropAllGlbPaths()
         {
-            GLB_DIR2 + "crop-apple.glb",
-            GLB_DIR2 + "crop-carrot.glb",
-            GLB_DIR2 + "crop-corn.glb",
-            GLB_DIR2 + "crop-pumpkin.glb",
-            GLB_DIR2 + "crop-radish.glb",
-            GLB_DIR2 + "crop-c002.glb",
-            GLB_DIR2 + "crop-c003.glb",
-            GLB_DIR2 + "crop-c004.glb",
-            GLB_DIR2 + "crop-c005.glb",
-            GLB_DIR2 + "crop-c006.glb",
-            GLB_DIR2 + "crop-c007.glb",
-            GLB_DIR2 + "crop-c008.glb",
-            GLB_DIR2 + "crop-c009.glb",
-            GLB_DIR2 + "crop-c010.glb",
-            GLB_DIR2 + "crop-c011.glb",
-            GLB_DIR2 + "crop-c012.glb",
-            GLB_DIR2 + "crop-c013.glb",
-            GLB_DIR2 + "crop-c014.glb",
-            GLB_DIR2 + "crop-c015.glb",
-            GLB_DIR2 + "crop-c016.glb",
-            GLB_DIR2 + "crop-c017.glb",
-            GLB_DIR2 + "crop-c018.glb",
-            GLB_DIR2 + "crop-c019.glb",
-            GLB_DIR2 + "crop-c020.glb",
-            GLB_DIR2 + "crop-c021.glb",
-            GLB_DIR2 + "crop-c022.glb",
-            GLB_DIR2 + "crop-c023.glb",
-            GLB_DIR2 + "crop-c024.glb",
-            GLB_DIR2 + "crop-c025.glb",
-            GLB_DIR2 + "crop-c026.glb",
-            GLB_DIR2 + "crop-c027.glb",
-            GLB_DIR2 + "crop-c028.glb",
-            GLB_DIR2 + "crop-c029.glb",
-            GLB_DIR2 + "crop-c030.glb",
-            GLB_DIR2 + "crop-c032.glb",
-            GLB_DIR2 + "crop-c033.glb",
-            GLB_DIR2 + "crop-c034.glb",
-            GLB_DIR2 + "crop-c035.glb",
-            GLB_DIR2 + "crop-c036.glb",
-            GLB_DIR2 + "crop-c037.glb",
-            GLB_DIR2 + "crop-c038.glb",
-            GLB_DIR2 + "crop-c039.glb",
-            GLB_DIR2 + "crop-c040.glb",
-            GLB_DIR2 + "crop-c043.glb",
-            GLB_DIR2 + "crop-c044.glb",
-            GLB_DIR2 + "crop-c045.glb",
-            GLB_DIR2 + "crop-c046.glb",
-            GLB_DIR2 + "crop-c047.glb",
-            GLB_DIR2 + "crop-c048.glb",
-            GLB_DIR2 + "crop-c049.glb",
-            GLB_DIR2 + "crop-c050.glb",
-            GLB_DIR2 + "crop-c051.glb",
-            GLB_DIR2 + "crop-c052.glb",
-            GLB_DIR2 + "crop-c053.glb",
-            GLB_DIR2 + "crop-c054.glb",
-            GLB_DIR2 + "crop-c055.glb",
-            GLB_DIR2 + "crop-c056.glb",
-            GLB_DIR2 + "crop-c057.glb",
-            GLB_DIR2 + "crop-c058.glb",
-            GLB_DIR2 + "crop-c059.glb",
-            GLB_DIR2 + "crop-c060.glb",
-            GLB_DIR2 + "crop-c061.glb",
-            GLB_DIR2 + "crop-c062.glb",
-            GLB_DIR2 + "crop-c063.glb",
-            GLB_DIR2 + "crop-c064.glb",
-            GLB_DIR2 + "crop-c065.glb",
-            GLB_DIR2 + "crop-c066.glb",
-            GLB_DIR2 + "crop-c067.glb",
-            GLB_DIR2 + "crop-c068.glb",
-            GLB_DIR2 + "crop-c069.glb",
-            GLB_DIR2 + "crop-c070.glb",
-            GLB_DIR2 + "crop-c071.glb",
-            GLB_DIR2 + "crop-c072.glb",
-            GLB_DIR2 + "crop-c073.glb",
-            GLB_DIR2 + "crop-c074.glb",
-            GLB_DIR2 + "crop-c075.glb",
-            GLB_DIR2 + "crop-c077.glb",
-            GLB_DIR2 + "crop-c078.glb",
-            GLB_DIR2 + "crop-c079.glb",
-            GLB_DIR2 + "crop-c080.glb",
-            GLB_DIR2 + "crop-c081.glb",
-            GLB_DIR2 + "crop-c082.glb",
-            GLB_DIR2 + "crop-c083.glb",
-            GLB_DIR2 + "crop-c084.glb",
-            GLB_DIR2 + "crop-c085.glb",
-            GLB_DIR2 + "crop-c086.glb",
-            GLB_DIR2 + "crop-c087.glb",
-            GLB_DIR2 + "crop-c088.glb",
-            GLB_DIR2 + "crop-c089.glb",
-            GLB_DIR2 + "crop-c090.glb",
-            GLB_DIR2 + "crop-c091.glb",
-            GLB_DIR2 + "crop-c092.glb",
-            GLB_DIR2 + "crop-c093.glb",
-            GLB_DIR2 + "crop-c094.glb",
-            GLB_DIR2 + "crop-c095.glb",
-            GLB_DIR2 + "crop-c096.glb",
-            GLB_DIR2 + "crop-c097.glb",
-            GLB_DIR2 + "crop-c098.glb",
-            GLB_DIR2 + "crop-c099.glb",
-            GLB_DIR2 + "crop-c100.glb",
-        };
+            var paths = new string[CropCatalog.TotalCount];
+            for (int i = 0; i < CropCatalog.TotalCount; i++)
+                paths[i] = CropCatalog.GlbPath(i);
+            return paths;
+        }
 
         /// <summary>
         /// 진입점(멱등). parent 하위에 'NaturalResources' 컨테이너가 있으면 스킵(중복 실행 가드).
@@ -236,7 +142,7 @@ namespace ProjectName.Systems
                 0.8f, 1.2f, "NaturalResource_Herb", CreateHerbNode);
 
             int crops = PlaceCategory(container.transform, rng, hash,
-                LoadVisualPrefabs(CropGlbPaths, "IdyllicPrefabs/Flowers", "Crop_"),
+                LoadVisualPrefabs(CropAllGlbPaths(), "IdyllicPrefabs/Flowers", "Crop_"),
                 CROP_TARGET, CROP_ATTEMPTS, CROP_MIN_DIST, CropAcceptance,
                 0.7f, 1.4f, "NaturalResource_Crop", CreateCropNode);
 
@@ -291,25 +197,17 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// crops 노드: HerbPickup 부착(Gather 분류) — 과일/작물 5종 결정론 순환.
-        /// index%5: 0=사과(나무채집/Fruit_Apple), 1=당근, 2=옥수수, 3=호박, 4=무(땅작물/Crop_*).
-        /// 과일 1 : 땅작물 4 비율. FarmPlot(영지 농경)도 같은 HerbType을 AttachHerbPickup으로 부착하므로 자동 연결.
+        /// crops 노드: HerbPickup 부착(Gather 분류) — CropCatalog 100종 결정론 순환.
+        /// index % CropCatalog.TotalCount 로 _cropKey 지정 → 수확/씨앗 모두 CropCatalog 아이템.
+        /// FarmPlot(영지 농경) HerbType 경로는 그대로 유지(기존 5종 작물 호환).
         /// </summary>
         static System.Action<GameObject> CreateCropNode(int index, DetRng rng)
         {
-            HerbPickup.HerbType[] cropCycle = new HerbPickup.HerbType[]
-            {
-                HerbPickup.HerbType.Fruit_Apple,
-                HerbPickup.HerbType.Crop_Carrot,
-                HerbPickup.HerbType.Crop_Corn,
-                HerbPickup.HerbType.Crop_Pumpkin,
-                HerbPickup.HerbType.Crop_Radish,
-            };
-            HerbPickup.HerbType type = cropCycle[index % cropCycle.Length];
+            string cropKey = CropCatalog.Keys[index % CropCatalog.TotalCount];
             return go =>
             {
                 var herb = go.AddComponent<HerbPickup>();
-                SetPrivateField(herb, "_herbType", type);
+                SetPrivateField(herb, "_cropKey", cropKey);
             };
         }
 

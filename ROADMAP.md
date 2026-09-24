@@ -3390,6 +3390,7 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | C | NaturalResourceSpawner: 돌→ResourceNode(채굴) / 과일·허브→HerbPickup(Gather) 오픈월드 배치 | ✅ 배선·컴파일·EditMode 통과 |
 | GA | crops-fish 팩: crop 100종 HerbPickup 채집노드 + fish 50종 낚시드롭·수변장식 | ✅ 커밋 973ca298, 배치컴파일 error CS 0 |
 | GA-C | 과일·작물 ItemData 12종 + 요리 38→50종 + 과일=나무채집/작물=농경 분리 | ✅ 커밋 7bec5da0, error CS 0 |
+| GA-C2 | 사용자 GLB 한글 리네임 반영: crop 100종 전명(영문8+한글92) CropCatalog 신규·채집노드→_cropKey 개별품종 / fish 50→333종(한글39+번호294, catfish↔메기 중복 제거) / 요리 50→2648종(재료 6약초×[100작물+333생선]) + 요리UI 주재료에 Food·fish_glb_ 노출 | ✅ 커밋 예정, 컴파일 0 · EditMode 288/288 · 요리 1~2648 연속·중복명 0 |
 | D | 연못가·수변 재배치 + 크기 Play 스샷 수렴 | ⏳ 대기 |
 | GA-T | 지형 다양화: 높낮이 강화(Outcrop/Ridge/사구) + 식생 색감(꽃밭) + 호수·흙길 리파인 | ✅ 커밋 9a0c03da, error CS 0 |
 | GA-T2 | 영지·마을 완전 평탄화 + 산/바위 콜라이더 배치 재활성 | ✅ 커밋 04ff4789, error CS 0 |

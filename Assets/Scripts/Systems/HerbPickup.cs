@@ -36,6 +36,7 @@ namespace ProjectName.Systems
 
         [Header("설정")]
         [SerializeField] private HerbType _herbType = HerbType.Red;
+        [SerializeField] private string _cropKey = "";   // CropCatalog 키 — 설정 시 HerbType보다 우선(작물 100종)
         [SerializeField] private float _interactRange = 2.5f;
         [SerializeField] private float _respawnTime = 30f;   // 채집 후 재생성 시간
         [SerializeField] private int _minYield = 1;
@@ -88,6 +89,9 @@ namespace ProjectName.Systems
 
         private PlayerInventory.ItemData GetItemData()
         {
+            // 작물 100종 경로 — _cropKey 지정 시 HerbType 매핑보다 우선(CropCatalog)
+            if (!string.IsNullOrEmpty(_cropKey))
+                return CropCatalog.GetItemByKey(_cropKey);
             foreach (var pair in HerbMap)
             {
                 if (pair.Item1 == _herbType) return pair.Item2;
@@ -138,6 +142,29 @@ namespace ProjectName.Systems
         {
             if (basket == null) return;
             if (TryRollSeedDrop(herbType, out var seed, out float chance))
+            {
+                basket.AddItem(seed, 1);
+                Debug.Log($"[HerbPickup] 🌰 씨앗 드랍! {seed.displayName} (확률 {chance:P0})");
+            }
+        }
+
+        /// <summary>_cropKey 우선 씨앗 드랍 판정(인스턴스) — 미지정 시 기존 HerbType 경로 폴백.</summary>
+        private bool TryRollSeedDropForNode(out PlayerInventory.ItemData seed, out float chance)
+        {
+            if (!string.IsNullOrEmpty(_cropKey))
+            {
+                seed = CropCatalog.GetSeedByKey(_cropKey);
+                chance = SeedDropChanceCommon;
+                return UnityEngine.Random.value < chance;
+            }
+            return TryRollSeedDrop(_herbType, out seed, out chance);
+        }
+
+        /// <summary>AddSeedDrop 인스턴스 오버로드 — _cropKey 경유(CropCatalog) 경로.</summary>
+        private void AddSeedDrop(LootBasket basket)
+        {
+            if (basket == null) return;
+            if (TryRollSeedDropForNode(out var seed, out float chance))
             {
                 basket.AddItem(seed, 1);
                 Debug.Log($"[HerbPickup] 🌰 씨앗 드랍! {seed.displayName} (확률 {chance:P0})");
@@ -237,8 +264,8 @@ namespace ProjectName.Systems
             LootBasket basket = LootBasket.Create(transform.position);
             basket.AddItem(item, yield);
 
-            // 씨앗 드랍: 채집 시 희귀확률로 씨앗이 바구니에 함께 담김
-            AddSeedDrop(basket, _herbType);
+            // 씨앗 드랍: 채집 시 희귀확률로 씨앗이 바구니에 함께 담김 (_cropKey 우선)
+            AddSeedDrop(basket);
 
             // 경험치 획득
             PlayerStats.Instance.AddEXP(3);
@@ -305,7 +332,7 @@ namespace ProjectName.Systems
 
             // 씨앗 드랍 판정 — 자동 채집은 바구니 없이 인벤토리 직송 구조이므로
             // 호출부(HerbGatheringMission)와 동일하게 플레이어 인벤토리에 즉시 추가한다.
-            if (TryRollSeedDrop(_herbType, out var seedDrop, out float seedChance))
+            if (TryRollSeedDropForNode(out var seedDrop, out float seedChance))
             {
                 if (PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(seedDrop, 1))
                     Debug.Log($"[HerbPickup] 🌰 자동 채집 씨앗 획득! {seedDrop.displayName} (확률 {seedChance:P0})");

@@ -195,7 +195,8 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshGrids()
         {
-            List<PlayerInventory.ItemSlot> meatSlots = CollectCategory(PlayerInventory.ItemCategory.Meat);
+            // [Crops/Fish Dishes] 메인 재료 = 고기(Meat) + 작물/과일(Food) + 물고기(Material, id 접두사 fish_glb_).
+            List<PlayerInventory.ItemSlot> meatSlots = CollectMainIngredients();
             List<PlayerInventory.ItemSlot> herbSlots = CollectCategory(PlayerInventory.ItemCategory.Herb);
 
             _meatGrid.Clear();
@@ -217,6 +218,33 @@ namespace ProjectName.UI.Toolkit
                 var s = slots[i];
                 if (s == null || s.item == null || s.count <= 0) continue;
                 if (s.item.category != category) continue;
+                result.Add(s);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 메인 재료(좌측 와이드 그리드) 수집: Meat + Food(작물/과일) + Material 중 id가 "fish_glb_"로
+        /// 시작하는 물고기. 신규 작물/어류 요리(CookingDatabase)의 주재료로 선택 가능하게 확장.
+        /// </summary>
+        private static List<PlayerInventory.ItemSlot> CollectMainIngredients()
+        {
+            var result = new List<PlayerInventory.ItemSlot>();
+            var inv = PlayerInventory.Instance;
+            if (inv == null) return result;
+            var slots = inv.GetAllSlots();
+            if (slots == null) return result;
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var s = slots[i];
+                if (s == null || s.item == null || s.count <= 0) continue;
+                var cat = s.item.category;
+                bool isMain = cat == PlayerInventory.ItemCategory.Meat
+                           || cat == PlayerInventory.ItemCategory.Food
+                           || (cat == PlayerInventory.ItemCategory.Material
+                               && !string.IsNullOrEmpty(s.item.id)
+                               && s.item.id.StartsWith("fish_glb_"));
+                if (!isMain) continue;
                 result.Add(s);
             }
             return result;

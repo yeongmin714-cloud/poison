@@ -1,6 +1,28 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-23 (P-ANIM9: 악어·만티코어 매핑 + 이족 상체 보행 반응 — 컴파일·EditMode 통과, Test_11 Play 판정 대기)
+> **최종 갱신:** 2026-09-24 (GA-C2: 생선·농작물 전종 인게임화 + 요리 2648종 — 컴파일 0 · EditMode 288/288 통과)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-24 ✅ GA-C2 — crops 100종/fish 333종 전명 인게임 + 요리 2648종 확장)
+
+> **입력**: "생선이랑 농작물을 이름 구분할 수 있게해뒀어 확인하고 모두 게임 안에 넣어두고 저 재료들로 만들 수 있는 요리의 가지수도 최대한 많이 추가해줘"
+> 사용자가 GLB를 한글 리네임(crop 100종: 영문8+한글92 / fish 334종: 한글39+번호295). 기존 코드는 죽은 번호형 GLB(`crop-c002~c100`) 경로를 하드코딩해 **crops가 게임에서 생성 안 되는 버그**였고, fish는 50종만, 요리 UI는 주재료를 Meat만 받아 crop/fish 요리를 조합 불가.
+
+### 구현
+- `CropCatalog.cs` 신규: 100 crops(키+한글명 index-aligned) → ItemData(`crop_<key>`, Food, 99) + 씨앗(`crop_<key>_seed`), GlbPath/GetItem/GetSeed/GetItemByKey/GetSeedByKey. 자연자원·요리·농경 전부가 이 단일 소스를 사용.
+- `HerbPickup.cs`: `_cropKey`(string) SerializeField 추가 — 설정 시 GetItemData/AddSeedDrop이 CropCatalog 경유(기존 HerbType 5약초+5작물은 FarmPlot 호환 유지).
+- `NaturalResourceSpawner.cs`: 죽은 `CropGlbPaths`(100개 리터럴) 삭제 → `CropAllGlbPaths()`를 CropCatalog.GlbPath(i)로 동적 생성. `CreateCropNode`가 `_cropKey = CropCatalog.Keys[index%100]` 결정론 순환 → **100종 전품종 채집 가능**.
+- `FishCatalog.cs`: 50→**333종**(TotalCount=333, Common[0..199]/Rare[200..299]/Legendary[300..332]). 한글명 39 + 번호형 "물고기 Fnnn". ⚠ `catfish`(영문→메기)가 사용자 `fish-메기.glb`와 표시명 충돌 → **메기 한글로 통일, catfish 제거**(GLB 디스크 334 vs 카탈로그 333 = 의도).
+- `CookingWindowUTK.cs`: 주재료 그리드 수집을 `Meat`만 → `Meat || Food(작물) || (Material && id.StartsWith("fish_glb_"))`로 확장 → crop/fish를 요리 재료로 선택 가능.
+- `GAME_DATA.md`: 요리 표 50→**2648종**(재료 6약초 × [작물100+생선333], #51~#2648 신규, 기존 1~50 유지). ⚠ 헤더 `-- 38종 레시피` 문자열은 파서 마커라 **불변 유지**.
+
+### 검증
+- `./compile_test.sh`: exit 0, `grep 'error CS'` 0건.
+- EditMode: 288/288 통과(`CookingDatabase_AllRecipes_Loaded` 포함; 1차에 RNG flake 1건 → 재실행으로 소거 확인).
+- 요리 DB: 1~2648 연속 번호·요리명 중복 0 · 433 재료(100작물+333생선)×6약초 정확 대응 · 메기 중복 제거 확인.
+- 데이터 산출: `~/.hermes/scratch/`(crop_fish.json, fish_final.txt, dish_rows_final.txt).
+- Play/화면 렌더(합성 프리팹·채집 아이콘 등)는 Play 스샷 확인 대기.
 
 ---
 
