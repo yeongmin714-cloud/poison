@@ -265,5 +265,7 @@ public class CoreSystemsBootstrap : MonoBehaviour
 
         // [P31-C] 24개 마을 절차 건물 배치 + 대표 마을 실외 상점 (VillagePlacementSystem 좌표 기반)
         VillageBuilder.BuildAllVillages();
+        // [P31-D] 마을 주민 NPC 10~15명/마을 배치 (건물 완성 후)
+        VillageNpcSpawner.BuildAllVillageNPCs();
     }
 }

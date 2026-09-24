@@ -67,22 +67,44 @@ public class AutoGameplayTest
             Debug.Log("[AutoTestRunner] Step 1: Checking systems...");
             CheckSystems();
             
-            // 1초 대기
-            endTime = Time.realtimeSinceStartup + 1f;
-            while (Time.realtimeSinceStartup < endTime)
-            {
-                // 대기
-            }
-            
-            Debug.Log("[AutoTestRunner] Step 2: Capturing screenshot...");
-            CaptureScreenshot();
-            
-            // 1초 대기
-            endTime = Time.realtimeSinceStartup + 1f;
-            while (Time.realtimeSinceStartup < endTime)
-            {
-                // 대기
-            }
+            // 마을 뷰 검증 — 대표 마을 위로 카메라를 이동해 건물/NPC/상점을 촬영
+                        Debug.Log("[AutoTestRunner] Step 2.5: Framing representative village...");
+                        FrameRepresentativeVillage();
+
+                        // 주민 NPC 존재 확인
+                        var npcRoot = GameObject.Find("VillageNpcs_Root");
+                        string npcLog = npcRoot != null ? "✅ VillageNpcs_Root FOUND (children=" + npcRoot.transform.childCount + ")" : "❌ VillageNpcs_Root MISSING";
+                        Debug.Log("[AutoTestRunner] " + npcLog);
+
+                        // 건물 존재 확인
+                        var villagesRoot = GameObject.Find("Villages_Root");
+                        string vilLog = villagesRoot != null ? "✅ Villages_Root FOUND (children=" + villagesRoot.transform.childCount + ")" : "❌ Villages_Root MISSING";
+                        Debug.Log("[AutoTestRunner] " + vilLog);
+
+                        // 1초 대기 (씬 안정화 후 촬영)
+                        endTime = Time.realtimeSinceStartup + 1f;
+                        while (Time.realtimeSinceStartup < endTime)
+                        {
+                            // 대기
+                        }
+
+                        Debug.Log("[AutoTestRunner] Step 2: Capturing screenshot...");
+                        CaptureScreenshot();
+
+                        // 상점 GLB 렌더 확인을 위한 추가 촬영 (카메라 전환)
+                        endTime = Time.realtimeSinceStartup + 1f;
+                        while (Time.realtimeSinceStartup < endTime)
+                        {
+                            // 대기
+                        }
+                        CaptureScreenshot2();
+
+                        // 1초 대기
+                    endTime = Time.realtimeSinceStartup + 1f;
+                    while (Time.realtimeSinceStartup < endTime)
+                    {
+                        // 대기
+                    }
             
             Debug.Log("[AutoTestRunner] Step 3: Logging results...");
             LogResults();
@@ -168,6 +190,80 @@ public class AutoGameplayTest
         {
             Debug.LogError($"[AutoTestRunner] ❌ Screenshot failed: {e.Message}");
         }
+    }
+
+    /// <summary>상점/건물 근접 클로즈업 추가 촬영 경로 (마을 뷰 2차 프레임).</summary>
+    private void CaptureScreenshot2()
+    {
+        string p2 = _targetScreenshotPath.Replace(".png", "_village2.png");
+        try
+        {
+            string projectPath = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+            string rel = p2;
+            if (p2.StartsWith(projectPath))
+                rel = p2.Substring(projectPath.Length + 1).Replace('\\', '/');
+            ScreenCapture.CaptureScreenshot(rel);
+            Debug.Log($"[AutoTestRunner] ✅ Village screenshot captured: {rel}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[AutoTestRunner] ❌ Screenshot2 failed: {e.Message}");
+        }
+    }
+
+    /// <summary>첫 대표 마을(Village_{nation}_00) 위로 카메라를 이동·프레임해 건물/NPC/상점이 보이게 한다.</summary>
+    private void FrameRepresentativeVillage()
+    {
+        // 대표 마을 오브젝트 4국가 시도 (East_00부터)
+        string[] tries = { "Village_East_00", "Village_North_00", "Village_West_00", "Village_South_00" };
+        Transform target = null;
+        foreach (var t in tries)
+        {
+            var go = GameObject.Find(t);
+            if (go != null) { target = go.transform; break; }
+        }
+        if (target == null)
+        {
+            Debug.LogWarning("[AutoTestRunner] 대표 마을 오브젝트 없음 — 마을 프레임 생략");
+            return;
+        }
+
+        // 카메라 찾기
+        var cam = Camera.main;
+        if (cam == null)
+        {
+            var camObj = GameObject.Find("Player Camera") ?? GameObject.Find("Main Camera");
+            if (camObj != null) cam = camObj.GetComponent<Camera>();
+        }
+
+        Vector3 center = target.position;
+        float height = TerrainFindHeight(center);
+
+        if (cam != null)
+        {
+            // 마을 남쪽/동쪽 상공에서 중앙을 내려다보는 3/4 뷰
+            Vector3 camPos = new Vector3(center.x + 42f, height + 34f, center.z + 30f);
+            cam.transform.position = camPos;
+            cam.transform.LookAt(new Vector3(center.x, height + 2f, center.z));
+            Debug.Log($"[AutoTestRunner] 카메라 → 마을 {target.name} @ ({center.x:F1},{center.z:F1})");
+        }
+        else
+        {
+            Debug.LogWarning("[AutoTestRunner] 카메라 없음 — 마을 프레임 부정확");
+        }
+    }
+
+    /// <summary>지표 높이 근사 — 마을 평탄화(GetHeightAt 단일소스)라 대표 마을 주변은 안정.</summary>
+    private float TerrainFindHeight(Vector3 center)
+    {
+        try
+        {
+            // TerrainHeightApplier 메시 콜라이더 레이로 지표 추정
+            if (Physics.Raycast(new Vector3(center.x, 200f, center.z), Vector3.down, out var hit, 400f))
+                return hit.point.y;
+        }
+        catch (System.Exception) { }
+        return center.y;
     }
 
     private void LogResults()

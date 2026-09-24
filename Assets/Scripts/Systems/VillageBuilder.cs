@@ -111,7 +111,7 @@ namespace ProjectName.Systems
             // 3) 대표 마을 → 실외 상점 (집 배치 전에 간격 목록에 포함시켜 겹침 방지)
             if (village.isRepresentative)
             {
-                Vector3 shopPos = CreateOutdoorShop(parentGo.transform, village.center, rng, nationTint, placed);
+                Vector3 shopPos = CreateOutdoorShop(parentGo.transform, village.center, rng, nationTint, placed, layoutHash);
                 layoutHash = FoldHash(layoutHash, shopPos);
                 shopPlaced = true;
                 buildings++;
@@ -133,7 +133,7 @@ namespace ProjectName.Systems
                 spot = EnforceSpacing(spot, placed);
                 placed.Add(spot);
 
-                var house = CreateVillageHouse(parentGo.transform, spot, village.center, nationTint, $"House_{i + 1}");
+                var house = CreateVillageHouse(parentGo.transform, spot, village.center, nationTint, $"House_{i + 1}", layoutHash, i);
                 layoutHash = FoldHash(layoutHash, house != null ? house.transform.position : spot);
                 buildings++;
             }
@@ -148,7 +148,7 @@ namespace ProjectName.Systems
                 spot = EnforceSpacing(spot, placed);
                 placed.Add(spot);
 
-                var warehouse = CreateWarehouse(parentGo.transform, spot, village.center, nationTint);
+                var warehouse = CreateWarehouse(parentGo.transform, spot, village.center, nationTint, layoutHash);
                 layoutHash = FoldHash(layoutHash, warehouse != null ? warehouse.transform.position : spot);
                 buildings++;
             }
@@ -226,10 +226,11 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 실외 상점 건물 (대표 마을 전용): center 근처 반지름 10~15m, 결정론 각도.
+        /// 상점 건물 GLB 카탈로그(주점/음식점/약초방) 우선, 없으면 'hut', 아니면 큐브 조합.
         /// BuildingPlaceholder(Shop/"상점", 노란빛 몸통) + ShopPlaceholder(ProjectName.UI) 부착
         /// → 실외에서 E키(3m 내)로 ShopWindowUTK 열림. BuildingTrigger는 붙이지 않는다(실내 진입 방지).
         /// </summary>
-        private static Vector3 CreateOutdoorShop(Transform parent, Vector3 center, System.Random rng, Color nationTint, List<Vector3> placed)
+        private static Vector3 CreateOutdoorShop(Transform parent, Vector3 center, System.Random rng, Color nationTint, List<Vector3> placed, int layoutHash)
         {
             float angleDeg = (float)rng.NextDouble() * 360f;
             float dist = 10f + (float)rng.NextDouble() * 5f;
@@ -241,8 +242,10 @@ namespace ProjectName.Systems
             float groundY = TerrainGenerator.GetHeightAt(pos.x, pos.z, BiomeType.Plains, TerrainSeed) + GROUND_BASE;
             Color shopColor = new Color(0.85f, 0.66f, 0.25f); // 노란빛 (상점 규약)
 
-            GameObject shop;
-            if (RuntimeModelLoader.TryGetModel(HutModelKey, out var hutPrefab))
+            string shopGlb = VillageBuildingCatalog.ShopPath(layoutHash);
+            GameObject shop = VillageBuildingCatalog.InstantiateAtGround(
+                shopGlb, pos, groundY, VillageBuildingCatalog.ShopTargetHeight, "OutdoorShop");
+            if (shop == null && RuntimeModelLoader.TryGetModel(HutModelKey, out var hutPrefab))
             {
                 shop = Object.Instantiate(hutPrefab);
                 shop.name = "OutdoorShop";
@@ -250,7 +253,7 @@ namespace ProjectName.Systems
                 shop.transform.localScale = new Vector3(1.8f, 1.8f, 1.8f);
                 Debug.Log("[VillageBuilder] GLB 모델 'hut'로 'OutdoorShop' 생성");
             }
-            else
+            if (shop == null)
             {
                 shop = new GameObject("OutdoorShop");
                 shop.transform.position = new Vector3(pos.x, groundY, pos.z);
@@ -305,69 +308,107 @@ namespace ProjectName.Systems
             return shop.transform.position;
         }
 
-        /// <summary>마을 집: 'hut' GLB 우선, 없으면 큐브 조합(몸통+지붕). BuildingPlaceholder(NPCHouse) 부착.</summary>
-        private static GameObject CreateVillageHouse(Transform parent, Vector3 pos, Vector3 center, Color nationTint, string name)
+        /// <summary>마을 집: 건물 GLB 카탈로그(집/둥글/부자집 풀) 우선, 없으면 'hut' GLB, 마지막 큐브 조합.
+        /// 건물 인덱스는 결정론(마을 layoutHash + 집i)으로 풀에서 선택. BuildingPlaceholder(NPCHouse) 부착.</summary>
+        private static GameObject CreateVillageHouse(Transform parent, Vector3 pos, Vector3 center, Color nationTint, string name, int layoutHash, int houseIndex)
         {
             float groundY = TerrainGenerator.GetHeightAt(pos.x, pos.z, BiomeType.Plains, TerrainSeed) + GROUND_BASE;
-            Color wallColor = Color.Lerp(nationTint, Color.white, 0.18f); // 국가 틴트 살짝 밝게
-            Color roofColor = Color.Lerp(nationTint, Color.black, 0.35f);
 
-            GameObject house;
+            // 결정론 선택: 부자집은 4집당 1회, 나머지는 일반 집/둥글 풀
+            bool rich = ((layoutHash + houseIndex) % 4) == 0;
+            string glbPath = rich
+                ? VillageBuildingCatalog.RichPath(layoutHash + houseIndex * 2)
+                : VillageBuildingCatalog.HousePath(layoutHash + houseIndex);
+            float targetH = rich ? VillageBuildingCatalog.RichTargetHeight : VillageBuildingCatalog.HouseTargetHeight;
+
+            GameObject house = VillageBuildingCatalog.InstantiateAtGround(
+                glbPath, pos, groundY, targetH, name);
+            if (house != null)
+            {
+                house.transform.rotation = Quaternion.LookRotation(new Vector3(pos.x - center.x, 0f, pos.z - center.z), Vector3.up);
+                var ph = house.AddComponent<BuildingPlaceholder>();
+                ph.buildingType = BuildingPlaceholder.BuildingType.NPCHouse;
+                ph.buildingName = "마을 집";
+                house.transform.SetParent(parent, true);
+                return house;
+            }
+
+            // 폴백: hut GLB
             if (RuntimeModelLoader.TryGetModel(HutModelKey, out var hutPrefab))
             {
                 house = Object.Instantiate(hutPrefab);
                 house.name = name;
                 house.transform.position = new Vector3(pos.x, groundY + 0.05f, pos.z);
                 house.transform.localScale = new Vector3(1.4f, 1.4f, 1.4f);
-            }
-            else
-            {
-                house = new GameObject(name);
-                house.transform.position = new Vector3(pos.x, groundY, pos.z);
-
-                var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                body.name = "Body";
-                body.transform.SetParent(house.transform, false);
-                body.transform.localPosition = new Vector3(0f, 0.8f, 0f);
-                body.transform.localScale = new Vector3(2.2f, 1.6f, 2.2f);
-                body.tag = "Untagged";
-                var br = body.GetComponent<MeshRenderer>();
-                if (br != null)
-                    br.material = MaterialHelper.CreateLitMaterial(wallColor, $"{name}_Mat");
-
-                var roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                roof.name = "Roof";
-                roof.transform.SetParent(house.transform, false);
-                roof.transform.localPosition = new Vector3(0f, 1.85f, 0f);
-                roof.transform.localScale = new Vector3(2.7f, 0.5f, 2.7f);
-                roof.tag = "Untagged";
-                var rr = roof.GetComponent<MeshRenderer>();
-                if (rr != null)
-                    rr.material = MaterialHelper.CreateLitMaterial(roofColor, $"{name}_Roof_Mat");
+                house.transform.rotation = Quaternion.LookRotation(new Vector3(pos.x - center.x, 0f, pos.z - center.z), Vector3.up);
+                var ph = house.AddComponent<BuildingPlaceholder>();
+                ph.buildingType = BuildingPlaceholder.BuildingType.NPCHouse;
+                ph.buildingName = "마을 집";
+                house.transform.SetParent(parent, true);
+                return house;
             }
 
-            // 광장을 향하도록
+            // 최종 폴백: 큐브 조합 (기존 로직)
+            house = new GameObject(name);
+            house.transform.position = new Vector3(pos.x, groundY, pos.z);
+            Color wallColor = Color.Lerp(nationTint, Color.white, 0.18f);
+            Color roofColor = Color.Lerp(nationTint, Color.black, 0.35f);
+
+            var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            body.name = "Body";
+            body.transform.SetParent(house.transform, false);
+            body.transform.localPosition = new Vector3(0f, 0.8f, 0f);
+            body.transform.localScale = new Vector3(2.2f, 1.6f, 2.2f);
+            body.tag = "Untagged";
+            var br = body.GetComponent<MeshRenderer>();
+            if (br != null)
+                br.material = MaterialHelper.CreateLitMaterial(wallColor, $"{name}_Mat");
+
+            var roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roof.name = "Roof";
+            roof.transform.SetParent(house.transform, false);
+            roof.transform.localPosition = new Vector3(0f, 1.85f, 0f);
+            roof.transform.localScale = new Vector3(2.7f, 0.5f, 2.7f);
+            roof.tag = "Untagged";
+            var rr = roof.GetComponent<MeshRenderer>();
+            if (rr != null)
+                rr.material = MaterialHelper.CreateLitMaterial(roofColor, $"{name}_Roof_Mat");
+
             Vector3 face = new Vector3(pos.x - center.x, 0f, pos.z - center.z);
             if (face.sqrMagnitude > 0.0001f)
                 house.transform.rotation = Quaternion.LookRotation(-face, Vector3.up);
 
-            var ph = house.AddComponent<BuildingPlaceholder>();
-            ph.buildingType = BuildingPlaceholder.BuildingType.NPCHouse;
-            ph.buildingName = "마을 집";
+            var ph2 = house.AddComponent<BuildingPlaceholder>();
+            ph2.buildingType = BuildingPlaceholder.BuildingType.NPCHouse;
+            ph2.buildingName = "마을 집";
 
             house.transform.SetParent(parent, true);
             return house;
         }
 
-        /// <summary>창고: 큐브 조합(넓은 몸통+지붕), 국가 틴트 어두운 톤. BuildingPlaceholder(Other/"창고") 부착.</summary>
-        private static GameObject CreateWarehouse(Transform parent, Vector3 pos, Vector3 center, Color nationTint)
+        /// <summary>창고: 건물 GLB 카탈로그(쉼터/리테일) 우선, 없으면 큐브 조합. BuildingPlaceholder(Other/"창고") 부착.</summary>
+        private static GameObject CreateWarehouse(Transform parent, Vector3 pos, Vector3 center, Color nationTint, int layoutHash)
         {
             float groundY = TerrainGenerator.GetHeightAt(pos.x, pos.z, BiomeType.Plains, TerrainSeed) + GROUND_BASE;
+
+            string whGlb = VillageBuildingCatalog.ShelterPath(layoutHash);
+            var warehouse = VillageBuildingCatalog.InstantiateAtGround(
+                whGlb, pos, groundY, VillageBuildingCatalog.ShelterTargetHeight, "Warehouse");
+            if (warehouse != null)
+            {
+                warehouse.transform.rotation = Quaternion.LookRotation(new Vector3(pos.x - center.x, 0f, pos.z - center.z), Vector3.up);
+                var ph = warehouse.AddComponent<BuildingPlaceholder>();
+                ph.buildingType = BuildingPlaceholder.BuildingType.Other;
+                ph.buildingName = "창고";
+                warehouse.transform.SetParent(parent, true);
+                return warehouse;
+            }
+
+            // 폴백: 큐브 조합
+            warehouse = new GameObject("Warehouse");
+            warehouse.transform.position = new Vector3(pos.x, groundY, pos.z);
             Color wallColor = Color.Lerp(nationTint, Color.black, 0.15f);
             Color roofColor = Color.Lerp(nationTint, Color.black, 0.45f);
-
-            var warehouse = new GameObject("Warehouse");
-            warehouse.transform.position = new Vector3(pos.x, groundY, pos.z);
 
             var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
             body.name = "Body";
@@ -393,9 +434,9 @@ namespace ProjectName.Systems
             if (face.sqrMagnitude > 0.0001f)
                 warehouse.transform.rotation = Quaternion.LookRotation(-face, Vector3.up);
 
-            var ph = warehouse.AddComponent<BuildingPlaceholder>();
-            ph.buildingType = BuildingPlaceholder.BuildingType.Other;
-            ph.buildingName = "창고";
+            var ph2 = warehouse.AddComponent<BuildingPlaceholder>();
+            ph2.buildingType = BuildingPlaceholder.BuildingType.Other;
+            ph2.buildingName = "창고";
 
             warehouse.transform.SetParent(parent, true);
             return warehouse;
