@@ -17,7 +17,7 @@
 ### 구현 (부모 직접)
 - **`VillageBuildingCatalog.cs` (신규)**: 건물 23종을 역할(집11/부자집6/쉼터3/상점3) 카탈로그. `#if UNITY_EDITOR` AssetDatabase 로드 + `InstantiateAtGround`(렌더러 bounds 높이를 targetHeight로 균등 스케일 → 밑면 접지).
 - **`VillageBuilder.cs`**: 집/상점/창고를 카탈로그 풀로 교체 — ①집: `HousePath(layoutHash+i)` 결정론 + `(layoutHash+i)%4==0`이면 부자집(6m) ②상점: `ShopPath(layoutHash)`(주점/음식점/약초방 결정론) ③창고: `ShelterPath(layoutHash)`(쉼터/리테일). 실패 시 hut→큐브 폴백 유지. `BuildingPlaceholder`/`ShopPlaceholder`(상점 E키) 규약 유지.
-- **`VillageNpcSpawner.cs` (신규)**: 마을당 10~15명 주민(man1/2·girl1~3·oldman1~2 rigged GLB, 반지름 5~30m 결정론 + 3m 간격) + 대표마을 상점주인(shop_npc, 8~12m). `NPCAmbientDialogue` AddComponent(→ HoverTargetClassifier 대화 NPC) + 접지 GetHeightAt. 시드=`GetHash("{nation}_{index}_villagenpcs")`.
+- **`VillageNpcSpawner.cs` (신규)**: 마을당 10~15명 주민(man1/2·girl1~3·oldman1~2 rigged GLB, 반지름 5~30m 결정론 + 3m 간격) + 대표마을 상점주인(shop_npc, 8~12m). `NPCAmbientDialogue` AddComponent(→ HoverTargetClassifier 대화 NPC) + 접지 GetHeightAt + **Animator + SoldierShield_AC 컨트롤러(병사 humanoid 리그 호환, Speed=0 → Idle 호흡 재생 — `ede58c7a`)**. 시드=`GetHash("{nation}_{index}_villagenpcs")`.
 - **`CoreSystemsBootstrap.cs`**: `BuildAllVillages()` 직후 `VillageNpcSpawner.BuildAllVillageNPCs()`.
 - **`AutoGameplayTest.cs`**: 대표마을로 카메라 이동(FrameRepresentativeVillage) + Villages_Root/NPC 존재 로그 + 마을 스샷 추가(Play 검증용).
 
@@ -26,7 +26,7 @@
 - **EditMode 테스트 통과** (run_tests.sh editmode).
 - ⚠ Play 자동 스샷(auto_test_and_capture.sh)은 batchmode에서 Play 미전환+로그 WSL경로 버그로 스샷 미생성 — 이 프로젝트 관례대로 **사용자 Play 최종 확인** 필요.
 
-### 커밋 `.664eb690` push.
+### 커밋 `664eb690` push · `ede58c7a` (NPC 애니메이션).
 ### Play 확인 포인트
 1. 마을에 주점/음식점/약초방 상점 건물 + 집/부자집/둥글집 4~6채가 진짜 건물 GLB(색깔 있는 모델)로 보이는지.
 2. 마을마다 NPC 10~15명이 배회/대화 가능(E키)한지, 대표마을엔 상점주인이 있는지.
