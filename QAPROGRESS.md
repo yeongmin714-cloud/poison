@@ -1,6 +1,40 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-24 (마을 건물 GLB + 주민 NPC 배치 — 컴파일 0)
+> **최종 갱신:** 2026-09-24 (실내 가구 프리미티브 → GLB 가구 교체 — 컴파일 0)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-24 ✅ 실내 가구를 GLB 가구로 교체 — IndoorFurnitureCatalog)
+
+> **입력**: "실내씬에 지금 잡다한걸로 있는데 싹 비우고 새로운 glb 폴더안의 furniture 로 가구를 채우자 가구로 보이게 크기도 맞춰주고".
+
+### 조사
+- **실내 가구는 전부 프리미티브 큐브** — `IndoorFurniturePlacer.CreateTable/CreateChair/CreateShelf/CreateCounter/CreateBed`가 `PrimitiveType.Cube` 기반 Mesh로 가구를 만들고, 각 빌더(성/집/상점/교회/작업장/주점)가 이를 배치. 이게 "잡다한 것"의 실체.
+- **가구 에셋**: `Assets/새로운 glb/furniture/` 23종(테이블류 8·사이드보드/책장류 5·침대 1·의자/릴렉서 3·상자 2·거울/족욕대 등) — **기존 어떤 코드도 미참조**.
+- **로드 정석**: 대용량 팩 = `#if UNITY_EDITOR` `AssetDatabase.LoadAssetAtPath<GameObject>` 직접 로드(fish/crop/건물 선례) — git 미커밋·로컬 유지.
+
+### 구현 (신규 카탈로그 + 빌더 7종 치환)
+- **`IndoorFurnitureCatalog.cs` (신규)**: furniture GLB를 유형별 풀로 카탈로그화 — table(목표높이 0.9m)·chair(0.5)·shelf(1.8)·counter(1.0)·bed(0.5)·crate(0.7)·mirror(1.6). 기존 프리미티브 `IndoorFurniturePlacer`와 **시그니처 1:1 호환**(빌더 코드의 SetParent/localPosition/name/rotation 그대로 유지). GLB `BoundsOf` 렌더러 world bounds 높이 → 목표높이 균등 스케일 → 밑면 floorY=0 접지. GLB 로드 실패 시 프리미티브 폴백(절대 null 미반환). 풀 선택 = `_counter++ % pool.Length` 순환(시각 다양성). ⚠ **Bed는 세이브 유지**: root에 `BoxCollider(isTrigger, center(0,0.3,0), size(width,0.6,depth))` + `Bed` 컴포넌트 부착(프리미티브 CreateBed 로직 모방).
+- **실내 빌더 7종 가구 교체** (함수명만 치환):
+  - `CastleInteriorBuilder`(7): 왕좌/회의 탁자+의자, 옷장/무기랙(선반), 사이드테이블(카운터)
+  - `PlayerCastleInteriorBuilder`(12): 지휘책상/행정책상/계획탁자/연금탁자+의자, 보관선반×2, 작업대/요리대/장식탁자(카운터), 영주 침대
+  - `HouseInteriorBuilder`(5): 침대, 식탁+의자2, 난로(테이블)
+  - `TavernInteriorBuilder`: 자체 프리미티브 가구 헬퍼 CreateCounter/CreateTable/CreateChair 내부의 `CreatePrimitive(Cube)` 블록 제거 → `IndoorFurnitureCatalog` 단일 호출로 교체 (방/바닥/벽/천장/무대는 그대로)
+  - `ChurchInteriorBuilder`(3): 제단(테이블), 벤치(의자)×2
+  - `CraftHouseInteriorBuilder`(8): 제작대×2·화덕·연금탁자(테이블), 재료선반×2·창고선반, 요리카운터
+  - `ShopInteriorBuilder`(5): 카운터, 좌우 선반, 진열탁자, 사무실 책상
+
+### 검증
+- 배치컴파일 **error CS = 0** (unity_qa_interior.log, CompileScripts 완료).
+- **EditMode: 301 total / 299 passed / 2 failed** — 실패 2건은 **실내 가구와 무관한 기존 요리 레시피 데이터 노후 단언**(① `RecipeCatalog.TotalCount==760` 기대 ↔ 현행 2024 ② Salmon+BlueFish 조합 null 기대 ↔ 확장 등록). 코드 경로 완전 분리 = 가구 교체 회귀 아님.
+- ⚠ Play 자동 스샷은 batchmode Play 미전환 버그로 미생성 — 관례대로 **사용자 Play 최종 확인** 필요.
+
+### 커밋 `59b84677` (9 files, +239/−86) — IndoorFurnitureCatalog 신규 + 빌더 7종 치환.
+### Play 확인 포인트
+1. 성/집/상점/작업장/주점/교회 진입 시 가구가 큐브가 아닌 **실제 가구 GLB 모델**(테이블/의자/책장/침대/상자)로 보이는지.
+2. 가구 크기가 방에 맞고(테이블 0.9m·의자 0.5m·선반 1.8m·침대 0.5m) 바닥에 잘 붙는지(접지).
+3. 영주실 침대(세이브) E키 상호작용이 유지되는지.
+4. 주점 카운터/테이블/의자가 GLB로 배치됐는지.
 
 ---
 
