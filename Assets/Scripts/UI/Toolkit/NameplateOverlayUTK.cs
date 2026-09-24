@@ -134,6 +134,14 @@ namespace ProjectName.UI.Toolkit
             public VisualElement fill;
             public Label ratioLabel;
 
+            // [F5] 몬스터 헤드 — reference-monster-health-bar 구조 (level-badge + 이름 인라인 + 플로팅 스탯)
+            public VisualElement nameRow;     // [배지 + 이름] 가로
+            public Label levelBadge;          // 티어색 배경 + 흰 레벨 숫자 (13×18)
+            public VisualElement statPanel;   // floating-stats 3행 (#10151C)
+            public Label hpStatVal;
+            public Label atkStatVal;
+            public Label spdStatVal;
+
             public float estHeight; // 종류별 추정 높이(위치 보정)
 
             public void Reset()
@@ -333,6 +341,8 @@ namespace ProjectName.UI.Toolkit
             slot.headOffset = 2.2f;            // GuardHeadUI 앵커 계승
             slot.estHeight = NameH + BarH + 4f;
             slot.lvLabel.style.display = DisplayStyle.None;
+            slot.levelBadge.style.display = DisplayStyle.None;   // [F5] 배지 — 병사 미표시
+            slot.statPanel.style.display = DisplayStyle.None;    // [F5] 스탯 — 병사 미표시
             slot.barWrap.style.display = DisplayStyle.Flex;
         }
 
@@ -342,8 +352,11 @@ namespace ProjectName.UI.Toolkit
             slot.monster = m;
             slot.guard = null;
             slot.npc = null;
-            slot.estHeight = NameH + LvH + BarH + 8f;
-            slot.lvLabel.style.display = DisplayStyle.Flex;
+            // [F5] 배지(18) + 이름(18) 행 + 바(10+여백) + 스탯패널(~26)
+            slot.estHeight = NameH + BarH + 4f + 30f + 8f;
+            slot.lvLabel.style.display = DisplayStyle.None;        // [F5] 배지로 대체
+            slot.levelBadge.style.display = DisplayStyle.Flex;     // [F5] 티어색 배지
+            slot.statPanel.style.display = DisplayStyle.Flex;      // [F5] floating-stats
             slot.barWrap.style.display = DisplayStyle.Flex;
             // bounds 기반 앵커 (MonsterHeadUI 계승)
             if (Time.unscaledTime >= slot.headNextRefresh)
@@ -362,6 +375,8 @@ namespace ProjectName.UI.Toolkit
             slot.headOffset = 2.0f;            // NameplateDisplay 앵커 계승
             slot.estHeight = NpcH;
             slot.lvLabel.style.display = DisplayStyle.None;
+            slot.levelBadge.style.display = DisplayStyle.None;   // [F5]
+            slot.statPanel.style.display = DisplayStyle.None;    // [F5]
             slot.barWrap.style.display = DisplayStyle.None;
         }
 
@@ -419,13 +434,28 @@ namespace ProjectName.UI.Toolkit
             Color tierColor = ResolveTierColor(displayName);
 
             slot.nameLabel.text = displayName;
-            slot.lvLabel.text = ResolveLevelText(m);
-            slot.lvLabel.style.color = new StyleColor(tierColor);
+            slot.nameLabel.style.width = StyleKeyword.Auto;   // [F5] 이름은 배지 옆 flex — 배지 함몰 방지 위해 auto
+            // [F5] 레벨 배지 — 티어색 배경 + 흰 숫자 (reference level-badge)
+            slot.levelBadge.text = m.Level.ToString();
+            slot.levelBadge.style.backgroundColor = new StyleColor(tierColor);
 
             float ratio = m.MaxHP > 0f ? Mathf.Clamp01(m.CurrentHP / m.MaxHP) : 0f;
             SetFillWidth(slot, ratio);
-            slot.fill.style.backgroundImage = UTKTextureSafe.ToBackground(_gradMonster);
+            // [F5] reference HP fill = 플랫 #E53E3E (기존 그라디언트 텍스처 → 단순 플랫)
+            slot.fill.style.backgroundImage = StyleKeyword.Null;
+            slot.fill.style.backgroundColor = new StyleColor(new Color(0xE5 / 255f, 0x3E / 255f, 0x3E / 255f, 1f));
             slot.ratioLabel.text = Mathf.RoundToInt(ratio * 100f).ToString() + "%";
+
+            // [F5] floating-stats — HP / 공격력 / 속도
+            if (slot.hpStatVal != null)
+                slot.hpStatVal.text = m.CurrentHP < 0 ? "0" : Mathf.RoundToInt(m.CurrentHP).ToString();
+            if (slot.atkStatVal != null)
+            {
+                var def = MonsterDatabase.Get(m.MonsterId);
+                slot.atkStatVal.text = def != null ? def.baseDamage.ToString() : "?";
+            }
+            if (slot.spdStatVal != null)
+                slot.spdStatVal.text = m.CurrentSpeed <= 0f ? "0" : Mathf.RoundToInt(m.CurrentSpeed).ToString();
 
             PlaceSlot(slot);
         }
@@ -562,6 +592,29 @@ namespace ProjectName.UI.Toolkit
             slot.root.style.display = DisplayStyle.None;
             _overlayRoot.Add(slot.root);
 
+            // [F5] 이름 행 — 배지 + 이름 가로 (몬스터는 배지 표시, 병사/NPC는 배지 숨김)
+            slot.nameRow = new VisualElement();
+            slot.nameRow.style.flexDirection = FlexDirection.Row;
+            slot.nameRow.style.alignItems = Align.Center;
+            slot.nameRow.style.justifyContent = Justify.Center;
+            slot.nameRow.pickingMode = PickingMode.Ignore;
+            slot.root.Add(slot.nameRow);
+
+            // 레벨 배지 — 티어색 배경 + 흰 숫자 (reference-monster-health-bar level-badge, 13×18)
+            slot.levelBadge = new Label();
+            slot.levelBadge.style.width = 20f;
+            slot.levelBadge.style.height = 18f;
+            slot.levelBadge.style.fontSize = 12f;
+            slot.levelBadge.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
+            slot.levelBadge.style.unityTextAlign = TextAnchor.MiddleCenter;
+            slot.levelBadge.style.color = new StyleColor(Color.white);
+            slot.levelBadge.style.borderTopLeftRadius = 3f; slot.levelBadge.style.borderTopRightRadius = 3f;
+            slot.levelBadge.style.borderBottomLeftRadius = 3f; slot.levelBadge.style.borderBottomRightRadius = 3f;
+            slot.levelBadge.style.marginRight = 4f;
+            slot.levelBadge.pickingMode = PickingMode.Ignore;
+            slot.levelBadge.style.display = DisplayStyle.None;
+            slot.nameRow.Add(slot.levelBadge);
+
             // 이름 라벨 — 다크 아크릴 배경 + 골드 1px + 라운드 4px
             slot.nameLabel = new Label();
             slot.nameLabel.style.backgroundColor = new StyleColor(LabelBgColor);
@@ -580,7 +633,7 @@ namespace ProjectName.UI.Toolkit
             slot.nameLabel.style.color = new StyleColor(Color.white);
             slot.nameLabel.style.whiteSpace = WhiteSpace.NoWrap;
             slot.nameLabel.pickingMode = PickingMode.Ignore;
-            slot.root.Add(slot.nameLabel);
+            slot.nameRow.Add(slot.nameLabel);
 
             // 몬스터 전용 Lv 라벨 (티어색)
             slot.lvLabel = new Label();
@@ -650,7 +703,58 @@ namespace ProjectName.UI.Toolkit
             slot.ratioLabel.pickingMode = PickingMode.Ignore;
             slot.trough.Add(slot.ratioLabel);
 
+            // [F5] floating-stats 패널 (#10151C, 3행: HP/공격력/속도 — reference-monster-health-bar)
+            slot.statPanel = new VisualElement();
+            slot.statPanel.style.flexDirection = FlexDirection.Row;
+            slot.statPanel.style.alignItems = Align.Center;
+            slot.statPanel.style.justifyContent = Justify.Center;
+            slot.statPanel.style.backgroundColor = new StyleColor(new Color(0x10 / 255f, 0x15 / 255f, 0x1C / 255f, 1f)); // #10151C
+            slot.statPanel.style.borderTopLeftRadius = 3f; slot.statPanel.style.borderTopRightRadius = 3f;
+            slot.statPanel.style.borderBottomLeftRadius = 3f; slot.statPanel.style.borderBottomRightRadius = 3f;
+            slot.statPanel.style.borderTopWidth = 1f; slot.statPanel.style.borderBottomWidth = 1f;
+            slot.statPanel.style.borderLeftWidth = 1f; slot.statPanel.style.borderRightWidth = 1f;
+            slot.statPanel.style.borderTopColor = new StyleColor(GoldRing);
+            slot.statPanel.style.borderBottomColor = new StyleColor(GoldRing);
+            slot.statPanel.style.borderLeftColor = new StyleColor(GoldRing);
+            slot.statPanel.style.borderRightColor = new StyleColor(GoldRing);
+            slot.statPanel.style.marginTop = 4f;
+            slot.statPanel.style.paddingTop = 2f; slot.statPanel.style.paddingBottom = 2f;
+            slot.statPanel.style.paddingLeft = 6f; slot.statPanel.style.paddingRight = 6f;
+            slot.statPanel.pickingMode = PickingMode.Ignore;
+            slot.statPanel.style.display = DisplayStyle.None;
+            slot.root.Add(slot.statPanel);
+
+            slot.hpStatVal = BuildStatItem(slot.statPanel, "❤", new Color(0.49f, 0.89f, 1f, 1f));     // #7CE2FE
+            slot.atkStatVal = BuildStatItem(slot.statPanel, "⚔", new Color(0.31f, 0.93f, 0.67f, 1f));   // #4EFEAA
+            slot.spdStatVal = BuildStatItem(slot.statPanel, "💨", new Color(0.31f, 0.93f, 0.67f, 1f));  // #4EFEAA
+
             UTKWindowBase.ApplyUIToolkitFont(slot.root);
+        }
+
+        /// <summary>[F5] 스탯 항목(아이콘+값) 하나 생성 — floating-stats 행. 반환: 값 라벨.</summary>
+        private static Label BuildStatItem(VisualElement parent, string iconChar, Color valColor)
+        {
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.alignItems = Align.Center;
+            row.style.marginRight = 8f;
+            row.pickingMode = PickingMode.Ignore;
+            parent.Add(row);
+
+            var icon = new Label(iconChar);
+            icon.style.fontSize = 10f;
+            icon.style.color = new StyleColor(new Color(1f, 1f, 1f, 0.9f));
+            icon.style.marginRight = 2f;
+            icon.pickingMode = PickingMode.Ignore;
+            row.Add(icon);
+
+            var val = new Label("—");
+            val.style.fontSize = 11f;
+            val.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
+            val.style.color = new StyleColor(valColor);
+            val.pickingMode = PickingMode.Ignore;
+            row.Add(val);
+            return val;
         }
 
         // ═══════════════ 공유 그라디언트 생성 ═══════════════
