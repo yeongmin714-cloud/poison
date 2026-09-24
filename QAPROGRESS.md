@@ -1,10 +1,34 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-24 (GA-C3: 카테고리 기반 요리 760종 · RecipeCatalog + 3슬롯 요리UI — 컴파일 0 · EditMode 301/301 통과)
+> **최종 갱신:** 2026-09-24 (UI-W: 상점 3열화 + 밀매 별도 창 분리 — 컴파일 0)
 
 ---
 
-## 📌 세션 스냅샷 (2026-09-24 ✅ GA-C3 — 카테고리 기반 요리 재설계 + 피그마 3슬롯 요리 UI)
+## 📌 세션 스냅샷 (2026-09-24 ✅ UI-W — 상점 3열(GitHub-dark) + 밀매 별도 SmuggleWindowUTK 분리)
+
+> **입력**: 상점을 Figma `game-shop-ui`의 Store|Detail|Sell **3열**로 재구성하고, 밀매(💊)는 상점에서 분리해 **별도 창**으로. 작업 룰(부모 직접 수행 — 서브에이전트 실패 2회 패턴).
+
+### A — 상점 3열화 (커밋 `fa678a0a`)
+- `ShopWindowUTK` 단일 스크롤 → **3열 레이아웃**: 좌(44%) 상점 재고 구매목록 | 중앙(28%) 선택 아이템 상세+구매/판매 버튼(Detail 패널 신규) | 우(28%) 내 인벤토리 판매목록.
+- 행 클릭(`ShowDetail(shopItem,true)` / `_detailSellSlot+ShowDetail(null,false)`) → 중앙 Detail 갱신, `OnDetailAction`이 Buy/Sell 모드를 분기.
+- 구매/판매/비밀상점/씨앗 랜덤/할인가 금융 로직 **전부 보존** (BuyItem/SellSlot/GetBuyPrice/CalculateSellPrice 동일). EditMode 301/301.
+- Detail/EconomyPricing/PlayerStats 소스는 원본과 동일 계열 직접 호출(복제·바이패스 0).
+
+### B — 밀매 별도 창 분리
+- **`SmuggleWindowUTK.cs` 신규**: 밀매 로직(영지판정 `ResolveSmuggleTerritory`/`IsSmuggleAllowed`, `CalculateSmugglePrice`, `RefreshSmuggleList`, `BuildSmuggleRow`, `SmuggleSlot`→`TerritoryDrugSystem.AddDrug` 오염↑) + GitHub-dark 스타일(상점 창과 동일 Figma 규약 복사 — 이 창 한정 인라인). 제목 `💊 밀매`, 720×560 우상단 배치.
+- `SmuggleWindowUTK.Open(Vector3?)`: **적 영지(`IsTerritorySmuggleable`)일 때만 표시**, 아니면 기존 열려 있으면 Hide+Instance 해제. 군: null 반환.
+- `ShopWindowUTK.Open`: `SmuggleWindowUTK.Open(shopPosition)` 호출 추가(같은 위치 전달) → 적 영지 상점이면 밀매 창 동반 노출. 상점 자체는 Buy/Sell 2탭+3열로 단순화(밀매 탭/패널/메서드 전부 제거).
+
+### 검증
+- 배치컴파일 **error CS = 0** (build_smuggle.txt "Exiting batchmode successfully").
+- 외부 참조 점검: 밀매 멤버 전부 ShopWindowUTK 내부 private였고, 유일 외부 호출 `UTKWireUp.cs` `ShopWindowUTK.Open(pos)` — 시그니처 유지 무수정.
+
+### Play 판정 대기
+- 아군 영지 상점: 상점 3열만(밀매 창 안 뜸). 적 영지 상점: 상점+`💊 밀매` 창 우상단 동시 노출. 밀매 창에서 Drug 판매 → 골드+`영지 오염 +` 로그. 비밀상점/씨앗/구매할인 회귀 0.
+
+---
+
+## 📌 세션 스냅샷 (2026-09-24 ✅ GA-C3: 카테고리 기반 요리 760종 · RecipeCatalog + 3슬롯 요리UI — 컴파일 0 · EditMode 301/301 통과)
 
 > **입력**: "생선은 한글로 표시된 종만 / crops도 / 요리는 약초 뼈고 작물·몬스터고기·생선 조합 / 한국식 비중↑ + 이국 병용, 이름 그럴듯하게 / 피그마 요리가 3조합으로 되어있고 UI 전반 피그마 정비 계획(음식조합 이후)"
 > Figma(02vPXOGzFJUUYTaEPSVz3R) 실측: 요리 crafting-panel은 **재료 3슬롯 + 화살표 + 결과 + 성공확률 + 레시피목록 + COOK** 구조로 설계됨 → 기존 2슬롯 CookingWindowUTK와 상이.
