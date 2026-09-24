@@ -1,6 +1,36 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-24 (요리 레시피 760→2024종 확장 — 컴파일 0)
+> **최종 갱신:** 2026-09-24 (마을 건물 GLB + 주민 NPC 배치 — 컴파일 0)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-24 ✅ 마을 건물 GLB + 주민 NPC 10~15명 배치)
+
+> **입력**: "새로운 glb 중 건물 폴더로 마을이 진짜 마을처럼 보이게 건물 배치 + 상점 배치 + 마을 NPC 10~15명".
+
+### 조사 (delegate 258s, READ ONLY)
+- **마을**: `VillageBuilder`가 24개(4국가×6) + 광장/우물/집4~6/창고 + 대표마을 실외상점. 현재 건물은 `hut` GLB(RuntimeModelLoader, `Resources/Models/UserProvided/`) 또는 프리미티브 큐브뿐.
+- **건물 에셋**: `Assets/새로운 glb/건물/` 23종(집6/둥글4/부자집6/쉼터2/약초방/음식점/주점/지붕없는집2/리테일, 총~21MB) — **현재 어떤 코드도 미참조**.
+- **마을 NPC** 10~15명 스폰 시스템 **없음** — `NPCAmbientDialogue`(대사, Systems) 존재하나 AddComponent 0, `NPC_*_Rigged.glb` Resources에 다수(man/girl/oldman/shop_npc).
+- **로드 정석**: 대용량 팩 = `#if UNITY_EDITOR` `AssetDatabase.LoadAssetAtPath<GameObject>` 직접 로드(fish/crop 선례) — 21MB를 git에 안 올리고 로컬 유지.
+
+### 구현 (부모 직접)
+- **`VillageBuildingCatalog.cs` (신규)**: 건물 23종을 역할(집11/부자집6/쉼터3/상점3) 카탈로그. `#if UNITY_EDITOR` AssetDatabase 로드 + `InstantiateAtGround`(렌더러 bounds 높이를 targetHeight로 균등 스케일 → 밑면 접지).
+- **`VillageBuilder.cs`**: 집/상점/창고를 카탈로그 풀로 교체 — ①집: `HousePath(layoutHash+i)` 결정론 + `(layoutHash+i)%4==0`이면 부자집(6m) ②상점: `ShopPath(layoutHash)`(주점/음식점/약초방 결정론) ③창고: `ShelterPath(layoutHash)`(쉼터/리테일). 실패 시 hut→큐브 폴백 유지. `BuildingPlaceholder`/`ShopPlaceholder`(상점 E키) 규약 유지.
+- **`VillageNpcSpawner.cs` (신규)**: 마을당 10~15명 주민(man1/2·girl1~3·oldman1~2 rigged GLB, 반지름 5~30m 결정론 + 3m 간격) + 대표마을 상점주인(shop_npc, 8~12m). `NPCAmbientDialogue` AddComponent(→ HoverTargetClassifier 대화 NPC) + 접지 GetHeightAt. 시드=`GetHash("{nation}_{index}_villagenpcs")`.
+- **`CoreSystemsBootstrap.cs`**: `BuildAllVillages()` 직후 `VillageNpcSpawner.BuildAllVillageNPCs()`.
+- **`AutoGameplayTest.cs`**: 대표마을로 카메라 이동(FrameRepresentativeVillage) + Villages_Root/NPC 존재 로그 + 마을 스샷 추가(Play 검증용).
+
+### 검증
+- 배치컴파일 **error CS = 0**.
+- **EditMode 테스트 통과** (run_tests.sh editmode).
+- ⚠ Play 자동 스샷(auto_test_and_capture.sh)은 batchmode에서 Play 미전환+로그 WSL경로 버그로 스샷 미생성 — 이 프로젝트 관례대로 **사용자 Play 최종 확인** 필요.
+
+### 커밋 `.664eb690` push.
+### Play 확인 포인트
+1. 마을에 주점/음식점/약초방 상점 건물 + 집/부자집/둥글집 4~6채가 진짜 건물 GLB(색깔 있는 모델)로 보이는지.
+2. 마을마다 NPC 10~15명이 배회/대화 가능(E키)한지, 대표마을엔 상점주인이 있는지.
+3. 건물/NPC가 땅에 잘 붙고(접지) 안 겹치는지, 상점 E키가 열리는지.
 
 ---
 

@@ -3123,7 +3123,7 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | Phase 1 (P31-A) | `VillagePlacementSystem` — 4국가×6=24 마을 결정론 좌표(영지 worldPosition 기반, 성 38~46m 오프셋, 각도 슬라이스 유지) | ✅ |
 | Phase 2 (P31-B) | 마을 ← 도로망 수직 접속(`AppendVillageConnections`) + 국가별 흙길 색 미세 변형(`GetDirtColorForNation`, 픽셀별 판정) | ✅ |
 | Phase 3 (P31-C) | 북쪽 눈밭 복원 — 초록 활엽/버드나무 제거·침엽 90·흰꽃↑, 잔디 밀도 15%+차가운 틴트, 이끼 바위→회청 설암 | ✅ |
-| Phase 4 (P31-D) | `VillageBuilder` — 24마을 광장/집4~6/창고/우물, 국가 틴트, 최소 간격 6m, 결정론 | ✅ |
+| Phase 4 (P31-D) | `VillageBuilder` — 24마을 광장/집4~6/창고/우물, 국가 틴트, 최소 간격 6m, 결정론 · **09-24: 건물 GLB 23종 풀(VillageBuildingCatalog: 집/부자집/둥글/상점[주점·음식점·약초방]/쉼터) + VillageNpcSpawner 주민 10~15명/마을 + 대표마을 상점주인** | ✅ |
 | Phase 5 (P31-E) | 상점 실외 이전 — 대표 마을 4곳 실외 상점 + `ShopPlaceholder`(E키), 기존 실내 상점 유지(롤백 안전) | ✅ |
 
 **Phase 완료**: 1(좌표)·2(도로+색)·3(눈밭)·4(건물)·5(상점실외) 전부 ✅ — 배치컴파일 error CS 0.
