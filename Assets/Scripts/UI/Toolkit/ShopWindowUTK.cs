@@ -243,30 +243,35 @@ namespace ProjectName.UI.Toolkit
         public IReadOnlyList<ShopItem> ShopInventory => _shopInventory;
 
         // ───────────────────────────────────────────────
-        // 생성자 — 트리 구성
+        // 생성자 — Figma 3열 레이아웃 (Store | Detail | Sell/인벤)
         // ───────────────────────────────────────────────
-        public ShopWindowUTK() : base("🏪 상점", new Vector2(440f, 600f))
+        public ShopWindowUTK() : base("🏪 상점", new Vector2(1120f, 620f))
         {
             // [Figma GitHub-dark 리스타일] 다크 창 크롬 — 시각 전용, 기능 경로 무관(테스트 범위: 이 창 한정)
             ApplyGitHubDarkStyle();
 
-            // ── 골드 잔액 ──
+            // ── 공용 상단 바 (골드 + 탭) ──
+            var topBar = new VisualElement();
+            topBar.style.flexDirection = FlexDirection.Row;
+            topBar.style.alignItems = Align.Center;
+            topBar.style.marginBottom = 8f;
+            Content.Add(topBar);
+
             _goldLabel = new Label("골드: 0");
             _goldLabel.style.fontSize = 20f;
-            _goldLabel.style.color = GitHubDark.Gold;   // [GitHub-dark] 골드=금색
-            _goldLabel.style.marginBottom = 6f;
+            _goldLabel.style.color = GitHubDark.Gold;
+            _goldLabel.style.flexGrow = 1f;
             _goldLabel.AddToClassList("utk-title-label");
-            Content.Add(_goldLabel);
+            topBar.Add(_goldLabel);
 
-            // ── 탭 행 ──
             var tabRow = new VisualElement();
             tabRow.style.flexDirection = FlexDirection.Row;
             tabRow.style.marginBottom = 6f;
-            Content.Add(tabRow);
+            topBar.Add(tabRow);
 
             _tabBuy = UTKButton.Create("구매", () => SwitchTab(ShopTab.Buy), UTKButton.Variant.Primary);
             _tabSell = UTKButton.Create("판매", () => SwitchTab(ShopTab.Sell), UTKButton.Variant.Secondary);
-            _tabSmuggle = UTKButton.Create("💊 밀매", () => SwitchTab(ShopTab.Smuggle), UTKButton.Variant.Danger);   // [P30-D]
+            _tabSmuggle = UTKButton.Create("💊 밀매", () => SwitchTab(ShopTab.Smuggle), UTKButton.Variant.Danger);   // [P30-D] (별도 창으로 분리 예정)
             _tabBuy.style.flexGrow = 1f;
             _tabSell.style.flexGrow = 1f;
             _tabSmuggle.style.flexGrow = 1f;
@@ -274,40 +279,196 @@ namespace ProjectName.UI.Toolkit
             tabRow.Add(_tabSell);
             tabRow.Add(_tabSmuggle);
 
-            // ── 구매 패널 ──
+            // ── 3열 본체 (Figma Store | Detail | Sell) ──
+            var columns = new VisualElement();
+            columns.style.flexDirection = FlexDirection.Row;
+            columns.style.flexGrow = 1f;
+            Content.Add(columns);
+
+            // [좌] Store 패널 — 구매 목록
+            var storeCol = new VisualElement();
+            storeCol.style.flexGrow = 1f;
+            storeCol.style.width = Length.Percent(44f);
+            storeCol.style.marginRight = 8f;
+            columns.Add(storeCol);
+            var storeTitle = new Label("── 상점 재고 ──");
+            storeTitle.style.fontSize = 14f;
+            storeTitle.style.color = GitHubDark.TextSub;
+            storeCol.Add(storeTitle);
+
             _buyPanel = new VisualElement();
             _buyPanel.style.flexGrow = 1f;
             _buyScroll = new ScrollView();
             _buyScroll.style.flexGrow = 1f;
             _buyPanel.Add(_buyScroll);
-            Content.Add(_buyPanel);
+            storeCol.Add(_buyPanel);
 
-            // ── 판매 패널 ──
+            // [중앙] Detail 패널 — 선택 아이템 상세 + 액션
+            var detailCol = new VisualElement();
+            detailCol.style.flexGrow = 1f;
+            detailCol.style.width = Length.Percent(28f);
+            detailCol.style.marginRight = 8f;
+            columns.Add(detailCol);
+            BuildDetailPanel(detailCol);
+
+            // [우] Sell/인벤토리 패널 + 밀매 패널 (탭으로 전환)
+            var sellCol = new VisualElement();
+            sellCol.style.flexGrow = 1f;
+            sellCol.style.width = Length.Percent(28f);
+            columns.Add(sellCol);
+            var sellTitle = new Label("── 내 인벤토리 ──");
+            sellTitle.style.fontSize = 14f;
+            sellTitle.style.color = GitHubDark.TextSub;
+            sellCol.Add(sellTitle);
+
             _sellPanel = new VisualElement();
             _sellPanel.style.flexGrow = 1f;
             _sellScroll = new ScrollView();
             _sellScroll.style.flexGrow = 1f;
             _sellPanel.Add(_sellScroll);
-            Content.Add(_sellPanel);
+            sellCol.Add(_sellPanel);
 
-            // ── [P30-D] 밀매 패널 — 적 영지 상점 NPC에서 Drug 아이템을 비싼 값에 판매 ──
             _smugglePanel = new VisualElement();
             _smugglePanel.style.flexGrow = 1f;
             _smuggleScroll = new ScrollView();
             _smuggleScroll.style.flexGrow = 1f;
             _smugglePanel.Add(_smuggleScroll);
-            Content.Add(_smugglePanel);
+            sellCol.Add(_smugglePanel);
 
             // ── 상태 라벨 ──
             _statusLabel = new Label("");
             _statusLabel.style.fontSize = 14f;
-            _statusLabel.style.color = GitHubDark.TextSub;   // [GitHub-dark] 보조 텍스트
-            _statusLabel.style.marginTop = 6f;
+            _statusLabel.style.color = GitHubDark.TextSub;
             _statusLabel.style.minHeight = 20f;
+            _statusLabel.style.marginTop = 6f;
             Content.Add(_statusLabel);
 
             SwitchTab(ShopTab.Buy);
+            ShowDetail(null, true);
         }
+
+        /// <summary>[Figma Detail 패널] 중앙 컬럼 — 선택 아이템 상세 + 구매/판매 버튼.</summary>
+        private UTKSlot _detailSlot;
+        private Label _detailName;
+        private Label _detailDesc;
+        private Label _detailPrice;
+        private Button _detailActionBtn;
+        private ShopItem _detailShopItem;      // 구매 대상 (null = 판매/비활성)
+        private PlayerInventory.ItemSlot _detailSellSlot = null;   // 판매 대상
+
+        private void BuildDetailPanel(VisualElement parent)
+        {
+            var title = new Label("── 아이템 정보 ──");
+            title.style.fontSize = 14f;
+            title.style.color = GitHubDark.TextSub;
+            parent.Add(title);
+
+            var card = new VisualElement();
+            card.style.flexGrow = 1f;
+            card.style.backgroundColor = GitHubDark.PanelSub;
+            card.style.borderTopWidth = card.style.borderBottomWidth = card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = card.style.borderBottomColor = card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            card.style.borderTopLeftRadius = 8f; card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f; card.style.borderBottomRightRadius = 8f;
+            card.style.paddingTop = 12f; card.style.paddingBottom = 12f;
+            card.style.paddingLeft = 12f; card.style.paddingRight = 12f;
+            parent.Add(card);
+
+            _detailSlot = new UTKSlot();
+            _detailSlot.style.width = 96f;
+            _detailSlot.style.height = 96f;
+            _detailSlot.style.alignSelf = Align.Center;
+            _detailSlot.style.marginBottom = 8f;
+            card.Add(_detailSlot);
+
+            _detailName = new Label("아이템을 선택하세요");
+            _detailName.style.fontSize = 18f;
+            _detailName.style.color = GitHubDark.TextMain;
+            _detailName.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _detailName.style.whiteSpace = WhiteSpace.Normal;
+            card.Add(_detailName);
+
+            _detailDesc = new Label("");
+            _detailDesc.style.fontSize = 13f;
+            _detailDesc.style.color = GitHubDark.TextSub;
+            _detailDesc.style.whiteSpace = WhiteSpace.Normal;
+            _detailDesc.style.marginTop = 6f;
+            card.Add(_detailDesc);
+
+            _detailPrice = new Label("");
+            _detailPrice.style.fontSize = 15f;
+            _detailPrice.style.color = GitHubDark.Accent;
+            _detailPrice.style.marginTop = 8f;
+            card.Add(_detailPrice);
+
+            _detailActionBtn = UTKButton.Create("구매", () => OnDetailAction(), UTKButton.Variant.Primary);
+            _detailActionBtn.style.marginTop = 10f;
+            StyleButton(_detailActionBtn, UTKButton.Variant.Primary);
+            card.Add(_detailActionBtn);
+        }
+
+        /// <summary>Detail 패널 갱신. isBuy=true이면 상점 아이템, false이면 판매(인벤) 아이템 상세.</summary>
+        private void ShowDetail(ShopItem shopItem, bool isBuy)
+        {
+            _detailShopItem = isBuy ? shopItem : null;
+            _detailSellSlot = isBuy ? null : _detailSellSlot;
+
+            if (isBuy && shopItem != null && shopItem.item != null)
+            {
+                _detailSlot.SetIcon(ItemIconDatabase.GetOrCreateIcon(shopItem.item));
+                _detailSlot.SetRank(shopItem.isRare ? "unique" : "common");
+                StyleShopSlot(_detailSlot, shopItem.item != null ? RankRing((int)shopItem.item.rarity) : GitHubDark.Stroke);
+                _detailName.text = shopItem.item.displayName;
+                _detailDesc.text = shopItem.item.description ?? "";
+                int bp = GetBuyPrice(shopItem);
+                string st = shopItem.stock == -1 ? "무한" : $"{shopItem.stock}개";
+                _detailPrice.text = bp < shopItem.price ? $"가격: {bp}G (원가 {shopItem.price}G)  ·  재고 {st}" : $"가격: {bp}G  ·  재고 {st}";
+                _detailActionBtn.text = "구매하기";
+                _detailActionBtn.SetEnabled((PlayerStats.Instance?.Gold ?? 0) >= bp && (shopItem.stock == -1 || shopItem.stock > 0));
+                StyleButton(_detailActionBtn, UTKButton.Variant.Primary);
+                return;
+            }
+
+            // 판매 모드 — 현재 _detailSellSlot 사용
+            if (_detailSellSlot != null && _detailSellSlot.item != null)
+            {
+                var it = _detailSellSlot.item;
+                _detailSlot.SetIcon(ItemIconDatabase.GetOrCreateIcon(it));
+                _detailSlot.SetRank(it.rarity.ToString());
+                StyleShopSlot(_detailSlot, RankRing((int)it.rarity));
+                _detailName.text = it.displayName;
+                _detailDesc.text = it.description ?? "";
+                int sp = CalculateSellPrice(it);
+                _detailPrice.text = sp > 0 ? $"판매가: {sp}G  ·  x{_detailSellSlot.count}" : "판매 불가";
+                _detailActionBtn.text = "판매하기";
+                _detailActionBtn.SetEnabled(sp > 0);
+                StyleButton(_detailActionBtn, UTKButton.Variant.Danger);
+                return;
+            }
+
+            // 빈 상태
+            _detailSlot.SetIcon(null);
+            _detailSlot.SetRank("");
+            _detailName.text = "아이템을 선택하세요";
+            _detailDesc.text = "";
+            _detailPrice.text = "";
+            _detailActionBtn.text = "구매";
+            _detailActionBtn.SetEnabled(false);
+            StyleButton(_detailActionBtn, UTKButton.Variant.Primary);
+        }
+
+        private void OnDetailAction()
+        {
+            if (_detailShopItem != null)
+            {
+                BuyItem(_detailShopItem);
+            }
+            else if (_detailSellSlot != null)
+            {
+                SellSlot(_detailSellSlot);
+            }
+        }
+
 
         // =====================================================================
         // 공개 진입점 — 루트에 부착 + 표시
@@ -678,7 +839,7 @@ namespace ProjectName.UI.Toolkit
             row.style.paddingLeft = 4f;
             row.style.paddingRight = 4f;
             StyleListRow(row);   // [GitHub-dark] 보조 패널 행 + 1px 스트로크 + r6
-            row.RegisterCallback<PointerDownEvent>(_ => { _selectedBuyIndex = index; });
+            row.RegisterCallback<PointerDownEvent>(_ => { _selectedBuyIndex = index; ShowDetail(shopItem, true); });
 
             // 아이콘 (UTKSlot — 등급 테두리 + 호버 글로우)
             var slot = new UTKSlot();
@@ -814,6 +975,7 @@ namespace ProjectName.UI.Toolkit
             sellBtn.SetEnabled(sellPrice > 0); // 0G 판매 방지
             StyleButton(sellBtn, UTKButton.Variant.Danger);
             row.Add(sellBtn);
+            row.RegisterCallback<PointerDownEvent>(_ => { _detailSellSlot = slot; ShowDetail(null, false); });
 
             UTKWindowBase.ApplyUIToolkitFont(row);
             return row;
