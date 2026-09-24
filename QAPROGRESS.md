@@ -1,28 +1,29 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-24 (GA-C2: 생선·농작물 전종 인게임화 + 요리 2648종 — 컴파일 0 · EditMode 288/288 통과)
+> **최종 갱신:** 2026-09-24 (GA-C3: 카테고리 기반 요리 760종 · RecipeCatalog + 3슬롯 요리UI — 컴파일 0 · EditMode 301/301 통과)
 
 ---
 
-## 📌 세션 스냅샷 (2026-09-24 ✅ GA-C2 — crops 100종/fish 333종 전명 인게임 + 요리 2648종 확장)
+## 📌 세션 스냅샷 (2026-09-24 ✅ GA-C3 — 카테고리 기반 요리 재설계 + 피그마 3슬롯 요리 UI)
 
-> **입력**: "생선이랑 농작물을 이름 구분할 수 있게해뒀어 확인하고 모두 게임 안에 넣어두고 저 재료들로 만들 수 있는 요리의 가지수도 최대한 많이 추가해줘"
-> 사용자가 GLB를 한글 리네임(crop 100종: 영문8+한글92 / fish 334종: 한글39+번호295). 기존 코드는 죽은 번호형 GLB(`crop-c002~c100`) 경로를 하드코딩해 **crops가 게임에서 생성 안 되는 버그**였고, fish는 50종만, 요리 UI는 주재료를 Meat만 받아 crop/fish 요리를 조합 불가.
+> **입력**: "생선은 한글로 표시된 종만 / crops도 / 요리는 약초 뼈고 작물·몬스터고기·생선 조합 / 한국식 비중↑ + 이국 병용, 이름 그럴듯하게 / 피그마 요리가 3조합으로 되어있고 UI 전반 피그마 정비 계획(음식조합 이후)"
+> Figma(02vPXOGzFJUUYTaEPSVz3R) 실측: 요리 crafting-panel은 **재료 3슬롯 + 화살표 + 결과 + 성공확률 + 레시피목록 + COOK** 구조로 설계됨 → 기존 2슬롯 CookingWindowUTK와 상이.
 
 ### 구현
-- `CropCatalog.cs` 신규: 100 crops(키+한글명 index-aligned) → ItemData(`crop_<key>`, Food, 99) + 씨앗(`crop_<key>_seed`), GlbPath/GetItem/GetSeed/GetItemByKey/GetSeedByKey. 자연자원·요리·농경 전부가 이 단일 소스를 사용.
-- `HerbPickup.cs`: `_cropKey`(string) SerializeField 추가 — 설정 시 GetItemData/AddSeedDrop이 CropCatalog 경유(기존 HerbType 5약초+5작물은 FarmPlot 호환 유지).
-- `NaturalResourceSpawner.cs`: 죽은 `CropGlbPaths`(100개 리터럴) 삭제 → `CropAllGlbPaths()`를 CropCatalog.GlbPath(i)로 동적 생성. `CreateCropNode`가 `_cropKey = CropCatalog.Keys[index%100]` 결정론 순환 → **100종 전품종 채집 가능**.
-- `FishCatalog.cs`: 50→**333종**(TotalCount=333, Common[0..199]/Rare[200..299]/Legendary[300..332]). 한글명 39 + 번호형 "물고기 Fnnn". ⚠ `catfish`(영문→메기)가 사용자 `fish-메기.glb`와 표시명 충돌 → **메기 한글로 통일, catfish 제거**(GLB 디스크 334 vs 카탈로그 333 = 의도).
-- `CookingWindowUTK.cs`: 주재료 그리드 수집을 `Meat`만 → `Meat || Food(작물) || (Material && id.StartsWith("fish_glb_"))`로 확장 → crop/fish를 요리 재료로 선택 가능.
-- `GAME_DATA.md`: 요리 표 50→**2648종**(재료 6약초 × [작물100+생선333], #51~#2648 신규, 기존 1~50 유지). ⚠ 헤더 `-- 38종 레시피` 문자열은 파서 마커라 **불변 유지**.
+- `RecipeCatalog.cs` 신규: 카테고리 기반 요리 **760종** (IngredientCategory 23개 = 작물10/생선7/몬스터6, 요리760_master.json 하드코딩). `FindRecipe(a,b)`/`FindRecipe(a,b,c)` 정렬집합 비교(순서 무관), `CropCategory/FishCategory/MonsterCategory`(한국어명→enum), `MonsterMeatItem` 팩토리, `MonsterGroups`(6그룹 23종).
+- `CookingWindowUTK.cs` **3슬롯 재조립**(Figma 정합): 재료 3슬롯+FlowArrow+결과 프리뷰+성공확률 라벨+레시피목록(전체/작물/생선/몬스터 탭, 클릭 시 슬롯 자동충전)+COOK 버튼(재료 2~3개 차감→`dish_<id>` 요리 ItemData 지급+EXP).
+- `GAME_DATA.md`: 기존 2648종(약초 조합) 요리 표 데이터 행 제거 → **빈 표 구조 유지**(헤더+구분선+`38종 레시피` 마커) → 레거시 CookingDatabase/DishDatabase는 의도적으로 0행 로드(약초는 물약 전용). 신규 요리는 코드 RecipeCatalog가 담당.
+- 몬스터 식재료(토끼고기·악어고기·슬라임즙 등 23종) ItemData 팩토리. (사냥 드롭·상점 연동은 후속, UI-F Phase와 병행 예정)
 
 ### 검증
 - `./compile_test.sh`: exit 0, `grep 'error CS'` 0건.
-- EditMode: 288/288 통과(`CookingDatabase_AllRecipes_Loaded` 포함; 1차에 RNG flake 1건 → 재실행으로 소거 확인).
-- 요리 DB: 1~2648 연속 번호·요리명 중복 0 · 433 재료(100작물+333생선)×6약초 정확 대응 · 메기 중복 제거 확인.
-- 데이터 산출: `~/.hermes/scratch/`(crop_fish.json, fish_final.txt, dish_rows_final.txt).
-- Play/화면 렌더(합성 프리팹·채집 아이콘 등)는 Play 스샷 확인 대기.
+- EditMode: **301/301 통과** (RecipeCatalogTests 13/13 신규 + 기존 전원; 레거시 요리 DB 0행 단언으로 CraftBenchTests 갱신).
+- RecipeCatalog 데이터 정합성: 760 id/이름/정렬카테고리셋 중복 0 · 2/3재료 전인자 순서무관 매칭 · 23 카테고리명 1:1.
+
+### 남은 것 (후속)
+- 몬스터 식재료 **사냥 드랍·상점 판매 연동** (MonsterMeatItem 시딩/드롭 배선)
+- **UI-F 피그마 정비(3슬롯은 완료, 나머지 창 정합)** — 음식조합 완료 후 진행
+- Play 스샷: 요리 3슬롯 렌더/조합/지급 루프 시각 확인 대기
 
 ---
 

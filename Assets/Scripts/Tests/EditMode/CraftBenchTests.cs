@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Systems;
 
 namespace ProjectName.Tests.EditMode
 {
@@ -108,7 +109,12 @@ namespace ProjectName.Tests.EditMode
         [Test]
         public void CookingDatabase_AllRecipes_Loaded()
         {
-            Assert.Greater(ProjectName.Core.Data.CookingDatabase.AllRecipes.Count, 0, "요리 레시피 DB 로드");
+            // 레거시 2-key CookingDatabase/DishDatabase는 허브 조합이 물약 전용으로 이동하면서
+            // GAME_DATA에서 0행으로 의도적으로 비워짐 (2026-09). 요리 카탈로그는
+            // 코드 기반 RecipeCatalog(760종)로 대체됨 — RecipeCatalogTests 참조.
+            Assert.AreEqual(0, ProjectName.Core.Data.CookingDatabase.AllRecipes.Count,
+                "레거시 요리 DB는 의도적으로 0행 (요리는 RecipeCatalog 사용)");
+            Assert.AreEqual(760, RecipeCatalog.TotalCount, "신규 요리 카탈로그 760종 로드");
         }
 
         [Test]

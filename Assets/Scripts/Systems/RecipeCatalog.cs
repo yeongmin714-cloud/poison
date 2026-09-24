@@ -1,0 +1,1192 @@
+using System.Collections.Generic;
+using ProjectName.Core;
+
+namespace ProjectName.Systems
+{
+    /// <summary>
+    /// 요리 카탈로그 (09-24 신규) — 카테고리 기반 2~3 재료 조합 요리 760종.
+    ///
+    /// 요리 개편(허브 조합 → 카테고리 조합)의 데이터/조회 레이어. 원본: 요리760_master.json + cat_master.json
+    /// 하드코딩 — 실행 시점 파일 조회 없음(빌드 안전, 재현 가능).
+    ///   - IngredientCategory 23종: 작물 10 / 어류 7 / 몬스터 재료 6. 한국어 카테고리명 매핑이 원본 계약이며
+    ///     CategoryFromKorean 사전에 23개 전부 등록된다.
+    ///   - FindRecipe: 재료 카테고리의 "정렬 집합" 비교(순서 무관). 3재료 조합에서 카테고리가 겹치면 집합으로
+    ///     축소해 2재료 요리와 매칭. 예) (과일류,과일류,견과류) → 과일류+견과류 요리.
+    ///   - MonsterMeatItem: 몬스터 재료 23종의 ItemData 팩토리(드롭 연결은 후속 단계). 시딩은
+    ///     MonsterGroups/MonsterIngredients 순회 → MonsterMeatItem(그룹.카테고리명, 재료명).
+    /// </summary>
+    public static class RecipeCatalog
+    {
+        /// <summary>미등록 재료/카테고리 조회 실패 센티널 (유효 enum 범위 밖 — 조회 실패 신호용).</summary>
+        public const IngredientCategory None = (IngredientCategory)(-1);
+
+        /// <summary>요리 재료 카테고리 23종 (한국어 카테고리명 ↔ 1:1 매핑 — 카테고리명 개명 금지).</summary>
+        public enum IngredientCategory
+        {
+            // 작물 (crop_cat)
+            Fruit, // 과일류
+            Veg, // 채소류
+            RootVeg, // 뿌리채소류
+            LeafVeg, // 엽채류
+            Grain, // 곡류
+            Legume, // 콩류
+            Nut, // 견과류
+            Herb, // 허브
+            Spice, // 향신료
+            Drink, // 음료류
+            // 어류 (fish_cat)
+            Salmon, // 연어·송어류
+            BlueFish, // 등푸른 해양어
+            FlatFish, // 넙치·가자미류
+            Catfish, // 메기류
+            Carp, // 잉어·붕어류
+            SmallFresh, // 소형 민물어
+            Eel, // 장어류
+            // 몬스터 (mon_cat)
+            RegularMeat, // 보통 육류
+            Reptile, // 파충류·용
+            Poultry, // 조류·익룡
+            Slime, // 점액·피·액체
+            Flesh, // 살점·잔해
+            Mystic, // 영묘·뿔·비늘
+        }
+
+        /// <summary>요리 정의 — cats는 enum 값 오름차순 정렬 + 중복 제거 보증(R에서 처리, FindRecipe 계약).</summary>
+        public struct RecipeDef
+        {
+            public readonly string id;                    // dish_001 ~ dish_760
+            public readonly string name;                  // 한국어 요리명
+            public readonly IngredientCategory[] cats;    // 정렬된 재료 카테고리 집합
+            public RecipeDef(string id, string name, IngredientCategory[] cats)
+            {
+                this.id = id;
+                this.name = name;
+                this.cats = cats;
+            }
+        }
+
+        public const int TotalCount = 760;
+
+        /// <summary>760종 전체 요리 테이블 (id 오름차순 고정 — All()의 정렬 순서 근거).</summary>
+        public static readonly RecipeDef[] Recipes =
+        {
+            R("dish_001", "사과 가지 볶음", IngredientCategory.Fruit, IngredientCategory.Veg),
+            R("dish_002", "사과 감자 조림", IngredientCategory.Fruit, IngredientCategory.RootVeg),
+            R("dish_003", "사과 배추 찜", IngredientCategory.Fruit, IngredientCategory.LeafVeg),
+            R("dish_004", "사과 쌀 볶음밥", IngredientCategory.Fruit, IngredientCategory.Grain),
+            R("dish_005", "사과 콩 죽", IngredientCategory.Fruit, IngredientCategory.Legume),
+            R("dish_006", "사과 호두 샐러드", IngredientCategory.Fruit, IngredientCategory.Nut),
+            R("dish_007", "사과 바질 차", IngredientCategory.Fruit, IngredientCategory.Herb),
+            R("dish_008", "사과 고추 시즈닝", IngredientCategory.Fruit, IngredientCategory.Spice),
+            R("dish_009", "사과 녹차 라때", IngredientCategory.Fruit, IngredientCategory.Drink),
+            R("dish_010", "가지 감자 찜", IngredientCategory.Veg, IngredientCategory.RootVeg),
+            R("dish_011", "가지 배추 조림", IngredientCategory.Veg, IngredientCategory.LeafVeg),
+            R("dish_012", "가지 쌀 구이", IngredientCategory.Veg, IngredientCategory.Grain),
+            R("dish_013", "가지 콩 튀김", IngredientCategory.Veg, IngredientCategory.Legume),
+            R("dish_014", "가지 호두 전골", IngredientCategory.Veg, IngredientCategory.Nut),
+            R("dish_015", "가지 바질 그라탕", IngredientCategory.Veg, IngredientCategory.Herb),
+            R("dish_016", "가지 고추 무침", IngredientCategory.Veg, IngredientCategory.Spice),
+            R("dish_017", "가지 녹차 볶음", IngredientCategory.Veg, IngredientCategory.Drink),
+            R("dish_018", "감자 배추 조림", IngredientCategory.RootVeg, IngredientCategory.LeafVeg),
+            R("dish_019", "감자 쌀 찜", IngredientCategory.RootVeg, IngredientCategory.Grain),
+            R("dish_020", "감자 콩 볶음", IngredientCategory.RootVeg, IngredientCategory.Legume),
+            R("dish_021", "감자 호두 구이", IngredientCategory.RootVeg, IngredientCategory.Nut),
+            R("dish_022", "감자 바질 죽", IngredientCategory.RootVeg, IngredientCategory.Herb),
+            R("dish_023", "감자 고추 전", IngredientCategory.RootVeg, IngredientCategory.Spice),
+            R("dish_024", "감자 녹차 스프", IngredientCategory.RootVeg, IngredientCategory.Drink),
+            R("dish_025", "배추 쌀 나물", IngredientCategory.LeafVeg, IngredientCategory.Grain),
+            R("dish_026", "배추 콩 볶음", IngredientCategory.LeafVeg, IngredientCategory.Legume),
+            R("dish_027", "배추 호두 찜", IngredientCategory.LeafVeg, IngredientCategory.Nut),
+            R("dish_028", "배추 바질 겉절이", IngredientCategory.LeafVeg, IngredientCategory.Herb),
+            R("dish_029", "배추 고추 전", IngredientCategory.LeafVeg, IngredientCategory.Spice),
+            R("dish_030", "배추 녹차 김치찌개", IngredientCategory.LeafVeg, IngredientCategory.Drink),
+            R("dish_031", "쌀 콩 도우", IngredientCategory.Grain, IngredientCategory.Legume),
+            R("dish_032", "쌀 호두 리조또", IngredientCategory.Grain, IngredientCategory.Nut),
+            R("dish_033", "쌀 바질 죽", IngredientCategory.Grain, IngredientCategory.Herb),
+            R("dish_034", "쌀 고추 비빔밥", IngredientCategory.Grain, IngredientCategory.Spice),
+            R("dish_035", "쌀 녹차 전", IngredientCategory.Grain, IngredientCategory.Drink),
+            R("dish_036", "콩 호두 볶음", IngredientCategory.Legume, IngredientCategory.Nut),
+            R("dish_037", "콩 바질 죽", IngredientCategory.Legume, IngredientCategory.Herb),
+            R("dish_038", "콩 고추 전", IngredientCategory.Legume, IngredientCategory.Spice),
+            R("dish_039", "콩 녹차 탕", IngredientCategory.Legume, IngredientCategory.Drink),
+            R("dish_040", "호두 바질 파이", IngredientCategory.Nut, IngredientCategory.Herb),
+            R("dish_041", "호두 고추 조림", IngredientCategory.Nut, IngredientCategory.Spice),
+            R("dish_042", "호두 녹차 쿠키", IngredientCategory.Nut, IngredientCategory.Drink),
+            R("dish_043", "바질 고추 샐러드", IngredientCategory.Herb, IngredientCategory.Spice),
+            R("dish_044", "바질 녹차 드레싱", IngredientCategory.Herb, IngredientCategory.Drink),
+            R("dish_045", "고추 녹차 구이", IngredientCategory.Spice, IngredientCategory.Drink),
+            R("dish_046", "사과 연어 카르파초", IngredientCategory.Fruit, IngredientCategory.Salmon),
+            R("dish_047", "사과 고등어 꼬치", IngredientCategory.Fruit, IngredientCategory.BlueFish),
+            R("dish_048", "사과 광어 꼬치", IngredientCategory.Fruit, IngredientCategory.FlatFish),
+            R("dish_049", "사과 메기 매운탕", IngredientCategory.Fruit, IngredientCategory.Catfish),
+            R("dish_050", "사과 붕어 조림", IngredientCategory.Fruit, IngredientCategory.Carp),
+            R("dish_051", "사과 미꾸라지 조림", IngredientCategory.Fruit, IngredientCategory.SmallFresh),
+            R("dish_052", "사과 장어 전골", IngredientCategory.Fruit, IngredientCategory.Eel),
+            R("dish_053", "가지 연어 찜", IngredientCategory.Veg, IngredientCategory.Salmon),
+            R("dish_054", "가지 고등어 전골", IngredientCategory.Veg, IngredientCategory.BlueFish),
+            R("dish_055", "가지 광어 샐러드", IngredientCategory.Veg, IngredientCategory.FlatFish),
+            R("dish_056", "가지 메기 꼬치", IngredientCategory.Veg, IngredientCategory.Catfish),
+            R("dish_057", "가지 붕어 탕", IngredientCategory.Veg, IngredientCategory.Carp),
+            R("dish_058", "가지 미꾸라지 구이", IngredientCategory.Veg, IngredientCategory.SmallFresh),
+            R("dish_059", "가지 장어 탕", IngredientCategory.Veg, IngredientCategory.Eel),
+            R("dish_060", "감자 연어 사시미", IngredientCategory.RootVeg, IngredientCategory.Salmon),
+            R("dish_061", "감자 고등어 튀김", IngredientCategory.RootVeg, IngredientCategory.BlueFish),
+            R("dish_062", "감자 광어 물회", IngredientCategory.RootVeg, IngredientCategory.FlatFish),
+            R("dish_063", "감자 메기 찌개", IngredientCategory.RootVeg, IngredientCategory.Catfish),
+            R("dish_064", "감자 붕어 구이", IngredientCategory.RootVeg, IngredientCategory.Carp),
+            R("dish_065", "감자 미꾸라지 튀김", IngredientCategory.RootVeg, IngredientCategory.SmallFresh),
+            R("dish_066", "감자 장어 양념구이", IngredientCategory.RootVeg, IngredientCategory.Eel),
+            R("dish_067", "배추 연어 훈제", IngredientCategory.LeafVeg, IngredientCategory.Salmon),
+            R("dish_068", "배추 고등어 사시미", IngredientCategory.LeafVeg, IngredientCategory.BlueFish),
+            R("dish_069", "배추 광어 찜", IngredientCategory.LeafVeg, IngredientCategory.FlatFish),
+            R("dish_070", "배추 메기 조림", IngredientCategory.LeafVeg, IngredientCategory.Catfish),
+            R("dish_071", "배추 붕어 전골", IngredientCategory.LeafVeg, IngredientCategory.Carp),
+            R("dish_072", "배추 미꾸라지 무침", IngredientCategory.LeafVeg, IngredientCategory.SmallFresh),
+            R("dish_073", "배추 장어 구이", IngredientCategory.LeafVeg, IngredientCategory.Eel),
+            R("dish_074", "쌀 연어 구이", IngredientCategory.Grain, IngredientCategory.Salmon),
+            R("dish_075", "쌀 고등어 덮밥", IngredientCategory.Grain, IngredientCategory.BlueFish),
+            R("dish_076", "쌀 광어 전골", IngredientCategory.Grain, IngredientCategory.FlatFish),
+            R("dish_077", "쌀 메기 구이", IngredientCategory.Grain, IngredientCategory.Catfish),
+            R("dish_078", "쌀 붕어 튀김", IngredientCategory.Grain, IngredientCategory.Carp),
+            R("dish_079", "쌀 미꾸라지 찌개", IngredientCategory.Grain, IngredientCategory.SmallFresh),
+            R("dish_080", "쌀 장어 구이", IngredientCategory.Grain, IngredientCategory.Eel),
+            R("dish_081", "콩 연어 스테이크", IngredientCategory.Legume, IngredientCategory.Salmon),
+            R("dish_082", "콩 고등어 조림", IngredientCategory.Legume, IngredientCategory.BlueFish),
+            R("dish_083", "콩 광어 튀김", IngredientCategory.Legume, IngredientCategory.FlatFish),
+            R("dish_084", "콩 메기 튀김", IngredientCategory.Legume, IngredientCategory.Catfish),
+            R("dish_085", "콩 붕어 찜", IngredientCategory.Legume, IngredientCategory.Carp),
+            R("dish_086", "콩 미꾸라지 꼬치", IngredientCategory.Legume, IngredientCategory.SmallFresh),
+            R("dish_087", "콩 장어 찜", IngredientCategory.Legume, IngredientCategory.Eel),
+            R("dish_088", "호두 연어 포케", IngredientCategory.Nut, IngredientCategory.Salmon),
+            R("dish_089", "호두 고등어 구이", IngredientCategory.Nut, IngredientCategory.BlueFish),
+            R("dish_090", "호두 광어 구이", IngredientCategory.Nut, IngredientCategory.FlatFish),
+            R("dish_091", "호두 메기 찜", IngredientCategory.Nut, IngredientCategory.Catfish),
+            R("dish_092", "호두 붕어 매운탕", IngredientCategory.Nut, IngredientCategory.Carp),
+            R("dish_093", "호두 미꾸라지 탕", IngredientCategory.Nut, IngredientCategory.SmallFresh),
+            R("dish_094", "호두 장어 꼬치", IngredientCategory.Nut, IngredientCategory.Eel),
+            R("dish_095", "바질 연어 꼬치", IngredientCategory.Herb, IngredientCategory.Salmon),
+            R("dish_096", "바질 고등어 찌개", IngredientCategory.Herb, IngredientCategory.BlueFish),
+            R("dish_097", "바질 광어 사시미", IngredientCategory.Herb, IngredientCategory.FlatFish),
+            R("dish_098", "바질 메기 탕", IngredientCategory.Herb, IngredientCategory.Catfish),
+            R("dish_099", "바질 붕어 구이", IngredientCategory.Herb, IngredientCategory.Carp),
+            R("dish_100", "바질 미꾸라지 전골", IngredientCategory.Herb, IngredientCategory.SmallFresh),
+            R("dish_101", "바질 장어 조림", IngredientCategory.Herb, IngredientCategory.Eel),
+            R("dish_102", "고추 연어 카르파초", IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_103", "고추 고등어 꼬치", IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_104", "고추 광어 꼬치", IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_105", "고추 메기 매운탕", IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_106", "고추 붕어 조림", IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_107", "고추 미꾸라지 조림", IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_108", "고추 장어 전골", IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_109", "녹차 연어 찜", IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_110", "녹차 고등어 전골", IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_111", "녹차 광어 샐러드", IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_112", "녹차 메기 꼬치", IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_113", "녹차 붕어 탕", IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_114", "녹차 미꾸라지 구이", IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_115", "녹차 장어 탕", IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_116", "사과 토끼고기 탕", IngredientCategory.Fruit, IngredientCategory.RegularMeat),
+            R("dish_117", "사과 악어고기 전골", IngredientCategory.Fruit, IngredientCategory.Reptile),
+            R("dish_118", "사과 꿩고기 덮밥", IngredientCategory.Fruit, IngredientCategory.Poultry),
+            R("dish_119", "사과 슬라임즙 탕", IngredientCategory.Fruit, IngredientCategory.Slime),
+            R("dish_120", "사과 오우거살점 꼬치", IngredientCategory.Fruit, IngredientCategory.Flesh),
+            R("dish_121", "사과 골렘심장 전골", IngredientCategory.Fruit, IngredientCategory.Mystic),
+            R("dish_122", "가지 토끼고기 갈비찜", IngredientCategory.Veg, IngredientCategory.RegularMeat),
+            R("dish_123", "가지 악어고기 매운탕", IngredientCategory.Veg, IngredientCategory.Reptile),
+            R("dish_124", "가지 꿩고기 전골", IngredientCategory.Veg, IngredientCategory.Poultry),
+            R("dish_125", "가지 슬라임즙 소스", IngredientCategory.Veg, IngredientCategory.Slime),
+            R("dish_126", "가지 오우거살점 전골", IngredientCategory.Veg, IngredientCategory.Flesh),
+            R("dish_127", "가지 골렘심장 찜", IngredientCategory.Veg, IngredientCategory.Mystic),
+            R("dish_128", "감자 토끼고기 찜", IngredientCategory.RootVeg, IngredientCategory.RegularMeat),
+            R("dish_129", "감자 악어고기 구이", IngredientCategory.RootVeg, IngredientCategory.Reptile),
+            R("dish_130", "감자 꿩고기 탕", IngredientCategory.RootVeg, IngredientCategory.Poultry),
+            R("dish_131", "감자 슬라임즙 파냐코타", IngredientCategory.RootVeg, IngredientCategory.Slime),
+            R("dish_132", "감자 오우거살점 국", IngredientCategory.RootVeg, IngredientCategory.Flesh),
+            R("dish_133", "감자 골렘심장 볶음", IngredientCategory.RootVeg, IngredientCategory.Mystic),
+            R("dish_134", "배추 토끼고기 스튜", IngredientCategory.LeafVeg, IngredientCategory.RegularMeat),
+            R("dish_135", "배추 악어고기 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Reptile),
+            R("dish_136", "배추 꿩고기 찜", IngredientCategory.LeafVeg, IngredientCategory.Poultry),
+            R("dish_137", "배추 슬라임즙 수프", IngredientCategory.LeafVeg, IngredientCategory.Slime),
+            R("dish_138", "배추 오우거살점 찌개", IngredientCategory.LeafVeg, IngredientCategory.Flesh),
+            R("dish_139", "배추 골렘심장 조림", IngredientCategory.LeafVeg, IngredientCategory.Mystic),
+            R("dish_140", "쌀 토끼고기 탕", IngredientCategory.Grain, IngredientCategory.RegularMeat),
+            R("dish_141", "쌀 악어고기 전골", IngredientCategory.Grain, IngredientCategory.Reptile),
+            R("dish_142", "쌀 꿩고기 덮밥", IngredientCategory.Grain, IngredientCategory.Poultry),
+            R("dish_143", "쌀 슬라임즙 탕", IngredientCategory.Grain, IngredientCategory.Slime),
+            R("dish_144", "쌀 오우거살점 꼬치", IngredientCategory.Grain, IngredientCategory.Flesh),
+            R("dish_145", "쌀 골렘심장 전골", IngredientCategory.Grain, IngredientCategory.Mystic),
+            R("dish_146", "콩 토끼고기 갈비찜", IngredientCategory.Legume, IngredientCategory.RegularMeat),
+            R("dish_147", "콩 악어고기 매운탕", IngredientCategory.Legume, IngredientCategory.Reptile),
+            R("dish_148", "콩 꿩고기 전골", IngredientCategory.Legume, IngredientCategory.Poultry),
+            R("dish_149", "콩 슬라임즙 소스", IngredientCategory.Legume, IngredientCategory.Slime),
+            R("dish_150", "콩 오우거살점 전골", IngredientCategory.Legume, IngredientCategory.Flesh),
+            R("dish_151", "콩 골렘심장 찜", IngredientCategory.Legume, IngredientCategory.Mystic),
+            R("dish_152", "호두 토끼고기 찜", IngredientCategory.Nut, IngredientCategory.RegularMeat),
+            R("dish_153", "호두 악어고기 구이", IngredientCategory.Nut, IngredientCategory.Reptile),
+            R("dish_154", "호두 꿩고기 탕", IngredientCategory.Nut, IngredientCategory.Poultry),
+            R("dish_155", "호두 슬라임즙 파냐코타", IngredientCategory.Nut, IngredientCategory.Slime),
+            R("dish_156", "호두 오우거살점 국", IngredientCategory.Nut, IngredientCategory.Flesh),
+            R("dish_157", "호두 골렘심장 볶음", IngredientCategory.Nut, IngredientCategory.Mystic),
+            R("dish_158", "바질 토끼고기 스튜", IngredientCategory.Herb, IngredientCategory.RegularMeat),
+            R("dish_159", "바질 악어고기 꼬치", IngredientCategory.Herb, IngredientCategory.Reptile),
+            R("dish_160", "바질 꿩고기 찜", IngredientCategory.Herb, IngredientCategory.Poultry),
+            R("dish_161", "바질 슬라임즙 수프", IngredientCategory.Herb, IngredientCategory.Slime),
+            R("dish_162", "바질 오우거살점 찌개", IngredientCategory.Herb, IngredientCategory.Flesh),
+            R("dish_163", "바질 골렘심장 조림", IngredientCategory.Herb, IngredientCategory.Mystic),
+            R("dish_164", "고추 토끼고기 탕", IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_165", "고추 악어고기 전골", IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_166", "고추 꿩고기 덮밥", IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_167", "고추 슬라임즙 탕", IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_168", "고추 오우거살점 꼬치", IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_169", "고추 골렘심장 전골", IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_170", "녹차 토끼고기 갈비찜", IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_171", "녹차 악어고기 매운탕", IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_172", "녹차 꿩고기 전골", IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_173", "녹차 슬라임즙 소스", IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_174", "녹차 오우거살점 전골", IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_175", "녹차 골렘심장 찜", IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_176", "녹색의 사과 연어 포케", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Salmon),
+            R("dish_177", "대장군 사과 고등어 구이", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.BlueFish),
+            R("dish_178", "별미 사과 광어 구이", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.FlatFish),
+            R("dish_179", "향토 사과 메기 찜", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Catfish),
+            R("dish_180", "제국 사과 붕어 매운탕", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Carp),
+            R("dish_181", "특제 사과 미꾸라지 탕", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.SmallFresh),
+            R("dish_182", "왕실의 사과 장어 꼬치", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Eel),
+            R("dish_183", "전승의 사과 연어 꼬치", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Salmon),
+            R("dish_184", "황금 사과 고등어 찌개", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.BlueFish),
+            R("dish_185", "진귀한 사과 광어 사시미", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.FlatFish),
+            R("dish_186", "풍미의 사과 메기 탕", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Catfish),
+            R("dish_187", "사냥꾼 사과 붕어 구이", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Carp),
+            R("dish_188", "장인의 사과 미꾸라지 전골", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.SmallFresh),
+            R("dish_189", "비전의 사과 장어 조림", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Eel),
+            R("dish_190", "정갈한 사과 연어 카르파초", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Salmon),
+            R("dish_191", "녹색의 사과 고등어 꼬치", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.BlueFish),
+            R("dish_192", "대장군 사과 광어 꼬치", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.FlatFish),
+            R("dish_193", "별미 사과 메기 매운탕", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Catfish),
+            R("dish_194", "향토 사과 붕어 조림", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Carp),
+            R("dish_195", "제국 사과 미꾸라지 조림", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.SmallFresh),
+            R("dish_196", "특제 사과 장어 전골", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Eel),
+            R("dish_197", "왕실의 사과 연어 찜", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Salmon),
+            R("dish_198", "전승의 사과 고등어 전골", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.BlueFish),
+            R("dish_199", "황금 사과 광어 샐러드", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.FlatFish),
+            R("dish_200", "진귀한 사과 메기 꼬치", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Catfish),
+            R("dish_201", "풍미의 사과 붕어 탕", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Carp),
+            R("dish_202", "사냥꾼 사과 미꾸라지 구이", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.SmallFresh),
+            R("dish_203", "장인의 사과 장어 탕", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Eel),
+            R("dish_204", "비전의 사과 연어 사시미", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Salmon),
+            R("dish_205", "정갈한 사과 고등어 튀김", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.BlueFish),
+            R("dish_206", "녹색의 사과 광어 물회", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.FlatFish),
+            R("dish_207", "대장군 사과 메기 찌개", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Catfish),
+            R("dish_208", "별미 사과 붕어 구이", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Carp),
+            R("dish_209", "향토 사과 미꾸라지 튀김", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.SmallFresh),
+            R("dish_210", "제국 사과 장어 양념구이", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Eel),
+            R("dish_211", "특제 사과 연어 훈제", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Salmon),
+            R("dish_212", "왕실의 사과 고등어 사시미", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.BlueFish),
+            R("dish_213", "전승의 사과 광어 찜", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.FlatFish),
+            R("dish_214", "황금 사과 메기 조림", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Catfish),
+            R("dish_215", "진귀한 사과 붕어 전골", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Carp),
+            R("dish_216", "풍미의 사과 미꾸라지 무침", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.SmallFresh),
+            R("dish_217", "사냥꾼 사과 장어 구이", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Eel),
+            R("dish_218", "장인의 사과 연어 구이", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Salmon),
+            R("dish_219", "비전의 사과 고등어 덮밥", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.BlueFish),
+            R("dish_220", "정갈한 사과 광어 전골", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.FlatFish),
+            R("dish_221", "녹색의 사과 메기 구이", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Catfish),
+            R("dish_222", "대장군 사과 붕어 튀김", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Carp),
+            R("dish_223", "별미 사과 미꾸라지 찌개", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.SmallFresh),
+            R("dish_224", "향토 사과 장어 구이", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Eel),
+            R("dish_225", "제국 사과 연어 스테이크", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_226", "특제 사과 고등어 조림", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_227", "왕실의 사과 광어 튀김", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_228", "전승의 사과 메기 튀김", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_229", "황금 사과 붕어 찜", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_230", "진귀한 사과 미꾸라지 꼬치", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_231", "풍미의 사과 장어 찜", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_232", "사냥꾼 사과 연어 포케", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_233", "장인의 사과 고등어 구이", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_234", "비전의 사과 광어 구이", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_235", "정갈한 사과 메기 찜", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_236", "녹색의 사과 붕어 매운탕", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_237", "대장군 사과 미꾸라지 탕", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_238", "별미 사과 장어 꼬치", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_239", "향토 가지 연어 꼬치", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Salmon),
+            R("dish_240", "제국 가지 고등어 찌개", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.BlueFish),
+            R("dish_241", "특제 가지 광어 사시미", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.FlatFish),
+            R("dish_242", "왕실의 가지 메기 탕", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Catfish),
+            R("dish_243", "전승의 가지 붕어 구이", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Carp),
+            R("dish_244", "황금 가지 미꾸라지 전골", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.SmallFresh),
+            R("dish_245", "진귀한 가지 장어 조림", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Eel),
+            R("dish_246", "풍미의 가지 연어 카르파초", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Salmon),
+            R("dish_247", "사냥꾼 가지 고등어 꼬치", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.BlueFish),
+            R("dish_248", "장인의 가지 광어 꼬치", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.FlatFish),
+            R("dish_249", "비전의 가지 메기 매운탕", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Catfish),
+            R("dish_250", "정갈한 가지 붕어 조림", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Carp),
+            R("dish_251", "녹색의 가지 미꾸라지 조림", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.SmallFresh),
+            R("dish_252", "대장군 가지 장어 전골", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Eel),
+            R("dish_253", "별미 가지 연어 찜", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Salmon),
+            R("dish_254", "향토 가지 고등어 전골", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.BlueFish),
+            R("dish_255", "제국 가지 광어 샐러드", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.FlatFish),
+            R("dish_256", "특제 가지 메기 꼬치", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Catfish),
+            R("dish_257", "왕실의 가지 붕어 탕", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Carp),
+            R("dish_258", "전승의 가지 미꾸라지 구이", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.SmallFresh),
+            R("dish_259", "황금 가지 장어 탕", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Eel),
+            R("dish_260", "진귀한 가지 연어 사시미", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Salmon),
+            R("dish_261", "풍미의 가지 고등어 튀김", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.BlueFish),
+            R("dish_262", "사냥꾼 가지 광어 물회", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.FlatFish),
+            R("dish_263", "장인의 가지 메기 찌개", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Catfish),
+            R("dish_264", "비전의 가지 붕어 구이", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Carp),
+            R("dish_265", "정갈한 가지 미꾸라지 튀김", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.SmallFresh),
+            R("dish_266", "녹색의 가지 장어 양념구이", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Eel),
+            R("dish_267", "대장군 가지 연어 훈제", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Salmon),
+            R("dish_268", "별미 가지 고등어 사시미", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.BlueFish),
+            R("dish_269", "향토 가지 광어 찜", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.FlatFish),
+            R("dish_270", "제국 가지 메기 조림", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Catfish),
+            R("dish_271", "특제 가지 붕어 전골", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Carp),
+            R("dish_272", "왕실의 가지 미꾸라지 무침", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.SmallFresh),
+            R("dish_273", "전승의 가지 장어 구이", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Eel),
+            R("dish_274", "황금 가지 연어 구이", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Salmon),
+            R("dish_275", "진귀한 가지 고등어 덮밥", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.BlueFish),
+            R("dish_276", "풍미의 가지 광어 전골", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.FlatFish),
+            R("dish_277", "사냥꾼 가지 메기 구이", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Catfish),
+            R("dish_278", "장인의 가지 붕어 튀김", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Carp),
+            R("dish_279", "비전의 가지 미꾸라지 찌개", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.SmallFresh),
+            R("dish_280", "정갈한 가지 장어 구이", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Eel),
+            R("dish_281", "녹색의 가지 연어 스테이크", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_282", "대장군 가지 고등어 조림", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_283", "별미 가지 광어 튀김", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_284", "향토 가지 메기 튀김", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_285", "제국 가지 붕어 찜", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_286", "특제 가지 미꾸라지 꼬치", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_287", "왕실의 가지 장어 찜", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_288", "전승의 가지 연어 포케", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_289", "황금 가지 고등어 구이", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_290", "진귀한 가지 광어 구이", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_291", "풍미의 가지 메기 찜", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_292", "사냥꾼 가지 붕어 매운탕", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_293", "장인의 가지 미꾸라지 탕", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_294", "비전의 가지 장어 꼬치", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_295", "정갈한 감자 연어 꼬치", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Salmon),
+            R("dish_296", "녹색의 감자 고등어 찌개", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.BlueFish),
+            R("dish_297", "대장군 감자 광어 사시미", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.FlatFish),
+            R("dish_298", "별미 감자 메기 탕", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Catfish),
+            R("dish_299", "향토 감자 붕어 구이", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Carp),
+            R("dish_300", "제국 감자 미꾸라지 전골", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.SmallFresh),
+            R("dish_301", "특제 감자 장어 조림", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Eel),
+            R("dish_302", "왕실의 감자 연어 카르파초", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Salmon),
+            R("dish_303", "전승의 감자 고등어 꼬치", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.BlueFish),
+            R("dish_304", "황금 감자 광어 꼬치", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.FlatFish),
+            R("dish_305", "진귀한 감자 메기 매운탕", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Catfish),
+            R("dish_306", "풍미의 감자 붕어 조림", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Carp),
+            R("dish_307", "사냥꾼 감자 미꾸라지 조림", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.SmallFresh),
+            R("dish_308", "장인의 감자 장어 전골", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Eel),
+            R("dish_309", "비전의 감자 연어 찜", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Salmon),
+            R("dish_310", "정갈한 감자 고등어 전골", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.BlueFish),
+            R("dish_311", "녹색의 감자 광어 샐러드", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.FlatFish),
+            R("dish_312", "대장군 감자 메기 꼬치", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Catfish),
+            R("dish_313", "별미 감자 붕어 탕", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Carp),
+            R("dish_314", "향토 감자 미꾸라지 구이", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.SmallFresh),
+            R("dish_315", "제국 감자 장어 탕", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Eel),
+            R("dish_316", "특제 감자 연어 사시미", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Salmon),
+            R("dish_317", "왕실의 감자 고등어 튀김", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.BlueFish),
+            R("dish_318", "전승의 감자 광어 물회", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.FlatFish),
+            R("dish_319", "황금 감자 메기 찌개", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Catfish),
+            R("dish_320", "진귀한 감자 붕어 구이", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Carp),
+            R("dish_321", "풍미의 감자 미꾸라지 튀김", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.SmallFresh),
+            R("dish_322", "사냥꾼 감자 장어 양념구이", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Eel),
+            R("dish_323", "장인의 감자 연어 훈제", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Salmon),
+            R("dish_324", "비전의 감자 고등어 사시미", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.BlueFish),
+            R("dish_325", "정갈한 감자 광어 찜", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.FlatFish),
+            R("dish_326", "녹색의 감자 메기 조림", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Catfish),
+            R("dish_327", "대장군 감자 붕어 전골", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Carp),
+            R("dish_328", "별미 감자 미꾸라지 무침", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.SmallFresh),
+            R("dish_329", "향토 감자 장어 구이", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Eel),
+            R("dish_330", "제국 감자 연어 구이", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_331", "특제 감자 고등어 덮밥", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_332", "왕실의 감자 광어 전골", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_333", "전승의 감자 메기 구이", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_334", "황금 감자 붕어 튀김", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_335", "진귀한 감자 미꾸라지 찌개", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_336", "풍미의 감자 장어 구이", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_337", "사냥꾼 감자 연어 스테이크", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_338", "장인의 감자 고등어 조림", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_339", "비전의 감자 광어 튀김", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_340", "정갈한 감자 메기 튀김", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_341", "녹색의 감자 붕어 찜", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_342", "대장군 감자 미꾸라지 꼬치", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_343", "별미 감자 장어 찜", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_344", "향토 배추 연어 포케", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Salmon),
+            R("dish_345", "제국 배추 고등어 구이", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.BlueFish),
+            R("dish_346", "특제 배추 광어 구이", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.FlatFish),
+            R("dish_347", "왕실의 배추 메기 찜", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Catfish),
+            R("dish_348", "전승의 배추 붕어 매운탕", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Carp),
+            R("dish_349", "황금 배추 미꾸라지 탕", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.SmallFresh),
+            R("dish_350", "진귀한 배추 장어 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Eel),
+            R("dish_351", "풍미의 배추 연어 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Salmon),
+            R("dish_352", "사냥꾼 배추 고등어 찌개", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.BlueFish),
+            R("dish_353", "장인의 배추 광어 사시미", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.FlatFish),
+            R("dish_354", "비전의 배추 메기 탕", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Catfish),
+            R("dish_355", "정갈한 배추 붕어 구이", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Carp),
+            R("dish_356", "녹색의 배추 미꾸라지 전골", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.SmallFresh),
+            R("dish_357", "대장군 배추 장어 조림", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Eel),
+            R("dish_358", "별미 배추 연어 카르파초", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Salmon),
+            R("dish_359", "향토 배추 고등어 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.BlueFish),
+            R("dish_360", "제국 배추 광어 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.FlatFish),
+            R("dish_361", "특제 배추 메기 매운탕", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Catfish),
+            R("dish_362", "왕실의 배추 붕어 조림", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Carp),
+            R("dish_363", "전승의 배추 미꾸라지 조림", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.SmallFresh),
+            R("dish_364", "황금 배추 장어 전골", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Eel),
+            R("dish_365", "진귀한 배추 연어 찜", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Salmon),
+            R("dish_366", "풍미의 배추 고등어 전골", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.BlueFish),
+            R("dish_367", "사냥꾼 배추 광어 샐러드", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.FlatFish),
+            R("dish_368", "장인의 배추 메기 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Catfish),
+            R("dish_369", "비전의 배추 붕어 탕", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Carp),
+            R("dish_370", "정갈한 배추 미꾸라지 구이", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.SmallFresh),
+            R("dish_371", "녹색의 배추 장어 탕", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Eel),
+            R("dish_372", "대장군 배추 연어 사시미", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_373", "별미 배추 고등어 튀김", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_374", "향토 배추 광어 물회", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_375", "제국 배추 메기 찌개", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_376", "특제 배추 붕어 구이", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_377", "왕실의 배추 미꾸라지 튀김", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_378", "전승의 배추 장어 양념구이", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_379", "황금 배추 연어 훈제", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_380", "진귀한 배추 고등어 사시미", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_381", "풍미의 배추 광어 찜", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_382", "사냥꾼 배추 메기 조림", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_383", "장인의 배추 붕어 전골", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_384", "비전의 배추 미꾸라지 무침", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_385", "정갈한 배추 장어 구이", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_386", "녹색의 쌀 연어 구이", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Salmon),
+            R("dish_387", "대장군 쌀 고등어 덮밥", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.BlueFish),
+            R("dish_388", "별미 쌀 광어 전골", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.FlatFish),
+            R("dish_389", "향토 쌀 메기 구이", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Catfish),
+            R("dish_390", "제국 쌀 붕어 튀김", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Carp),
+            R("dish_391", "특제 쌀 미꾸라지 찌개", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.SmallFresh),
+            R("dish_392", "왕실의 쌀 장어 구이", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Eel),
+            R("dish_393", "전승의 쌀 연어 스테이크", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Salmon),
+            R("dish_394", "황금 쌀 고등어 조림", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.BlueFish),
+            R("dish_395", "진귀한 쌀 광어 튀김", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.FlatFish),
+            R("dish_396", "풍미의 쌀 메기 튀김", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Catfish),
+            R("dish_397", "사냥꾼 쌀 붕어 찜", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Carp),
+            R("dish_398", "장인의 쌀 미꾸라지 꼬치", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.SmallFresh),
+            R("dish_399", "비전의 쌀 장어 찜", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Eel),
+            R("dish_400", "정갈한 쌀 연어 포케", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Salmon),
+            R("dish_401", "녹색의 쌀 고등어 구이", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.BlueFish),
+            R("dish_402", "대장군 쌀 광어 구이", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.FlatFish),
+            R("dish_403", "별미 쌀 메기 찜", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Catfish),
+            R("dish_404", "향토 쌀 붕어 매운탕", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Carp),
+            R("dish_405", "제국 쌀 미꾸라지 탕", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.SmallFresh),
+            R("dish_406", "특제 쌀 장어 꼬치", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Eel),
+            R("dish_407", "왕실의 쌀 연어 꼬치", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_408", "전승의 쌀 고등어 찌개", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_409", "황금 쌀 광어 사시미", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_410", "진귀한 쌀 메기 탕", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_411", "풍미의 쌀 붕어 구이", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_412", "사냥꾼 쌀 미꾸라지 전골", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_413", "장인의 쌀 장어 조림", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_414", "비전의 쌀 연어 카르파초", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_415", "정갈한 쌀 고등어 꼬치", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_416", "녹색의 쌀 광어 꼬치", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_417", "대장군 쌀 메기 매운탕", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_418", "별미 쌀 붕어 조림", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_419", "향토 쌀 미꾸라지 조림", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_420", "제국 쌀 장어 전골", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_421", "특제 콩 연어 찜", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Salmon),
+            R("dish_422", "왕실의 콩 고등어 전골", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.BlueFish),
+            R("dish_423", "전승의 콩 광어 샐러드", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.FlatFish),
+            R("dish_424", "황금 콩 메기 꼬치", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Catfish),
+            R("dish_425", "진귀한 콩 붕어 탕", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Carp),
+            R("dish_426", "풍미의 콩 미꾸라지 구이", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.SmallFresh),
+            R("dish_427", "사냥꾼 콩 장어 탕", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Eel),
+            R("dish_428", "장인의 콩 연어 사시미", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Salmon),
+            R("dish_429", "비전의 콩 고등어 튀김", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.BlueFish),
+            R("dish_430", "정갈한 콩 광어 물회", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.FlatFish),
+            R("dish_431", "녹색의 콩 메기 찌개", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Catfish),
+            R("dish_432", "대장군 콩 붕어 구이", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Carp),
+            R("dish_433", "별미 콩 미꾸라지 튀김", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.SmallFresh),
+            R("dish_434", "향토 콩 장어 양념구이", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Eel),
+            R("dish_435", "제국 콩 연어 훈제", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_436", "특제 콩 고등어 사시미", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_437", "왕실의 콩 광어 찜", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_438", "전승의 콩 메기 조림", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_439", "황금 콩 붕어 전골", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_440", "진귀한 콩 미꾸라지 무침", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_441", "풍미의 콩 장어 구이", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_442", "사냥꾼 콩 연어 구이", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_443", "장인의 콩 고등어 덮밥", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_444", "비전의 콩 광어 전골", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_445", "정갈한 콩 메기 구이", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_446", "녹색의 콩 붕어 튀김", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_447", "대장군 콩 미꾸라지 찌개", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_448", "별미 콩 장어 구이", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_449", "향토 호두 연어 스테이크", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Salmon),
+            R("dish_450", "제국 호두 고등어 조림", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.BlueFish),
+            R("dish_451", "특제 호두 광어 튀김", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.FlatFish),
+            R("dish_452", "왕실의 호두 메기 튀김", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Catfish),
+            R("dish_453", "전승의 호두 붕어 찜", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Carp),
+            R("dish_454", "황금 호두 미꾸라지 꼬치", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.SmallFresh),
+            R("dish_455", "진귀한 호두 장어 찜", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Eel),
+            R("dish_456", "풍미의 호두 연어 포케", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_457", "사냥꾼 호두 고등어 구이", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_458", "장인의 호두 광어 구이", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_459", "비전의 호두 메기 찜", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_460", "정갈한 호두 붕어 매운탕", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_461", "녹색의 호두 미꾸라지 탕", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_462", "대장군 호두 장어 꼬치", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_463", "별미 호두 연어 꼬치", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_464", "향토 호두 고등어 찌개", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_465", "제국 호두 광어 사시미", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_466", "특제 호두 메기 탕", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_467", "왕실의 호두 붕어 구이", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_468", "전승의 호두 미꾸라지 전골", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_469", "황금 호두 장어 조림", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_470", "진귀한 바질 연어 카르파초", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Salmon),
+            R("dish_471", "풍미의 바질 고등어 꼬치", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.BlueFish),
+            R("dish_472", "사냥꾼 바질 광어 꼬치", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.FlatFish),
+            R("dish_473", "장인의 바질 메기 매운탕", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Catfish),
+            R("dish_474", "비전의 바질 붕어 조림", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Carp),
+            R("dish_475", "정갈한 바질 미꾸라지 조림", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.SmallFresh),
+            R("dish_476", "녹색의 바질 장어 전골", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Eel),
+            R("dish_477", "대장군 바질 연어 찜", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_478", "별미 바질 고등어 전골", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_479", "향토 바질 광어 샐러드", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_480", "제국 바질 메기 꼬치", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_481", "특제 바질 붕어 탕", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_482", "왕실의 바질 미꾸라지 구이", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_483", "전승의 바질 장어 탕", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_484", "황금 고추 연어 사시미", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Salmon),
+            R("dish_485", "진귀한 고추 고등어 튀김", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.BlueFish),
+            R("dish_486", "풍미의 고추 광어 물회", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.FlatFish),
+            R("dish_487", "사냥꾼 고추 메기 찌개", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Catfish),
+            R("dish_488", "장인의 고추 붕어 구이", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Carp),
+            R("dish_489", "비전의 고추 미꾸라지 튀김", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.SmallFresh),
+            R("dish_490", "정갈한 고추 장어 양념구이", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Eel),
+            R("dish_491", "녹색의 사과 토끼고기 구이", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.RegularMeat),
+            R("dish_492", "대장군 사과 악어고기 조림", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Reptile),
+            R("dish_493", "별미 사과 꿩고기 꼬치", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Poultry),
+            R("dish_494", "향토 사과 슬라임즙 죽", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Slime),
+            R("dish_495", "제국 사과 오우거살점 스튜", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Flesh),
+            R("dish_496", "특제 사과 골렘심장 찌개", IngredientCategory.Fruit, IngredientCategory.Veg, IngredientCategory.Mystic),
+            R("dish_497", "왕실의 사과 토끼고기 불고기", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.RegularMeat),
+            R("dish_498", "전승의 사과 악어고기 탕", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Reptile),
+            R("dish_499", "황금 사과 꿩고기 조림", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Poultry),
+            R("dish_500", "진귀한 사과 슬라임즙 푸딩", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Slime),
+            R("dish_501", "풍미의 사과 오우거살점 볶음", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Flesh),
+            R("dish_502", "사냥꾼 사과 골렘심장 젤", IngredientCategory.Fruit, IngredientCategory.RootVeg, IngredientCategory.Mystic),
+            R("dish_503", "장인의 사과 토끼고기 꼬치", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.RegularMeat),
+            R("dish_504", "비전의 사과 악어고기 스튜", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Reptile),
+            R("dish_505", "정갈한 사과 꿩고기 구이", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Poultry),
+            R("dish_506", "녹색의 사과 슬라임즙 젤리", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Slime),
+            R("dish_507", "대장군 사과 오우거살점 조림", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Flesh),
+            R("dish_508", "별미 사과 골렘심장 양념구이", IngredientCategory.Fruit, IngredientCategory.LeafVeg, IngredientCategory.Mystic),
+            R("dish_509", "향토 사과 토끼고기 전골", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.RegularMeat),
+            R("dish_510", "제국 사과 악어고기 볶음", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Reptile),
+            R("dish_511", "특제 사과 꿩고기 볶음", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Poultry),
+            R("dish_512", "왕실의 사과 슬라임즙 무스", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Slime),
+            R("dish_513", "전승의 사과 오우거살점 탕", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Flesh),
+            R("dish_514", "황금 사과 골렘심장 탕", IngredientCategory.Fruit, IngredientCategory.Grain, IngredientCategory.Mystic),
+            R("dish_515", "진귀한 사과 토끼고기 구이", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.RegularMeat),
+            R("dish_516", "풍미의 사과 악어고기 조림", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Reptile),
+            R("dish_517", "사냥꾼 사과 꿩고기 꼬치", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Poultry),
+            R("dish_518", "장인의 사과 슬라임즙 죽", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Slime),
+            R("dish_519", "비전의 사과 오우거살점 스튜", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Flesh),
+            R("dish_520", "정갈한 사과 골렘심장 찌개", IngredientCategory.Fruit, IngredientCategory.Legume, IngredientCategory.Mystic),
+            R("dish_521", "녹색의 사과 토끼고기 불고기", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.RegularMeat),
+            R("dish_522", "대장군 사과 악어고기 탕", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Reptile),
+            R("dish_523", "별미 사과 꿩고기 조림", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Poultry),
+            R("dish_524", "향토 사과 슬라임즙 푸딩", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Slime),
+            R("dish_525", "제국 사과 오우거살점 볶음", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Flesh),
+            R("dish_526", "특제 사과 골렘심장 젤", IngredientCategory.Fruit, IngredientCategory.Nut, IngredientCategory.Mystic),
+            R("dish_527", "왕실의 사과 토끼고기 꼬치", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.RegularMeat),
+            R("dish_528", "전승의 사과 악어고기 스튜", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Reptile),
+            R("dish_529", "황금 사과 꿩고기 구이", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Poultry),
+            R("dish_530", "진귀한 사과 슬라임즙 젤리", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Slime),
+            R("dish_531", "풍미의 사과 오우거살점 조림", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Flesh),
+            R("dish_532", "사냥꾼 사과 골렘심장 양념구이", IngredientCategory.Fruit, IngredientCategory.Herb, IngredientCategory.Mystic),
+            R("dish_533", "장인의 사과 토끼고기 전골", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_534", "비전의 사과 악어고기 볶음", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_535", "정갈한 사과 꿩고기 볶음", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_536", "녹색의 사과 슬라임즙 무스", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_537", "대장군 사과 오우거살점 탕", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_538", "별미 사과 골렘심장 탕", IngredientCategory.Fruit, IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_539", "향토 사과 토끼고기 구이", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_540", "제국 사과 악어고기 조림", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_541", "특제 사과 꿩고기 꼬치", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_542", "왕실의 사과 슬라임즙 죽", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_543", "전승의 사과 오우거살점 스튜", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_544", "황금 사과 골렘심장 찌개", IngredientCategory.Fruit, IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_545", "진귀한 가지 토끼고기 불고기", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.RegularMeat),
+            R("dish_546", "풍미의 가지 악어고기 탕", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Reptile),
+            R("dish_547", "사냥꾼 가지 꿩고기 조림", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Poultry),
+            R("dish_548", "장인의 가지 슬라임즙 푸딩", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Slime),
+            R("dish_549", "비전의 가지 오우거살점 볶음", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Flesh),
+            R("dish_550", "정갈한 가지 골렘심장 젤", IngredientCategory.Veg, IngredientCategory.RootVeg, IngredientCategory.Mystic),
+            R("dish_551", "녹색의 가지 토끼고기 꼬치", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.RegularMeat),
+            R("dish_552", "대장군 가지 악어고기 스튜", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Reptile),
+            R("dish_553", "별미 가지 꿩고기 구이", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Poultry),
+            R("dish_554", "향토 가지 슬라임즙 젤리", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Slime),
+            R("dish_555", "제국 가지 오우거살점 조림", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Flesh),
+            R("dish_556", "특제 가지 골렘심장 양념구이", IngredientCategory.Veg, IngredientCategory.LeafVeg, IngredientCategory.Mystic),
+            R("dish_557", "왕실의 가지 토끼고기 전골", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.RegularMeat),
+            R("dish_558", "전승의 가지 악어고기 볶음", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Reptile),
+            R("dish_559", "황금 가지 꿩고기 볶음", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Poultry),
+            R("dish_560", "진귀한 가지 슬라임즙 무스", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Slime),
+            R("dish_561", "풍미의 가지 오우거살점 탕", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Flesh),
+            R("dish_562", "사냥꾼 가지 골렘심장 탕", IngredientCategory.Veg, IngredientCategory.Grain, IngredientCategory.Mystic),
+            R("dish_563", "장인의 가지 토끼고기 구이", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.RegularMeat),
+            R("dish_564", "비전의 가지 악어고기 조림", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Reptile),
+            R("dish_565", "정갈한 가지 꿩고기 꼬치", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Poultry),
+            R("dish_566", "녹색의 가지 슬라임즙 죽", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Slime),
+            R("dish_567", "대장군 가지 오우거살점 스튜", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Flesh),
+            R("dish_568", "별미 가지 골렘심장 찌개", IngredientCategory.Veg, IngredientCategory.Legume, IngredientCategory.Mystic),
+            R("dish_569", "향토 가지 토끼고기 불고기", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.RegularMeat),
+            R("dish_570", "제국 가지 악어고기 탕", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Reptile),
+            R("dish_571", "특제 가지 꿩고기 조림", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Poultry),
+            R("dish_572", "왕실의 가지 슬라임즙 푸딩", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Slime),
+            R("dish_573", "전승의 가지 오우거살점 볶음", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Flesh),
+            R("dish_574", "황금 가지 골렘심장 젤", IngredientCategory.Veg, IngredientCategory.Nut, IngredientCategory.Mystic),
+            R("dish_575", "진귀한 가지 토끼고기 꼬치", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.RegularMeat),
+            R("dish_576", "풍미의 가지 악어고기 스튜", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Reptile),
+            R("dish_577", "사냥꾼 가지 꿩고기 구이", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Poultry),
+            R("dish_578", "장인의 가지 슬라임즙 젤리", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Slime),
+            R("dish_579", "비전의 가지 오우거살점 조림", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Flesh),
+            R("dish_580", "정갈한 가지 골렘심장 양념구이", IngredientCategory.Veg, IngredientCategory.Herb, IngredientCategory.Mystic),
+            R("dish_581", "녹색의 가지 토끼고기 전골", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_582", "대장군 가지 악어고기 볶음", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_583", "별미 가지 꿩고기 볶음", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_584", "향토 가지 슬라임즙 무스", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_585", "제국 가지 오우거살점 탕", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_586", "특제 가지 골렘심장 탕", IngredientCategory.Veg, IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_587", "왕실의 가지 토끼고기 구이", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_588", "전승의 가지 악어고기 조림", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_589", "황금 가지 꿩고기 꼬치", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_590", "진귀한 가지 슬라임즙 죽", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_591", "풍미의 가지 오우거살점 스튜", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_592", "사냥꾼 가지 골렘심장 찌개", IngredientCategory.Veg, IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_593", "장인의 감자 토끼고기 불고기", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.RegularMeat),
+            R("dish_594", "비전의 감자 악어고기 탕", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Reptile),
+            R("dish_595", "정갈한 감자 꿩고기 조림", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Poultry),
+            R("dish_596", "녹색의 감자 슬라임즙 푸딩", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Slime),
+            R("dish_597", "대장군 감자 오우거살점 볶음", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Flesh),
+            R("dish_598", "별미 감자 골렘심장 젤", IngredientCategory.RootVeg, IngredientCategory.LeafVeg, IngredientCategory.Mystic),
+            R("dish_599", "향토 감자 토끼고기 꼬치", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.RegularMeat),
+            R("dish_600", "제국 감자 악어고기 스튜", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Reptile),
+            R("dish_601", "특제 감자 꿩고기 구이", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Poultry),
+            R("dish_602", "왕실의 감자 슬라임즙 젤리", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Slime),
+            R("dish_603", "전승의 감자 오우거살점 조림", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Flesh),
+            R("dish_604", "황금 감자 골렘심장 양념구이", IngredientCategory.RootVeg, IngredientCategory.Grain, IngredientCategory.Mystic),
+            R("dish_605", "진귀한 감자 토끼고기 전골", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.RegularMeat),
+            R("dish_606", "풍미의 감자 악어고기 볶음", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Reptile),
+            R("dish_607", "사냥꾼 감자 꿩고기 볶음", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Poultry),
+            R("dish_608", "장인의 감자 슬라임즙 무스", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Slime),
+            R("dish_609", "비전의 감자 오우거살점 탕", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Flesh),
+            R("dish_610", "정갈한 감자 골렘심장 탕", IngredientCategory.RootVeg, IngredientCategory.Legume, IngredientCategory.Mystic),
+            R("dish_611", "녹색의 감자 토끼고기 구이", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.RegularMeat),
+            R("dish_612", "대장군 감자 악어고기 조림", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Reptile),
+            R("dish_613", "별미 감자 꿩고기 꼬치", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Poultry),
+            R("dish_614", "향토 감자 슬라임즙 죽", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Slime),
+            R("dish_615", "제국 감자 오우거살점 스튜", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Flesh),
+            R("dish_616", "특제 감자 골렘심장 찌개", IngredientCategory.RootVeg, IngredientCategory.Nut, IngredientCategory.Mystic),
+            R("dish_617", "왕실의 감자 토끼고기 불고기", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.RegularMeat),
+            R("dish_618", "전승의 감자 악어고기 탕", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Reptile),
+            R("dish_619", "황금 감자 꿩고기 조림", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Poultry),
+            R("dish_620", "진귀한 감자 슬라임즙 푸딩", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Slime),
+            R("dish_621", "풍미의 감자 오우거살점 볶음", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Flesh),
+            R("dish_622", "사냥꾼 감자 골렘심장 젤", IngredientCategory.RootVeg, IngredientCategory.Herb, IngredientCategory.Mystic),
+            R("dish_623", "장인의 감자 토끼고기 꼬치", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_624", "비전의 감자 악어고기 스튜", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_625", "정갈한 감자 꿩고기 구이", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_626", "녹색의 감자 슬라임즙 젤리", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_627", "대장군 감자 오우거살점 조림", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_628", "별미 감자 골렘심장 양념구이", IngredientCategory.RootVeg, IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_629", "향토 감자 토끼고기 전골", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_630", "제국 감자 악어고기 볶음", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_631", "특제 감자 꿩고기 볶음", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_632", "왕실의 감자 슬라임즙 무스", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_633", "전승의 감자 오우거살점 탕", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_634", "황금 감자 골렘심장 탕", IngredientCategory.RootVeg, IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_635", "진귀한 배추 토끼고기 구이", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.RegularMeat),
+            R("dish_636", "풍미의 배추 악어고기 조림", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Reptile),
+            R("dish_637", "사냥꾼 배추 꿩고기 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Poultry),
+            R("dish_638", "장인의 배추 슬라임즙 죽", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Slime),
+            R("dish_639", "비전의 배추 오우거살점 스튜", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Flesh),
+            R("dish_640", "정갈한 배추 골렘심장 찌개", IngredientCategory.LeafVeg, IngredientCategory.Grain, IngredientCategory.Mystic),
+            R("dish_641", "녹색의 배추 토끼고기 불고기", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.RegularMeat),
+            R("dish_642", "대장군 배추 악어고기 탕", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Reptile),
+            R("dish_643", "별미 배추 꿩고기 조림", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Poultry),
+            R("dish_644", "향토 배추 슬라임즙 푸딩", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Slime),
+            R("dish_645", "제국 배추 오우거살점 볶음", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Flesh),
+            R("dish_646", "특제 배추 골렘심장 젤", IngredientCategory.LeafVeg, IngredientCategory.Legume, IngredientCategory.Mystic),
+            R("dish_647", "왕실의 배추 토끼고기 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.RegularMeat),
+            R("dish_648", "전승의 배추 악어고기 스튜", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Reptile),
+            R("dish_649", "황금 배추 꿩고기 구이", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Poultry),
+            R("dish_650", "진귀한 배추 슬라임즙 젤리", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Slime),
+            R("dish_651", "풍미의 배추 오우거살점 조림", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Flesh),
+            R("dish_652", "사냥꾼 배추 골렘심장 양념구이", IngredientCategory.LeafVeg, IngredientCategory.Nut, IngredientCategory.Mystic),
+            R("dish_653", "장인의 배추 토끼고기 전골", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.RegularMeat),
+            R("dish_654", "비전의 배추 악어고기 볶음", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Reptile),
+            R("dish_655", "정갈한 배추 꿩고기 볶음", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Poultry),
+            R("dish_656", "녹색의 배추 슬라임즙 무스", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Slime),
+            R("dish_657", "대장군 배추 오우거살점 탕", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Flesh),
+            R("dish_658", "별미 배추 골렘심장 탕", IngredientCategory.LeafVeg, IngredientCategory.Herb, IngredientCategory.Mystic),
+            R("dish_659", "향토 배추 토끼고기 구이", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_660", "제국 배추 악어고기 조림", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_661", "특제 배추 꿩고기 꼬치", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_662", "왕실의 배추 슬라임즙 죽", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_663", "전승의 배추 오우거살점 스튜", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_664", "황금 배추 골렘심장 찌개", IngredientCategory.LeafVeg, IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_665", "진귀한 배추 토끼고기 불고기", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_666", "풍미의 배추 악어고기 탕", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_667", "사냥꾼 배추 꿩고기 조림", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_668", "장인의 배추 슬라임즙 푸딩", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_669", "비전의 배추 오우거살점 볶음", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_670", "정갈한 배추 골렘심장 젤", IngredientCategory.LeafVeg, IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_671", "녹색의 쌀 토끼고기 꼬치", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.RegularMeat),
+            R("dish_672", "대장군 쌀 악어고기 스튜", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Reptile),
+            R("dish_673", "별미 쌀 꿩고기 구이", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Poultry),
+            R("dish_674", "향토 쌀 슬라임즙 젤리", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Slime),
+            R("dish_675", "제국 쌀 오우거살점 조림", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Flesh),
+            R("dish_676", "특제 쌀 골렘심장 양념구이", IngredientCategory.Grain, IngredientCategory.Legume, IngredientCategory.Mystic),
+            R("dish_677", "왕실의 쌀 토끼고기 전골", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.RegularMeat),
+            R("dish_678", "전승의 쌀 악어고기 볶음", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Reptile),
+            R("dish_679", "황금 쌀 꿩고기 볶음", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Poultry),
+            R("dish_680", "진귀한 쌀 슬라임즙 무스", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Slime),
+            R("dish_681", "풍미의 쌀 오우거살점 탕", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Flesh),
+            R("dish_682", "사냥꾼 쌀 골렘심장 탕", IngredientCategory.Grain, IngredientCategory.Nut, IngredientCategory.Mystic),
+            R("dish_683", "장인의 쌀 토끼고기 구이", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.RegularMeat),
+            R("dish_684", "비전의 쌀 악어고기 조림", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Reptile),
+            R("dish_685", "정갈한 쌀 꿩고기 꼬치", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Poultry),
+            R("dish_686", "녹색의 쌀 슬라임즙 죽", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Slime),
+            R("dish_687", "대장군 쌀 오우거살점 스튜", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Flesh),
+            R("dish_688", "별미 쌀 골렘심장 찌개", IngredientCategory.Grain, IngredientCategory.Herb, IngredientCategory.Mystic),
+            R("dish_689", "향토 쌀 토끼고기 불고기", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_690", "제국 쌀 악어고기 탕", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_691", "특제 쌀 꿩고기 조림", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_692", "왕실의 쌀 슬라임즙 푸딩", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_693", "전승의 쌀 오우거살점 볶음", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_694", "황금 쌀 골렘심장 젤", IngredientCategory.Grain, IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_695", "진귀한 쌀 토끼고기 꼬치", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_696", "풍미의 쌀 악어고기 스튜", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_697", "사냥꾼 쌀 꿩고기 구이", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_698", "장인의 쌀 슬라임즙 젤리", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_699", "비전의 쌀 오우거살점 조림", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_700", "정갈한 쌀 골렘심장 양념구이", IngredientCategory.Grain, IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_701", "녹색의 콩 토끼고기 전골", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.RegularMeat),
+            R("dish_702", "대장군 콩 악어고기 볶음", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Reptile),
+            R("dish_703", "별미 콩 꿩고기 볶음", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Poultry),
+            R("dish_704", "향토 콩 슬라임즙 무스", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Slime),
+            R("dish_705", "제국 콩 오우거살점 탕", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Flesh),
+            R("dish_706", "특제 콩 골렘심장 탕", IngredientCategory.Legume, IngredientCategory.Nut, IngredientCategory.Mystic),
+            R("dish_707", "왕실의 콩 토끼고기 구이", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.RegularMeat),
+            R("dish_708", "전승의 콩 악어고기 조림", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Reptile),
+            R("dish_709", "황금 콩 꿩고기 꼬치", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Poultry),
+            R("dish_710", "진귀한 콩 슬라임즙 죽", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Slime),
+            R("dish_711", "풍미의 콩 오우거살점 스튜", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Flesh),
+            R("dish_712", "사냥꾼 콩 골렘심장 찌개", IngredientCategory.Legume, IngredientCategory.Herb, IngredientCategory.Mystic),
+            R("dish_713", "장인의 콩 토끼고기 불고기", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_714", "비전의 콩 악어고기 탕", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_715", "정갈한 콩 꿩고기 조림", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_716", "녹색의 콩 슬라임즙 푸딩", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_717", "대장군 콩 오우거살점 볶음", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_718", "별미 콩 골렘심장 젤", IngredientCategory.Legume, IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_719", "향토 콩 토끼고기 꼬치", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_720", "제국 콩 악어고기 스튜", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_721", "특제 콩 꿩고기 구이", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_722", "왕실의 콩 슬라임즙 젤리", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_723", "전승의 콩 오우거살점 조림", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_724", "황금 콩 골렘심장 양념구이", IngredientCategory.Legume, IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_725", "진귀한 호두 토끼고기 전골", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.RegularMeat),
+            R("dish_726", "풍미의 호두 악어고기 볶음", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Reptile),
+            R("dish_727", "사냥꾼 호두 꿩고기 볶음", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Poultry),
+            R("dish_728", "장인의 호두 슬라임즙 무스", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Slime),
+            R("dish_729", "비전의 호두 오우거살점 탕", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Flesh),
+            R("dish_730", "정갈한 호두 골렘심장 탕", IngredientCategory.Nut, IngredientCategory.Herb, IngredientCategory.Mystic),
+            R("dish_731", "녹색의 호두 토끼고기 구이", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_732", "대장군 호두 악어고기 조림", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_733", "별미 호두 꿩고기 꼬치", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_734", "향토 호두 슬라임즙 죽", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_735", "제국 호두 오우거살점 스튜", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_736", "특제 호두 골렘심장 찌개", IngredientCategory.Nut, IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_737", "왕실의 호두 토끼고기 불고기", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_738", "전승의 호두 악어고기 탕", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_739", "황금 호두 꿩고기 조림", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_740", "진귀한 호두 슬라임즙 푸딩", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_741", "풍미의 호두 오우거살점 볶음", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_742", "사냥꾼 호두 골렘심장 젤", IngredientCategory.Nut, IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_743", "장인의 바질 토끼고기 꼬치", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.RegularMeat),
+            R("dish_744", "비전의 바질 악어고기 스튜", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Reptile),
+            R("dish_745", "정갈한 바질 꿩고기 구이", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Poultry),
+            R("dish_746", "녹색의 바질 슬라임즙 젤리", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Slime),
+            R("dish_747", "대장군 바질 오우거살점 조림", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Flesh),
+            R("dish_748", "별미 바질 골렘심장 양념구이", IngredientCategory.Herb, IngredientCategory.Spice, IngredientCategory.Mystic),
+            R("dish_749", "향토 바질 토끼고기 전골", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_750", "제국 바질 악어고기 볶음", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_751", "특제 바질 꿩고기 볶음", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_752", "왕실의 바질 슬라임즙 무스", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_753", "전승의 바질 오우거살점 탕", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_754", "황금 바질 골렘심장 탕", IngredientCategory.Herb, IngredientCategory.Drink, IngredientCategory.Mystic),
+            R("dish_755", "진귀한 고추 토끼고기 구이", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.RegularMeat),
+            R("dish_756", "풍미의 고추 악어고기 조림", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Reptile),
+            R("dish_757", "사냥꾼 고추 꿩고기 꼬치", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Poultry),
+            R("dish_758", "장인의 고추 슬라임즙 죽", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Slime),
+            R("dish_759", "비전의 고추 오우거살점 스튜", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Flesh),
+            R("dish_760", "정갈한 고추 골렘심장 찌개", IngredientCategory.Spice, IngredientCategory.Drink, IngredientCategory.Mystic),
+        };
+
+        /// <summary>테이블 엔트리 생성 + cats 정렬 (정렬 집합 비교 계약 — 표기 순서와 무관하게 정규화).</summary>
+        static RecipeDef R(string id, string name, params IngredientCategory[] cats)
+        {
+            System.Array.Sort(cats);
+            return new RecipeDef(id, name, cats);
+        }
+
+        // === 요리 조합 인덱스 (정렬 카테고리 집합 키 → 요리) ===
+
+        static readonly Dictionary<string, RecipeDef> _byCats = BuildRecipeIndex();
+
+        static Dictionary<string, RecipeDef> BuildRecipeIndex()
+        {
+            var d = new Dictionary<string, RecipeDef>(Recipes.Length);
+            foreach (var r in Recipes)
+                d[KeyOfCats(r.cats)] = r;    // 760종 조합 집합 중복 없음(생성 시 검증)
+            return d;
+        }
+
+        /// <summary>정렬 집합 키("1,5,9" 형식) — 중복 카테고리 제거 포함(집합 비교 단일 진실점).</summary>
+        static string SortedCatKey(int[] vals)
+        {
+            System.Array.Sort(vals);
+            var sb = new System.Text.StringBuilder(vals.Length * 3);
+            int prev = int.MinValue;
+            for (int i = 0; i < vals.Length; i++)
+            {
+                if (vals[i] == prev) continue;   // 중복 카테고리 제거 (집합 비교)
+                prev = vals[i];
+                if (sb.Length > 0) sb.Append(',');
+                sb.Append(vals[i]);
+            }
+            return sb.ToString();
+        }
+
+        static string KeyOfCats(IngredientCategory[] cats)
+        {
+            var vals = new int[cats.Length];
+            for (int i = 0; i < cats.Length; i++) vals[i] = (int)cats[i];
+            return SortedCatKey(vals);
+        }
+
+        /// <summary>2재료 조합 조회 — 정렬 집합 비교(순서 무관). 미등록 조합이면 null.</summary>
+        public static RecipeDef? FindRecipe(IngredientCategory a, IngredientCategory b)
+        {
+            return _byCats.TryGetValue(SortedCatKey(new[] { (int)a, (int)b }), out RecipeDef r) ? r : (RecipeDef?)null;
+        }
+
+        /// <summary>3재료 조합 조회 — 중복 카테고리는 집합으로 축소. 예) (과일류,과일류,견과류) → 과일류+견과류 요리.</summary>
+        public static RecipeDef? FindRecipe(IngredientCategory a, IngredientCategory b, IngredientCategory c)
+        {
+            return _byCats.TryGetValue(SortedCatKey(new[] { (int)a, (int)b, (int)c }), out RecipeDef r) ? r : (RecipeDef?)null;
+        }
+
+        /// <summary>전체 요리 (id 오름차순 — Recipes 배열 순서 = 생성 시 검증된 정렬 순서).</summary>
+        static readonly List<RecipeDef> _all = new List<RecipeDef>(Recipes);
+
+        public static List<RecipeDef> All() => _all;
+
+        // === 몬스터 재료 (cat_master.json mon_cat — 6개 카테고리 23종) ===
+
+        /// <summary>몬스터 재료 그룹 (mon_cat 순서 고정) — 시딩/드롭 원본 데이터.</summary>
+        public struct MonsterGroup
+        {
+            public readonly IngredientCategory category;
+            public readonly string categoryKo;
+            public readonly string[] names;
+            public MonsterGroup(IngredientCategory category, string categoryKo, string[] names)
+            {
+                this.category = category;
+                this.categoryKo = categoryKo;
+                this.names = names;
+            }
+        }
+
+        public static readonly MonsterGroup[] MonsterGroups =
+        {
+            new MonsterGroup(IngredientCategory.RegularMeat, "보통 육류", new[] { "토끼고기", "늑대고기", "멧돼지고기", "사슴고기" }),
+            new MonsterGroup(IngredientCategory.Reptile, "파충류·용", new[] { "뱀고기", "악어고기", "화염도마뱀고기", "용의 고기" }),
+            new MonsterGroup(IngredientCategory.Poultry, "조류·익룡", new[] { "까마귀고기", "그리폰고기", "박쥐고기" }),
+            new MonsterGroup(IngredientCategory.Slime, "점액·피·액체", new[] { "슬라임 점액", "트롤 혈액", "정령의 즙" }),
+            new MonsterGroup(IngredientCategory.Flesh, "살점·잔해", new[] { "오우거 살점", "밴시 살점", "만티코어 살점", "거대쥐 꼬리", "내장 조각" }),
+            new MonsterGroup(IngredientCategory.Mystic, "영묘·뿔·비늘", new[] { "골렘 심장", "전기 가시", "미노타우로스 뿔", "샐러맨더 비늘" }),
+        };
+
+        /// <summary>몬스터 재료 23종 플랫 리스트 (MonsterGroups 순서) — 시더가 순회하여 MonsterMeatItem 호출.</summary>
+        public static readonly string[] MonsterIngredients = BuildMonsterIngredients();
+
+        static string[] BuildMonsterIngredients()
+        {
+            var list = new List<string>(24);
+            foreach (var g in MonsterGroups)
+                for (int i = 0; i < g.names.Length; i++) list.Add(g.names[i]);
+            return list.ToArray();
+        }
+
+        // === 카테고리 매핑 (한국어 카테고리명/재료명 → enum, 정적 1회 빌드) ===
+
+        static readonly Dictionary<string, IngredientCategory> _catByKo = BuildCategoryMap();
+        static readonly Dictionary<string, IngredientCategory> _cropCat = BuildCropCat();
+        static readonly Dictionary<string, IngredientCategory> _fishCat = BuildFishCat();
+        static readonly Dictionary<string, IngredientCategory> _monCat = BuildMonsterCat();
+
+        /// <summary>한국어 카테고리명 23종 전부 등록 (원본 계약).</summary>
+        static Dictionary<string, IngredientCategory> BuildCategoryMap()
+        {
+            var d = new Dictionary<string, IngredientCategory>(23);
+            d.Add("과일류", IngredientCategory.Fruit);
+            d.Add("채소류", IngredientCategory.Veg);
+            d.Add("뿌리채소류", IngredientCategory.RootVeg);
+            d.Add("엽채류", IngredientCategory.LeafVeg);
+            d.Add("곡류", IngredientCategory.Grain);
+            d.Add("콩류", IngredientCategory.Legume);
+            d.Add("견과류", IngredientCategory.Nut);
+            d.Add("허브", IngredientCategory.Herb);
+            d.Add("향신료", IngredientCategory.Spice);
+            d.Add("음료류", IngredientCategory.Drink);
+            d.Add("연어·송어류", IngredientCategory.Salmon);
+            d.Add("등푸른 해양어", IngredientCategory.BlueFish);
+            d.Add("넙치·가자미류", IngredientCategory.FlatFish);
+            d.Add("메기류", IngredientCategory.Catfish);
+            d.Add("잉어·붕어류", IngredientCategory.Carp);
+            d.Add("소형 민물어", IngredientCategory.SmallFresh);
+            d.Add("장어류", IngredientCategory.Eel);
+            d.Add("보통 육류", IngredientCategory.RegularMeat);
+            d.Add("파충류·용", IngredientCategory.Reptile);
+            d.Add("조류·익룡", IngredientCategory.Poultry);
+            d.Add("점액·피·액체", IngredientCategory.Slime);
+            d.Add("살점·잔해", IngredientCategory.Flesh);
+            d.Add("영묘·뿔·비늘", IngredientCategory.Mystic);
+            return d;
+        }
+
+        /// <summary>crop_cat 100종 — 한국어 작물명 → 카테고리.</summary>
+        static Dictionary<string, IngredientCategory> BuildCropCat()
+        {
+            var d = new Dictionary<string, IngredientCategory>(100);
+            d.Add("가지", IngredientCategory.Veg);
+            d.Add("감", IngredientCategory.Fruit);
+            d.Add("감자", IngredientCategory.RootVeg);
+            d.Add("강낭콩", IngredientCategory.Legume);
+            d.Add("고구마", IngredientCategory.RootVeg);
+            d.Add("고수", IngredientCategory.Herb);
+            d.Add("고추", IngredientCategory.Spice);
+            d.Add("귀리", IngredientCategory.Grain);
+            d.Add("귤", IngredientCategory.Fruit);
+            d.Add("기장", IngredientCategory.Grain);
+            d.Add("녹두", IngredientCategory.Legume);
+            d.Add("당근", IngredientCategory.RootVeg);
+            d.Add("대추", IngredientCategory.Fruit);
+            d.Add("대파", IngredientCategory.LeafVeg);
+            d.Add("들깨", IngredientCategory.Herb);
+            d.Add("딸기", IngredientCategory.Fruit);
+            d.Add("땅콩", IngredientCategory.Nut);
+            d.Add("라임", IngredientCategory.Fruit);
+            d.Add("라즈베리", IngredientCategory.Fruit);
+            d.Add("레몬", IngredientCategory.Fruit);
+            d.Add("로즈마리", IngredientCategory.Herb);
+            d.Add("마", IngredientCategory.RootVeg);
+            d.Add("마늘", IngredientCategory.Spice);
+            d.Add("망고", IngredientCategory.Fruit);
+            d.Add("매실", IngredientCategory.Fruit);
+            d.Add("메밀", IngredientCategory.Grain);
+            d.Add("멜론", IngredientCategory.Fruit);
+            d.Add("모과", IngredientCategory.Fruit);
+            d.Add("무", IngredientCategory.RootVeg);
+            d.Add("무화과", IngredientCategory.Fruit);
+            d.Add("미나리", IngredientCategory.LeafVeg);
+            d.Add("밀", IngredientCategory.Grain);
+            d.Add("바나나", IngredientCategory.Fruit);
+            d.Add("바질", IngredientCategory.Herb);
+            d.Add("밤", IngredientCategory.Nut);
+            d.Add("배", IngredientCategory.Fruit);
+            d.Add("배추", IngredientCategory.LeafVeg);
+            d.Add("벼", IngredientCategory.Grain);
+            d.Add("병아리콩", IngredientCategory.Legume);
+            d.Add("보리", IngredientCategory.Grain);
+            d.Add("복숭아", IngredientCategory.Fruit);
+            d.Add("부추", IngredientCategory.LeafVeg);
+            d.Add("브로콜리", IngredientCategory.LeafVeg);
+            d.Add("블랙베리", IngredientCategory.Fruit);
+            d.Add("블루베리", IngredientCategory.Fruit);
+            d.Add("비트", IngredientCategory.RootVeg);
+            d.Add("사과", IngredientCategory.Fruit);
+            d.Add("사탕수수", IngredientCategory.Drink);
+            d.Add("살구", IngredientCategory.Fruit);
+            d.Add("상추", IngredientCategory.LeafVeg);
+            d.Add("샐러리", IngredientCategory.LeafVeg);
+            d.Add("생강", IngredientCategory.Spice);
+            d.Add("석류", IngredientCategory.Fruit);
+            d.Add("수박", IngredientCategory.Fruit);
+            d.Add("수수", IngredientCategory.Grain);
+            d.Add("순무", IngredientCategory.RootVeg);
+            d.Add("시금치", IngredientCategory.LeafVeg);
+            d.Add("쑷갓", IngredientCategory.LeafVeg);
+            d.Add("아보카도", IngredientCategory.Fruit);
+            d.Add("아스파라거스", IngredientCategory.LeafVeg);
+            d.Add("아티초크", IngredientCategory.Veg);
+            d.Add("양배추", IngredientCategory.LeafVeg);
+            d.Add("양파", IngredientCategory.RootVeg);
+            d.Add("연근", IngredientCategory.RootVeg);
+            d.Add("오디", IngredientCategory.Fruit);
+            d.Add("오렌지", IngredientCategory.Fruit);
+            d.Add("오이", IngredientCategory.Veg);
+            d.Add("오크라", IngredientCategory.Veg);
+            d.Add("옥수수", IngredientCategory.Grain);
+            d.Add("완두", IngredientCategory.Legume);
+            d.Add("우엉", IngredientCategory.RootVeg);
+            d.Add("유자", IngredientCategory.Fruit);
+            d.Add("유채", IngredientCategory.Herb);
+            d.Add("자두", IngredientCategory.Fruit);
+            d.Add("자몽", IngredientCategory.Fruit);
+            d.Add("잠두", IngredientCategory.Legume);
+            d.Add("조", IngredientCategory.Grain);
+            d.Add("차", IngredientCategory.Drink);
+            d.Add("참깨", IngredientCategory.Spice);
+            d.Add("참외", IngredientCategory.Fruit);
+            d.Add("청경채", IngredientCategory.LeafVeg);
+            d.Add("체리", IngredientCategory.Fruit);
+            d.Add("카카오", IngredientCategory.Drink);
+            d.Add("커피", IngredientCategory.Drink);
+            d.Add("케일", IngredientCategory.LeafVeg);
+            d.Add("콜리플라워", IngredientCategory.LeafVeg);
+            d.Add("콩", IngredientCategory.Legume);
+            d.Add("크랜배리", IngredientCategory.Fruit);
+            d.Add("키위", IngredientCategory.Fruit);
+            d.Add("토란", IngredientCategory.RootVeg);
+            d.Add("토마토", IngredientCategory.Veg);
+            d.Add("파슬리", IngredientCategory.Herb);
+            d.Add("파인애플", IngredientCategory.Fruit);
+            d.Add("파프리카", IngredientCategory.Veg);
+            d.Add("팥", IngredientCategory.Legume);
+            d.Add("포도", IngredientCategory.Fruit);
+            d.Add("해바라기", IngredientCategory.Nut);
+            d.Add("호두", IngredientCategory.Nut);
+            d.Add("호밀", IngredientCategory.Grain);
+            d.Add("호박", IngredientCategory.Veg);
+            return d;
+        }
+
+        /// <summary>fish_cat 38종 — 한국어 어류명(🐟 접두 없는 원본명) → 카테고리.</summary>
+        static Dictionary<string, IngredientCategory> BuildFishCat()
+        {
+            var d = new Dictionary<string, IngredientCategory>(38);
+            d.Add("가자미", IngredientCategory.FlatFish);
+            d.Add("각시붕어", IngredientCategory.Carp);
+            d.Add("갈겨니", IngredientCategory.SmallFresh);
+            d.Add("강준치", IngredientCategory.SmallFresh);
+            d.Add("갯장어", IngredientCategory.Eel);
+            d.Add("고등어", IngredientCategory.BlueFish);
+            d.Add("광어", IngredientCategory.FlatFish);
+            d.Add("납자루", IngredientCategory.SmallFresh);
+            d.Add("누치", IngredientCategory.SmallFresh);
+            d.Add("눈동자개", IngredientCategory.Catfish);
+            d.Add("대농갱이", IngredientCategory.Catfish);
+            d.Add("대서양 연어", IngredientCategory.Salmon);
+            d.Add("돌고기", IngredientCategory.Carp);
+            d.Add("동자개", IngredientCategory.Catfish);
+            d.Add("떡붕어", IngredientCategory.Carp);
+            d.Add("먹장어", IngredientCategory.Eel);
+            d.Add("메기", IngredientCategory.Catfish);
+            d.Add("모래무지", IngredientCategory.SmallFresh);
+            d.Add("무지개송어", IngredientCategory.Salmon);
+            d.Add("미꾸라지", IngredientCategory.SmallFresh);
+            d.Add("미꾸리", IngredientCategory.SmallFresh);
+            d.Add("뱀장어", IngredientCategory.Eel);
+            d.Add("버들붕어", IngredientCategory.Carp);
+            d.Add("붕어", IngredientCategory.Carp);
+            d.Add("붕장어", IngredientCategory.Eel);
+            d.Add("블루길", IngredientCategory.SmallFresh);
+            d.Add("빙어", IngredientCategory.SmallFresh);
+            d.Add("산천어", IngredientCategory.Salmon);
+            d.Add("쉬리", IngredientCategory.SmallFresh);
+            d.Add("쏘가리", IngredientCategory.SmallFresh);
+            d.Add("연어", IngredientCategory.Salmon);
+            d.Add("열목어", IngredientCategory.Salmon);
+            d.Add("우럭", IngredientCategory.BlueFish);
+            d.Add("은어", IngredientCategory.Salmon);
+            d.Add("잉어", IngredientCategory.Carp);
+            d.Add("참마자", IngredientCategory.SmallFresh);
+            d.Add("피라미", IngredientCategory.SmallFresh);
+            d.Add("흰동가리", IngredientCategory.SmallFresh);
+            return d;
+        }
+
+        /// <summary>mon_cat 역방향 맵 — 몬스터 재료명 → 카테고리 (MonsterGroups를 단일 원본으로 역전).</summary>
+        static Dictionary<string, IngredientCategory> BuildMonsterCat()
+        {
+            var d = new Dictionary<string, IngredientCategory>(24);
+            foreach (var g in MonsterGroups)
+                for (int i = 0; i < g.names.Length; i++) d.Add(g.names[i], g.category);
+            return d;
+        }
+
+        /// <summary>한국어 카테고리명(23종 전부) → enum. 미등록이면 None.</summary>
+        public static IngredientCategory CategoryFromKorean(string ko) => Lookup(_catByKo, ko);
+
+        /// <summary>작물명(한국어) → 카테고리. 미등록이면 None. (crop_cat 100종)</summary>
+        public static IngredientCategory CropCategory(string koreanName) => Lookup(_cropCat, koreanName);
+
+        /// <summary>어류명(한국어, 🐟 접두 없는 원본명 — 접두 있어도 허용) → 카테고리. 미등록이면 None.</summary>
+        public static IngredientCategory FishCategory(string koreanName) => Lookup(_fishCat, koreanName);
+
+        /// <summary>몬스터 재료명(한국어) → 카테고리. 미등록이면 None. (mon_cat 역방향 23종)</summary>
+        public static IngredientCategory MonsterCategory(string ingredientKoreanName) => Lookup(_monCat, ingredientKoreanName);
+
+        /// <summary>표시명 접두 이모지(🐟/🌾/🌰) 제거 — 카탈로그 표시명을 그대로 넘겨도 조회되게 하는 방어.</summary>
+        static string NormIngredient(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s;
+            s = s.Trim();
+            if (s.StartsWith("🐟 ")) s = s.Substring(3).Trim();
+            else if (s.StartsWith("🌾 ")) s = s.Substring(3).Trim();
+            else if (s.StartsWith("🌰 ")) s = s.Substring(3).Trim();
+            return s;
+        }
+
+        static IngredientCategory Lookup(Dictionary<string, IngredientCategory> map, string ko)
+        {
+            if (ko == null) return None;
+            return map.TryGetValue(NormIngredient(ko), out IngredientCategory c) ? c : None;
+        }
+
+        // === 몬스터 재료 ItemData 팩토리 ===
+
+        /// <summary>
+        /// 몬스터 재료 ItemData — id "monster_meat_&lt;공백→_ 정제명&gt;", displayName = 재료명,
+        /// category = Meat(PlayerInventory.ItemCategory에 존재 확인), maxStack 20.
+        /// loot 드롭 연결은 후속 단계에서 이 팩토리를 사용. 시딩: MonsterGroups 순회 →
+        /// MonsterMeatItem(group.categoryKo, group.names[i]).
+        /// </summary>
+        public static PlayerInventory.ItemData MonsterMeatItem(string categoryKo, string ingredientKo)
+        {
+            return new PlayerInventory.ItemData
+            {
+                id = "monster_meat_" + SanitizeId(ingredientKo),
+                displayName = ingredientKo,
+                description = ingredientKo + " (" + categoryKo + "). 요리 재료.",
+                category = PlayerInventory.ItemCategory.Meat,
+                maxStack = 20,
+                rarity = ItemRarity.Common,
+            };
+        }
+
+        static string SanitizeId(string ko)
+        {
+            if (string.IsNullOrEmpty(ko)) return "";
+            var sb = new System.Text.StringBuilder(ko.Length);
+            foreach (char ch in ko.Trim())
+            {
+                if (ch == ' ') sb.Append('_');
+                else if (char.IsLetterOrDigit(ch) || ch == '_') sb.Append(ch);
+                // 그 외(·, 🐟 등)는 제거
+            }
+            return sb.ToString();
+        }
+    }
+}
