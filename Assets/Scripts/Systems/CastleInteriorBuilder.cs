@@ -169,20 +169,20 @@ namespace ProjectName.Systems
 
             // ===== 왕좌 공간 (뒷벽 중앙) — variant별 z 시프트 =====
             // 왕좌 테이블
-            GameObject throneTable = IndoorFurniturePlacer.CreateTable(3.0f, 1.2f, 1.5f, throneMat);
+            GameObject throneTable = IndoorFurnitureCatalog.CreateTable(3.0f, 1.2f, 1.5f, throneMat);
             throneTable.name = "ThroneTable";
             throneTable.transform.SetParent(room.transform);
             throneTable.transform.localPosition = new Vector3(0, 0, throneZ);
 
             // 왕좌 의자 (큰 의자)
-            GameObject throneChair = IndoorFurniturePlacer.CreateChair(1.5f, throneMat);
+            GameObject throneChair = IndoorFurnitureCatalog.CreateChair(1.5f, throneMat);
             throneChair.name = "ThroneChair";
             throneChair.transform.SetParent(room.transform);
             throneChair.transform.localPosition = new Vector3(0, 0, throneZ + 1.0f);
             throneChair.transform.localScale = new Vector3(1.5f, 1.5f, 1.5f);
 
             // ===== 회의 테이블 (중앙) — variant별 z 시프트 =====
-            GameObject meetingTable = IndoorFurniturePlacer.CreateTable(4.0f, 1.0f, 2.0f, throneMat);
+            GameObject meetingTable = IndoorFurnitureCatalog.CreateTable(4.0f, 1.0f, 2.0f, throneMat);
             meetingTable.name = "MeetingTable";
             meetingTable.transform.SetParent(room.transform);
             meetingTable.transform.localPosition = new Vector3(0, 0, meetingZ);
@@ -193,7 +193,7 @@ namespace ProjectName.Systems
             {
                 for (int pos = -1; pos <= 1; pos += 2)
                 {
-                    GameObject meetingChair = IndoorFurniturePlacer.CreateChair(1.0f, throneMat);
+                    GameObject meetingChair = IndoorFurnitureCatalog.CreateChair(1.0f, throneMat);
                     meetingChair.name = $"MeetingChair_{side}_{pos}";
                     meetingChair.transform.SetParent(room.transform);
                     meetingChair.transform.localPosition = new Vector3(side * chairOffset, 0, meetingZ + pos * 1.2f);
@@ -207,19 +207,19 @@ namespace ProjectName.Systems
             if (extraFurniture)
             {
                 // 옷장(선반형) — 전면벽 왼쪽
-                GameObject wardrobe = IndoorFurniturePlacer.CreateShelf(1.4f, 2.2f, 0.5f, officeMat, 2);
+                GameObject wardrobe = IndoorFurnitureCatalog.CreateShelf(1.4f, 2.2f, 0.5f, officeMat, 2);
                 wardrobe.name = "Wardrobe";
                 wardrobe.transform.SetParent(room.transform);
                 wardrobe.transform.localPosition = new Vector3(-3.5f, 0, -roomDepth * 0.5f + 0.6f);
 
                 // 무기 랙(선반형) — 전면벽 오른쪽
-                GameObject weaponRack = IndoorFurniturePlacer.CreateShelf(1.6f, 1.8f, 0.5f, armoryMat, 2);
+                GameObject weaponRack = IndoorFurnitureCatalog.CreateShelf(1.6f, 1.8f, 0.5f, armoryMat, 2);
                 weaponRack.name = "WeaponRack";
                 weaponRack.transform.SetParent(room.transform);
                 weaponRack.transform.localPosition = new Vector3(4.5f, 0, -roomDepth * 0.5f + 0.6f);
 
                 // 소형 탁자(카운터형) — 왼쪽 벽 공백(측벽 문과 기둥 사이)
-                GameObject sideTable = IndoorFurniturePlacer.CreateCounter(1.2f, 1.0f, 0.8f, throneMat);
+                GameObject sideTable = IndoorFurnitureCatalog.CreateCounter(1.2f, 1.0f, 0.8f, throneMat);
                 sideTable.name = "SideTable";
                 sideTable.transform.SetParent(room.transform);
                 sideTable.transform.localPosition = new Vector3(-roomWidth * 0.5f + 1.0f, 0, 0.5f);

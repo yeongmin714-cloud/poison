@@ -129,71 +129,31 @@ namespace ProjectName.Systems
 
         private static void CreateCounter(GameObject room, float width, float depth)
         {
-            float counterW = 2.5f;
-            float counterH = 1.0f;
-            float counterD = 0.6f;
-
-            var counter = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var counter = IndoorFurnitureCatalog.CreateCounter(1.5f, 1.0f, 0.4f, null);
             counter.name = "Counter";
             counter.transform.SetParent(room.transform);
-            counter.transform.localPosition = new Vector3(0, counterH / 2f, depth * 0.4f);
-            counter.transform.localScale = new Vector3(counterW, counterH, counterD);
-
-            var renderer = counter.GetComponent<MeshRenderer>();
-            var mat = MaterialHelper.CreateLitMaterial(new Color(0.40f, 0.25f, 0.10f), "TavernCounterMat");
-            if (mat != null)
-                renderer.material = mat;
-
-            // 카운터 위 작은 선반
-            var shelf = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            shelf.name = "CounterShelf";
-            shelf.transform.SetParent(room.transform);
-            shelf.transform.localPosition = new Vector3(0, counterH + 0.3f, depth * 0.42f);
-            shelf.transform.localScale = new Vector3(counterW * 0.8f, 0.1f, counterD * 0.5f);
-
-            var shelfRenderer = shelf.GetComponent<MeshRenderer>();
-            var shelfMat = MaterialHelper.CreateLitMaterial(new Color(0.50f, 0.30f, 0.10f), "TavernShelfMat");
-            if (shelfMat != null)
-                shelfRenderer.material = shelfMat;
+            counter.transform.localPosition = new Vector3(0, 0.5f, depth * 0.4f);
         }
 
         private static void CreateTable(GameObject room, float offsetX, float offsetZ, int index)
         {
-            float tableW = 0.8f;
-            float tableH = 0.7f;
-            float tableD = 0.8f;
-
-            var table = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var table = IndoorFurnitureCatalog.CreateTable(1.0f, 1.0f, 0.8f, null);
             table.name = $"Table_{index}";
             table.transform.SetParent(room.transform);
-            table.transform.localPosition = new Vector3(offsetX, tableH / 2f, offsetZ);
-            table.transform.localScale = new Vector3(tableW, tableH, tableD);
-
-            var renderer = table.GetComponent<MeshRenderer>();
-            var mat = MaterialHelper.CreateLitMaterial(new Color(0.45f, 0.28f, 0.12f), $"TavernTableMat_{index}");
-            if (mat != null)
-                renderer.material = mat;
+            table.transform.localPosition = new Vector3(offsetX, 0f, offsetZ);
         }
 
         private static void CreateChair(GameObject room, float centerX, float centerZ, float angle, int index)
         {
-            float chairSize = 0.35f;
-
             float rad = angle * Mathf.Deg2Rad;
             float cx = centerX + Mathf.Cos(rad) * 0.7f;
             float cz = centerZ + Mathf.Sin(rad) * 0.7f;
 
-            var chair = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var chair = IndoorFurnitureCatalog.CreateChair(0.5f, null);
             chair.name = $"Chair_{index}";
             chair.transform.SetParent(room.transform);
-            chair.transform.localPosition = new Vector3(cx, chairSize / 2f, cz);
-            chair.transform.localScale = new Vector3(chairSize, chairSize, chairSize);
+            chair.transform.localPosition = new Vector3(cx, 0f, cz);
             chair.transform.localRotation = Quaternion.Euler(0, angle, 0);
-
-            var renderer = chair.GetComponent<MeshRenderer>();
-            var mat = MaterialHelper.CreateLitMaterial(new Color(0.40f, 0.22f, 0.08f), $"TavernChairMat_{index}");
-            if (mat != null)
-                renderer.material = mat;
         }
 
         private static void CreateStage(GameObject room, float width, float depth)

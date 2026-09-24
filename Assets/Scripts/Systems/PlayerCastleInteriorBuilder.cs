@@ -191,14 +191,14 @@ namespace ProjectName.Systems
             // ===================================================================
             // 1. 지휘 책상 + 관리용 책상/문서 (왕좌 대체 — 뒷벽 중앙, +z 방향)
             // ===================================================================
-            GameObject commandDesk = IndoorFurniturePlacer.CreateTable(3.2f, 1.2f, 1.1f, deskMat);
+            GameObject commandDesk = IndoorFurnitureCatalog.CreateTable(3.2f, 1.2f, 1.1f, deskMat);
             commandDesk.name = "CommandDesk";
             commandDesk.transform.SetParent(room.transform);
             commandDesk.transform.localPosition = new Vector3(commandZX, 0f, roomDepth * 0.5f - 1.8f);
             AddNameplate(commandDesk, "🪑 지휘 책상");
 
             // 지휘관 의자 (책상 뒤에서 방 중앙을 향함)
-            GameObject commandChair = IndoorFurniturePlacer.CreateChair(1.1f, deskMat);
+            GameObject commandChair = IndoorFurnitureCatalog.CreateChair(1.1f, deskMat);
             commandChair.name = "CommandChair";
             commandChair.transform.SetParent(room.transform);
             commandChair.transform.localPosition = new Vector3(commandZX, 0f, roomDepth * 0.5f - 2.9f);
@@ -212,7 +212,7 @@ namespace ProjectName.Systems
                 new Vector3(commandZX + 0.9f, 1.17f, roomDepth * 0.5f - 1.6f), standMat);
 
             // 관리용 사이드 책상 (집무실 보조) + 문서 더미 — 좌우 대칭(mx) 적용
-            GameObject adminDesk = IndoorFurniturePlacer.CreateTable(1.8f, 0.9f, 1.0f, deskMat);
+            GameObject adminDesk = IndoorFurnitureCatalog.CreateTable(1.8f, 0.9f, 1.0f, deskMat);
             adminDesk.name = "AdminDesk";
             adminDesk.transform.SetParent(room.transform);
             adminDesk.transform.localPosition = new Vector3(mx * 3.2f, 0f, roomDepth * 0.5f - 1.6f);
@@ -224,7 +224,7 @@ namespace ProjectName.Systems
                 new Vector3(mx * 3.5f, 1.04f, roomDepth * 0.5f - 1.7f), paperMat);
 
             // 중앙 작전 회의 테이블 + 의자 2개
-            GameObject planningTable = IndoorFurniturePlacer.CreateTable(3.0f, 1.6f, 1.0f, deskMat);
+            GameObject planningTable = IndoorFurnitureCatalog.CreateTable(3.0f, 1.6f, 1.0f, deskMat);
             planningTable.name = "PlanningTable";
             planningTable.transform.SetParent(room.transform);
             planningTable.transform.localPosition = new Vector3(0f, 0f, meetingZ);
@@ -234,7 +234,7 @@ namespace ProjectName.Systems
 
             for (int side = -1; side <= 1; side += 2)
             {
-                GameObject planChair = IndoorFurniturePlacer.CreateChair(1.0f, deskMat);
+                GameObject planChair = IndoorFurnitureCatalog.CreateChair(1.0f, deskMat);
                 planChair.name = $"PlanningChair_{side}";
                 planChair.transform.SetParent(room.transform);
                 planChair.transform.localPosition = new Vector3(side * 1.0f, 0f, meetingZ);
@@ -249,7 +249,7 @@ namespace ProjectName.Systems
             //     석재 기둥열(6번, z=-5..5)과는 z 간격으로 분리 — 8개 variant 전부 무충돌.
             //     CreateBed가 root에 Bed 컴포넌트를 부착하므로 E키 상호작용 즉시 동작.
             // ===================================================================
-            GameObject lordBed = IndoorFurniturePlacer.CreateBed(1.2f, 2.0f, bedMat);
+            GameObject lordBed = IndoorFurnitureCatalog.CreateBed(1.2f, 2.0f, bedMat);
             lordBed.name = "LordBed";
             lordBed.transform.SetParent(room.transform);
             lordBed.transform.localPosition = new Vector3(mx * -3f, 0f, -roomDepth * 0.5f + 1.2f);
@@ -286,13 +286,13 @@ namespace ProjectName.Systems
             // ===================================================================
             // 3. 저장고 (왼쪽 벽 — 선반 + 상자)
             // ===================================================================
-            GameObject storageShelf1 = IndoorFurniturePlacer.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
+            GameObject storageShelf1 = IndoorFurnitureCatalog.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
             storageShelf1.name = "StorageShelf_1";
             storageShelf1.transform.SetParent(room.transform);
             storageShelf1.transform.localPosition = new Vector3(mx * (-roomWidth * 0.5f + 0.4f), 0f, 2.0f);
             storageShelf1.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
-            GameObject storageShelf2 = IndoorFurniturePlacer.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
+            GameObject storageShelf2 = IndoorFurnitureCatalog.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
             storageShelf2.name = "StorageShelf_2";
             storageShelf2.transform.SetParent(room.transform);
             storageShelf2.transform.localPosition = new Vector3(mx * (-roomWidth * 0.5f + 0.4f), 0f, -1.5f);
@@ -372,7 +372,7 @@ namespace ProjectName.Systems
             // ===================================================================
             // 5. 작업대 (앞벽 왼쪽 — 제작/수리 공간)
             // ===================================================================
-            GameObject workbench = IndoorFurniturePlacer.CreateCounter(2.6f, 1.0f, 1.0f, workbenchMat);
+            GameObject workbench = IndoorFurnitureCatalog.CreateCounter(2.6f, 1.0f, 1.0f, workbenchMat);
             workbench.name = "Workbench";
             workbench.transform.SetParent(room.transform);
             workbench.transform.localPosition = new Vector3(mx * -5f, 0f, -roomDepth * 0.5f + 0.6f);
@@ -409,7 +409,7 @@ namespace ProjectName.Systems
             //     AttachUiComponent가 AddComponent 후 경고 1회를 남기고 정상 진행
             //     (컴포넌트는 부착됨 — 기본 직렬화 값으로 E키 상호작용 동작).
             // ===================================================================
-            GameObject cookingTable = IndoorFurniturePlacer.CreateCounter(1.4f, 0.95f, 0.9f, cookingMat);
+            GameObject cookingTable = IndoorFurnitureCatalog.CreateCounter(1.4f, 0.95f, 0.9f, cookingMat);
             cookingTable.name = "CookingTable";
             cookingTable.transform.SetParent(room.transform);
             cookingTable.transform.localPosition = new Vector3(mx * 6.2f, 0f, -6.3f);
@@ -422,7 +422,7 @@ namespace ProjectName.Systems
             // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
             AttachUiComponent(cookingTable, CookingStationTypeName);
 
-            GameObject alchemyTable = IndoorFurniturePlacer.CreateTable(1.4f, 1.4f, 0.95f, alchemyMat);
+            GameObject alchemyTable = IndoorFurnitureCatalog.CreateTable(1.4f, 1.4f, 0.95f, alchemyMat);
             alchemyTable.name = "AlchemyTable";
             alchemyTable.transform.SetParent(room.transform);
             alchemyTable.transform.localPosition = new Vector3(mx * 6.2f, 0f, 5.0f);
@@ -535,7 +535,7 @@ namespace ProjectName.Systems
                 CreateCylinderPrimitive(room, "PottedPlant_BackR", 0.45f, 0.9f,
                     new Vector3(-mx * 7.5f, 0.45f, roomDepth * 0.5f - 0.6f), crateMat);
                 // 장식 탁자 (전면벽 중앙 공백 — 작업대 반대편)
-                GameObject decorTable = IndoorFurniturePlacer.CreateCounter(1.6f, 0.9f, 0.7f, deskMat);
+                GameObject decorTable = IndoorFurnitureCatalog.CreateCounter(1.6f, 0.9f, 0.7f, deskMat);
                 decorTable.name = "DecorativeTable";
                 decorTable.transform.SetParent(room.transform);
                 decorTable.transform.localPosition = new Vector3(mx * 5f, 0f, -roomDepth * 0.5f + 0.6f);

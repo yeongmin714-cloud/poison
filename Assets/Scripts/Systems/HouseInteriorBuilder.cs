@@ -78,31 +78,31 @@ namespace ProjectName.Systems
             matTracker.TrackTexture(ceilingTex);
 
             // ===== 침대 =====
-            GameObject bed = IndoorFurniturePlacer.CreateBed(1.8f, 2.0f, fabricMat);
+            GameObject bed = IndoorFurnitureCatalog.CreateBed(1.8f, 2.0f, fabricMat);
             bed.transform.SetParent(room.transform);
             bed.transform.localPosition = new Vector3(roomWidth * 0.5f - 2.0f, 0, 0);
 
             // ===== 테이블 + 의자 2개 =====
-            GameObject table = IndoorFurniturePlacer.CreateTable(1.0f, 0.8f, 0.8f, woodMat);
+            GameObject table = IndoorFurnitureCatalog.CreateTable(1.0f, 0.8f, 0.8f, woodMat);
             table.transform.SetParent(room.transform);
             table.transform.localPosition = new Vector3(-1.0f, 0, 0);
 
             // 의자 1 (테이블 왼쪽)
-            GameObject chair1 = IndoorFurniturePlacer.CreateChair(0.8f, woodMat);
+            GameObject chair1 = IndoorFurnitureCatalog.CreateChair(0.8f, woodMat);
             chair1.name = "Chair_1";
             chair1.transform.SetParent(room.transform);
             chair1.transform.localPosition = new Vector3(-2.0f, 0, 0.8f);
             chair1.transform.localRotation = Quaternion.Euler(0, 90, 0);
 
             // 의자 2 (테이블 오른쪽)
-            GameObject chair2 = IndoorFurniturePlacer.CreateChair(0.8f, woodMat);
+            GameObject chair2 = IndoorFurnitureCatalog.CreateChair(0.8f, woodMat);
             chair2.name = "Chair_2";
             chair2.transform.SetParent(room.transform);
             chair2.transform.localPosition = new Vector3(0f, 0, 0.8f);
             chair2.transform.localRotation = Quaternion.Euler(0, -90, 0);
 
             // ===== 난로 (CreateTable + 주황 Point Light) =====
-            GameObject stove = IndoorFurniturePlacer.CreateTable(1.2f, 0.8f, 0.8f, woodMat);
+            GameObject stove = IndoorFurnitureCatalog.CreateTable(1.2f, 0.8f, 0.8f, woodMat);
             stove.name = "Stove";
             stove.transform.SetParent(room.transform);
             stove.transform.localPosition = new Vector3(-roomWidth * 0.5f + 2.0f, 0, -roomDepth * 0.5f + 1.0f);

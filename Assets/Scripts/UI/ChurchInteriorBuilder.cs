@@ -135,7 +135,7 @@ namespace ProjectName.UI
 
         private static void CreateAltar(GameObject room, Shader shader, Material altarMat)
         {
-            GameObject altarTable = IndoorFurniturePlacer.CreateTable(ALTAR_TABLE_WIDTH, ALTAR_TABLE_HEIGHT, ALTAR_TABLE_DEPTH, altarMat);
+            GameObject altarTable = IndoorFurnitureCatalog.CreateTable(ALTAR_TABLE_WIDTH, ALTAR_TABLE_HEIGHT, ALTAR_TABLE_DEPTH, altarMat);
             if (altarTable == null) return;
             altarTable.transform.SetParent(room.transform);
             altarTable.transform.localPosition = new Vector3(0, 0, ROOM_DEPTH * 0.5f - ALTAR_Z_OFFSET);
@@ -201,7 +201,7 @@ namespace ProjectName.UI
                 float zPos = ROOM_DEPTH * 0.5f - BENCH_Z_OFFSET - i * BENCH_SPACING;
 
                 // 왼쪽 벤치
-                GameObject benchLeft = IndoorFurniturePlacer.CreateChair(1.0f, benchMat);
+                GameObject benchLeft = IndoorFurnitureCatalog.CreateChair(1.0f, benchMat);
                 if (benchLeft == null) continue;
                 benchLeft.name = $"Bench_Left_{i}";
                 benchLeft.transform.SetParent(room.transform);
@@ -209,7 +209,7 @@ namespace ProjectName.UI
                 benchLeft.transform.localRotation = Quaternion.identity;
 
                 // 오른쪽 벤치
-                GameObject benchRight = IndoorFurniturePlacer.CreateChair(1.0f, benchMat);
+                GameObject benchRight = IndoorFurnitureCatalog.CreateChair(1.0f, benchMat);
                 if (benchRight == null) continue;
                 benchRight.name = $"Bench_Right_{i}";
                 benchRight.transform.SetParent(room.transform);

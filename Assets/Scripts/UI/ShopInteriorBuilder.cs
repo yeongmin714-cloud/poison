@@ -69,7 +69,7 @@ namespace ProjectName.UI
             float counterWidth = 2f;
             float counterHeight = 1.2f;
             float counterDepth = 0.8f;
-            GameObject counter = ProjectName.Systems.IndoorFurniturePlacer.CreateCounter(counterWidth, counterHeight, counterDepth, furnitureMat);
+            GameObject counter = ProjectName.Systems.IndoorFurnitureCatalog.CreateCounter(counterWidth, counterHeight, counterDepth, furnitureMat);
             if (counter != null)
             {
                 counter.transform.SetParent(room.transform);
@@ -82,7 +82,7 @@ namespace ProjectName.UI
             float shelfDepth = 0.4f;
 
             // 왼쪽 선반
-            GameObject shelfLeft = ProjectName.Systems.IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
+            GameObject shelfLeft = ProjectName.Systems.IndoorFurnitureCatalog.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
             if (shelfLeft != null)
             {
                 shelfLeft.transform.SetParent(room.transform);
@@ -90,7 +90,7 @@ namespace ProjectName.UI
             }
 
             // 오른쪽 선반
-            GameObject shelfRight = ProjectName.Systems.IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
+            GameObject shelfRight = ProjectName.Systems.IndoorFurnitureCatalog.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 3);
             if (shelfRight != null)
             {
                 shelfRight.transform.SetParent(room.transform);
@@ -100,7 +100,7 @@ namespace ProjectName.UI
             // 카운터 앞에 작은 테이블 (진열용)
             Material displayMat = new Material(shader) { name = "Shop_DisplayMat" };
             displayMat.color = new Color(0.55f, 0.40f, 0.25f);
-            GameObject displayTable = ProjectName.Systems.IndoorFurniturePlacer.CreateTable(1.2f, 0.6f, 0.9f, displayMat);
+            GameObject displayTable = ProjectName.Systems.IndoorFurnitureCatalog.CreateTable(1.2f, 0.6f, 0.9f, displayMat);
             if (displayTable != null)
             {
                 displayTable.transform.SetParent(room.transform);
@@ -120,7 +120,7 @@ namespace ProjectName.UI
             if (officeFloorRenderer != null) officeFloorRenderer.sharedMaterial = officeMat;
 
             // 사무실 책상
-            GameObject officeDesk = ProjectName.Systems.IndoorFurniturePlacer.CreateTable(1.5f, 0.8f, 0.7f, officeMat);
+            GameObject officeDesk = ProjectName.Systems.IndoorFurnitureCatalog.CreateTable(1.5f, 0.8f, 0.7f, officeMat);
             officeDesk.name = "OfficeDesk";
             officeDesk.transform.SetParent(room.transform);
             officeDesk.transform.localPosition = new Vector3(0, 0, -roomDepth * 0.5f + 1.2f);

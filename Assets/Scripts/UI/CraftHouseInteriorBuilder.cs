@@ -75,7 +75,7 @@ namespace ProjectName.UI
 
             // ===== 제작대 2개 (CreateTable 변형) =====
             // 첫 번째 제작대 (중앙 근처)
-            GameObject workbench1 = IndoorFurniturePlacer.CreateTable(2.0f, 1.0f, 1.2f, furnitureMat);
+            GameObject workbench1 = IndoorFurnitureCatalog.CreateTable(2.0f, 1.0f, 1.2f, furnitureMat);
             if (workbench1 != null)
             {
                 workbench1.transform.SetParent(room.transform);
@@ -83,7 +83,7 @@ namespace ProjectName.UI
             }
 
             // 두 번째 제작대
-            GameObject workbench2 = IndoorFurniturePlacer.CreateTable(2.0f, 1.0f, 1.2f, furnitureMat);
+            GameObject workbench2 = IndoorFurnitureCatalog.CreateTable(2.0f, 1.0f, 1.2f, furnitureMat);
             if (workbench2 != null)
             {
                 workbench2.transform.SetParent(room.transform);
@@ -91,7 +91,7 @@ namespace ProjectName.UI
             }
 
             // ===== 화덕 (CreateTable + 빨간 Point Light) =====
-            GameObject forge = IndoorFurniturePlacer.CreateTable(1.5f, 1.0f, 1.5f, forgeMat);
+            GameObject forge = IndoorFurnitureCatalog.CreateTable(1.5f, 1.0f, 1.5f, forgeMat);
             if (forge != null)
             {
                 forge.transform.SetParent(room.transform);
@@ -109,14 +109,14 @@ namespace ProjectName.UI
             float shelfHeight = 3.0f;
             float shelfDepth = 0.5f;
 
-            GameObject shelfLeft = IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 4);
+            GameObject shelfLeft = IndoorFurnitureCatalog.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 4);
             if (shelfLeft != null)
             {
                 shelfLeft.transform.SetParent(room.transform);
                 shelfLeft.transform.localPosition = new Vector3(-roomWidth * 0.5f + shelfDepth * 0.5f + 0.3f, 0, -2.0f);
             }
 
-            GameObject shelfRight = IndoorFurniturePlacer.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 4);
+            GameObject shelfRight = IndoorFurnitureCatalog.CreateShelf(shelfWidth, shelfHeight, shelfDepth, furnitureMat, 4);
             if (shelfRight != null)
             {
                 shelfRight.transform.SetParent(room.transform);
@@ -124,7 +124,7 @@ namespace ProjectName.UI
             }
 
             // ===== Phase 2: 요리 카운터 (전면 우측, 제작대2/출구와 간격 확보) =====
-            GameObject cookingCounter = IndoorFurniturePlacer.CreateCounter(2.0f, 1.1f, 0.9f, cookingMat);
+            GameObject cookingCounter = IndoorFurnitureCatalog.CreateCounter(2.0f, 1.1f, 0.9f, cookingMat);
             if (cookingCounter != null)
             {
                 cookingCounter.name = "CookingStation";
@@ -135,7 +135,7 @@ namespace ProjectName.UI
             }
 
             // ===== Phase 2: 연금술 테이블 (후면 좌측, 화덕/좌측 선반과 간격 확보) =====
-            GameObject alchemyTable = IndoorFurniturePlacer.CreateTable(1.2f, 1.2f, 1.0f, alchemyMat);
+            GameObject alchemyTable = IndoorFurnitureCatalog.CreateTable(1.2f, 1.2f, 1.0f, alchemyMat);
             if (alchemyTable != null)
             {
                 alchemyTable.name = "AlchemyStation";
@@ -144,7 +144,7 @@ namespace ProjectName.UI
             }
 
             // ===== Phase 2: 창고 선반 (좌측 벽 전면, 제작대1/재료선반과 간격 확보) =====
-            GameObject warehouseShelf = IndoorFurniturePlacer.CreateShelf(2.0f, 3.0f, 0.5f, furnitureMat, 4);
+            GameObject warehouseShelf = IndoorFurnitureCatalog.CreateShelf(2.0f, 3.0f, 0.5f, furnitureMat, 4);
             if (warehouseShelf != null)
             {
                 warehouseShelf.name = "CraftWarehouse";
