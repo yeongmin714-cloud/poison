@@ -6,7 +6,7 @@ using ProjectName.Systems;
 namespace ProjectName.Tests.EditMode
 {
     /// <summary>
-    /// 요리 카탈로그(RecipeCatalog, 09-24 신규) 데이터 무결성 검증 — 760종.
+    /// 요리 카탈로그(RecipeCatalog, 09-24 신규) 데이터 무결성 검증 — 2024종.
     ///   - 총계/전수 조회, id·이름·조합키 유일성, FindRecipe 정렬집합(순서 무관) 계약,
     ///     한국어 카테고리 매핑 23종, 재료명 스모크 조회, 몬스터 ItemData 팩토리.
     /// EditMode 순수 데이터 테스트 — 씬/컴포넌트 불필요 (RecipeCatalog는 static 전용).
@@ -34,12 +34,12 @@ namespace ProjectName.Tests.EditMode
         // ─────────────── a. 총계 ───────────────
 
         [Test]
-        public void Catalog_TotalCount_Is760()
+        public void Catalog_TotalCount_Is2024()
         {
-            Assert.AreEqual(760, RecipeCatalog.TotalCount, "TotalCount 상수");
+            Assert.AreEqual(2024, RecipeCatalog.TotalCount, "TotalCount 상수");
             var all = RecipeCatalog.All();
-            Assert.AreEqual(760, all.Count, "All() 개수");
-            Assert.AreEqual(760, RecipeCatalog.Recipes.Length, "원본 테이블 개수");
+            Assert.AreEqual(2024, all.Count, "All() 개수");
+            Assert.AreEqual(2024, RecipeCatalog.Recipes.Length, "원본 테이블 개수");
         }
 
         // ─────────────── b. id / 이름 / 조합키 유일성 ───────────────
@@ -56,8 +56,8 @@ namespace ProjectName.Tests.EditMode
                 Assert.IsTrue(ids.Add(r.id), $"id 중복: {r.id}");
                 Assert.IsTrue(names.Add(r.name), $"요리명 중복: {r.name}");
             }
-            Assert.AreEqual(760, ids.Count, "유일 id 개수");
-            Assert.AreEqual(760, names.Count, "유일 요리명 개수");
+            Assert.AreEqual(2024, ids.Count, "유일 id 개수");
+            Assert.AreEqual(2024, names.Count, "유일 요리명 개수");
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace ProjectName.Tests.EditMode
                 }
                 Assert.IsTrue(keys.Add(KeyOfCats(r)), $"조합키 중복(인덱스 충돌): {r.id} [{r.name}]");
             }
-            Assert.AreEqual(760, keys.Count, "유일 조합키 개수");
+            Assert.AreEqual(2024, keys.Count, "유일 조합키 개수");
         }
 
         // ─────────────── c/d. FindRecipe 순서 무관 전수 조회 ───────────────
