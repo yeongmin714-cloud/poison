@@ -218,7 +218,22 @@ namespace ProjectName.UI.Toolkit
                 var row = new VisualElement();
                 row.style.flexDirection = FlexDirection.Row;
                 row.style.height = EntryHeight;
+                row.style.alignItems = Align.Center;
                 row.name = "LogRow_";
+
+                // [F5-3] 타입 컬러 마커 — GitHub-dark 형판의 row 아이콘 슬롯(빈 아이콘 대신 컬러 점)
+                var dot = new Label();
+                dot.style.width = 8f;
+                dot.style.height = 8f;
+                dot.style.marginLeft = 2f;
+                dot.style.marginRight = 6f;
+                dot.style.flexShrink = 0f;
+                dot.style.borderTopLeftRadius = 4f;
+                dot.style.borderTopRightRadius = 4f;
+                dot.style.borderBottomLeftRadius = 4f;
+                dot.style.borderBottomRightRadius = 4f;
+                dot.style.backgroundColor = new StyleColor(ColorForType(entry.type));
+                row.Add(dot);
 
                 // [MM:SS] 타임스탬프
                 int minutes = Mathf.FloorToInt(entry.timestamp / 60f);
