@@ -142,6 +142,18 @@ namespace ProjectName.Systems
             if (npc.GetComponent<NPCAmbientDialogue>() == null)
                 npc.AddComponent<NPCAmbientDialogue>();
 
+            // ── 애니메이션: NPC GLB는 병사/플레이어와 동일한 humanoid metarig 리그라
+            //    Animator + Soldier AnimatorController를 그대로 배정 → 컨트롤러 기본 상태(Idle) 자동 재생.
+            //    HumanoidClipDriver는 PlayerMovement/PlayerCombat에 의존하므로 마을 주민엔 붙이지 않는다(무동작 방지).
+            var anim = npc.GetComponent<Animator>();
+            if (anim == null) anim = npc.AddComponent<Animator>();
+            anim.applyRootMotion = false;
+            var soldierCtrl = Resources.Load<RuntimeAnimatorController>("Animation/Controllers/SoldierShield_AC");
+            if (soldierCtrl != null)
+                anim.runtimeAnimatorController = soldierCtrl;
+            else
+                Debug.LogWarning($"[VillageNpcSpawner] SoldierShield_AC 컨트롤러 로드 실패 — NPC 애니메이션 없음 ({npcName})");
+
             // 동적 콜라이더(접근 E키 판정/선택용) — 자식/자신에 없으면 추가
             if (npc.GetComponent<Collider>() == null &&
                 npc.GetComponentInChildren<Collider>() == null)
