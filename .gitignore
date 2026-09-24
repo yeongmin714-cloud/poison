@@ -58,3 +58,6 @@ run_batch_phase*.bat
 
 # [O9] LLM API 키 — git 제외
 llm_config.json
+
+# 대용량 GLB 에셋 — 에디터 AssetDatabase 직접 로드(빌드 불포함), 로컬 유지
+새로운 glb/
