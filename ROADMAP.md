@@ -3395,7 +3395,7 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | GA | crops-fish 팩: crop 100종 HerbPickup 채집노드 + fish 50종 낚시드롭·수변장식 | ✅ 커밋 973ca298, 배치컴파일 error CS 0 |
 | GA-C | 과일·작물 ItemData 12종 + 요리 38→50종 + 과일=나무채집/작물=농경 분리 | ✅ 커밋 7bec5da0, error CS 0 |
 | GA-C2 | 사용자 GLB 한글 리네임 반영: crop 100종 전명(영문8+한글92) CropCatalog 신규·채집노드→_cropKey 개별품종 / fish 50→333종(한글39+번호294, catfish↔메기 중복 제거) / 요리 50→2648종(재료 6약초×[100작물+333생선]) + 요리UI 주재료에 Food·fish_glb_ 노출 | ✅ 커밋 fb2392da, 컴파일 0 · EditMode 288/288 · 요리 1~2648 연속·중복명 0 |
-| GA-C3 | 카테고리 기반 요리 재설계: 약초는 물약 전용으로 분리, 요리=작물(10카테고리)×생선(7)×몬스터(6) 2~3재료 조합 **760종** RecipeCatalog.cs(23 카테고리 enum, FindRecipe 2/3-arg, MonsterMeatItem) + CookingWindowUTK 3슬롯(재료3+화살표+결과+성공확률+레시피목록 탭+COOK) + 몬스터 식재료 ItemData | ✅ 컴파일 0 · EditMode 301/301 · RecipeCatalogTests 13/13 |
+| GA-C3 | 카테고리 기반 요리 재설계: 약초는 물약 전용으로 분리, 요리=작물(10카테고리)×생선(7)×몬스터(6) 2~3재료 조합 **760종** RecipeCatalog.cs(23 카테고리 enum, FindRecipe 2/3-arg, MonsterMeatItem) + CookingWindowUTK 3슬롯(재료3+화살표+결과+성공확률+레시피목록 탭+COOK) + 몬스터 식재료 ItemData | ✅ 컴파일 0 · EditMode 301/301 · RecipeCatalogTests 13/13 · **09-24 2024종 전수확장(+1264)** |
 | D | 연못가·수변 재배치 + 크기 Play 스샷 수렴 | ⏳ 대기 |
 | GA-T | 지형 다양화: 높낮이 강화(Outcrop/Ridge/사구) + 식생 색감(꽃밭) + 호수·흙길 리파인 | ✅ 커밋 9a0c03da, error CS 0 |
 | GA-T2 | 영지·마을 완전 평탄화 + 산/바위 콜라이더 배치 재활성 | ✅ 커밋 04ff4789, error CS 0 |
