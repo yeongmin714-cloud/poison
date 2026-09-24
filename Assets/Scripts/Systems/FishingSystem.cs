@@ -246,7 +246,18 @@ namespace ProjectName.Systems
                 if (fish != null)
                 {
                     PlayerInventory.Instance.AddItem(fish, 1);
-                    ShowPopup($"🐟 {fish.displayName}을(를) 낚았습니다!");
+                    ShowPopup($"{fish.displayName}(을)를 낚았습니다!");
+                    // [F3] 공용 결과 팝업 — Figma fishing-result-ui 템플릿
+                    HarvestResultBridge.Publish(
+                        HarvestResultBridge.HarvestKind.Fishing,
+                        "대어 획득 성공!",
+                        $"{fish.displayName}(을)를 낚았습니다!",
+                        fish.description ?? "물고기입니다.",
+                        fish.rarity,
+                        1,
+                        "인벤토리에 빈 공간이 충분한지 확인하십시오. 보관 시 무게가 적재량에 추가됩니다.",
+                        fish,
+                        immediate: true);
                 }
             }
             else

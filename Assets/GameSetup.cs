@@ -98,6 +98,11 @@ public class GameSetup : MonoBehaviour
         EnsureFishingSystem();
         GiveStarterFishingRod();
 
+        // ── F3 결과 팝업: 낚시/채집/광질 공용 결과 UI — HarvestResultBridge publish를 폴링 소비 ──
+        // (Systems→UI 역참조 없이 UI 어셈블리에서 참조 가능하므로 직접 Ensure)
+        try { ProjectName.UI.Toolkit.HarvestResultUTK.Ensure(); }
+        catch (System.Exception e) { Debug.LogError("[GameSetup] ⚠️ HarvestResultUTK Ensure 실패 (게임 계속): " + e.Message); }
+
         // ── GUARD SALARY (Phase E-2): 일일 유지비·고용 틱 ──────────────
         // OnDayStart 구독: 병사 급료 청구 + AI 영주 재고용 + 고용비 인상 요구.
         EnsureGuardSalaryManager();

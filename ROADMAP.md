@@ -3377,6 +3377,8 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | 2 | 인벤토리/크래프트/상점 3열 창 GitHub-dark | ✅ 커밋 672faffe |
 | 3 | 병사관리/퀘스트/전투로그/수집결과/장비/상태창 | ✅ 커밋 0d228b1b |
 | 4 | 상호작용 액션 그리드(SoldierInteract 2x2) + 월드맵 GitHub-dark | ✅ 커밋 0a753921, d1c7cb1e |
+| UI-W-F2 | 상점 3열화(Store\|Detail\|Sell, Figma game-shop-ui) 금융 로직 100% 보존 + 밀매 별도 SmuggleWindowUTK 분리(적 영지만 Open, 상점은 Buy/Sell 2탭) | ✅ 커밋 fa678a0a, eb642df4, error CS 0 |
+| F3 | 낚시/채집/광질 공용 결과 팝업 — HarvestResultBridge(throttle: 병사작업 스팸방지) + HarvestResultUTK(Figma result-ui 템플릿) + 3시스템 publish 훅 + GameSetup 배선 | ✅ 커밋 F3, error CS 0 |
 
 - 배경 제외 원칙(월드맵만 배경 포함), 게임 해상도 기준 스케일, UTK 고품질(베이크 PNG/셰이더).
 

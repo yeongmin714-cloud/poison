@@ -1,6 +1,30 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-24 (UI-W: 상점 3열화 + 밀매 별도 창 분리 — 컴파일 0)
+> **최종 갱신:** 2026-09-24 (UI-W / F3: 상점 3열+밀매 창 분리 + 낚시·채집·광질 공용 결과 팝업 — 컴파일 0)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-24 ✅ F3 — 낚시/채집/광질 공용 결과 팝업 — Figma result-ui 템플릿)
+
+> **입력**: "진행" (F3 결과 UI 통일 — fishing/gathering/mining-result-ui → HUDHeader+ResultPanel+SystemTip 공용 템플릿 통합).
+> **기준**: Figma `72:4/72:80/72:143` 실측 — ResultPanel(#161B22 480×~720): Decal 4개 + PanelHeader(타이틀 + SUCCESS 배지) + NotificationTitle(ResultVerb 액센트 + 아이템명 골드) + ItemImageSection(상단 등급 스트립 + "LEGENDARY CLASS" + 이미지, #1C2128) + ItemSpecs(3칸 SpecBox #21262D) + DescriptionSection(특징 헤더 액센트 + 본문) + ActionButtons(인벤놓기 액센트 / 버리기 화이트+데인저) + SystemTip(하단 info+문구 #8B949E).
+
+### 구현 (부모 직접 — 새 위젯 구축은 위임 타임아웃 패턴이라 직접)
+- **`Systems/HarvestResultBridge.cs` 신규** (static): `Publish(kind, verb, itemName, desc, rarity, count, tip, itemData, immediate)` → LatestToken++. **throttle**: `immediate=false`(병사 자동작업 채집/광질)면 마지막 표시로부터 `ThrottleSec(1.5s)` 안 재발행은 **데이터만 교체·토큰 불변**(팝업 스팸 방지 — 다중 병사 광질). 낚시=immediate:true(플레이어 직접 즉시 표시). Systems→UI 역참조 없이 UI가 16ms 폴링 소비.
+- **`UI/Toolkit/HarvestResultUTK.cs` 신규**: Figma result-ui를 GitHub-dark로 재현(좌 상단 HUDHeader 위치 라벨, ResultPanel, 하단 버튼/SystemTip). `Ensure()`에서 GameSetup이 배선 + 폴링 항상 구동(Show/Hide 무관 — 최초 publish 로스 방지, 스타트 시점 토큰 동기화). 새 결과 감지 → ApplyLatest(등급스트립·아이콘·판매가·수량·설명) → Show → 3초 자동 Close.
+- **시스템 publish 훅**: 낚시(`FishingSystem.TryCatch` 성공, 무간 즉시) · 채집(`GatheringSystem.TryGather`, 약초 hydration) · 광질(`GuardTaskSystem.PerformMine` — 기본 광물 + 보너스 희귀광물 각각).
+- **배선**: `GameSetup.Start`에서 `EnsureFishingSystem` 뒤 `HarvestResultUTK.Ensure()`(try-catch 격리).
+
+### 검증
+- 배치컴파일 **error CS = 0** (build_f3.txt "Exiting batchmode successfully now!").
+- EditMode: runEditorTests 정상 종료(결과 XML 미기록 환경 — 이번 변경은 런타임 UI/시스템 호출이라 컴파일 0이 주요 게이트).
+- 정적 QA(부모): 계층 단방향(UI→Systems) 유지 · immediate/throttle 분기 정확 · using/EconomyPricing(Core.Data)·EquipmentRarityData public API(GetRarityColor/DisplayName만 — GetEntry private) 정합.
+
+### Play 판정 대기
+- 물가 낚시 성공 → 우상단 500×620 결과 팝업 (FISHING RESULT + SUCCESS + 물고기 아이콘/등급/판매가/수량/특징) 3초 표시 후 자동 닫힘.
+- 병사 광질/채집 → 결과 팝업 뜨되 다중 병사 동시 작업 시 스팸 없이(1.5s throttle) 마지막 것만.
+- 채굴 보너스 희귀광물 → "보너스 희귀 광물!" 별도 결과 표시.
+- 회귀: 낚시 미니게임(바/핀/입질찌)·팝업 메시지·인벤 적립·ESC 취소 무영향.
 
 ---
 

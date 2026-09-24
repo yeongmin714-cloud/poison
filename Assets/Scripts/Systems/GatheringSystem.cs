@@ -111,6 +111,18 @@ namespace ProjectName.Systems
             // Gathered 플래그 설정(리스폰 맵 등록) + 리스폰 타이머 시작.
             system._respawnUntil[node] = Time.time + GatherRespawnSec;
 
+            // [F3] 공용 결과 팝업 — Figma gathering-result-ui 템플릿
+            var herb = PlayerInventory.Herb_Yakcho;
+            HarvestResultBridge.Publish(
+                HarvestResultBridge.HarvestKind.Gathering,
+                "약초 채집 성공!",
+                $"{herb.displayName}(을)를 채집했습니다!",
+                herb.description ?? "약초입니다.",
+                herb.rarity,
+                1,
+                "인벤토리에 빈 공간이 충분한지 확인하십시오. 보관 시 무게가 적재량에 추가됩니다.",
+                herb);
+
             Debug.Log($"{LogTag} 🌿 {node.name} 채집 성공 — 약초 x1 획득 (리스폰 {GatherRespawnSec:F0}s).");
             return true;
         }

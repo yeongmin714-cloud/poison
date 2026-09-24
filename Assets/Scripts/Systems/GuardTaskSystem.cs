@@ -384,9 +384,32 @@ namespace ProjectName.Systems
                 PlayerInventory.Instance.AddItem(item, yield);
             Debug.Log($"{LogTag} {guard.GuardName} ⛏️ 광질 완료 {yield}({node.name})");
 
+            // [F3] 공용 결과 팝업 — Figma mining-result-ui 템플릿 (병사 작업이라 throttle)
+            if (item != null)
+                HarvestResultBridge.Publish(
+                    HarvestResultBridge.HarvestKind.Mining,
+                    "원석 채굴 성공!",
+                    $"{item.displayName}(을)를 채굴했습니다!",
+                    item.description ?? "광석입니다.",
+                    item.rarity,
+                    yield,
+                    "인벤토리에 빈 공간이 충분한지 확인하십시오. 보관 시 무게가 적재량에 추가됩니다.",
+                    item);
+
             if (node.TryRollRareBonus(out var bonus, out int by))
                 if (bonus != null && PlayerInventory.Instance != null && PlayerInventory.Instance.AddItem(bonus, by))
+                {
                     Debug.Log($"{LogTag} {guard.GuardName} 💎 희귀 광물 {bonus.displayName} x{by}!");
+                    HarvestResultBridge.Publish(
+                        HarvestResultBridge.HarvestKind.Mining,
+                        "보너스 희귀 광물!",
+                        $"{bonus.displayName} x{by} 획득!",
+                        bonus.description ?? "희귀 광물입니다.",
+                        bonus.rarity,
+                        by,
+                        "보너스 드랍은 별도 슬롯에 적재됩니다.",
+                        bonus);
+                }
         }
 
         /// <summary>[Milestone E] 채널 경과 완료 여부.</summary>
