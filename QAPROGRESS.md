@@ -1,6 +1,31 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-24 (실내 가구 프리미티브 → GLB 가구 교체 — 컴파일 0)
+> **최종 갱신:** 2026-09-25 (공격 FX 프리미엄: 슬래쉬 아크 제거 + BOTW식 '참 무기 궤적' 3D 스윕 리본 AttackArcVFX / 몬스터 축불변 스윙 P-ANIM9 — 컴파일 Play 대기)
+
+---
+
+## 📌 세션 스냅샷 (2026-09-25 공격 FX 프리미엄 + 몬스터 애니메이션 수리)
+
+> **입력(1)**: "시금 공격에 슬래쉬 에셋이 붙어있는데 그걸 떼고 젤다식으로 바꿀꺼야 — 젤다 공격예시 영상 보고 동일하게, 피격이펙트는 동일하게". **입력(2)**: "VFX 그래프든 셰이더 그래프든 무조건 최고품질 액션으로 — Phase 길어져도 OK". **입력(3)**: 몬스터 애니메이션 round-4 어색 부위 수리.
+
+### 1) 몬스터 애니메이션 — 축불변 스윙 (P-ANIM9, commit 5a55b88b)
+- **근본원인**: 2족/4족 스윙이 전부 루트 lateral 축 `transform.right`으로만 회전 → 익명 리그(미노타우르스 등) 다리/팔 본축이 아래로 안 매달려 스윙 평면이 몸 안쪽/뒤로 비틀림("팔 안쪽 꼬임").
+- **수정**: `SwingLegChain`(4족)·`SwingBipedLeg`/`SwingBipedArm`(2족) 스윙 축을 `cross(다리/팔 본축, transform.forward)`로 산출, 부호는 `transform.right`와 같은 쪽으로 정규화(양의 lateral 관례 유지). **다리가 수직 매달린 채면 기존과 완전 동일(회귀 없음).**
+- 게이트: round-4 에디터 로그 덮임 → 로그·영상으로 악어/그리폰/만티코어 매퍼(공유 매퍼 22종)는 추측 수정 안 함 — 다음 Play의 `4족 배치/토폴로지 매핑/날개 배치` 로그로 확정 후 수정 예정.
+
+### 2) 공격 FX — 슬래쉬 아크 제거 + BOTW식 '참 무기 궤적'
+- **제거**: `HumanoidClipDriver.FireComboSlash`의 `SlashVFXRunner.PlaySlashStage`(스윙 아크)·`PlayCross`(십자가) 호출 주석 처리(재복원 1줄). 젤다 BOTW 예시는 무기 블레이드 궤적 잔상이지 떠 있는 납작 슬래쉬가 아님.
+- **유지(피격 동일)**: `PlayImpactMulti`/Magic Hit 2(CombatFXGate/PlayerCombat) **무변경**. `WeaponSwingTrail`(검날 흰 트레일) 유지.
+- **신규 `AttackArcVFX.cs`(프리미엄 3D 스윕 리본, 기본 OFF)**: 무기 팁 월드 궤적을 매 프레임 링버퍼(SampleCap 64)에 샘플링 → 실제 스윕 서피스 리본 메시 재구성(전두엽 굵고 꼬리로 가늘게 0.35s 페이드) + 콤보 스테이지 틴트(흰/골드/주황) + **글로우 이중패스**(EmitPass 재사용: ×1.65폭 α0.30 글로우 + 풀 코어).
+  - 토글: `HumanoidClipDriver` 인스펙터 `AttackArcVFX (프리미엄 스윕 리본) A/B` 체크박스 + `AttackArcVFX.SetPremium(bool)` 로그. OFF면 완전 무영향(호스트 생성 없음).
+  - 재질: `WeaponSwingTrail.GetTrailMaterial()` 공유 재사용(URP 발광) → 폴백 `CreateFallbackMaterial`(검증된 CreateTrailMaterial 패턴 그대로, 완전수식 `UnityEngine.Rendering.BlendMode/RenderQueue`+Emission).
+- **기법(중요)**: 이 프로젝트 procedural Mesh는 **`mesh.vertices/.colors(Color[])/.triangles` 배열 필드 직접 대입**(C# arraycopy 부재), `MeshFilter.sharedMesh`/`MeshRenderer.sharedMaterial`, `SetTriangles(int[], submesh)`만 존재. `SetVertices(List<Vector3>)`·`SetColors(List<Color32>)`·`MarkDynamic`·`LightProbeUsage` 등은 **이 프로젝트에 미적용 API → 컴파일 깨짐** — 서브에이전트가 짐작해 넣었다가 전부 배열 필드 관례로 교체.
+
+### 검증/게이트
+- ⚠️ **컴파일 미검증 유지**: Unity 에디터 활성(잠금)으로 WSL 배치 컴파일 불가. 에디터 자동 재컴파일(Play/포커스)로 `error CS=0` 확인 필요.
+- static 검증: 3파일 괄호 균형 OK(49/164/37, AttackArcVFX 2패스 인덱스/용량), 잔여 불확실 심볼 0, 화이트스페이스 `git diff --check` 0.
+- **commit**: `5a55b88b`(AttackArcVFX·WeaponSwingTrail·HumanoidClipDriver·QuadrupedProceduralAnimation·ProceduralAnimationController). round-4 WIP(ProceduralBoneUtility·테스트 4종·쇼케이스 셋업·Editor/AnimationRegressionTestRunner 등)는 **이번 커밋에 미포함** — 사용자 선행 작업 유지.
+- **다음**: 에디터 재컴파일/Play로 (a) 슬래쉬 아크 제거 확인 (b) 토글 켜서 3D 스윕 리본 렌더 확인 → 확정 후 Phase 3(범위스케일 배선)·4(임팩트 고도화 — 단 "피격 동일" 지침 준수하여 피격계는 불변 유지) 진행.
 
 ---
 
