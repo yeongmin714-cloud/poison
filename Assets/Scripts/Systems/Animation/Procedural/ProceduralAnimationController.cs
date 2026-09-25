@@ -1275,8 +1275,26 @@ namespace ProjectName.Systems.Animation.Procedural
         /// <summary>[P-ANIM6] 다리 스윙 — 힙 전후 스윙(±sin) + 무릎 굽힘(스윙 전반부=발 들기). </summary>
         void SwingBipedLeg(BoneRole hipRole, BoneRole kneeRole, float phase, Vector3 axis, float swingDeg)
         {
-            // 다리 스윙 — 4족 SwingLeg와 동일한 월드 기준 회전 합성(축 불변).
             Transform hip = _boneMap.Has(hipRole) ? _boneMap.Get(hipRole) : null;
+
+            // [P-ANIM9] 축 불변 다리 스윙 — 진행 방향과 다리 축에 수직인 축.(루트 lateral 무관).
+            Transform kneeRef = _boneMap.Has(kneeRole) ? _boneMap.Get(kneeRole) : null;
+            Vector3 swingAxis = axis; // fallback = transform.right
+            if (hip != null && kneeRef != null)
+            {
+                Vector3 legDir = kneeRef.position - hip.position;
+                if (legDir.sqrMagnitude > 1e-6f)
+                {
+                    Vector3 c = Vector3.Cross(legDir.normalized, transform.forward);
+                    if (c.sqrMagnitude > 1e-4f)
+                    {
+                        swingAxis = c.normalized;
+                        if (Vector3.Dot(swingAxis, transform.right) < 0f) swingAxis = -swingAxis;
+                    }
+                }
+            }
+
+            // 다리 스윙 — 4족 SwingLeg와 동일한 월드 기준 회전 합성(축 불변).
             if (hip != null && hip.parent != null)
             {
                 if (!_gaitBaseRot.TryGetValue(hip, out var hipBase))
@@ -1288,7 +1306,7 @@ namespace ProjectName.Systems.Animation.Procedural
                     // 양의 회전각=발 후방(Unity 오른손 축 관례) — 전방 스윙이 음의 각.
                     float hipAngle = Mathf.Sin(phase * Mathf.PI * 2f) * swingDeg;
                     Quaternion hipBaseWorld = hip.parent.rotation * hipBase;
-                    Quaternion hipTargetWorld = hipBaseWorld * Quaternion.AngleAxis(hipAngle, axis);
+                    Quaternion hipTargetWorld = hipBaseWorld * Quaternion.AngleAxis(hipAngle, swingAxis);
                     hip.localRotation = Quaternion.Inverse(hip.parent.rotation) * hipTargetWorld;
                 }
             }
@@ -1307,7 +1325,7 @@ namespace ProjectName.Systems.Animation.Procedural
                     float bend = Mathf.Max(0f, -Mathf.Cos(phase * Mathf.PI * 2f))
                                * _gaitKneeBendFactor * swingDeg;
                     Quaternion kneeBaseWorld = knee.parent.rotation * kneeBase;
-                    Quaternion kneeTargetWorld = kneeBaseWorld * Quaternion.AngleAxis(bend, axis);
+                    Quaternion kneeTargetWorld = kneeBaseWorld * Quaternion.AngleAxis(bend, swingAxis);
                     knee.localRotation = Quaternion.Inverse(knee.parent.rotation) * kneeTargetWorld;
                 }
             }
@@ -1319,6 +1337,25 @@ namespace ProjectName.Systems.Animation.Procedural
             Transform shoulder = _boneMap.Has(shoulderRole) ? _boneMap.Get(shoulderRole) : null;
             if (shoulder == null || shoulder.parent == null) return;
 
+            // [P-ANIM9] 축 불변 팔 스윙 — 팔 본축과 진행 방향에 수직인 축(어깨→손 방향)으로 회전.
+            // 익명 리그에서 팔이 옆/뒤로 붙어 있어 루트 lateral 축 회전이 팔을 몸 안쪽으로 비틀던 문제 수정.
+            BoneRole handRole = (shoulderRole == BoneRole.L_Shoulder) ? BoneRole.L_Hand : BoneRole.R_Hand;
+            Transform handRef = _boneMap.Has(handRole) ? _boneMap.Get(handRole) : null;
+            Vector3 swingAxis = axis; // fallback = transform.right
+            if (handRef != null)
+            {
+                Vector3 armDir = handRef.position - shoulder.position;
+                if (armDir.sqrMagnitude > 1e-6f)
+                {
+                    Vector3 c = Vector3.Cross(armDir.normalized, transform.forward);
+                    if (c.sqrMagnitude > 1e-4f)
+                    {
+                        swingAxis = c.normalized;
+                        if (Vector3.Dot(swingAxis, transform.right) < 0f) swingAxis = -swingAxis;
+                    }
+                }
+            }
+
             if (!_gaitBaseRot.TryGetValue(shoulder, out var baseLocal))
             {
                 _gaitBaseRot[shoulder] = shoulder.localRotation; // 첫 프레임은 기준 포착만
@@ -1327,7 +1364,7 @@ namespace ProjectName.Systems.Animation.Procedural
 
             float angle = Mathf.Sin(phase * Mathf.PI * 2f) * swingDeg * _gaitArmSwingFactor;
             Quaternion baseWorld = shoulder.parent.rotation * baseLocal;
-            Quaternion targetWorld = baseWorld * Quaternion.AngleAxis(angle, axis);
+            Quaternion targetWorld = baseWorld * Quaternion.AngleAxis(angle, swingAxis);
             shoulder.localRotation = Quaternion.Inverse(shoulder.parent.rotation) * targetWorld;
         }
 

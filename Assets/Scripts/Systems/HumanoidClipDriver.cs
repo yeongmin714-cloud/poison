@@ -48,6 +48,9 @@ namespace ProjectName.Systems
         // strike 프레임에 아크/임팩트를 발화하기 위한 임계. 스테이지 클립 진행률이 이 값 이상이면 발화 대기 아크를 소진한다.
         private const float StageStrikeSyncNormT = 0.38f;
         private int _comboStage;          // 0=비활성, 1..3 = 현재 스테이지(클릭 수)
+        // [2026-09-25 프리미엄 AttackArcVFX A/B] 인스펙터에서 켜면 실제 무기 궤적 3D 스윕 리본을 켠다(기본 OFF).
+        [SerializeField, Header("AttackArcVFX (프리미엄 스윕 리본) A/B")]
+        private bool _premiumArcEnabled;
         // [2026-09-15 Phase E] strike 동기 대기 아크 — 클릭 즉시가 아닌 strike 프레임에서 발화할 아크 스테이지(0=없음).
         private int _pendingStageArc;
         private float _comboStartTime = -999f;
@@ -348,6 +351,8 @@ namespace ProjectName.Systems
         // ───────────────────── Player 모드 ─────────────────────
         private void UpdatePlayer()
         {
+            // [2026-09-25 프리미엄 A/B] 인스펙터 토글 동기화 — 켠 즉시 스윙에서 실제 블레이드 궤적 3D 스윕 리본 구동.
+            AttackArcVFX.PremiumArcEnabled = _premiumArcEnabled;
             if (_diagStart < 0f) _diagStart = Time.time;
             bool diagActive = Time.time - _diagStart <= 600f;
 
@@ -654,6 +659,7 @@ namespace ProjectName.Systems
                 _comboBufferedClick = false;   // #48차: 인터럽트 리셋 시 미소비 버퍼 폐기
                 ResetComboCrossFlags();
                 WeaponSwingTrail.SetEmitting(false);   // [2026-09-12 P2] 인터럽트 리셋 — 스윙 트레일 방출 OFF
+                AttackArcVFX.Settle();   // [2026-09-25 프리미엄] 스윕 리본도 페이드아웃
                 // [Phase B] 콤보 스테이지 리셋 — 트레일 색상 오버라이드 해제
                 WeaponSwingTrail.SetComboStage(0);
                 Debug.Log("[Combo] 인터럽트 리셋");
@@ -808,6 +814,7 @@ namespace ProjectName.Systems
                 _comboBufferedClick = false;
                 ResetComboCrossFlags();
                 WeaponSwingTrail.SetEmitting(false);
+                AttackArcVFX.Settle();   // [2026-09-25 프리미엄] 스윕 리본도 페이드아웃
                 WeaponSwingTrail.SetComboStage(0);
                 Debug.Log("[Combo] 인터럽트 리셋(stageClip)");
             }
@@ -819,6 +826,7 @@ namespace ProjectName.Systems
             _anim.CrossFade("Idle", ComboExitBlend, 0);
             // [2026-09-12 P2] 콤보 종료(무입력 홀드 만료/만료 Idle 크로스) — 스윙 트레일 방출 OFF
             WeaponSwingTrail.SetEmitting(false);
+            AttackArcVFX.Settle();   // [2026-09-25 프리미엄] 스윕 리본도 페이드아웃
             // [Phase B] 콤보 스테이지 리셋 — 트레일 색상 오버라이드 해제
             WeaponSwingTrail.SetComboStage(0);
             _comboStage = 0;
@@ -852,6 +860,9 @@ namespace ProjectName.Systems
                     WeaponSwingTrail.EnsureBareFist(transform.root);
                     WeaponSwingTrail.SetComboStage(stage);
                     WeaponSwingTrail.SetEmitting(true);
+                    // [2026-09-25 프리미엄] 실제 블레이드 궤적 스윕 리본(선택) — 기본 OFF. 활성 시 트레일과 중첩.
+                    if (AttackArcVFX.PremiumArcEnabled)
+                        AttackArcVFX.Swing(WeaponSwingTrail.GetCurrentWeaponType(), transform.root);
                     Debug.Log($"[Combo] 스윙 트레일 즉시 방출 (stage={stage}, 아크는 strike 대기)");
                 }
             }
@@ -923,9 +934,16 @@ namespace ProjectName.Systems
                     
                     // 46차 후속: playerRoot = 플레이어 루트(transform.root — EnsureBareFist와 동일 기준) 전달 —
                     // 슬래시 인스턴스가 플레이어에 부착되어 이동/회전을 추종한다(부착감). null이면 러너가 폴백.
-                    SlashVFXRunner.PlaySlashStage(pos, dir, stage, yawSign, transform.root);
+                    // [2026-09-25 공격 FX] 사용자 지정: 스윙 슬래쉬 아크 에셋(SlashVFXRunner.PlaySlashStage) 제거 —
+                    // 공격 연출을 젤다(BOTW)식 '무기 궤적 흰 트레일(WeaponSwingTrail.SetEmitting)'로 일원화한다.
+                    // 피격 임펙트(Magic Hit 2, PlayImpactMulti)는 별도 경로(CombatFXGate/PlayerCombat)로 그대로 유지.
+                    // 복원 필요 시 아래 주석만 해제.
+                    // SlashVFXRunner.PlaySlashStage(pos, dir, stage, yawSign, transform.root);
                 }
                 WeaponSwingTrail.SetEmitting(true);
+                // [2026-09-25 프리미엄] 실제 블레이드 궤적 스윕 리본(선택) — 기본 OFF. 활성 시 트레일과 중첩.
+                if (AttackArcVFX.PremiumArcEnabled)
+                    AttackArcVFX.Swing(WeaponSwingTrail.GetCurrentWeaponType(), transform.root);
                 Debug.Log($"[Combo] 스윙 트레일 방출 (stage={stage})");
             }
             catch (System.Exception fxEx)
@@ -1022,7 +1040,9 @@ namespace ProjectName.Systems
                 // 대상에서 멀어 보임. 이제 LastHitPoint(대상 bounds 중심 + up*0.2)에 밀착, up*0.15 미세 보정.
                 // LastHitValid/0.5s 게이트(상단)는 유지 — 빈 스윙엔 크로스 없음.
                 Vector3 pos = PlayerCombat.LastHitPoint + Vector3.up * 0.15f;
-                SlashVFXRunner.PlayCross(pos, dir);
+                // [2026-09-25 공격 FX] 십자가/크로스 슬래시 에셋도 슬래쉬 계열로 함께 제거 —
+                // 젤다식 무기 트레일 + 피격 임펙트(Magic Hit 2)만 유지.
+                // SlashVFXRunner.PlayCross(pos, dir);
                 Debug.Log($"[Combo] 크로스 FX stage={stage} → 피격대상 밀착 발화 pos={pos:F2}");
             }
             catch (System.Exception fxEx)

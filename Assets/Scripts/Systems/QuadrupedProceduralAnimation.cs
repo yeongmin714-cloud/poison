@@ -74,16 +74,25 @@ namespace ProjectName.Systems
         // gait 오프셋으로 실제 렌더 위상(LF/RF/LH/RH_Phase)을 재정렬하는 트리거용.
         private QuadrupedProceduralLocomotion.Gait? _syncedGait;
 
+        // [2026-09-23(49차 후속)] 마지막으로 동기화한 gait 오버라이드 — Locomotion.GaitOverride(null 허용)를
+        // 그대로 추적한다. NotifyGaitSelectionChanged에서 갱신.
+        private QuadrupedProceduralLocomotion.Gait? _syncedGaitOverride;
+
         // [2026-09-14(49차)] AI 구동 모드 플래그 — AnimalAI.SetAiDriven(true)로 활성화.
         // true면 HandleInput(키보드) 대신 SetMovementSpeed()로 공급된 속도를 사용하고,
         // FixedUpdate의 ApplyMovement(Rigidbody 이동)는 스킵한다(AI가 transform 직접 이동).
         private bool _aiDriven;
 
         // Leg phases (0~1)
-        public float LF_Phase = 0f;    // Left Front
-        public float RF_Phase = 0.5f;  // Right Front
-        public float LH_Phase = 0.25f; // Left Hind
-        public float RH_Phase = 0.75f; // Right Hind
+        // [2026-09-23] 대각 보행 계약 — ApplyRotationGait가 이 4필드를 직접 소비하므로 기본 오프셋은
+        // 대각 쌍(LF+RH / RF+LH)이 반 사이클 차이로 짝지어져야 한다. 기존 기본값(LH 0.25/RH 0.75)은
+        // LF+RH·RF+LH가 어긋난 측측 배치라 스윙 위상이 틀어졌다. Locomotion Trot 튜플(0, 0.5, 0.5, 0)과
+        // 동일하게 정렬 — UpdateLegPhases의 균일 delta 진행이 이 배치를 보존하고, gait 전환 시
+        // SyncLegPhases가 gait별 오프셋으로 결정론적으로 재정렬한다.
+        public float LF_Phase = 0f;    // Left Front  — RH와 동일 위상(대각 쌍 A)
+        public float RF_Phase = 0.5f;  // Right Front — LH와 동일 위상(대각 쌍 B)
+        public float LH_Phase = 0.5f;  // Left Hind   — RF와 동일 위상(대각 쌍 B)
+        public float RH_Phase = 0f;    // Right Hind  — LF와 동일 위상(대각 쌍 A)
 
         // IK Targets (public for locomotion module)
         public Vector3 LF_Target, RF_Target, LH_Target, RH_Target;
@@ -302,6 +311,17 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
+        /// Locomotion gait 변경을 렌더 위상에 즉시 반영한다(CurrentGait이 동일해도 오버라이드 적용 시 재동기화).
+        /// </summary>
+        public void NotifyGaitSelectionChanged(QuadrupedProceduralLocomotion.Gait gait)
+        {
+            if (_locomotion == null) return;
+            _locomotion.SyncLegPhases(this);
+            _syncedGait = _locomotion.CurrentGait;
+            _syncedGaitOverride = _locomotion.GaitOverride;
+        }
+
+        /// <summary>
         /// [2026-09-14(49차)] AI 구동용 실시간 이동 속도 설정 — HandleInput의 _targetVelocity/_targetSpeed
         /// 설정을 대체. 방향은 transform.forward 기준으로 내부 변환하며, 실제 회전은 AnimalAI가 담당하므로
         /// 여기서 transform을 회전하지 않는다(회전 중복 방지).
@@ -345,6 +365,7 @@ namespace ProjectName.Systems
                 case "rabbit": // 빠른 도약형 — 높이 뛰는 발, 도약 호핑 갤럽 고정
                     _walkSpeed = 2.5f; _trotSpeed = 5f; _gallopSpeed = 9f;
                     _stepLength = 0.5f; _stepHeight = 0.35f;
+                    _profileMonsterId = monsterId;
                     if (_locomotion != null) _locomotion.SetGaitOverride(QuadrupedProceduralLocomotion.Gait.Gallop);
                     break;
                 case "wolf": // 빠른 갤럽
@@ -375,6 +396,7 @@ namespace ProjectName.Systems
                 case "swamp_croc": // 천천히 기어가는 악어 — 척추 파동 강화(몸통 굽힘)
                     _walkSpeed = 1f; _trotSpeed = 2f; _gallopSpeed = 4f;
                     _stepLength = 0.8f; _stepHeight = 0.06f;
+                    _profileMonsterId = monsterId;
                     if (_locomotion != null) _locomotion.SetSpineWave(0.05f, 1.5f); // 0.12→0.05 — 누적 드리프트 제거 후 과굴곡 완화
                     break;
                 case "griffin": // 대형 맹수
@@ -488,6 +510,7 @@ namespace ProjectName.Systems
             float phaseSpeed = _currentSpeed / _stepLength * gaitMultiplier;
             float delta = phaseSpeed * Time.deltaTime;
 
+            // [2026-09-23] 균일 delta 진행 — 4필드 상대 오프셋(대각 쌍 LF≡RH / RF≡LH)이 보존된다.
             LF_Phase = Mathf.Repeat(LF_Phase + delta, 1f);
             RF_Phase = Mathf.Repeat(RF_Phase + delta, 1f);
             LH_Phase = Mathf.Repeat(LH_Phase + delta, 1f);
@@ -537,12 +560,20 @@ namespace ProjectName.Systems
             ApplyWingFlap();
         }
 
+        private string _profileMonsterId = string.Empty;
+
         // [P-ANIM7 Phase3] 날개 플랩 — 어깨 역할 본(L_Shoulder/R_Shoulder)이 매핑되고 앞다리 힙과
         // 다른 본일 때만(어깨=앞다리 매핑 리그는 날개가 아니므로 스킵). 이동 중 날갯짓 강화,
         // 정지 중엔 미세 접힘 수준의 낮은 진폭(생동감). SpecialCreatureAnimator.TryFlapWings 동일 수식(Z축 대칭).
         private readonly Dictionary<Transform, Quaternion> _wingBaseRot = new Dictionary<Transform, Quaternion>();
+        // bind pose의 각 사지 축을 리그 루트 로컬 공간에 고정해 자세 피드백에 따른 축 드리프트를 막는다.
+        private readonly Dictionary<Transform, Vector3> _gaitAxisRootLocal = new Dictionary<Transform, Vector3>();
+        private readonly Dictionary<Transform, Vector3> _wingAxisRootLocal = new Dictionary<Transform, Vector3>();
         [SerializeField, Range(0.5f, 6f)] private float _wingFlapHz = 2.2f;   // 날갯짓 주파수(Hz)
         [SerializeField, Range(0f, 60f)] private float _wingFlapDeg = 26f;    // 날갯짓 진폭(도, 최대)
+        // [P-ANIM7 Phase4] 라운드 QA가 어깨 매핑 리그 여부를 로그로 즉시 판별용 1회 플래그
+        private bool _wingFlapLogged;
+        private bool _wingSkipLogged;
 
         private void ApplyWingFlap()
         {
@@ -553,25 +584,86 @@ namespace ProjectName.Systems
             if (lWing == null || rWing == null || lWing.parent == null || rWing.parent == null) return;
 
             // 날개 아님 판정 — 어깨 역할이 앞다리 힙 역할과 같은 본이면(4족 배치 재사용) 플랩 스킵.
-            if (lWing == _boneMap.Get(BoneRole.L_Hip) || rWing == _boneMap.Get(BoneRole.R_Hip)) return;
-
-            if (!_wingBaseRot.TryGetValue(lWing, out var lBase))
+            if (lWing == _boneMap.Get(BoneRole.L_Hip) || rWing == _boneMap.Get(BoneRole.R_Hip))
             {
-                _wingBaseRot[lWing] = lWing.localRotation;
+                if (!_wingSkipLogged)
+                {
+                    _wingSkipLogged = true;
+                    Debug.Log($"[QuadrupedProceduralAnimation] 날개 플랩 스킵 — 어깨 역할이 앞다리 힙 재사용 본 (L={lWing.name}, R={rWing.name})");
+                }
                 return;
             }
-            if (!_wingBaseRot.TryGetValue(rWing, out var rBase))
+
+            // 기준 자세와 양쪽 축을 같은 프레임에서 함께 캡처한다. 한쪽만 캐시하고 return하면
+            // 다음 프레임에 이미 움직인 날개에서 반대쪽 축을 구해 위상이 틀어질 수 있다.
+            if (!_wingBaseRot.ContainsKey(lWing) || !_wingBaseRot.ContainsKey(rWing))
             {
+                _wingBaseRot[lWing] = lWing.localRotation;
                 _wingBaseRot[rWing] = rWing.localRotation;
+                CacheWingAxis(lWing, BoneRole.L_Hand);
+                CacheWingAxis(rWing, BoneRole.R_Hand);
                 return;
+            }
+            var lBase = _wingBaseRot[lWing];
+            var rBase = _wingBaseRot[rWing];
+            CacheWingAxis(lWing, BoneRole.L_Hand);
+            CacheWingAxis(rWing, BoneRole.R_Hand);
+            if (!_wingAxisRootLocal.ContainsKey(lWing) || !_wingAxisRootLocal.ContainsKey(rWing)) return;
+
+            // [P-ANIM7 Phase4] 개시 로그 1회 — 날개 본 확정을 라운드 로그에서 즉시 확인용.
+            if (!_wingFlapLogged)
+            {
+                _wingFlapLogged = true;
+                Debug.Log($"[QuadrupedProceduralAnimation] 날개 플랩 개시 — L={lWing.name}, R={rWing.name} (hz={_wingFlapHz}, deg={_wingFlapDeg})");
             }
 
             // 이동 중 날갯짓 강화(비행감) — 정지 중엔 25% 진폭의 미세 펄럭임(idle 생동감).
             float speed01 = Mathf.Clamp01(_currentSpeed / Mathf.Max(0.1f, _stepLength * 2f));
             float blend = 0.35f + 0.65f * Mathf.Clamp01(speed01 * 2f);
             float flap = Mathf.Sin(Time.time * _wingFlapHz * 2f * Mathf.PI) * _wingFlapDeg * blend;
-            lWing.localRotation = lBase * Quaternion.Euler(0f, 0f, flap);
-            rWing.localRotation = rBase * Quaternion.Euler(0f, 0f, -flap);
+            ApplyWingRotation(lWing, lBase, flap);
+            ApplyWingRotation(rWing, rBase, flap);
+        }
+
+        private void CacheWingAxis(Transform wing, BoneRole handRole)
+        {
+            if (wing == null || _wingAxisRootLocal.ContainsKey(wing)) return;
+            Transform hand = _boneMap.Has(handRole) ? _boneMap.Get(handRole) : null;
+            if (hand == null || hand == wing)
+            {
+                // 이름없는 날개 체인은 최소 Shoulder/Elbow 두 관절을 가질 수 있다.
+                // Shoulder의 자식 끝 방향을 bind pose 축 추정에 쓴다.
+                if (wing.childCount > 0) hand = wing.GetChild(0);
+            }
+            if (hand == null) return;
+
+            Vector3 limbDir = hand.position - wing.position;
+            if (limbDir.sqrMagnitude < 1e-6f) return;
+            Vector3 axis = GetSynchronizedFlapAxis(limbDir, transform.up);
+            if (axis.sqrMagnitude < 1e-6f) return;
+            _wingAxisRootLocal[wing] = transform.InverseTransformDirection(axis).normalized;
+        }
+
+        internal static Vector3 GetSynchronizedFlapAxis(Vector3 wingDirection, Vector3 desiredMotion)
+        {
+            if (wingDirection.sqrMagnitude < 1e-6f || desiredMotion.sqrMagnitude < 1e-6f) return Vector3.zero;
+            Vector3 direction = wingDirection.normalized;
+            Vector3 motion = desiredMotion.normalized;
+            Vector3 axis = Vector3.Cross(direction, motion);
+            if (axis.sqrMagnitude < 1e-6f) return Vector3.zero;
+            axis.Normalize();
+            if (Vector3.Dot(Vector3.Cross(axis, direction), motion) < 0f) axis = -axis;
+            return axis;
+        }
+
+        private void ApplyWingRotation(Transform wing, Quaternion baseLocal, float angleDeg)
+        {
+            if (wing == null || wing.parent == null) return;
+            if (!_wingAxisRootLocal.TryGetValue(wing, out var rootLocalAxis)) return;
+            Vector3 worldAxis = transform.TransformDirection(rootLocalAxis).normalized;
+            Quaternion baseWorld = wing.parent.rotation * baseLocal;
+            Quaternion targetWorld = Quaternion.AngleAxis(angleDeg, worldAxis) * baseWorld;
+            wing.localRotation = Quaternion.Inverse(wing.parent.rotation) * targetWorld;
         }
 
         // [P-ANIM5-B] 회전 기반 절차 보행 — 발 IK(Solve) 대신 다리 체인 루트에 사인 위상 회전.
@@ -604,6 +696,36 @@ namespace ProjectName.Systems
             Transform hip = _boneMap.Has(hipRole) ? _boneMap.Get(hipRole) : null;
             if (hip == null || hip.parent == null) return;
 
+            // [P-ANIM9] 축 불변 스윙 — 진행 방향과 다리 축에 수직인 축으로 회전(루트 lateral 무관).
+            // 다리가 수직으로 매달린 채면 dot 정규화로 transform.right와 동일해 기존 동작·위상 불변(회귀 없음).
+            // 익명 리그에서 다리 본축이 옆/뒤로 벌어진 경우에도 스윙 평면이 전후로 보정된다.
+            Transform kneeT = _boneMap.Has(kneeRole) ? _boneMap.Get(kneeRole) : null;
+            Transform ankleT = _boneMap.Has(ankleRole) ? _boneMap.Get(ankleRole) : null;
+            Vector3 swingAxis = axis; // 리그 축이 판별되지 않으면 기존 lateral 축
+            if (!_gaitAxisRootLocal.TryGetValue(hip, out var rootLocalAxis))
+            {
+                Transform dirRef = (kneeT != null) ? kneeT : (ankleT != null ? ankleT : hip);
+                if (dirRef != hip)
+                {
+                    Vector3 bindLegDir = dirRef.position - hip.position;
+                    if (bindLegDir.sqrMagnitude > 1e-6f)
+                    {
+                        Vector3 candidate = Vector3.Cross(bindLegDir.normalized, transform.forward);
+                        if (candidate.sqrMagnitude > 1e-4f)
+                        {
+                            candidate.Normalize();
+                            if (Vector3.Dot(candidate, transform.right) < 0f) candidate = -candidate;
+                            rootLocalAxis = transform.InverseTransformDirection(candidate).normalized;
+                        }
+                    }
+                }
+                if (rootLocalAxis.sqrMagnitude < 1e-6f)
+                    rootLocalAxis = transform.InverseTransformDirection(axis).normalized;
+                _gaitAxisRootLocal[hip] = rootLocalAxis;
+            }
+            if (rootLocalAxis.sqrMagnitude > 1e-6f)
+                swingAxis = transform.TransformDirection(rootLocalAxis).normalized;
+
             if (!_gaitBaseRot.TryGetValue(hip, out var hipBase))
             {
                 _gaitBaseRot[hip] = hip.localRotation; // 첫 프레임은 기준 포착만
@@ -612,7 +734,7 @@ namespace ProjectName.Systems
             {
                 float hipAngle = Mathf.Sin(phase * Mathf.PI * 2f) * swingDeg;
                 Quaternion hipBaseWorld = hip.parent.rotation * hipBase;
-                Quaternion hipTargetWorld = hipBaseWorld * Quaternion.AngleAxis(hipAngle, axis);
+                Quaternion hipTargetWorld = hipBaseWorld * Quaternion.AngleAxis(hipAngle, swingAxis);
                 hip.localRotation = Quaternion.Inverse(hip.parent.rotation) * hipTargetWorld;
             }
 
@@ -632,7 +754,7 @@ namespace ProjectName.Systems
                         float bend = Mathf.Max(0f, -Mathf.Cos(phase * Mathf.PI * 2f))
                                    * _gaitKneeBendFactor * swingDeg;
                         Quaternion kneeBaseWorld = knee.parent.rotation * kneeBase;
-                        Quaternion kneeTargetWorld = kneeBaseWorld * Quaternion.AngleAxis(bend, axis);
+                        Quaternion kneeTargetWorld = kneeBaseWorld * Quaternion.AngleAxis(bend, swingAxis);
                         knee.localRotation = Quaternion.Inverse(knee.parent.rotation) * kneeTargetWorld;
                     }
                 }
@@ -653,7 +775,7 @@ namespace ProjectName.Systems
                         float counter = -Mathf.Max(0f, -Mathf.Cos(phase * Mathf.PI * 2f))
                                       * _gaitKneeBendFactor * _gaitAnkleCounterFactor * swingDeg;
                         Quaternion ankleBaseWorld = ankle.parent.rotation * ankleBase;
-                        Quaternion ankleTargetWorld = ankleBaseWorld * Quaternion.AngleAxis(counter, axis);
+                        Quaternion ankleTargetWorld = ankleBaseWorld * Quaternion.AngleAxis(counter, swingAxis);
                         ankle.localRotation = Quaternion.Inverse(ankle.parent.rotation) * ankleTargetWorld;
                     }
                 }
@@ -679,6 +801,9 @@ namespace ProjectName.Systems
                 if (kvp.Key != null) kvp.Key.localRotation = kvp.Value;
             }
             _gaitBaseRot.Clear();
+            _gaitAxisRootLocal.Clear();
+            _wingAxisRootLocal.Clear();
+            _wingBaseRot.Clear();
             _rotationGaitActive = false;
         }
 
@@ -806,6 +931,11 @@ namespace ProjectName.Systems
                 // [P-ANIM2 Phase A-2] Abs(sin) 제거 — 상단 편향(평균적으로 몸이 떠 있는 부유감) 소멸,
                 // ± 대칭 진동으로 지면 기준 중심 유지
                 float bob = Mathf.Sin(Time.time * strideFreq) * _weightBob;
+                if (_profileMonsterId == "rabbit")
+                {
+                    float hopPhase = Mathf.Repeat((LF_Phase + RH_Phase) * 0.5f, 1f);
+                    bob += 0.065f * Mathf.Pow(Mathf.Max(0f, Mathf.Sin(hopPhase * Mathf.PI)), 1.4f);
+                }
                 Vector3 pos = _pelvisBasePos;
                 pos.y += bob;
                 pelvis.localPosition = pos;

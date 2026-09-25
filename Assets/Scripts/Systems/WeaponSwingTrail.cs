@@ -122,6 +122,15 @@ namespace ProjectName.Systems
                 _trail.emitting = on;
         }
 
+        /// <summary>[AttackArcVFX용] 현재 부착 트레일의 발광 흰 재질 반환(공유 재사용 — 소유 아님). 미부착/미생성 시 null.</summary>
+        public static Material GetTrailMaterial() { return _trail != null ? _trail.material : null; }
+
+        /// <summary>[AttackArcVFX용] 무기 팁에 부착된 트레일 자식 GO 반환(월드좌표 샘플 수집용). 미부착 시 null.</summary>
+        public static GameObject GetTrailTipAnchor() { return _trailGo; }
+
+        /// <summary>[AttackArcVFX용] 현재 무기 타입 반환(스윕 리본 기본색 판정용). 기본 Fist.</summary>
+        public static WeaponType GetCurrentWeaponType() { return _currentWeaponType; }
+
         /// <summary>
         /// [Phase B] 콤보 스테이지 설정 — 스테이지별 색상 오버라이드 적용.
         /// HumanoidClipDriver.FireComboSlash(stage) 호출 시 함께 호출.
