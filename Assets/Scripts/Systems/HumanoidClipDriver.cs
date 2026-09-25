@@ -862,7 +862,10 @@ namespace ProjectName.Systems
                     WeaponSwingTrail.SetEmitting(true);
                     // [2026-09-25 프리미엄] 실제 블레이드 궤적 스윕 리본(선택) — 기본 OFF. 활성 시 트레일과 중첩.
                     if (AttackArcVFX.PremiumArcEnabled)
+                    {
                         AttackArcVFX.Swing(WeaponSwingTrail.GetCurrentWeaponType(), transform.root);
+                        AttackArcVFX.SetTint(WeaponSwingTrail.GetCurrentWeaponType(), stage);   // [QA_fix] 콤보 스테이지 틴트 배선
+                    }
                     Debug.Log($"[Combo] 스윙 트레일 즉시 방출 (stage={stage}, 아크는 strike 대기)");
                 }
             }
@@ -943,7 +946,10 @@ namespace ProjectName.Systems
                 WeaponSwingTrail.SetEmitting(true);
                 // [2026-09-25 프리미엄] 실제 블레이드 궤적 스윕 리본(선택) — 기본 OFF. 활성 시 트레일과 중첩.
                 if (AttackArcVFX.PremiumArcEnabled)
+                {
                     AttackArcVFX.Swing(WeaponSwingTrail.GetCurrentWeaponType(), transform.root);
+                    AttackArcVFX.SetTint(WeaponSwingTrail.GetCurrentWeaponType(), stage);   // [QA_fix] 콤보 스테이지 틴트 배선
+                }
                 Debug.Log($"[Combo] 스윙 트레일 방출 (stage={stage})");
             }
             catch (System.Exception fxEx)

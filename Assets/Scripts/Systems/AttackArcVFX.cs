@@ -111,10 +111,12 @@ namespace ProjectName.Systems
         private bool _settled;                 // Settle(콤보 종료) — 샘플 동결 후 페이드아웃
         private float _settleTime;
         private float _lastSwingTime = -999f;  // 마지막 Swing 시각 — 활동 없음 자가 파괴 기준
+        private float _lastActivityTime = -999f;  // [QA_fix] 실제 샘플 활동 시각(스윙 중 자가파괴 방지) — 샘플 쓰기마다 갱신
         private float _lastSampleTime;         // 마지막 샘플 기록 시각(진단/트림 보조)
+        private bool _ownsMat;                 // [QA_fix] 폴백 재질은 본인 소유 — 파괴 책임 있음(공유 트레일 재질은 아님)
 
         // (내부 RebuildRibbon이 프레임당 정확 길이 배열을 신규 할당 — C# arraycopy 부재·프로젝트 관례
-        //  mesh.vertices/.colors/.triangles 배열 직접 대입 준수. 정점 ≤128·삼각 ≤768, 스윙 중에만 극소량.)
+        //  mesh.vertices/.colors/.triangles 배열 직접 대입 준수. 2패스 최대 정점 ≤256·삼각 ≤1512, 스윙 중에만 극소량.)
 
         // 마지막 유효 측면축 — 진행방향 퇴화(수직 직진 등) 시 폴백
         private Vector3 _lastRight = Vector3.right;
@@ -140,6 +142,7 @@ namespace ProjectName.Systems
             if (fallbackRoot != null) _fallbackRoot = fallbackRoot;
             _settled = false;
             _lastSwingTime = Time.time;
+            _lastActivityTime = Time.time;   // [QA_fix] 스윙 개시 = 활동 시작(자가파괴 기준 갱신)
             EnsureCapacity(Mathf.Max(8, AttackArcVFX.SampleCap));   // 튜닝 중 용량 상향 흡수(평시 no-op)
             EnsureMesh();
         }
@@ -196,8 +199,9 @@ namespace ProjectName.Systems
             //    그래도 null이면 메시 갱신만 건너뛰고 샘플링은 지속(절대 예외 없음).
             if (_mat == null)
             {
-                _mat = WeaponSwingTrail.GetTrailMaterial();
-                if (_mat == null) _mat = CreateFallbackMaterial();
+                Material shared = WeaponSwingTrail.GetTrailMaterial();   // 공유(소유 아님 — 파괴 금지)
+                if (shared != null) { _mat = shared; _ownsMat = false; }
+                else { _mat = CreateFallbackMaterial(); _ownsMat = _mat != null; }   // [QA_fix] 폴백은 본인 소유 — 해제 책임
                 if (_meshRenderer != null) _meshRenderer.sharedMaterial = _mat;   // null 대입도 안전(렌더러 비활성 유지)
             }
 
@@ -243,7 +247,7 @@ namespace ProjectName.Systems
             //    (씬에 흔적 없음 — 다음 Swing에서 EnsureHost가 재생성). 스케치의 "_lastSampleTime 기준" 대신
             //    스윙/세틀 기준 시각을 쓴다: 샘플링은 대기 중에도 계속되므로 _lastSampleTime은 항상 신선해
             //    페이드 완료 판정 기준으로 쓸 수 없음(설계 스케치 대비 유일 치환 — 상위 보고서 참조).
-            float idleRef = _settled ? _settleTime : _lastSwingTime;
+            float idleRef = _settled ? _settleTime : _lastActivityTime;   // [QA_fix] 미세틀 시 샘플 활동 기준 — 긴 콤보 스윙 중 소멸 방지
             if (now - idleRef > trailSec + IdleGraceSeconds)
             {
                 if (_meshGO != null) Object.Destroy(_meshGO);
@@ -268,6 +272,7 @@ namespace ProjectName.Systems
             _py[_write] = p.y;
             _pz[_write] = p.z;
             _birth[_write] = now;
+            _lastActivityTime = now;   // [QA_fix] 샘플 기록 = 활동 유지(스윙 중 자가파괴 방지)
             _write = (_write + 1) % _cap;
             if (_count < _cap) _count++;
             else _first = (_first + 1) % _cap;   // 만석 — oldest 슬롯 덮어씀
@@ -292,9 +297,10 @@ namespace ProjectName.Systems
             Color coreTint = ResolveTint();
             float halfW = Mathf.Max(0.01f, AttackArcVFX.MaxHalfWidth * Mathf.Max(0.01f, AttackArcVFX.ArcScale));
 
-            // 두 패스 누적 버퍼 — 글로우(전반)+코어(후반). 정점 ≤ 샘플×2×2, 삼각 ≤ (샘플-1)×12.
+            // 두 패스 누적 버퍼 — 글로우(전반)+코어(후반). 정점 ≤ 샘플×2×2, 삼각 ≤ (샘플-1)×12×2패스.
+            // [QA_fix] tcap은 2패스×4삼각×3idx = 세그먼트당 24 — 이전 ×12는 2패스 때 OOB(치명). 
             int vcap = _count * 4;
-            int tcap = (_count - 1) * 12;
+            int tcap = (_count - 1) * 24;
             Vector3[] fArr = new Vector3[vcap];
             Color[] cArr = new Color[vcap];
             int[] qArr = new int[tcap];
@@ -503,6 +509,8 @@ namespace ProjectName.Systems
                 _meshFilter = null;
                 _meshRenderer = null;
                 _mesh = null;
+                if (_ownsMat && _mat != null) Object.Destroy(_mat);   // [QA_fix] 폴백 재질은 본인 소유 — 해제
+                _ownsMat = false;
                 _mat = null;                                // 공유 재질 — 소유 아님(파괴하지 않고 참조만 해제)
                 _px = null;
                 _py = null;
