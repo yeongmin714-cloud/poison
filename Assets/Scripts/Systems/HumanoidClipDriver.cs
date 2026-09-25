@@ -351,7 +351,12 @@ namespace ProjectName.Systems
         // ───────────────────── Player 모드 ─────────────────────
         private void UpdatePlayer()
         {
-            // [2026-09-25 프리미엄 A/B] 인스펙터 토글 동기화 — 켠 즉시 스윙에서 실제 블레이드 궤적 3D 스윕 리본 구동.
+            // [2026-09-25 프리미엄 A/B] 인스펙터 체크박스 + F6 핫키 토글 — 켠 즉시 스윙에서 실제 블레이드 궤적 3D 스윕 리본 구동.
+            if (Input.GetKeyDown(KeyCode.F6))
+            {
+                _premiumArcEnabled = !_premiumArcEnabled;
+                UnityEngine.Debug.Log("[AttackArcVFX] F6 토글 → " + (_premiumArcEnabled ? "활성 (3D 스윕 리본)" : "비활성 (무기 트레일만)"));
+            }
             AttackArcVFX.PremiumArcEnabled = _premiumArcEnabled;
             if (_diagStart < 0f) _diagStart = Time.time;
             bool diagActive = Time.time - _diagStart <= 600f;
