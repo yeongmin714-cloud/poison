@@ -39,6 +39,8 @@ namespace ProjectName.Systems
         public static float MaxHalfWidth = 0.35f;
         /// <summary>전체 크기 배율(공격 범위 연동 스케일 예약) — 1.0=기본. 인게임 범위 기반 배율을 여기에 곱한다.</summary>
         public static float ArcScale = 1.0f;
+        /// <summary>[Phase3] 사거리 자동 비례(스윙마다 갱신) — MaxHalfWidth×ArcScale(수동)×ArcRangeScale(자동). 장검·단도·창 리치에 맞춤.</summary>
+        public static float ArcRangeScale = 1.0f;
 
         /// <summary>숨은 호스트 — 파괴되면 Unity == null 판정으로 다음 Swing에서 재생성된다.</summary>
         private static AttackArcHost _host;
@@ -47,8 +49,23 @@ namespace ProjectName.Systems
         public static void Swing(WeaponType type, Transform fallbackRoot = null)
         {
             if (!PremiumArcEnabled) return;   // 이중 가드 — 직접 호출 오용 시에도 OFF 상태에선 아무것도 생성하지 않음
+            ArcRangeScale = ScaleForRange(type);   // [Phase3] 사거리 자동 비례 — 리치가 긴 무기일수록 궤적 확대
             EnsureHost();
             if (_host != null) _host.Swing(type, fallbackRoot);
+        }
+
+        /// <summary>[Phase3] 타입별 공격 사거리에 비례한 크기 배율 — WeaponData.range(공개 필드) 기반.</summary>
+        private static float ScaleForRange(WeaponType type)
+        {
+            float range;
+            switch (type)
+            {
+                case WeaponType.Spear: range = ProjectName.Core.WeaponData.Spear.range; break;   // 4m
+                case WeaponType.Bow:   range = ProjectName.Core.WeaponData.Bow.range; break;     // 10m
+                case WeaponType.Fist:  range = ProjectName.Core.WeaponData.Fist.range; break;    // 2m
+                default:               range = ProjectName.Core.WeaponData.Sword.range; break;   // 2.5m
+            }
+            return Mathf.Clamp(range / 2.5f, 0.7f, 1.6f);   // 검(2.5)=1.0 중립, 단검·맨손 0.7~, 장검·창 1.6~ 상한
         }
 
         /// <summary>콤보 종료/인터럽트 — 샘플 동결 후 TrailSeconds 동안 페이드아웃. 호스트 없으면 무시.</summary>
@@ -295,7 +312,8 @@ namespace ProjectName.Systems
             if (_count < 2) return 0;
 
             Color coreTint = ResolveTint();
-            float halfW = Mathf.Max(0.01f, AttackArcVFX.MaxHalfWidth * Mathf.Max(0.01f, AttackArcVFX.ArcScale));
+            float halfW = Mathf.Max(0.01f, AttackArcVFX.MaxHalfWidth * Mathf.Max(0.01f, AttackArcVFX.ArcScale)
+                * Mathf.Max(0.01f, AttackArcVFX.ArcRangeScale));   // [Phase3] 사거리 자동 비례 포함
 
             // 두 패스 누적 버퍼 — 글로우(전반)+코어(후반). 정점 ≤ 샘플×2×2, 삼각 ≤ (샘플-1)×12×2패스.
             // [QA_fix] tcap은 2패스×4삼각×3idx = 세그먼트당 24 — 이전 ×12는 2패스 때 OOB(치명). 
