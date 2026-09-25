@@ -33,18 +33,33 @@ namespace ProjectName.Systems
             // [P25-C3] 소형 밝은 트레일 복원 — P20-4가 "긴 선"이라 제거했던 원인은 과장된
             //   시간(1.6s)·폭(0.45) 때문. 예시(BotW) 스타일: 짧고(0.4s) 가는(0.10→0.02)
             //   화이트→하늘색 테이퍼로 비행 감을 살린다. 박힘 시 _trail.enabled=false로 제거.
+            // [2026-09-25 젤다 화살예시 재현] 비행 중 방향성 모션 스트릭(선형 흰→옅은 청).
+            // 예시(BoTW): 화살 길이 2~3배인 선명한 흰 잔상 + 애더티브 글로우. 기존 time 0.4s는 게임
+            // 속도에서 8~16m로 과하게 길게 번져 "모션 스트릭"이 아니라 스미어로 보였다 → 짧고 선명·발광으로.
             _trail = GetComponent<TrailRenderer>();
             if (_trail == null) _trail = gameObject.AddComponent<TrailRenderer>();
-            _trail.time = 0.4f;
-            _trail.startWidth = 0.10f;
-            _trail.endWidth = 0.02f;
-            _trail.minVertexDistance = 0.05f;
+            _trail.time = 0.12f;              // [참조] ~2~3배 화살 길이 스트릭(고속일수록 길어짐 = 속도감)
+            _trail.startWidth = 0.12f;        // 선명 선두(샤프트 반경급)
+            _trail.endWidth = 0.02f;          // 꼬리 얇게 테이퍼
+            _trail.minVertexDistance = 0.03f; // 고속에서도 빈틈 없이
+            _trail.generateLightingData = false;
+            _trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _trail.receiveShadows = false;
             var trailShader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            _trail.material = new Material(trailShader != null ? trailShader : Shader.Find("Sprites/Default"));
+            var tmat = new Material(trailShader != null ? trailShader : Shader.Find("Sprites/Default"));
+            // [참조] 흰 스트릭이 화면에서 또렷이 빛나도록 애더티브 블렌드(WeaponSwingTrail 검증 패턴).
+            if (tmat.HasProperty("_Surface")) tmat.SetFloat("_Surface", 1f);              // Transparent
+            if (tmat.HasProperty("_Blend")) tmat.SetFloat("_Blend", 2f);                  // Additive
+            tmat.SetOverrideTag("RenderType", "Transparent");
+            if (tmat.HasProperty("_SrcBlend")) tmat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (tmat.HasProperty("_DstBlend")) tmat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+            if (tmat.HasProperty("_ZWrite")) tmat.SetFloat("_ZWrite", 0f);
+            tmat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            _trail.material = tmat;
             var tgrad = new Gradient();
             tgrad.SetKeys(
-                new[] { new GradientColorKey(new Color(1f, 0.98f, 0.9f), 0f), new GradientColorKey(new Color(0.75f, 0.85f, 1f), 1f) },
-                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.85f, 0.25f), new GradientAlphaKey(0.15f, 0.7f), new GradientAlphaKey(0f, 1f) });
+                new[] { new GradientColorKey(new Color(1f, 0.99f, 0.97f), 0f), new GradientColorKey(new Color(0.75f, 0.82f, 1f), 1f) },  // 선명 흰→옅은 청
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.15f), new GradientAlphaKey(0.5f, 0.45f), new GradientAlphaKey(0f, 1f) });
             _trail.colorGradient = tgrad;
         }
 
