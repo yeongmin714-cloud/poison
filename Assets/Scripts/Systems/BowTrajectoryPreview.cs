@@ -71,7 +71,7 @@ namespace ProjectName.Systems
             if (fwd.sqrMagnitude < 1e-6f) fwd = player.forward;
             fwd.Normalize();
 
-            Vector3 origin = player.position + Vector3.up * 1.3f + fwd * 0.4f;
+            Vector3 origin = player.position + Vector3.up * 1.4f + fwd * 0.6f;   // [QA#4] 실제 머즐(PlayerCombat +fwd0.6+up1.4) 정렬
             float speed = ArrowSpeed * (0.7f + 0.5f * BowAimState.Power);
             Vector3 vel = fwd * speed;
             Vector3 g = Physics.gravity * GravityScale;
@@ -95,17 +95,19 @@ namespace ProjectName.Systems
             for (int i = n; i < PoolSize; i++)
                 if (_dots[i].activeSelf) _dots[i].SetActive(false);
 
-            // 빌보드 — 각 점을 탑다운 카메라로 향하게(항상 정면, 고품질 베이크 글로우가 또렷)
+            // 빌보드 — 각 점을 탑다운 카메라로 향하게(항상 정면, 고품질 베이크 글로우가 또렷).
+            // [QA#1] Quad 전면 법선은 -Z — LookRotation의 +Z를 카메라 반대(점→카메라 아님)로 + _Cull 0.
             Camera cam = Camera.main;
             if (cam != null)
             {
                 Vector3 camPos = cam.transform.position;
+                Vector3 camUp = cam.transform.up;   // [QA#3] 근수직 탑다운 LookRotation up 퇴화 방지
                 for (int i = 0; i < n; i++)
                 {
                     GameObject d = _dots[i];
-                    Vector3 to = camPos - d.transform.position;
+                    Vector3 to = d.transform.position - camPos;   // +Z가 카메라 반대 → -Z(전면)가 카메라
                     if (to.sqrMagnitude < 1e-6f) continue;
-                    d.transform.rotation = Quaternion.LookRotation(to.normalized, Vector3.up);
+                    d.transform.rotation = Quaternion.LookRotation(to.normalized, camUp);
                 }
             }
         }
@@ -121,6 +123,10 @@ namespace ProjectName.Systems
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
             go.name = "BowTrajectoryDot";
+            // [QA#2] 호스트 자식 + HideAndDontSave — 씬 전환(Single) 시 루트 파괴와 함께 공존,
+            //         호스트가 살아남아도 걸린 참조가 되지 않는다(크래시 방지).
+            go.hideFlags = HideFlags.HideAndDontSave;
+            go.transform.SetParent(transform, false);
             go.transform.localScale = Vector3.one * 0.5f;
             go.SetActive(false);   // 기본 숨김 — 드로 중만 활성
             var mr = go.GetComponent<MeshRenderer>();
@@ -146,6 +152,8 @@ namespace ProjectName.Systems
             if (mat.HasProperty("_SrcBlend")) mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
             if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
             if (mat.HasProperty("_ZWrite")) mat.SetFloat("_ZWrite", 0f);
+            // [QA#1] 백페이스 컬링 무효 — 방향 벨트기 위해 양면 렌더(정방향 빌보드와 함께 안전망).
+            if (mat.HasProperty("_Cull")) mat.SetFloat("_Cull", 0f);
             mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             if (tex != null) mat.mainTexture = tex;
             mat.color = new Color(0.95f, 0.97f, 1f, 0.85f);   // 옅은 흰·청 발광
