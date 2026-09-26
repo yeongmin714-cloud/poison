@@ -1,6 +1,29 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-26 (UI-F-GRID G1+G2 — 인벤토리/전리품 그리드 Figma 정합)
+> **최종 갱신:** 2026-09-26 (UI-F-GRID G1~G4 — 인벤토리/전리품/상점 그리드 Figma 정합)
+
+## 📌 세션 스냅샷 (2026-09-26 ✅ UI-F-GRID G3 — 상점 Store/판매 5열 그리드 — 커밋 68f39f37)
+
+> **입력**: "진행해줘" (G1·G2 후속).
+> **피그마 실측**: game-shop-ui = 좌 Store **5열 그리드**(슬롯 아이콘+최하단 가격태그) + 중앙 Detail + 우측 인벤 **5열 그리드**, 6탭(전체/무기/방어구/소모품/재료/레시피).
+
+### 구현
+- `ShopWindowUTK.cs`: `_buyScroll`/`_sellScroll` contentContainer → **Row+Wrap 5열 그리드**.
+- `BuildBuyRow`→ 78×92 슬롯(아이콘 62 + 희귀★ + 하단 가격태그 66×), 호버/클릭→`ShowDetail(shopItem,true)`.
+- `BuildSellRow`→ 78×84 슬롯(아이콘+카운트 + 하단 판매가/판매불가 태그), 클릭→`ShowDetail(null,false)`.
+- **금융 로직 보존**: 구매/판매는 Detail 패널 `OnDetailAction`(→`BuyItem`/`SellSlot`)이 담당해 행 내부 버튼 제거해도 거래 안전. `BuyAtIndex`는 public 유지. 중복 생성 없음(파일 검증).
+
+### 검증
+- 배치컴파일 `CompileScripts: 15396ms`, **error CS 0**.
+- EditMode **299/301** (실패 2건 = 기존 요리 데이터 테스트, 이번과 무관).
+- 변경: ShopWindowUTK.cs +93/-108. 커밋 68f39f37.
+
+### G4 나머지 Figma 창 점검 (그리드 드리프트 0)
+- 월드맵(Percent 50/50)·퀘스트(wrap)·크래프트·전투로그 = 이미 GitHub-dark + 목록/전용 구조. 병사·상태·미니맵·창고(5열) = 전용창. **추가 그리드 열수 드리프트 없음**.
+- ⚠ **Play 검증 대기**: ①상점 Store/판매가 5열 그리드(아이콘+가격태그)로 ②구매=슬롯클릭→중앙 Detail 버튼, 판매 동일.
+
+---
+
 
 ## 📌 세션 스냅샷 (2026-09-26 ✅ UI-F-GRID G1+G2 — 인벤토리/전리품 그리드 Figma 정합 — 커밋 75275efe)
 
