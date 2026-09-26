@@ -6,17 +6,23 @@ using ProjectName.Systems;   // CombatLog, CombatLogEntry, ProjectName.Systems.L
 namespace ProjectName.UI.Toolkit
 {
     /// <summary>
-    /// UI Toolkit Phase U7 Round C — 전투 로그 창 (L 토글 / ESC 닫기, 스크롤 목록).
+    /// UI Toolkit Phase U7 Round C → [P5 Figma daily-combat-log 카드형 재구성] — 전투 로그 창.
     /// 참조 계획서: docs/UI_TOOLKIT_MIGRATION.md
     /// 원본: Assets/Scripts/UI/CombatLogUI.cs, 데이터: Systems/CombatLog.cs — 절대 수정 금지.
     ///
-    /// [기능]
+    /// [기능 — 보존]
     ///   ① 원본 CombatLog.GetRecentEntries(100) 실측 — 별도 큐 불필요 (원본이 최대100 유지).
-    ///   ② L키 토글 / ESC 닫기 (원본 입력 규약 동일). UTKWindowBase에 등록하지 않는 상시 HUD — 순수 VisualElement.
-    ///   ③ 로그 타입(Normal/Damage/Heal/Kill/Warning)별 색상 라벨 + [MM:SS] 타임스탬프.
-    ///   ④ "전체 지우기" 버튼 → CombatLog.Clear() (원본 데이터 동일 경로).
-    ///   ⑤ 편의 정적 AddLog → 원본 CombatLog.AddEntry 위임 (피드 API 직접 접근).
-    ///   ⑥ MonoBehaviour Updater 300ms 폴링 — 새 로그 반영.
+    ///   ② L키 토글 / ESC 닫기 (원본 입력 규약 동일). 상시 HUD — 순수 VisualElement.
+    ///   ③ 전체 지우기 버튼 → CombatLog.Clear()
+    ///   ④ 편의 정적 AddLog → 원본 CombatLog.AddEntry 위임
+    ///   ⑤ MonoBehaviour Updater 300ms 폴링
+    ///
+    /// [P5 Figma daily-combat-log 카드형 재배열 — 데이터 소스 동일]
+    ///  - LogList: BattleLogItem 카드 — MetaInfo(타임스탬프 HH:MM:SS + 지역/메시지 굵게)
+    ///    + BattleResultRow(교전 세력 + 결과 배지). 최신 로그 테두리 강조.
+    ///  - SummaryFooter: "기록된 최근 교전 수" + "N / 50 세션 로드됨"
+    ///  - 게임 CombatLog가 단일 message 문자열이라 Figma SF '교전세력/결과 2열'을 강제 파싱하지 않고,
+    ///    카드형 재배열 + 타입 결과 배지(Damage/Heal/Kill/Warning/Normal)로 매핑한다.
     /// </summary>
     public class CombatLogUTK : VisualElement
     {
@@ -25,10 +31,10 @@ namespace ProjectName.UI.Toolkit
 
         private const float PollInterval = 0.3f;           // 300ms 폴링
         private const int MaxVisible = 100;                // 원본 MAX_VISIBLE_ENTRIES
-        private const float EntryHeight = 22f;
 
         private readonly ScrollView _scroll;
         private readonly Button _clearBtn;
+        private Label _footerCount;
         private bool _isVisible;
         private int _lastRenderCount = -1;
 
@@ -114,10 +120,10 @@ namespace ProjectName.UI.Toolkit
         {
             name = "CombatLogUIBar";
             style.position = Position.Absolute;
-            style.right = 20f;
-            style.top = 60f;
-            style.width = 500f;
-            style.height = 450f;
+            style.left = 24f;
+            style.top = 40f;
+            style.width = 560f;
+            style.height = 500f;
             // [GitHub-dark] 창 본체 — 브론즈 베벨 제거, 다크 패널 + 1px 스트로크 + r8 (이 창 한정)
             style.backgroundColor = new StyleColor(GitHubDark.Panel);
             style.borderTopWidth = 1f;
@@ -134,24 +140,57 @@ namespace ProjectName.UI.Toolkit
             style.borderBottomRightRadius = 8f;   // 메인 반경 r8
             style.display = DisplayStyle.None;
 
-            // 제목
-            var title = new Label("⚔️ 전투 기록");
-            title.style.fontSize = 15f;
+            // 제목 [P5] — 전투 소식 + 세션 수
+            var titleRow = new VisualElement();
+            titleRow.style.flexDirection = FlexDirection.Row;
+            titleRow.style.alignItems = Align.Center;
+            var title = new Label("⚔️ 전투 소식");
+            title.style.fontSize = 16f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 기본 텍스트
-            title.style.paddingTop = 5f;
-            title.style.paddingBottom = 4f;
-            Add(title);
+            title.style.color = new StyleColor(GitHubDark.TextMain);
+            titleRow.Add(title);
+            var titleSpacer = new VisualElement();
+            titleSpacer.style.flexGrow = 1f;
+            titleRow.Add(titleSpacer);
+            var sessionLbl = new Label("DAILY COMBAT LOG");
+            sessionLbl.style.fontSize = 11f;
+            sessionLbl.style.color = new StyleColor(GitHubDark.TextSub);
+            titleRow.Add(sessionLbl);
+            Add(titleRow);
 
-            // 스크롤 로그
+            // 스크롤 로그 [P5] — BattleLogItem 카드 목록
             _scroll = new ScrollView(ScrollViewMode.Vertical);
             _scroll.name = "LogList";
             _scroll.style.flexGrow = 1f;
+            _scroll.style.marginTop = 4f;
             Add(_scroll);
 
-            var _tmp = new Label();   // 플렉스/높이 안정화용 스페이서
-            _tmp.style.height = 0f;
-            Add(_tmp);
+            // [P5] 요약 풋터 — 기록된 최근 교전 수
+            var footerRow = new VisualElement();
+            footerRow.name = "SummaryFooter";
+            footerRow.style.flexDirection = FlexDirection.Row;
+            footerRow.style.alignItems = Align.Center;
+            footerRow.style.marginTop = 4f;
+            footerRow.style.height = 1f;
+            footerRow.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
+            Add(footerRow);
+
+            var footerInner = new VisualElement();
+            footerInner.style.flexDirection = FlexDirection.Row;
+            footerInner.style.alignItems = Align.Center;
+            footerInner.style.marginTop = 3f;
+            var fLabel = new Label("기록된 최근 교전 수");
+            fLabel.style.fontSize = 13f;
+            fLabel.style.color = new StyleColor(GitHubDark.TextSub);
+            footerInner.Add(fLabel);
+            var fPad = new VisualElement();
+            fPad.style.flexGrow = 1f;
+            footerInner.Add(fPad);
+            _footerCount = new Label("0 / 50 세션 로드됨");
+            _footerCount.style.fontSize = 13f;
+            _footerCount.style.color = new StyleColor(GitHubDark.Accent);
+            footerInner.Add(_footerCount);
+            Add(footerInner);
 
             // 전체 지우기
             _clearBtn = UTKButton.Create("전체 지우기", () =>
@@ -161,8 +200,8 @@ namespace ProjectName.UI.Toolkit
                 Refresh();
                 Debug.Log("[CombatLogUTK] 전체 로그 지움 (원본 CombatLog.Clear)");
             }, UTKButton.Variant.Danger);
-            _clearBtn.style.marginTop = 6f;
-            StyleButton(_clearBtn, UTKButton.Variant.Danger);   // [GitHub-dark] danger 버튼 인라인 리스타일
+            _clearBtn.style.marginTop = 5f;
+            StyleButton(_clearBtn, UTKButton.Variant.Danger);
             Add(_clearBtn);
 
             UTKWindowBase.ApplyUIToolkitFont(this);
@@ -202,6 +241,11 @@ namespace ProjectName.UI.Toolkit
             if (!_isVisible) return;
             var entries = CombatLog.GetRecentEntries(MaxVisible);
             if (entries == null) return;
+
+            // [P5] 풋터 카운트 갱신
+            if (_footerCount != null)
+                _footerCount.text = $"{entries.Count} / {MaxVisible} 세션 로드됨";
+
             if (entries.Count == _lastRenderCount) return;
 
             _lastRenderCount = entries.Count;
@@ -215,52 +259,111 @@ namespace ProjectName.UI.Toolkit
             for (int i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
-                var row = new VisualElement();
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.height = EntryHeight;
-                row.style.alignItems = Align.Center;
-                row.name = "LogRow_";
+                // [P5 Figma] BattleLogItem 카드 — MetaInfo(타임스탬프+메시지/지역) + 결과 배지
+                var card = new VisualElement();
+                card.name = "BattleLogItem";
+                card.style.flexDirection = FlexDirection.Column;
+                card.style.marginTop = 3f;
+                card.style.marginBottom = 3f;
+                card.style.paddingLeft = 8f;
+                card.style.paddingRight = 8f;
+                card.style.paddingTop = 5f;
+                card.style.paddingBottom = 5f;
+                card.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
+                card.style.borderTopWidth = 1f;
+                card.style.borderBottomWidth = 1f;
+                card.style.borderLeftWidth = 1f;
+                card.style.borderRightWidth = 1f;
+                // 최신(상단) 로그 — 파란 테두리 강조
+                Color border = (i == 0) ? GitHubDark.Accent : GitHubDark.Stroke;
+                card.style.borderTopColor = card.style.borderBottomColor = card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(border);
+                card.style.borderTopLeftRadius = 6f;
+                card.style.borderTopRightRadius = 6f;
+                card.style.borderBottomLeftRadius = 6f;
+                card.style.borderBottomRightRadius = 6f;
 
-                // [F5-3] 타입 컬러 마커 — GitHub-dark 형판의 row 아이콘 슬롯(빈 아이콘 대신 컬러 점)
-                var dot = new Label();
-                dot.style.width = 8f;
-                dot.style.height = 8f;
-                dot.style.marginLeft = 2f;
-                dot.style.marginRight = 6f;
-                dot.style.flexShrink = 0f;
-                dot.style.borderTopLeftRadius = 4f;
-                dot.style.borderTopRightRadius = 4f;
-                dot.style.borderBottomLeftRadius = 4f;
-                dot.style.borderBottomRightRadius = 4f;
-                dot.style.backgroundColor = new StyleColor(ColorForType(entry.type));
-                row.Add(dot);
+                // MetaInfo: HH:MM:SS(파랑) + 메시지(굵게) — Figma 시간/지역
+                var meta = new VisualElement();
+                meta.style.flexDirection = FlexDirection.Row;
+                meta.style.alignItems = Align.Center;
 
-                // [MM:SS] 타임스탬프
-                int minutes = Mathf.FloorToInt(entry.timestamp / 60f);
+                int hours = Mathf.FloorToInt(entry.timestamp / 3600f);
+                int minutes = Mathf.FloorToInt((entry.timestamp % 3600f) / 60f);
                 int seconds = Mathf.FloorToInt(entry.timestamp % 60f);
-                var ts = new Label($"[{minutes:D2}:{seconds:D2}]");
-                ts.style.width = 62f;
-                ts.style.fontSize = 11f;
-                ts.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 타임스탬프 — 보조 텍스트/모노 톤
-                row.Add(ts);
+                var ts = new Label($"{hours:D2}:{minutes:D2}:{seconds:D2}");
+                ts.style.fontSize = 12f;
+                ts.style.color = new StyleColor(GitHubDark.Accent);
+                ts.style.width = 76f;
+                meta.Add(ts);
 
-                // 메시지 (타입별 색상)
-                var msg = new Label(entry.message);
-                msg.style.flexGrow = 1f;
-                msg.style.fontSize = 13f;
-                msg.style.color = new StyleColor(ColorForType(entry.type));
-                row.Add(msg);
+                var region = new Label(entry.message);
+                region.style.flexGrow = 1f;
+                region.style.fontSize = 14f;
+                region.style.unityFontStyleAndWeight = FontStyle.Bold;
+                region.style.color = new StyleColor(GitHubDark.TextMain);
+                region.style.whiteSpace = WhiteSpace.Normal;
+                meta.Add(region);
+                card.Add(meta);
 
-                _scroll.Add(row);
+                // 결과 배지 (타입별)
+                var resultRow = new VisualElement();
+                resultRow.style.flexDirection = FlexDirection.Row;
+                resultRow.style.alignItems = Align.Center;
+                resultRow.style.marginTop = 3f;
+
+                var fLabel = new Label("교전 결과");
+                fLabel.style.fontSize = 11f;
+                fLabel.style.color = new StyleColor(GitHubDark.TextSub);
+                fLabel.style.width = 64f;
+                resultRow.Add(fLabel);
+
+                var badge = new Label(TypeLabel(entry.type));
+                badge.style.fontSize = 11f;
+                badge.style.unityFontStyleAndWeight = FontStyle.Bold;
+                Color bc = ColorForType(entry.type);
+                badge.style.backgroundColor = new StyleColor(bc);
+                badge.style.color = new StyleColor(GitHubDark.TextSub);
+                badge.style.paddingLeft = 6f;
+                badge.style.paddingRight = 6f;
+                badge.style.borderTopLeftRadius = 4f;
+                badge.style.borderTopRightRadius = 4f;
+                badge.style.borderBottomLeftRadius = 4f;
+                badge.style.borderBottomRightRadius = 4f;
+                resultRow.Add(badge);
+
+                var spacer = new VisualElement();
+                spacer.style.flexGrow = 1f;
+                resultRow.Add(spacer);
+
+                var swatch = new Label("●");
+                swatch.style.fontSize = 10f;
+                swatch.style.color = new StyleColor(bc);
+                swatch.style.width = 20f;
+                resultRow.Add(swatch);
+                card.Add(resultRow);
+
+                _scroll.Add(card);
             }
-            _scroll.scrollOffset = new Vector2(0f, float.MaxValue);   // 최신(하단)으로
+            _scroll.scrollOffset = new Vector2(0f, 0f);   // [P5] 최신(상단)부터 — Figma는 최신 위
+        }
+
+        private static string TypeLabel(ProjectName.Systems.LogType type)
+        {
+            switch (type)
+            {
+                case ProjectName.Systems.LogType.Damage:  return "데미지";
+                case ProjectName.Systems.LogType.Heal:    return "회복";
+                case ProjectName.Systems.LogType.Kill:    return "처치";
+                case ProjectName.Systems.LogType.Warning: return "경고";
+                default:                                  return "정보";
+            }
         }
 
         private static Color ColorForType(ProjectName.Systems.LogType type)
         {
             switch (type)
             {
-                case ProjectName.Systems.LogType.Damage:  return GitHubDark.Danger;    // [GitHub-dark] danger 레드 #F85149
+                case ProjectName.Systems.LogType.Damage:  return GitHubDark.Danger;    // danger 레드 #F85149
                 case ProjectName.Systems.LogType.Heal:    return GitHubDark.Success;   // success 그린 #3FB950
                 case ProjectName.Systems.LogType.Kill:    return GitHubDark.Gold;      // 골드 #E3B341
                 case ProjectName.Systems.LogType.Warning: return GitHubDark.Warn;      // attention #D29922
