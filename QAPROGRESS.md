@@ -1,6 +1,37 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-27 (UI-F-COMPLETE P3 — 캐릭터 상태창 Figma 재구성)
+> **최종 갱신:** 2026-09-27 (UI-F-COMPLETE P4 — 퀘스트 창 Figma 3열 재구성)
+
+## 📌 세션 스냅샷 (2026-09-27 ✅ UI-F-COMPLETE P4 — 퀘스트 창 Figma quest-window-ui 3열 재구성 — 커밋 534d4e75)
+
+> **입력**: "진행" (P3 완료 후속, P4 퀘스트). **서브에이전트 600s 타임아웃·산출물 0건** → 스킬 패턴(큰 파일 레이아웃 개편은 위임 포기 → 부모 직접)으로 부모가 직접 재구성.
+> **피그마 실측**: `quest-window-ui` 노드트리 + `/tmp/figma_quest.png` vision — **3열 분할**(좌 목록 / 중앙 상세 / 우 보상) 확정.
+
+### 구현 (QuestWindowUTK.cs — 534추가/99삭제, 이파일만)
+Figma `quest-window-ui` 3열 구조로 재배열 — **게임 로직 100% 보존, 데이터 소스 동일(공개 API 소비만)**:
+- 창 760→**1280×640** 3열 확장.
+- **좌 QuestListPanel**: 필터탭(전체/진행 중/완료) + 카드 목록(TierStrip 상태색 바 + CategoryPill 배지 + Lv.N + 제목 + 설명 + 진행게이지 %) + 요약 풋터. 카드 클릭 시 선택.
+- **중앙 QuestDetailPanel**: 선택 퀘스트 HeroHeader(명/레벨/보상요약) + 작전 브리핑(description) + 목표 체크리스트(완료=초록 ✓ + 진행게이지, 미완료=수치 current/required).
+- **우 RewardPanel**: 골드(골드색)/경험(액센트)/호감도(그린)/아이템 카드(등급테두리 아이콘 + 이름 + 1x 수량).
+- 수락/완료/체인진행 버튼 로직, 폴링 400ms, Q키/ESC, DontDestroyOnLoad 전부 보존.
+
+### 검증
+- 배치컴파일 **error CS 0** (Java 문법 2건 교정: `boolean`→`bool`, `private final`→`readonly`).
+- ⚠ **struct 답검**: QuestData/QuestReward/QuestObjective는 **struct(값타입)** → null 비교 불가(CS0019) → `quest.questId==""` 빈 판정 + `reward.IsEmpty`로 교정. ItemData에 `count` 필드 없음 → 수량 "1x"(원본 AddItem 1개씩과 일치).
+- EditMode **299/301** — 실패 2건 기존 요리 데이터 2건(CookingDatabase/FindRecipe, 무관), **P4 회귀 없음**.
+- ⚠ **Play 검증 대기**: ①Q키 퀘스트가 3열(목록/상세/보상)로 뜨는지 ②카드 클릭→중앙 상세/우 보상 갱신 ③필터 탭 전환.
+
+### UI-F-COMPLETE 진행 상황
+| Phase | 창 | 작업 | 커밋 |
+|:--|:--|:--|:--|
+| P1 | 상점 | Store 6탭 카테고리 필터 | e37e828b |
+| P2 | 병사관리 | 신규 3열 창(목록/능력치/배치7) | 3be77556 |
+| P3 | 캐릭터 상태 | Figma character-status-panel (Identity+초상화+LevelBlock+CoreStatsGrid4+특수상태게이지) | 59f990f3 |
+| **P4** | **퀘스트** | **3열(목록+필터탭/중앙 상세/우 보상) — 카드+진행게이지+목표체크리스트** | **534d4e75** |
+| P5 | 전투로그 | 카드행+요약풋터 | — |
+| P6~P9 | 월드맵/몬스터HP/크래프트/인터랙션 | — | — |
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-27 ✅ UI-F-COMPLETE P3 — 캐릭터 상태창 Figma character-status-panel 재구성 — 커밋 59f990f3)
 

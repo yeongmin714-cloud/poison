@@ -3392,7 +3392,7 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | P1 | 상점 | Store 6탭 카테고리 필터(전체/무기/방어구/소모품/재료/레시피) — ItemCategory 매핑, 금융 로직 무수정 | ✅ 커밋 e37e828b, error CS 0 |
 | P2 | 병사관리 | 신규 3열 창(SoldierManagementUTK): 좌 목록3탭+카드 / 중앙 능력치 프로그레스 / 우 배치 7역할 — GuardManager·GuardTaskSystem 데이터 연동 | ✅ 커밋 3be77556, error CS 0 |
 | P3 | 캐릭터 상태 | StatusWindowUTK → Figma character-status-panel: 좌 Identity+초상화(HP오버레이)+LevelBlock+CoreStatsGrid(공/방/최대체력/민첩)+특수상태(허기/중독도) / 중앙 장비슬롯+보너스 / 우 상세(주스탯분배·전투스탯·칭호·감사) — 로직 100% 보존 | ✅ 커밋 59f990f3, error CS 0, EditMode 299/301(요리2건 무관) |
-| P4 | 퀘스트 | 카드목록+중앙상세+우보상 3열 | ⏳ |
+| P4 | 퀘스트 | QuestWindowUTK → Figma quest-window-ui 3열: 좌 목록+필터탭(전체/진행/완료)+카드(TierStrip+CategoryPill+Lv+진행게이지%) / 중앙 상세(HeroHeader+브리핑+목표체크리스트) / 우 보상(골드/경험/호감도/아이템) — 로직 100% 보존, struct null비교 교정 | ✅ 커밋 534d4e75, error CS 0, EditMode 299/301 |
 | P5 | 전투로그 | 카드행+요약풋터 | ⏳ |
 | P6~P9 | 월드맵/몬스터HP/크래프트/인터랙션 | — | ⏳ |
 
