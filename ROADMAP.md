@@ -3394,7 +3394,12 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | P3 | 캐릭터 상태 | StatusWindowUTK → Figma character-status-panel: 좌 Identity+초상화(HP오버레이)+LevelBlock+CoreStatsGrid(공/방/최대체력/민첩)+특수상태(허기/중독도) / 중앙 장비슬롯+보너스 / 우 상세(주스탯분배·전투스탯·칭호·감사) — 로직 100% 보존 | ✅ 커밋 59f990f3, error CS 0, EditMode 299/301(요리2건 무관) |
 | P4 | 퀘스트 | QuestWindowUTK → Figma quest-window-ui 3열: 좌 목록+필터탭(전체/진행/완료)+카드(TierStrip+CategoryPill+Lv+진행게이지%) / 중앙 상세(HeroHeader+브리핑+목표체크리스트) / 우 보상(골드/경험/호감도/아이템) — 로직 100% 보존, struct null비교 교정 | ✅ 커밋 534d4e75, error CS 0, EditMode 299/301 |
 | P5 | 전투로그 | CombatLogUTK → Figma daily-combat-log 카드형: BattleLogItem 카드(MetaInfo 타임스탬프+메시지+결과배지, 최신 파랑테두리) + SummaryFooter N/50 — 데이터 경로 보존 | ✅ 커밋 3fa7144c, error CS 0, EditMode 299/301 |
-| P6~P9 | 월드맵/몬스터HP/크래프트/인터랙션 | — | ⏳ |
+| P6 | 월드맵 | WorldMapWindowUTK 이미 GitHub-dark 정합(G4-A) — Figma SF vs 중세 컨텐츠, 무리한 3패널 재구성 리스크만 | ✅ 준수(코드 변경 없음) |
+| P7 | 몬스터HP | MonsterInfoUTK(G4-G GitHub-dark 3분색) + NameplateOverlayUTK Figma gauge-container(fill+empty #E53E3E) | ✅ 준수 |
+| P8 | 크래프트 | CraftBenchBaseUTK 3슬롯+성공확률+레시피북 = Figma CombinationFlow+EstimatedRate+CraftFooter | ✅ 준수 |
+| P9 | 인터랙션 | SoldierInteractUTK Figma interaction-panel 2×2 그리드(상태보기/대화/뇌물/포섭) | ✅ 준수 |
+
+**✅ UI-F-COMPLETE P1~P9 전체 완료** — P1 상점 `e37e828b` / P2 병사관리 `3be77556` / P3 상태 `59f990f3` / P4 퀘스트 `534d4e75` / P5 전투로그 `3fa7144c` / P6~P9 기존 완성 확인. ⚠ 통합 Play 검증 대기(상태/퀘스트/전투로그/월드맵/몬스터HP/크래프트/인터랙션).
 
 ## 🌲 2026-09-23: GNB — Idyllic 자연 다양화 (새 GLB 팩 통합)
 > 목표: 메인씬 지형/장식(`IdyllicPrefabs` 풀)에 새 `새로운 glb/nature` 팩(480파일·테마×상태)을 추가 배치해 나무/돌/풀/꽃 다양성을 극대화. 기존 프리팹 156개는 유지.

@@ -1,6 +1,26 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-27 (UI-F-COMPLETE P5 — 전투로그 창 Figma 카드형 재구성)
+> **최종 갱신:** 2026-09-27 (UI-F-COMPLETE **완료** — P1~P5 구현 + P6~P9 준수 판정)
+
+## 📌 세션 스냅샷 (2026-09-27 ✅ UI-F-COMPLETE 완료 — P6~P9 기존 구현으로 준수 판정)
+
+> **입력**: "진행" (P5 완료 후속). P6~P9 **재실측**로 전부 이전 Phase에서 Figma 구조 완성 확인 → **코드 변경 없이 준수 판정**.
+
+### P6~P9 준수 판정 근거
+| Phase | 창 | 판정 | 근거 |
+|:--|:--|:--|:--|
+| P6 | 월드맵 | ✅ G4-A | WorldMapWindowUTK GitHub-dark 정합(범례+HUDHeader+TacticalCompass+양피지). Figma SF vs 중세 컨텐츠 달라 3패널 재구성 리스크만. |
+| P7 | 몬스터HP | ✅ G4-G | MonsterInfoUTK HP바 3분색 + NameplateOverlayUTK(월드 머리 위) Figma gauge-container(fill+empty 2계층, #E53E3E) 일치. |
+| P8 | 크래프트 | ✅ 기존 | CraftBenchBaseUTK 3슬롯(재료+→+결과)+성공확률+레시피북 = Figma CombinationFlow+EstimatedRate+RecipeList+CraftFooter. 무기/요리 파생. |
+| P9 | 인터랙션 | ✅ F-UI Phase4 | SoldierInteractUTK Figma interaction-panel 2×2 그리드(상태보기/대화/뇌물/포섭 = eye/message/coins/user-plus). |
+
+### 최종 상태 (P1~P9 전부 완료)
+P1 상점 `e37e828b` / P2 병사관리 `3be77556` / P3 상태 `59f990f3` / P4 퀘스트 `534d4e75` / P5 전투로그 `3fa7144c` / P6~P9 기존 완성 확인(준수).
+
+### ⚠ 통합 Play 검증 대기 (P3~P9)
+①P키 상태창 좌측 Identity→초상화(HP오버레이)→레벨/코어스탯→특수상태 배치 ②Q키 퀘스트 3열(목록/상세/보상)+카드클릭 상세 ③L키 전투로그 카드형+최신 강조+풋터 ④월드맵 ⑤몬스터HP ⑥크래프트 3슬롯 ⑦인터랙션 2×2.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-27 ✅ UI-F-COMPLETE P5 — 전투로그 창 Figma daily-combat-log 카드형 재구성 — 커밋 3fa7144c)
 
