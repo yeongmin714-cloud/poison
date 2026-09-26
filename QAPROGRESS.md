@@ -24,7 +24,7 @@
 ### 검증
 - 배치컴파일 `run_batch.bat` **error CS = 0** (확인 2회).
 - 정적: 7개 변경 파일 괄호 균형 통과, `git diff --check` 0.
-- 변경: ArrowData.cs(+20)·ArrowManager.cs(+1)·ArrowProjectile.cs(+103)·ArrowShieldBlockFX.cs(+1)·AttackSoundLayerManager.cs(+78)·BowTrajectoryPreview.cs(+64)·PlayerCombat.cs(1줄)·ArcheryClipWiring2.cs(신규).
+- 변경: ArrowData.cs(+20)·ArrowManager.cs(+22)·ArrowProjectile.cs(+103)·ArrowShieldBlockFX.cs(+1)·AttackSoundLayerManager.cs(+78)·BowTrajectoryPreview.cs(+64)·HumanoidClipDriver.cs(+10)·PlayerCombat.cs(2)·BowAimReticleUTK.cs(+24). (ArcheryClipWiring2는 더블L 기반이라 삭제 — 사용자 애니 DrawShoot 사용.)
 - **⚠ Play 검증 대기(관례)**: ①드로 시 골드 착지점 마커+티어별 트레일색 ②마법 화살 적 1기 관통 ③방패 막기 '탁'+밝은 빛발 ④화살 발사 휘파람 ⑤드로 '당기고 쏘기'→릴리즈 발사 2단계 ⑥리티클 ◆/●/× 화살 종류·티어색 표기.
 
 ---
