@@ -1,6 +1,34 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-27 (UI-F-COMPLETE P4 — 퀘스트 창 Figma 3열 재구성)
+> **최종 갱신:** 2026-09-27 (UI-F-COMPLETE P5 — 전투로그 창 Figma 카드형 재구성)
+
+## 📌 세션 스냅샷 (2026-09-27 ✅ UI-F-COMPLETE P5 — 전투로그 창 Figma daily-combat-log 카드형 재구성 — 커밋 3fa7144c)
+
+> **입력**: "진행" (P4 완료 후속, P5 전투로그). **서브에이전트 신뢰 낮음(직전 P4 위임 산출물 0건)** → **부모 직접 재구성**.
+> **피그마 실측**: `daily-combat-log` 노드트리 + `/tmp/figma_combatlog.png` vision.
+
+### 구현 (CombatLogUTK.cs — 이파일만 재작성)
+Figma `daily-combat-log` 카드형 구조로 재배열 — **게임 로직(데이터 경로) 100% 보존**:
+- **LogList → BattleLogItem 카드**: 패널(PanelSub bg + 1px 스트로크 + r6), **최신(상단) 로그는 파란 테두리 강조**. 각 카드 = MetaInfo(HH:MM:SS 파랑 + 메시지 굵게) + 교전 결과 배지(타입색: 데미지 레드/회복 그린/처치 골드/경고 옐로/정보 회색).
+- **SummaryFooter**: "기록된 최근 교전 수" + "N / 50 세션 로드됨" (CombatLog.Count 기반).
+- 최신 로그는 스크롤 상단(offset 0) — Figma 최신 위 배치에 맞춤.
+
+### 검증
+- 배치컴파일 **error CS 0**, 괄호 균형 OK, diff check 0, Java 문법 0건.
+- EditMode **299/301** — 실패 2건 기존 요리 데이터 2건(무관), **P5 회귀 없음**.
+- ⚠ **Play 검증 대기**: ①L키 전투로그가 카드형으로 뜨는지 ②최신 로그 파랑테두리 ③하단 요약 풋터 N/50.
+
+### UI-F-COMPLETE 진행 상황
+| Phase | 창 | 작업 | 커밋 |
+|:--|:--|:--|:--|
+| P1 | 상점 | Store 6탭 카테고리 필터 | e37e828b |
+| P2 | 병사관리 | 신규 3열 창(목록/능력치/배치7) | 3be77556 |
+| P3 | 캐릭터 상태 | Figma character-status-panel (Identity+초상화+LevelBlock+CoreStatsGrid4+특수상태게이지) | 59f990f3 |
+| P4 | 퀘스트 | 3열(목록+필터탭/중앙 상세/우 보상) — 카드+진행게이지+목표체크리스트 | 534d4e75 |
+| **P5** | **전투로그** | **카드형(BattleLogItem MetaInfo+결과배지)+요약풋터 N/50** | **3fa7144c** |
+| P6~P9 | 월드맵/몬스터HP/크래프트/인터랙션 | — | — |
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-27 ✅ UI-F-COMPLETE P4 — 퀘스트 창 Figma quest-window-ui 3열 재구성 — 커밋 534d4e75)
 
