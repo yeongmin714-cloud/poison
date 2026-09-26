@@ -1,6 +1,30 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-26 (UI-F-GRID G1~G4 — 인벤/전리품/상점 5열 그리드 + 병사/상태/몬스터 GitHub-dark)
+> **최종 갱신:** 2026-09-26 (UI-F-GRID G1~G4 + Test_10 씬 UTK 전환)
+
+## 📌 세션 스냅샷 (2026-09-26 ✅ Test_10 씬 UTK 전환 — 커밋 f6abb162)
+
+> **입력**: "테스트 10도 utk로" (사용자: 현재 UI가 메인씬에만 수정됐는지 테스트10에도 적용됐는지 문의 → 테스트10은 구식 UI를 쓰도록 배선된 게 확인 → UTK로 전환 요청).
+
+### 판정
+- 제가 수정한 UI는 전부 `UI/Toolkit/*UTK.cs`(GitHub-dark)로, `UIToolkitBootstrap`(BeforeSceneLoad)이 UI 루트를 만들면 **어느 씬이든 자가부트/UTKWireUp 브리지로 동작**.
+- 그런데 **Test_10(`TestTerritoryCombatSetup.SetupUITestArena`)이 구식 IMGUI/UGUI(MinimapUI·UIInventoryHotkey+InventoryWindow·StatusWindowUI·TerritoryWarehouse·CraftingStation)를 리플렉션으로 강제 생성**해 UTK와 중복되고 GitHub-dark를 방해 → 전환 필요.
+
+### 구현 (SetupUITestArena 재작성, +113/−48 이파일만)
+- ①**구식 MinimapUI 제거**→`MinimapUTK.Ensure()` 리플렉션 호출(멱등).
+- ②**구식 I키 인벤(UIInventoryHotkey+InventoryWindow) 제거**→ 신규 nested `UtkInventoryKeyProbe` MonoBehaviour가 I키 발화(`InventoryToggleRequestedUTK` 이벤트 Invoke) → UTKWireUp이 `InventoryWindowUTK`+`ItemDescriptionWindowUTK` 쌍 토글. (⚠ 구식 UIInventoryHotkey.Update는 InventoryWindow.Instance 부재 시 return이라 그냥 지우면 I키 죽음 → 프로브 필요)
+- ③**구식 StatusWindowUI 제거**→`StatusWindowUTK` 자가부트(P키 Updater 폴링).
+- ④**창고(TerritoryWarehouse) 유지** — `WarehouseWindowUTK.Open(_territoryId)` 호출이라 UTK 창고 뜸(중복 없음).
+- ⑤**크래프트(CraftingStation) 유지** — `WeaponForgeUTK.Open()` 호출이라 UTK 제작 뜸.
+- 영토전투 셋업(Player/공격/영주/병사/몬스터/지형/카메라/장비/시딩)·창고/크래프트 박스 배치·시딩 전부 무수정.
+
+### 검증
+- 배치컴파일 `CompileScripts: 28253ms`, **error CS 0**.
+- EditMode 1차 298/301(WeaponCraft 랜덤 90% 실패 1건 추가) → **재실행 299/301** (실패=기존 알려진 요리 데이터 2건뿐, `CraftSuccess`는 랜덤 실패로 통과 — 테스트10 전환과 무관). **회귀 없음**.
+- ⚠ **Play 검증 대기**: ①테스트10 씬에서 I키 인벤/스탯/미니맵이 GitHub-dark UTK로 뜨는지 ②구식 창 겹침 없이 1개씩만 표시되는지.
+
+---
+
 
 ## 📌 세션 스냅샷 (2026-09-26 ✅ UI-F-GRID G4 — 나머지 Figma 창 GitHub-dark(분리 phase) — 커밋 5a78c06f/f90f747f)
 
