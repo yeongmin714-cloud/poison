@@ -105,6 +105,16 @@ namespace ProjectName.Systems
             Debug.Log("[HumanoidClipDriver] ArcheryShot 트리거 (활 발사)");
         }
 
+        /// <summary>[A 고품질] 활 드로 애니 — 사용자 애니 'Draw_and_Shoot_from_Back_1' 트리거(DrawShoot).
+        /// 좌클릭 홀드 드로 시작 시 발화해 '당기고 쏘기' 2단계 feel을 준다(릴리즈 시 ArcheryShot이 이어서).</summary>
+        public void TriggerBowDraw()
+        {
+            if (_anim == null) return;
+            _anim.SetTrigger("DrawShoot");
+            _attackHoldUntil = Mathf.Max(_attackHoldUntil, Time.time + 0.5f);   // 드로 중 Speed 0 홀드(발사와 겹침 방지)
+            Debug.Log("[HumanoidClipDriver] DrawShoot 트리거 (활 드로—사용자 애니)");
+        }
+
         private void OnDestroy()
         {
             PlayerHealth.OnPlayerDamaged -= OnPlayerDamagedFX;

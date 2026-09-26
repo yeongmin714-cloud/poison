@@ -250,6 +250,7 @@ namespace ProjectName.Systems
                     _bowDrawHeldTime = 0f;
                     BowAimState.Begin();   // [P25-C1] 리티클 드로 시작
                     BowTrajectoryPreview.Ensure();   // [2026-09-25 젤다식 탑다운 궤적선 예측] 호스트 지연 생성(1회, 영속)
+                    _clipDriver?.TriggerBowDraw();   // [A 고품질] 사용자 애니 'Draw_and_Shoot_from_Back_1'(당기고 쏘기) 발화
                     AttackSoundLayerManager.PlayBowDraw(); // [활 드로] 좌클릭 press — 당김 스트레치 사운드 발화
                     return;
                 }

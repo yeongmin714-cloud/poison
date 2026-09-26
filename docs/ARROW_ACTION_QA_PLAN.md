@@ -87,3 +87,10 @@
 - 피격계(히트FX/데미지숫자/카메라) 불변 — D는 신규 추가만.
 - delegate_task 대형 1회 위임 금지 → Phase 단위로 나눠 위임/부모 직접.
 - 클립 임포트 확인: DoubleL A/B가 AnimationClip으로 진짜 임포트됐는지 B에서 파서/로더 검증.
+---
+
+## ➕ Phase A 최종 (2026-09-26) — 더블L 대신 사용자 플레이어 애니메이션
+사용자 지시에 따라 **DoubleL Bow A/B는 쓰지 않는다**. 사용자의 `Assets/Animations/MeshyUser/Draw_and_Shoot_from_Back_1.fbx`(당기고 쏘기)가 컨트롤러 `DrawShoot` 상태+`DrawShoot` 트리거로 **이미 배선돼 있음**(guid 1904db4a, AnimationClip 임포트됨). → 코드 배선만:
+- `HumanoidClipDriver.TriggerBowDraw()` 신설 — `SetTrigger("DrawShoot")` + Speed0 홀드 0.5s.
+- `PlayerCombat` 드로 시작 블록에 `_clipDriver?.TriggerBowDraw()`.
+- 드로 0.5→0.7s 무게감. ArcheryClipWiring2(더블L) 삭제.
