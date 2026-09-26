@@ -44,6 +44,9 @@ namespace ProjectName.Systems
 
         private GameObject[] _dots;
         private Material _dotMat;
+        private GameObject _landMarker;      // [B 고품질] 착지점 엔드포인트 마커(파워↑ 멀어짐)
+        private Material _landMat;
+        private float _landPulse = 0f;
 
         private void Awake()
         {
@@ -51,6 +54,8 @@ namespace ProjectName.Systems
             _dots = new GameObject[PoolSize];
             for (int i = 0; i < PoolSize; i++)
                 _dots[i] = BuildDot();
+            _landMat = BuildLandMaterial();
+            _landMarker = BuildLandMarker();
         }
 
         private void LateUpdate()
@@ -80,6 +85,7 @@ namespace ProjectName.Systems
             Vector3 p = origin;
             Vector3 v = vel;
             int n = 0;
+            Vector3 landPoint = p;   // [B] 착지점 트래킹 — 점 루프가 끝나는 지면 지점
             for (float t = 0f; t < 2.0f; t += SampleDt)   // [튜닝] 최대 2s — 보통 0.37s 비행에서 낙하로 종료
             {
                 if (n >= PoolSize) break;
@@ -90,10 +96,21 @@ namespace ProjectName.Systems
                 n++;
                 v += g * SampleDt;
                 p += v * SampleDt;
+                landPoint = p;
             }
             // 남은 점 숨김
             for (int i = n; i < PoolSize; i++)
                 if (_dots[i].activeSelf) _dots[i].SetActive(false);
+
+            // [B] 착지점 마커 — 궤적 끝 지면에 골드 발광 마커(파워 풀수록 멀리). 펄스 스케일.
+            if (_landMarker != null && n > 0)
+            {
+                _landPulse += Time.deltaTime * 5f;
+                float pulse = 0.82f + 0.18f * Mathf.Sin(_landPulse);
+                _landMarker.transform.position = new Vector3(landPoint.x, 0.06f, landPoint.z);
+                _landMarker.transform.localScale = Vector3.one * (0.9f * pulse);
+                _landMarker.SetActive(true);
+            }
 
             // 빌보드 — 각 점을 탑다운 카메라로 향하게(항상 정면, 고품질 베이크 글로우가 또렷).
             // [QA#1] Quad 전면 법선은 -Z — LookRotation의 +Z를 카메라 반대(점→카메라 아님)로 + _Cull 0.
@@ -114,9 +131,50 @@ namespace ProjectName.Systems
 
         private void HideAll()
         {
-            if (_dots == null) return;
-            for (int i = 0; i < PoolSize; i++)
-                if (_dots[i].activeSelf) _dots[i].SetActive(false);
+            if (_dots != null)
+                for (int i = 0; i < PoolSize; i++)
+                    if (_dots[i].activeSelf) _dots[i].SetActive(false);
+            if (_landMarker != null && _landMarker.activeSelf) _landMarker.SetActive(false);
+        }
+
+        private GameObject BuildLandMarker()
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            go.name = "BowTrajectoryLand";
+            go.hideFlags = HideFlags.HideAndDontSave;
+            go.transform.SetParent(transform, false);
+            go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);   // 탑다운 카메라 기준 평평(위쪽 바라봄)
+            go.transform.localScale = Vector3.one * 0.9f;
+            go.SetActive(false);
+            var mr = go.GetComponent<MeshRenderer>();
+            if (mr != null)
+            {
+                mr.sharedMaterial = _landMat;
+                mr.receiveShadows = false;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+            return go;
+        }
+
+        /// <summary>[B] 착지점 마커 재질 — golg 발광(StarFlare/shad ow_glow), 애더티브. Robusto 탑다운 가시성.</summary>
+        private static Material BuildLandMaterial()
+        {
+            var tex = Resources.Load<Texture2D>("UI/StarFlare");
+            if (tex == null) tex = Resources.Load<Texture2D>("UI/shadow_glow");
+            var sh = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (sh == null) sh = Shader.Find("Sprites/Default");
+            var mat = new Material(sh);
+            if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1f);
+            if (mat.HasProperty("_Blend")) mat.SetFloat("_Blend", 2f);              // Additive
+            mat.SetOverrideTag("RenderType", "Transparent");
+            if (mat.HasProperty("_SrcBlend")) mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+            if (mat.HasProperty("_ZWrite")) mat.SetFloat("_ZWrite", 0f);
+            if (mat.HasProperty("_Cull")) mat.SetFloat("_Cull", 0f);
+            mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            if (tex != null) mat.mainTexture = tex;
+            mat.color = new Color(1f, 0.9f, 0.35f, 0.9f);   // 골드 — 착지점 명확 표식
+            return mat;
         }
 
         private GameObject BuildDot()

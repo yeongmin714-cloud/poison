@@ -1,6 +1,32 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-26 (화살 방패 막기 — 젤다 화살예시 적용)
+> **최종 갱신:** 2026-09-26 (화살 액션 완전 고품질 + 화살 방패 막기)
+
+## 📌 세션 스냅샷 (2026-09-26 ✅ 화살 액션 완전 고품질 — Arrow Action QA)
+
+> **입력**: "화살액션 계획해줘 완전 고품질으로 / VFX graph를 쓰던 셰이더 graph를 쓰던". 계획 `docs/ARROW_ACTION_QA_PLAN.md`.
+
+### 환경 확인
+- **VFX Graph 17.4.0 + Shader Graph 17.4.0 설치됨** (패키지 재사용 가능). 기존 커스텀 셰이더그래프(Trail/Impact/Slash)+SelectionRing 셰이더 존재.
+- **DoubleL `Bow_Attack_A/B_1_All.fbx` 존재하나 AnimationClip으로 미임포트**(raw FBX) → 드로/릴리즈 클립 배선은 에디터 임포트+Play 검증 필요. 드로 무게감(0.5→0.7s)은 코드로 반영.
+
+### 구현 (Phase B/C/D/E 완료, A는 준비)
+- **B — 궤적 착지점 마커** (`BowTrajectoryPreview.cs`): `_landMarker` Quad + `BuildLandMaterial`(gold StarFlare/shadow_glow 애더티브) + `landPoint` 트래킹 → **궤적 끝 지면에 골드 펄스 마커**(파워 풀수록 멀리, HideAll/드로 중만).
+- **C — 화살 3티어 차별** (`ArrowData.cs`+`ArrowProjectile.cs`+`ArrowManager.cs`):
+  - `ArrowData`에 `canPierce/glowStrength/streakColor/sparkTrail/tipGlow` 5개 파라미터 추가(일반/강화/마법).
+  - `SetArrowData` 주입 → `ApplyArrowVisuals()`가 **트레일 그래디언트를 티어별 스트릭색으로 재색** + **강화=은빛 샤프 스파크 이중 트레일** 생성.
+  - **마법 화살 = 적 1기 관통**(`_pierceRemaining=1`, `_piercedId` 중복 방지, 관통 시 화살 비행 지속) — 아군/지면/영주 제외.
+- **D — 명중/피격 고도화**: 파워풀(≥0.95) 크리틱 기존 유지. **방패 막기에 '탁' 사운드** 추가.
+- **E — 사운드 4레이어** (`AttackSoundLayerManager.cs`): `PlayArrowBlock()`(금속 톡 절차클립)+`PlayArrowWhistle()`(900→2200Hz 상승 피치 휘파람 절차클립) — 리소스 폴백 절차 생성 보장. 배선: 방패막기 `ArrowShieldBlockFX.Play`+발사 `ArrowProjectile.Spawn`.
+- **A — 드로 모션 준비** (`docs/ARROW_ACTION_QA_PLAN.md` A): `PlayerCombat.BowDrawMaxHold 0.5→0.7s`(무게감) + `Assets/Editor/ArcheryClipWiring2.cs`(Bow A/B 클립 → BowDraw/ArcheryShot 2단계 배선, 미임포트 시 보류 로그·멱등) — **에디터 FBX 임포트 + Play 검증 후속**.
+
+### 검증
+- 배치컴파일 `run_batch.bat` **error CS = 0** (확인 2회).
+- 정적: 7개 변경 파일 괄호 균형 통과, `git diff --check` 0.
+- 변경: ArrowData.cs(+20)·ArrowManager.cs(+1)·ArrowProjectile.cs(+103)·ArrowShieldBlockFX.cs(+1)·AttackSoundLayerManager.cs(+78)·BowTrajectoryPreview.cs(+64)·PlayerCombat.cs(1줄)·ArcheryClipWiring2.cs(신규).
+- **⚠ Play 검증 대기(관례)**: ①드로 시 골드 착지점 마커+티어별 트레일색 ②마법 화살 적 1기 관통 ③방패 막기 '탁'+밝은 빛발 ④화살 발사 휘파람 ⑤Bow A/B 클립 배선 후 드로/릴리즈 2단계 모션.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-26 ✅ 화살 방패 막기 — Arrow Shield Block)
 

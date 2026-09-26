@@ -21,6 +21,7 @@ namespace ProjectName.Systems
                 SpawnRing(pos);
                 SpawnStar(pos);
                 SpawnSparks(pos);
+                AttackSoundLayerManager.PlayArrowBlock();   // [D/E] 방패 막기 '탁' 사운드
             }
             catch (System.Exception e)
             {

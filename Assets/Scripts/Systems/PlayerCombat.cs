@@ -81,7 +81,7 @@ namespace ProjectName.Systems
         /// <summary>[70차 후속19/C6] 마지막 활 발사 파워(0~1) — 명중 시 파워 풀 크리틱 연출 판정용.</summary>
         public static float LastBowPower { get; private set; } = 1f;
         private float _bowDrawHeldTime;           // 드로 홀드 누적 시간(초)
-        private const float BowDrawMaxHold = 0.5f; // 드로 최대 = 0.5초 — 이때 파워 1.0 도달
+        private const float BowDrawMaxHold = 0.7f; // 드로 최대 = 0.7초 — 이때 파워 1.0 도달(0.5→0.7, 무게감 보강)
         private const float BowMinFire = 0.18f;    // 이 파워 미만 = 탭 = 캔슬(발사 안 함)
 
         // ===== C4-08: 자동 조준 상태 =====

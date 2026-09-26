@@ -26,6 +26,62 @@ namespace ProjectName.Systems
         public float _power = 1f;
         private static readonly float GravityScale = 0.22f;   // [화살-사거리2] 0.45→0.22 — 낙하 1.17s·사거리 ~80m(테스트 2: 여전히 짧음)
 
+        /// <summary>[C 고품질] ArrowManager가 Spawn 후 주입 — 3티어 파라미터(관통/발광/스파크). Awake 이후 호출돼도 트레일은 유지.</summary>
+        public void SetArrowData(ProjectName.Core.ArrowData data)
+        {
+            if (data == null) return;
+            _arrowData = data;
+            if (data.canPierce)
+                _pierceRemaining = 1;   // 마법 화살 — 적 1기 추가 관통
+            ApplyArrowVisuals();
+        }
+
+        /// <summary>[C 고품질] 주입된 티어로 트레일 그래디언트/스파크 트레일을 갱신. Awake에서 기본(일반)으로 생성됐어도
+        /// SetArrowData가 실제 티어를 주입하므로 여기서 재색/보강한다.</summary>
+        private void ApplyArrowVisuals()
+        {
+            if (_trail == null) return;
+            var strk1 = _arrowData != null ? _arrowData.streakColor : new Color(0.75f, 0.82f, 1f);
+            var tgrad = new Gradient();
+            tgrad.SetKeys(
+                new[] { new GradientColorKey(new Color(1f, 0.99f, 0.97f), 0f), new GradientColorKey(strk1, 1f) },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.15f), new GradientAlphaKey(0.5f, 0.45f), new GradientAlphaKey(0f, 1f) });
+            _trail.colorGradient = tgrad;
+
+            // 강화 — 은빛 샤프 스파크 이중 트레일 (아직 없을 때만 생성; 기존 재질 공유)
+            if (_arrowData != null && _arrowData.sparkTrail && _sparkTrail == null && _trail.material != null)
+            {
+                try
+                {
+                    _sparkTrail = gameObject.AddComponent<TrailRenderer>();
+                    _sparkTrail.time = 0.08f;
+                    _sparkTrail.startWidth = 0.06f;
+                    _sparkTrail.endWidth = 0.005f;
+                    _sparkTrail.minVertexDistance = 0.05f;
+                    _sparkTrail.generateLightingData = false;
+                    _sparkTrail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    _sparkTrail.receiveShadows = false;
+                    _sparkTrail.material = _trail.material;
+                    var sgrad = new Gradient();
+                    sgrad.SetKeys(
+                        new[] { new GradientColorKey(new Color(0.95f, 0.95f, 1f), 0f), new GradientColorKey(new Color(0.5f, 0.5f, 0.7f), 1f) },
+                        new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 0.6f) });
+                    _sparkTrail.colorGradient = sgrad;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.Log("[Arrow][C] 강화 스파크 트레일 생성 실패(무시): " + e.ToString());
+                }
+            }
+        }
+
+        // [C 고품질] 3티어 파라미터(ArrowManager가 주입, Spawn 오버로드 경유)
+        private ProjectName.Core.ArrowData _arrowData = ProjectName.Core.ArrowData.Regular;
+        private int _pierceRemaining = 0;        // 마법 화살 관통 잔여(적 1기)
+        private int _piercedId = -1;             // 이미 관통한 대상 instanceId (중복 재데미지 방지)
+        private float _sparkAccum = 0f;          // 강화 화살 스파크 방출 누적(초)
+        private TrailRenderer _sparkTrail = null; // 강화 전용 이중 트레일(은빛 스파크)
+
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
@@ -57,10 +113,31 @@ namespace ProjectName.Systems
             tmat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             _trail.material = tmat;
             var tgrad = new Gradient();
+            var strk0 = new Color(1f, 0.99f, 0.97f);
+            var strk1 = _arrowData != null ? _arrowData.streakColor : new Color(0.75f, 0.82f, 1f);
             tgrad.SetKeys(
-                new[] { new GradientColorKey(new Color(1f, 0.99f, 0.97f), 0f), new GradientColorKey(new Color(0.75f, 0.82f, 1f), 1f) },  // 선명 흰→옅은 청
+                new[] { new GradientColorKey(strk0, 0f), new GradientColorKey(strk1, 1f) },  // 선명 흰→티어 스트릭색
                 new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.15f), new GradientAlphaKey(0.5f, 0.45f), new GradientAlphaKey(0f, 1f) });
             _trail.colorGradient = tgrad;
+
+            // [C 고품질] 강화 화살 — 은빛 샤프 스파크 이중 트레일(짧고 또렷, 광량 보강)
+            if (_arrowData != null && _arrowData.sparkTrail)
+            {
+                _sparkTrail = gameObject.AddComponent<TrailRenderer>();
+                _sparkTrail.time = 0.08f;
+                _sparkTrail.startWidth = 0.06f;
+                _sparkTrail.endWidth = 0.005f;
+                _sparkTrail.minVertexDistance = 0.05f;
+                _sparkTrail.generateLightingData = false;
+                _sparkTrail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                _sparkTrail.receiveShadows = false;
+                _sparkTrail.material = tmat;   // 동일 애더티브 재질(공유)
+                var sgrad = new Gradient();
+                sgrad.SetKeys(
+                    new[] { new GradientColorKey(new Color(0.95f, 0.95f, 1f), 0f), new GradientColorKey(new Color(0.5f, 0.5f, 0.7f), 1f) },
+                    new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 0.6f) });
+                _sparkTrail.colorGradient = sgrad;
+            }
         }
 
         /// <summary>화살 발사</summary>
@@ -91,6 +168,8 @@ namespace ProjectName.Systems
 
             var arrow = go.AddComponent<ArrowProjectile>();
             arrow._damage = damage;
+
+            AttackSoundLayerManager.PlayArrowWhistle();   // [E 고품질] 비행 휘파람(발사 직후)
 
             // [P20-4 진단] 스폰 회전 vs 조준 방향 정합 1회 실측 — "세워서 나감/방향 다름" 즉별
             float dot = Vector3.Dot(go.transform.up, direction.normalized);
@@ -545,6 +624,20 @@ namespace ProjectName.Systems
                     damageable.TakeDamage(_damage, hitDir, "Arrow");
                 }
 
+                // [C 고품질] 마법 화살 — 적 1기 관통. 이미 관통한 대상 재데미지/재소멸 방지.
+                bool piercedThis = false;
+                int thisId = hitGO != null ? hitGO.GetInstanceID() : -1;
+                if (_arrowData != null && _arrowData.canPierce && _pierceRemaining > 0
+                    && hitGO != null && !hitGO.CompareTag("DraculaLord"))
+                {
+                    if (_piercedId != thisId)
+                    {
+                        _piercedId = thisId;
+                        _pierceRemaining--;
+                        piercedThis = true;
+                    }
+                }
+
                 // [화살 명중 임팩트] 활은 PlayerCombat 근접 공격 경로를 타지 않으므로 여기서 직접
                 // 임팩트 사운드를 발화한다(활 명중 시 T/P 하이 피치 임팩트). isTarget 분기당 1회만 호출.
                 AttackSoundLayerManager.PlayAttackHit(ProjectName.Core.WeaponType.Bow, false);
@@ -561,8 +654,14 @@ namespace ProjectName.Systems
 
                 // [P25-C4 안1] 적 명중 = 별 섬광 + 화살 소멸(예시 소멸형 절충).
                 //   기존 6초 타겟 박힘은 소멸로 대체 — 섬광/데미지 숫자/히트스톱/임팩트음이 즉각 피드백.
-                DisableTrail();
+                // [C 고품질] 마법 화살 관통 시에는 소멸하지 않고 비행 지속(트레일 잔상 강조).
                 SpawnStarFlare(hitPoint);
+                if (piercedThis)
+                {
+                    // 관통 — 데미지 처리는 위에서 적용, 화살은 계속 비행(한 대상만, 신규 적 재데미지).
+                    return;
+                }
+                DisableTrail();
                 Destroy(gameObject);
             }
             else if (isOwnSoldier)

@@ -90,6 +90,7 @@ namespace ProjectName.Systems
             // [70차 후속19/A3] 발사 직후 플레이어 콜라이더 충돌 무시 — 스폰 겹침으로 화살이 튕기는 것 방지
             var proj = ArrowProjectile.Spawn(spawnPos, direction, speed, totalDamage, arrowData.trailColor);
             proj._power = power;   // [C6] 명중 시 파워 풀 크리틱 판정용
+            proj.SetArrowData(arrowData);   // [C 고품질] 3티어 파라미터(관통/발광/스파크) 주입
             var playerGo = GameObject.FindWithTag("Player");
             if (playerGo != null)
             {

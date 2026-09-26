@@ -195,6 +195,32 @@ namespace ProjectName.Systems
             PlayAttackHit(weaponType, true);
         }
 
+        /// <summary>
+        /// [D/E 고품질] 방패 막기 '탁' 사운드 — 화살이 방패에 막힐 때 짧은 금속성 톡.
+        /// 리소스 없으면 절차 생성(보장), 아니면 조용히 무시.
+        /// </summary>
+        public static void PlayArrowBlock()
+        {
+            if (!Application.isPlaying) return;
+            EnsureHost();
+            var clip = Resources.Load<AudioClip>("Sounds/SFX/attack_block");
+            if (clip == null) clip = GenerateBlockTickClip();
+            if (clip != null) _host.PlayWithPitch(0, clip, 1.4f, 0.85f);   // Swing 레이어 재사용(차단 영향 없음)
+        }
+
+        /// <summary>
+        /// [E 고품질] 화살 비행 휘파람 — 발사체 수명 동안 슬라이드 피치. 리소스 없으면 절차 생성(보장).
+        /// 활 발사 직후 ArrowManager/ArrowProjectile이 1회 호출(짧고 반복)한다.
+        /// </summary>
+        public static void PlayArrowWhistle()
+        {
+            if (!Application.isPlaying) return;
+            EnsureHost();
+            var clip = Resources.Load<AudioClip>("Sounds/SFX/arrow_whistle");
+            if (clip == null) clip = GenerateWhistleClip();
+            if (clip != null) _host.PlayWithPitch(2, clip, 1.0f, 0.5f);   // SubBass 레이어 재사용(낮은 겹침)
+        }
+
         // ================================================================
         //  내부 헬퍼
         // ================================================================
@@ -250,6 +276,58 @@ namespace ProjectName.Systems
         /// 실제로 두께감이 들리는 안전 보장. 프로필 피치에 근접한 70Hz 베이스 + 감쇠.
         /// </summary>
         private static AudioClip _cachedSubClip;
+        private static AudioClip _cachedBlockTick;
+        private static AudioClip _cachedWhistle;
+
+        /// <summary>[D/E] 방패 막기 '탁' — 금속성 하이 톡(노이즈 버스트 + 순간 감쇠). 절차 보장.</summary>
+        private static AudioClip GenerateBlockTickClip()
+        {
+            if (_cachedBlockTick != null) return _cachedBlockTick;
+            const int sr = 44100;
+            float dur = 0.09f;
+            int n = Mathf.Max(1, Mathf.RoundToInt(sr * dur));
+            var clip = AudioClip.Create("procedural_arrow_block", n, 1, sr, false);
+            var data = new float[n];
+            System.Random rnd = new System.Random(20260926);
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / sr;
+                float env = Mathf.Pow(1f - Mathf.Clamp01(t / dur), 2.2f);
+                // 하이 하모닉 2개 + 노이즈 소량 — 금속성 '탁'
+                float m = Mathf.Sin(2f * Mathf.PI * 1800f * t) * 0.5f
+                        + Mathf.Sin(2f * Mathf.PI * 3400f * t) * 0.35f;
+                float nz = (float)(rnd.NextDouble() * 2.0 - 1.0) * 0.25f;
+                data[i] = (m * 0.8f + nz) * env;
+            }
+            clip.SetData(data, 0);
+            _cachedBlockTick = clip;
+            return clip;
+        }
+
+        /// <summary>[E] 화살 비행 휘파람 — 900→2200Hz 슬라이드 사인 + 감쇠(공기 베는 소리). 절차 보장.</summary>
+        private static AudioClip GenerateWhistleClip()
+        {
+            if (_cachedWhistle != null) return _cachedWhistle;
+            const int sr = 44100;
+            float dur = 0.35f;
+            int n = Mathf.Max(1, Mathf.RoundToInt(sr * dur));
+            var clip = AudioClip.Create("procedural_arrow_whistle", n, 1, sr, false);
+            var data = new float[n];
+            float phase = 0f;
+            for (int i = 0; i < n; i++)
+            {
+                float t = (float)i / sr;
+                float p = Mathf.Clamp01(t / dur);
+                float freq = Mathf.Lerp(900f, 2200f, p);   // 피치 슬라이드(상승)
+                phase += 2f * Mathf.PI * freq / sr;
+                float env = Mathf.Sin(p * Mathf.PI);       // 부드러운 어택/릴리즈
+                data[i] = Mathf.Sin(phase) * 0.5f * env;
+            }
+            clip.SetData(data, 0);
+            _cachedWhistle = clip;
+            return clip;
+        }
+
         private static AudioClip GenerateSubBassClip(float pitch)
         {
             if (_cachedSubClip != null) return _cachedSubClip;
