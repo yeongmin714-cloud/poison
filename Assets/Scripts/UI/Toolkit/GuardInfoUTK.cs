@@ -26,6 +26,11 @@ namespace ProjectName.UI.Toolkit
     ///
     /// [규약] foreach만 / 클래스 public(CS0050) / UnityEngine.Debug /
     ///        IStyle 4면 개별 속성(Top/Bottom/Left/Right) / static 진입점.
+    ///
+    /// [GitHub-dark 리스타일] 이 창 한정 인라인 오버라이드 — 공용 UTKColor(브론즈/우드 톤) 대신
+    /// 로컬 GitHubDark 팔레트(배경 #0B0E14 / 패널 #161B22 / 보조 #21262D / 액센트 #58A6FF /
+    /// 골드 #E3B341 / 텍스트 #F0F6FC / 보조텍스트 #8B949E / 스트로크 #2E343D) 사용.
+    /// 기능 로직(장비 등록·데이터 갱신·수명주기)은 무수정. 공용 파일/타 창은 건드리지 않는다.
     /// </summary>
     public class GuardInfoUTK : UTKWindowBase
     {
@@ -61,6 +66,28 @@ namespace ProjectName.UI.Toolkit
         private const long RefreshMs = 250L;
         private const float SlotSize = 56f;
         private const float LeftW = 300f;
+
+        // =====================================================================
+        //  [Figma GitHub-dark 리스타일] 병사 정보 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
+        //  Theme.uss / 공용 UTKColor·UTKButton·UTKSlot·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경 — 슬롯/게이지 인셋
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(타이틀바/행/게이지 트랙)
+            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트)
+            public static readonly Color Gold     = Hex(0xE3B341);   // 섹션 헤더 골드
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트(값)
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트(라벨)
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
+            public static readonly Color Danger   = Hex(0xF85149);   // danger 톤
+            public static readonly Color RankEpic = Hex(0xA371F7);   // epic 퍼플 — 중독/상태 라인
+            public static readonly Color Health   = Hex(0x3FB950);   // GitHub success green — HP 게이지(건강색)
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
 
         // ===== 장비 슬롯 정의 (원본 좌측 6슬롯 순서) =====
         private class GearDef
@@ -105,6 +132,7 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexDirection = FlexDirection.Row;
             BuildLeftZone();
             BuildRightZone();
+            ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬(본체/타이틀바/닫기버튼) 리스타일 — 이 창 한정
             ApplyUIToolkitFont(this);
             style.display = DisplayStyle.None;
         }
@@ -128,27 +156,28 @@ namespace ProjectName.UI.Toolkit
             var face = new VisualElement();
             face.name = "Face";
             face.AddToClassList("utk-slot");
+            ApplyDarkSlotStyle(face);   // [GitHub-dark] 우드 배경 제거 → 다크 인셋 패널
             face.style.height = 120f;
             face.style.justifyContent = Justify.Center;
-            var faceLabel = MkLabel("🧍 병사 외형", 16, UTKColor.TextPrimary, TextAnchor.MiddleCenter);
+            var faceLabel = MkLabel("🧍 병사 외형", 16, GitHubDark.TextMain, TextAnchor.MiddleCenter);
             face.Add(faceLabel);
             left.Add(face);
 
-            _nameLabel = MkLabel("", 20, UTKColor.AccentMagic, TextAnchor.MiddleLeft);
+            _nameLabel = MkLabel("", 20, GitHubDark.Accent, TextAnchor.MiddleLeft);
             _nameLabel.style.marginTop = 10f;
             left.Add(_nameLabel);
 
-            _levelNationLabel = MkLabel("", 14, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            _levelNationLabel = MkLabel("", 14, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             _levelNationLabel.style.whiteSpace = WhiteSpace.Normal;
             left.Add(_levelNationLabel);
 
             // [P30-B] 중독도 라인 — 레벨 라인 아래 1줄 추가(화면 넘침 방지: 라벨 1개 추가분뿐)
-            _addictionLabel = MkLabel("", 13, UTKColor.AccentMagic, TextAnchor.MiddleLeft);
+            _addictionLabel = MkLabel("", 13, GitHubDark.RankEpic, TextAnchor.MiddleLeft);
             _addictionLabel.style.whiteSpace = WhiteSpace.Normal;
             left.Add(_addictionLabel);
 
             // ── 장착 장비 6슬롯 ──
-            var gearHeader = MkLabel("📦 장착 장비", 16, UTKColor.AccentRare, TextAnchor.MiddleLeft);
+            var gearHeader = MkLabel("📦 장착 장비", 16, GitHubDark.Gold, TextAnchor.MiddleLeft);
             gearHeader.style.marginTop = 14f;
             gearHeader.style.marginBottom = 6f;
             left.Add(gearHeader);
@@ -172,13 +201,14 @@ namespace ProjectName.UI.Toolkit
                 slot.style.width = SlotSize;
                 slot.style.height = SlotSize;
                 slot.style.flexShrink = 0f;
+                ApplyDarkSlotStyle(slot);   // [GitHub-dark] 슬롯 다크 인셋 + r6
                 _gearSlotViews[i] = slot;
                 wrap.Add(slot);
 
                 var nameLabel = new Label("—");
                 nameLabel.name = "GearName_" + GearDefs[i].label;
                 nameLabel.style.fontSize = 11f;
-                nameLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+                nameLabel.style.color = new StyleColor(GitHubDark.TextSub);
                 nameLabel.style.whiteSpace = WhiteSpace.Normal;
                 nameLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
                 nameLabel.style.width = 62f;
@@ -190,6 +220,7 @@ namespace ProjectName.UI.Toolkit
 
             // [P30-C] 🛠️ 장비 등록 — 아군병사 전용(적병사 창에서는 숨김). 클릭 시 장비 등록 스크롤 섹션 토글.
             _equipBtn = UTKButton.Create("🛠️ 장비 등록", ToggleEquipSection, UTKButton.Variant.Secondary);
+            StyleButton(_equipBtn, UTKButton.Variant.Secondary);   // [GitHub-dark] 버튼 인라인 오버라이드
             _equipBtn.style.height = 34f;
             _equipBtn.style.marginTop = 6f;
             _equipBtn.style.display = DisplayStyle.None;   // RefreshDisplay에서 아군일 때만 표시
@@ -200,7 +231,7 @@ namespace ProjectName.UI.Toolkit
             _equipSection.style.display = DisplayStyle.None;
             left.Add(_equipSection);
 
-            var equipTitle = MkLabel("플레이어 인벤토리 장비 선택", 12, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            var equipTitle = MkLabel("플레이어 인벤토리 장비 선택", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             equipTitle.style.marginTop = 4f;
             _equipSection.Add(equipTitle);
 
@@ -211,7 +242,7 @@ namespace ProjectName.UI.Toolkit
             _equipList.style.marginBottom = 4f;
             _equipSection.Add(_equipList);
 
-            _equipEmptyLabel = MkLabel("장착 가능한 장비가 없습니다.", 12, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            _equipEmptyLabel = MkLabel("장착 가능한 장비가 없습니다.", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             _equipSection.Add(_equipEmptyLabel);
         }
 
@@ -259,15 +290,22 @@ namespace ProjectName.UI.Toolkit
             row.style.height = 34f;
             row.style.marginBottom = 2f;
             row.style.marginRight = 6f;
+            row.style.backgroundColor = GitHubDark.PanelSub;   // [GitHub-dark] 행 보조패널
+            row.style.paddingLeft = 6f;
+            row.style.borderTopLeftRadius = 4f;
+            row.style.borderTopRightRadius = 4f;
+            row.style.borderBottomLeftRadius = 4f;
+            row.style.borderBottomRightRadius = 4f;            // 작은 배지 r4
 
             var name = new Label($"{item.displayName} x{count}");
             name.style.fontSize = 13f;
-            name.style.color = new StyleColor(UTKColor.TextPrimary);
+            name.style.color = new StyleColor(GitHubDark.TextMain);
             name.style.whiteSpace = WhiteSpace.Normal;
             name.style.flexGrow = 1f;
             row.Add(name);
 
             var equipBtn = UTKButton.Create("장착", () => OnEquipClicked(item), UTKButton.Variant.Primary);
+            StyleButton(equipBtn, UTKButton.Variant.Primary);   // [GitHub-dark] 버튼 인라인 오버라이드
             equipBtn.style.width = 56f;
             equipBtn.style.height = 26f;
             equipBtn.style.flexShrink = 0f;
@@ -295,7 +333,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(right);
 
             // ── HP 바 ──
-            var header = MkLabel("📊 능력치", 16, UTKColor.AccentRare, TextAnchor.MiddleLeft);
+            var header = MkLabel("📊 능력치", 16, GitHubDark.Accent, TextAnchor.MiddleLeft);
             right.Add(header);
 
             var gauge = BuildGaugeRow("❤️ HP:");
@@ -305,7 +343,7 @@ namespace ProjectName.UI.Toolkit
             right.Add(AddSep(8f, 2f));
 
             // ── 전투력 ──
-            _combatLabel = MkLabel("⚡ 전투력:", 16, UTKColor.TextPrimary, TextAnchor.MiddleLeft);
+            _combatLabel = MkLabel("⚡ 전투력:", 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             _combatLabel.style.marginTop = 4f;
             right.Add(_combatLabel);
             right.Add(AddSep(10f, 2f));
@@ -319,15 +357,15 @@ namespace ProjectName.UI.Toolkit
                 row.style.alignItems = Align.Center;
                 row.style.marginTop = 4f;
 
-                var name = MkLabel(statNames[i], 15, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+                var name = MkLabel(statNames[i], 15, GitHubDark.TextSub, TextAnchor.MiddleLeft);
                 name.style.width = 100f;
                 row.Add(name);
 
-                _statValueLabels[i] = MkLabel("-", 16, UTKColor.TextPrimary, TextAnchor.MiddleRight);
+                _statValueLabels[i] = MkLabel("-", 16, GitHubDark.TextMain, TextAnchor.MiddleRight);
                 _statValueLabels[i].style.width = 90f;
                 row.Add(_statValueLabels[i]);
 
-                _statNoteLabels[i] = MkLabel("", 12, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+                _statNoteLabels[i] = MkLabel("", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
                 _statNoteLabels[i].style.flexGrow = 1f;
                 _statNoteLabels[i].style.whiteSpace = WhiteSpace.Normal;
                 row.Add(_statNoteLabels[i]);
@@ -338,11 +376,11 @@ namespace ProjectName.UI.Toolkit
             right.Add(AddSep(10f, 2f));
 
             // ── 물약 버프 표 ──
-            var buffHeader = MkLabel("💊 물약 버프", 16, UTKColor.AccentRare, TextAnchor.MiddleLeft);
+            var buffHeader = MkLabel("💊 물약 버프", 16, GitHubDark.Gold, TextAnchor.MiddleLeft);
             buffHeader.style.marginTop = 6f;
             right.Add(buffHeader);
 
-            _buffLabel = MkLabel("", 12, UTKColor.TextPrimary, TextAnchor.UpperLeft);
+            _buffLabel = MkLabel("", 12, GitHubDark.TextMain, TextAnchor.UpperLeft);
             _buffLabel.style.whiteSpace = WhiteSpace.Normal;
             _buffLabel.style.flexGrow = 1f;
             right.Add(_buffLabel);
@@ -359,27 +397,27 @@ namespace ProjectName.UI.Toolkit
             root.style.marginRight = 8f;
             parts.root = root;
 
-            var name = MkLabel(labelName, 15, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
+            var name = MkLabel(labelName, 15, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             name.style.width = 90f;
             root.Add(name);
 
-            parts.value = MkLabel("-", 14, UTKColor.TextPrimary, TextAnchor.MiddleRight);
+            parts.value = MkLabel("-", 14, GitHubDark.TextMain, TextAnchor.MiddleRight);
             parts.value.style.width = 130f;
             root.Add(parts.value);
 
             var gaugeBg = new VisualElement();
             gaugeBg.style.flexGrow = 1f;
             gaugeBg.style.height = 10f;
-            gaugeBg.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.65f));
+            gaugeBg.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);   // [GitHub-dark] 게이지 트랙
             gaugeBg.style.borderTopWidth = 1f;
             gaugeBg.style.borderBottomWidth = 1f;
-            gaugeBg.style.borderTopColor = new StyleColor(UTKColor.IronLine);
-            gaugeBg.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+            gaugeBg.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+            gaugeBg.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
 
             parts.fill = new VisualElement();
             parts.fill.style.height = new Length(100f, LengthUnit.Percent);
             parts.fill.style.width = new Length(0f, LengthUnit.Percent);
-            parts.fill.style.backgroundColor = new StyleColor(UTKColor.GuildGreen);
+            parts.fill.style.backgroundColor = new StyleColor(GitHubDark.Health);   // [GitHub-dark] HP 건강색
             gaugeBg.Add(parts.fill);
 
             root.Add(gaugeBg);
@@ -397,10 +435,104 @@ namespace ProjectName.UI.Toolkit
         {
             var sep = new VisualElement();
             sep.style.height = 1f;
-            sep.style.backgroundColor = new StyleColor(UTKColor.IronLine);
+            sep.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
             sep.style.marginTop = marginTop;
             sep.style.marginBottom = marginBottom;
             return sep;
+        }
+
+        // =====================================================================
+        //  [GitHub-dark] 스타일 헬퍼 — 시각 전용(기능 로직과 무관), 이 창 한정
+        //  =====================================================================
+
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
+        private void ApplyGitHubDarkStyle()
+        {
+            style.backgroundColor = GitHubDark.Panel;
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;
+
+            var titleBar = this.Q("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+            }
+
+            if (_titleLabel != null)
+                _titleLabel.style.color = GitHubDark.TextMain;
+
+            var closeBtn = this.Q<Button>("CloseButton");
+            if (closeBtn != null)
+            {
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;            // 작은배지 r4
+                closeBtn.style.color = GitHubDark.TextMain;
+            }
+        }
+
+        /// <summary>GitHub-dark 버튼 인라인 오버라이드(이 창 한정) — IStyle 쇼트핸드 없음 → 4면 개별 대입.</summary>
+        private static void StyleButton(Button btn, UTKButton.Variant variant)
+        {
+            if (btn == null) return;
+            Color baseBg, hoverBg, textColor;
+            switch (variant)
+            {
+                case UTKButton.Variant.Primary:
+                    baseBg = GitHubDark.Accent; hoverBg = new Color32(0x79, 0xC0, 0xFF, 0xFF); textColor = GitHubDark.BgBase; break;
+                case UTKButton.Variant.Danger:
+                    baseBg = GitHubDark.Danger; hoverBg = new Color32(0xDA, 0x36, 0x33, 0xFF); textColor = GitHubDark.TextMain; break;
+                default:
+                    baseBg = GitHubDark.PanelSub; hoverBg = GitHubDark.Stroke; textColor = GitHubDark.TextMain; break;
+            }
+
+            btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            btn.style.backgroundColor = baseBg;
+            btn.style.color = textColor;
+            btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
+            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(baseBg);
+            btn.style.borderTopLeftRadius = 6f;
+            btn.style.borderTopRightRadius = 6f;
+            btn.style.borderBottomLeftRadius = 6f;
+            btn.style.borderBottomRightRadius = 6f;
+
+            btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = hoverBg);
+            btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = baseBg);
+        }
+
+        /// <summary>GitHub-dark 슬롯 인셋 — 배경 이미지 제거 + 다크 바탕 + 1px 스트로크 + r6 (이 창 한정).</summary>
+        private static void ApplyDarkSlotStyle(VisualElement slot)
+        {
+            if (slot == null) return;
+            slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            slot.style.backgroundColor = GitHubDark.BgBase;
+            slot.style.borderTopWidth = 1f;
+            slot.style.borderBottomWidth = 1f;
+            slot.style.borderLeftWidth = 1f;
+            slot.style.borderRightWidth = 1f;
+            slot.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+            slot.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+            slot.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+            slot.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            slot.style.borderTopLeftRadius = 6f;
+            slot.style.borderTopRightRadius = 6f;
+            slot.style.borderBottomLeftRadius = 6f;
+            slot.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
         }
 
         // =====================================================================
