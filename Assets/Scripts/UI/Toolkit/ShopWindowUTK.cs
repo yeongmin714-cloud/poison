@@ -284,6 +284,10 @@ namespace ProjectName.UI.Toolkit
             _buyPanel.style.flexGrow = 1f;
             _buyScroll = new ScrollView();
             _buyScroll.style.flexGrow = 1f;
+            // [Figma 정합] Store 패널 = 5열 그리드 — 스크롤 콘텐츠를 row+wrap 격자로.
+            _buyScroll.contentContainer.style.flexDirection = FlexDirection.Row;
+            _buyScroll.contentContainer.style.flexWrap = Wrap.Wrap;
+            _buyScroll.contentContainer.style.alignContent = Align.FlexStart;
             _buyPanel.Add(_buyScroll);
             storeCol.Add(_buyPanel);
 
@@ -309,6 +313,10 @@ namespace ProjectName.UI.Toolkit
             _sellPanel.style.flexGrow = 1f;
             _sellScroll = new ScrollView();
             _sellScroll.style.flexGrow = 1f;
+            // [Figma 정합] 판매/인벤 패널 = 5열 그리드
+            _sellScroll.contentContainer.style.flexDirection = FlexDirection.Row;
+            _sellScroll.contentContainer.style.flexWrap = Wrap.Wrap;
+            _sellScroll.contentContainer.style.alignContent = Align.FlexStart;
             _sellPanel.Add(_sellScroll);
             sellCol.Add(_sellPanel);
 
@@ -788,79 +796,61 @@ namespace ProjectName.UI.Toolkit
             return row;
         }
 
+        // [Figma 정합] 상점 Store = 5열 그리드 슬롯 — 아이콘 + 하단 가격태그. 클릭 → Detail 패널(구매 버튼이 담당).
         private VisualElement BuildBuyRow(ShopItem shopItem, int index)
         {
-            var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.Center;
-            row.style.marginBottom = 6f;
-            row.style.paddingTop = 4f;
-            row.style.paddingBottom = 4f;
-            row.style.paddingLeft = 4f;
-            row.style.paddingRight = 4f;
-            StyleListRow(row);   // [GitHub-dark] 보조 패널 행 + 1px 스트로크 + r6
-            row.RegisterCallback<PointerDownEvent>(_ => { _selectedBuyIndex = index; ShowDetail(shopItem, true); });
+            var slotBox = new VisualElement();
+            slotBox.style.width = 78f;
+            slotBox.style.height = 92f;
+            slotBox.style.marginRight = 6f;
+            slotBox.style.marginBottom = 6f;
+            slotBox.style.flexDirection = FlexDirection.Column;
+            slotBox.style.alignItems = Align.Center;
+            slotBox.style.justifyContent = Justify.Center;
+            // [GitHub-dark] 슬롯 인셋 + 레어도 링
+            StyleListRow(slotBox);
+            // 레어도 링 갱신(행 스타일 스트로크 위에 레어도 색 오버레이)
+            Color ring = shopItem.item != null ? RankRing((int)shopItem.item.rarity) : GitHubDark.Stroke;
+            slotBox.style.borderTopColor = slotBox.style.borderBottomColor = slotBox.style.borderLeftColor = slotBox.style.borderRightColor = new StyleColor(ring);
+            slotBox.RegisterCallback<PointerEnterEvent>(_ => slotBox.style.backgroundColor = GitHubDark.Stroke);
+            slotBox.RegisterCallback<PointerLeaveEvent>(_ => slotBox.style.backgroundColor = GitHubDark.PanelSub);
+            slotBox.RegisterCallback<PointerDownEvent>(_ => { _selectedBuyIndex = index; ShowDetail(shopItem, true); });
 
-            // 아이콘 (UTKSlot — 등급 테두리 + 호버 글로우)
+            // 아이콘 (UTKSlot — 등급 테두리)
             var slot = new UTKSlot();
-            slot.style.width = 64f;
-            slot.style.height = 64f;
-            slot.style.marginRight = 8f;
+            slot.style.width = 62f;
+            slot.style.height = 62f;
             slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(shopItem.item));
             slot.SetRank(shopItem.isRare ? "unique" : "common");
-            StyleShopSlot(slot, shopItem.item != null ? RankRing((int)shopItem.item.rarity) : GitHubDark.Stroke);   // [GitHub-dark] 레어도 링
-            row.Add(slot);
+            StyleShopSlot(slot, ring);   // [GitHub-dark] 레어도 링
+            slotBox.Add(slot);
 
-            // 정보 컬럼
-            var info = new VisualElement();
-            info.style.flexGrow = 1f;
-
-            var nameLabel = new Label(shopItem.item != null ? shopItem.item.displayName : "[데이터 없음]");
-            nameLabel.style.fontSize = 18f;
-            nameLabel.style.color = shopItem.isRare ? GitHubDark.Gold : GitHubDark.TextMain;   // [GitHub-dark] 희귀=금색
-            info.Add(nameLabel);
-
+            // 희귀 표시 배지
             if (shopItem.isRare)
             {
-                var rare = new Label("[희귀]");
-                rare.style.fontSize = 13f;
-                rare.style.color = GitHubDark.Gold;   // [GitHub-dark] 희귀 배지=금색
-                info.Add(rare);
+                var rare = new Label("★");
+                rare.style.fontSize = 12f;
+                rare.style.color = GitHubDark.Gold;
+                slotBox.Add(rare);
             }
 
-            if (shopItem.item != null && !string.IsNullOrEmpty(shopItem.item.description))
-            {
-                var desc = new Label(shopItem.item.description);
-                desc.style.fontSize = 13f;
-                desc.style.color = GitHubDark.TextSub;
-                desc.style.whiteSpace = WhiteSpace.Normal;
-                info.Add(desc);
-            }
-
-            // 가격 (할인가 병기 원가 관례 유지) + 재고
+            // 하단 가격 태그 (피그마 Store 슬롯 가격 바)
             int buyPrice = GetBuyPrice(shopItem);
-            string priceText = buyPrice < shopItem.price
-                ? $"가격: {buyPrice}G (원가 {shopItem.price}G)"
-                : $"가격: {buyPrice}G";
-            string stockText = shopItem.stock == -1 ? "재고: 무한" : $"재고: {shopItem.stock}개";
+            var priceBar = new Label($"{buyPrice}G");
+            priceBar.style.backgroundColor = GitHubDark.PanelSub;
+            priceBar.style.color = GitHubDark.Gold;
+            priceBar.style.fontSize = 12f;
+            priceBar.style.unityTextAlign = TextAnchor.MiddleCenter;
+            priceBar.style.width = 66f;
+            priceBar.style.marginTop = 4f;
+            priceBar.style.borderTopLeftRadius = 4f;
+            priceBar.style.borderTopRightRadius = 4f;
+            priceBar.style.borderBottomLeftRadius = 4f;
+            priceBar.style.borderBottomRightRadius = 4f;
+            slotBox.Add(priceBar);
 
-            var priceLabel = new Label($"{priceText}  {stockText}");
-            priceLabel.style.fontSize = 14f;
-            priceLabel.style.color = GitHubDark.Accent;   // [GitHub-dark] 가격=액센트
-            info.Add(priceLabel);
-
-            row.Add(info);
-
-            // 구매 버튼
-            bool canAfford = (PlayerStats.Instance?.Gold ?? 0) >= buyPrice;
-            bool inStock = shopItem.stock == -1 || shopItem.stock > 0;
-            var buyBtn = UTKButton.Create("구매", () => BuyAtIndex(index), UTKButton.Variant.Primary);
-            buyBtn.SetEnabled(canAfford && inStock);
-            StyleButton(buyBtn, UTKButton.Variant.Primary);
-            row.Add(buyBtn);
-
-            UTKWindowBase.ApplyUIToolkitFont(row);
-            return row;
+            UTKWindowBase.ApplyUIToolkitFont(slotBox);
+            return slotBox;
         }
 
         // =====================================================================
@@ -890,55 +880,50 @@ namespace ProjectName.UI.Toolkit
                 _sellScroll.Add(new Label("판매할 아이템이 없습니다.") { style = { fontSize = 16f, color = GitHubDark.TextSub } });
         }
 
+        // [Figma 정합] 판매/인벤 패널 = 5열 그리드 슬롯 — 아이콘+카운트. 클릭 → Detail 패널(판매 버튼이 담당).
         private VisualElement BuildSellRow(PlayerInventory.ItemSlot slot)
         {
-            var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.Center;
-            row.style.marginBottom = 6f;
-            row.style.paddingTop = 4f;
-            row.style.paddingBottom = 4f;
-            row.style.paddingLeft = 4f;
-            row.style.paddingRight = 4f;
-            StyleListRow(row);   // [GitHub-dark] 보조 패널 행 + 1px 스트로크 + r6
+            var slotBox = new VisualElement();
+            slotBox.style.width = 78f;
+            slotBox.style.height = 84f;
+            slotBox.style.marginRight = 6f;
+            slotBox.style.marginBottom = 6f;
+            slotBox.style.flexDirection = FlexDirection.Column;
+            slotBox.style.alignItems = Align.Center;
+            slotBox.style.justifyContent = Justify.Center;
+            StyleListRow(slotBox);   // [GitHub-dark] 보조 패널 + 1px 스트로크 + r6
+            Color ring = RankRing((int)slot.item.rarity);   // [GitHub-dark] 레어도 링
+            slotBox.style.borderTopColor = slotBox.style.borderBottomColor = slotBox.style.borderLeftColor = slotBox.style.borderRightColor = new StyleColor(ring);
+            slotBox.RegisterCallback<PointerEnterEvent>(_ => slotBox.style.backgroundColor = GitHubDark.Stroke);
+            slotBox.RegisterCallback<PointerLeaveEvent>(_ => slotBox.style.backgroundColor = GitHubDark.PanelSub);
+            slotBox.RegisterCallback<PointerDownEvent>(_ => { _detailSellSlot = slot; ShowDetail(null, false); });
 
-            var slotBox = new UTKSlot();
-            slotBox.style.width = 64f;
-            slotBox.style.height = 64f;
-            slotBox.style.marginRight = 8f;
-            slotBox.SetIcon(ItemIconDatabase.GetOrCreateIcon(slot.item));
-            slotBox.SetRank(slot.item.rarity.ToString());
-            slotBox.SetCount(slot.count);
-            StyleShopSlot(slotBox, RankRing((int)slot.item.rarity));   // [GitHub-dark] 레어도 링
-            row.Add(slotBox);
+            var itemSlot = new UTKSlot();
+            itemSlot.style.width = 62f;
+            itemSlot.style.height = 62f;
+            itemSlot.SetIcon(ItemIconDatabase.GetOrCreateIcon(slot.item));
+            itemSlot.SetRank(slot.item.rarity.ToString());
+            itemSlot.SetCount(slot.count);
+            StyleShopSlot(itemSlot, ring);   // [GitHub-dark] 레어도 링
+            slotBox.Add(itemSlot);
 
-            var info = new VisualElement();
-            info.style.flexGrow = 1f;
-
-            var nameLabel = new Label(slot.item.displayName);
-            nameLabel.style.fontSize = 18f;
-            nameLabel.style.color = GitHubDark.TextMain;   // [GitHub-dark] 기본 텍스트
-            info.Add(nameLabel);
-
+            // 하단 판매가 태그 (피그마 인벤 슬롯 하단 가격/상태 바)
             int sellPrice = CalculateSellPrice(slot.item);
-            string priceText = sellPrice > 0
-                ? $"x{slot.count}   판매: {sellPrice}G"
-                : $"x{slot.count}   판매 불가";
-            var priceLabel = new Label(priceText);
-            priceLabel.style.fontSize = 14f;
-            priceLabel.style.color = GitHubDark.Gold;   // [GitHub-dark] 판매 수익=금색
-            info.Add(priceLabel);
+            var priceBar = new Label(sellPrice > 0 ? $"{sellPrice}G" : "판매불가");
+            priceBar.style.backgroundColor = GitHubDark.PanelSub;
+            priceBar.style.color = sellPrice > 0 ? GitHubDark.Gold : GitHubDark.Danger;
+            priceBar.style.fontSize = 11f;
+            priceBar.style.unityTextAlign = TextAnchor.MiddleCenter;
+            priceBar.style.width = 66f;
+            priceBar.style.marginTop = 4f;
+            priceBar.style.borderTopLeftRadius = 4f;
+            priceBar.style.borderTopRightRadius = 4f;
+            priceBar.style.borderBottomLeftRadius = 4f;
+            priceBar.style.borderBottomRightRadius = 4f;
+            slotBox.Add(priceBar);
 
-            row.Add(info);
-
-            var sellBtn = UTKButton.Create("판매", () => SellSlot(slot), UTKButton.Variant.Danger);
-            sellBtn.SetEnabled(sellPrice > 0); // 0G 판매 방지
-            StyleButton(sellBtn, UTKButton.Variant.Danger);
-            row.Add(sellBtn);
-            row.RegisterCallback<PointerDownEvent>(_ => { _detailSellSlot = slot; ShowDetail(null, false); });
-
-            UTKWindowBase.ApplyUIToolkitFont(row);
-            return row;
+            UTKWindowBase.ApplyUIToolkitFont(slotBox);
+            return slotBox;
         }
 
         // =====================================================================
