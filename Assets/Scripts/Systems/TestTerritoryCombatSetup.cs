@@ -1181,69 +1181,134 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
-        // UI 전수 부착 + 창고/크래프트 박스 + 전 아이템 시딩 (2026-09-10 신규)
+        // UI 전수 + 창고/크래프트 박스 + 전 아이템 시딩 (2026-09-10 신규)
+        // [UTK 전환 2026-09-26] GitHub-dark UTK 기준 재작성 — 구식 IMGUI/UGUI 창 생성 제거.
         // ================================================================
-        /// <summary>Test_10 UI 전수 테스트: 미니맵/인벤/스탯/EXP바/창고·크래프트 박스/전 아이템 시딩.
-        /// Systems asmdef은 UI 참조 불가(순환) → 리플렉션으로 부착(AttachUiComponent 선례).</summary>
+        /// <summary>Test_10 UI 전수 테스트 — UTK(GitHub-dark) 기준.
+        /// 구식 MinimapUI/UIInventoryHotkey+InventoryWindow/StatusWindowUI 생성부 제거:
+        /// UTK 창들은 UIToolkitBootstrap(UIRoot, BeforeSceneLoad) 위에 자가부트(AfterSceneLoad)하므로
+        /// 어느 씬이든 자동 표시된다(메인씬과 동일 경로). I키는 본 파일의 UtkInventoryKeyProbe가
+        /// UIInventoryHotkey.InventoryToggleRequestedUTK 정적 이벤트를 발화 → UTKWireUp 브리지가
+        /// InventoryWindowUTK+ItemDescriptionWindowUTK 쌍 토글(구식 창 컴포넌트 불필요).
+        /// 창고/크래프트 박스 배치·시딩은 무수정 — 박스의 TerritoryWarehouse/CraftingStation은
+        /// '상호작용 허브'로 UTK 우선 경로 내장(TerritoryWarehouse.OpenWarehouseUI →
+        /// InventoryWindowUTK/WarehouseWindowUTK.Open(territoryId)/ItemDescriptionWindowUTK,
+        /// CraftingStation.OpenCrafting → WeaponForgeUTK.Open). UTK 루트 부재 시에만 구 IMGUI 폴백.
+        /// Systems asmdef은 UI 참조 불가(순환) → UTK도 리플렉션 호출(AttachUiComponent 선례).</summary>
         private void SetupUITestArena()
         {
             var uiAsm = System.Reflection.Assembly.Load("ProjectName.UI");
             if (uiAsm == null) { Debug.LogWarning("[UITest] ⚠️ ProjectName.UI 어셈블리 미발견 — UI 부착 생략"); return; }
 
-            // ① 미니맵 부착(셀프부트 없음 — 명시 생성)
-            var mmType = uiAsm.GetType("ProjectName.UI.MinimapUI");
-            if (mmType != null && UnityEngine.Object.FindAnyObjectByType(mmType) == null)
-            {
-                var mmGO = new GameObject("MinimapUI");
-                mmGO.AddComponent(mmType);
-                Debug.Log("[UITest] ✅ 미니맵 부착 (상시 표시)");
-            }
+            // ① 구식 MinimapUI 생성 제거 — UTK MinimapUTK(자가부트 + UIRoot 우상단 상시 표시)가 담당.
+            //    Ensure()는 멱등(인스턴스 존재 시 무시) — 자가부트 이상 시 대비 방어 호출.
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.MinimapUTK", "Ensure");
+            Debug.Log("[UITest] ✅ UTK 자가부트 창 표시: MinimapUTK/StatusWindowUTK(P키 자체 폴링)/HUD/Hotbar/TimeClock 등");
 
-            // ② 인벤토리 창 (I키) + 핫키 2단 바인딩 (2026-09-12 P4: 열림 신뢰화)
-            // 핫키를 창과 별도 GameObject에 선부착 — ① 창 닫힘(CloseAnimation → _windowRoot 비활성)과
-            // 무관하게 I키 수신 유지(38차 '열림 0회'의 근본 원인: 자가등록 핫키가 창 GO에 동거해
-            // 창 닫힘 시 함께 죽음), ② 창 Awake의 자가등록 폴백이 선점 스킵(중복 등록 방지).
-            var hotType = uiAsm.GetType("ProjectName.UI.UIInventoryHotkey");
-            UnityEngine.Object hotComp = null;
-            if (hotType != null && UnityEngine.Object.FindAnyObjectByType(hotType) == null)
-            {
-                var hotGO = new GameObject("UIInventoryHotkey");
-                hotComp = hotGO.AddComponent(hotType);
-            }
-            var invType = uiAsm.GetType("ProjectName.UI.InventoryWindow");
-            if (invType != null && UnityEngine.Object.FindAnyObjectByType(invType) == null)
-            {
-                var invGO = new GameObject("InventoryUI");
-                invGO.AddComponent(invType);
-                Debug.Log("[UITest] ✅ 인벤토리 창 부착 (I키 토글)");
-                // 2단(Attach→Bind) 명시 — 셋업이 핫키-창 연결을 보장 (자가등록 폴백 의존 제거)
-                if (hotComp != null)
-                {
-                    var bind = hotType.GetMethod("Bind", new[] { invType });
-                    bind?.Invoke(hotComp, new object[] { UnityEngine.Object.FindAnyObjectByType(invType) });
-                    Debug.Log("[UITest] ✅ UIInventoryHotkey 부착+Bind 2단 완료 (별도 GO — 창 비활성과 무관 I키 수신)");
-                }
-            }
+            // ② 구식 UIInventoryHotkey+InventoryWindow 생성 제거 — UTK 인벤은 UTKWireUp 브리지 경유.
+            //    단, 원본 핫키의 Update는 InventoryWindow.Instance(구식 창) 존재을 요구하므로 구식 창을
+            //    지우면 이벤트 발화자가 사라진다 → 경량 프로브(아래)가 동일 정적 이벤트를 발화한다.
+            //    (InventoryWindowUTK.Ensure는 Open 내부에서도 호출되므로 여기서 명시 불필요)
+            var probeGO = new GameObject("UTK_InventoryKeyProbe");
+            probeGO.AddComponent<UtkInventoryKeyProbe>();
+            Debug.Log("[UITest] ✅ I키 → UTKWireUp 브리지(UTK_InventoryKeyProbe 발화) — 구식 인벤/핫키 생성 없음");
 
-            // ③ 스탯 창(P키) — 셀프부트가 있으나 겹침 방지로 존재 확인 후 부착
-            var stType = uiAsm.GetType("ProjectName.UI.StatusWindowUI");
-            if (stType != null && UnityEngine.Object.FindAnyObjectByType(stType) == null)
-            {
-                var stGO = new GameObject("StatusWindowUI");
-                stGO.AddComponent(stType);
-                Debug.Log("[UITest] ✅ 스탯 창 부착 (P키 토글)");
-            }
+            // ③ 구식 StatusWindowUI 생성 제거 — StatusWindowUTK가 자가부트(AfterSceneLoad)+P키 자체
+            //    폴링(Updater)이라 명시 호출 불필요.
 
-            // ④ 창고 박스 2개 + 크래프트 박스 1개 — 창고(territoryId별)에 시딩(wood 장비+무기 재료+Gold)
-            // 2026-09-11: 두 박스 모두 시딩 ID("wh_test")와 일치 — 이전 "wh_test_1"/"wh_test2"는
-            // 시딩 창고와 다른 빈 창고를 가리켜 박스 UI가 텅 비어 보였다. 64슬롯은 Configure로 반영.
+            // ④⑤ 창고 박스 2개 + 크래프트 박스 1개 + 시딩 — 무수정(2026-09-11 유지).
+            //    창고(territoryId별) 시딩(wood 장비+무기 재료+Gold). 박스 상호작용 → UTK 창고.
             SetupWarehouseBox("Warehouse_1", new Vector3(6f, 0f, 14f), new Color(0.5f, 0.45f, 0.35f, 1f), "wh_test");
             SetupWarehouseBox("Warehouse_2", new Vector3(-6f, 0f, 14f), new Color(0.45f, 0.5f, 0.35f, 1f), "wh_test");
             SetupCraftBox(new Vector3(0f, 0f, 16f), new Color(0.55f, 0.4f, 0.2f, 1f));
             SeedAllItemsToWarehouse("wh_test");
 
-            // ⑤ 플레이어 인벤토리에도 대표 아이템 시딩(인벤 창 표시 검증용)
+            // 플레이어 인벤토리에도 대표 아이템 시딩(인벤 창 표시 검증용)
             SeedPlayerInventory();
+        }
+
+        /// <summary>UTK 정적 무인자 메서드 리플렉션 호출(멱등 Ensure용) — 실패 시 셋업을 중단하지 않는다
+        /// (각 UTK 창의 RuntimeInitializeOnLoadMethod 자가부트가 담보).</summary>
+        private static void InvokeUtkStatic(System.Reflection.Assembly uiAsm, string typeName, string methodName)
+        {
+            var type = uiAsm.GetType(typeName);
+            if (type == null) { Debug.LogWarning($"[UITest] ⚠️ {typeName} 미발견 — {methodName} 생략(자가부트 의존)"); return; }
+            var mi = type.GetMethod(methodName,
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static,
+                null, System.Type.EmptyTypes, null);
+            mi?.Invoke(null, null);
+        }
+
+        // ================================================================
+        // [UTK 전환 2026-09-26] I키 프로브 — 구식 UIInventoryHotkey+InventoryWindow 대체(본 파일 전용)
+        // ================================================================
+        /// <summary>
+        /// 구식 UIInventoryHotkey.Update는 InventoryWindow.Instance(구식 IMGUI 창)가 없으면 I키를 무시하므로
+        /// 구식 창 생성을 제거하면 이벤트 발화자가 사라진다. 본 프로브는 동일 정적 이벤트
+        /// (UIInventoryHotkey.InventoryToggleRequestedUTK)를 리플렉션으로 Invoke해 UTKWireUp 브리지
+        /// (AfterSceneLoad 기구독 → InventoryWindowUTK+ItemDescriptionWindowUTK 쌍 토글)를 재사용한다.
+        /// 구독자 부재 시(UTKWireUp 미배선)엔 브리지와 동일한 쌍 동작으로 UTK 창을 직접 토글(폴백).
+        /// UTK 루트(UIToolkitBootstrap.UIRoot) 부재 시엔 무시 — Test_10은 UTK 표시가 전제(메인씬 동일).
+        /// MinimapUTK.Updater의 nested MonoBehaviour+AddComponent 선례 패턴.
+        /// </summary>
+        private sealed class UtkInventoryKeyProbe : MonoBehaviour
+        {
+            private static bool _noRootLogged;
+
+            private void Update()
+            {
+                var kb = UnityEngine.InputSystem.Keyboard.current;
+                if (kb == null || !kb.iKey.wasPressedThisFrame) return;
+
+                var uiAsm = System.Reflection.Assembly.Load("ProjectName.UI");
+                if (uiAsm == null) return;
+
+                // UTK 루트 게이트 — 루트 부재 시 창 열림 없음(구식 폴백 창도 생성하지 않았다)
+                var bootType = uiAsm.GetType("ProjectName.UI.Toolkit.UIToolkitBootstrap");
+                var rootProp = bootType?.GetProperty("UIRoot",
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                if (rootProp?.GetValue(null) == null)
+                {
+                    if (!_noRootLogged)
+                    {
+                        Debug.LogWarning("[UITest] ⚠️ UTK 루트 미준비 — I키 무시(UTK 전환 씬)");
+                        _noRootLogged = true;
+                    }
+                    return;
+                }
+
+                // 1순위: 정적 이벤트 Invoke → UTKWireUp 브리지(기구독)가 쌍 토글 처리
+                var hotType = uiAsm.GetType("ProjectName.UI.UIInventoryHotkey");
+                var evField = hotType?.GetField("InventoryToggleRequestedUTK",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+                var handler = evField?.GetValue(null) as System.Action;
+                if (handler != null)
+                {
+                    handler.Invoke();
+                    Debug.Log("[UITest] I키 → UTKWireUp 브리지 발화 (UTK 인벤+설명 쌍)");
+                    return;
+                }
+
+                // 2순위 폴백: 브리지 미배선 — UTK 창 직접 토글(UTKWireUp과 동일한 쌍 동작)
+                var flags = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static;
+                var invType = uiAsm.GetType("ProjectName.UI.Toolkit.InventoryWindowUTK");
+                var descType = uiAsm.GetType("ProjectName.UI.Toolkit.ItemDescriptionWindowUTK");
+                if (invType == null) return;
+                var instance = invType.GetProperty("Instance", flags)?.GetValue(null);
+                bool closing = instance != null
+                    && (bool)(invType.GetProperty("IsOpen")?.GetValue(instance) ?? false);
+                if (closing)
+                {
+                    invType.GetMethod("Close")?.Invoke(instance, null);
+                    descType?.GetMethod("Hide", flags)?.Invoke(null, null);
+                }
+                else
+                {
+                    invType.GetMethod("Open", flags)?.Invoke(null, null);
+                    descType?.GetMethod("Open", flags)?.Invoke(null, null);
+                }
+                Debug.Log($"[UITest] I키 → UTK 인벤 직접 토글 폴백 ({(closing ? "닫힘" : "열림")})");
+            }
         }
 
         private void SetupWarehouseBox(string goName, Vector3 pos, Color color, string territoryId)
