@@ -137,8 +137,28 @@ namespace ProjectName.UI.Toolkit
             _ring.Fraction = BowAimState.Power;
             _ring.CommitIfDirty();
             UpdateBrackets(BowAimState.Power);
-            int count = ArrowManager.Instance != null ? ArrowManager.Instance.GetTotalArrowCount() : 0;
-            _countLabel.text = "×" + count;
+            if (ArrowManager.Instance != null)
+            {
+                int count = ArrowManager.Instance.GetTotalArrowCount();
+                // [F 고품질] 지금 발사될 화살 종류 표기 — 마법/강화/일반 + 개수. 색상도 티어별.
+                var type = ArrowManager.Instance.GetNextArrowType();
+                _countLabel.text = "×" + count;
+                switch (type)
+                {
+                    case ProjectName.Core.ArrowData.ArrowType.Magic:
+                        _countLabel.text = "◆×" + count;
+                        _countLabel.style.color = new StyleColor(new Color(0.95f, 0.4f, 1f, 0.95f)); // 보라
+                        break;
+                    case ProjectName.Core.ArrowData.ArrowType.Reinforced:
+                        _countLabel.text = "●×" + count;
+                        _countLabel.style.color = new StyleColor(new Color(0.95f, 0.95f, 1f, 0.95f)); // 은백
+                        break;
+                    default:
+                        _countLabel.text = "×" + count;
+                        _countLabel.style.color = new StyleColor(new Color(1f, 1f, 1f, 0.95f)); // 흰
+                        break;
+                }
+            }
         }
 
         private void HideNow()

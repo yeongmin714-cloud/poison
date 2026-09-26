@@ -18,13 +18,14 @@
   - **마법 화살 = 적 1기 관통**(`_pierceRemaining=1`, `_piercedId` 중복 방지, 관통 시 화살 비행 지속) — 아군/지면/영주 제외.
 - **D — 명중/피격 고도화**: 파워풀(≥0.95) 크리틱 기존 유지. **방패 막기에 '탁' 사운드** 추가.
 - **E — 사운드 4레이어** (`AttackSoundLayerManager.cs`): `PlayArrowBlock()`(금속 톡 절차클립)+`PlayArrowWhistle()`(900→2200Hz 상승 피치 휘파람 절차클립) — 리소스 폴백 절차 생성 보장. 배선: 방패막기 `ArrowShieldBlockFX.Play`+발사 `ArrowProjectile.Spawn`.
-- **A — 드로 모션 (사용자 애니)** (`HumanoidClipDriver.cs`+`PlayerCombat.cs`): 더블L 불사용 — **사용자가 `Assets/Animations/MeshyUser/Draw_and_Shoot_from_Back_1.fbx`를 넣어둠**(컨트롤러 `DrawShoot` 상태+`DrawShoot` 트리거 이미 배선, guid 1904db4a). `TriggerBowDraw()` 신설 → 드로 시작 시 `SetTrigger("DrawShoot")`(당기고 쏘기 2단계) + Speed0 홀드. PlayerCombat 드로 시작 블록에 `_clipDriver?.TriggerBowDraw()`. 드로 0.5→0.7s 무게감. **에디터 스크립트 불필요**(클립 이미 임포트됨).
+- **A — 드로 모션 (사용자 애니)** (`HumanoidClipDriver.cs`+`PlayerCombat.cs`): 더블L 불사용 — 사용자가 `Assets/Animations/MeshyUser/Draw_and_Shoot_from_Back_1.fbx`를 넣어둠(컨트롤러 `DrawShoot` 상태+`DrawShoot` 트리거 이미 배선, guid 1904db4a). `TriggerBowDraw()` 신설 → 드로 시작 시 `SetTrigger("DrawShoot")`(당기고 쏘기) + Speed0 홀드. PlayerCombat 드로 시작 블록에 `_clipDriver?.TriggerBowDraw()`. 드로 0.5→0.7s 무게감. 에디터 스크립트 불필요.
+- **F — 화살 UX** (`ArrowManager.cs`+`BowAimReticleUTK.cs`): `GetNextArrowType()`(마법>강화>일반 다음 소모 타입)+`CountOf(itemId)` 신설. 리티클 ×N 라벨이 **다음 발사될 화살 종류를 티어 색상+심볼로 표기**(◆보라=마법/●은백=강화/×흰=일반).
 
 ### 검증
 - 배치컴파일 `run_batch.bat` **error CS = 0** (확인 2회).
 - 정적: 7개 변경 파일 괄호 균형 통과, `git diff --check` 0.
 - 변경: ArrowData.cs(+20)·ArrowManager.cs(+1)·ArrowProjectile.cs(+103)·ArrowShieldBlockFX.cs(+1)·AttackSoundLayerManager.cs(+78)·BowTrajectoryPreview.cs(+64)·PlayerCombat.cs(1줄)·ArcheryClipWiring2.cs(신규).
-- **⚠ Play 검증 대기(관례)**: ①드로 시 골드 착지점 마커+티어별 트레일색 ②마법 화살 적 1기 관통 ③방패 막기 '탁'+밝은 빛발 ④화살 발사 휘파람 ⑤Bow A/B 클립 배선 후 드로/릴리즈 2단계 모션.
+- **⚠ Play 검증 대기(관례)**: ①드로 시 골드 착지점 마커+티어별 트레일색 ②마법 화살 적 1기 관통 ③방패 막기 '탁'+밝은 빛발 ④화살 발사 휘파람 ⑤드로 '당기고 쏘기'→릴리즈 발사 2단계 ⑥리티클 ◆/●/× 화살 종류·티어색 표기.
 
 ---
 

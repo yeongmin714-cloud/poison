@@ -120,6 +120,27 @@ namespace ProjectName.Systems
             return count;
         }
 
+        /// <summary>[F 고품질] 다음 발사 시 소모될 화살 타입(우선순위: 마법>강화>일반) — 리티클 표시용.</summary>
+        public ArrowData.ArrowType GetNextArrowType()
+        {
+            if (CountOf(ARROW_MAGIC_ID) > 0) return ArrowData.ArrowType.Magic;
+            if (CountOf(ARROW_REINFORCED_ID) > 0) return ArrowData.ArrowType.Reinforced;
+            return ArrowData.ArrowType.Regular;
+        }
+
+        /// <summary>[F 고품질] 특정 화살 종류 보유 개수.</summary>
+        public int CountOf(string itemId)
+        {
+            if (_inventory == null) return 0;
+            int n = 0;
+            foreach (var slot in _inventory.GetAllSlots())
+            {
+                if (slot == null || slot.item == null || slot.item.id != itemId) continue;
+                n += slot.count;
+            }
+            return n;
+        }
+
         /// <summary>가장 좋은 화살 1개 소모</summary>
         private ArrowData.ArrowType ConsumeBestArrow()
         {
