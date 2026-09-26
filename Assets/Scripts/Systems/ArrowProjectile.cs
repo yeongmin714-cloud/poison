@@ -525,6 +525,19 @@ namespace ProjectName.Systems
             bool isOwnSoldier = hitGO != null && hitGO.CompareTag("RecruitedSoldier");   // 아군 — 아무 처리 없음(관통)
             if (isTarget)
             {
+                // [2026-09-26 젤다 화살예시 방패 막기] 방패를 착용한 적 병사(생존·미포섭)는
+                // 화살을 막아낸다 — 무피해 + 막기 VFX(별섬광/확장 링/노랑 스파크) + 화살 소멸.
+                // 아군(IsRecruited)은 대상이 아니므로 여기서 제외(기존 관통 유지).
+                GuardPlaceholder guardHit = hitGO != null ? hitGO.GetComponentInParent<GuardPlaceholder>() : null;
+                if (guardHit != null && guardHit.IsAlive && !guardHit.IsRecruited && guardHit.ShieldItem != null)
+                {
+                    Vector3 blockPoint = other != null ? other.ClosestPoint(transform.position) : transform.position;
+                    ArrowShieldBlockFX.Play(blockPoint);
+                    DisableTrail();
+                    Destroy(gameObject);
+                    return;
+                }
+
                 var damageable = other.GetComponent<IDamageable>();
                 if (damageable != null)
                 {

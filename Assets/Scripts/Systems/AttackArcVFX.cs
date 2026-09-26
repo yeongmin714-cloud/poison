@@ -226,7 +226,7 @@ namespace ProjectName.Systems
             if (!_settled)
             {
                 GameObject tipGo = WeaponSwingTrail.GetTrailTipAnchor();
-                Vector3 p;
+                Vector3 p = Vector3.zero;   // [QA_fix] 명시 초기화 — CS0165(used but not definitely assigned) 차단
                 bool sampled = false;
                 if (tipGo != null && tipGo.transform != null)
                 {

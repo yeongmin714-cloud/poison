@@ -1,6 +1,28 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-25 (공격 FX 프리미엄: 슬래쉬 아크 제거 + BOTW식 '참 무기 궤적' 3D 스윕 리본 AttackArcVFX / 몬스터 축불변 스윙 P-ANIM9 — 컴파일 Play 대기)
+> **최종 갱신:** 2026-09-26 (화살 방패 막기 — 젤다 화살예시 적용)
+
+## 📌 세션 스냅샷 (2026-09-26 ✅ 화살 방패 막기 — Arrow Shield Block)
+
+> **입력**: "이번엔 젤다 화살예시를 보고". 기준 `Screenshots/젤다 화살예시.mp4`(BotW).
+
+### 조사 (영상 실측)
+- **젤다 화살예시 = 방패 막기 데모**: 화살을 방패 든 NPC한테 쏘면 방패가 막아낸다 — **청록/흰 별섬광(starburst) + 확장하는 흰 원형 링 + 노란 스파크**(1~2프레임급, 짧고 또렷), 화살은 막혀 **피해 없음**.
+- **현행 Poison엔 방패 막기 메커니즘 자체가 없음**: `ArrowProjectile.OnTriggerEnter`가 `Enemy/Monster/Guard/DraculaLord` 타겟에 **무조건 TakeDamage**. 방패는 이미 존재(`GuardEquipmentSpawner.SpawnEquipment`가 25% 확률 `GuardPlaceholder.ShieldItem` 지급, `GuardVisualAttachSystem`이 시각화)하나 방패를 보고 피해를 무효화하는 로직이 0건.
+- **재사용 자산**: `ShockwaveRingFX.Spawn`(지면 확장 링)·`ArrowProjectile.SpawnStarFlare(public static)`·`UI/shadow_glow·StarFlare` 베이크 텍스처.
+
+### 구현 (계획 docs/ARROW_SHIELD_BLOCK_PLAN.md)
+- **`ArrowProjectile.OnTriggerEnter` (isTarget 분기 초입)**: `GetComponentInParent<GuardPlaceholder>()` → `guard.IsAlive && !guard.IsRecruited && guard.ShieldItem != null`이면 **방패 막기 경로**: TakeDamage/데미지숫자/크리틱/히트스톱 전부 스킵(무피해) + `ArrowShieldBlockFX.Play(hitPoint)` + `DisableTrail()` + `Destroy(gameObject)` + return. 아군(IsRecruited)은 제외(기존 관통 유지), 방패 없는 적/몬스터/영주는 기존 데미지(회귀 없음).
+- **`ArrowShieldBlockFX.cs` (신규 static)**: `Play(pos)` = ①확장 링 `ShockwaveRingFX.Spawn(pos+up0.1, 0.9, white, 0.25)` ②별 섬광 `SpawnStarFlare(pos+up0.3)` 재사용 ③노란 스파크 shadow_glow Hemisphere 파티클 5발(0.25s, 세상 스페이스, 자기소멸 0.6s). 파티클 머티리얼은 검증된 `muzzle-puff` 패턴(URP Particles/Unlit 폴백 Sprites/Default, Billbard).
+
+### ⚠️ 봉합 (기존 블로커)
+- **`AttackArcVFX.cs(243)` CS0165 "Use of unassigned local variable 'p'"** — 배치컴파일을 막고 있던 기존 에러. `Vector3 p;` → `Vector3 p = Vector3.zero;` 명시 초기화로 수리(공격 FX 세션에서 컴파일 미검증 상태로 남아있던 잔여). 이 파일은 git에 이미 커밋된 상태였고 워킹트리 변경 → 커밋에 포함.
+
+### 검증
+- 배치컴파일 `run_batch.bat` **error CS = 0** (BUILD_DONE_EXIT=0).
+- 정적: ArrowShieldBlockFX 12/12 reveal 균형, ArrowProjectile 76/76(Shift 393/393), `git diff --check` 0.
+- 변경 파일: ArrowProjectile.cs(+13)·AttackArcVFX.cs(1줄)·ArrowShieldBlockFX.cs(신규 87).
+- **⚠ Play 검증 대기(관례)**: 방패 들 적 병사 캠프에서 활 → 방패병사 무피해+섬광/링/노랑 스파크, 방패 없는 적은 기존 데미지.
 
 ---
 
