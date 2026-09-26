@@ -29,6 +29,9 @@ namespace ProjectName.UI.Toolkit
         // [밀매는 SmuggleWindowUTK로 분리] Buy/Sell 2-way 탭 상태
         private enum ShopTab { Buy, Sell }
 
+        // [Figma 정합] Store 카테고리 필터 탭 — 6탭(전체/무기/방어구/소모품/재료/레시피)
+        private enum StoreCat { All, Weapon, Armor, Consumable, Material, Recipe }
+
         // ===== 상점 아이템 데이터 (원본 ShopWindow.ShopItem 구조 대응) =====
         [System.Serializable]
         public class ShopItem
@@ -222,9 +225,11 @@ namespace ProjectName.UI.Toolkit
         private readonly ScrollView _buyScroll;
         private readonly ScrollView _sellScroll;
         private readonly Label _statusLabel;
+        private readonly List<Button> _storeCatTabs = new List<Button>();   // [Figma] 6탭 카테고리 필터
 
         // 선택 상태
         private int _selectedBuyIndex = -1;
+        private StoreCat _storeCat = StoreCat.All;   // [Figma] 활성 Store 카테고리
 
         /// <summary>테스트/외부 접근용 읽기 전용 인벤토리.</summary>
         public IReadOnlyList<ShopItem> ShopInventory => _shopInventory;
@@ -279,6 +284,28 @@ namespace ProjectName.UI.Toolkit
             storeTitle.style.fontSize = 14f;
             storeTitle.style.color = GitHubDark.TextSub;
             storeCol.Add(storeTitle);
+
+            // [Figma 정합] Store 카테고리 필터 — 6탭(전체/무기/방어구/소모품/재료/레시피) row+wrap
+            var storeCatRow = new VisualElement();
+            storeCatRow.style.flexDirection = FlexDirection.Row;
+            storeCatRow.style.flexWrap = Wrap.Wrap;
+            storeCatRow.style.marginTop = 4f;
+            storeCatRow.style.marginBottom = 6f;
+            storeCol.Add(storeCatRow);
+
+            string[] catLabels = { "전체", "무기", "방어구", "소모품", "재료", "레시피" };
+            for (int ci = 0; ci < catLabels.Length; ci++)
+            {
+                var cat = (StoreCat)ci;
+                var catBtn = UTKButton.Create(catLabels[ci], () => SelectStoreCat(cat), UTKButton.Variant.Secondary);
+                catBtn.style.flexGrow = 1f;
+                catBtn.style.height = 26f;
+                catBtn.style.marginRight = 3f;
+                catBtn.style.marginBottom = 3f;
+                _storeCatTabs.Add(catBtn);
+                storeCatRow.Add(catBtn);
+            }
+            RefreshStoreCatTabs();   // 초기 활성(전체) 강조
 
             _buyPanel = new VisualElement();
             _buyPanel.style.flexGrow = 1f;
@@ -673,6 +700,61 @@ namespace ProjectName.UI.Toolkit
             RefreshSellList();
         }
 
+        // =====================================================================
+        //  [Figma 정합] Store 카테고리 필터 — 6탭(전체/무기/방어구/소모품/재료/레시피)
+        // =====================================================================
+
+        /// <summary>카테고리 탭 선택 — 필터 변경 후 Store 목록만 갱신(Detail/판매 무관).</summary>
+        private void SelectStoreCat(StoreCat cat)
+        {
+            _storeCat = cat;
+            RefreshStoreCatTabs();
+            RefreshBuyList();
+        }
+
+        /// <summary>카테고리 탭 활성 강조 — GitHub-dark(활성=액센트, 비활성=PanelSub).</summary>
+        private void RefreshStoreCatTabs()
+        {
+            for (int i = 0; i < _storeCatTabs.Count; i++)
+            {
+                var btn = _storeCatTabs[i];
+                if (btn == null) continue;
+                bool active = (StoreCat)i == _storeCat;
+                StyleTabButton(btn, active, false);
+            }
+        }
+
+        /// <summary>ShopItem이 현재 Store 카테고리 필터에 속하는지.</summary>
+        private bool MatchesStoreCat(ShopItem shopItem)
+        {
+            if (shopItem == null || shopItem.item == null) return false;
+            var cat = shopItem.item.category;
+            switch (_storeCat)
+            {
+                case StoreCat.All: return true;
+                case StoreCat.Weapon:
+                    return cat == PlayerInventory.ItemCategory.Weapon
+                        || cat == PlayerInventory.ItemCategory.Arrow
+                        || cat == PlayerInventory.ItemCategory.Bomb;
+                case StoreCat.Armor:
+                    return cat == PlayerInventory.ItemCategory.Armor
+                        || cat == PlayerInventory.ItemCategory.Accessory;
+                case StoreCat.Consumable:
+                    return cat == PlayerInventory.ItemCategory.Potion
+                        || cat == PlayerInventory.ItemCategory.Food
+                        || cat == PlayerInventory.ItemCategory.Herb
+                        || cat == PlayerInventory.ItemCategory.Drug;
+                case StoreCat.Material:
+                    return cat == PlayerInventory.ItemCategory.Material
+                        || cat == PlayerInventory.ItemCategory.Meat
+                        || cat == PlayerInventory.ItemCategory.Quest;
+                case StoreCat.Recipe:
+                    // 게임에 Recipe 카테고리 없음 — 재료류 폴백 (빈 경우 하단 안내)
+                    return cat == PlayerInventory.ItemCategory.Material;
+                default: return true;
+            }
+        }
+
         private void RenderInventoryAndRefresh()
         {
             InitializeShopInventory();
@@ -714,19 +796,40 @@ namespace ProjectName.UI.Toolkit
                 _buyScroll.Add(spacer);
             }
 
-            if (_shopInventory.Count == 0)
-            {
-                _buyScroll.Add(new Label("판매 중인 아이템이 없습니다.") { style = { fontSize = 16f, color = GitHubDark.TextSub } });
-                return;
-            }
-
-            int index = 0;
+            // [Figma 정합] 카테고리 필터 적용 — 선택 카테고리 상품만 표시. 멱등(빈재고 대비).
+            bool anyInCat = false;
+            int catIndex = 0;
             foreach (var shopItem in _shopInventory)
             {
-                _buyScroll.Add(BuildBuyRow(shopItem, index));
-                index++;
+                if (!MatchesStoreCat(shopItem))
+                    continue;
+                anyInCat = true;
+                _buyScroll.Add(BuildBuyRow(shopItem, catIndex));
+                catIndex++;
             }
+
+            if (!anyInCat)
+            {
+                string catName = _storeCat == StoreCat.All ? "" : "/" + StoreCatLabel(_storeCat);
+                _buyScroll.Add(new Label($"이 카테고리에 판매 중인 아이템이 없습니다{catName}.") { style = { fontSize = 15f, color = GitHubDark.TextSub } });
+            }
+
             _selectedBuyIndex = -1;
+        }
+
+        /// <summary>Store 카테고리 표시명 (빈 안내용).</summary>
+        private static string StoreCatLabel(StoreCat cat)
+        {
+            switch (cat)
+            {
+                case StoreCat.All: return "전체";
+                case StoreCat.Weapon: return "무기";
+                case StoreCat.Armor: return "방어구";
+                case StoreCat.Consumable: return "소모품";
+                case StoreCat.Material: return "재료";
+                case StoreCat.Recipe: return "레시피";
+                default: return "";
+            }
         }
 
         // [Milestone F] 비밀상점 전용 행 — SecretShopSystem.TryBuy 직접 호출
