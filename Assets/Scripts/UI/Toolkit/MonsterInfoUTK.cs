@@ -24,6 +24,11 @@ namespace ProjectName.UI.Toolkit
     ///
     /// [규약] foreach만(읽기 전용) / public 멤버(CS0050) / UnityEngine.Debug /
     ///        IStyle 4면 개별 속성 / IMGUI(GUI.xxx) 금지 / USS gradient·url 절대경로 금지.
+    ///
+    /// [GitHub-dark 리스타일] 이 창 한정 인라인 오버라이드 — 공용 UTKColor(브론즈/우드 톤) 대신
+    /// 로컬 GitHubDark 팔레트(배경 #0B0E14 / 패널 #161B22 / 보조 #21262D / 액센트 #58A6FF /
+    /// 골드 #E3B341 / 텍스트 #F0F6FC / 보조텍스트 #8B949E / 스트로크 #2E343D) 사용.
+    /// 기능 로직(MonsterDatabase/Level/HP/드랍 표시, 250ms 폴링)은 무수정. 공용 파일/타 창은 건드리지 않는다.
     /// </summary>
     public class MonsterInfoUTK : UTKWindowBase
     {
@@ -58,6 +63,27 @@ namespace ProjectName.UI.Toolkit
         private const float WinH = 440f;
         private const long RefreshMs = 250L;   // HP/상태 실시간 폴링
 
+        // =====================================================================
+        //  [GitHub-dark 리스타일] 몬스터 정보 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
+        //  Theme.uss / 공용 UTKColor·UTKButton·UTKSlot·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
+        //  (이 창은 버튼이 없어 Accent 미사용 — 팔레트에서 제외)
+        //  =====================================================================
+        private static class GitHubDark
+        {
+            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경 — HP바 인셋
+            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
+            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(타이틀바)
+            public static readonly Color Gold     = Hex(0xE3B341);   // 섹션 헤더 골드 / HP 중간 비율
+            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트(값)
+            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트(라벨)
+            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
+            public static readonly Color Danger   = Hex(0xF85149);   // danger 톤 — HP 낮음
+            public static readonly Color Health   = Hex(0x3FB950);   // GitHub success green — HP 높음
+
+            private static Color Hex(uint rgb) =>
+                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
         // 티어색 (NameplateOverlayUTK 몬스터 팔레트 계승)
         private static readonly Color TierBeginner     = new Color(0.30f, 0.85f, 0.40f);   // 초반 초록
         private static readonly Color TierIntermediate = new Color(1.00f, 0.80f, 0.25f);   // 중반 노랑
@@ -82,6 +108,7 @@ namespace ProjectName.UI.Toolkit
         private MonsterInfoUTK() : base("몬스터 정보", new Vector2(WinW, WinH))
         {
             BuildContent();
+            ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬(본체/타이틀바/닫기버튼) 리스타일 — 이 창 한정
             ApplyUIToolkitFont(this);
             style.display = DisplayStyle.None;
         }
@@ -101,7 +128,7 @@ namespace ProjectName.UI.Toolkit
             _nameLabel = new Label("");
             _nameLabel.name = "MonsterName";
             _nameLabel.style.fontSize = 22f;
-            _nameLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            _nameLabel.style.color = new StyleColor(GitHubDark.TextMain);
             _nameLabel.style.marginTop = 8f;
             _nameLabel.style.whiteSpace = WhiteSpace.Normal;
             _content.Add(_nameLabel);
@@ -110,7 +137,7 @@ namespace ProjectName.UI.Toolkit
             _levelLabel = new Label("");
             _levelLabel.name = "MonsterLevel";
             _levelLabel.style.fontSize = 14f;
-            _levelLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _levelLabel.style.color = new StyleColor(GitHubDark.TextSub);
             _levelLabel.style.marginTop = 2f;
             _levelLabel.style.whiteSpace = WhiteSpace.Normal;
             _content.Add(_levelLabel);
@@ -126,7 +153,7 @@ namespace ProjectName.UI.Toolkit
 
             var hpName = new Label("❤️ 체력");
             hpName.style.fontSize = 14f;
-            hpName.style.color = new StyleColor(UTKColor.TextSecondary);
+            hpName.style.color = new StyleColor(GitHubDark.TextSub);
             hpName.style.width = 60f;
             hpName.style.flexShrink = 0f;
             hpWrap.Add(hpName);
@@ -140,24 +167,28 @@ namespace ProjectName.UI.Toolkit
             barFrame.style.marginRight = 4f;
             barFrame.style.borderTopWidth = 1f; barFrame.style.borderBottomWidth = 1f;
             barFrame.style.borderLeftWidth = 1f; barFrame.style.borderRightWidth = 1f;
-            barFrame.style.borderTopColor = new StyleColor(UTKColor.BorderGold);
-            barFrame.style.borderBottomColor = new StyleColor(UTKColor.BorderGold);
-            barFrame.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
-            barFrame.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
+            barFrame.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+            barFrame.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
+            barFrame.style.borderLeftColor = new StyleColor(GitHubDark.Stroke);
+            barFrame.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
             barFrame.style.overflow = Overflow.Hidden;
-            barFrame.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            barFrame.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
+            barFrame.style.borderTopLeftRadius = 4f;
+            barFrame.style.borderTopRightRadius = 4f;
+            barFrame.style.borderBottomLeftRadius = 4f;
+            barFrame.style.borderBottomRightRadius = 4f;   // 작은배지 r4
             hpWrap.Add(barFrame);
 
             _hpFill = new VisualElement();
             _hpFill.name = "MonsterHpFill";
-            _hpFill.style.backgroundColor = new StyleColor(UTKColor.HealthRed);
+            _hpFill.style.backgroundColor = new StyleColor(GitHubDark.Danger);   // 초기색 — RefreshAll에서 비율색으로 덮어씀
             barFrame.Add(_hpFill);
             hpWrap.Add(barFrame);
 
             _hpValueLabel = new Label("- / -");
             _hpValueLabel.name = "MonsterHpValue";
             _hpValueLabel.style.fontSize = 13f;
-            _hpValueLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            _hpValueLabel.style.color = new StyleColor(GitHubDark.TextMain);
             _hpValueLabel.style.width = 84f;
             _hpValueLabel.style.flexShrink = 0f;
             _hpValueLabel.style.unityTextAlign = TextAnchor.MiddleRight;
@@ -177,14 +208,14 @@ namespace ProjectName.UI.Toolkit
             // ── 설명 ──
             var descHeader = new Label("📖 설명");
             descHeader.style.fontSize = 15f;
-            descHeader.style.color = new StyleColor(UTKColor.AccentRare);
+            descHeader.style.color = new StyleColor(GitHubDark.Gold);
             descHeader.style.marginTop = 6f;
             _content.Add(descHeader);
 
             _descLabel = new Label("");
             _descLabel.name = "MonsterDesc";
             _descLabel.style.fontSize = 13f;
-            _descLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _descLabel.style.color = new StyleColor(GitHubDark.TextSub);
             _descLabel.style.whiteSpace = WhiteSpace.Normal;
             _descLabel.style.marginTop = 4f;
             _descLabel.style.flexGrow = 1f;
@@ -195,7 +226,7 @@ namespace ProjectName.UI.Toolkit
             // ── 드랍 아이템 ──
             var dropHeader = new Label("💎 드랍 아이템");
             dropHeader.style.fontSize = 15f;
-            dropHeader.style.color = new StyleColor(UTKColor.AccentRare);
+            dropHeader.style.color = new StyleColor(GitHubDark.Gold);
             dropHeader.style.marginTop = 6f;
             _content.Add(dropHeader);
 
@@ -215,13 +246,13 @@ namespace ProjectName.UI.Toolkit
 
             var n = new Label(name);
             n.style.fontSize = 14f;
-            n.style.color = new StyleColor(UTKColor.TextSecondary);
+            n.style.color = new StyleColor(GitHubDark.TextSub);
             n.style.width = 90f;
             row.Add(n);
 
             var value = new Label("-");
             value.style.fontSize = 15f;
-            value.style.color = new StyleColor(UTKColor.TextPrimary);
+            value.style.color = new StyleColor(GitHubDark.TextMain);
             value.style.flexGrow = 1f;
             value.style.unityTextAlign = TextAnchor.MiddleRight;
             row.Add(value);
@@ -237,8 +268,53 @@ namespace ProjectName.UI.Toolkit
             sep.style.height = 2f;
             sep.style.marginTop = 10f;
             sep.style.marginBottom = 2f;
-            sep.style.backgroundColor = new StyleColor(UTKColor.IronLine);
+            sep.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
             return sep;
+        }
+
+        // =====================================================================
+        //  [GitHub-dark] 스타일 헬퍼 — 시각 전용(기능 로직과 무관), 이 창 한정
+        //  =====================================================================
+
+        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
+        private void ApplyGitHubDarkStyle()
+        {
+            style.backgroundColor = GitHubDark.Panel;
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.color = GitHubDark.TextMain;
+
+            var titleBar = this.Q("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = GitHubDark.PanelSub;
+                titleBar.style.borderTopLeftRadius = 8f;
+                titleBar.style.borderTopRightRadius = 8f;
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+            }
+
+            if (_titleLabel != null)
+                _titleLabel.style.color = GitHubDark.TextMain;
+
+            var closeBtn = this.Q<Button>("CloseButton");
+            if (closeBtn != null)
+            {
+                closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
+                closeBtn.style.borderTopLeftRadius = 4f;
+                closeBtn.style.borderTopRightRadius = 4f;
+                closeBtn.style.borderBottomLeftRadius = 4f;
+                closeBtn.style.borderBottomRightRadius = 4f;            // 작은배지 r4
+                closeBtn.style.color = GitHubDark.TextMain;
+            }
         }
 
         // =====================================================================
@@ -308,8 +384,8 @@ namespace ProjectName.UI.Toolkit
             float cur = m.CurrentHP;
             float max = m.MaxHP;
             float ratio = max > 0 ? Mathf.Clamp01(cur / max) : 0f;
-            Color barColor = ratio >= 0.6f ? UTKColor.GuildGreen
-                : ratio >= 0.3f ? UTKColor.AccentRare : UTKColor.HealthRed;
+            Color barColor = ratio >= 0.6f ? GitHubDark.Health
+                : ratio >= 0.3f ? GitHubDark.Gold : GitHubDark.Danger;
             _hpFill.style.backgroundColor = new StyleColor(barColor);
             _hpFill.style.width = new Length(Mathf.Max(ratio * 100f, 0f), LengthUnit.Percent);
             _hpFill.style.height = 18f;
@@ -338,7 +414,7 @@ namespace ProjectName.UI.Toolkit
             {
                 var empty = new Label("정보 없음");
                 empty.style.fontSize = 13f;
-                empty.style.color = new StyleColor(UTKColor.TextSecondary);
+                empty.style.color = new StyleColor(GitHubDark.TextSub);
                 _dropList.Add(empty);
                 return;
             }
@@ -347,7 +423,7 @@ namespace ProjectName.UI.Toolkit
             {
                 var row = new Label("• " + dropName);
                 row.style.fontSize = 13f;
-                row.style.color = new StyleColor(UTKColor.TextPrimary);
+                row.style.color = new StyleColor(GitHubDark.TextMain);
                 row.style.marginBottom = 2f;
                 row.style.whiteSpace = WhiteSpace.Normal;
                 _dropList.Add(row);
