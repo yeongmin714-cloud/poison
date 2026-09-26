@@ -1,6 +1,34 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-26 (화살 액션 완전 고품질 + 화살 방패 막기)
+> **최종 갱신:** 2026-09-26 (UI-F-GRID G1+G2 — 인벤토리/전리품 그리드 Figma 정합)
+
+## 📌 세션 스냅샷 (2026-09-26 ✅ UI-F-GRID G1+G2 — 인벤토리/전리품 그리드 Figma 정합 — 커밋 75275efe)
+
+> **입력**: "그리드랑 디자인도 완전히 동일하게 만들지 못해? 전체 정렬해줘 폰트만 빼고 전체 ui가 피그마랑 동일하도록 디자인과 그리드 모두"
+> **판정**: 피그마 실측(노드트리 + `/tmp/figma_tree.json` + loot-panel 렌더 vision확인)으로 "그리드/디자인은 전부 재현 가능, **폰트만 한글 게임이라 못 바꿈**(Roboto/Geist Mono 한글 글리프 없음→NotoSansKR 대체 불가피)"을 확정. → 폰트 제외, 그리드+디자인 Figma 1:1 정합 진행.
+
+### 피그마 실측 결과 (grid/레아웃)
+- **inventory**: 가방 **5열**(GridRow1..N × 5 ItemSlot), 장비 2×5(10슬롯), TabContainer 5탭 — 현재 게임은 가방 **7열**(`Columns=7`, `BagColumns=5` 미참조) 드리프트.
+- **loot-panel(420×360)**: **5열×2행 그리드**(10슬롯, 상단 등급색 선/중앙아이콘/우하단 카운트) + 헤더("전리품/LOOT SECURED") + 서브헤더(**"습득 가능" 파란배지 + "획득 아이템: n/10"**) + 풋터(**"전부 습득하기"/"닫기"**) — 현재 게임은 리스트 1열로 미정합.
+- **game-shop-ui**: Store 5열 그리드(이미 F2 3열 Store|Detail|Sell 정합, Store 내부는 ScrollView 리스트).
+
+### 구현
+- **G1 인벤토리**(`InventoryWindowUTK.cs`): `Columns=7→5`, 미참조 `BagColumns=5` 제거→`Columns=5`로 통일, 주석 정리. 창 폭 560f/SlotSize 64f = 5열 350px 이내. rows 계산(546행) 자동 반영. 기능 100% 보존.
+- **G2 전리품**(`LootWindowUTK.cs` — 서브에이전트 max_iterations 타임아웃 → **부모 직접 재구성**): 리스트 1열→**5열 그리드**. `_list(Column)`→`_grid(Row+Wrap)`, `BuildRow→BuildSlot`(64×64 슬롯, 등급 상단 테두리 `RankColor(rarity)`/중앙 아이콘 ScaleToFit/우하단 골드 카운트). 서브헤더(습득가능 Accent배지+"획득 아이템: n/10"). 풋터(**전부 습득하기**=`AcquireAll` 역순 TakeSelectedItem 루프/═**닫기**=Hide, `StyleButton`). 창 420×360. `TakeAll()`은 바구니 전체 소멸이라 개별 인벤가득 포함이 안 돼 역순 개별 획득 사용. **로직 보존**: 빈바구니 자동Hide(RefreshGrid)·드래그→인벤(MakePayload SourceKind.Loot)·우클릭 획득(TakeSelectedItem→_basket.TakeItem)·IUTKDragSource/DropTarget 재드롭취소.
+  - ⚠ 컴파일 함정 수정: `UTKButton.Variant.Default`→`Secondary`(enum은 Primary/Secondary/Danger만 존재).
+
+### 검증
+- 배치컴파일(6000.4.10f1) `CompileScripts: 18833ms`, **error CS 0**.
+- EditMode **299/301** (실패 2건은 **기존 요리 데이터 테스트** `CookingDatabase_AllRecipes_Loaded`/`FindRecipe_UnknownCombo_ReturnsNull` — RecipeCatalog 확장으로 기대값 노후, **이번 그리드 작업과 무관**).
+- 다른 파일 무수정(공용 Theme.uss·UTKSlot·UTKButton·UTKWindowBase·원본 LootWindow.cs 불변). 커밋 75275efe(파일 2개 지정 add).
+- ⚠ **Play 검증 대기(관례)**: ①인벤토리 가방 그리드 5열로 바뀌었는지(7→5) ②전리품 창이 5열 그리드+서브헤더 배지/카운트+풋터(전부습득/닫기)로 나오는지.
+
+### 후속(미완)
+- **상점 Store 내부를 피그마 5열 그리드로**(현재 ScrollView 리스트 1열) — 금융 로직 얽힘이라 리스크, Phase 분리 후 신중 진행.
+- G4 나머지 Figma 대응 창(월드맵 TacticalCompass·전투로그 BattleLog·몬스터HP·크래프트 4탭 등) px비교.
+
+---
+
 
 ## 📌 세션 스냅샷 (2026-09-26 ✅ 화살 액션 완전 고품질 — Arrow Action QA)
 
