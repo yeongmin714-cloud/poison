@@ -1,6 +1,36 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-26 (UI-F-GRID G1~G4 + Test_10 씬 UTK 전환)
+> **최종 갱신:** 2026-09-27 (UI-F-COMPLETE P3 — 캐릭터 상태창 Figma 재구성)
+
+## 📌 세션 스냅샷 (2026-09-27 ✅ UI-F-COMPLETE P3 — 캐릭터 상태창 Figma character-status-panel 재구성 — 커밋 59f990f3)
+
+> **입력**: "다시 진행" (이전 세션 예산 소진으로 P3에서 중단 → 재개). P1(상점6탭 e37e828b)·P2(병사3열 3be77556) 완료 후속.
+> **피그마 실측**: `character-status-panel` 노드렌더 + `/tmp/figma_status.png` vision으로 구조 확정.
+
+### 구현 (StatusWindowUTK.cs — 280줄 추가/6삭제, 이파일만)
+Figma `character-status-panel` 표시 구조로 재배열 — **게임 로직 100% 보존, 데이터 소스 동일(공개 API 소비만)**:
+- **좌측열**: IdentityRow(등급/레벨 배지+캐릭터명) → Portrait(3D 프리뷰 placeholder + 반투명 HP 오버레이 바) → LevelBlock("LEVEL <n> EXP <비율%>") → CoreStatsGrid 4행(공격/방어/최대체력/민첩, `FinalAttackDamage/FinalDefense/HPBase/FinalMoveSpeed`) → 특수상태(허기/중독도 컴팩트 게이지)
+- **중앙열**: 기존 장비슬롯 6개(투구/상의/무기/장갑/신발/등) + 장비 보너스 내역 (이동 배치, 로직/구성 무수정)
+- **우측열**: 기존 상세 전부 보존 (주스탯 4종 분배 + 전투스탯 8행 + 체력/경험/허기 게이지 + 중독 + 칭호 변경 + 감사 리포트)
+- Figma '호감도' 게이지 자리는 **플레이어 실존 '허기(HungerSystem)'** 로 매핑 (플레이어 상태창에 호감도 소스 없음 — 병사/영지 호감도는 GuardLoyaltySystem이므로 대상 아님).
+
+### 검증
+- 배치컴파일 `CompileScripts: 2547.311ms`, **error CS 0**.
+- EditMode **299/301** — 실패 2건은 기존 요리 데이터 2건(CookingDatabase_AllRecipes_Loaded/FindRecipe_UnknownCombo_ReturnsNull, RecipeCatalog 확장으로 기대값 노후)뿐, **P3 회귀 없음**.
+- 괄호 균형 OK, `git diff --check` 0, `GithubDark`(소문자h) 타이포 0.
+- ⚠ **Play 검증 대기**: ①P키 상태창에 좌측 Identity→초상화(HP오버레이)→레벨/코어스탯→특수상태가 배치됐는지 ②기존 상세(주스탯/장비슬롯/전투스탯/칭호)가 하단 유지되는지 ③게이지/컴팩트 게이지 갱신.
+
+### UI-F-COMPLETE 진행 상황
+| Phase | 창 | 작업 | 커밋 |
+|:--|:--|:--|:--|
+| P1 | 상점 | Store 6탭 카테고리 필터 | e37e828b |
+| P2 | 병사관리 | 신규 3열 창(목록/능력치/배치7) | 3be77556 |
+| **P3** | **캐릭터 상태** | **Figma character-status-panel (Identity+초상화+LevelBlock+CoreStatsGrid4+특수상태게이지)** | **59f990f3** |
+| P4 | 퀘스트 | 카드목록+상세+보상 3열 | — |
+| P5 | 전투로그 | 카드행+요약풋터 | — |
+| P6~P9 | 월드맵/몬스터HP/크래프트/인터랙션 | — | — |
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-26 ✅ Test_10 씬 UTK 전환 — 커밋 f6abb162)
 

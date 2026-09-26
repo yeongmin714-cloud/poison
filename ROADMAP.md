@@ -3384,6 +3384,18 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 - 배경 제외 원칙(월드맵만 배경 포함), 게임 해상도 기준 스케일, UTK 고품질(베이크 PNG/셰이더).
 
+## 🎨 2026-09-27: UI-F-COMPLETE — Figma 17창 "로직을 피그마에 맞춘다" (P1~P9)
+> 사용자 확정(09-26): 게임 로직에 피그마를 맞추는 게 아니라 **피그마에 맞게 게임 로직을 고친다**. 각 창을 피그마 렌더/노드트리와 1:1 정합 — 표시 구조를 Figma로 재구성하되 게임 데이터 소스(공개 API) 보존.
+
+| Phase | 창 | Figma 구조로 재구성 | 상태 |
+|:--|:--|:--|:--:|
+| P1 | 상점 | Store 6탭 카테고리 필터(전체/무기/방어구/소모품/재료/레시피) — ItemCategory 매핑, 금융 로직 무수정 | ✅ 커밋 e37e828b, error CS 0 |
+| P2 | 병사관리 | 신규 3열 창(SoldierManagementUTK): 좌 목록3탭+카드 / 중앙 능력치 프로그레스 / 우 배치 7역할 — GuardManager·GuardTaskSystem 데이터 연동 | ✅ 커밋 3be77556, error CS 0 |
+| P3 | 캐릭터 상태 | StatusWindowUTK → Figma character-status-panel: 좌 Identity+초상화(HP오버레이)+LevelBlock+CoreStatsGrid(공/방/최대체력/민첩)+특수상태(허기/중독도) / 중앙 장비슬롯+보너스 / 우 상세(주스탯분배·전투스탯·칭호·감사) — 로직 100% 보존 | ✅ 커밋 59f990f3, error CS 0, EditMode 299/301(요리2건 무관) |
+| P4 | 퀘스트 | 카드목록+중앙상세+우보상 3열 | ⏳ |
+| P5 | 전투로그 | 카드행+요약풋터 | ⏳ |
+| P6~P9 | 월드맵/몬스터HP/크래프트/인터랙션 | — | ⏳ |
+
 ## 🌲 2026-09-23: GNB — Idyllic 자연 다양화 (새 GLB 팩 통합)
 > 목표: 메인씬 지형/장식(`IdyllicPrefabs` 풀)에 새 `새로운 glb/nature` 팩(480파일·테마×상태)을 추가 배치해 나무/돌/풀/꽃 다양성을 극대화. 기존 프리팹 156개는 유지.
 
