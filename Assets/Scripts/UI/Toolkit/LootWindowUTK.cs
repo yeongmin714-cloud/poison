@@ -7,22 +7,15 @@ using ProjectName.UI;              // ItemIconDatabase
 namespace ProjectName.UI.Toolkit
 {
     /// <summary>
-    /// UI Toolkit Phase U2 Round 2A — 전리품 윈도우 (LootWindow 796줄 IMGUI → UTK 포팅).
-    /// 참조 계획서: docs/UI_TOOLKIT_MIGRATION.md
-    /// 원본: Assets/Scripts/UI/LootWindow.cs — 절대 수정하지 않는다.
-    ///
-    /// [포팅 범위]
-    ///  ① 바구니 항목 리스트 — ILootBasket.Items(전리품 바구니 소스)의 각 LootEntry를
-    ///                        UTKSlot(아이콘+이름+카운트) 행으로 표시. 매 갱신 재조회(즉시 반영).
-    ///  ② 행 드래그 → 인벤  — IUTKDragSource 구현: 행 좌클릭 드래그가
-    ///                        UTKDragPayload(SourceKind.Loot, SourceIndex=항목 인덱스)를 생성.
-    ///                        인벤토리(InventoryWindowUTK)가 수신해 PlayerInventory.AddItem 수행.
-    ///  ③ 행 우클릭 획득    — 원본 TakeSelectedItem(→ ILootBasket.TakeItem → PlayerInventory.AddItem) 동일 데이터 경로.
-    ///  ④ 좌측 히스토리 없음 — 단순 목록 + 닫기(제공되는 닫기 버튼).
+    /// UI Toolkit — 전리품 윈도우 (Figma loot-panel 정합 개편).
+    /// Figma 규격: 5열×2행 그리드 + 서브헤더(습득가능 배지 + 획득 n/10) + 풋터(전부 습득/닫기).
+    /// 기존 UTK Phase U2 Round 2A 로직(빈바구니 자동Hide·드래그→인벤·우클릭 획득) 100% 보존.
+    ///  ① 항목 그리드  — ILootBasket.Items의 각 LootEntry를 5열 그리드 슬롯(아이콘+카운트)으로 표시. 매 갱신 재조회.
+    ///  ② 슬롯 드래그 → 인벤 — IUTKDragSource 구현: 좌클릭 드래그가 UTKDragPayload(SourceKind.Loot, SourceIndex=항목 인덱스) 생성.
+    ///                         InventoryWindowUTK가 수신해 PlayerInventory.AddItem 수행.
+    ///  ③ 슬롯 우클릭 획득 — TakeSelectedItem(→ ILootBasket.TakeItem → PlayerInventory.AddItem) 동일 데이터 경로.
     ///  ⑤ 변화 폴링 갱신    — 바구니 항목 배열을 주기 재조회해 즉시 갱신.
-    ///  ⑥ 빈바구니 처리     — 원본 재조회 규약: 바구니가 비어있거나 회수 불가하면 자동 Hide + 참조 해제.
-    ///  static Open(basket)/Ensure 진입점. 우측 배치 관례(화면 2/3 + 6, 높이 Screen-180).
-    ///  각 경로에 [LootUTK] Debug.Log 실측 로그.
+    ///  ⑥ 빈바구니 처리     — 바구니가 비어있거나 회수 불가하면 자동 Hide + 참조 해제.
     /// </summary>
     public class LootWindowUTK : UTKWindowBase, IUTKDragSource, IUTKDropTarget
     {
@@ -30,7 +23,7 @@ namespace ProjectName.UI.Toolkit
         private static LootWindowUTK _instance;
         public static LootWindowUTK Instance => _instance;
 
-        /// <summary>팩토리 — UIRoot 우측 배치 관례(화면 2/3 + 6). 멱등.</summary>
+        /// <summary>팩토리 — 멱등.</summary>
         public static void Ensure()
         {
             if (_instance != null) return;
@@ -45,10 +38,11 @@ namespace ProjectName.UI.Toolkit
             _instance.OpenForBasket(basket);
         }
 
-        // ===== 설정 =====
+        // ===== 설정 (Figma loot-panel 420x360, 그리드 5열) =====
         private const long RefreshMs = 250L;
-        private const float RowHeight = 56f;
-        private const float IconSize = 44f;
+        private const int GridColumns = 5;   // Figma 5열
+        private const float SlotSize = 64f;
+        private const float SlotGap = 6f;
 
         // =====================================================================
         //  [Figma GitHub-dark 리스타일] 전리품 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
@@ -60,14 +54,28 @@ namespace ProjectName.UI.Toolkit
             public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
             public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(행/버튼)
             public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트)
-            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/활성/골드
+            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/카운트/골드
             public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
             public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
             public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
             public static readonly Color Danger   = Hex(0xF85149);   // danger 버튼
+            public static readonly Color RankEpic = Hex(0xA371F7);   // epic 퍼플
 
             private static Color Hex(uint rgb) =>
                 new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
+        }
+
+        /// <summary>등급 테두리 색 — Figma/GitHub-dark 팔레트(4~5=금/3=퍼플/1~2=액센트/0=보조).</summary>
+        private static Color RankColor(int rarityIndex)
+        {
+            switch (rarityIndex)
+            {
+                case 0: return GitHubDark.TextSub;
+                case 1:
+                case 2: return GitHubDark.Accent;
+                case 3: return GitHubDark.RankEpic;
+                default: return GitHubDark.Gold;
+            }
         }
 
         /// <summary>GitHub-dark 버튼 인라인 오버라이드(이 창 한정) — IStyle 쇼트핸드 없음 → 4면 개별 대입.</summary>
@@ -102,7 +110,6 @@ namespace ProjectName.UI.Toolkit
         /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
         private void ApplyGitHubDarkStyle()
         {
-            // 창 본체: bg_window.png/브론즈 베벨 2px → 다크 패널 + 1px 스트로크 + r8 (이 창에서만)
             style.backgroundColor = GitHubDark.Panel;
             style.backgroundImage = new StyleBackground(StyleKeyword.None);
             style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
@@ -111,7 +118,7 @@ namespace ProjectName.UI.Toolkit
             style.borderTopRightRadius = 8f;
             style.borderBottomLeftRadius = 8f;
             style.borderBottomRightRadius = 8f;   // 메인 반경 r8
-            style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
+            style.color = GitHubDark.TextMain;
 
             var titleBar = this.Q("TitleBar");
             if (titleBar != null)
@@ -141,49 +148,105 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
-        /// <summary>GitHub-dark 리스트 행 — 보조 패널 #21262D 바탕 + 1px 스트로크 + r6 (이 창 한정).</summary>
-        private static void ApplyDarkRowStyle(VisualElement row)
+        /// <summary>GitHub-dark 그리드 슬롯 — 다크 인셋 + 1px 스트로크 + r6 + 등급 상단 테두리 (이 창 한정).</summary>
+        private static void ApplyDarkSlotStyle(VisualElement slot, int rarityIndex)
         {
-            if (row == null) return;
-            row.style.backgroundImage = new StyleBackground(StyleKeyword.None);   // 우드 슬롯 베이크 이미지 제거
-            row.style.backgroundColor = GitHubDark.PanelSub;
-            row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 1f;
-            row.style.borderTopColor = row.style.borderBottomColor = row.style.borderLeftColor = row.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            row.style.borderTopLeftRadius = 6f;
-            row.style.borderTopRightRadius = 6f;
-            row.style.borderBottomLeftRadius = 6f;
-            row.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+            if (slot == null) return;
+            slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            slot.style.backgroundColor = GitHubDark.BgBase;
+            slot.style.borderTopWidth = 2f;   // 등급색 상단 강조선 (피그마 슬롯 상단 유색 선)
+            slot.style.borderBottomWidth = 1f;
+            slot.style.borderLeftWidth = 1f;
+            slot.style.borderRightWidth = 1f;
+            var rank = RankColor(rarityIndex);
+            slot.style.borderTopColor = new StyleColor(rank);
+            slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            slot.style.borderTopLeftRadius = 6f;
+            slot.style.borderTopRightRadius = 6f;
+            slot.style.borderBottomLeftRadius = 6f;
+            slot.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
         }
 
         // ===== 레퍼런스 =====
         private ILootBasket _basket;
-        private readonly VisualElement _list;
-        private readonly Label _countLabel;
+        private readonly VisualElement _grid;            // 5열 그리드
+        private readonly Label _countLabel;              // "획득 아이템: n / 10"
+        private readonly Label _badgeLabel;              // "습득 가능" 배지
         private readonly Label _emptyLabel;
+        private readonly Button _acquireAllBtn;          // 풋터 "전부 습득하기"
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
 
-        private LootWindowUTK() : base("🎁 전리품", new Vector2(380f, 520f))
+        private LootWindowUTK() : base("🎁 전리품", new Vector2(420f, 360f))
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
+            // ── 서브헤더: 좌측 "습득 가능" 배지 + 우측 카운트 ──
+            var subHeader = new VisualElement();
+            subHeader.style.flexDirection = FlexDirection.Row;
+            subHeader.style.justifyContent = Justify.SpaceBetween;
+            subHeader.style.alignItems = Align.Center;
+            subHeader.style.marginBottom = 6f;
+            _content.Add(subHeader);
+
+            _badgeLabel = new Label("습득 가능");
+            _badgeLabel.style.backgroundColor = GitHubDark.Accent;
+            _badgeLabel.style.color = GitHubDark.BgBase;
+            _badgeLabel.style.fontSize = 12f;
+            _badgeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _badgeLabel.style.paddingTop = 2f;
+            _badgeLabel.style.paddingBottom = 2f;
+            _badgeLabel.style.paddingLeft = 8f;
+            _badgeLabel.style.paddingRight = 8f;
+            _badgeLabel.style.borderTopLeftRadius = 4f;
+            _badgeLabel.style.borderTopRightRadius = 4f;
+            _badgeLabel.style.borderBottomLeftRadius = 4f;
+            _badgeLabel.style.borderBottomRightRadius = 4f;
+            subHeader.Add(_badgeLabel);
+
             _countLabel = new Label("");
             _countLabel.style.fontSize = 13f;
-            _countLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 보조 텍스트
-            _content.Add(_countLabel);
+            _countLabel.style.color = new StyleColor(GitHubDark.TextSub);
+            subHeader.Add(_countLabel);
 
-            _list = new VisualElement();
-            _list.name = "LootList";
-            _list.style.flexDirection = FlexDirection.Column;
-            _list.style.flexGrow = 1f;
-            _list.style.marginTop = 6f;
-            _content.Add(_list);
+            // ── 그리드 본문 (5열 wrap) ──
+            _grid = new VisualElement();
+            _grid.name = "LootGrid";
+            _grid.style.flexDirection = FlexDirection.Row;
+            _grid.style.flexWrap = Wrap.Wrap;
+            _grid.style.marginTop = 4f;
+            _grid.style.flexGrow = 1f;
+            _content.Add(_grid);
 
             _emptyLabel = new Label("(전리품이 없습니다)");
             _emptyLabel.style.fontSize = 14f;
-            _emptyLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 보조 텍스트
+            _emptyLabel.style.color = new StyleColor(GitHubDark.TextSub);
             _emptyLabel.style.marginTop = 12f;
             _content.Add(_emptyLabel);
+
+            // ── 풋터: "전부 습득하기" + "닫기" ──
+            var footer = new VisualElement();
+            footer.style.flexDirection = FlexDirection.Row;
+            footer.style.marginTop = 8f;
+            footer.style.paddingTop = 6f;
+            footer.style.borderTopWidth = 1f;
+            footer.style.borderTopColor = new StyleColor(GitHubDark.Stroke);
+            _content.Add(footer);
+
+            _acquireAllBtn = new Button(AcquireAll);
+            _acquireAllBtn.text = "전부 습득하기";
+            _acquireAllBtn.style.flexGrow = 1f;
+            _acquireAllBtn.style.height = 32f;
+            _acquireAllBtn.style.marginRight = 8f;
+            StyleButton(_acquireAllBtn, UTKButton.Variant.Primary);
+            footer.Add(_acquireAllBtn);
+
+            var closeBtnFooter = new Button(Hide);
+            closeBtnFooter.text = "닫기";
+            closeBtnFooter.style.flexGrow = 1f;
+            closeBtnFooter.style.height = 32f;
+            StyleButton(closeBtnFooter, UTKButton.Variant.Secondary);
+            footer.Add(closeBtnFooter);
 
             ApplyUIToolkitFont(this);
             ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬 리스타일 — 이 창 한정 인라인
@@ -226,7 +289,7 @@ namespace ProjectName.UI.Toolkit
                 root.Add(this);
             ApplyRightPlacement();
             StartRefreshLoop();
-            RefreshList();
+            RefreshGrid();
             Debug.Log("[LootUTK] 전리품 창 열림 (" + (_basket != null ? _basket.BasketName : "?") + ")");
         }
 
@@ -272,7 +335,7 @@ namespace ProjectName.UI.Toolkit
             _refreshTask = schedule.Execute(() =>
             {
                 if (UTKDragDrop.Active) return;   // [U8 수리] 드래그 중 재생성 금지 — 캡처 상실 차단
-            if (IsOpen) RefreshList();
+                if (IsOpen) RefreshGrid();
             }).Every(RefreshMs);
         }
 
@@ -286,7 +349,7 @@ namespace ProjectName.UI.Toolkit
         }
 
         // =====================================================================
-        //  ① 바구니 항목 리스트 — 매 갱신 재조회 (⑥ 빈바구니 자동 Hide)
+        //  ① 바구니 항목 그리드 — 매 갱신 재조회 (⑥ 빈바구니 자동 Hide)
         // =====================================================================
 
         /// <summary>[U8] 우클릭 즉시 획득 — 기존 TakeSelectedItem 데이터 경로.</summary>
@@ -295,13 +358,13 @@ namespace ProjectName.UI.Toolkit
             TakeSelectedItem(index);
         }
 
-        private void RefreshList()
+        private void RefreshGrid()
         {
             // ⑥ 원본 RefreshLoot 규약 — 바구니 없음/빈/회수 불가 → 참조 해제 + 닫힘
             if (_basket == null || _basket.IsEmpty || !_basket.IsAvailable)
             {
                 _basket = null;
-                _list.Clear();
+                _grid.Clear();
                 if (IsOpen)
                     Hide();
                 return;
@@ -310,57 +373,57 @@ namespace ProjectName.UI.Toolkit
             var items = _basket.Items;
             int total = items != null ? items.Count : 0;
 
-            // 이전 행 이벤트/타겟 정리
-            _list.Clear();
+            _grid.Clear();
 
             for (int i = 0; i < total; i++)
             {
                 var entry = items[i];
                 if (entry == null || entry.Item == null || entry.Count <= 0) continue;
-                _list.Add(BuildRow(entry, i));
+                _grid.Add(BuildSlot(entry, i));
             }
 
-            _countLabel.text = "아이템 " + total + "개";
-            Debug.Log("[LootUTK] 바구니 목록 갱신: " + total + "개 항목");
+            _countLabel.text = "획득 아이템: " + total + " / 10";
+            Debug.Log("[LootUTK] 바구니 그리드 갱신: " + total + "개 항목");
         }
 
-        private VisualElement BuildRow(LootEntry entry, int index)
+        private VisualElement BuildSlot(LootEntry entry, int index)
         {
-            var row = new VisualElement();
-            row.name = "LootRow_" + index;
-            row.AddToClassList("utk-slot");
-            ApplyDarkRowStyle(row);   // [GitHub-dark] 행 = 보조 패널 리스트 아이템 (bg #21262D + 1px 스트로크 + r6)
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.height = RowHeight;
-            row.style.marginBottom = 4f;
-            row.style.alignItems = Align.Center;
+            var slot = new VisualElement();
+            slot.name = "LootSlot_" + index;
+            slot.style.width = SlotSize;
+            slot.style.height = SlotSize;
+            slot.style.marginRight = SlotGap;
+            slot.style.marginBottom = SlotGap;
+            slot.style.alignItems = Align.Center;
+            slot.style.justifyContent = Justify.Center;
+            ApplyDarkSlotStyle(slot, (int)entry.Item.rarity);   // [GitHub-dark] 슬롯 + 등급 상단 테두리
 
-            // 아이콘
-            var slotIcon = new VisualElement();
-            slotIcon.style.width = IconSize;
-            slotIcon.style.height = IconSize;
-            slotIcon.style.marginRight = 8f;
+            // 아이콘 (중앙)
             var icon = ItemIconDatabase.GetOrCreateIcon(entry.Item);
+            var slotIcon = new VisualElement();
+            slotIcon.style.position = Position.Absolute;
+            slotIcon.style.left = 0f;
+            slotIcon.style.top = 0f;
+            slotIcon.style.right = 0f;
+            slotIcon.style.bottom = 0f;
+            slotIcon.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
             slotIcon.style.backgroundImage = UTKTextureSafe.ToBackground(icon);
-            row.Add(slotIcon);
+            slot.Add(slotIcon);
 
-            // 이름
-            var nameLabel = new Label(entry.Item.displayName);
-            nameLabel.style.flexGrow = 1f;
-            nameLabel.style.fontSize = 15f;
-            nameLabel.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 기본 텍스트
-            row.Add(nameLabel);
-
-            // 카운트
+            // 카운트 (우하단)
             var countLabel = new Label("x" + entry.Count);
-            countLabel.style.fontSize = 13f;
+            countLabel.style.position = Position.Absolute;
+            countLabel.style.right = 4f;
+            countLabel.style.bottom = 2f;
+            countLabel.style.fontSize = 12f;
+            countLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             countLabel.style.color = new StyleColor(GitHubDark.Gold);   // [GitHub-dark] 카운트 — 골드
-            row.Add(countLabel);
+            slot.Add(countLabel);
 
-            // ② 행 드래그 소스 (좌클릭) — 임계거리 미만 클릭 = 우클릭 아닌 좌클릭 획득은 하지 않음(원본은 인벤 열림 시 드롭 판정)
-            UTKDragDrop.MakeDraggable(row, () => MakePayload(index, entry.Item), null, () => TakeLootRow(index));
+            // ② 슬롯 드래그 소스 (좌클릭) + 좌클릭 획득 없음/우클릭 획득
+            UTKDragDrop.MakeDraggable(slot, () => MakePayload(index, entry.Item), null, () => TakeLootRow(index));
 
-            return row;
+            return slot;
         }
 
         /// <summary>행 드래그 페이로드 — SourceKind.Loot, SourceIndex=바구니 항목 인덱스.</summary>
@@ -380,7 +443,7 @@ namespace ProjectName.UI.Toolkit
 
         public void BeginDrag(UTKDragPayload payload)
         {
-            Debug.Log("[LootUTK] 행 드래그 시작: " + (payload != null && payload.Item != null ? payload.Item.displayName : "?"));
+            Debug.Log("[LootUTK] 슬롯 드래그 시작: " + (payload != null && payload.Item != null ? payload.Item.displayName : "?"));
         }
 
         // =====================================================================
@@ -419,7 +482,23 @@ namespace ProjectName.UI.Toolkit
             {
                 Debug.Log("[LootUTK] 아이템 획득 실패 (우클릭) — 인벤 가득 참 또는 바구니 소멸");
             }
-            RefreshList();
+            RefreshGrid();
+        }
+
+        /// <summary>풋터 "전부 습득하기" — 모든 항목 역순 TakeItem(Count 감소 대비).</summary>
+        private void AcquireAll()
+        {
+            if (_basket == null) return;
+            var items = _basket.Items;
+            if (items == null) return;
+            int n = items.Count;
+            for (int i = n - 1; i >= 0; i--)
+            {
+                if (i < _basket.Items.Count)
+                    TakeSelectedItem(i);
+            }
+            RefreshGrid();
+            Debug.Log("[LootUTK] 전부 습득 요청 — " + n + "개 항목 처리");
         }
     }
 }

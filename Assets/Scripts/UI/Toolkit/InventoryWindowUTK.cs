@@ -53,14 +53,13 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 560f;    // [독립 창] 좌측 인벤창(장비 2x5 + 가방 그리드 행당 7칸) — 설명/창고/전리품은 별개 창
+        private const float WinW = 560f;    // [독립 창] 좌측 인벤창(장비 2x5 + 가방 그리드 행당 5칸) — 설명/창고/전리품은 별개 창
         private const float WinH = 700f;
-        private const int BagColumns = 5;   // [미참조] 실제 그리드 행당 칸은 Columns=7
         private const int BagRows = 6;
         private const int EquipColumns = 5; // 장비 2줄×5칸
         private const int EquipRows = 2;
         private const float SlotSize = 64f;
-        private const int Columns = 7;   // 행당 N칸
+        private const int Columns = 5;   // 가방 그리드 행당 칸 수 — Figma 규격 5열
         private const long RefreshMs = 250L;
 
         // =====================================================================
@@ -250,7 +249,7 @@ namespace ProjectName.UI.Toolkit
             columns.style.flexGrow = 1f;
             _content.Add(columns);
 
-            // ── 좌측 패널: 장비 2줄×5칸 + 가방 그리드(행당 7칸) ──
+            // ── 좌측 패널: 장비 2줄×5칸 + 가방 그리드(행당 5칸) ──
             var leftCol = new VisualElement();
             leftCol.style.flexGrow = 1f;   // 고정 380px 제거 — 창 폭을 채워 우측 빈 여백 제거(좌우 대칭)
             leftCol.style.marginRight = 10f;
@@ -280,7 +279,7 @@ namespace ProjectName.UI.Toolkit
             _grid.name = "InvGrid";
             _grid.style.flexDirection = FlexDirection.Row;
             _grid.style.flexWrap = Wrap.Wrap;
-            _grid.style.justifyContent = Justify.Center;   // 행당 7칸 중앙 배치 — 행 좌우 여백 동일
+            _grid.style.justifyContent = Justify.Center;   // 행당 5칸 중앙 배치 — 행 좌우 여백 동일
             _grid.style.marginTop = 6f;
             leftCol.Add(_grid);
 
