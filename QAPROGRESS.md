@@ -1,6 +1,39 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-26 (UI-F-GRID G1~G4 — 인벤토리/전리품/상점 그리드 Figma 정합)
+> **최종 갱신:** 2026-09-26 (UI-F-GRID G1~G4 — 인벤/전리품/상점 5열 그리드 + 병사/상태/몬스터 GitHub-dark)
+
+## 📌 세션 스냅샷 (2026-09-26 ✅ UI-F-GRID G4 — 나머지 Figma 창 GitHub-dark(분리 phase) — 커밋 5a78c06f/f90f747f)
+
+> **입력**: "분리 phase로 진행".
+> **피그마 렌더 실측**: 월드맵(3패널 참고·중세지도)·퀘스트(카드목록+상세+보상)·병사(3열)·상태·몬스터HP 등 — 각 창을 렌더와 대조해 진짜 드리프트만 개별 phase로 수정.
+
+### G4 각 phase 처리
+- **G4-A 월드맵** — 이미 GitHub-dark 정합(범례 스트립+HUDHeader 위치/좌표+TacticalCompass+양피지 유지, Percent 50/50). **준수 판정**(피그마 참고는 SF라 중세 영지 맵과 컨텐츠 다름, 무리한 3패널 재구성은 리스크만).
+- **G4-C 병사정보** `GuardInfoUTK.cs` (commits 5a78c06f) — 구식 UTKColor(브론즈/우드) 22건 → GitHub-dark 팔레트 전환 + 창 크롬 + StyleButton + 슬롯 다크. 로직(장비등록/데이터갱신/폴링) 무수정. 남은 UTKColor 해당 창 기준 0건.
+- **G4-F 상태창** `StatusWindowUTK.cs` (commits f90f747f) — UTKColor 23건 → GitHub-dark, 게이지 fill 파라미터화(체력 Health/경험 허기 Accent), BuildGaugeRow에 Color fillColor 추가(3호출부 갱신). 로직(스탯분배/칭호/허기/P키) 무수정.
+- **G4-G 몬스터정보** `MonsterInfoUTK.cs` (commits f90f747f) — UTKColor 21건 → GitHub-dark, HP바 3분색(0.6/0.3 임계 그대로, 색만 교체). 로직(폴링/무효자동닫기/드랍) 무수정.
+- **G4-H 미니맵** — 이미 어두운 톤(배경 0.05/베젤/블루액센트)으로 GitHub-dark 근접 → **추가 리스타일 불필요(준수)**.
+- **G4-B/G4-D/G4-E** (퀘스트/크래프트/전투로그) — 이미 GitHub-dark 적용 확인 → 준수.
+
+### 검증
+- 배치컴파일 `CompileScripts: 14514→15392ms`, **error CS 0** (GuardInfo/Status/Monster 각각).
+- EditMode **299/301** — 실패 2건은 처음부터 동일한 기존 요리 데이터 테스트(CookingDatabase_AllRecipes_Loaded/FindRecipe_UnknownCombo_ReturnsNull)뿐, **전 phase 회귀 없음**.
+- 변경: GuardInfo+155/-23, Status+163/-18, Monster+77/-19. UTKColor 잔여 해당 창 기준 0건. 공용 파일 무수정.
+- ⚠ **Play 검증 대기**: ①병사 정보창 GitHub-dark(다크패널+골드헤더) ②상태창 게이지/스탯 다크 ③몬스터 정보창 HP바/드랍 다크.
+
+### UI-F-GRID 전체 완료 요약
+| Phase | 창 | 작업 | 커밋 |
+|---|---|---|---|
+| G1 | 인벤토리 | 가방 7→5열 | 75275efe |
+| G2 | 전리품 | 리스트→5열그리드+서브헤더/풋터 | 75275efe |
+| G3 | 상점 Store/판매 | 리스트→5열그리드 | 68f39f37 |
+| G4-A/H/B/D/E | 월드맵/미니맵/퀘스트/크래프트/전투로그 | 이미 GitHub-dark=준수 | — |
+| G4-C/F/G | 병사정보/상태/몬스터 | UTKColor→GitHub-dark | 5a78c06f/f90f747f |
+
+**범위**: 폰트 제외(한글 게임이라 Roboto/Geist Mono 불가→NotoSansKR). 그리드 열수·디자인(GitHub-dark 팔레트/반경/간격)은 Figma와 1:1 정합 완료.
+
+---
+
 
 ## 📌 세션 스냅샷 (2026-09-26 ✅ UI-F-GRID G3 — 상점 Store/판매 5열 그리드 — 커밋 68f39f37)
 
