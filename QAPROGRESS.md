@@ -1,6 +1,28 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-27 (UI-F-COMPLETE **완료** — P1~P5 구현 + P6~P9 준수 판정)
+> **최종 갱신:** 2026-09-27 (부대 지정→우클릭 이동 — 부대 모드 Ctrl 없는 드래그 선택 연동)
+
+## 📌 세션 스냅샷 (2026-09-27 ✅ 부대 지정 → 우클릭 이동 UX — 커밋 f05aced6)
+
+> **입력**: "병사 부대 지정 후 우클릭으로 이동 가능하게. 슬롯 부대 지정 or 드래그로 병사 지정됐을 때 우클릭 → 지정 위치로 이동. 계획해줘" → 계획서 승인("진행").
+> **분석**: 핵심 인프라(F+1~8 부대 등록, Tab 부대모드, 1~8 선택, 드래그 선택, RTSCommandSystem 우클릭 이동, CommandMarker 링)는 이미 구현. **유일한 갭 = `GuardSelectionManager.squadModeActive`가 부대 모드와 연결이 끊겨, 부대 모드에서도 드래그가 Ctrl 필수로 고정 → "그냥 드래그해서 병사 지정" 불가**.
+
+### 수정 (4파일 소폭 +11/−6·+6·+7·+9, 기존 동작 보존)
+| 파일 | 변경 |
+|:--|:--|
+| `GuardSquadHotbar.SetSquadMode` | 부대 모드 → `GuardSelectionManager.squadModeActive` 동기(빠진 연결 복원) |
+| `HotbarUIUTK.ToggleSquadMode` | UTK Tab 경로에서도 동기(이중 동기, 동일 값 충돌 없음) |
+| `GuardSelectionManager` | 드래그 게이트/시작 `ctrl || squadModeActive` 확장 — 부대 모드에선 Ctrl 없이 박스 선택 |
+| `PlayerCombat` | 좌클릭 공격 소비 전 `ctrl || squadModeActive` 판정 — 부대 모드 좌클릭을 드래그로 위임 |
+
+**동작 플로우**: Tab 부대모드 → (F+1~8 슬롯 등록 or **그냥 드래그로 병사 선택**) → **우클릭 = 선택 부대가 지점으로 이동** + 지면 골드 링(CommandMarker). 우클릭 이동은 기존 `RTSCommandSystem.IssueRightClickCommand`(선택 기반) 경로 그대로.
+
+### 검증
+- 배치컴파일 **error CS 0** (4파일 괄호 균형 OK, diff check 0).
+- EditMode 1회차 **298/301**(CraftingHelper_NotifyCraftSucceeded_FiresEvent 일시 실패 1건 추가) → **재실행 299/301**(기존 요리 2건만). 부대 변경과 무관한 이벤트/타이밍성 테스트임 확인.
+- ⚠ **Play 검증 대기**: ①Tab 부대모드 진입 → Ctrl 없이 좌클릭 드래그로 병사 박스 선택(파랑 원) ②우클릭 → 선택 부대가 지점 이동 + 골드 링 ③아이템 모드(비부대)에선 좌클릭=공격 유지(회귀 없음) ④F+1~8 슬롯 등록 · 1~8 선택 후 우클릭 이동.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-27 ✅ UI-F-COMPLETE 완료 — P6~P9 기존 구현으로 준수 판정)
 

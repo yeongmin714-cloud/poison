@@ -3401,6 +3401,19 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 **✅ UI-F-COMPLETE P1~P9 전체 완료** — P1 상점 `e37e828b` / P2 병사관리 `3be77556` / P3 상태 `59f990f3` / P4 퀘스트 `534d4e75` / P5 전투로그 `3fa7144c` / P6~P9 기존 완성 확인. ⚠ 통합 Play 검증 대기(상태/퀘스트/전투로그/월드맵/몬스터HP/크래프트/인터랙션).
 
+## ⚔️ 2026-09-27: 부대 지정 → 우클릭 이동 UX (부대 모드 Ctrl 없는 드래그 선택)
+> 사용자 요청: "병사 부대 지정 후 우클릭으로 이동. 슬롯 or 드래그로 병사 지정됐을 때 우클릭 → 지정 위치 이동".
+> 핵심 인프라(F+1~8 등록·Tab 부대모드·1~8 선택·우클릭 이동·CommandMarker 링)는 이미 구현 — **갭 = squadModeActive가 부대 모드와 단절돼 부대 모드에서도 드래그가 Ctrl 필수**.
+
+| 항목 | 내용 | 상태 |
+|:--|:--|:--:|
+| 상태 동기 | GuardSquadHotbar.SetSquadMode + HotbarUIUTK.ToggleSquadMode → GuardSelectionManager.squadModeActive (빠진 연결 복원) | ✅ 커밋 f05aced6 |
+| 드래그 게이트 | GuardSelectionManager: ctrl \|\| squadModeActive — 부대 모드엔 Ctrl 없이 박스 선택 | ✅ |
+| 공격 위임 | PlayerCombat: 좌클릭 소비 전 ctrl \|\| squadModeActive — 부대 모드 좌클릭=드래그 | ✅ |
+| 우클릭 이동 | 기존 RTSCommandSystem.IssueRightClickCommand(선택 기반) 그대로 — CommandMarker 지면 골드 링 | ✅ |
+
+컴파일 error CS 0, EditMode 재실행 299/301(기존 요리 2건 무관). ⚠ Play 검증 대기(부대 모드 드래그 선택 → 우클릭 이동 + 아이템 모드 공격 회귀 없음).
+
 ## 🌲 2026-09-23: GNB — Idyllic 자연 다양화 (새 GLB 팩 통합)
 > 목표: 메인씬 지형/장식(`IdyllicPrefabs` 풀)에 새 `새로운 glb/nature` 팩(480파일·테마×상태)을 추가 배치해 나무/돌/풀/꽃 다양성을 극대화. 기존 프리팹 156개는 유지.
 
