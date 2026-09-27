@@ -202,11 +202,16 @@ namespace ProjectName.Systems
             // [TEST23-FIX] 좌클릭 드래그는 **Ctrl 키를 누른 채** 시작 — 평상 시(아이템 모드) 좌클릭=공격 유지.
             // [TEST25-66차] 드래그 시작 후에는 Ctrl을 떼어도 지속(기존: Update 초단 Ctrl 미홀드 return이라
             //   드래그 중 Ctrl 해제 시 즉시 취소 → 박스·선택 모두 실패하는 체감). Ctrl은 시작 조건으로만 사용.
+            // [2026-09-27] 부대 모드(squadModeActive=true)일 땐 **Ctrl 없이도** 드래그 선택 시작 —
+            //   "그냥 드래그해서 병사 지정 → 우클릭 이동" 요구 충족. 평상 시(아이템 모드)는 기존대로 Ctrl 필수.
             bool ctrlActiveForDrag = false;
             if (Keyboard.current != null)
                 ctrlActiveForDrag = Keyboard.current.ctrlKey.isPressed
                     || Keyboard.current.leftCtrlKey.isPressed
                     || Keyboard.current.rightCtrlKey.isPressed;
+
+            // 부대 모드면 Ctrl 없이 드래그 허용 (좌클릭 드래그 = 병사 박스 선택, 우클릭 이동으로 이어짐)
+            bool dragAllowed = ctrlActiveForDrag || squadModeActive;
 
             // [TEST26-67차] 좌클릭 진단 — 이전 세션에서 드래그 시작 로그가 0건이라 원인 판별 불가였다.
             // 모든 좌클릭 down에 ctrl/dragging 상태를 남겨 다음 Play에서 즉시 판별한다.
@@ -219,10 +224,10 @@ namespace ProjectName.Systems
             if (!Mouse.current.leftButton.isPressed)
                 _leftDownWithoutCtrl = false;
 
-            if (!_isDragging && !ctrlActiveForDrag) return;   // 드래그 중이 아니면 Ctrl 미홀드 스킵 — 좌클릭=공격 유지
+            if (!_isDragging && !dragAllowed) return;   // 드래그 중이 아니면 (Ctrl 아니면서 부대 모드 아님) 스킵 — 좌클릭=공격 유지
 
-            // 좌클릭 드래그 시작 — (a) Ctrl+좌클릭 down (b) 홀드 중 Ctrl 늦게 누름
-            bool startDrag = !_isDragging && ctrlActiveForDrag && Mouse.current.leftButton.isPressed
+            // 좌클릭 드래그 시작 — (a) Ctrl+좌클릭 down (b) 홀드 중 Ctrl 늦게 누름 (c) 부대 모드 좌클릭
+            bool startDrag = !_isDragging && dragAllowed && Mouse.current.leftButton.isPressed
                 && (Mouse.current.leftButton.wasPressedThisFrame || _leftDownWithoutCtrl);
             if (startDrag)
             {

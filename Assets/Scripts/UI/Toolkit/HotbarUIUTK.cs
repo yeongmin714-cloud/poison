@@ -153,6 +153,13 @@ namespace ProjectName.UI.Toolkit
         public void ToggleSquadMode()
         {
             _squadMode = !_squadMode;
+
+            // [2026-09-27 부대 드래그 연동] 부대 모드 상태를 GuardSelectionManager에 동기 —
+            //   부대 모드(true)일 때 Ctrl 없이 드래그로 병사 지정 · 우클릭 이동이 되도록.
+            //   (U8 게이트로 Tab 전환은 UTK가 담당 — 원본 GuardSquadHotbar.SetSquadMode와 이중 동기,
+            //    동일 값을 쓰므로 충돌 없음. 평상 시 false 유지해 좌클릭 공격 보존)
+            ProjectName.Systems.GuardSelectionManager.squadModeActive = _squadMode;
+
             RefreshAllIcons();
 
             // 전환 펄스 애니 — 스케일 1.15 → 1.0 (150ms, unscaled)

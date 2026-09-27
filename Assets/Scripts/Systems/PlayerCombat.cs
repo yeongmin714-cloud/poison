@@ -228,13 +228,16 @@ namespace ProjectName.Systems
                 // 프레임 순서와 무관하게 공격 대신 드래그로 위임(PlayerCombat이 먼저 돌아도
                 // consumeLeftClickAsDrag 플래그 타이밍에 의존하지 않고 Ctrl 홀드를 직접 판정).
                 // 평상 시(좌클릭만)는 공격 유지.
-                if (Keyboard.current != null
+                // [2026-09-27] 부대 모드(squadModeActive=true)일 땐 **Ctrl 없이도** 좌클릭 = 병사 드래그 선택
+                //   으로 위임 → "그냥 드래그해서 병사 지정 → 우클릭 이동" 요구 충족. 평상 시 공격 유지.
+                bool ctrlDirect = Keyboard.current != null
                     && (Keyboard.current.ctrlKey.isPressed
                         || Keyboard.current.leftCtrlKey.isPressed
-                        || Keyboard.current.rightCtrlKey.isPressed))
+                        || Keyboard.current.rightCtrlKey.isPressed);
+                if (ctrlDirect || GuardSelectionManager.squadModeActive)
                 {
                     GuardSelectionManager.consumeLeftClickAsDrag = false;   // 드래그로 소비(중복 방지)
-                    return;   // Ctrl+좌클릭 → 드래그(GuardSelectionManager가 선택 처리)
+                    return;   // (Ctrl+좌클릭 | 부대모드 좌클릭) → 드래그(GuardSelectionManager가 선택 처리)
                 }
                 // [60차] GuardSelectionManager가 미리 세팅한 드래그 플래그 소비(보조 백업 — Ctrl 아닌 드래그 경로)
                 if (GuardSelectionManager.consumeLeftClickAsDrag)

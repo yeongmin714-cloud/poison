@@ -174,6 +174,12 @@ namespace ProjectName.UI
             if (_squadMode == squadMode) return;
             _squadMode = squadMode;
 
+            // [2026-09-27 부대 드래그 연동] 부대 모드 상태를 GuardSelectionManager에 동기:
+            //   부대 모드(squadModeActive=true)일 때 Ctrl 없이도 드래그로 병사 지정 가능하게 한다
+            //   (GuardSelectionManager.Update 드래그 시작 조건이 ctrl || squadModeActive 로 확장됨).
+            //   이전 버전에서 빠져있던 연결을 복원 — 평상 시(아이템 모드) false 유지해 좌클릭 공격 보존.
+            ProjectName.Systems.GuardSelectionManager.squadModeActive = squadMode;
+
             // [U8 은퇴 게이트] UTK 핫바 담당 — 원본 uGUI 패널/HotbarUI 표시 억제 (Tab·데이터 로직은 유지)
             if (ProjectName.Core.UITransitionState.UtkActive)
             {
