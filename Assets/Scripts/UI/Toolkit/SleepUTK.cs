@@ -29,24 +29,36 @@ namespace ProjectName.UI.Toolkit
             style.justifyContent = Justify.Center;
             pickingMode = PickingMode.Position;
 
+            // Figma / GitHub-dark 카드
             var panel = new VisualElement();
-            panel.style.backgroundColor = new StyleColor(new Color(0.09f, 0.09f, 0.11f, 0.95f));
-            panel.style.borderTopWidth = 2; panel.style.borderBottomWidth = 2;
-            panel.style.borderLeftWidth = 2; panel.style.borderRightWidth = 2;
+            panel.style.flexDirection = FlexDirection.Column;
+            panel.style.alignItems = Align.Stretch;
+            panel.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            panel.style.borderTopWidth = 1f; panel.style.borderBottomWidth = 1f;
+            panel.style.borderLeftWidth = 1f; panel.style.borderRightWidth = 1f;
             panel.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
             panel.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
             panel.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
             panel.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
-            panel.style.paddingTop = 16; panel.style.paddingBottom = 16;
-            panel.style.paddingLeft = 20; panel.style.paddingRight = 20;
+            panel.style.borderTopLeftRadius = 8f; panel.style.borderTopRightRadius = 8f;
+            panel.style.borderBottomLeftRadius = 8f; panel.style.borderBottomRightRadius = 8f;
+            panel.style.paddingTop = 20f; panel.style.paddingBottom = 20f;
+            panel.style.paddingLeft = 24f; panel.style.paddingRight = 24f;
             Add(panel);
 
             var title = new Label("🛏 수면");
-            title.style.fontSize = 38;
+            title.style.fontSize = 28f;
             title.style.color = new StyleColor(UTKColor.TextPrimary);
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.marginBottom = 12;
+            title.style.marginBottom = 6f;
             panel.Add(title);
+
+            var guidance = new Label("잠들 시간을 선택하세요. ‘일어나기’를 누르면 수면 없이 창을 닫습니다.");
+            guidance.style.fontSize = 13f;
+            guidance.style.color = new StyleColor(UTKColor.TextSecondary);
+            guidance.style.whiteSpace = WhiteSpace.Normal;
+            guidance.style.marginBottom = 14f;
+            panel.Add(guidance);
 
             foreach (var (label, hours) in new[] {
                 ("2시간 자기", 2f), ("4시간 자기", 4f), ("6시간 자기", 6f),
@@ -54,16 +66,16 @@ namespace ProjectName.UI.Toolkit
             {
                 float h = hours;
                 var btn = UTKButton.Create(label, () => StartSleep(h), UTKButton.Variant.Secondary);
-                btn.style.width = 240; btn.style.height = 40; btn.style.marginBottom = 6;
+                btn.style.width = 280f; btn.style.height = 40f; btn.style.marginBottom = 6f;
                 panel.Add(btn);
             }
 
             var saveBtn = UTKButton.Create("💾 여기서 세이브", SaveAtBed, UTKButton.Variant.Primary);
-            saveBtn.style.width = 240; saveBtn.style.height = 40; saveBtn.style.marginTop = 10; saveBtn.style.marginBottom = 6;
+            saveBtn.style.width = 280f; saveBtn.style.height = 40f; saveBtn.style.marginTop = 10f; saveBtn.style.marginBottom = 6f;
             panel.Add(saveBtn);
 
-            var cancelBtn = UTKButton.Create("취소", Hide, UTKButton.Variant.Danger);
-            cancelBtn.style.width = 240; cancelBtn.style.height = 36;
+            var cancelBtn = UTKButton.Create("일어나기", Hide, UTKButton.Variant.Danger);
+            cancelBtn.style.width = 280f; cancelBtn.style.height = 36f;
             panel.Add(cancelBtn);
 
             UTKWindowBase.ApplyUIToolkitFont(this);

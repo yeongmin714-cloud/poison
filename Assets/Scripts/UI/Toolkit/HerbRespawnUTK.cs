@@ -68,8 +68,12 @@ namespace ProjectName.UI.Toolkit
             style.position = Position.Absolute;
             style.left = 10f;
             style.top = 60f;
-            style.width = 200f;
-            style.backgroundColor = new StyleColor(new Color(0.1f, 0.1f, 0.1f, 0.72f));
+            style.width = 220f;
+            style.paddingTop = 10f;
+            style.paddingBottom = 10f;
+            style.paddingLeft = 12f;
+            style.paddingRight = 12f;
+            style.backgroundColor = new StyleColor(UTKColor.BgPanel);
             style.borderTopWidth = 1f;
             style.borderBottomWidth = 1f;
             style.borderLeftWidth = 1f;
@@ -78,13 +82,21 @@ namespace ProjectName.UI.Toolkit
             style.borderBottomColor = new StyleColor(UTKColor.IronLine);
             style.borderLeftColor = new StyleColor(UTKColor.IronLine);
             style.borderRightColor = new StyleColor(UTKColor.IronLine);
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;
             pickingMode = PickingMode.Ignore;
 
             var title = new Label("🌿 약초 상태");
             title.style.fontSize = 13f;
-            title.style.color = new StyleColor(UTKColor.TextSecondary);
-            title.style.paddingTop = 4f;
-            title.style.paddingBottom = 4f;
+            title.style.unityFontStyleAndWeight = FontStyle.Bold;
+            title.style.color = new StyleColor(UTKColor.TextPrimary);
+            title.style.paddingTop = 2f;
+            title.style.paddingBottom = 8f;
+            title.style.marginBottom = 6f;
+            title.style.borderBottomWidth = 1f;
+            title.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
             Add(title);
 
             _mainCamera = Camera.main;
@@ -153,46 +165,65 @@ namespace ProjectName.UI.Toolkit
         private VisualElement BuildRow(HerbPickup herb)
         {
             var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.Center;
-            row.style.marginBottom = 3f;
+            row.style.flexDirection = FlexDirection.Column;
+            row.style.marginBottom = 8f;
             row.name = "HerbRow";
 
+            var details = new VisualElement();
+            details.style.flexDirection = FlexDirection.Row;
+            details.style.alignItems = Align.Center;
+            row.Add(details);
+
+            var status = new Label();
+            status.style.fontSize = 12f;
+            status.style.flexGrow = 1f;
+            status.style.color = new StyleColor(UTKColor.TextSecondary);
+            details.Add(status);
+
+            var timer = new Label();
+            timer.style.fontSize = 12f;
+            timer.style.color = new StyleColor(UTKColor.TextPrimary);
+            details.Add(timer);
+
             var gauge = new VisualElement();
-            gauge.style.width = 18f;
+            gauge.style.width = GaugeWidth;
             gauge.style.height = GaugeHeight;
+            gauge.style.marginTop = 5f;
             gauge.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
-            gauge.style.marginRight = 6f;
+            gauge.style.borderTopLeftRadius = 4f;
+            gauge.style.borderTopRightRadius = 4f;
+            gauge.style.borderBottomLeftRadius = 4f;
+            gauge.style.borderBottomRightRadius = 4f;
             row.Add(gauge);
 
             var fill = new VisualElement();
             fill.style.height = GaugeHeight;
             fill.style.width = 0f;
+            fill.style.borderTopLeftRadius = 4f;
+            fill.style.borderTopRightRadius = 4f;
+            fill.style.borderBottomLeftRadius = 4f;
+            fill.style.borderBottomRightRadius = 4f;
             gauge.Add(fill);
-
-            var label = new Label();
-            label.style.fontSize = 12f;
-            label.style.flexGrow = 1f;
 
             if (herb.IsHarvested)
             {
-                // 리스폰 중
+                // 리스폰 중 — 원본 타이머 및 진행률 계산 유지
                 float remaining = herb.RespawnTimeLeft;
                 float progress = herb.RespawnProgress;   // 0=방금수확 1=곧리스폰
-                label.text = $"[재생성 중 {remaining.ToString("F1")}초]";
-                label.style.color = new StyleColor(UTKColor.TextPrimary);
-                fill.style.width = new Length(18f * progress, LengthUnit.Pixel);
+                status.text = "재생성 중";
+                timer.text = $"{remaining.ToString("F1")}초";
+                fill.style.width = new Length(GaugeWidth * progress, LengthUnit.Pixel);
                 fill.style.backgroundColor = new StyleColor(GaugeColor(progress));
             }
             else
             {
                 // 채집 가능
-                label.text = "[E] 채집";
-                label.style.color = new StyleColor(new Color(0.3f, 1f, 0.3f));
-                fill.style.width = new Length(18f, LengthUnit.Pixel);
+                status.text = "[E] 채집 가능";
+                timer.text = "준비 완료";
+                status.style.color = new StyleColor(UTKColor.TextPrimary);
+                fill.style.width = new Length(GaugeWidth, LengthUnit.Pixel);
                 fill.style.backgroundColor = new StyleColor(new Color(0.2f, 0.9f, 0.2f));
             }
-            row.Add(label);
             return row;
         }
 
