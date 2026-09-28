@@ -71,7 +71,7 @@ namespace ProjectName.UI.Toolkit
 
             _typeMap = new Dictionary<WarNotificationUI.NotificationType, (string, Color)>
             {
-                { WarNotificationUI.NotificationType.WarStart,       ("⚔️", new Color(0.80f, 0.20f, 0.20f)) },
+                { WarNotificationUI.NotificationType.WarStart,       ("⚔️", UTKColor.HealthRed) },
                 { WarNotificationUI.NotificationType.WarEnd,         ("🏁", new Color(0.90f, 0.60f, 0.10f)) },
                 { WarNotificationUI.NotificationType.TerritoryLost,  ("🏴", new Color(0.50f, 0.00f, 0.50f)) },
                 { WarNotificationUI.NotificationType.TerritoryGained,("🏳️", new Color(0.10f, 0.70f, 0.20f)) },
@@ -112,34 +112,93 @@ namespace ProjectName.UI.Toolkit
 
         private VisualElement BuildBanner(WarNotificationUI.NotificationEntry entry)
         {
+            var typeColor = BannerColor(entry.type);
             var banner = new VisualElement();
             banner.name = "WarBanner";
-            banner.style.height = 10f;   // 플렉스 하위 축소 방지
+            banner.style.height = BannerHeight;
+            banner.style.flexShrink = 0f;
             banner.style.marginBottom = BannerSpacing;
+            banner.style.paddingLeft = 10f;
+            banner.style.paddingRight = 10f;
+            banner.style.paddingTop = 6f;
+            banner.style.paddingBottom = 6f;
             banner.style.flexDirection = FlexDirection.Row;
             banner.style.alignItems = Align.Center;
             banner.style.backgroundColor = new StyleColor(UTKTheme.Panel);
             banner.style.borderTopWidth = 1f;
             banner.style.borderBottomWidth = 1f;
-            banner.style.borderLeftWidth = 4f;
+            banner.style.borderLeftWidth = 3f;
             banner.style.borderRightWidth = 1f;
-            banner.style.borderLeftColor = new StyleColor(BannerColor(entry.type));
+            banner.style.borderTopColor = new StyleColor(UTKTheme.Stroke);
+            banner.style.borderBottomColor = new StyleColor(UTKTheme.Stroke);
+            banner.style.borderLeftColor = new StyleColor(typeColor);
+            banner.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            banner.style.borderTopLeftRadius = 8f;
+            banner.style.borderTopRightRadius = 8f;
+            banner.style.borderBottomLeftRadius = 8f;
+            banner.style.borderBottomRightRadius = 8f;
 
-            var label = new Label(BannerPrefix(entry.type) + " " + entry.message);
-            label.style.flexGrow = 1f;
-            label.style.flexShrink = 1f;
-            label.style.paddingLeft = 6f;
-            label.style.paddingRight = 6f;
-            label.style.fontSize = 15f;
-            label.style.color = new StyleColor(BannerColor(entry.type));
-            label.style.textOverflow = TextOverflow.Ellipsis;
-            banner.Add(label);
+            // 유형 배지 — 아이콘을 어두운 카드 위에서 독립적으로 강조한다.
+            var badge = new VisualElement();
+            badge.name = "WarTypeBadge";
+            badge.style.width = 32f;
+            badge.style.height = 32f;
+            badge.style.flexShrink = 0f;
+            badge.style.marginRight = 10f;
+            badge.style.alignItems = Align.Center;
+            badge.style.justifyContent = Justify.Center;
+            badge.style.backgroundColor = new StyleColor(new Color(typeColor.r, typeColor.g, typeColor.b, 0.18f));
+            badge.style.borderTopLeftRadius = 6f;
+            badge.style.borderTopRightRadius = 6f;
+            badge.style.borderBottomLeftRadius = 6f;
+            badge.style.borderBottomRightRadius = 6f;
+
+            var icon = new Label(BannerPrefix(entry.type));
+            icon.style.fontSize = 16f;
+            icon.style.color = new StyleColor(typeColor);
+            badge.Add(icon);
+            banner.Add(badge);
+
+            var content = new VisualElement();
+            content.style.flexGrow = 1f;
+            content.style.flexShrink = 1f;
+            content.style.justifyContent = Justify.Center;
+
+            var typeLabel = new Label(BannerTypeLabel(entry.type));
+            typeLabel.style.fontSize = 11f;
+            typeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            typeLabel.style.color = new StyleColor(typeColor);
+            typeLabel.style.marginBottom = 2f;
+            typeLabel.style.textOverflow = TextOverflow.Ellipsis;
+            typeLabel.style.whiteSpace = WhiteSpace.NoWrap;
+            content.Add(typeLabel);
+
+            var message = new Label(entry.message ?? string.Empty);
+            message.style.flexShrink = 1f;
+            message.style.fontSize = 13f;
+            message.style.color = new StyleColor(UTKTheme.TextMain);
+            message.style.textOverflow = TextOverflow.Ellipsis;
+            message.style.whiteSpace = WhiteSpace.NoWrap;
+            content.Add(message);
+            banner.Add(content);
             return banner;
         }
 
         private string BannerPrefix(WarNotificationUI.NotificationType type)
         {
             return _typeMap.TryGetValue(type, out var v) ? v.prefix : "📢";
+        }
+
+        private static string BannerTypeLabel(WarNotificationUI.NotificationType type)
+        {
+            switch (type)
+            {
+                case WarNotificationUI.NotificationType.WarStart: return "전쟁 발생";
+                case WarNotificationUI.NotificationType.WarEnd: return "전쟁 종료";
+                case WarNotificationUI.NotificationType.TerritoryLost: return "영토 상실";
+                case WarNotificationUI.NotificationType.TerritoryGained: return "영토 획득";
+                default: return "알림";
+            }
         }
 
         private Color BannerColor(WarNotificationUI.NotificationType type)
