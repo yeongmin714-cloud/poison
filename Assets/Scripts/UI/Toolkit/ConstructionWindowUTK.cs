@@ -84,16 +84,18 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
+            // GitHub-dark summary/status header card.
+            var headerCard = MakeCard("ConstructionHeaderCard");
+            headerCard.style.marginBottom = 6f;
             _summaryLabel = new Label("🏗️ 영지 건설");
             _summaryLabel.AddToClassList("utk-title-label");
             _summaryLabel.style.fontSize = 18f;
-            _content.Add(_summaryLabel);
+            headerCard.Add(_summaryLabel);
 
-            _statusLabel = new Label("");
-            _statusLabel.style.fontSize = 12f;
-            _statusLabel.style.color = new StyleColor(UTKColor.TextSecondary);
-            _statusLabel.style.whiteSpace = WhiteSpace.Normal;
-            _content.Add(_statusLabel);
+            _statusLabel = MakeLabel("", UTKColor.TextSecondary, 12f);
+            _statusLabel.style.marginTop = 4f;
+            headerCard.Add(_statusLabel);
+            _content.Add(headerCard);
 
             _content.Add(MakeSectionHeader("📐 설계도"));
 
@@ -193,25 +195,22 @@ namespace ProjectName.UI.Toolkit
 
             foreach (var def in BlueprintData.GetAll())
             {
-                var row = new VisualElement();
-                row.name = "BlueprintRow_" + def.id;
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.alignItems = Align.Center;
-                row.style.paddingTop = 3f;
-                row.style.paddingBottom = 3f;
-                row.style.borderBottomWidth = 1f;
-                row.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+                var card = MakeCard("BlueprintCard_" + def.id);
+                card.style.flexDirection = FlexDirection.Row;
+                card.style.alignItems = Align.Center;
 
                 var info = new VisualElement();
                 info.style.flexGrow = 1f;
+                info.style.flexShrink = 1f;
                 info.Add(MakeLabel(def.displayName, UTKColor.TextPrimary, 14f));
+                info.Add(MakeLabel(def.description, UTKColor.TextSecondary, 12f));
                 info.Add(MakeLabel(
                     $"💰 {def.goldCost}G · ⏱️ {def.buildTimeSeconds}초 · 반경 {def.footprintRadius:F1}m",
-                    UTKColor.TextSecondary, 12f));
-                row.Add(info);
+                    UTKColor.TextSecondary, 11f));
+                card.Add(info);
 
-                row.Add(UTKButton.Create("배치", () => OnPlaceBlueprint(def.id), UTKButton.Variant.Primary));
-                _blueprintList.Add(row);
+                card.Add(UTKButton.Create("배치", () => OnPlaceBlueprint(def.id), UTKButton.Variant.Primary));
+                _blueprintList.Add(card);
             }
         }
 
@@ -237,24 +236,20 @@ namespace ProjectName.UI.Toolkit
             {
                 string state = s.isComplete ? "✅ 완료" : $"🔨 시공 중 {Mathf.RoundToInt(s.progress * 100f)}%";
 
-                var row = new VisualElement();
-                row.name = "StructureRow_" + s.structureId;
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.alignItems = Align.Center;
-                row.style.paddingTop = 3f;
-                row.style.paddingBottom = 3f;
-                row.style.borderBottomWidth = 1f;
-                row.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+                var card = MakeCard("StructureCard_" + s.structureId);
+                card.style.flexDirection = FlexDirection.Row;
+                card.style.alignItems = Align.Center;
 
                 var info = new VisualElement();
                 info.style.flexGrow = 1f;
+                info.style.flexShrink = 1f;
                 info.Add(MakeLabel($"{DescribeBlueprint(s.blueprintId)}  {state}", UTKColor.TextPrimary, 13f));
                 info.Add(MakeLabel($"#{s.structureId} @ {s.territoryId}", UTKColor.TextSecondary, 11f));
-                row.Add(info);
+                card.Add(info);
 
                 string id = s.structureId;   // 클로저 캡처용 지역 복사
-                row.Add(UTKButton.Create("해체", () => OnDemolish(id), UTKButton.Variant.Danger));
-                _structureList.Add(row);
+                card.Add(UTKButton.Create("해체", () => OnDemolish(id), UTKButton.Variant.Danger));
+                _structureList.Add(card);
             }
         }
 
@@ -358,6 +353,31 @@ namespace ProjectName.UI.Toolkit
             return BlueprintData.TryGet(blueprintId, out var def)
                 ? def.displayName
                 : (string.IsNullOrEmpty(blueprintId) ? "(알 수 없음)" : blueprintId);
+        }
+
+        private static VisualElement MakeCard(string name)
+        {
+            var card = new VisualElement { name = name };
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF)); // #21262D
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF)); // #2E343D
+            card.style.borderBottomColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            card.style.borderLeftColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            card.style.borderRightColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
+            card.style.paddingLeft = 10f;
+            card.style.paddingRight = 10f;
+            card.style.paddingTop = 8f;
+            card.style.paddingBottom = 8f;
+            card.style.marginBottom = 6f;
+            return card;
         }
 
         private static Label MakeSectionHeader(string text)

@@ -137,32 +137,49 @@ namespace ProjectName.UI.Toolkit
 
         private void AddCloseButton()
         {
-            var closeRow = new VisualElement();
-            closeRow.style.marginTop = 10f;
-            closeRow.style.flexDirection = FlexDirection.Row;
-            closeRow.style.justifyContent = Justify.FlexEnd;
-            closeRow.Add(UTKButton.Create("닫기", () => Hide(), UTKButton.Variant.Danger));
-            _rows.Add(closeRow);
+            var actionBar = new VisualElement();
+            actionBar.name = "TerrInfoActionBar";
+            actionBar.style.marginTop = 8f;
+            actionBar.style.paddingTop = 8f;
+            actionBar.style.borderTopWidth = 1f;
+            actionBar.style.borderTopColor = new StyleColor(new Color32(46, 52, 61, 255));
+            actionBar.style.flexDirection = FlexDirection.Row;
+            actionBar.style.justifyContent = Justify.FlexEnd;
+            actionBar.Add(UTKButton.Create("닫기", () => Hide(), UTKButton.Variant.Danger));
+            _rows.Add(actionBar);
         }
 
         // ===== 표시 헬퍼 =====
 
         private static VisualElement MakeTitle(string text)
         {
+            var card = MakeCard("TerrInfoHeaderCard", new Color32(22, 27, 34, 255));
+            card.style.marginBottom = 4f;
+            card.style.paddingTop = 12f;
+            card.style.paddingBottom = 12f;
+            card.style.paddingLeft = 14f;
+            card.style.paddingRight = 14f;
+
             var l = new Label(text);
             l.AddToClassList("utk-title-label");
             l.style.fontSize = 18f;
+            l.style.unityFontStyleAndWeight = FontStyle.Bold;
             l.style.color = new StyleColor(UTKColor.AccentRare);
             l.style.whiteSpace = WhiteSpace.Normal;
-            l.style.marginBottom = 6f;
-            return l;
+            card.Add(l);
+            return card;
         }
 
         private static VisualElement MakeRow(string label, string value)
         {
-            var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
+            var row = MakeCard("TerrInfoRowCard", new Color32(33, 38, 45, 255));
             row.style.marginTop = 2f;
+            row.style.marginBottom = 2f;
+            row.style.paddingTop = 7f;
+            row.style.paddingBottom = 7f;
+            row.style.paddingLeft = 10f;
+            row.style.paddingRight = 10f;
+            row.style.flexDirection = FlexDirection.Row;
 
             var lab = new Label(label);
             lab.style.width = 70f;
@@ -178,6 +195,27 @@ namespace ProjectName.UI.Toolkit
             row.Add(lab);
             row.Add(val);
             return row;
+        }
+
+        private static VisualElement MakeCard(string name, Color32 background)
+        {
+            var card = new VisualElement();
+            card.name = name;
+            card.style.backgroundColor = new StyleColor(background);
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
+            card.style.borderTopWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            var stroke = new StyleColor(new Color32(46, 52, 61, 255));
+            card.style.borderTopColor = stroke;
+            card.style.borderRightColor = stroke;
+            card.style.borderBottomColor = stroke;
+            card.style.borderLeftColor = stroke;
+            return card;
         }
 
         private static string GetTitle(TerritoryDefinition def)

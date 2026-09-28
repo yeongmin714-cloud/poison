@@ -40,7 +40,7 @@ namespace ProjectName.UI.Toolkit
         }
 
         private const float WinW = 380f;
-        private const float WinH = 190f;
+        private const float WinH = 230f;
         private const long TickMs = 200L;
         private const float NotificationDuration = 3f;
 
@@ -53,6 +53,10 @@ namespace ProjectName.UI.Toolkit
         private float _arrivalTimer = 0f;
 
         // ===== 레퍼런스 =====
+        private VisualElement _statusCard;
+        private VisualElement _infoCard;
+        private VisualElement _destCard;
+        private VisualElement _distCard;
         private Label _statusLabel;
         private Label _destLabel;
         private Label _distLabel;
@@ -64,21 +68,50 @@ namespace ProjectName.UI.Toolkit
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
+            _content.style.paddingLeft = 12f;
+            _content.style.paddingRight = 12f;
+            _content.style.paddingTop = 10f;
+            _content.style.paddingBottom = 10f;
+            _content.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
 
+            // 상태 헤더 카드: 상태 변화에 따라 포인트 컬러를 갱신한다.
+            _statusCard = MakeCard(UTKColor.BgPanel);
+            _statusCard.style.minHeight = 44f;
+            _statusCard.style.justifyContent = Justify.Center;
             _statusLabel = MakeLabel("🚶 대기 중...", UTKColor.TextPrimary);
             _statusLabel.style.fontSize = 16f;
-            _content.Add(_statusLabel);
+            _statusLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _statusCard.Add(_statusLabel);
+            _content.Add(_statusCard);
 
+            // 목적지/거리 정보 카드와 두 개의 보조 카드를 나란히 배치.
+            _infoCard = MakeCard(new Color(0x21 / 255f, 0x26 / 255f, 0x2D / 255f));
+            _infoCard.style.flexDirection = FlexDirection.Row;
+            _infoCard.style.marginTop = 8f;
+            _infoCard.style.paddingLeft = 8f;
+            _infoCard.style.paddingRight = 8f;
+            _infoCard.style.paddingTop = 8f;
+            _infoCard.style.paddingBottom = 8f;
+
+            _destCard = MakeCard(UTKColor.BgPanel);
+            _destCard.style.flexGrow = 1f;
+            _destCard.style.marginRight = 6f;
             _destLabel = MakeLabel("🎯 목적지: -", UTKColor.TextSecondary);
             _destLabel.style.fontSize = 13f;
-            _content.Add(_destLabel);
+            _destCard.Add(_destLabel);
+            _infoCard.Add(_destCard);
 
+            _distCard = MakeCard(UTKColor.BgPanel);
+            _distCard.style.flexGrow = 1f;
             _distLabel = MakeLabel("📏 남은 거리: 0.0m", UTKColor.TextSecondary);
             _distLabel.style.fontSize = 13f;
-            _content.Add(_distLabel);
+            _distCard.Add(_distLabel);
+            _infoCard.Add(_distCard);
+            _content.Add(_infoCard);
 
             _notifLabel = MakeLabel("", Color.white);
             _notifLabel.style.fontSize = 15f;
+            _notifLabel.style.marginTop = 8f;
             _content.Add(_notifLabel);
 
             _arrivalLabel = MakeLabel("✅ 도착했습니다!", new Color(0f, 1f, 0f));
@@ -166,23 +199,24 @@ namespace ProjectName.UI.Toolkit
             if (mgr == null)
             {
                 _statusLabel.text = "🚶 AutoMoveManager 없음";
+                SetStatusAccent(UTKColor.HealthRed);
                 return;
             }
 
             if (mgr.IsPaused)
             {
                 _statusLabel.text = "⏸️ 전투 중 - 자동 이동 일시 정지";
-                _statusLabel.style.color = new StyleColor(Color.yellow);
+                SetStatusAccent(UTKColor.HoverGold);
             }
             else if (mgr.IsMoving)
             {
                 _statusLabel.text = "🚶 자동 이동 중... [WASD로 취소]";
-                _statusLabel.style.color = new StyleColor(Color.cyan);
+                SetStatusAccent(UTKColor.AccentMagic);
             }
             else
             {
                 _statusLabel.text = "🚶 대기 중...";
-                _statusLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+                SetStatusAccent(UTKColor.TextPrimary);
             }
 
             if (mgr.HasDestination)
@@ -254,6 +288,27 @@ namespace ProjectName.UI.Toolkit
             l.style.whiteSpace = WhiteSpace.Normal;
             l.style.color = new StyleColor(color);
             return l;
+        }
+
+        /// <summary>GitHub-dark 카드 생성 (배경+스트로크+radius8).</summary>
+        private static VisualElement MakeCard(Color bg)
+        {
+            var card = new VisualElement();
+            card.style.backgroundColor = new StyleColor(bg);
+            card.style.borderTopWidth = card.style.borderBottomWidth = card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = card.style.borderBottomColor = card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(new Color(0x2E / 255f, 0x34 / 255f, 0x3D / 255f));
+            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 8f;
+            card.style.paddingLeft = card.style.paddingRight = card.style.paddingTop = card.style.paddingBottom = 10f;
+            return card;
+        }
+
+        /// <summary>상태 카드 포인트 색 + 상태 텍스트 색 동기화.</summary>
+        private void SetStatusAccent(Color accent)
+        {
+            if (_statusCard != null)
+                _statusCard.style.borderTopColor = new StyleColor(accent);
+            if (_statusLabel != null)
+                _statusLabel.style.color = new StyleColor(accent);
         }
     }
 }
