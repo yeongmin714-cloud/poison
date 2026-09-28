@@ -1,6 +1,28 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-29 (UI Fluent 우선순위 6개 창 Figma 구조 재구성)
+> **최종 갱신:** 2026-09-29 (UI Fluent 전체 창 Phase — 자체 설계 30개 창 GitHub-dark 카드 개편)
+
+## 📌 세션 스냅샷 (2026-09-29 ✅ UI-Fluent 전체 창 — 자체 설계 30개 창 Figma 카드 구조 일괄 개편)
+
+> **지시:** 우선순위 6개 창(이전 세션) 종료 후 **전체 창 Phase** — Figma 미존재 자체 설계 창들도 GitHub-dark 카드/그리드/패널로 개편 + 게임 로직 보존. 공용 `UTKColor` 승격으로 색은 이미 통일됐으므로 이번 분기 = **레이아웃 구조 개편**.
+
+- **소형 3창** (`521c9767`): NPCDaily(NPC 상태 카드리스트) · QuickSlot(6슬롯 카드그리드 골드활성) · RouteConfirmation(설명/타이머 카드+액션바).
+- **미션/배치 3창** (`1b95124e`): EnvoyMission(특사 카드) · SpyMission(정보원 카드) · TerritoryDeployment(영지 배치 카드+UTKColor 정리).
+- **생존/결정 3창** (`d6beaa52`): RepairStation(수리 항목 카드) · Festival(축제 카드+상세) · Mercy(대상카드+결정 액션바+골드 보상카드).
+- **인프라 3창** (`57441344`): TerritoryInfoPopup(영지정보 카드) · AutoMove(상태/목적지 카드+누락 헬퍼 보수) · ConstructionWindow(청사진/구조물 카드리스트).
+- **시스템 3창** (`d0d2b528`): Sleep(패널 카드+일어나기) · HerbRespawn(재생 카드+게이지) · GameStats(통계 카드리스트).
+- **수집/저장 3창** (`5d03c0b6`): Achievement(업적 카드리스트) · SaveSlot(슬롯 카드+액션) · ReadDocument(문서 카드).
+- **이동/분기 3창** (`c5c83929`): FastTravel(목적지 카드리스트) · QuestChoice(선택지 카드) · Lockpicking(정보 카드+버튼 띠).
+- **가이드/깃발/원한 3창** (`db5d80e6`): TutorialGuide(가이드 카드리스트) · PlayerFlag(안내/정보 카드+액션) · RevengeList(원한 카드리스트).
+- **오버레이 3창** (`f3355ace`): EscMenu(메뉴 카드) · DeathScreen(사망 안내 카드) · EndingCredits(크레딧 스크롤 카드).
+- **시간/로딩 3창** (`aaac2d4a`): TimeDisplay(시간 카드 낮/밤색) · TimeClockGlass(시계 배지) · LoadingScreen(진행 카드).
+- 공통 카드 규약: 배경 `#21262D`(보조)/`#161B22`(패널) · 스트로크 `#2E343D` · radius 8/6/4 · 카드 간격 6px · 액션 버튼 띠(하단) · 헤더 카드(Gold/GuildGreen 포인트).
+- **QA**: 배치컴파일 `error CS=0` ×10회(배치당). EditMode 최종 **299/301** (기존 요리 2건만, 회귀 0). `WeaponCraft` 확률 간헐 실패 없음. 각 배치 커밋+push.
+
+- ⚠ **대형·복잡 창은 별도 Phase 분리** (금융/상태머신 로직 — 위임 산출물 리스크): CraftingWindow(991) · WarehouseWindow(836) · GuardInfo(745) · Options(402) · SettingsMenu(478) · MainMenu(378) · GuardSquadHotbar(440) · MercenaryHire(410) · LoadGame(206) · BowAimReticle(210) · GasSpray(282). 다음 Phase에서 안전하게 처리.
+- ⚠ **Play 판정 대기**: 에디터 Play → 이번 30개 창이 GitHub-dark 다크 톤 + 카드 구조로 깔끔하게 노출되는지 확인.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-29 ✅ UI-Fluent 우선순위 — 자주 쓰는 6개 창 Figma 구조 재구성)
 
