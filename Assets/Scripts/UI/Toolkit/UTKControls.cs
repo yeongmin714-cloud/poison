@@ -359,22 +359,28 @@ namespace ProjectName.UI.Toolkit
     }
 
     /// <summary>UTK 공통 12색 팔레트 (Theme.uss와 동일 값, 코드 참조용).</summary>
+    /// <remarks>
+    /// 2026-09-28 전면 통일: 구식 브론즈/우드(BgPanel 0x1C1C1C · BorderBronze 0x8C6B3F · TextPrimary 0xF5EFE0)
+    /// → GitHub-dark(Fluent) 팔레트로 리매핑. 기존 자체 제작 창들이 UTKColor를 참조하므로
+    /// 이 승격 한 번으로 전 창 분위기가 Figma/GitHub-dark 기준과 통일된다. 값은 UTKTheme와 동일.
+    /// </remarks>
     public static class UTKColor
     {
-        public static readonly Color BgPanel      = Hex(0x1C, 0x1C, 0x1C, 0xE0);
-        public static readonly Color BgPanelDark  = Hex(0x14, 0x14, 0x14, 0xE8);
-        public static readonly Color BorderBronze = Hex(0x8C, 0x6B, 0x3F);
-        public static readonly Color BorderGold   = Hex(0xC9, 0xA2, 0x27);
-        public static readonly Color IronLine     = Hex(0x3A, 0x3A, 0x3A);
-        public static readonly Color TextPrimary  = Hex(0xF5, 0xEF, 0xE0);
-        public static readonly Color TextSecondary = Hex(0xB9, 0xB3, 0xA6);
-        public static readonly Color AccentMagic  = Hex(0x4A, 0x7B, 0xD0);
-        public static readonly Color AccentRare   = Hex(0xE7, 0xB7, 0x3A);
-        public static readonly Color HealthRed    = Hex(0xC8, 0x38, 0x38);
-        public static readonly Color GuildGreen   = Hex(0x5E, 0x8C, 0x4A);
-        public static readonly Color HoverGold    = Hex(0xD9, 0xB4, 0x5B);
+        // ===== GitHub-dark / Fluent dark (F-UI 팔레트 — UTKTheme와 동일 값) =====
+        public static readonly Color BgPanel       = Hex(0x16, 0x1B, 0x22, 0xFF); // Panel #161B22
+        public static readonly Color BgPanelDark   = Hex(0x0B, 0x0E, 0x14, 0xF2); // BgBase #0B0E14
+        public static readonly Color BorderBronze  = Hex(0x2E, 0x34, 0x3D);        // Stroke #2E343D
+        public static readonly Color BorderGold    = Hex(0xE3, 0xB3, 0x41);        // Gold #E3B341
+        public static readonly Color IronLine      = Hex(0x2E, 0x34, 0x3D);        // Stroke #2E343D
+        public static readonly Color TextPrimary   = Hex(0xF0, 0xF6, 0xFC);        // TextMain #F0F6FC
+        public static readonly Color TextSecondary = Hex(0x8B, 0x94, 0x9E);        // TextSub #8B949E
+        public static readonly Color AccentMagic   = Hex(0x58, 0xA6, 0xFF);        // Accent #58A6FF
+        public static readonly Color AccentRare    = Hex(0xE3, 0xB3, 0x41);        // Gold #E3B341
+        public static readonly Color HealthRed     = Hex(0xF8, 0x51, 0x49);        // Danger #F85149
+        public static readonly Color GuildGreen    = Hex(0x3F, 0xB9, 0x50);        // Success #3FB950
+        public static readonly Color HoverGold     = Hex(0xD2, 0x99, 0x22);        // Warn #D29922
 
-        // 등급색 (EquipmentRarityData 통일)
+        // 등급색 (EquipmentRarityData 통일 — 시맨틱 등급, 유지)
         public static readonly Color RankCommon    = Hex(0x99, 0x99, 0x99);
         public static readonly Color RankUncommon  = Hex(0x33, 0xCC, 0x33);
         public static readonly Color RankRare      = Hex(0x33, 0x66, 0xFF);
