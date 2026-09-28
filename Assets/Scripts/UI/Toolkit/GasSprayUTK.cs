@@ -46,7 +46,7 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 설정 =====
         private const float WinW = 320f;
-        private const float WinH = 170f;
+        private const float WinH = 200f;
         private const long RefreshMs = 400L;
 
         // ===== 레퍼런스 =====
@@ -67,33 +67,84 @@ namespace ProjectName.UI.Toolkit
         private GasSprayUTK() : base("💨 가스 분사기", new Vector2(WinW, WinH))
         {
             _content.style.flexDirection = FlexDirection.Column;
+            _content.style.paddingLeft = 10f;
+            _content.style.paddingRight = 10f;
+            _content.style.paddingTop = 8f;
+            _content.style.paddingBottom = 8f;
 
-            _equipLabel = MakeLabel(UTKColor.TextPrimary, true);
-            _content.Add(_equipLabel);
+            // GitHub-dark 헤더 카드: 장착 중인 가스통/등급을 우선 강조.
+            var equipmentCard = new VisualElement();
+            equipmentCard.name = "GasEquipmentCard";
+            equipmentCard.style.flexDirection = FlexDirection.Column;
+            equipmentCard.style.backgroundColor = new StyleColor(new Color32(22, 27, 34, 255)); // #161B22
+            equipmentCard.style.paddingLeft = 12f;
+            equipmentCard.style.paddingRight = 12f;
+            equipmentCard.style.paddingTop = 8f;
+            equipmentCard.style.paddingBottom = 8f;
+            equipmentCard.style.marginBottom = 6f;
+            equipmentCard.style.borderTopLeftRadius = 7f;
+            equipmentCard.style.borderTopRightRadius = 7f;
+            equipmentCard.style.borderBottomLeftRadius = 7f;
+            equipmentCard.style.borderBottomRightRadius = 7f;
+            equipmentCard.style.borderLeftWidth = 3f;
+            equipmentCard.style.borderLeftColor = new StyleColor(new Color32(88, 166, 255, 255)); // #58A6FF
+
+            _equipLabel = MakeLabel(new Color32(240, 246, 252, 255), true);
+            _equipLabel.style.fontSize = 15f;
+            _equipLabel.style.color = new StyleColor(new Color32(88, 166, 255, 255));
+            equipmentCard.Add(_equipLabel);
+            _content.Add(equipmentCard);
+
+            // 물약 잔량과 분사/재장전 타이머는 보조 카드에 묶는다.
+            var statusCard = new VisualElement();
+            statusCard.name = "GasStatusCard";
+            statusCard.style.flexDirection = FlexDirection.Column;
+            statusCard.style.backgroundColor = new StyleColor(new Color32(33, 38, 45, 255)); // #21262D
+            statusCard.style.paddingLeft = 12f;
+            statusCard.style.paddingRight = 12f;
+            statusCard.style.paddingTop = 7f;
+            statusCard.style.paddingBottom = 7f;
+            statusCard.style.borderTopLeftRadius = 7f;
+            statusCard.style.borderTopRightRadius = 7f;
+            statusCard.style.borderBottomLeftRadius = 7f;
+            statusCard.style.borderBottomRightRadius = 7f;
 
             _potionLabel = MakeLabel(new Color(0.8f, 0.7f, 0.3f), true);
-            _content.Add(_potionLabel);
+            _potionLabel.style.fontSize = 13f;
+            statusCard.Add(_potionLabel);
 
-            _timerLabel = MakeLabel(UTKColor.TextPrimary, true);
-            _content.Add(_timerLabel);
+            _timerLabel = MakeLabel(new Color32(240, 246, 252, 255), true);
+            _timerLabel.style.fontSize = 13f;
+            statusCard.Add(_timerLabel);
 
             // ── 진행바 ──
             _barBg = new VisualElement();
-            _barBg.style.height = 16f;
-            _barBg.style.marginTop = 6f;
+            _barBg.name = "GasProgressTrack";
+            _barBg.style.height = 10f;
+            _barBg.style.marginTop = 5f;
             _barBg.style.marginBottom = 4f;
-            _barBg.style.backgroundColor = new StyleColor(new Color(0.15f, 0.15f, 0.15f, 0.8f));
-            _content.Add(_barBg);
+            _barBg.style.backgroundColor = new StyleColor(new Color32(11, 14, 20, 255)); // #0B0E14
+            _barBg.style.borderTopLeftRadius = 5f;
+            _barBg.style.borderTopRightRadius = 5f;
+            _barBg.style.borderBottomLeftRadius = 5f;
+            _barBg.style.borderBottomRightRadius = 5f;
+            statusCard.Add(_barBg);
 
             _barFill = new VisualElement();
-            _barFill.style.height = 14f;
+            _barFill.style.height = 10f;
             _barFill.style.width = 0f;
             _barFill.style.backgroundColor = new StyleColor(new Color(0.3f, 0.8f, 0.3f));
+            _barFill.style.borderTopLeftRadius = 5f;
+            _barFill.style.borderTopRightRadius = 5f;
+            _barFill.style.borderBottomLeftRadius = 5f;
+            _barFill.style.borderBottomRightRadius = 5f;
             _barBg.Add(_barFill);
 
-            _typeLabel = MakeLabel(new Color(0.7f, 0.7f, 0.7f), true);
+            _typeLabel = MakeLabel(new Color32(139, 148, 158, 255), false);
+            _typeLabel.style.fontSize = 11f;
             _typeLabel.style.whiteSpace = WhiteSpace.Normal;
-            _content.Add(_typeLabel);
+            statusCard.Add(_typeLabel);
+            _content.Add(statusCard);
 
             ApplyUIToolkitFont(this);
             style.display = DisplayStyle.None;

@@ -41,12 +41,15 @@ namespace ProjectName.UI.Toolkit
 
         private const int DefaultSlots = 5;
         private const float WinW = 450f;
-        private const float SlotH = 70f;
+        private const float SlotH = 92f;
 
         private SaveData[] _slotInfos;
         private int _slotCount;
         private bool _loadingInProgress;
         private VisualElement _slotList;
+        private VisualElement _deleteOverlay;
+        private Label _deletePrompt;
+        private int _pendingDeleteSlot = -1;
 
         private LoadGameUTK()
         {
@@ -57,21 +60,102 @@ namespace ProjectName.UI.Toolkit
             style.alignItems = Align.Center;
             style.justifyContent = Justify.Center;
 
+            var panel = new VisualElement();
+            panel.name = "LoadGamePanel";
+            panel.style.width = WinW;
+            panel.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            panel.style.borderTopWidth = panel.style.borderBottomWidth = 1f;
+            panel.style.borderLeftWidth = panel.style.borderRightWidth = 1f;
+            panel.style.borderTopColor = panel.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            panel.style.borderLeftColor = panel.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            panel.style.borderTopLeftRadius = panel.style.borderTopRightRadius = 8f;
+            panel.style.borderBottomLeftRadius = panel.style.borderBottomRightRadius = 8f;
+            panel.style.overflow = Overflow.Hidden;
+            Add(panel);
+
             var title = new Label("저장 파일 불러오기");
-            title.style.fontSize = 26f;
+            title.name = "LoadGameHeader";
+            title.style.fontSize = 20f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.color = new StyleColor(new Color(0.9f, 0.7f, 0.3f, 1f));
-            title.style.marginBottom = 14f;
-            Add(title);
+            title.style.color = new StyleColor(UTKColor.TextPrimary);
+            title.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            title.style.paddingTop = title.style.paddingBottom = 14f;
+            title.style.paddingLeft = title.style.paddingRight = 16f;
+            title.style.borderBottomWidth = 1f;
+            title.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            panel.Add(title);
 
-            _slotList = new VisualElement();
-            _slotList.name = "SlotList";
-            _slotList.style.width = WinW;
-            Add(_slotList);
+            var slotScroll = new ScrollView();
+            slotScroll.name = "SlotScroll";
+            slotScroll.style.width = Length.Percent(100f);
+            slotScroll.style.maxHeight = 480f;
+            slotScroll.style.flexShrink = 1f;
+            slotScroll.style.paddingTop = 12f;
+            slotScroll.style.paddingBottom = 6f;
+            slotScroll.style.paddingLeft = 14f;
+            slotScroll.style.paddingRight = 14f;
+            _slotList = slotScroll;
+            panel.Add(_slotList);
 
-            var backBtn = UTKButton.Create("← 뒤로", OnBackClicked, UTKButton.Variant.Secondary);
-            backBtn.style.marginTop = 14f;
-            Add(backBtn);
+            var footer = new VisualElement();
+            footer.name = "LoadGameActions";
+            footer.style.flexDirection = FlexDirection.Row;
+            footer.style.justifyContent = Justify.FlexEnd;
+            footer.style.paddingTop = 10f;
+            footer.style.paddingBottom = 10f;
+            footer.style.paddingLeft = 14f;
+            footer.style.paddingRight = 14f;
+            footer.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            footer.style.borderTopWidth = 1f;
+            footer.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            panel.Add(footer);
+            footer.Add(UTKButton.Create("← 뒤로", OnBackClicked, UTKButton.Variant.Secondary));
+
+            _deleteOverlay = new VisualElement();
+            _deleteOverlay.name = "DeleteConfirmOverlay";
+            _deleteOverlay.style.position = Position.Absolute;
+            _deleteOverlay.style.left = 0f;
+            _deleteOverlay.style.right = 0f;
+            _deleteOverlay.style.top = 0f;
+            _deleteOverlay.style.bottom = 0f;
+            _deleteOverlay.style.display = DisplayStyle.None;
+            _deleteOverlay.style.alignItems = Align.Center;
+            _deleteOverlay.style.justifyContent = Justify.Center;
+            _deleteOverlay.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.68f));
+            Add(_deleteOverlay);
+
+            var confirmPanel = new VisualElement();
+            confirmPanel.style.width = 320f;
+            confirmPanel.style.paddingTop = confirmPanel.style.paddingBottom = 16f;
+            confirmPanel.style.paddingLeft = confirmPanel.style.paddingRight = 16f;
+            confirmPanel.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            confirmPanel.style.borderTopWidth = confirmPanel.style.borderBottomWidth = 1f;
+            confirmPanel.style.borderLeftWidth = confirmPanel.style.borderRightWidth = 1f;
+            confirmPanel.style.borderTopColor = confirmPanel.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            confirmPanel.style.borderLeftColor = confirmPanel.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            confirmPanel.style.borderTopLeftRadius = confirmPanel.style.borderTopRightRadius = 8f;
+            confirmPanel.style.borderBottomLeftRadius = confirmPanel.style.borderBottomRightRadius = 8f;
+            _deleteOverlay.Add(confirmPanel);
+
+            var confirmTitle = new Label("저장 파일 삭제");
+            confirmTitle.style.fontSize = 18f;
+            confirmTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            confirmTitle.style.color = new StyleColor(UTKColor.TextPrimary);
+            confirmPanel.Add(confirmTitle);
+            _deletePrompt = new Label();
+            _deletePrompt.style.color = new StyleColor(UTKColor.TextSecondary);
+            _deletePrompt.style.marginTop = 8f;
+            _deletePrompt.style.marginBottom = 14f;
+            confirmPanel.Add(_deletePrompt);
+
+            var confirmActions = new VisualElement();
+            confirmActions.style.flexDirection = FlexDirection.Row;
+            confirmActions.style.justifyContent = Justify.FlexEnd;
+            confirmPanel.Add(confirmActions);
+            confirmActions.Add(UTKButton.Create("취소", CancelDelete, UTKButton.Variant.Secondary));
+            var deleteButton = UTKButton.Create("삭제", ConfirmDelete, UTKButton.Variant.Danger);
+            deleteButton.style.marginLeft = 8f;
+            confirmActions.Add(deleteButton);
 
             UTKWindowBase.ApplyUIToolkitFont(this);
         }
@@ -102,50 +186,70 @@ namespace ProjectName.UI.Toolkit
         {
             var cell = new VisualElement();
             cell.name = "Slot_" + index;
-            cell.style.width = WinW;
-            cell.style.height = SlotH;
-            cell.style.flexDirection = FlexDirection.Column;
-            cell.style.justifyContent = Justify.Center;
-            cell.style.paddingLeft = 14f;
+            cell.style.width = Length.Percent(100f);
+            cell.style.minHeight = SlotH;
+            cell.style.flexDirection = FlexDirection.Row;
+            cell.style.alignItems = Align.Center;
+            cell.style.paddingLeft = 12f;
+            cell.style.paddingRight = 10f;
+            cell.style.paddingTop = 9f;
+            cell.style.paddingBottom = 9f;
             cell.style.marginBottom = 8f;
+            cell.style.backgroundColor = new StyleColor(new Color(0x21 / 255f, 0x26 / 255f, 0x2D / 255f, 1f));
+            cell.style.borderTopWidth = cell.style.borderBottomWidth = 1f;
+            cell.style.borderLeftWidth = cell.style.borderRightWidth = 1f;
+            cell.style.borderTopColor = cell.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            cell.style.borderLeftColor = cell.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            cell.style.borderTopLeftRadius = cell.style.borderTopRightRadius = 8f;
+            cell.style.borderBottomLeftRadius = cell.style.borderBottomRightRadius = 8f;
             cell.pickingMode = PickingMode.Position;
 
             SaveData info = (_slotInfos != null && index < _slotInfos.Length) ? _slotInfos[index] : null;
             bool hasSave = info != null;
 
-            cell.style.backgroundColor = new StyleColor(
-                hasSave ? new Color(0.2f, 0.35f, 0.5f, 0.9f) : new Color(0.3f, 0.3f, 0.3f, 0.7f));
+            var details = new VisualElement();
+            details.style.flexDirection = FlexDirection.Column;
+            details.style.flexGrow = 1f;
+            details.style.minWidth = 0f;
+            cell.Add(details);
 
-            if (hasSave)
-            {
-                var header = new Label($"슬롯 {index + 1} — {info.timestamp ?? "날짜 없음"}");
-                header.style.color = new StyleColor(UTKColor.TextPrimary);
-                header.style.fontSize = 15f;
-                header.style.unityFontStyleAndWeight = FontStyle.Bold;
-                cell.Add(header);
+            var slotLabel = new Label($"슬롯 {index + 1}");
+            slotLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            slotLabel.style.fontSize = 14f;
+            slotLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            details.Add(slotLabel);
 
-                string dayStr = info.time != null ? $"Day {info.time.day}" : "Day ?";
-                string levelStr = info.player != null ? $"Lv.{info.player.level}" : "Lv.?";
-                var detail = new Label($"{dayStr}  |  {levelStr}");
-                detail.style.color = new StyleColor(new Color(0.75f, 0.75f, 0.75f, 1f));
-                detail.style.fontSize = 13f;
-                cell.Add(detail);
+            string date = hasSave ? (info.timestamp ?? "날짜 없음") : "저장된 게임 없음";
+            var dateLabel = new Label(date);
+            dateLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            dateLabel.style.fontSize = 11f;
+            dateLabel.style.marginTop = 2f;
+            details.Add(dateLabel);
 
-                int captured = index;
-                cell.RegisterCallback<PointerDownEvent>(_ => OnSlotClicked(captured));
-            }
-            else
-            {
-                var slotLabel = new Label($"슬롯 {index + 1}");
-                slotLabel.style.color = new StyleColor(UTKColor.TextPrimary);
-                slotLabel.style.fontSize = 14f;
-                cell.Add(slotLabel);
+            string dayStr = hasSave && info.time != null ? $"Day {info.time.day}" : (hasSave ? "Day ?" : "—");
+            string levelStr = hasSave && info.player != null ? $"Lv.{info.player.level}" : (hasSave ? "Lv.?" : "—");
+            var summary = new Label(hasSave ? $"{dayStr}  ·  {levelStr}" : "비어있음");
+            summary.style.color = new StyleColor(hasSave ? UTKColor.TextPrimary : UTKColor.TextSecondary);
+            summary.style.fontSize = 12f;
+            summary.style.marginTop = 2f;
+            details.Add(summary);
 
-                var empty = new Label("비어있음");
-                empty.style.color = new StyleColor(new Color(0.6f, 0.6f, 0.6f, 1f));
-                empty  .style.unityFontStyleAndWeight = FontStyle.Italic;
-                cell.Add(empty);
-            }
+            var actions = new VisualElement();
+            actions.style.flexDirection = FlexDirection.Row;
+            actions.style.alignItems = Align.Center;
+            cell.Add(actions);
+
+            int captured = index;
+            var loadButton = UTKButton.Create("로드", () => OnSlotClicked(captured), UTKButton.Variant.Primary);
+            loadButton.style.width = 52f;
+            loadButton.SetEnabled(hasSave);
+            actions.Add(loadButton);
+
+            var deleteButton = UTKButton.Create("삭제", () => RequestDelete(captured), UTKButton.Variant.Danger);
+            deleteButton.style.width = 52f;
+            deleteButton.style.marginLeft = 6f;
+            deleteButton.SetEnabled(hasSave);
+            actions.Add(deleteButton);
 
             return cell;
         }
@@ -183,6 +287,33 @@ namespace ProjectName.UI.Toolkit
             Debug.Log("[LoadUTK] 메인 메뉴로 돌아가기");
             RemoveFromHierarchy();
             style.display = DisplayStyle.None;
+        }
+
+        private void RequestDelete(int slotIndex)
+        {
+            if (_loadingInProgress) return;
+            _pendingDeleteSlot = slotIndex;
+            _deletePrompt.text = $"슬롯 {slotIndex + 1}의 저장 파일을 삭제할까요?";
+            _deleteOverlay.style.display = DisplayStyle.Flex;
+        }
+
+        private void CancelDelete()
+        {
+            _pendingDeleteSlot = -1;
+            _deleteOverlay.style.display = DisplayStyle.None;
+        }
+
+        private void ConfirmDelete()
+        {
+            if (_pendingDeleteSlot < 0) return;
+            int slotIndex = _pendingDeleteSlot;
+            _pendingDeleteSlot = -1;
+            _deleteOverlay.style.display = DisplayStyle.None;
+
+            if (SaveManager.Instance != null)
+                SaveManager.Instance.DeleteSlot(slotIndex);
+            Debug.Log($"[LoadUTK] 슬롯 {slotIndex} 삭제");
+            RefreshSlots();
         }
 
         private void ShowToRoot()
