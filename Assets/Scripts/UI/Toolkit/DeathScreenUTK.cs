@@ -43,17 +43,64 @@ namespace ProjectName.UI.Toolkit
             _fadeRoot.style.justifyContent = Justify.Center;
             Add(_fadeRoot);
 
+            // GitHub-dark 카드: 사망 안내와 액션을 한 패널 안에서 분리한다.
+            var card = new VisualElement();
+            card.style.width = 480;
+            card.style.paddingLeft = 24;
+            card.style.paddingRight = 24;
+            card.style.paddingTop = 24;
+            card.style.paddingBottom = 20;
+            card.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            card.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderTopWidth = 1;
+            card.style.borderBottomWidth = 1;
+            card.style.borderLeftWidth = 1;
+            card.style.borderRightWidth = 1;
+            card.style.borderTopLeftRadius = 8;
+            card.style.borderTopRightRadius = 8;
+            card.style.borderBottomLeftRadius = 8;
+            card.style.borderBottomRightRadius = 8;
+            _fadeRoot.Add(card);
+
             _title = new Label("☠ 사망");
-            _title.style.fontSize = 60;
-            _title.style.color = new StyleColor(Color.white);
+            _title.style.fontSize = 36;
+            _title.style.color = new StyleColor(UTKColor.HealthRed);
             _title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _title.style.marginBottom = 24;
-            _fadeRoot.Add(_title);
+            _title.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _title.style.marginBottom = 8;
+            card.Add(_title);
+
+            var message = new Label("모험이 여기서 끝났습니다.");
+            message.style.fontSize = 15;
+            message.style.color = new StyleColor(UTKColor.TextPrimary);
+            message.style.unityTextAlign = TextAnchor.MiddleCenter;
+            message.style.marginBottom = 4;
+            card.Add(message);
+
+            var hint = new Label("부활하거나 저장된 게임을 불러오세요.");
+            hint.style.fontSize = 13;
+            hint.style.color = new StyleColor(UTKColor.TextSecondary);
+            hint.style.unityTextAlign = TextAnchor.MiddleCenter;
+            card.Add(hint);
 
             _buttonRow = new VisualElement();
             _buttonRow.style.flexDirection = FlexDirection.Row;
-            _buttonRow.style.marginTop = 8;
-            _fadeRoot.Add(_buttonRow);
+            _buttonRow.style.justifyContent = Justify.Center;
+            _buttonRow.style.alignItems = Align.Center;
+            _buttonRow.style.marginTop = 20;
+            _buttonRow.style.paddingLeft = 12;
+            _buttonRow.style.paddingRight = 12;
+            _buttonRow.style.paddingTop = 12;
+            _buttonRow.style.paddingBottom = 12;
+            _buttonRow.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            _buttonRow.style.borderTopLeftRadius = 6;
+            _buttonRow.style.borderTopRightRadius = 6;
+            _buttonRow.style.borderBottomLeftRadius = 6;
+            _buttonRow.style.borderBottomRightRadius = 6;
+            card.Add(_buttonRow);
 
             var respawnBtn = UTKButton.Create("🔄 부활", OnRespawn, UTKButton.Variant.Primary);
             respawnBtn.style.width = 180;

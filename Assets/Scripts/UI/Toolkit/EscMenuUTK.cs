@@ -69,20 +69,89 @@ namespace ProjectName.UI.Toolkit
             _menuView.name = "EscMenuView";
             _menuView.style.alignItems = Align.Center;
             _menuView.style.width = WinW;
+            _menuView.style.paddingLeft = 28f;
+            _menuView.style.paddingRight = 28f;
+            _menuView.style.paddingTop = 28f;
+            _menuView.style.paddingBottom = 28f;
+            _menuView.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            _menuView.style.borderTopWidth = 1f;
+            _menuView.style.borderBottomWidth = 1f;
+            _menuView.style.borderLeftWidth = 1f;
+            _menuView.style.borderRightWidth = 1f;
+            _menuView.style.borderTopColor = new StyleColor(UTKColor.IronLine);
+            _menuView.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+            _menuView.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
+            _menuView.style.borderRightColor = new StyleColor(UTKColor.IronLine);
+            _menuView.style.borderTopLeftRadius = 8f;
+            _menuView.style.borderTopRightRadius = 8f;
+            _menuView.style.borderBottomLeftRadius = 8f;
+            _menuView.style.borderBottomRightRadius = 8f;
 
             var title = new Label("일시정지");
             title.style.fontSize = 34f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.color = new StyleColor(new Color(0.9f, 0.7f, 0.3f, 1f));
-            title.style.marginBottom = 22f;
+            title.style.color = new StyleColor(UTKColor.AccentRare);
+            title.style.marginBottom = 8f;
             _menuView.Add(title);
 
-            _menuView.Add(UTKButton.Create("▶ 계속", OnResumeClicked, UTKButton.Variant.Primary));
-            _menuView.Add(UTKButton.Create("⚙ 설정", OnSettingsClicked, UTKButton.Variant.Secondary));
-            _menuView.Add(UTKButton.Create("🏠 메인으로", OnMainMenuClicked, UTKButton.Variant.Danger));
+            var subtitle = new Label("게임을 잠시 멈췄습니다");
+            subtitle.style.fontSize = 14f;
+            subtitle.style.color = new StyleColor(UTKColor.TextSecondary);
+            subtitle.style.marginBottom = 22f;
+            _menuView.Add(subtitle);
+
+            var resumeButton = UTKButton.Create("▶ 계속", OnResumeClicked, UTKButton.Variant.Primary);
+            var settingsButton = UTKButton.Create("⚙ 설정", OnSettingsClicked, UTKButton.Variant.Secondary);
+            var mainMenuButton = UTKButton.Create("🏠 메인으로", OnMainMenuClicked, UTKButton.Variant.Danger);
+            ConfigureMenuCard(resumeButton);
+            ConfigureMenuCard(settingsButton);
+            ConfigureMenuCard(mainMenuButton);
+            _menuView.Add(resumeButton);
+            _menuView.Add(settingsButton);
+            _menuView.Add(mainMenuButton);
 
             Add(_menuView);
             UTKWindowBase.ApplyUIToolkitFont(this);
+        }
+
+        private static void ConfigureMenuCard(Button button)
+        {
+            button.style.width = Length.Percent(100f);
+            button.style.minHeight = 58f;
+            button.style.marginBottom = 10f;
+            button.style.paddingLeft = 18f;
+            button.style.paddingRight = 18f;
+            button.style.backgroundColor = new StyleColor(new Color(0x21 / 255f, 0x26 / 255f, 0x2D / 255f, 1f));
+            button.style.color = new StyleColor(UTKColor.TextPrimary);
+            button.style.unityTextAlign = TextAnchor.MiddleLeft;
+            button.style.borderTopWidth = 1f;
+            button.style.borderBottomWidth = 1f;
+            button.style.borderLeftWidth = 1f;
+            button.style.borderRightWidth = 1f;
+            button.style.borderTopColor = new StyleColor(new Color(0x2E / 255f, 0x34 / 255f, 0x3D / 255f, 1f));
+            button.style.borderBottomColor = new StyleColor(new Color(0x2E / 255f, 0x34 / 255f, 0x3D / 255f, 1f));
+            button.style.borderLeftColor = new StyleColor(new Color(0x2E / 255f, 0x34 / 255f, 0x3D / 255f, 1f));
+            button.style.borderRightColor = new StyleColor(new Color(0x2E / 255f, 0x34 / 255f, 0x3D / 255f, 1f));
+            button.style.borderTopLeftRadius = 8f;
+            button.style.borderTopRightRadius = 8f;
+            button.style.borderBottomLeftRadius = 8f;
+            button.style.borderBottomRightRadius = 8f;
+
+            button.RegisterCallback<MouseEnterEvent>(_ =>
+            {
+                button.style.borderTopColor = new StyleColor(UTKColor.HoverGold);
+                button.style.borderBottomColor = new StyleColor(UTKColor.HoverGold);
+                button.style.borderLeftColor = new StyleColor(UTKColor.HoverGold);
+                button.style.borderRightColor = new StyleColor(UTKColor.HoverGold);
+            });
+            button.RegisterCallback<MouseLeaveEvent>(_ =>
+            {
+                var stroke = new StyleColor(new Color(0x2E / 255f, 0x34 / 255f, 0x3D / 255f, 1f));
+                button.style.borderTopColor = stroke;
+                button.style.borderBottomColor = stroke;
+                button.style.borderLeftColor = stroke;
+                button.style.borderRightColor = stroke;
+            });
         }
 
         // ===== 버튼 콜백 (원본 실측 직접 호출) =====
