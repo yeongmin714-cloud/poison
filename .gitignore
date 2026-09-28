@@ -59,6 +59,10 @@ run_batch_phase*.bat
 # [O9] LLM API 키 — git 제외
 llm_config.json
 
+# 생성물 분석 산출물 (타일시트 PNG/로그/bat — 추적 제거, 재생성)
+/TestOutput/
+compile.log
+
 # 대용량 GLB 에셋 — 에디터 AssetDatabase 직접 로드(빌드 불포함), 로컬 유지
 새로운 glb/
 새로운 glb.meta
