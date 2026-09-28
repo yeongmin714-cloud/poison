@@ -56,6 +56,12 @@ namespace ProjectName.Systems
             try { GuardSalarySystem.TryPayDailyWages(day); }
             catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] 급료 청구 실패: {ex.Message}"); }
 
+            // [AI 경제] 세수 → AI 유지비(부족 시 감축) → AI 고용(재화 연동)
+            try { AITerritoryEconomySystem.ApplyDailyTax(day); }
+            catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] AI 세수 처리 실패: {ex.Message}"); }
+            try { AITerritoryEconomySystem.PayAILordMaintenance(day); }
+            catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] AI 유지비 처리 실패: {ex.Message}"); }
+
             try { LaborMarketSystem.ProcessAILordHiring(day); }
             catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] AI 고용 실패: {ex.Message}"); }
 

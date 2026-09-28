@@ -143,6 +143,17 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>
+        /// 모든 영지 등록 목록에서 병사를 제거한다. AI 영지 감축/소속 이전용이며,
+        /// 사망 이벤트는 발생시키지 않는다.
+        /// </summary>
+        public void RemoveGuardFromAllTerritories(GuardPlaceholder guard)
+        {
+            if (guard == null) return;
+            foreach (var guards in _territoryGuards.Values)
+                guards.Remove(guard);
+        }
+
         /// <summary>영지의 병사 목록 반환</summary>
         public List<GuardPlaceholder> GetGuardsInTerritory(TerritoryId territoryId)
         {

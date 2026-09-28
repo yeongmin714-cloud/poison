@@ -120,7 +120,32 @@ namespace ProjectName.Systems
                 GuardPlaceholder guard = TakeNextHireable(playerGuards);
                 if (guard == null) break; // 풀에 고용 가능한 병사 없음
 
-                AssignToLord(guard, lordIds[i % lordIds.Count]);
+                int hireCost = AITerritoryEconomySystem.GetHireCost(guard);
+                TerritoryId affordableLord = default;
+                bool foundAffordableLord = false;
+                for (int offset = 0; offset < lordIds.Count; offset++)
+                {
+                    TerritoryId candidateId = lordIds[(i + offset) % lordIds.Count];
+                    TerritoryState candidateState = TerritoryDatabase.Instance.GetState(candidateId);
+                    if (candidateState == null || candidateState.ownership != TerritoryOwnership.LordOwned ||
+                        candidateState.territoryGold < hireCost)
+                        continue;
+
+                    affordableLord = candidateId;
+                    foundAffordableLord = true;
+                    break;
+                }
+
+                if (!foundAffordableLord)
+                {
+                    // 재화가 부족해도 시장 병사를 잃지 않도록 풀에 복귀시킨다.
+                    ReturnToMarketPool(guard);
+                    Debug.Log($"[LaborMarket] AI 영주 금고 부족 — 고용 {guard.GuardName}({hireCost}G) 보류");
+                    break;
+                }
+
+                TerritoryDatabase.Instance.GetState(affordableLord).territoryGold -= hireCost;
+                AssignToLord(guard, affordableLord);
                 hired++;
             }
 
@@ -212,11 +237,25 @@ namespace ProjectName.Systems
         {
             guard.SetRecruited(false); // 플레이어 아군 아님 유지 — 소속만 AI 영주로 이전
 
+            // 시장 병사가 기존 영지에 등록돼 있었다면 이전한 뒤 AI 영지 병력으로 등록한다.
+            GuardManager manager = GuardManager.Instance;
+            if (manager != null)
+            {
+                manager.RemoveGuardFromAllTerritories(guard);
+                manager.RegisterGuard(lordId, guard);
+            }
+
             _hiredCounts.TryGetValue(lordId, out int count);
             _hiredCounts[lordId] = count + 1;
             _totalHiredByAI++;
 
             Debug.Log($"[LaborMarket] AI 영주 재고용: {guard.GuardName} → {lordId} (영지 누적 {_hiredCounts[lordId]}명)");
+        }
+
+        private static void ReturnToMarketPool(GuardPlaceholder guard)
+        {
+            if (guard == null || !guard.IsAlive || _pool.Contains(guard)) return;
+            _pool.Add(guard);
         }
 
         /// <summary>

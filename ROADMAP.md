@@ -3489,4 +3489,5 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
   - `AIWarSystem`: `PlayerOwned` 영지를 **방어자 후보로만** 자동 전쟁에 포함(공격자=LordOwned만 — 플레이어 자동 공격 없음). `PLAYER_WAR_MIN_DAY=3` 초반 완충(3일차 전 플레이어 영지 무공격). `StartAIWar`가 PlayerOwned 방어 허용. `CompleteWar`에서 플레이어 영지가 AI에 패배 시 `SetOwnership(LordOwned)` 소유 역전+**몰수 없음**(골드/창고/인벤 보존). AI-AI 전쟁 100% 기존 유지.
   - `GameSetup` 메인 경로에서 `MonsterSpawner.SetPaused(false)` 재개(TerrainOnly 씬은 미적용 — 지형관찰엔 몬스터 차단 유지).
   - 배치컴파일 error CS 0 (`playerwar_compile.log`·`monster_resume_compile.log`).
+- **[보강 09-28]** **AI 영지 자생적 재화 순환**: 신규 `AITerritoryEconomySystem` — LordOwned 영지만 매일 **난이도 세수**(Ring1=10…Empire=100) 축적 + **금고 상한**(Ring1=1000…Empire=10000) + **AI 유지비 지불**(적군도 `2+Lv×2` 별도 산식, `IsRecruited` 0문제 회피) 부족 시 고비용 병사부터 감축(GuardManager.UnregisterGuard+파괴) + `LaborMarketSystem.ProcessAILordHiring` **재화 연동**(금고에서 `GetHireCost=유지비×5` 차감, 부족 영지 고용 스킵). 플레이어 영지 미영향, 결정론/풀/정렬 유지. 배치컴파일 error CS 0 (`aieconomy_compile.log`).
 - ⚠ **Play 검증 대기:** 플레이어 성 진입 시 7개 방이 벽으로 분리·가구가 방별 배치·입구 통행 가능 확인.
