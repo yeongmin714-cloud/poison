@@ -86,6 +86,14 @@ namespace ProjectName.Systems
 
         public static int SlotIndex(EquipmentSlot slot) => (int)slot;
 
+        /// <summary>장착 슬롯의 아이템 ID를 반환합니다. 비었거나 슬롯이 유효하지 않으면 null.</summary>
+        public string GetEquippedItemId(EquipmentSlot slot)
+        {
+            if (!TryGetValidIndex(slot, out int index))
+                return null;
+            return _slots[index].itemId;
+        }
+
         private static bool TryGetValidIndex(EquipmentSlot slot, out int index)
         {
             index = (int)slot;

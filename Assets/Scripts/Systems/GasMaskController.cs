@@ -5,12 +5,13 @@ using ProjectName.Core;
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// 방독면 컨트롤러 — G 키로 착용/해제, 프레임 업데이트 처리.
+    /// 방독면 컨트롤러 — V 키로 착용/해제, 프레임 업데이트 처리.
     /// </summary>
     public class GasMaskController : MonoBehaviour
     {
         [Header("Gas Mask")]
-        [SerializeField] private KeyCode _toggleKey = KeyCode.G;
+        // 가스 분사기(G키)와 충돌 방지 — 방독면은 V키
+        [SerializeField] private KeyCode _toggleKey = KeyCode.V;
         [SerializeField] private GasMaskGrade _currentGrade = GasMaskGrade.Wood;
 
         private void Start()
@@ -21,7 +22,7 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            // G 키: 착용/해제 토글
+            // V 키: 착용/해제 토글
             if (Input.GetKeyDown(_toggleKey))
             {
                 ToggleGasMask();
@@ -36,12 +37,12 @@ namespace ProjectName.Systems
             if (GasMaskSystem.IsActive)
             {
                 GasMaskSystem.Unequip();
-                Debug.Log("[GasMaskController] 방독면 해제 (G)");
+                Debug.Log("[GasMaskController] 방독면 해제 (V)");
             }
             else
             {
                 GasMaskSystem.Equip(_currentGrade);
-                Debug.Log($"[GasMaskController] 방독면 장착: {_currentGrade} (G)");
+                Debug.Log($"[GasMaskController] 방독면 장착: {_currentGrade} (V)");
             }
         }
 

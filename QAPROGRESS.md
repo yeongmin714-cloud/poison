@@ -13,6 +13,7 @@
 - **배선:** `GameSetup.EnsureGasSystem()` — Player에 GasSprayerController/GasSprayer/SprayInputHandler 부착 + `GasCloudLauncher.RegisterHook()`. 날짜 09-28 이후 메인 배선 복원(기존엔 테스트 씬에만 AddComponent).
 - **보조 API:** `GasSprayerController.CurrentSprayTimeRemaining` setter public, `GuardPlaceholder.SetHP(float)`·`ApplyGasCloudBuff(...)` 추가.
 - **QA:** Unity batch compile `error CS=0`, `Script compilation 26.3s`, "Exiting batchmode successfully" return code 0 (로그 `gascloud_batch_compile.log`). 모든 수정 파일이 로그 시각보다 이전이라 전체 변경 반영 확인.
+- **보강(방독면 면역 실제 동작화):** 기존엔 방독면 면역 `GasMaskSystem.IsActive`를 켜는 경로가 G키 GasMaskController뿐이었고 메인 배선 0건이라 유령 기능이었음. `GasMaskEquipmentLink.cs` 신규 — 인벤토리 **Mask 슬롯 장착/해제**를 `OnEquipmentChanged`로 구독해 방독면이면 `GasMaskSystem.Equip(grade)`/`Unequip`, 등급 매핑(steel→Iron/stone→Stone/special·alloy→Special/폴백 Wood). `EquipmentManager.GetEquippedItemId` getter 추가. `GameSetup.EnsureGasSystem()`에 링크 등록 + `GasMaskController` 부착. **G키 충돌 해소**: `GasMaskController._toggleKey` G→**V** (가스 분사기 가스토글=G, 방독면=V). 배치컴파일 `error CS 0` (`gas_mask_equipment_compile.log`, 22.4s, return code 0).
 - ⚠ **Play 판정 대기**: 에디터 Play → 분사기 장착 + 물약 장전 후 물약 사용 시 주변에 원형 가스 확산·속성별 색·방독면 면역이 실제로 보이는지 확인.
 
 ---

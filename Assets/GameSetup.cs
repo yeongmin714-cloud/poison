@@ -902,6 +902,10 @@ public class GameSetup : MonoBehaviour
             if (player.GetComponent<SprayInputHandler>() == null)
                 player.AddComponent<SprayInputHandler>();
             GasCloudLauncher.RegisterHook();
+            // 방독면: 인벤 Mask 슬롯 장착 ↔ GasMaskSystem 면역 연동 + 매 프레임 Update
+            GasMaskEquipmentLink.Register();
+            if (player.GetComponent<GasMaskController>() == null)
+                player.AddComponent<GasMaskController>();
             Debug.Log("[GameSetup] ✅ 가스 분사기 + 물약버튼 가스 구름 전개 + 방독면 연계 배선 완료");
         }
         catch (System.Exception gasEx)
