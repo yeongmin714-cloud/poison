@@ -79,30 +79,69 @@ namespace ProjectName.UI.Toolkit
         private readonly VisualElement _list;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
 
+        // ===== Figma 구조 (2026-09-28) — 영주 카드 / 성취사 카드 / 대화 패널 / 선택지 그리드 =====
+        private readonly VisualElement _lordCard;    // 영주 이름+칭호 카드
+        private readonly VisualElement _taleCard;    // 성취사 카드
+        private readonly VisualElement _optionGrid;  // 선택지 2열 그리드
+
         private LordAudienceUTK() : base("👑 영주 알현", new Vector2(WinW, WinH))
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
-            _headlineLabel = new Label("👑 영주 알현");
-            _headlineLabel.AddToClassList("utk-title-label");
-            _headlineLabel.style.fontSize = 18f;
-            _content.Add(_headlineLabel);
+            // ── 영주 헤더 카드 (Figma 카드 패턴) ──
+            _lordCard = new VisualElement();
+            _lordCard.name = "LordCard";
+            _lordCard.style.flexDirection = FlexDirection.Column;
+            _lordCard.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _lordCard.style.borderTopLeftRadius = _lordCard.style.borderTopRightRadius = _lordCard.style.borderBottomLeftRadius = _lordCard.style.borderBottomRightRadius = UTKTheme.RadiusSub;
+            _lordCard.style.borderTopWidth = _lordCard.style.borderBottomWidth = _lordCard.style.borderLeftWidth = _lordCard.style.borderRightWidth = 1f;
+            _lordCard.style.borderTopColor = _lordCard.style.borderBottomColor = _lordCard.style.borderLeftColor = _lordCard.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            _lordCard.style.paddingLeft = 12f;
+            _lordCard.style.paddingRight = 12f;
+            _lordCard.style.paddingTop = 10f;
+            _lordCard.style.paddingBottom = 10f;
+            _lordCard.style.marginBottom = 8f;
+            _content.Add(_lordCard);
 
-            // [O6 C-O6-04] 성취사 라벨 — 대면창에 영주 이력 3문장 표시
+            _headlineLabel = new Label("👑 영주 알현");
+            _headlineLabel.style.fontSize = 20f;
+            _headlineLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _headlineLabel.style.color = new StyleColor(UTKTheme.TextMain);
+            _lordCard.Add(_headlineLabel);
+
+            // [O6 C-O6-04] 성취사 카드 — 영주 이력 카드
+            _taleCard = new VisualElement();
+            _taleCard.name = "TaleCard";
+            _taleCard.style.flexDirection = FlexDirection.Column;
+            _taleCard.style.backgroundColor = new StyleColor(UTKTheme.BgBase);
+            _taleCard.style.borderTopLeftRadius = _taleCard.style.borderTopRightRadius = _taleCard.style.borderBottomLeftRadius = _taleCard.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+            _taleCard.style.paddingLeft = 10f;
+            _taleCard.style.paddingRight = 10f;
+            _taleCard.style.paddingTop = 6f;
+            _taleCard.style.paddingBottom = 6f;
+            _taleCard.style.marginTop = 6f;
+            _lordCard.Add(_taleCard);
+
             _taleLabel = new Label("");
             _taleLabel.style.fontSize = 12f;
-            _taleLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _taleLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _taleLabel.style.whiteSpace = WhiteSpace.Normal;
-            _taleLabel.style.marginBottom = 8f;
-            _content.Add(_taleLabel);
+            _taleCard.Add(_taleLabel);
 
+            // ── 대화/결과 본문 패널 ──
             _dialogueLabel = new Label("");
             _dialogueLabel.style.fontSize = 16f;
-            _dialogueLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            _dialogueLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _dialogueLabel.style.whiteSpace = WhiteSpace.Normal;
             _dialogueLabel.style.marginTop = 8f;
             _dialogueLabel.style.marginBottom = 8f;
+            _dialogueLabel.style.paddingLeft = 10f;
+            _dialogueLabel.style.paddingRight = 10f;
+            _dialogueLabel.style.paddingTop = 8f;
+            _dialogueLabel.style.paddingBottom = 8f;
+            _dialogueLabel.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _dialogueLabel.style.borderTopLeftRadius = _dialogueLabel.style.borderTopRightRadius = _dialogueLabel.style.borderBottomLeftRadius = _dialogueLabel.style.borderBottomRightRadius = UTKTheme.RadiusSub;
             _content.Add(_dialogueLabel);
 
             _list = new VisualElement();
@@ -111,11 +150,23 @@ namespace ProjectName.UI.Toolkit
             _list.style.flexDirection = FlexDirection.Column;
             _content.Add(_list);
 
+            // ── 선택지 2열 그리드 (Figma 액션 그리드) ──
+            _optionGrid = new VisualElement();
+            _optionGrid.name = "LordOptionGrid";
+            _optionGrid.style.flexDirection = FlexDirection.Row;
+            _optionGrid.style.flexWrap = Wrap.Wrap;
+            _optionGrid.style.marginTop = 6f;
+            _content.Add(_optionGrid);
+
             ApplyUIToolkitFont(this);
 
             style.display = DisplayStyle.None;
             style.left = 600f;
             style.top = 100f;
+            style.width = WinW;
+            style.height = WinH;
+            style.backgroundColor = new StyleColor(UTKTheme.BgBase);
+            style.borderTopLeftRadius = style.borderTopRightRadius = style.borderBottomLeftRadius = style.borderBottomRightRadius = UTKTheme.RadiusMain;
         }
 
         // =================== 생명주기 ===================
@@ -229,7 +280,7 @@ namespace ProjectName.UI.Toolkit
             _headlineLabel.text = "👑 " + _lordTitle + " — " + _lordName;
             _dialogueLabel.text = _dialogueText;
             if (_taleLabel != null) _taleLabel.text = _heroicTale;
-            _list.Clear();
+            _optionGrid.Clear();
 
             if (!_showOptions || _options == null)
                 return;
@@ -248,15 +299,18 @@ namespace ProjectName.UI.Toolkit
                 if (opt.speechDifficulty > 0)
                     label += " [화술 " + opt.speechDifficulty + "]";
 
-                _list.Add(UTKButton.Create(label, () =>
+                // [Figma] 선택지 2열 그리드 — 균일 폭
+                var btn = UTKButton.Create(label, () =>
                 {
                     ExecuteOption(index);
-                }, UTKButton.Variant.Secondary));
+                }, UTKButton.Variant.Secondary);
+                btn.style.width = (WinW - 80f) / 2f;
+                btn.style.marginRight = 6f;
+                btn.style.marginBottom = 6f;
+                _optionGrid.Add(btn);
 
                 idx++;
             }
-
-            _list.Add(UTKButton.Create("닫기 ✕", Close, UTKButton.Variant.Danger));
         }
 
         // ===== 선택 처리 =====
@@ -276,14 +330,14 @@ namespace ProjectName.UI.Toolkit
             if (success)
             {
                 _dialogueText = _lordName + ": \"" + opt.successResult + "\"";
-                _dialogueLabel.style.color = new StyleColor(UTKColor.GuildGreen);
+                _dialogueLabel.style.color = new StyleColor(UTKTheme.Success);
                 opt.onSuccess?.Invoke();
                 Debug.Log("[LordUTK] 화술 성공! (레벨 " + speechLevel + " ≥ 필요 " + opt.speechDifficulty + ")");
             }
             else
             {
                 _dialogueText = _lordName + ": \"" + opt.failResult + "\"";
-                _dialogueLabel.style.color = new StyleColor(UTKColor.HealthRed);
+                _dialogueLabel.style.color = new StyleColor(UTKTheme.Danger);
                 opt.onFail?.Invoke();
                 Debug.Log("[LordUTK] 화술 실패! (레벨 " + speechLevel + " < 필요 " + opt.speechDifficulty + ")");
             }
@@ -296,7 +350,7 @@ namespace ProjectName.UI.Toolkit
         {
             _showOptions = true;
             _dialogueText = _lordName + ": \"또 무슨 일이냐?\"";
-            _dialogueLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            _dialogueLabel.style.color = new StyleColor(UTKTheme.TextMain);
             Refresh();
         }
     }
