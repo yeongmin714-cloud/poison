@@ -494,7 +494,16 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                 if (keep) structureLegChains.Add(c);
             }
             legChains = structureLegChains;
-            if (legChains.Count < 2) return;
+            // 날개형 4족은 유효한 다리 미러 페어가 없을 수 있다(그리폰 GLB의 다리 두 줄은
+            // 아래 페어 거리 제한에서 기각됨). 사지가 검증되지 않아도 이후 날개 배치 경로는 실행한다.
+            // 어떤 날개/꼬리도 다리 역할로 강제하지 않으며, 미검증 사지 역할은 null로 둔다.
+            if (legChains.Count < 2)
+            {
+                if (hint != BoneFamilyHint.Quadruped) return;
+                var emptyConsumed = new HashSet<Transform>();
+                MapWingChains(chains, legChains, emptyConsumed, map, treeRoot, rigHeight, minY, maxY);
+                return;
+            }
 
             // 전/후·좌/우 분류 — [2026-09-23 phase1 수리] 좌우 서명은 사지 '부착 루트' X 기준
             // (해부학적 힙 위치). 평균 위치는 사슬 휘어짐에 희석되어 중앙으로 수렴해 오분류를 낳는다.
@@ -539,11 +548,14 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
                     bool distinctRoots;
                     if (rootDist >= 0.08f)
                         distinctRoots = true;
-                    else if (rootDist < 0.02f && A.chain[0] != B.chain[0])
-                        distinctRoots = Mathf.Sign(A.local.x) != Mathf.Sign(B.local.x)
-                            && Mathf.Abs(A.local.x) >= 0.03f && Mathf.Abs(B.local.x) >= 0.03f;
                     else
-                        distinctRoots = false; // 중간 거리(0.02~0.08)는 기존과 같이 거부
+                        // GLB 사지 어깨는 서로 다른 Transform이더라도 거의 붙어 있을 수 있다.
+                        // 악어처럼 완전히 겹친 시작점은 분기 끝 미러로, 만티코어 앞다리처럼
+                        // 0.02~0.08m 떨어진 뿌리는 좌우 부착 서명+미러 페어+span으로 검증한다.
+                        // '중간 거리'를 일괄 거부하면 만티코어 전지는 빠지고 후지만 남는다.
+                        distinctRoots = A.chain[0] != B.chain[0]
+                            && Mathf.Sign(A.local.x) != Mathf.Sign(B.local.x)
+                            && Mathf.Abs(A.local.x) >= 0.03f && Mathf.Abs(B.local.x) >= 0.03f;
                     bool similarSpan = Mathf.Abs(A.spanY - B.spanY) <= 0.35f * Mathf.Max(A.spanY, B.spanY, 0.01f);
                     if (mirrorX && distinctSides && distinctRoots && similarSpan)
                     {
@@ -555,11 +567,22 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             }
 
             var spineLegBones = new HashSet<Transform>(); // 다리로 소비된 뼈 — 척추 매핑에서 제외
-            if (pairs.Count == 0 && scored.Count >= 2)
+            // 다리 미러 페어가 없더라도, quadruped의 독립 날개 페어는 이후 처리한다.
+            // 검증되지 않은 limb를 억지 매핑하지 않으면서, wing mapping/head-spine path도 살린다.
+            if (pairs.Count == 0 && hint == BoneFamilyHint.Quadruped)
             {
-                // 페어링 실패 폴백은 금지한다. 좌우 X가 0에 겹친 중앙/몸통 체인을
-                // 두 다리로 강제하면 악어 로그처럼 같은 위치 본이 좌/우 다리가 되어 뒤틀림을 유발한다.
-                // 검증된 미러 페어가 없으면 다리 역할을 비워 두고, 추측 매핑보다 미구동을 택한다.
+                MapWingChains(chains, legChains, spineLegBones, map, treeRoot, rigHeight, minY, maxY);
+                var wingRemaining = set.Where(b => !spineLegBones.Contains(b)).ToList();
+                var wingSpine = FindLongestChain(treeRoot, wingRemaining);
+                if (wingSpine.Count >= 2)
+                {
+                    map[BoneRole.Spine0] = wingSpine[0];
+                    if (wingSpine.Count > 1) map[BoneRole.Spine1] = wingSpine[1];
+                    if (wingSpine.Count > 2) map[BoneRole.Spine2] = wingSpine[2];
+                    float centerY = (minY + maxY) * 0.5f;
+                    if (wingSpine[wingSpine.Count - 1].position.y >= centerY)
+                        map[BoneRole.Head] = wingSpine[wingSpine.Count - 1];
+                }
                 return;
             }
 
@@ -682,7 +705,12 @@ namespace ProjectName.Systems.Animation.Procedural.Bones
             if (map[BoneRole.L_Shoulder] != null || map[BoneRole.R_Shoulder] != null)
                 return; // 이름 사전 매핑 등으로 이미 확보 — 토폴로지 추정으로 덮어쓰지 않는다
 
-            // 날개 후보 체인 — 다리 판정 체인과 소비 뼈(다리)가 섞인 체인 제외
+            // 날개 후보는 기존 limb-role 추정 및 avatar name roles와 분리한다. 일부 valid
+            // forelimbs는 down-chain 기준에서 탈락할 수 있어, 이곳에서 full limbChains를 제외하면
+            // griffin wing topology가 제거되거나, Head/Spine를 wing bones가 오염시킬 수 있다.
+            // 체인 cap=4 때문에 날개 뿌리와 말단은 spine-side branch node에서 시작하는 별도 chains다.
+            // 다리로 실제 소비된 본과 교차하는 후보만 제외한다.
+            // 날개 후보 체인 — 소비 뼈(다리)와 섞인 체인 제외
             var leftovers = new List<List<Transform>>();
             foreach (var c in chains)
             {

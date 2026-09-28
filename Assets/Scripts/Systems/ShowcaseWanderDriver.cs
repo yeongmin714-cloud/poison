@@ -8,6 +8,8 @@
 //  - 2족: ProceduralAnimationController.SetVelocityProvider(this) + ApplyMonsterProfile(id)
 //         — IVelocityProvider로 속도 공급, 컨트롤러가 보행 위상 구동(provider 연결 시 자체 이동/중력 스킵)
 //  - 특수형: SpecialCreatureAnimator는 자율 애니(미피드 시에도 자체 모션 동작) — 별도 피드 없음
+// [Phase B 2026-09-23] 결정론적 관측 사이클 추가 — ConfigureInspectionCycle(idle, move, offset) 호출 시
+//  랜덤 idle/랜덤 대기 대신 고정 구간 [정지→이동]을 무한 반복한다(옵트인 — 미호출 시 기존 랜덤 배회 불변).
 #pragma warning disable 618 // ProceduralAnimationController [Obsolete] 참조 경고 억제(AnimalAI.cs 동일)
 using UnityEngine;
 using ProjectName.Systems.Animation.Procedural;
@@ -68,6 +70,16 @@ namespace ProjectName.Systems
         // 배회시키기만 하면 걷기/대기 클립이 자동 전환된다. 4족/2족 절차 컨트롤러 탐색/피드 생략.
         private bool _clipDriven;
 
+        // [Phase B 2026-09-23] 결정론적 관측 사이클 — Test_11 몬스터 전용 옵트인.
+        // ConfigureInspectionCycle 미호출 시 _cycleMode=false 유지 = 기존 랜덤 배회 경로 100% 불변.
+        private bool _cycleMode;
+        private bool _cycleStarted;              // Start 실행 여부 — Configure 호출 타이밍(Start 전/후) 분기용
+        private float _cycleIdleSeconds = 2.5f;  // 정지 구간(고정값 — Random 개입 없음)
+        private float _cycleMoveSeconds = 3.0f;  // 이동 구간(고정값 — Random 개입 없음)
+        private float _cyclePhaseOffsetSeconds;  // 첫 정지창에 가산 — 마리별 출발 스태거용
+        private float _cycleMoveDeadline;        // 이동 구간 절대 데드라인(Time.time) — 미도착 시에도 주기 보장
+        private const float InspectionCycleLeashRadius = 1.2f; // 사이클용 짧은 leash — 이웃 간격(3.4m) 내 왕복
+
         /// <summary>클립 구동 모드 설정(병사/NPC) — 절차 컨트롤러 피드 로직을 생략한다.</summary>
         public void SetClipDriven(bool clipDriven)
         {
@@ -78,6 +90,84 @@ namespace ProjectName.Systems
                 _bipedConfigured = true;
                 _warnedNoFeedController = true; // 경고 억제(클립 경로가 정식 피드 담당)
             }
+        }
+
+        // ──────────────────────────────────────────────
+        // [Phase B 2026-09-23] 결정론적 관측 사이클 (Test_11 몬스터 전용 옵트인)
+        // 정지(_cycleIdleSeconds) → 이동(_cycleMoveSeconds) 무한 반복. 구간 길이/정지시간에는
+        // Random이 개입하지 않고, 목적지 좌표만 기존 leash 추첨(랜덤)을 재사용한다.
+        // 전환 로그는 phase 변경 시점에만 1행씩 출력한다.
+        // ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 결정론적 정지→이동→정지 사이클 활성화 (Test_11 관측 전용 — 미호출 시 기존 랜덤 배회 불변).
+        /// 활성화 후 Update는 랜덤 idle(1.2~2.8s)/랜덤 목적지 대신 고정 구간을 주기 반복한다.
+        /// phaseOffsetSeconds는 첫 정지창에 가산되어 마리별 이동 시작을 벌린다(스태그 — i*0.55s 등).
+        /// Setup(Awake)에서 Start 이전 호출이 정상 경로(설정 저장 후 Start에서 개시).
+        /// </summary>
+        public void ConfigureInspectionCycle(float idleSeconds, float moveSeconds, float phaseOffsetSeconds)
+        {
+            _cycleIdleSeconds = Mathf.Max(0.1f, idleSeconds);
+            _cycleMoveSeconds = Mathf.Max(0.1f, moveSeconds);
+            _cyclePhaseOffsetSeconds = Mathf.Max(0f, phaseOffsetSeconds);
+            _cycleMode = true;
+
+            // Start 이후 호출(예외 경로)도 지원 — 루트 원점/지면값 재확정 후 즉시 사이클 개시.
+            if (_cycleStarted)
+                BeginInspectionCycle();
+        }
+
+        /// <summary>사이클 개시 — 루트 원점/지면값 재확정 후 첫 정지창(idle+스태거) 진입.</summary>
+        private void BeginInspectionCycle()
+        {
+            // 루트 원점 재확정 — 현재 위치 기준 leash 재계산, y는 확정 지면값 보존(접지 규약).
+            // Configure 호출 타이밍(Start 전/후 무관) 이후 항상 최신 접지 상태를 기준으로 삼는다.
+            _spawnPos = transform.position;
+            _spawnPos.y = _groundY;
+
+            // 첫 정지창 = idle + 마리별 스태거 — 전 마리 wanderFeed=0 창 확보 후 순차 출발.
+            // (Start의 랜덤 초기 대기 Random.Range(0.3,1.5)를 이 고정 구간으로 대체)
+            StopForIdle(_cycleIdleSeconds + _cyclePhaseOffsetSeconds);
+        }
+
+        /// <summary>사이클 상태 진행 — 정지 중 결정론적 카운트다운, 이동 중 1프레임 진행+데드라인 판정.</summary>
+        private void UpdateInspectionCycle()
+        {
+            if (!_moving)
+            {
+                // 정지 스테이지 — 고정 구간 카운트다운(랜덤 개입 없음)
+                _idleTimer -= Time.deltaTime;
+                if (_idleTimer <= 0f)
+                    BeginCycleMove();
+                return;
+            }
+
+            // 이동 스테이지 — 목적지는 전환 시 1회 선택, 매 프레임은 기존 이동 블록 재사용.
+            // 데드라인: 미도착이어도 구간 종료 → 다음 주기 보장(도착/데드라인 동시 충족 시 1회만 전환).
+            if (RunMoveStep() || Time.time >= _cycleMoveDeadline)
+                EndCycleMove();
+        }
+
+        /// <summary>정지→이동 전환 — 루트 원점 재확정 + 짧은 leash 목적지 1회 선택 + 데드라인 설정.</summary>
+        private void BeginCycleMove()
+        {
+            // 정지 자리 기준 원점 재확정(누적 드리프트 방지) — y는 지면값 보존
+            _spawnPos = transform.position;
+            _spawnPos.y = _groundY;
+
+            // 짧은 leash — 사이클용 반경 clamp(이웃 간격 3.4m 내 왕복). 좌표 추첨은 기존 헬퍼 재사용.
+            float leash = Mathf.Min(_leashRadius, InspectionCycleLeashRadius);
+            PickRandomWaypoint(leash);
+
+            _cycleMoveDeadline = Time.time + _cycleMoveSeconds;
+            Debug.Log($"[ShowcaseWander] [Cycle] 정지→이동: {_monsterId} (이동 {_cycleMoveSeconds:0.00}s, leash {leash:0.0}m)");
+        }
+
+        /// <summary>이동→정지 전환 — 기존 정지 경로(피드 0 + 잔여 속도 정리) + 고정 대기시간.</summary>
+        private void EndCycleMove()
+        {
+            StopForIdle(_cycleIdleSeconds);
+            Debug.Log($"[ShowcaseWander] [Cycle] 이동→정지: {_monsterId} (정지 {_cycleIdleSeconds:0.00}s)");
         }
 
         // ===================== IVelocityProvider 구현 [AnimalAI와 동일 계약] =====================
@@ -113,6 +203,12 @@ namespace ProjectName.Systems
             // ModelAnimatorAssigner.Awake가 이미 컨트롤러를 붙여놨다면 즉시 연결 시도
             UpdateQuadrupedLink();
             UpdateBipedLink();
+
+            // [Phase B] 결정론적 관측 사이클 — ConfigureInspectionCycle이 Start 전에 호출된 정상 경로.
+            // 접지 확정된 지면값으로 루트 원점 재확정 후 첫 정지창(idle+스태거)을 연다(랜덤 초기 대기 대체).
+            _cycleStarted = true;
+            if (_cycleMode)
+                BeginInspectionCycle();
         }
 
         private void Update()
@@ -122,27 +218,21 @@ namespace ProjectName.Systems
             UpdateBipedLink();
             WarnIfNoFeedController();
 
+            // [Phase B] 결정론적 관측 사이클 — 옵트인 시 랜덤 배회 대신 고정 구간 [정지→이동] 진행
+            if (_cycleMode)
+            {
+                UpdateInspectionCycle();
+                return;
+            }
+
             if (_moving)
             {
-                Vector3 toTarget = _target - transform.position;
-                toTarget.y = 0f; // 수평 거리만 판정
-                float dist = toTarget.magnitude;
-
-                if (dist <= _arriveDistance)
+                // 이동 1프레임 진행 — 도착 시 기존과 동일하게 정지(idle) 전환
+                if (RunMoveStep())
                 {
                     StopForIdle();
                     return;
                 }
-
-                Vector3 dir = dist > 0.0001f ? toTarget / dist : transform.forward;
-
-                // 회전 — 이동 방향(수평)으로 부드럽게 정렬(AnimalAI LookRotation 역할)
-                transform.rotation = Quaternion.RotateTowards(
-                    transform.rotation, Quaternion.LookRotation(dir), _turnSpeed * Time.deltaTime);
-
-                MoveAlong(dir, _moveSpeed);
-                PublishVelocity(dir * _moveSpeed, _moveSpeed);
-                FeedAnimationSpeed(_moveSpeed);
             }
             else
             {
@@ -152,19 +242,50 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>
+        /// 이동 1프레임 진행 — 회전 정렬 + 이동 + 속도 피드(기존 Update 이동 블록을 그대로 추출).
+        /// 도착(수평 dist ≤ _arriveDistance) 시 true 반환 — 정지 전환 판정은 호출부가 담당한다.
+        /// </summary>
+        private bool RunMoveStep()
+        {
+            Vector3 toTarget = _target - transform.position;
+            toTarget.y = 0f; // 수평 거리만 판정
+            float dist = toTarget.magnitude;
+
+            if (dist <= _arriveDistance)
+                return true;
+
+            Vector3 dir = dist > 0.0001f ? toTarget / dist : transform.forward;
+
+            // 회전 — 이동 방향(수평)으로 부드럽게 정렬(AnimalAI LookRotation 역할)
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation, Quaternion.LookRotation(dir), _turnSpeed * Time.deltaTime);
+
+            MoveAlong(dir, _moveSpeed);
+            PublishVelocity(dir * _moveSpeed, _moveSpeed);
+            FeedAnimationSpeed(_moveSpeed);
+            return false;
+        }
+
         // ──────────────────────────────────────────────
         // 배회 코어
         // ──────────────────────────────────────────────
 
         /// <summary>leash 반경 내 랜덤 목적지 선택 — 너무 가까운 지점은 재추첨해 기동감 확보.</summary>
-        private void PickRandomWaypoint()
+        private void PickRandomWaypoint() => PickRandomWaypoint(_leashRadius);
+
+        /// <summary>
+        /// leash 반경 지정형 목적지 선택 — [Phase B] 결정론적 사이클이 짧은 leash(1.2m clamp)로 재사용.
+        /// 지면 y 고정/최소 홉 거리 재추첨 등 기존 규약은 동일하다.
+        /// </summary>
+        private void PickRandomWaypoint(float leashRadius)
         {
             Vector3 chosen = Vector3.zero;
             bool found = false;
 
             for (int attempt = 0; attempt < 4; attempt++)
             {
-                Vector2 circle = Random.insideUnitCircle * _leashRadius;
+                Vector2 circle = Random.insideUnitCircle * leashRadius;
                 Vector3 candidate = _spawnPos + new Vector3(circle.x, 0f, circle.y);
                 candidate.y = _groundY; // 지면 높이 고정 — 배회 중 상하 부유 방지
                 if ((candidate - transform.position).sqrMagnitude >= _minHopDistance * _minHopDistance)
@@ -178,7 +299,7 @@ namespace ProjectName.Systems
             // 재추첨 실패 시에도 이동(무한 정지 방지)
             if (!found)
             {
-                Vector2 fallback = Random.insideUnitCircle * _leashRadius;
+                Vector2 fallback = Random.insideUnitCircle * leashRadius;
                 chosen = _spawnPos + new Vector3(fallback.x, 0f, fallback.y);
                 chosen.y = _groundY;
             }
@@ -187,11 +308,15 @@ namespace ProjectName.Systems
             _moving = true;
         }
 
-        /// <summary>도착 — 정지(idle) 진입, 잔여 수평 속도 정리 후 대기시간 설정.</summary>
-        private void StopForIdle()
+        /// <summary>
+        /// 도착 — 정지(idle) 진입, 잔여 수평 속도 정리 후 대기시간 설정.
+        /// [Phase B] idleDuration ≥ 0이면 고정값(결정론적 사이클 — Random 개입 없음),
+        /// 미지정(-1)이면 기존 랜덤 대기(1.2~2.8s)를 유지한다.
+        /// </summary>
+        private void StopForIdle(float idleDuration = -1f)
         {
             _moving = false;
-            _idleTimer = Random.Range(_idleMin, _idleMax);
+            _idleTimer = idleDuration >= 0f ? idleDuration : Random.Range(_idleMin, _idleMax);
 
             // 물리 이동 중이던 마리의 잔여 슬라이드 정리 — y는 유지(중력/지면 접촉 보존)
             if (_rigidbody != null && !_rigidbody.isKinematic)

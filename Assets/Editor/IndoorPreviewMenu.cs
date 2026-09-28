@@ -8,9 +8,9 @@ using ProjectName.UI;
 namespace ProjectName.EditorTools
 {
     /// <summary>
-    /// 내부 씬(IndoorScene) 단독 미리보기 에디터 메뉴.
-    /// 메인 씬/런타임 전환(IndoorSceneTransition) 없이 IndoorScene만 열고
-    /// 각 내부 빌더를 직접 호출해 생성 결과를 즉시 검증한다. (에디터 전용)
+    /// 실내 씬 프리뷰 에디터 메뉴.
+    /// 플레이어 성은 격리된 플레이 테스트 씬으로 열고, 나머지 프리뷰는
+    /// 공용 IndoorScene에 런타임 전환 없이 내부 생성 결과를 표시한다.
     /// 빌더 시그니처는 IndoorSceneTransition.cs / TavernInteriorBuilder.cs의
     /// 실제 public 진입 메서드와 일치시킴 (추측 호출 없음).
     /// </summary>
@@ -23,13 +23,13 @@ namespace ProjectName.EditorTools
         [MenuItem("Tools/Indoor/미리보기/플레이어 성 (Castle-Player)", priority = 1)]
         public static void PreviewPlayerCastle()
         {
-            RunPreview("플레이어 성", () =>
-            {
-                var interior = PlayerCastleInteriorBuilder.BuildPlayerCastleInterior("Empire", 0);
-                if (interior != null)
-                    TerritoryBuilder.SpawnInteriorFixtures(interior.transform.position, "Empire"); // 런타임과 동일한 후처리
-                return interior;
-            });
+            PlayerCastleInteriorPlaytestSceneBuilder.CreateOrOpenTestScene();
+        }
+
+        [MenuItem("Tools/Indoor/미리보기/플레이어 성 (Castle-Player)", true)]
+        private static bool ValidatePreviewPlayerCastle()
+        {
+            return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
 
         [MenuItem("Tools/Indoor/미리보기/영주 성-Empire", priority = 11)]

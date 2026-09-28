@@ -1,9 +1,10 @@
-// U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
+﻿// U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
 #pragma warning disable 414
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Systems.Animation.Procedural.Bones;
 using ProjectName.Systems.Animation.Procedural.IK;
+using ProjectName.Systems;
 using ProjectName.Systems.Animation.Procedural.Locomotion.Quadruped;
 
 namespace ProjectName.Systems
@@ -387,6 +388,10 @@ namespace ProjectName.Systems
                 TransitionGait(gait.Value);
             else
                 SetGaitPhases(_currentGait); // 자동 선택 복귀 시 위상 재정렬
+
+            // CurrentGait가 이미 Gallop 등 목표 gait인 경우에도 override 변경을 렌더에 즉시 반영한다.
+            if (_procAnim != null && gait.HasValue)
+                _procAnim.NotifyGaitSelectionChanged(gait.Value);
         }
 
         /// <summary>
@@ -399,6 +404,7 @@ namespace ProjectName.Systems
         }
 
         public Gait CurrentGait => _currentGait;
+        public Gait? GaitOverride => _gaitOverride;
         public float CurrentSpeed => _currentSpeed;
     }
 }

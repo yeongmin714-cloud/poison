@@ -16,11 +16,13 @@
 //  - NPC 생성: TerritoryNPCSpawner.SpawnNPC/TryAttachSoldierHumanoidBody(93~250행) 패턴 — GLB + 병사 FBX 골격 교체
 //  - 몬스터 이동: AnimalAI 대신 ShowcaseWanderDriver 부착 — Player 없이 leash 배회+애니 피드(2026-09-20)
 //  - 접지: SurfaceY(수식) 대신 요청대로 Physics.Raycast로 지면 y 계산
-#pragma warning disable 0414
+#pragma warning disable 0414, 618 // 0414: 미사용 필드 / 618: ProceduralAnimationController 계열 [Obsolete] 참조(ShowcaseWanderDriver 동일)
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Systems.Animation.Procedural;
 using ProjectName.Systems.Animation.Procedural.Bones;
 
 namespace ProjectName.Systems
@@ -37,6 +39,25 @@ namespace ProjectName.Systems
     {
         [Header("Verbose")]
         [SerializeField] private bool _verbose = true;
+
+        [Header("Temporary Monster Close-up (Test_11 only)")]
+        [SerializeField, Range(1f, 3f)] private float _inspectScale = 1.7f;
+        [SerializeField] private bool _inspectCloseupOnStart = true;
+        private readonly List<Transform> _showcaseMonsters = new List<Transform>();
+        private readonly List<Vector3> _monsterOriginalScales = new List<Vector3>();
+        private bool _inspectCloseupActive;
+        private ShowcaseCameraZoom _showcaseCameraZoom;
+
+        [Header("Runtime Diagnostics (Test_11 only, 2026-09-23)")]
+        [Tooltip("최종 본 매핑/컨트롤러 상태 요약을 기동 2프레임 후 1회 출력 + 1초 후 본 델타 검증.")]
+        [SerializeField] private bool _boneDiagnostics = true;
+        private readonly List<DiagMonster> _diagMonsters = new List<DiagMonster>();
+
+        // [Phase B 2026-09-23] 몬스터 관측 사이클 구간 — 정지→이동 고정 주기(결정론, Test_11 전용).
+        // 로그 판정 기준: 기동 직후 wanderFeed=0(정지창) → 이동창에서 >0 → 정지 전환 후 0 복귀.
+        private const float CycleIdleSeconds = 2.5f;  // 정지 구간(고정)
+        private const float CycleMoveSeconds = 3.0f;  // 이동 구간(고정)
+        private const float CycleStaggerStep = 0.55f; // 마리별 출발 스태거 — i * 0.55s (첫 정지창에 가산)
 
         [Header("Layout (X spacing / Z rows)")]
         [SerializeField] private float _monsterSpacing = 3.4f; // 6종 대형 포함 — 기존 2.2에서 확대
@@ -88,7 +109,55 @@ namespace ProjectName.Systems
             // 관찰 씬 동결 방어 — 타 시스템(ESC 메뉴 등)의 Time.timeScale=0 잔존을 초기화.
             Time.timeScale = 1f;
 
+            _showcaseCameraZoom = Camera.main != null ? Camera.main.GetComponent<ShowcaseCameraZoom>() : null;
+            // [2026-09-23 레이스 수리] 클로즈업 적용을 Start로 지연 — ShowcaseCameraZoom.Start가
+            // _targetDistance를 재유도하며 Awake 시점의 검줌 요청을 덮어썼다(QA 확인 라이프사이클 순서).
+            // 카메라 줌 컴포넌트는 초기화 전 요청을 보관했다가 자체 Start에서 적용하므로
+            // 여기서는 SetMonsterCloseup을 호출하지 않는다(중복 명시 SetInspectionZoom 제거).
             Debug.Log("[TestAnimShowcase] ✅ 몬스터 6종(외형군 대표) / 병사 3모델 / NPC 1명 쇼케이스 설정 완료!");
+            Debug.Log($"[TestAnimShowcase] 몬스터 확대관찰={(_inspectCloseupOnStart ? "ON(Start 적용)" : "OFF")} — F8: 몬스터 배율 전환, PageUp/PageDown: 카메라 줌, Q/E·←/→: 카메라 좌우 회전");
+
+            // [2026-09-23] 런타임 진단 — 최종 매핑/컨트롤러 안정화(2프레임) 후 1회 요약 + 1초 후 본 델타 검증.
+            // 프레임마다 반복하지 않는다(노이즈 최소화, Test_11 전용).
+            if (_boneDiagnostics)
+                StartCoroutine(BoneDiagnosticsRoutine());
+        }
+
+        private void Start()
+        {
+            // [레이스 수리] Awake의 클로즈업 요청을 Start에서 1회 적용 — 카메라 줌 초기화 이후 안전.
+            // ShowcaseCameraZoom이 아직 Start 전이면(두 Start 순서는 비결정) 줌 컴포넌트가
+            // 요청을 보관했다가 자체 Start 마지막에 기준 거리 확정 후 적용한다.
+            if (_inspectCloseupOnStart && !_inspectCloseupActive)
+                SetMonsterCloseup(true);
+        }
+
+        private void Update()
+        {
+            if (Keyboard.current != null && Keyboard.current.f8Key.wasPressedThisFrame)
+            {
+                bool enabled = !_inspectCloseupActive;
+                SetMonsterCloseup(enabled); // 내부에서 _showcaseCameraZoom.SetInspectionZoom 1회 호출(중복 제거)
+            }
+        }
+
+        private void SetMonsterCloseup(bool enabled)
+        {
+            _inspectCloseupActive = enabled;
+            for (int i = 0; i < _showcaseMonsters.Count; i++)
+            {
+                Transform monster = _showcaseMonsters[i];
+                if (monster == null) continue;
+                Vector3 baseScale = _monsterOriginalScales[i];
+                monster.localScale = enabled ? baseScale * Mathf.Max(1f, _inspectScale) : baseScale;
+            }
+
+            if (_showcaseCameraZoom != null)
+                _showcaseCameraZoom.SetInspectionZoom(enabled);
+
+            string modeLabel = _inspectCloseupActive ? "ON" : "OFF";
+            string sizeLabel = _inspectCloseupActive ? $"scale×{_inspectScale:F1}" : "원래 크기 복원";
+            Debug.Log($"[TestAnimShowcase] 🔎 몬스터 확대관찰 {modeLabel} — {sizeLabel} (F8)");
         }
 
         private void Log(string msg)
@@ -271,6 +340,26 @@ namespace ProjectName.Systems
                 GameObject go = CreateShowcaseMonster(def, pos);
                 if (go == null) continue;
 
+                // [Phase B 2026-09-23] 몬스터 전용 결정론적 관측 사이클 — 정지(2.5s)→이동(3.0s) 무한 반복.
+                // 마리별 스태거(i * 0.55s)를 첫 정지창에 가산해 wanderFeed=0 창 확보 후 순차 출발.
+                // 병사/NPC의 ShowcaseWanderDriver는 이 API를 호출하지 않아 기존 랜덤 배회 그대로 유지.
+                var monsterWander = go.GetComponent<ShowcaseWanderDriver>();
+                if (monsterWander != null)
+                    monsterWander.ConfigureInspectionCycle(CycleIdleSeconds, CycleMoveSeconds, i * CycleStaggerStep);
+
+                _showcaseMonsters.Add(go.transform);
+                _monsterOriginalScales.Add(go.transform.localScale);
+                // [2026-09-23 진단] CreateShowcaseMonster와 동일 판정식으로 계열 라벨 기록(진단 요약용).
+                _diagMonsters.Add(new DiagMonster
+                {
+                    go = go,
+                    id = def.id,
+                    displayName = def.displayName,
+                    family = def.isQuadruped ? "Quadruped"
+                           : IsBiped(def.id) ? "Biped"
+                           : "Special:" + GetSpecialCreatureType(def.id)
+                });
+
                 if (_showLabels)
                     AttachLabel(go, $"몬스터: {def.displayName} / {def.id}", Color.white);
                 Log($"[TestAnimShowcase] 🐾 몬스터 {i + 1}/{count}: {def.displayName} ({def.id}) at {pos}");
@@ -367,6 +456,8 @@ namespace ProjectName.Systems
         /// <summary>
         /// [P-ANIM6] ShowcaseMonitor 관측 본 추출 — ProceduralBoneMap 매핑 결과에서 실제 구동 본
         /// (다리 체인 루트 L_Hip/R_Hip/L_HindHip/R_HindHip + 척추 Spine0)만 골라 Transform 배열로.
+        /// [P-ANIM7] 날개(어깨) 본 L_Shoulder/R_Shoulder 추가 — Phase4 라운드의 griffin/manticore
+        /// 날개 펄럭 판별용(매핑 시에만 포함되고, 미매핑이면 자동 제외된다).
         /// 매핑 0개면 null — 모니터가 기존 SMR 추정 경로로 폴백한다.
         /// </summary>
         private static Transform[] ExtractWatchBones(GameObject go)
@@ -376,7 +467,8 @@ namespace ProjectName.Systems
 
             var roles = new[]
             {
-                BoneRole.L_Hip, BoneRole.R_Hip, BoneRole.L_HindHip, BoneRole.R_HindHip, BoneRole.Spine0
+                BoneRole.L_Hip, BoneRole.R_Hip, BoneRole.L_HindHip, BoneRole.R_HindHip, BoneRole.Spine0,
+                BoneRole.L_Shoulder, BoneRole.R_Shoulder // [P-ANIM7] 날개(어깨) 본 — 플랩 구동 관측
             };
 
             List<Transform> bones = null;
@@ -830,6 +922,168 @@ namespace ProjectName.Systems
 
             LogStatic($"[TestAnimShowcase] ✅ NPC Humanoid FBX 부착: {npcName} (SoldierShield_AC+드라이버, 재질={glbAliasKey})");
             return true;
+        }
+
+        // ================================================================
+        // 4) 런타임 진단 로그 (Test_11 전용, 2026-09-23)
+        //    Force*/재초기화·ShowcaseWanderDriver.Start 지연 연결이 모두 안정된 뒤
+        //    최종 ProceduralBoneMap/컨트롤러 상태를 1회 요약 + 1초 후 본 델타 검증.
+        // ================================================================
+
+        /// <summary>진단 대상 몬스터 기록 — SpawnMonsterShowcase에서 채운다.</summary>
+        private sealed class DiagMonster
+        {
+            public GameObject go;
+            public string id;
+            public string displayName;
+            public string family;
+        }
+
+        /// <summary>진단 대상 본 롤 — 좌/우 앞다리·뒷다리 체인 + 어깨(날개) + 척추/머리.</summary>
+        private static readonly BoneRole[] DiagRoles =
+        {
+            BoneRole.L_Hip, BoneRole.L_Knee, BoneRole.L_Ankle, BoneRole.L_Foot,
+            BoneRole.R_Hip, BoneRole.R_Knee, BoneRole.R_Ankle, BoneRole.R_Foot,
+            BoneRole.L_HindHip, BoneRole.L_HindKnee, BoneRole.L_HindAnkle, BoneRole.L_HindFoot,
+            BoneRole.R_HindHip, BoneRole.R_HindKnee, BoneRole.R_HindAnkle, BoneRole.R_HindFoot,
+            BoneRole.L_Shoulder, BoneRole.R_Shoulder,
+            BoneRole.Spine0, BoneRole.Head,
+        };
+
+        /// <summary>기동 2프레임 대기 → 몬스터별 최종 매핑/드라이버 요약 1회 → 1초 후 본 델타 1회 검증.</summary>
+        private System.Collections.IEnumerator BoneDiagnosticsRoutine()
+        {
+            yield return null; // Force 계열 재부착(ModelAnimatorAssigner.SetupAnimationSystem) 완료 프레임
+            yield return null; // ShowcaseWanderDriver.Start → 컨트롤러 지연 연결/보행 프로필 프레임
+
+            DiagMonster[] monsters = _diagMonsters.ToArray();
+            List<Transform>[] bonesBefore = new List<Transform>[monsters.Length];
+            Quaternion[][] rotBefore = new Quaternion[monsters.Length][];
+            Vector3[][] lposBefore = new Vector3[monsters.Length][];
+
+            for (int i = 0; i < monsters.Length; i++)
+            {
+                if (monsters[i].go == null) continue;
+                LogMonsterDiagnostics(i, monsters[i]);
+                bonesBefore[i] = CollectDiagBones(monsters[i].go, out rotBefore[i], out lposBefore[i]);
+            }
+
+            yield return new WaitForSeconds(1f);
+
+            // 본델타 검증 — 대표 본이 실제로 구동되는지 1회 비교(경계: 1초 내 idle이면 무변화 가능)
+            // [2026-09-23] world position → localRotation(+localPosition) 델타로 변경:
+            // ShowcaseWanderDriver가 루트를 이동시키면 자식 본 world position이 함께 이동해
+            // 무애니메이션(false positive)이 발생하므로, 매핑 롤 기준 localRotation 델타를 우선 판정.
+            // 일부 gait(보행)는 본을 주로 회전시키므로 localRotation이 더 민감하고 정확함.
+            for (int i = 0; i < monsters.Length; i++)
+            {
+                if (monsters[i].go == null || bonesBefore[i] == null) continue;
+                List<Transform> bones = bonesBefore[i];
+                int moved = 0; float maxDelta = 0f; string maxBone = "-";
+                for (int b = 0; b < bones.Count; b++)
+                {
+                    if (bones[b] == null) continue;
+                    float dRot = Quaternion.Angle(rotBefore[i][b], bones[b].localRotation);
+                    float dPos = Vector3.Distance(lposBefore[i][b], bones[b].localPosition);
+                    float d = Mathf.Max(dRot, dPos);
+                    if (d > 0.001f) moved++;
+                    if (d > maxDelta) { maxDelta = d; maxBone = bones[b].name; }
+                }
+                if (moved > 0)
+                    Debug.Log($"[ShowcaseDiag] Δ1s {monsters[i].id}: 매핑 롤 애니메이션 변화 확인 — {moved}/{bones.Count} 본 변화(회전 기준), maxRotΔ={maxDelta:F1}° ({maxBone})");
+                else
+                    Debug.LogWarning($"[ShowcaseDiag] Δ1s {monsters[i].id}: ⚠️ 매핑 롤 애니메이션 무변화({bones.Count}개, localRotation 기준) — idle 상태이거나 드라이버/매핑 확인 필요");
+            }
+        }
+
+        /// <summary>몬스터 1마리 최종 상태 요약 — 계열/isHuman/드라이버/보행 + 롤→본 매핑과 계층·위치·회전.</summary>
+        private static void LogMonsterDiagnostics(int index, DiagMonster m)
+        {
+            GameObject go = m.go;
+            var boneMap = go.GetComponent<ProceduralBoneMap>();
+            var animator = go.GetComponentInChildren<Animator>();
+            var wander = go.GetComponent<ShowcaseWanderDriver>();
+            var quad = go.GetComponent<QuadrupedProceduralAnimation>();
+            var biped = go.GetComponent<ProceduralAnimationController>();
+            var special = go.GetComponent<SpecialCreatureAnimator>();
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"[ShowcaseDiag] #{index + 1} {m.displayName} ({m.id}) family={m.family}" +
+                          $" isHuman={(animator != null ? animator.isHuman.ToString() : "Animator없음")}" +
+                          $" map={(boneMap != null ? boneMap.AllBones.Count : 0)}bones");
+
+            // 활성 구동 드라이버/컨트롤러 + 보행 상태(속도/접지/gait)
+            if (quad != null)
+            {
+                var loco = quad.LocomotionModule;
+                string gait = loco != null ? loco.CurrentGait.ToString() : "-";
+                sb.AppendLine($"  driver=QuadrupedProceduralAnimation speed={quad.CurrentSpeed:F2}m/s grounded={quad.IsGrounded} gait={gait}" +
+                              $" wanderFeed={(wander != null ? wander.CurrentSpeed : 0f):F2}m/s");
+            }
+            if (biped != null)
+            {
+                string state = biped.StateMachine != null ? biped.StateMachine.CurrentState.ToString() : "-";
+                sb.AppendLine($"  driver=ProceduralAnimationController speed={biped.CurrentSpeed:F2}m/s grounded={biped.IsGrounded} state={state}" +
+                              $" wanderFeed={(wander != null ? wander.CurrentSpeed : 0f):F2}m/s");
+            }
+            if (special != null)
+                sb.AppendLine($"  driver=SpecialCreatureAnimator(self) creatureType={special.creatureType}");
+            if (quad == null && biped == null && special == null)
+                sb.AppendLine("  driver=없음(프리미티브 폴백 또는 미부착)");
+
+            // 최종 롤→본 매핑 + 계층(부모)/월드·로컬 위치/회전 — 실구동 본 기준
+            List<string> unmapped = null;
+            if (boneMap == null)
+            {
+                sb.AppendLine("  ProceduralBoneMap 없음");
+            }
+            else
+            {
+                for (int r = 0; r < DiagRoles.Length; r++)
+                {
+                    BoneRole role = DiagRoles[r];
+                    Transform bone = boneMap.Get(role);
+                    if (bone == null)
+                    {
+                        if (unmapped == null) unmapped = new List<string>();
+                        unmapped.Add(role.ToString());
+                        continue;
+                    }
+                    sb.AppendLine($"  {role} → {bone.name} (parent={(bone.parent != null ? bone.parent.name : "null")})" +
+                                  $" W{bone.position:F1} LP{bone.localPosition:F2}" +
+                                  $" WR{bone.rotation.eulerAngles:F0}° LR{bone.localRotation.eulerAngles:F0}°");
+                }
+                if (unmapped != null)
+                    sb.AppendLine($"  unmapped: {string.Join(",", unmapped)}");
+            }
+
+            Debug.Log(sb.ToString());
+        }
+
+        /// <summary>진단 대상 본 수집 — DiagRoles 순서 고정(델타 비교 인덱스 정합) + localRotation/localPosition 시작 스냅샷.</summary>
+        private static List<Transform> CollectDiagBones(GameObject go, out Quaternion[] rotations, out Vector3[] localPositions)
+        {
+            rotations = null;
+            localPositions = null;
+            var boneMap = go.GetComponent<ProceduralBoneMap>();
+            if (boneMap == null) return null;
+
+            List<Transform> bones = new List<Transform>();
+            for (int r = 0; r < DiagRoles.Length; r++)
+            {
+                Transform bone = boneMap.Get(DiagRoles[r]);
+                if (bone != null) bones.Add(bone);
+            }
+            if (bones.Count == 0) return null;
+
+            rotations = new Quaternion[bones.Count];
+            localPositions = new Vector3[bones.Count];
+            for (int i = 0; i < bones.Count; i++)
+            {
+                rotations[i] = bones[i].localRotation;
+                localPositions[i] = bones[i].localPosition;
+            }
+            return bones;
         }
 
         private static void LogStatic(string msg)

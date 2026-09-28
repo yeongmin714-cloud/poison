@@ -65,7 +65,7 @@ namespace ProjectName.Systems
             _nextCacheRefresh = now + _cacheRefreshSeconds;
             _unitCache.Clear();
 
-            var found = FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            var found = FindObjectsByType<GuardPlaceholder>();
             foreach (var unit in found)
             {
                 if (unit != null && unit.gameObject.activeInHierarchy)

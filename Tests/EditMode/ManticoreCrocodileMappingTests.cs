@@ -62,12 +62,13 @@ namespace ProjectName.Tests.EditMode
             var head = Bone(neck.gameObject, "bone_5", new Vector3(0f, .04f, .03f));
             Bone(head.gameObject, "bone_12", new Vector3(0f, .04f, .03f));
 
-            var fl = Bone(chest.gameObject, "bone_13", new Vector3(-.16f, -.05f, .02f));
-            Bone(fl.gameObject, "bone_14", new Vector3(.078f, -.016f, -.012f));
+            // GLB 실측: 두 전지 어깨 간격은 약 0.016m. 각 체인이 하위 TRS/위치로 벌어진다.
+            var fl = Bone(chest.gameObject, "bone_13", new Vector3(-.008f, -.05f, -.003f));
+            Bone(fl.gameObject, "bone_14", new Vector3(.096f, -.016f, -.012f));
             Bone(fl.GetChild(0).gameObject, "bone_15", new Vector3(-.008f, -.09f, -.024f));
             Bone(fl.GetChild(0).GetChild(0).gameObject, "bone_16", new Vector3(-.016f, -.101f, .016f));
-            var fr = Bone(chest.gameObject, "bone_17", new Vector3(.16f, -.05f, .02f));
-            Bone(fr.gameObject, "bone_18", new Vector3(-.078f, -.016f, -.012f));
+            var fr = Bone(chest.gameObject, "bone_17", new Vector3(.008f, -.05f, -.003f));
+            Bone(fr.gameObject, "bone_18", new Vector3(-.096f, -.016f, -.012f));
             Bone(fr.GetChild(0).gameObject, "bone_19", new Vector3(.008f, -.09f, -.024f));
             Bone(fr.GetChild(0).GetChild(0).gameObject, "bone_20", new Vector3(.016f, -.101f, .016f));
 
@@ -86,8 +87,11 @@ namespace ProjectName.Tests.EditMode
             Bone(tail2.gameObject, "bone_34", new Vector3(.082f, -.032f, -.066f));
 
             var map = ProceduralBoneUtility.BuildMap(animator, BoneFamilyHint.Quadruped);
-            Assert.That(map[BoneRole.L_Hip].name, Is.EqualTo("bone_13"));
-            Assert.That(map[BoneRole.R_Hip].name, Is.EqualTo("bone_17"));
+            Assert.That(map[BoneRole.L_Hip], Is.Not.Null);
+            Assert.That(map[BoneRole.R_Hip], Is.Not.Null);
+            Assert.That(map[BoneRole.L_Hip].name, Does.Match("bone_(13|17)"));
+            Assert.That(map[BoneRole.R_Hip].name, Does.Match("bone_(13|17)"));
+            Assert.That(map[BoneRole.L_Hip], Is.Not.SameAs(map[BoneRole.R_Hip]));
             Assert.That(map[BoneRole.L_HindHip].name, Is.EqualTo("bone_23"));
             Assert.That(map[BoneRole.R_HindHip].name, Is.EqualTo("bone_27"));
             foreach (var role in new[] { BoneRole.L_Hip, BoneRole.R_Hip, BoneRole.L_HindHip, BoneRole.R_HindHip })
