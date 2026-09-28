@@ -365,7 +365,7 @@ namespace ProjectName.Systems
                     float lat = ((i % 2) == 0 ? 1f : -1f) * (2f + (i / 2) * 2f); // ±2, ∓2, ±4, ∓4 ...
                     float dep = 2f + (i / 2) * 3f; // 왕좌 앞쪽으로 깊이 배치
                     Vector3 pos = new Vector3(roomCenter.x + lat, roomCenter.y, roomCenter.z + dep);
-                    var go = CreateGuard($"InteriorGuard_{i + 1}", pos, GetGuardName(def.nation), baseLevel + (i % 3), def.nation);
+                    var go = CreateGuard($"InteriorGuard_{i + 1}", pos, GetGuardName(def.nation), baseLevel + (i % 3), def.nation, null, default, def.difficulty);
                     if (go == null) continue;
 
                     // 실내 바닥 y 고정(월드 지형 높이 오염 방지 — CreateGuard는 GetHeightAt 보정함)
@@ -477,7 +477,7 @@ namespace ProjectName.Systems
                 Vector3 p = gatePos + right * (sign * lateral);
                 int level = baseLevel + (i % 3);          // 레벨 분산
                 // 성을 등지고 바깥(성문 바깥, 접근하는 전투원 방향)을 향함
-                CreateGuard($"GateGuard_{i + 1}", p, GetGuardName(nation), level, nation, parent, gateDir);
+                CreateGuard($"GateGuard_{i + 1}", p, GetGuardName(nation), level, nation, parent, gateDir, difficulty);
             }
         }
 
@@ -492,6 +492,20 @@ namespace ProjectName.Systems
                 TerritoryDifficulty.Ring4 => 8,   // 8-12
                 TerritoryDifficulty.Empire => 10, // 10-15
                 _ => 1
+            };
+        }
+
+        /// <summary>[09-28] 난이도별 장비 희귀도 보너스 (0~4) — GuardEquipmentSpawner 등급 승격용.</summary>
+        private static int GearBonusForDifficulty(TerritoryDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                TerritoryDifficulty.Ring1 => 0,
+                TerritoryDifficulty.Ring2 => 1,
+                TerritoryDifficulty.Ring3 => 2,
+                TerritoryDifficulty.Ring4 => 3,
+                TerritoryDifficulty.Empire => 4,
+                _ => 0
             };
         }
 
@@ -573,7 +587,7 @@ namespace ProjectName.Systems
                 float radius = 10f + (float)rng.NextDouble() * 10f;
                 Vector3 pos = center + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
                 var soldier = CreateGuard($"Garrison_{def.Value.nation}_{def.Value.id.index}_{i + 1}", pos,
-                    GetGuardName(def.Value.nation), GetBaseGuardLevel(def.Value.difficulty) + (i % 3), def.Value.nation);
+                    GetGuardName(def.Value.nation), GetBaseGuardLevel(def.Value.difficulty) + (i % 3), def.Value.nation, null, default, def.Value.difficulty);
                 if (soldier != null) spawned.Add(soldier);
             }
             Debug.Log($"[TerritoryBuilder] 주둔군 스폰: {def.Value.territoryName} {count}명");
@@ -597,7 +611,7 @@ namespace ProjectName.Systems
             return "Models/UserProvided/fbx/soldier_lv40-50_rigged";
         }
 
-        private static GameObject CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default)
+        private static GameObject CreateGuard(string name, Vector3 position, string guardName, int level, NationType nation, Transform parent = null, Vector3 forward = default, TerritoryDifficulty difficulty = TerritoryDifficulty.Ring1)
         {
             // ── 병사 클래스 랜덤 배치 (레벨 무관): 40% 방패 / 30% 대검 / 30% 궁수 ──
             string classKey = ClassRoll();
@@ -632,6 +646,8 @@ namespace ProjectName.Systems
                 go.transform.SetParent(parent);
 
             var placeholder = go.AddComponent<GuardPlaceholder>();
+            // [09-28] 영지 난이도 기반 장비 희귀도 보너스 — GuardEquipmentSpawner가 등급 승격에 사용.
+            placeholder.GearDifficultyBonus = GearBonusForDifficulty(difficulty);
             // ── Animator + 믹사모 컨트롤러 + 드라이버 (병사 모드) ──
             if (modelPrefab != null)
             {

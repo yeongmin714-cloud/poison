@@ -765,6 +765,11 @@ namespace ProjectName.Systems
         public float HP => _currentHP;
         public float Loyalty { get => _loyalty; set => _loyalty = Mathf.Clamp(value, -100, 100); }
 
+        // ===== [09-28] 영지 난이도 기반 장비 희귀도 보너스 (TerritoryBuilder.CreateGuard가 설정) =====
+        // 0=Ring1, 1=Ring2, 2=Ring3, 3=Ring4, 4=Empire. 장비 등급 승격 용도.
+        private int _gearDifficultyBonus = 0;
+        public int GearDifficultyBonus { get => _gearDifficultyBonus; set => _gearDifficultyBonus = Mathf.Clamp(value, 0, 4); }
+
         // ===== [2026-09-17] 랜덤 스탯 (관/방/체력/민첩) =====
 
         private void EnsureStatsRolled()

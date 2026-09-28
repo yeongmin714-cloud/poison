@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ProjectName.Core;
+using ProjectName.Core.Data;
 using UnityEngine;
 
 namespace ProjectName.Systems
@@ -46,6 +47,19 @@ namespace ProjectName.Systems
             // 2. 행운 롤
             rarity = LuckyRollSystem.TryLuck(rarity);
 
+            // [09-28] 영지 난이도 기반 장비 희귀도 승격 — GuardPlaceholder.GearDifficultyBonus(0~4)만큼 상향.
+            //   높은 난이도(Ring4/Empire) 영지의 병사가 고급 장비(강철/돌/크리스탈)를 더 잘 착용하게 한다.
+            int gearBonus = gp.GearDifficultyBonus;
+            if (gearBonus > 0)
+            {
+                ItemRarity boosted = (ItemRarity)Mathf.Min((int)rarity + gearBonus, (int)ItemRarity.Legendary);
+                if (boosted != rarity)
+                {
+                    Debug.Log($"[GuardEquipmentSpawner] {gp.GuardName} 장비 등급 승격 {rarity} → {boosted} (난이도 보너스 +{gearBonus})");
+                    rarity = boosted;
+                }
+            }
+
             // 3. 장비 부위 롤
             List<EquipmentPartConfig.EquipmentPart> parts = EquipmentPartConfig.RollSlots(guardLevel);
 
@@ -74,7 +88,7 @@ namespace ProjectName.Systems
 
             // ===== [후속22] 실착 플레이어 방어구(GLB 비주얼) 로드아웃 =====
             // GuardPlaceholder 장비 필드에 저장 → GuardVisualAttachSystem(시각)과 DropEquippedItems(전리품)가 동일 소스로 사용.
-            SpawnPlayerLoadout(gp, guardLevel);
+            SpawnPlayerLoadout(gp, guardLevel, gp.GearDifficultyBonus);
         }
 
         /// <summary>
@@ -183,7 +197,7 @@ namespace ProjectName.Systems
         /// </summary>
         /// <param name="gp">사용할 GuardPlaceholder (필드가 채워짐)</param>
         /// <param name="level">병사 레벨 (등급 테이블 인덱스)</param>
-        public static void SpawnPlayerLoadout(GuardPlaceholder gp, int level)
+        public static void SpawnPlayerLoadout(GuardPlaceholder gp, int level, int gearBonus = 0)
         {
             if (gp == null) return;
 
@@ -194,11 +208,11 @@ namespace ProjectName.Systems
             float glovesChance = 0.45f;
             float shieldChance = 0.25f;
 
-            if (Random.value < helmetChance) gp.HelmetItem = RollLoadoutItem("helmet", level);
-            if (Random.value < armorChance)  gp.ArmorItem  = RollLoadoutItem("armor",  level);
-            if (Random.value < bootsChance)  gp.BootsItem  = RollLoadoutItem("boot",   level);
-            if (Random.value < glovesChance) gp.GlovesItem = RollLoadoutItem("glove",  level);
-            if (Random.value < shieldChance) gp.ShieldItem = RollLoadoutItem("shield", level);
+            if (Random.value < helmetChance) gp.HelmetItem = RollLoadoutItem("helmet", level, gearBonus);
+            if (Random.value < armorChance)  gp.ArmorItem  = RollLoadoutItem("armor",  level, gearBonus);
+            if (Random.value < bootsChance)  gp.BootsItem  = RollLoadoutItem("boot",   level, gearBonus);
+            if (Random.value < glovesChance) gp.GlovesItem = RollLoadoutItem("glove",  level, gearBonus);
+            if (Random.value < shieldChance) gp.ShieldItem = RollLoadoutItem("shield", level, gearBonus);
         }
 
         /// <summary>
@@ -210,10 +224,17 @@ namespace ProjectName.Systems
         /// <param name="part">"helmet" | "armor" | "boot" | "glove" | "shield"</param>
         /// <param name="level">병사 레벨</param>
         /// <returns>해당 부위 ItemData (없으면 null)</returns>
-        public static PlayerInventory.ItemData RollLoadoutItem(string part, int level)
+        public static PlayerInventory.ItemData RollLoadoutItem(string part, int level, int gearBonus = 0)
         {
             ItemRarity rarity = RarityProbabilityTable.Roll(level);
             rarity = LuckyRollSystem.TryLuck(rarity);
+
+            // [09-28] 영지 난이도 보너스 — 비주얼 로드아웃도 등급 승격(최대 Legendary).
+            if (gearBonus > 0)
+            {
+                ItemRarity boosted = (ItemRarity)Mathf.Min((int)rarity + gearBonus, (int)ItemRarity.Legendary);
+                rarity = boosted;
+            }
 
             // 등급 → 티어 접두 (Epic+는 crystal GLB만 존재)
             string tier;
