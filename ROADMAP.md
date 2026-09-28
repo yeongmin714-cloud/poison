@@ -3359,12 +3359,12 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 | Phase | 항목 | 상태 |
 |:--|:--|:--:|
-| 1 | 익명 GLB 다리 후보에 구조 검사 추가: 악어 공통 분기 어깨 밑 좌우 분기 사슬은 원위부 미러로 판정; 미페어 하강 꼬리는 다리 후보에서 제외 | 🔄 구현·EditMode 대기 |
-| 2 | 이족 보행 상체 체중 이동: 좌우 위상 동기 골반 롤 + 반대 위상 척추 카운터 롤; root GameObject 미수정, gait base 캐시로 정지/액션 복원 | 🔄 구현·EditMode 대기 |
-| 3 | 대표 GLB 체인 회귀 테스트 (악어 공통 베이스·원위부 좌우, 만티코어 4 limb+tail, biped torso waveform) | 🔄 구현·검증 대기 |
+| 1 | 익명 GLB 다리 후보에 구조 검사 추가: 악어 공통 분기 어깨 밑 좌우 분기 사슬은 원위부 미러로 판정; 미페어 하강 꼬리는 다리 후보에서 제외 | ✅ 구현·커밋(`c25d235d`) — 날개형 4족 `legChains<2` 안전 분기, "중간 거리 0.02~0.08m 뿌리" 일괄거부 해제→좌우 서명·미러·span 검증 |
+| 2 | 이족 보행 상체 체중 이동: 좌우 위상 동기 골반 롤 + 반대 위상 척추 카운터 롤; root GameObject 미수정, gait base 캐시로 정지/액션 복원 | ✅ 구현·커밋(`c25d235d`) — `QuadrupedProceduralLocomotion` GaitOverride 렌더 즉시 반영 |
+| 3 | 대표 GLB 체인 회귀 테스트 (악어 공통 베이스·원위부 좌우, 만티코어 4 limb+tail, biped torso waveform) | ✅ 커밋(`c25d235d`) — `ProceduralBoneUtilityWingTests`·`QuadrupedGaitPhasePairingTests`·`RabbitCrocodileAnimationMappingTests` 신규 + `ManticoreCrocodileMappingTests` 갱신, EditMode 통과 |
 | 4 | Unity 컴파일·EditMode·Test_11 Play 시각 확인 및 6종 회귀 | ⏳ Play 판정 대기 |
 
-- 현재 작업은 미커밋이다. Play 검증 이전에는 화면상 개선 완료로 표기하지 않는다.
+- ~~현재 작업은 미커밋이다.~~ → **2026-09-29 커밋·푸시 완료** (배치컴파일 error CS=0, EditMode 통과). Play 검증 전에는 화면상 개선 완료로 표기하지 않는다.
 - Play 증거 기준: 최종 per-monster role map, 이동 피드 >0, 같은 실행의 종별 근접 영상(정면/측면)과 정지→이동→정지.
 
 ## 🎨 2026-09-23: FIGMA UI 전환 (F-UI) — GitHub-dark 테마

@@ -838,3 +838,14 @@
 - Details: P1 점령 이벤트 실발화 — PoisonTakeover/ExecuteLord/SpareLord 직접 소유 변경 → SetOwnership 전환(OwnershipChanged → conquest 카운터) + 세이브 로드 복원모드(OwnershipRestoreMode — 로드 중 이벤트 억제, 오염 방지). P2 칭호 훅 3종 — executions(LordSurrenderSystem.OnLordExecuted 구독)/crafts(CraftingHelper.CraftSucceeded 신설 이벤트)/set_complete(GuardEquipmentSystem 장착 후 EvaluateSetCompletion — 종류 기반 직접 해금: 가죽→set_leather/판금→set_plate/3종→set_all3, 중복 무시). P3 바드 고용 시 기본 류트 자동 장착. P4 낚시 생선→허기 +40(ItemConsumed 이벤트 — Core→Systems 규약 준수). P5 Status창 감사 리포트 버튼(토스트 출력). P6 TerritoryDatabase.ResolveTerritoryAt(위치→최근접 영지 판정) + ConstructionWindowUTK 배선(East_01 하드코드 제거, 영지 밖 배치 거부).
 - Tests: EditMode 280/280 기존 전수 통과 (수리: LordData 중첩 타입/HungerSystem usings 2건)
 - Date: 2026-09-20
+
+# Cycle: C-PA — 미커밋 작업 트리 검증·정리 커밋 (P-ANIM9·성내부 씬·TestOutput)
+- Status: ✅ (검증 + 커밋·푸시 완료)
+- Details:
+  - 검증: 배치컴파일 error CS=0 ×2, EditMode 통과 (Exiting batchmode successfully :0).
+  - P-ANIM9 코드 커밋: ProceduralBoneUtility(익명 GLB 사지 구조 검사 — 날개형 4족 legChains<2 안전분기, 중간거리 0.02~0.08m 뿌리 일괄거부 해제→좌우 서명·미러·span 검증) / ShowcaseWanderDriver(+146)·ShowcaseCameraZoom(+83)·TestAnimationShowcaseSetup(진단/관측 사이클) / QuadrupedProceduralLocomotion(GaitOverride 렌더 즉시 반영) / SeparationSystem obsolete 수리.
+  - 성 내부 플레이테스트 씬 신규: PlayerCastleInteriorPlaytestSceneBuilder(+meta)·PlayerCastleInteriorPlaytest/TestMovement·Test_PlayerCastleInterior.unity·AnimationRegressionTestRunner · IndoorPreviewMenu 라우팅 일관(체크아웃 컴파일 유지).
+  - 테스트 신규 3종(ProceduralBoneUtilityWingQuadrupedGaitRabbitCrocodile)+ManticoreCrocodileMappingTests 갱신.
+  - TestOutput 생성물 349종 추적 제거 + .gitignore(/TestOutput/, compile.log) — 재추적 방지.
+- Commits: c25d235d → 0c742193 → 1cf0a48e → 7832d751 (push 완료)
+- Date: 2026-09-29

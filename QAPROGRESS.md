@@ -1,6 +1,21 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-29 (UI Fluent 전체 창 Phase 2 — 대형·설정·오버레이 창 마무리 + 잔존 판별 완료)
+> **최종 갱신:** 2026-09-29 (검증+미커밋 작업 트리 정리 — P-ANIM9·성내부 씬 코드 커밋, TestOutput 생성물 추적 제거)
+
+## 📌 세션 스냅샷 (2026-09-29 ✅ 미커밋 작업 트리 검증·정리 커밋)
+
+> **지시:** "진행" — 직전까지의 미커밋 변경(애니메이션 매핑·성 내부 플레이테스트 씬·TestOutput 생성물)을 검증 후 커밋·푸시, 작업 트리 복구.
+
+- **검증**: 배치컴파일 `error CS=0` (fresh ×2), EditMode 통과 (`Exiting batchmode successfully`, 결과 :0). → 미커밋 코드가 건전함을 재확인.
+- **코드 커밋** (`c25d235d`+`0c742193`+`7832d751`):
+  - P-ANIM9 — `ProceduralBoneUtility`(익명 GLB 사지 구조 검사: 날개형 4족 `legChains<2` 안전 분기 · "중간 거리 0.02~0.08m 뿌리" 일괄 거부 해제→좌우 서명·미러 페어·span 검증), `ShowcaseWanderDriver`(+146) `ShowcaseCameraZoom`(+83) `TestAnimationShowcaseSetup`(골격 진단/관측 사이클) `QuadrupedProceduralLocomotion`(GaitOverride setter 렌더 즉시 반영), `SeparationSystem`(obsolete 수리).
+  - 성 내부 플레이테스트 씬 신규 소스 — `PlayerCastleInteriorPlaytestSceneBuilder`(.cs/meta) `PlayerCastleInteriorPlaytest/TestMovement` `Test_PlayerCastleInterior.unity`(+meta) `AnimationRegressionTestRunner`(+meta). `IndoorPreviewMenu`가 해당 빌더로 라우팅(상호참조 일관 — 체크아웃 컴파일 유지).
+  - 테스트 3종 신규 — `ProceduralBoneUtilityWingTests` `QuadrupedGaitPhasePairingTests` `RabbitCrocodileAnimationMappingTests`, `ManticoreCrocodileMappingTests` 갱신(전지 좌우 허용·L/R 미러 각각 매핑).
+- **정리** (`1cf0a48e`): `TestOutput/` 생성물 349종(타일시트 PNG·로그·bat·py·json) 추적 제거 + `.gitignore`에 `/TestOutput/`, `compile.log` 등재 — 재생성 산출물 재추적 방지. `compile.log` HEAD 복원.
+- **푸시**: `c5650f2e..7832d751 master` push 완료.
+- ⚠ **Play 판정 대기**: P-ANIM9 매핑(토끼 front/hind·악어 실제 앞다리·만티코어 전지)·성 내부 플레이테스트 씬 이동/카메라 — 에디터 Play + 종별 영상 로그 대기.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-29 ✅ UI-Fluent 전체 창 Phase 2 — 대형/설정/알림 창 카드 개편 + 잔존 전수 판별)
 
