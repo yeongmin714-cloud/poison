@@ -6,12 +6,9 @@ using ProjectName.Systems;   // TimeManager
 namespace ProjectName.UI.Toolkit
 {
     /// <summary>
-    /// P27 — 글래스모피즘 시간 시계 (좌상단, 숫자만 부유).
-    /// "다른 창 없이 숫자만 입체적으로 떠서 시간 표현" 요구 구현.
-    /// 이 엔진은 CSS backdrop-filter 미지원(E<P20 drop-shadow와 동일) → 실제 블러 대신
-    /// **베이크 글래스 숫자 스프라이트**(DigitalGlyph: 0-9/콜론, 흰 테두리+상단 하이라이트+
-    /// 남색 그림자로 입체 유리 표면)를 사용. 패널/테두리 없이 숫자 이미지만 좌상단에 배치.
-    /// 300ms 폴링(TimeManager.GetFormattedTime → "HH:MM"). 기존 TimeDisplayUTK(패널형) 대체.
+    /// P27 — 좌상단 글래스 숫자 시계.
+    /// 베이크 글래스 숫자 스프라이트(DigitalGlyph)는 보존하고 GitHub-dark 카드에 담아 표시.
+    /// 300ms 폴링(TimeManager.GetFormattedTime → "HH:MM"). 기존 TimeDisplayUTK 대체.
     /// </summary>
     public class TimeClockGlassUTK : VisualElement
     {
@@ -62,15 +59,29 @@ namespace ProjectName.UI.Toolkit
             style.position = Position.Absolute;
             style.left = 14f;
             style.top = 12f;
-            style.width = 150f;
-            style.height = GlyphHeight + 14f;   // 그림자 여유
+            style.width = 166f;
+            style.height = GlyphHeight + 14f;
+            style.flexDirection = FlexDirection.Row;
+            style.alignItems = Align.Center;
+            style.paddingLeft = 8f;
+            style.paddingRight = 8f;
+            style.backgroundColor = new StyleColor(new Color32(0x0D, 0x11, 0x17, 0xF2)); // GitHub #0D1117
+            style.borderTopColor = new StyleColor(new Color32(0x58, 0xA6, 0xFF, 0xFF)); // GitHub blue accent
+            style.borderBottomColor = new StyleColor(new Color32(0x30, 0x36, 0x3D, 0xFF));
+            style.borderLeftColor = new StyleColor(new Color32(0x30, 0x36, 0x3D, 0xFF));
+            style.borderRightColor = new StyleColor(new Color32(0x30, 0x36, 0x3D, 0xFF));
+            style.borderTopWidth = 2f;
+            style.borderBottomWidth = 1f;
+            style.borderLeftWidth = 1f;
+            style.borderRightWidth = 1f;
+            style.borderTopLeftRadius = 8f;
+            style.borderTopRightRadius = 8f;
+            style.borderBottomLeftRadius = 8f;
+            style.borderBottomRightRadius = 8f;
             pickingMode = PickingMode.Ignore;   // [P23 규약] HUD는 클릭 흡수 금지
 
             _row = new VisualElement();
             _row.name = "ClockRow";
-            _row.style.position = Position.Absolute;
-            _row.style.left = 0f;
-            _row.style.top = 0f;
             _row.style.flexDirection = FlexDirection.Row;
             _row.style.alignItems = Align.Center;
             Add(_row);

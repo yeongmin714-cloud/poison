@@ -41,9 +41,14 @@ namespace ProjectName.UI.Toolkit
             Bootstrap();
         }
 
-        // ===== 레이아웃 =====
+        // ===== Figma GitHub-dark 로딩 카드 =====
         private const float BarW = 400f;
-        private const float BarH = 20f;
+        private const float BarH = 12f;
+        private static readonly Color CardColor = new Color32(0x16, 0x1B, 0x22, 0xFF);
+        private static readonly Color StrokeColor = new Color32(0x2E, 0x34, 0x3D, 0xFF);
+        private static readonly Color TextMainColor = new Color32(0xF0, 0xF6, 0xFC, 0xFF);
+        private static readonly Color TextSubColor = new Color32(0x8B, 0x94, 0x9E, 0xFF);
+        private static readonly Color AccentColor = new Color32(0x58, 0xA6, 0xFF, 0xFF);
 
         // ===== 레퍼런스 =====
         private readonly VisualElement _barFill;
@@ -64,73 +69,121 @@ namespace ProjectName.UI.Toolkit
             style.display = DisplayStyle.None;
             style.alignItems = Align.Center;
             style.justifyContent = Justify.Center;
+            style.backgroundColor = new StyleColor(new Color32(0x0D, 0x11, 0x17, 0xF2));
+
+            // 중앙 GitHub-dark 카드: 로딩 문구와 실제 진행률 게이지를 한 묶음으로 구성.
+            var card = new VisualElement();
+            card.name = "LoadingCard";
+            card.style.width = 520f;
+            card.style.maxWidth = new Length(90f, LengthUnit.Percent);
+            card.style.backgroundColor = new StyleColor(CardColor);
+            card.style.paddingTop = 28f;
+            card.style.paddingBottom = 24f;
+            card.style.paddingLeft = 30f;
+            card.style.paddingRight = 30f;
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = new StyleColor(StrokeColor);
+            card.style.borderBottomColor = new StyleColor(StrokeColor);
+            card.style.borderLeftColor = new StyleColor(StrokeColor);
+            card.style.borderRightColor = new StyleColor(StrokeColor);
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
+            card.style.alignItems = Align.Center;
+            Add(card);
 
             var logo = new Label("Crusader Kingdom");
-            logo.style.fontSize = 34f;
+            logo.style.fontSize = 28f;
             logo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            logo.style.color = new StyleColor(UTKTheme.Gold);
-            Add(logo);
+            logo.style.color = new StyleColor(TextMainColor);
+            card.Add(logo);
 
             var sub = new Label("⚔️ 크루세이더 킹덤");
-            sub.style.color = new StyleColor(UTKTheme.TextSub);
-            sub.style.marginTop = 2f;
-            sub.style.marginBottom = 30f;
-            Add(sub);
+            sub.style.color = new StyleColor(TextSubColor);
+            sub.style.fontSize = 13f;
+            sub.style.marginTop = 4f;
+            sub.style.marginBottom = 26f;
+            card.Add(sub);
 
-            // 진행률 %
+            var progressRow = new VisualElement();
+            progressRow.style.width = BarW;
+            progressRow.style.maxWidth = new Length(100f, LengthUnit.Percent);
+            progressRow.style.flexDirection = FlexDirection.Row;
+            progressRow.style.justifyContent = Justify.SpaceBetween;
+            progressRow.style.alignItems = Align.Center;
+            progressRow.style.marginBottom = 8f;
+            card.Add(progressRow);
+
+            var loadingLabel = new Label("게임을 불러오는 중…");
+            loadingLabel.style.color = new StyleColor(TextMainColor);
+            loadingLabel.style.fontSize = 14f;
+            progressRow.Add(loadingLabel);
+
             _pctLabel = new Label("0%");
-            _pctLabel.style.color = new StyleColor(UTKTheme.TextMain);
+            _pctLabel.style.color = new StyleColor(AccentColor);
             _pctLabel.style.fontSize = 14f;
             _pctLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _pctLabel.style.marginBottom = 6f;
-            Add(_pctLabel);
+            progressRow.Add(_pctLabel);
 
-            // 진행바 배경 + 채움 (금색 테두리 느낌)
+            // 실측 진행률로 갱신되는 게이지 — 보간/폴링 로직은 기존과 동일.
             var barBg = new VisualElement();
             barBg.name = "BarBackground";
             barBg.style.width = BarW;
+            barBg.style.maxWidth = new Length(100f, LengthUnit.Percent);
             barBg.style.height = BarH;
-            barBg.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
-            Add(barBg);
+            barBg.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            barBg.style.overflow = Overflow.Hidden;
+            barBg.style.borderTopLeftRadius = 6f;
+            barBg.style.borderTopRightRadius = 6f;
+            barBg.style.borderBottomLeftRadius = 6f;
+            barBg.style.borderBottomRightRadius = 6f;
+            card.Add(barBg);
 
             _barFill = new VisualElement();
             _barFill.name = "BarFill";
             _barFill.style.width = 0f;
             _barFill.style.height = BarH;
-            _barFill.style.backgroundColor = new StyleColor(UTKTheme.Accent);
+            _barFill.style.backgroundColor = new StyleColor(AccentColor);
+            _barFill.style.borderTopLeftRadius = 6f;
+            _barFill.style.borderBottomLeftRadius = 6f;
             barBg.Add(_barFill);
 
-            // 팁
-            var tipTitle = new Label("— 게임 팁 —");
-            tipTitle.style.color = new StyleColor(UTKTheme.Gold);
-            tipTitle.style.fontSize = 13f;
+            var tipTitle = new Label("게임 팁");
+            tipTitle.style.color = new StyleColor(TextSubColor);
+            tipTitle.style.fontSize = 12f;
             tipTitle.style.marginTop = 24f;
-            Add(tipTitle);
+            tipTitle.style.alignSelf = Align.FlexStart;
+            card.Add(tipTitle);
 
             _tipCatLabel = new Label("");
-            _tipCatLabel.style.color = new StyleColor(UTKTheme.Gold);
+            _tipCatLabel.style.color = new StyleColor(AccentColor);
             _tipCatLabel.style.fontSize = 12f;
             _tipCatLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _tipCatLabel.style.marginTop = 8f;
             _tipCatLabel.style.whiteSpace = WhiteSpace.Normal;
-            Add(_tipCatLabel);
+            _tipCatLabel.style.alignSelf = Align.FlexStart;
+            card.Add(_tipCatLabel);
 
             _tipTextLabel = new Label("");
-            _tipTextLabel.style.color = new StyleColor(UTKTheme.TextSub);
+            _tipTextLabel.style.color = new StyleColor(TextSubColor);
             _tipTextLabel.style.fontSize = 12f;
             _tipTextLabel.style.whiteSpace = WhiteSpace.Normal;
-            _tipTextLabel.style.width = 600f;
+            _tipTextLabel.style.width = new Length(100f, LengthUnit.Percent);
             _tipTextLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             _tipTextLabel.style.marginTop = 4f;
-            Add(_tipTextLabel);
+            card.Add(_tipTextLabel);
 
             _tip2TextLabel = new Label("");
-            _tip2TextLabel.style.color = new StyleColor(UTKTheme.TextSub);
+            _tip2TextLabel.style.color = new StyleColor(TextSubColor);
             _tip2TextLabel.style.fontSize = 12f;
             _tip2TextLabel.style.whiteSpace = WhiteSpace.Normal;
-            _tip2TextLabel.style.width = 600f;
+            _tip2TextLabel.style.width = new Length(100f, LengthUnit.Percent);
             _tip2TextLabel.style.marginTop = 6f;
-            Add(_tip2TextLabel);
+            card.Add(_tip2TextLabel);
 
             UTKWindowBase.ApplyUIToolkitFont(this);
         }

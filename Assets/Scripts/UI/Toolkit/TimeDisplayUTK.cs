@@ -69,36 +69,49 @@ namespace ProjectName.UI.Toolkit
             style.right = 10f;
             style.width = 180f;
             style.height = 58f;
-            style.backgroundColor = new StyleColor(UTKColor.BgPanel);
-            style.borderTopWidth = 1f;
-            style.borderBottomWidth = 1f;
-            style.borderLeftWidth = 1f;
-            style.borderRightWidth = 1f;
-            style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
-            style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
-            style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            style.flexDirection = FlexDirection.Column;
+            style.justifyContent = Justify.SpaceBetween;
+            style.paddingLeft = 8f;
+            style.paddingRight = 8f;
+            style.paddingTop = 6f;
+            style.paddingBottom = 6f;
+            style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xFF));
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            var stroke = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = stroke;
+            style.borderTopLeftRadius = style.borderTopRightRadius = 6f;
+            style.borderBottomLeftRadius = style.borderBottomRightRadius = 6f;
             pickingMode = PickingMode.Ignore;
 
-            _dayLabel = new Label("Day 1");
-            _dayLabel.style.fontSize = 12f;
-            _dayLabel.style.color = new StyleColor(UTKColor.TextSecondary);
-            Add(_dayLabel);
+            // GitHub-dark 배지 카드의 한 줄 헤더: 시간과 날짜를 양 끝에 배치.
+            var infoRow = new VisualElement();
+            infoRow.style.flexDirection = FlexDirection.Row;
+            infoRow.style.alignItems = Align.Center;
+            infoRow.style.justifyContent = Justify.SpaceBetween;
+            Add(infoRow);
 
             _timeLabel = new Label("--:--");
-            _timeLabel.style.fontSize = 26f;
+            _timeLabel.style.fontSize = 22f;
             _timeLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             _timeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            Add(_timeLabel);
+            infoRow.Add(_timeLabel);
+
+            _dayLabel = new Label("Day 1");
+            _dayLabel.style.fontSize = 11f;
+            _dayLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            infoRow.Add(_dayLabel);
 
             _barHost = new VisualElement();
-            _barHost.style.height = 8f;
-            _barHost.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            _barHost.style.height = 4f;
+            _barHost.style.backgroundColor = new StyleColor(new Color32(0x0D, 0x11, 0x17, 0xFF));
+            _barHost.style.borderTopLeftRadius = _barHost.style.borderTopRightRadius = 2f;
+            _barHost.style.borderBottomLeftRadius = _barHost.style.borderBottomRightRadius = 2f;
             Add(_barHost);
 
             _barFill = new VisualElement();
-            _barFill.style.height = 8f;
+            _barFill.style.height = 4f;
             _barFill.style.width = 0f;
+            _barFill.style.borderTopLeftRadius = _barFill.style.borderBottomLeftRadius = 2f;
             _barHost.Add(_barFill);
 
             UTKWindowBase.ApplyUIToolkitFont(this);
@@ -125,6 +138,7 @@ namespace ProjectName.UI.Toolkit
             {
                 _timeLabel.text = timeText;
             }
+            _timeLabel.style.color = new StyleColor(tm.IsDay ? UTKColor.AccentRare : UTKColor.AccentMagic);
             if (dChanged)
             {
                 _dayLabel.text = dayText;
