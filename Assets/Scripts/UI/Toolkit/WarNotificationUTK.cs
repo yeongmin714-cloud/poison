@@ -118,7 +118,7 @@ namespace ProjectName.UI.Toolkit
             banner.style.marginBottom = BannerSpacing;
             banner.style.flexDirection = FlexDirection.Row;
             banner.style.alignItems = Align.Center;
-            banner.style.backgroundColor = new StyleColor(new Color(0.1f, 0.1f, 0.1f, 0.85f));
+            banner.style.backgroundColor = new StyleColor(UTKTheme.Panel);
             banner.style.borderTopWidth = 1f;
             banner.style.borderBottomWidth = 1f;
             banner.style.borderLeftWidth = 4f;

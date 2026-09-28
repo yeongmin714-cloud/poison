@@ -68,18 +68,18 @@ namespace ProjectName.UI.Toolkit
             var logo = new Label("Crusader Kingdom");
             logo.style.fontSize = 34f;
             logo.style.unityFontStyleAndWeight = FontStyle.Bold;
-            logo.style.color = new StyleColor(new Color(0.85f, 0.70f, 0.20f));
+            logo.style.color = new StyleColor(UTKTheme.Gold);
             Add(logo);
 
             var sub = new Label("⚔️ 크루세이더 킹덤");
-            sub.style.color = new StyleColor(new Color(0.60f, 0.60f, 0.60f));
+            sub.style.color = new StyleColor(UTKTheme.TextSub);
             sub.style.marginTop = 2f;
             sub.style.marginBottom = 30f;
             Add(sub);
 
             // 진행률 %
             _pctLabel = new Label("0%");
-            _pctLabel.style.color = new StyleColor(new Color(0.85f, 0.85f, 0.85f));
+            _pctLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _pctLabel.style.fontSize = 14f;
             _pctLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _pctLabel.style.marginBottom = 6f;
@@ -90,25 +90,25 @@ namespace ProjectName.UI.Toolkit
             barBg.name = "BarBackground";
             barBg.style.width = BarW;
             barBg.style.height = BarH;
-            barBg.style.backgroundColor = new StyleColor(new Color(0.12f, 0.12f, 0.18f, 0.90f));
+            barBg.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
             Add(barBg);
 
             _barFill = new VisualElement();
             _barFill.name = "BarFill";
             _barFill.style.width = 0f;
             _barFill.style.height = BarH;
-            _barFill.style.backgroundColor = new StyleColor(new Color(0.30f, 0.70f, 1.00f));
+            _barFill.style.backgroundColor = new StyleColor(UTKTheme.Accent);
             barBg.Add(_barFill);
 
             // 팁
             var tipTitle = new Label("— 게임 팁 —");
-            tipTitle.style.color = new StyleColor(new Color(0.85f, 0.70f, 0.20f, 0.90f));
+            tipTitle.style.color = new StyleColor(UTKTheme.Gold);
             tipTitle.style.fontSize = 13f;
             tipTitle.style.marginTop = 24f;
             Add(tipTitle);
 
             _tipCatLabel = new Label("");
-            _tipCatLabel.style.color = new StyleColor(new Color(0.85f, 0.70f, 0.20f, 0.90f));
+            _tipCatLabel.style.color = new StyleColor(UTKTheme.Gold);
             _tipCatLabel.style.fontSize = 12f;
             _tipCatLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _tipCatLabel.style.marginTop = 8f;
@@ -116,7 +116,7 @@ namespace ProjectName.UI.Toolkit
             Add(_tipCatLabel);
 
             _tipTextLabel = new Label("");
-            _tipTextLabel.style.color = new StyleColor(new Color(0.75f, 0.75f, 0.75f, 0.85f));
+            _tipTextLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _tipTextLabel.style.fontSize = 12f;
             _tipTextLabel.style.whiteSpace = WhiteSpace.Normal;
             _tipTextLabel.style.width = 600f;
@@ -125,7 +125,7 @@ namespace ProjectName.UI.Toolkit
             Add(_tipTextLabel);
 
             _tip2TextLabel = new Label("");
-            _tip2TextLabel.style.color = new StyleColor(new Color(0.75f, 0.75f, 0.75f, 0.85f));
+            _tip2TextLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _tip2TextLabel.style.fontSize = 12f;
             _tip2TextLabel.style.whiteSpace = WhiteSpace.Normal;
             _tip2TextLabel.style.width = 600f;
