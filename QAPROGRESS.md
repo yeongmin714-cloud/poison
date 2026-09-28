@@ -1,6 +1,24 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-29 (UI Fluent 전체 창 Phase — 자체 설계 30개 창 GitHub-dark 카드 개편)
+> **최종 갱신:** 2026-09-29 (UI Fluent 전체 창 Phase 2 — 대형·설정·오버레이 창 마무리 + 잔존 판별 완료)
+
+## 📌 세션 스냅샷 (2026-09-29 ✅ UI-Fluent 전체 창 Phase 2 — 대형/설정/알림 창 카드 개편 + 잔존 전수 판별)
+
+> **지시:** 전체 창 Phase(이전 30개) 종료 후 연속 — 남은 대형·복잡·설정·알림 창 개편 + 커버리지 잔존 전수 판별. "멈춤없이 계속 진행".
+
+- **로드/가스 2창** (`9aeef0c3`): LoadGame(슬롯 카드+삭제확인 오버레이, `SaveManager.DeleteSlot` 연결 — 원본엔 삭제 버튼 없었으나 유효 기능 추가) · GasSpray(장착 카드+잔량/타이머).
+- **설정/메뉴 3창** (`bd9fbb94`): Options(섹션 카드+탭 액션) · SettingsMenu(설정 카드) · MainMenu(메뉴 카드 호버골드).
+- **교회/이벤트 3창** (`040698fa`): Church(친밀도 카드+헌금 액션) · DynamicEvent(이벤트 카드+타이머병/경고색) · WarNotification(알림 카드/배지, `UTKControls.HealthRed`→`UTKColor.HealthRed` 컴파일 수리).
+- **전수 판별 완료** (GitHub-dark 이미 통일 → 카드 재구성 불필요):
+  - 슬롯/그리드 본체(UTKSlot 공용, 드래그·금융 로직 보호): **WarehouseWindow(창고) · CraftingWindow · GuardInfo · MercenaryHire**.
+  - 직접 GitHub-dark 팔레트(`#0B0E14/#161B22/#21262D/#F0F6FC/#E3B341`) 정확 일치: **GuardSquadHotbar**.
+  - HUD/미니게임 오버레이(카드 대상 아님): **BowAimReticle(조준 리티클) · HotbarUIUTK(핫바) · FishingUTK(낚시 게이지)**.
+- **QA**: 배치컴파일 `error CS=0` ×6회(대형 배치당). EditMode 최종 1차 **298/301**(+`WeaponCraft` 90% 확률 간헐) → **2차 재실행 299/301** (요리 2건만 기존, 회귀 0). 커밋 6개 + push.
+
+- ✅ **자체 설계(ID 창) GitHub-dark 카드 개편 + 판별 전수 완료** — 전체 창 Phase 종료.
+- ⚠ **Play 판정 대기**: 에디터 Play → 이번 대형/설정/알림 창 다크 톤+카드 구조 노출 확인.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-29 ✅ UI-Fluent 전체 창 — 자체 설계 30개 창 Figma 카드 구조 일괄 개편)
 

@@ -3571,3 +3571,29 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 - **검증**: 배치컴파일 error CS=0 ×10회(배치당). EditMode 최종 **299/301** (기존 요리 2건만, 회귀 0). `WeaponCraft` 확률 간헐 없음.
 - ⚠ **별도 Phase 분리(대형·복잡, 금융/상태머신 — 위임 산출물 리스크)**: CraftingWindow(991)·WarehouseWindow(836)·GuardInfo(745)·Options(402)·SettingsMenu(478)·MainMenu(378)·GuardSquadHotbar(440)·MercenaryHire(410)·LoadGame(206)·BowAimReticle(210)·GasSpray(282).
 - ⚠ **Play 검증 대기:** 30개 창 다크 톤+카드 구조 노출 확인.
+
+---
+
+## 🗂️ UI-FLUENT 전체 창 Phase 2 — 대형/설정/알림 창 카드 개편 + 잔존 전수 판별 (2026-09-29)
+
+> **지시:** 멈춤없이 연속 진행. 남은 대형·복잡·설정·알림 창 개편 후, 커버리지 자체 설계 창을 전수 판별해 카드 개편 불필요(이미 통일/오버레이) 종류를 정리.
+
+| 창 | Figma GitHub-dark 카드 개편 | 커밋 |
+|:--|:--|:--:|
+| LoadGame | 슬롯 카드+삭제확인 오버레이(DeleteSlot 연결) | `9aeef0c3` |
+| GasSpray | 장착 카드+잔량/타이머 | `9aeef0c3` |
+| Options | 섹션 카드+탭 액션 | `bd9fbb94` |
+| SettingsMenu | 설정 카드 | `bd9fbb94` |
+| MainMenu | 메뉴 카드 호버골드 | `bd9fbb94` |
+| Church | 친밀도 카드+헌금 액션 | `040698fa` |
+| DynamicEvent | 이벤트 카드+타이머 급박/경고색 | `040698fa` |
+| WarNotification | 알림 카드/배지 (UTKControls→UTKColor 수리) | `040698fa` |
+
+**전수 판별 완료 (이미 GitHub-dark 통일 → 카드 재구성 불필요)**
+- 슬롯/그리드 본체(UTKSlot 공용, 드래그·금융 로직 보호): WarehouseWindow(창고)·CraftingWindow·GuardInfo·MercenaryHire.
+- 직접 GitHub-dark 팔레트(`#0B0E14/#161B22/#21262D/#F0F6FC/#E3B341`) 정확 일치: GuardSquadHotbar.
+- HUD/미니게임 오버레이(카드 대상 아님): BowAimReticle(조준)·HotbarUIUTK(핫바)·FishingUTK(낚시 게이지).
+
+**검증**: 배치컴파일 error CS=0 ×6회. EditMode 1차 **298/301**(+`WeaponCraft` 90% 확률 간헐) → **2차 재실행 299/301**(요리 2건만, 회귀 0). ✅ **자체 설계(ID) 창 GitHub-dark 카드 개편+판별 전수 완료 — 전체 창 Phase 종료.**
+
+- ⚠ **Play 검증 대기:** 대형/설정/알림 창 다크 톤+카드 구조 노출 확인.
