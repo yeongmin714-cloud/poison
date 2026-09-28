@@ -73,18 +73,44 @@ namespace ProjectName.UI.Toolkit
         private Label _contentLabel;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
 
+        // ===== Figma 구조 (2026-09-28) — 헤더 카드 / 본문 패널 / 액션 띠 =====
+        private readonly VisualElement _npcCard;   // NPC 정보 카드 (이름+퀘스트배지+영지)
+        private readonly VisualElement _actionBar; // 하단 액션 버튼 띠 (그리드)
+
         private NPCDialogueUTK() : base("💬 NPC 대화", new Vector2(WinW, WinH))
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
-            _summaryLabel = new Label("💬 NPC 대화");
-            _summaryLabel.AddToClassList("utk-title-label");
-            _summaryLabel.style.fontSize = 18f;
-            _content.Add(_summaryLabel);
+            // ── NPC 헤더 카드 (Figma 카드 패턴) ──
+            _npcCard = new VisualElement();
+            _npcCard.name = "NPCCard";
+            _npcCard.style.flexDirection = FlexDirection.Row;
+            _npcCard.style.alignItems = Align.Center;
+            _npcCard.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _npcCard.style.borderTopWidth = _npcCard.style.borderBottomWidth = _npcCard.style.borderLeftWidth = _npcCard.style.borderRightWidth = 1f;
+            _npcCard.style.borderTopColor = _npcCard.style.borderBottomColor = _npcCard.style.borderLeftColor = _npcCard.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            _npcCard.style.borderTopLeftRadius = _npcCard.style.borderTopRightRadius = _npcCard.style.borderBottomLeftRadius = _npcCard.style.borderBottomRightRadius = UTKTheme.RadiusSub;
+            _npcCard.style.paddingLeft = 10f;
+            _npcCard.style.paddingRight = 10f;
+            _npcCard.style.paddingTop = 8f;
+            _npcCard.style.paddingBottom = 8f;
+            _npcCard.style.marginBottom = 8f;
+            _content.Add(_npcCard);
 
-            _contentLabel = MakeLabel("", UTKColor.TextPrimary);
+            _summaryLabel = new Label("💬 NPC 대화");
+            _summaryLabel.style.fontSize = 18f;
+            _summaryLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _summaryLabel.style.color = new StyleColor(UTKTheme.TextMain);
+            _summaryLabel.style.flexGrow = 1f;
+            _npcCard.Add(_summaryLabel);
+
+            _contentLabel = new Label("");
             _contentLabel.style.marginTop = 6f;
+            _contentLabel.style.marginBottom = 8f;
+            _contentLabel.style.flexShrink = 0f;
+            _contentLabel.style.whiteSpace = WhiteSpace.Normal;
+            _contentLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _content.Add(_contentLabel);
 
             _list = new VisualElement();
@@ -93,11 +119,26 @@ namespace ProjectName.UI.Toolkit
             _list.style.flexDirection = FlexDirection.Column;
             _content.Add(_list);
 
+            // ── 하단 액션 띠 (Figma 액션 그리드) ──
+            _actionBar = new VisualElement();
+            _actionBar.name = "NPCActionBar";
+            _actionBar.style.flexDirection = FlexDirection.Row;
+            _actionBar.style.flexWrap = Wrap.Wrap;
+            _actionBar.style.marginTop = 8f;
+            _actionBar.style.paddingTop = 6f;
+            _actionBar.style.borderTopWidth = 1f;
+            _actionBar.style.borderTopColor = new StyleColor(UTKTheme.Stroke);
+            _content.Add(_actionBar);
+
             ApplyUIToolkitFont(this);
 
             style.display = DisplayStyle.None;
             style.left = 340f;
             style.top = 180f;
+            style.width = WinW;
+            style.height = WinH;
+            style.backgroundColor = new StyleColor(UTKTheme.BgBase);
+            style.borderTopLeftRadius = style.borderTopRightRadius = style.borderBottomLeftRadius = style.borderBottomRightRadius = UTKTheme.RadiusMain;
         }
 
         // =================== 생명주기 ===================
@@ -180,6 +221,7 @@ namespace ProjectName.UI.Toolkit
         private void Refresh()
         {
             _list.Clear();
+            _actionBar.Clear();
             switch (_mode)
             {
                 case Mode.Dialogue: DrawDialogue(); break;
@@ -201,12 +243,20 @@ namespace ProjectName.UI.Toolkit
             _contentLabel.text = line;
 
             if (_currentNPC.HasQuests)
-                _list.Add(UTKButton.Create("📋 퀘스트 목록 보기", GoToQuestList, UTKButton.Variant.Primary));
+                _actionBar.Add(BuildActionButton("📋 퀘스트", GoToQuestList, UTKButton.Variant.Primary));
 
-            _list.Add(UTKButton.Create("📋 정보보기", GoToInfo, UTKButton.Variant.Secondary));
-            _list.Add(UTKButton.Create("💝 선물주기", GoToGift, UTKButton.Variant.Secondary));
-            _list.Add(UTKButton.Create("다음 ▶", Advance, UTKButton.Variant.Secondary));
-            _list.Add(UTKButton.Create("닫기 ✕", Close, UTKButton.Variant.Danger));
+            _actionBar.Add(BuildActionButton("정보보기", GoToInfo, UTKButton.Variant.Secondary));
+            _actionBar.Add(BuildActionButton("선물주기", GoToGift, UTKButton.Variant.Secondary));
+            _actionBar.Add(BuildActionButton("다음 ▶", Advance, UTKButton.Variant.Secondary));
+        }
+
+        /// <summary>[Figma] 액션 띠 버튼 — 균일 폭 최소 크기, GitHub-dark 테마.</summary>
+        private static Button BuildActionButton(string text, System.Action onClick, UTKButton.Variant variant)
+        {
+            var btn = UTKButton.Create(text, onClick, variant);
+            btn.style.flexGrow = 1f;
+            btn.style.marginRight = 6f;
+            return btn;
         }
 
         private void GoToInfo()
@@ -230,26 +280,38 @@ namespace ProjectName.UI.Toolkit
         private void DrawInfo()
         {
             _summaryLabel.text = "📋 " + _currentNPC.NpcName + " 정보";
+            _contentLabel.text = "";
 
-            _list.Add(MakeLabel("이름: " + _currentNPC.NpcName, UTKColor.TextPrimary));
+            // 정보 카드 (Figma 카드 패턴)
+            var infoCard = new VisualElement();
+            infoCard.style.flexDirection = FlexDirection.Column;
+            infoCard.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            infoCard.style.borderTopLeftRadius = infoCard.style.borderTopRightRadius = infoCard.style.borderBottomLeftRadius = infoCard.style.borderBottomRightRadius = UTKTheme.RadiusSub;
+            infoCard.style.paddingLeft = 10f;
+            infoCard.style.paddingRight = 10f;
+            infoCard.style.paddingTop = 8f;
+            infoCard.style.paddingBottom = 8f;
+            _list.Add(infoCard);
+
+            infoCard.Add(MakeLabel("이름: " + _currentNPC.NpcName, UTKTheme.TextMain));
             if (!string.IsNullOrEmpty(_currentNPC.TerritoryId))
             {
                 string terrName = TerritoryDatabase.Instance.GetDefinition(_currentNPC.TerritoryId).territoryName;
                 if (string.IsNullOrEmpty(terrName)) terrName = _currentNPC.TerritoryId;
-                _list.Add(MakeLabel("소속 영지: " + terrName, UTKColor.TextSecondary));
+                infoCard.Add(MakeLabel("소속 영지: " + terrName, UTKTheme.TextSub));
 
                 float cont = TerritoryDrugSystem.GetTerritoryContamination(_currentNPC.TerritoryId);
                 float lord = TerritoryDrugSystem.GetLordAddiction(_currentNPC.TerritoryId);
-                _list.Add(MakeLabel(cont > 0f
+                infoCard.Add(MakeLabel(cont > 0f
                     ? $"💊 마약 중독도: {cont:F0}/100 (영주 {lord:F0}/100)"
-                    : "💊 마약 중독도: 없음", UTKColor.AccentMagic));
+                    : "💊 마약 중독도: 없음", UTKTheme.Accent));
             }
             else
             {
-                _list.Add(MakeLabel("(소속 영지 정보 없음)", UTKColor.TextSecondary));
+                infoCard.Add(MakeLabel("(소속 영지 정보 없음)", UTKTheme.TextSub));
             }
 
-            _list.Add(UTKButton.Create("← 대화로 돌아가기", () =>
+            _actionBar.Add(BuildActionButton("← 대화", () =>
             {
                 _mode = Mode.Dialogue;
                 _currentLine = _dialogueLines.Count - 1;
@@ -267,7 +329,13 @@ namespace ProjectName.UI.Toolkit
             var slots = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetAllSlots() : null;
             if (slots == null)
             {
-                _list.Add(MakeLabel("(인벤토리 없음)", UTKColor.TextSecondary));
+                _list.Add(MakeLabel("(인벤토리 없음)", UTKTheme.TextSub));
+                _actionBar.Add(BuildActionButton("← 대화", () =>
+                {
+                    _mode = Mode.Dialogue;
+                    _currentLine = _dialogueLines.Count - 1;
+                    Refresh();
+                }, UTKButton.Variant.Secondary));
                 return;
             }
 
@@ -282,9 +350,9 @@ namespace ProjectName.UI.Toolkit
             }
 
             if (!any)
-                _list.Add(MakeLabel("(선물할 음식/마약이 없습니다.)", UTKColor.TextSecondary));
+                _list.Add(MakeLabel("(선물할 음식/마약이 없습니다.)", UTKTheme.TextSub));
 
-            _list.Add(UTKButton.Create("← 대화로 돌아가기", () =>
+            _actionBar.Add(BuildActionButton("← 대화", () =>
             {
                 _mode = Mode.Dialogue;
                 _currentLine = _dialogueLines.Count - 1;
@@ -298,10 +366,15 @@ namespace ProjectName.UI.Toolkit
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
             row.style.marginBottom = 4f;
+            row.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            row.style.borderTopLeftRadius = row.style.borderTopRightRadius = row.style.borderBottomLeftRadius = row.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+            row.style.paddingLeft = 8f;
+            row.style.paddingTop = 4f;
+            row.style.paddingBottom = 4f;
 
             bool isDrug = slot.item.category == PlayerInventory.ItemCategory.Drug;
             var name = MakeLabel((isDrug ? "💊 " : "🍗 ") + slot.item.displayName + " x" + slot.count,
-                isDrug ? UTKColor.AccentMagic : UTKColor.TextPrimary);
+                isDrug ? UTKTheme.Accent : UTKTheme.TextMain);
             name.style.flexGrow = 1f;
             row.Add(name);
 
@@ -339,10 +412,11 @@ namespace ProjectName.UI.Toolkit
         private void DrawQuestList()
         {
             _summaryLabel.text = "--- " + _currentNPC.NpcName + "의 퀘스트 ---";
+            _contentLabel.text = "";
 
             if (_currentNPC.QuestIds == null || _currentNPC.QuestIds.Count == 0)
             {
-                _list.Add(MakeLabel("(사용 가능한 퀘스트가 없습니다.)", UTKColor.TextSecondary));
+                _list.Add(MakeLabel("(사용 가능한 퀘스트가 없습니다.)", UTKTheme.TextSub));
             }
             else
             {
@@ -352,7 +426,7 @@ namespace ProjectName.UI.Toolkit
                 }
             }
 
-            _list.Add(UTKButton.Create("← 대화로 돌아가기", () =>
+            _actionBar.Add(BuildActionButton("← 대화", () =>
             {
                 _mode = Mode.Dialogue;
                 _currentLine = _dialogueLines.Count - 1;
@@ -367,29 +441,42 @@ namespace ProjectName.UI.Toolkit
 
             if (string.IsNullOrEmpty(quest.questId) || string.IsNullOrEmpty(quest.questName))
             {
-                _list.Add(MakeLabel("[알 수 없는 퀘스트: " + questId + "]", UTKColor.HealthRed));
+                _list.Add(MakeLabel("[알 수 없는 퀘스트: " + questId + "]", UTKTheme.Danger));
                 return;
             }
 
+            // 퀘스트 카드 (Figma 카드 패턴)
+            var card = new VisualElement();
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = UTKTheme.RadiusSub;
+            card.style.paddingLeft = 10f;
+            card.style.paddingRight = 10f;
+            card.style.paddingTop = 8f;
+            card.style.paddingBottom = 8f;
+            card.style.marginBottom = 6f;
+            _list.Add(card);
+
             string stateIcon = StateIcon(state);
-            var info = MakeLabel(stateIcon + " " + quest.questName + " (Lv." + quest.requiredLevel + ")", UTKColor.TextPrimary);
+            var info = MakeLabel(stateIcon + " " + quest.questName + " (Lv." + quest.requiredLevel + ")", UTKTheme.TextMain);
             info.style.fontSize = 14f;
-            _list.Add(info);
+            info.style.unityFontStyleAndWeight = FontStyle.Bold;
+            card.Add(info);
 
             if (state == QuestState.Available)
             {
-                _list.Add(UTKButton.Create("수락", () =>
+                card.Add(UTKButton.Create("수락", () =>
                 {
                     AcceptQuest(questId);
                 }, UTKButton.Variant.Primary));
             }
             else if (state == QuestState.Active)
             {
-                _list.Add(MakeLabel("진행: " + GetQuestProgress(quest), UTKColor.TextSecondary));
+                card.Add(MakeLabel("진행: " + GetQuestProgress(quest), UTKTheme.TextSub));
             }
             else if (state == QuestState.Completed)
             {
-                _list.Add(UTKButton.Create("보상", () =>
+                card.Add(UTKButton.Create("보상", () =>
                 {
                     ClaimReward(questId);
                 }, UTKButton.Variant.Secondary));
