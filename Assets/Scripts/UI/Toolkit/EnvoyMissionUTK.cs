@@ -182,7 +182,10 @@ namespace ProjectName.UI.Toolkit
         private void DrawEnvoySelection()
         {
             _summaryLabel.text = $"📜 {GetTerritoryName(_currentTerritoryId)} — 특사 파견";
-            _list.Add(MakeLabel("파견할 특사를 선택하세요 (Lv.5+ 필요)", UTKColor.TextSecondary));
+
+            var selectionHint = MakeCard();
+            selectionHint.Add(MakeLabel("파견할 특사를 선택하세요 (Lv.5+ 필요)", UTKColor.TextSecondary));
+            _list.Add(selectionHint);
 
             var envoys = EnvoySystem.GetAvailableEnvoys();
             var filtered = new List<GuardPlaceholder>();
@@ -194,35 +197,36 @@ namespace ProjectName.UI.Toolkit
 
             if (filtered.Count == 0)
             {
-                _list.Add(MakeLabel("⚠️ 파견 가능한 특사가 없습니다.\nLv.5 이상 포섭된 병사가 필요합니다.", UTKColor.HealthRed));
+                var emptyCard = MakeCard();
+                emptyCard.Add(MakeLabel("⚠️ 파견 가능한 특사가 없습니다.\nLv.5 이상 포섭된 병사가 필요합니다.", UTKColor.HealthRed));
+                _list.Add(emptyCard);
                 return;
             }
 
             foreach (var guard in filtered)
             {
-                var row = new VisualElement();
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.borderTopWidth = 1f;
-                row.style.borderTopColor = new StyleColor(UTKColor.IronLine);
-                row.style.paddingTop = 4f;
-                row.style.paddingBottom = 4f;
-                row.style.alignItems = Align.Center;
+                var card = MakeCard();
+                card.style.flexDirection = FlexDirection.Column;
 
                 string roleStr = GuardStatusSystem.GetRoleName(guard.Role);
-                var info = MakeLabel($"{guard.GuardName} (Lv.{guard.Level})  {roleStr} | 호감도 {guard.Loyalty:F0}",
+                var info = MakeLabel($"{guard.GuardName} (Lv.{guard.Level}) | {roleStr} | 호감도 {guard.Loyalty:F0}",
                     UTKColor.TextPrimary);
-                info.style.flexGrow = 1f;
-                row.Add(info);
+                card.Add(info);
 
-                row.Add(UTKButton.Create("특사 선택", () =>
+                var buttonRow = new VisualElement();
+                buttonRow.style.flexDirection = FlexDirection.Row;
+                buttonRow.style.justifyContent = Justify.FlexEnd;
+                buttonRow.style.marginTop = 8f;
+                buttonRow.Add(UTKButton.Create("파견", () =>
                 {
                     _selectedEnvoy = guard;
                     _currentStep = UIStep.SelectMission;
                     Debug.Log($"[EnvoyUTK] 특사 선택 → {guard.GuardName} (Lv.{guard.Level})");
                     RefreshList();
                 }, UTKButton.Variant.Primary));
+                card.Add(buttonRow);
 
-                _list.Add(row);
+                _list.Add(card);
             }
         }
 
@@ -465,6 +469,32 @@ namespace ProjectName.UI.Toolkit
             row.Add(l);
             row.Add(v);
             _list.Add(row);
+        }
+
+        private static VisualElement MakeCard()
+        {
+            var card = new VisualElement();
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.marginBottom = 6f;
+            card.style.paddingTop = 10f;
+            card.style.paddingBottom = 10f;
+            card.style.paddingLeft = 10f;
+            card.style.paddingRight = 10f;
+            card.style.backgroundColor = new StyleColor(new Color(33f / 255f, 38f / 255f, 45f / 255f)); // #21262D
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            var stroke = new StyleColor(new Color(46f / 255f, 52f / 255f, 61f / 255f)); // #2E343D
+            card.style.borderTopColor = stroke;
+            card.style.borderBottomColor = stroke;
+            card.style.borderLeftColor = stroke;
+            card.style.borderRightColor = stroke;
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
+            return card;
         }
 
         private static Label MakeLabel(string text, Color color)

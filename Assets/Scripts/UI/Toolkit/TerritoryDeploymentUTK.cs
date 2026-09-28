@@ -141,18 +141,18 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
-        /// <summary>GitHub-dark 리스트 행(영지 항목) — 보조 패널 #21262D + 1px 스트로크 + r6 (이 창 한정).</summary>
-        private static void ApplyDarkRowStyle(VisualElement row)
+        /// <summary>GitHub-dark 카드 — #21262D 배경, #2E343D 스트로크, r8 (이 창 한정).</summary>
+        private static void ApplyDarkCardStyle(VisualElement card)
         {
-            if (row == null) return;
-            row.style.backgroundImage = new StyleBackground(StyleKeyword.None);
-            row.style.backgroundColor = GitHubDark.PanelSub;
-            row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 1f;
-            row.style.borderTopColor = row.style.borderBottomColor = row.style.borderLeftColor = row.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            row.style.borderTopLeftRadius = 6f;
-            row.style.borderTopRightRadius = 6f;
-            row.style.borderBottomLeftRadius = 6f;
-            row.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+            if (card == null) return;
+            card.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            card.style.backgroundColor = GitHubDark.PanelSub;
+            card.style.borderTopWidth = card.style.borderBottomWidth = card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = card.style.borderBottomColor = card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
         }
 
         // ===== 레퍼런스 =====
@@ -241,14 +241,14 @@ namespace ProjectName.UI.Toolkit
             var db = TerritoryDatabase.Instance;
             if (db == null)
             {
-                _list.Add(MakeLabel("(TerritoryDatabase 없음)", UTKColor.TextSecondary));
+                _list.Add(MakeLabel("(TerritoryDatabase 없음)", GitHubDark.TextSub));
                 return;
             }
 
             var playerTerrs = GetPlayerTerritories(db);
             if (playerTerrs.Count == 0)
             {
-                _list.Add(MakeLabel("점령한 영지가 없습니다.", UTKColor.TextSecondary));
+                _list.Add(MakeLabel("점령한 영지가 없습니다.", GitHubDark.TextSub));
                 return;
             }
 
@@ -266,12 +266,13 @@ namespace ProjectName.UI.Toolkit
 
                 var row = new VisualElement();
                 row.name = "TerrRow_" + seen;
-                ApplyDarkRowStyle(row);   // [GitHub-dark] 영지 행 = 보조 패널 리스트 아이템 (bg #21262D + 스트로크 + r6)
+                ApplyDarkCardStyle(row);   // [GitHub-dark] 영지 항목 카드 (bg #21262D + 스트로크 + r8)
                 row.style.flexDirection = FlexDirection.Column;
-                row.style.paddingLeft = 6f;   // 다크 행 배경 내 여백 (가시 전용)
-                row.style.paddingRight = 6f;
-                row.style.paddingTop = 4f;
-                row.style.paddingBottom = 6f;
+                row.style.paddingLeft = 10f;
+                row.style.paddingRight = 10f;
+                row.style.paddingTop = 8f;
+                row.style.paddingBottom = 10f;
+                row.style.marginBottom = 8f;
 
                 row.Add(MakeLabel($"◆ {def.territoryName}  [병사 {count} · {role}]", GitHubDark.TextMain));   // [GitHub-dark] 기본 텍스트
 
@@ -319,11 +320,13 @@ namespace ProjectName.UI.Toolkit
                             StyleButton(tBtn, UTKButton.Variant.Primary);   // [GitHub-dark] 대상 버튼 인라인 리스타일
                             row.Add(tBtn);
                         }
-                        row.Add(UTKButton.Create("선택 취소", () =>
+                        var cancelButton = UTKButton.Create("선택 취소", () =>
                         {
                             _pickingEnvoy = false;
                             RefreshList();
-                        }, UTKButton.Variant.Secondary));
+                        }, UTKButton.Variant.Secondary);
+                        StyleButton(cancelButton, UTKButton.Variant.Secondary);
+                        row.Add(cancelButton);
                     }
                 }
 
@@ -395,6 +398,7 @@ namespace ProjectName.UI.Toolkit
             foreach (var (label, onClick) in buttons)
             {
                 var b = UTKButton.Create(label, onClick, UTKButton.Variant.Secondary);
+                StyleButton(b, UTKButton.Variant.Secondary);
                 b.style.flexGrow = 1f;
                 b.style.fontSize = 12f;
                 rowEl.Add(b);

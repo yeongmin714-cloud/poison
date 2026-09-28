@@ -207,7 +207,10 @@ namespace ProjectName.UI.Toolkit
         private void DrawSpySelection()
         {
             _summaryLabel.text = $"🕵️ {GetTerritoryName(_currentTerritoryId)} — 정보원 파견";
-            _list.Add(MakeLabel("파견할 정보원을 선택하세요 (Lv.5+ 필요)", UTKColor.TextSecondary));
+            var instructionCard = MakeCard(FlexDirection.Row);
+            var instruction = MakeLabel("파견할 정보원을 선택하세요 (Lv.5+ 필요)", UTKColor.TextSecondary);
+            instructionCard.Add(instruction);
+            _list.Add(instructionCard);
 
             var spies = SpySystem.GetAvailableSpies();
             var filtered = new List<GuardPlaceholder>();
@@ -219,27 +222,25 @@ namespace ProjectName.UI.Toolkit
 
             if (filtered.Count == 0)
             {
-                _list.Add(MakeLabel("⚠️ 파견 가능한 정보원이 없습니다.\nLv.5 이상 포섭된 병사가 필요합니다.", UTKColor.HealthRed));
+                var emptyCard = MakeCard(FlexDirection.Row);
+                emptyCard.Add(MakeLabel("⚠️ 파견 가능한 정보원이 없습니다.\nLv.5 이상 포섭된 병사가 필요합니다.", UTKColor.HealthRed));
+                _list.Add(emptyCard);
                 return;
             }
 
             foreach (var guard in filtered)
             {
-                var row = new VisualElement();
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.borderTopWidth = 1f;
-                row.style.borderTopColor = new StyleColor(UTKColor.IronLine);
-                row.style.paddingTop = 4f;
-                row.style.paddingBottom = 4f;
+                var row = MakeCard(FlexDirection.Row);
                 row.style.alignItems = Align.Center;
 
                 string roleStr = GuardStatusSystem.GetRoleName(guard.Role);
-                var info = MakeLabel($"{guard.GuardName} (Lv.{guard.Level})  {roleStr} | 호감도 {guard.Loyalty:F0} | 민첩 {guard.GetAgility()}",
+                var info = MakeLabel($"{guard.GuardName} (Lv.{guard.Level}) | {roleStr} | 호감도 {guard.Loyalty:F0} | 민첩 {guard.GetAgility()}",
                     UTKColor.TextPrimary);
                 info.style.flexGrow = 1f;
+                info.style.marginRight = 8f;
                 row.Add(info);
 
-                row.Add(UTKButton.Create("정보원 선택", () =>
+                row.Add(UTKButton.Create("파견", () =>
                 {
                     _selectedSpy = guard;
                     _currentStep = UIStep.SelectMission;
@@ -494,6 +495,32 @@ namespace ProjectName.UI.Toolkit
             row.Add(l);
             row.Add(v);
             _list.Add(row);
+        }
+
+        /// <summary>정보원 선택 화면의 GitHub-dark 카드 기본 스타일.</summary>
+        private static VisualElement MakeCard(FlexDirection direction)
+        {
+            var card = new VisualElement();
+            card.style.flexDirection = direction;
+            card.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
+            card.style.paddingTop = 10f;
+            card.style.paddingBottom = 10f;
+            card.style.paddingLeft = 10f;
+            card.style.paddingRight = 10f;
+            card.style.marginBottom = 6f;
+            return card;
         }
 
         private static Label MakeLabel(string text, Color color)
