@@ -88,6 +88,16 @@ namespace ProjectName.UI.Toolkit
 
             _content.style.flexDirection = FlexDirection.Column;
             _content.style.flexGrow = 1f;
+            _content.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+
+            // GitHub-dark 상단 헤더 — 설정창에서만 베이스 윈도우의 헤더를 스타일링한다.
+            var titleBar = this.Q<VisualElement>("TitleBar");
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+                titleBar.style.borderBottomWidth = 1f;
+                titleBar.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            }
 
             BuildTabBar();
             _graphicsRoot = new VisualElement { name = "GraphicsTab" };
@@ -148,7 +158,14 @@ namespace ProjectName.UI.Toolkit
         {
             var bar = new VisualElement { name = "TabBar" };
             bar.style.flexDirection = FlexDirection.Row;
-            bar.style.marginBottom = 8f;
+            bar.style.marginBottom = 10f;
+            bar.style.paddingTop = 6f;
+            bar.style.paddingBottom = 6f;
+            bar.style.paddingLeft = 8f;
+            bar.style.paddingRight = 8f;
+            bar.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            bar.style.borderBottomWidth = 1f;
+            bar.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
             _content.Add(bar);
 
             BarBtn(bar, "그래픽", Tab.Graphics);
@@ -179,12 +196,8 @@ namespace ProjectName.UI.Toolkit
         // ─────────────────────────── 그래픽 탭 ───────────────────────────
         private void BuildGraphicsTab(VisualElement root)
         {
-            root.style.paddingTop = 6f;
-root.style.paddingBottom = 6f;
-root.style.paddingLeft = 6f;
-root.style.paddingRight = 6f;
+            StyleSettingsRoot(root);
 
-            root.Add(MkLabel("품질 설정", 16, UTKColor.AccentRare));
             _qualityDrop = new DropdownField("품질", QualityNameList(), 0);
             _qualityDrop.name = "QualityDropdown";
             _qualityDrop.style.width = 260f;
@@ -194,11 +207,8 @@ root.style.paddingRight = 6f;
                 _qualityLevel = _qualityDrop.index;
                 SavePrefs();
             });
-            root.Add(_qualityDrop);
+            AddSettingCard(root, _qualityDrop);
 
-            Span(root, 10f);
-
-            root.Add(MkLabel("해상도", 16, UTKColor.AccentRare));
             _resDrop = new DropdownField("해상도", new List<string>(), 0);
             _resDrop.name = "ResolutionDropdown";
             _resDrop.style.width = 300f;
@@ -209,9 +219,7 @@ root.style.paddingRight = 6f;
                 PlayerPrefs.SetInt("Settings_Resolution", _selectedResolutionIndex);
                 PlayerPrefs.Save();
             });
-            root.Add(_resDrop);
-
-            Span(root, 10f);
+            AddSettingCard(root, _resDrop);
 
             _fsToggle = new Toggle("전체 화면") { value = Screen.fullScreen };
             _fsToggle.name = "FullscreenToggle";
@@ -224,16 +232,13 @@ root.style.paddingRight = 6f;
                     Screen.SetResolution(r.width, r.height, evt.newValue);
                 }
             });
-            root.Add(_fsToggle);
+            AddSettingCard(root, _fsToggle);
         }
 
         // ─────────────────────────── 오디오 탭 ───────────────────────────
         private void BuildAudioTab(VisualElement root)
         {
-            root.style.paddingTop = 6f;
-root.style.paddingBottom = 6f;
-root.style.paddingLeft = 6f;
-root.style.paddingRight = 6f;
+            StyleSettingsRoot(root);
 
             AddVolumeSlider(root, "BGM (배경음악)", _bgmVolume, v => _bgmVolume = v);
             AddVolumeSlider(root, "SFX (효과음)", _sfxVolume, v => _sfxVolume = v);
@@ -247,9 +252,8 @@ root.style.paddingRight = 6f;
                                      System.Action<float> setter)
         {
             var wrap = new VisualElement();
+            StyleSettingCard(wrap);
             wrap.style.flexDirection = FlexDirection.Column;
-            wrap.style.marginBottom = 6f;
-            wrap.style.paddingBottom = 2f;
 
             var head = new VisualElement();
             head.style.flexDirection = FlexDirection.Row;
@@ -287,11 +291,8 @@ root.style.paddingRight = 6f;
 
         private void BuildKeyBindingsTab(VisualElement root)
         {
-            root.style.paddingTop = 6f;
-root.style.paddingBottom = 6f;
-root.style.paddingLeft = 6f;
-root.style.paddingRight = 6f;
-            root.Add(MkLabel("키 설정 (읽기 전용 — 게임 내 옵션에서도 동일)", 15, UTKColor.AccentRare));
+            StyleSettingsRoot(root);
+            root.Add(MkDesc("키 설정 (읽기 전용 — 게임 내 옵션에서도 동일)", 13, UTKColor.TextSecondary));
 
             var list = new ScrollView();
             list.style.flexGrow = 1f;
@@ -300,8 +301,24 @@ root.style.paddingRight = 6f;
 
             foreach (var kb in KeyBindings)
             {
-                var line = MkLabel($"{kb.name}:  [{kb.key}]", 15, UTKColor.TextPrimary);
-                line.style.marginBottom = 4f;
+                var line = new VisualElement();
+                StyleSettingCard(line);
+                line.style.flexDirection = FlexDirection.Row;
+                line.style.alignItems = Align.Center;
+                var action = MkLabel(kb.name, 15, UTKColor.TextPrimary);
+                action.style.flexGrow = 1f;
+                var key = MkLabel(kb.key, 14, UTKColor.AccentMagic);
+                key.style.unityTextAlign = TextAnchor.MiddleCenter;
+                key.style.minWidth = 64f;
+                key.style.paddingTop = 4f;
+                key.style.paddingBottom = 4f;
+                key.style.paddingLeft = 8f;
+                key.style.paddingRight = 8f;
+                key.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+                key.style.borderTopLeftRadius = key.style.borderTopRightRadius = 4f;
+                key.style.borderBottomLeftRadius = key.style.borderBottomRightRadius = 4f;
+                line.Add(action);
+                line.Add(key);
                 list.Add(line);
             }
 
@@ -311,13 +328,12 @@ root.style.paddingRight = 6f;
         // ─────────────────────────── 접근성 탭 (AccessibilityManager 실측 연동) ───────────────────────────
         private void BuildAccessibilityTab(VisualElement root)
         {
-            root.style.paddingTop = 6f;
-root.style.paddingBottom = 6f;
-root.style.paddingLeft = 6f;
-root.style.paddingRight = 6f;
+            StyleSettingsRoot(root);
 
             // ── 툴팁 지연 시간 (원본: 0~1.5s, 기본 0.3) ──
-            root.Add(MkLabel("툴팁 지연 시간", 16, UTKColor.AccentRare));
+            var tooltipCard = CreateSettingCard();
+            tooltipCard.style.flexDirection = FlexDirection.Column;
+            tooltipCard.Add(MkLabel("툴팁 지연 시간", 15, UTKColor.TextPrimary));
             var tooltipHead = new VisualElement();
             tooltipHead.style.flexDirection = FlexDirection.Row;
             tooltipHead.style.alignItems = Align.Center;
@@ -332,13 +348,15 @@ root.style.paddingRight = 6f;
                 AccessibilityManager.SetTooltipDelay(evt.newValue);   // 즉시 저장
                 tooltipVal.text = $"{evt.newValue:F1}초";
             });
-            root.Add(tooltipHead);
-            root.Add(_tooltipSlider);
-            root.Add(MkDesc("  ※ 변경 즉시 저장", 12, UTKColor.TextSecondary));
-            Span(root, 10f);
+            tooltipCard.Add(tooltipHead);
+            tooltipCard.Add(_tooltipSlider);
+            tooltipCard.Add(MkDesc("※ 변경 즉시 저장", 12, UTKColor.TextSecondary));
+            root.Add(tooltipCard);
 
             // ── 색맹 모드 (원본: 켜짐/꺼짐 토글) ──
-            root.Add(MkLabel("색맹 모드", 16, UTKColor.AccentRare));
+            var colorBlindCard = CreateSettingCard();
+            colorBlindCard.style.flexDirection = FlexDirection.Column;
+            colorBlindCard.Add(MkLabel("색맹 모드", 15, UTKColor.TextPrimary));
             _colorBlindToggle = new Toggle("색맹 모드") { value = AccessibilityManager.ColorBlindMode };
             _colorBlindToggle.name = "ColorBlindToggle";
             _colorBlindDescLabel = MkDesc(_colorBlindToggle.value
@@ -356,12 +374,14 @@ root.style.paddingRight = 6f;
                 string prefixTest = AccessibilityManager.GetRarityPrefix("전설");
                 Debug.Log("[SettingsUTK] 색맹 모드 → " + AccessibilityManager.ColorBlindMode + " (GetRarityPrefix 시험): " + prefixTest);
             });
-            root.Add(_colorBlindToggle);
-            root.Add(_colorBlindDescLabel);
-            Span(root, 10f);
+            colorBlindCard.Add(_colorBlindToggle);
+            colorBlindCard.Add(_colorBlindDescLabel);
+            root.Add(colorBlindCard);
 
             // ── 자막 크기 (원본: 0.8~2.0x, 기본 1.0) ──
-            root.Add(MkLabel("자막 크기", 16, UTKColor.AccentRare));
+            var subtitleCard = CreateSettingCard();
+            subtitleCard.style.flexDirection = FlexDirection.Column;
+            subtitleCard.Add(MkLabel("자막 크기", 15, UTKColor.TextPrimary));
             var subtitleHead = new VisualElement();
             subtitleHead.style.flexDirection = FlexDirection.Row;
             subtitleHead.style.alignItems = Align.Center;
@@ -376,9 +396,10 @@ root.style.paddingRight = 6f;
                 AccessibilityManager.SetSubtitleScale(evt.newValue);   // 즉시 저장
                 subtitleVal.text = $"{evt.newValue:F1}x";
             });
-            root.Add(subtitleHead);
-            root.Add(_subtitleSlider);
-            root.Add(MkDesc("  ※ 변경 즉시 저장", 12, UTKColor.TextSecondary));
+            subtitleCard.Add(subtitleHead);
+            subtitleCard.Add(_subtitleSlider);
+            subtitleCard.Add(MkDesc("※ 변경 즉시 저장", 12, UTKColor.TextSecondary));
+            root.Add(subtitleCard);
         }
 
         // ─────────────────────────── 해상도 헬퍼 ───────────────────────────
@@ -458,6 +479,47 @@ root.style.paddingRight = 6f;
             var s = new VisualElement();
             s.style.height = h;
             parent.Add(s);
+        }
+
+        private static void StyleSettingsRoot(VisualElement root)
+        {
+            root.style.paddingTop = 4f;
+            root.style.paddingBottom = 6f;
+            root.style.paddingLeft = 6f;
+            root.style.paddingRight = 6f;
+        }
+
+        private static VisualElement CreateSettingCard()
+        {
+            var card = new VisualElement();
+            StyleSettingCard(card);
+            return card;
+        }
+
+        private static void AddSettingCard(VisualElement root, VisualElement control)
+        {
+            var card = CreateSettingCard();
+            card.style.flexDirection = FlexDirection.Row;
+            card.style.alignItems = Align.Center;
+            control.style.flexGrow = 1f;
+            card.Add(control);
+            root.Add(card);
+        }
+
+        private static void StyleSettingCard(VisualElement card)
+        {
+            card.style.marginBottom = 8f;
+            card.style.paddingTop = 10f;
+            card.style.paddingBottom = 10f;
+            card.style.paddingLeft = 12f;
+            card.style.paddingRight = 12f;
+            card.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            card.style.borderTopWidth = card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = card.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 8f;
         }
 
         private static Label MkLabel(string text, float size, Color color)

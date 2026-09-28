@@ -58,6 +58,7 @@ namespace ProjectName.UI.Toolkit
         // ─────────────────────────── 설정 ───────────────────────────
         private const float WinW = 720f;
         private const float WinH = 560f;
+        private static readonly Color OptionCardColor = new Color(33f / 255f, 38f / 255f, 45f / 255f);
 
         private enum Tab { Graphics, Audio, KeyBindings }
         private Tab _currentTab = Tab.Graphics;
@@ -143,6 +144,12 @@ namespace ProjectName.UI.Toolkit
             var bar = new VisualElement { name = "TabBar" };
             bar.style.flexDirection = FlexDirection.Row;
             bar.style.marginBottom = 8f;
+            bar.style.paddingTop = 5f;
+            bar.style.paddingBottom = 5f;
+            bar.style.paddingLeft = 6f;
+            bar.style.paddingRight = 6f;
+            bar.style.backgroundColor = UTKColor.BgPanel;
+            SetCardBorder(bar);
             _content.Add(bar);
 
             BarBtn(bar, "그래픽", Tab.Graphics);
@@ -150,6 +157,68 @@ namespace ProjectName.UI.Toolkit
             BarBtn(bar, "키 설정", Tab.KeyBindings);
         }
 
+        private static void SetCardBorder(VisualElement element)
+        {
+            element.style.borderTopWidth = 1f;
+            element.style.borderBottomWidth = 1f;
+            element.style.borderLeftWidth = 1f;
+            element.style.borderRightWidth = 1f;
+            element.style.borderTopColor = UTKColor.IronLine;
+            element.style.borderBottomColor = UTKColor.IronLine;
+            element.style.borderLeftColor = UTKColor.IronLine;
+            element.style.borderRightColor = UTKColor.IronLine;
+            element.style.borderTopLeftRadius = 8f;
+            element.style.borderTopRightRadius = 8f;
+            element.style.borderBottomLeftRadius = 8f;
+            element.style.borderBottomRightRadius = 8f;
+        }
+
+        private static VisualElement MakeSectionHeader(VisualElement root, string title)
+        {
+            var header = new VisualElement { name = title + "HeaderCard" };
+            header.style.paddingTop = 8f;
+            header.style.paddingBottom = 8f;
+            header.style.paddingLeft = 12f;
+            header.style.paddingRight = 12f;
+            header.style.marginBottom = 4f;
+            header.style.backgroundColor = UTKColor.BgPanel;
+            SetCardBorder(header);
+            var label = MkLabel(title, 16, UTKColor.AccentRare);
+            header.Add(label);
+            root.Add(header);
+            return header;
+        }
+
+        private static VisualElement MakeOptionCard(VisualElement root, string name)
+        {
+            var card = new VisualElement { name = name + "OptionsCard" };
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.paddingTop = 10f;
+            card.style.paddingBottom = 10f;
+            card.style.paddingLeft = 12f;
+            card.style.paddingRight = 12f;
+            card.style.marginBottom = 10f;
+            card.style.backgroundColor = OptionCardColor;
+            SetCardBorder(card);
+            root.Add(card);
+            return card;
+        }
+
+        private static VisualElement MakeActionStrip(VisualElement parent)
+        {
+            var strip = new VisualElement { name = "Actions" };
+            strip.style.flexDirection = FlexDirection.Row;
+            strip.style.justifyContent = Justify.FlexEnd;
+            strip.style.paddingTop = 6f;
+            strip.style.paddingBottom = 6f;
+            strip.style.paddingLeft = 8f;
+            strip.style.paddingRight = 8f;
+            strip.style.marginTop = 2f;
+            strip.style.backgroundColor = UTKColor.BgPanel;
+            SetCardBorder(strip);
+            parent.Add(strip);
+            return strip;
+        }
         private void BarBtn(VisualElement bar, string label, Tab tab)
         {
             var b = UTKButton.Create(label, () => SelectTab(tab), UTKButton.Variant.Secondary);
@@ -172,11 +241,12 @@ namespace ProjectName.UI.Toolkit
         private void BuildGraphicsTab(VisualElement root)
         {
             root.style.paddingTop = 6f;
-root.style.paddingBottom = 6f;
-root.style.paddingLeft = 6f;
-root.style.paddingRight = 6f;
+            root.style.paddingBottom = 6f;
+            root.style.paddingLeft = 6f;
+            root.style.paddingRight = 6f;
 
-            root.Add(MkLabel("품질 설정", 16, UTKColor.AccentRare));
+            MakeSectionHeader(root, "품질 설정");
+            var qualityCard = MakeOptionCard(root, "Quality");
             _qualityDrop = new DropdownField("품질", QualityNameList(), 0);
             _qualityDrop.name = "QualityDropdown";
             _qualityDrop.style.width = 260f;
@@ -186,12 +256,11 @@ root.style.paddingRight = 6f;
                 _qualityLevel = _qualityDrop.index;
                 SavePrefs();
             });
-            root.Add(_qualityDrop);
-            root.Add(MkDesc("  (* 변경 즉시 저장 + QualitySettings.SetQualityLevel)", 12, UTKColor.GuildGreen));
+            qualityCard.Add(_qualityDrop);
+            qualityCard.Add(MkDesc("변경 즉시 저장 + QualitySettings.SetQualityLevel", 12, UTKColor.GuildGreen));
 
-            Span(root, 10f);
-
-            root.Add(MkLabel("해상도", 16, UTKColor.AccentRare));
+            MakeSectionHeader(root, "해상도");
+            var resolutionCard = MakeOptionCard(root, "Resolution");
             _resDrop = new DropdownField("해상도", new List<string>(), 0);
             _resDrop.name = "ResolutionDropdown";
             _resDrop.style.width = 300f;
@@ -201,12 +270,11 @@ root.style.paddingRight = 6f;
                 ApplyCurrentResolution();
                 SavePrefs();
             });
-            root.Add(_resDrop);
-
-            Span(root, 10f);
+            resolutionCard.Add(_resDrop);
 
             _fsToggle = new Toggle("전체 화면") { value = Screen.fullScreen };
             _fsToggle.name = "FullscreenToggle";
+            _fsToggle.style.marginTop = 8f;
             _fsToggle.RegisterValueChangedCallback(evt =>
             {
                 Screen.fullScreen = evt.newValue;
@@ -216,31 +284,32 @@ root.style.paddingRight = 6f;
                     Screen.SetResolution(r.width, r.height, evt.newValue);
                 }
             });
-            root.Add(_fsToggle);
+            resolutionCard.Add(_fsToggle);
 
-            Span(root, 14f);
-
+            var actions = MakeActionStrip(root);
             var applyBtn = UTKButton.Create("적용 / 저장",
                 () => { SavePrefs(); UTKToastService.Show("✅ 설정이 저장되었습니다."); },
                 UTKButton.Variant.Primary);
             applyBtn.style.width = 180f;
-            root.Add(applyBtn);
+            actions.Add(applyBtn);
         }
 
         // ─────────────────────────── 오디오 탭 ───────────────────────────
         private void BuildAudioTab(VisualElement root)
         {
             root.style.paddingTop = 6f;
-root.style.paddingBottom = 6f;
-root.style.paddingLeft = 6f;
-root.style.paddingRight = 6f;
+            root.style.paddingBottom = 6f;
+            root.style.paddingLeft = 6f;
+            root.style.paddingRight = 6f;
 
-            AddVolumeSlider(root, "BGM (배경음악)", _bgmVolume, v => _bgmVolume = v);
-            AddVolumeSlider(root, "SFX (효과음)", _sfxVolume, v => _sfxVolume = v);
-            AddVolumeSlider(root, "UI (UI 사운드)", _uiVolume, v => _uiVolume = v);
-            AddVolumeSlider(root, "Ambient (환경음)", _ambientVolume, v => _ambientVolume = v);
+            MakeSectionHeader(root, "오디오 설정");
+            var audioCard = MakeOptionCard(root, "Audio");
+            AddVolumeSlider(audioCard, "BGM (배경음악)", _bgmVolume, v => _bgmVolume = v);
+            AddVolumeSlider(audioCard, "SFX (효과음)", _sfxVolume, v => _sfxVolume = v);
+            AddVolumeSlider(audioCard, "UI (UI 사운드)", _uiVolume, v => _uiVolume = v);
+            AddVolumeSlider(audioCard, "Ambient (환경음)", _ambientVolume, v => _ambientVolume = v);
 
-            root.Add(MkDesc("  ※ 변경사항은 즉시 저장됩니다.", 12, UTKColor.TextSecondary));
+            audioCard.Add(MkDesc("변경사항은 즉시 저장됩니다.", 12, UTKColor.TextSecondary));
         }
 
         private void AddVolumeSlider(VisualElement root, string label, float init,
@@ -288,15 +357,20 @@ root.style.paddingRight = 6f;
         private void BuildKeyBindingsTab(VisualElement root)
         {
             root.style.paddingTop = 6f;
-root.style.paddingBottom = 6f;
-root.style.paddingLeft = 6f;
-root.style.paddingRight = 6f;
-            root.Add(MkLabel("키 설정 (읽기 전용 — 변경은 게임 외 설정 메뉴)", 15, UTKColor.AccentRare));
+            root.style.paddingBottom = 6f;
+            root.style.paddingLeft = 6f;
+            root.style.paddingRight = 6f;
+
+            MakeSectionHeader(root, "키 설정");
+            var keyCard = MakeOptionCard(root, "KeyBindings");
+            keyCard.style.flexGrow = 1f;
+            var intro = MkDesc("읽기 전용 — 변경은 게임 외 설정 메뉴", 13, UTKColor.TextSecondary);
+            intro.style.marginBottom = 6f;
+            keyCard.Add(intro);
 
             var list = new ScrollView();
             list.style.flexGrow = 1f;
-            list.style.marginTop = 6f;
-            root.Add(list);
+            keyCard.Add(list);
 
             foreach (var kb in KeyBindings)
             {
@@ -305,7 +379,7 @@ root.style.paddingRight = 6f;
                 list.Add(line);
             }
 
-            root.Add(MkDesc("  ※ 키 변경은 전용 키 설정 메뉴에서 가능합니다.", 12, UTKColor.TextSecondary));
+            keyCard.Add(MkDesc("키 변경은 전용 키 설정 메뉴에서 가능합니다.", 12, UTKColor.TextSecondary));
         }
 
         // ─────────────────────────── 해상도 헬퍼 ───────────────────────────
@@ -377,13 +451,6 @@ root.style.paddingRight = 6f;
         }
 
         // ─────────────────────────── 내부 헬퍼 ───────────────────────────
-        private static void Span(VisualElement parent, float h)
-        {
-            var s = new VisualElement();
-            s.style.height = h;
-            parent.Add(s);
-        }
-
         private static Label MkLabel(string text, float size, Color color)
         {
             var l = new Label(text ?? "");

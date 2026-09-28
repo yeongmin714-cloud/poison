@@ -95,25 +95,48 @@ namespace ProjectName.UI.Toolkit
         {
             _menuView = new VisualElement();
             _menuView.name = "MainView";
+            _menuView.style.width = 360f;
             _menuView.style.alignItems = Align.Center;
             _menuView.style.justifyContent = Justify.Center;
+
+            // Figma / GitHub-dark 타이틀 헤더 카드.
+            var header = new VisualElement();
+            header.name = "MenuHeader";
+            header.style.width = Length.Percent(100f);
+            header.style.alignItems = Align.Center;
+            header.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            header.style.borderTopWidth = 1f;
+            header.style.borderBottomWidth = 1f;
+            header.style.borderLeftWidth = 1f;
+            header.style.borderRightWidth = 1f;
+            header.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            header.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            header.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
+            header.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            header.style.paddingTop = 16f;
+            header.style.paddingBottom = 16f;
+            header.style.marginBottom = 16f;
+            header.style.borderTopLeftRadius = 8f;
+            header.style.borderTopRightRadius = 8f;
+            header.style.borderBottomLeftRadius = 8f;
+            header.style.borderBottomRightRadius = 8f;
 
             var title = new Label("Korea 1420");
             title.style.fontSize = 34f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.color = new StyleColor(new Color(0.9f, 0.7f, 0.3f, 1f));
-            _menuView.Add(title);
+            title.style.color = new StyleColor(UTKColor.AccentRare);
+            header.Add(title);
 
             var subtitle = new Label("— 조선 —");
             subtitle.style.color = new StyleColor(UTKColor.TextSecondary);
             subtitle.style.marginTop = 4f;
-            subtitle.style.marginBottom = 18f;
-            _menuView.Add(subtitle);
+            header.Add(subtitle);
+            _menuView.Add(header);
 
-            _menuView.Add(UTKButton.Create("🆕 새 게임", OnNewGameClicked, UTKButton.Variant.Primary));
-            _menuView.Add(UTKButton.Create("📂 이어하기", OnContinueClicked, UTKButton.Variant.Secondary));
-            _menuView.Add(UTKButton.Create("⚙ 설정", OnSettingsClicked, UTKButton.Variant.Secondary));
-            _menuView.Add(UTKButton.Create("❌ 종료", OnQuitClicked, UTKButton.Variant.Danger));
+            _menuView.Add(CreateMenuCardButton("🆕 새 게임", OnNewGameClicked, UTKButton.Variant.Primary));
+            _menuView.Add(CreateMenuCardButton("📂 이어하기", OnContinueClicked, UTKButton.Variant.Secondary));
+            _menuView.Add(CreateMenuCardButton("⚙ 설정", OnSettingsClicked, UTKButton.Variant.Secondary));
+            _menuView.Add(CreateMenuCardButton("❌ 종료", OnQuitClicked, UTKButton.Variant.Danger));
 
             _menuMsgLabel = new Label("");
             _menuMsgLabel.style.color = new StyleColor(UTKColor.TextSecondary);
@@ -122,6 +145,48 @@ namespace ProjectName.UI.Toolkit
 
             Add(_menuView);
         }
+
+        private Button CreateMenuCardButton(string label, System.Action onClick, UTKButton.Variant variant)
+        {
+            var button = UTKButton.Create(label, onClick, variant);
+            button.style.width = BtnW;
+            button.style.height = BtnH;
+            button.style.marginBottom = BtnSpacing;
+            button.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            button.style.color = new StyleColor(UTKColor.TextPrimary);
+            button.style.borderTopWidth = 1f;
+            button.style.borderBottomWidth = 1f;
+            button.style.borderLeftWidth = 1f;
+            button.style.borderRightWidth = 1f;
+            button.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            button.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            button.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
+            button.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            button.style.borderTopLeftRadius = 8f;
+            button.style.borderTopRightRadius = 8f;
+            button.style.borderBottomLeftRadius = 8f;
+            button.style.borderBottomRightRadius = 8f;
+            button.RegisterCallback<PointerEnterEvent>(_ =>
+            {
+                var gold = new StyleColor(UTKColor.HoverGold);
+                button.style.borderTopColor = gold;
+                button.style.borderBottomColor = gold;
+                button.style.borderLeftColor = gold;
+                button.style.borderRightColor = gold;
+                button.style.color = gold;
+            });
+            button.RegisterCallback<PointerLeaveEvent>(_ =>
+            {
+                var stroke = new StyleColor(UTKColor.BorderBronze);
+                button.style.borderTopColor = stroke;
+                button.style.borderBottomColor = stroke;
+                button.style.borderLeftColor = stroke;
+                button.style.borderRightColor = stroke;
+                button.style.color = new StyleColor(UTKColor.TextPrimary);
+            });
+            return button;
+        }
+
 
         private void BuildDifficultyView()
         {
