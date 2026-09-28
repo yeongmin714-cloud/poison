@@ -79,7 +79,9 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 레퍼런스 =====
         private readonly VisualElement _list;
+        private readonly VisualElement _headerCard;
         private Label _summaryLabel;
+        private Label _descriptionLabel;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
 
         private QuestChoiceUTK() : base("❓ 선택지", new Vector2(WinW, WinH))
@@ -87,10 +89,38 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
+            _headerCard = new VisualElement();
+            _headerCard.name = "QuestChoiceHeaderCard";
+            _headerCard.style.flexDirection = FlexDirection.Column;
+            _headerCard.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            _headerCard.style.borderTopWidth = 1f;
+            _headerCard.style.borderBottomWidth = 1f;
+            _headerCard.style.borderLeftWidth = 1f;
+            _headerCard.style.borderRightWidth = 1f;
+            _headerCard.style.borderTopColor = new StyleColor(UTKColor.IronLine);
+            _headerCard.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+            _headerCard.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
+            _headerCard.style.borderRightColor = new StyleColor(UTKColor.IronLine);
+            _headerCard.style.borderTopLeftRadius = 8f;
+            _headerCard.style.borderTopRightRadius = 8f;
+            _headerCard.style.borderBottomLeftRadius = 8f;
+            _headerCard.style.borderBottomRightRadius = 8f;
+            _headerCard.style.paddingLeft = 14f;
+            _headerCard.style.paddingRight = 14f;
+            _headerCard.style.paddingTop = 12f;
+            _headerCard.style.paddingBottom = 12f;
+            _headerCard.style.marginBottom = 12f;
+
             _summaryLabel = new Label("❓ 선택지");
             _summaryLabel.AddToClassList("utk-title-label");
             _summaryLabel.style.fontSize = 18f;
-            _content.Add(_summaryLabel);
+            _summaryLabel.style.color = new StyleColor(UTKColor.AccentRare);
+            _headerCard.Add(_summaryLabel);
+
+            _descriptionLabel = MakeLabel("", UTKColor.TextSecondary, true);
+            _descriptionLabel.style.marginTop = 6f;
+            _headerCard.Add(_descriptionLabel);
+            _content.Add(_headerCard);
 
             _list = new VisualElement();
             _list.name = "QuestChoiceList";
@@ -203,7 +233,7 @@ namespace ProjectName.UI.Toolkit
         private void DrawChoices()
         {
             _summaryLabel.text = _node.title;
-            _list.Add(MakeLabel(_node.description, UTKColor.TextSecondary, false));
+            _descriptionLabel.text = _node.description ?? "";
 
             if (_choices == null || _choices.Length == 0)
                 return;
@@ -219,10 +249,12 @@ namespace ProjectName.UI.Toolkit
                 string prefix = (choiceIndex + 1) + ". " + choice.text;
                 if (available)
                 {
-                    _list.Add(UTKButton.Create(prefix, () =>
+                    var choiceButton = UTKButton.Create(prefix, () =>
                     {
                         OnChoiceSelected(choiceIndex);
-                    }, UTKButton.Variant.Secondary));
+                    }, UTKButton.Variant.Secondary);
+                    ApplyChoiceCardStyle(choiceButton);
+                    _list.Add(choiceButton);
                 }
                 else
                 {
@@ -231,6 +263,7 @@ namespace ProjectName.UI.Toolkit
                         disabledText += " (" + choice.condition.failMessage + ")";
                     var disabled = MakeLabel(disabledText, UTKColor.TextSecondary, false);
                     disabled.style.opacity = 0.55f;
+                    ApplyChoiceCardStyle(disabled);
                     _list.Add(disabled);
                 }
 
@@ -243,6 +276,7 @@ namespace ProjectName.UI.Toolkit
         private void DrawResult()
         {
             _summaryLabel.text = "결과";
+            _descriptionLabel.text = "";
             _list.Add(MakeLabel(_resultText ?? "", UTKColor.TextPrimary, true));
 
             var closeBtn = UTKButton.Create("확인", HideNow, UTKButton.Variant.Primary);
@@ -304,6 +338,31 @@ namespace ProjectName.UI.Toolkit
             if (wrap)
                 l.style.whiteSpace = WhiteSpace.Normal;
             return l;
+        }
+
+        private static void ApplyChoiceCardStyle(VisualElement card)
+        {
+            var surface = new Color32(0x21, 0x26, 0x2D, 0xFF);
+            card.style.backgroundColor = new StyleColor(surface);
+            card.style.color = new StyleColor(UTKColor.TextPrimary);
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = new StyleColor(UTKColor.IronLine);
+            card.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+            card.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
+            card.style.borderRightColor = new StyleColor(UTKColor.IronLine);
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
+            card.style.paddingLeft = 14f;
+            card.style.paddingRight = 14f;
+            card.style.paddingTop = 12f;
+            card.style.paddingBottom = 12f;
+            card.style.marginBottom = 8f;
+            card.style.whiteSpace = WhiteSpace.Normal;
         }
     }
 }

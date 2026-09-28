@@ -64,6 +64,7 @@ namespace ProjectName.UI.Toolkit
         private readonly VisualElement _list;
         private Label _goldLabel;
         private Label _summaryLabel;
+        private Label _costHeaderLabel;
         private IVisualElementScheduledItem _refreshTask;
 
         private FastTravelUTK() : base("⚡ 빠른 이동", new Vector2(WinW, WinH))
@@ -71,15 +72,28 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
+            var headerCard = new VisualElement();
+            ApplyCardStyle(headerCard, UTKTheme.Panel, 10f);
+            headerCard.style.marginBottom = 10f;
+
             _summaryLabel = new Label("⚡ 빠른 이동");
             _summaryLabel.AddToClassList("utk-title-label");
             _summaryLabel.style.fontSize = 18f;
-            _content.Add(_summaryLabel);
+            _summaryLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            headerCard.Add(_summaryLabel);
 
             _goldLabel = new Label("💰 보유 골드: 0G");
             _goldLabel.style.fontSize = 14f;
             _goldLabel.style.color = new StyleColor(UTKColor.TextSecondary);
-            _content.Add(_goldLabel);
+            _goldLabel.style.marginTop = 4f;
+            headerCard.Add(_goldLabel);
+
+            _costHeaderLabel = new Label("이동 비용은 목적지 난이도에 따라 달라집니다.");
+            _costHeaderLabel.style.fontSize = 12f;
+            _costHeaderLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _costHeaderLabel.style.marginTop = 3f;
+            headerCard.Add(_costHeaderLabel);
+            _content.Add(headerCard);
 
             _list = new VisualElement();
             _list.name = "FastTravelList";
@@ -162,25 +176,37 @@ namespace ProjectName.UI.Toolkit
             _list.Add(MakeLabel("이동할 영지를 선택하세요", UTKColor.TextSecondary));
             foreach (var def in _owned)
             {
-                var row = new VisualElement();
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.borderTopWidth = 1f;
-                row.style.borderTopColor = new StyleColor(UTKColor.IronLine);
-                row.style.paddingTop = 4f;
-                row.style.paddingBottom = 4f;
-                row.style.alignItems = Align.Center;
-
                 int cost = FastTravelSystem.Instance != null
                     ? FastTravelSystem.Instance.GetTravelCost(def.difficulty)
                     : 5;
                 bool canAfford = FastTravelSystem.Instance != null
                     && FastTravelSystem.Instance.CanAffordTravel(cost);
-                string text = $"{def.territoryName}  |  {GetRingText(def.difficulty)}  |  {cost}G";
-                var info = MakeLabel(text, canAfford ? UTKColor.TextPrimary : UTKColor.TextSecondary);
-                info.style.flexGrow = 1f;
-                row.Add(info);
 
-                row.Add(UTKButton.Create(canAfford ? "이동" : "골드 부족", () =>
+                var card = new VisualElement();
+                ApplyCardStyle(card, UTKTheme.PanelSub, 10f);
+                card.style.marginTop = 5f;
+                card.style.marginBottom = 5f;
+
+                var info = new VisualElement();
+                info.style.flexGrow = 1f;
+                info.style.flexDirection = FlexDirection.Column;
+                info.style.justifyContent = Justify.Center;
+
+                var name = MakeLabel(def.territoryName, UTKColor.TextPrimary);
+                name.style.fontSize = 15f;
+                name.style.unityFontStyleAndWeight = FontStyle.Bold;
+                info.Add(name);
+
+                var details = MakeLabel($"{GetRingText(def.difficulty)}  ·  이동 비용 {cost}G", UTKColor.TextSecondary);
+                details.style.marginTop = 3f;
+                info.Add(details);
+
+                var actionRow = new VisualElement();
+                actionRow.style.flexDirection = FlexDirection.Row;
+                actionRow.style.alignItems = Align.Center;
+                actionRow.style.marginTop = 8f;
+                actionRow.Add(info);
+                actionRow.Add(UTKButton.Create(canAfford ? "이동" : "골드 부족", () =>
                 {
                     if (!canAfford)
                     {
@@ -192,7 +218,8 @@ namespace ProjectName.UI.Toolkit
                     RefreshList();
                 }, canAfford ? UTKButton.Variant.Primary : UTKButton.Variant.Danger));
 
-                _list.Add(row);
+                card.Add(actionRow);
+                _list.Add(card);
             }
 
             _list.Add(UTKButton.Create("[ ESC ] 닫기", () => Close(), UTKButton.Variant.Secondary));
@@ -283,6 +310,27 @@ namespace ProjectName.UI.Toolkit
             row.Add(l);
             row.Add(v);
             _list.Add(row);
+        }
+
+        private static void ApplyCardStyle(VisualElement card, Color background, float padding)
+        {
+            card.style.backgroundColor = new StyleColor(background);
+            card.style.paddingTop = padding;
+            card.style.paddingBottom = padding;
+            card.style.paddingLeft = padding;
+            card.style.paddingRight = padding;
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = new StyleColor(UTKTheme.Stroke);
+            card.style.borderBottomColor = new StyleColor(UTKTheme.Stroke);
+            card.style.borderLeftColor = new StyleColor(UTKTheme.Stroke);
+            card.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
         }
 
         private static Label MakeLabel(string text, Color color)

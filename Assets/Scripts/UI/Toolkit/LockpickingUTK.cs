@@ -61,24 +61,53 @@ namespace ProjectName.UI.Toolkit
             _content.style.paddingLeft = 10f;
             _content.style.paddingTop = 6f;
 
-            _infoLabel = MakeText("🔒 난이도 —", UTKColor.TextSecondary);
+            // 난이도/내구도/시간 정보 카드 — Figma GitHub-dark (#161B22)
+            var infoCard = new VisualElement();
+            infoCard.style.flexDirection = FlexDirection.Column;
+            infoCard.style.paddingLeft = 10f;
+            infoCard.style.paddingRight = 10f;
+            infoCard.style.paddingTop = 8f;
+            infoCard.style.paddingBottom = 8f;
+            infoCard.style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xFF));
+            infoCard.style.borderTopWidth = infoCard.style.borderBottomWidth = 1f;
+            infoCard.style.borderLeftWidth = infoCard.style.borderRightWidth = 1f;
+            infoCard.style.borderTopColor = infoCard.style.borderBottomColor =
+                infoCard.style.borderLeftColor = infoCard.style.borderRightColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            infoCard.style.borderTopLeftRadius = infoCard.style.borderTopRightRadius = 6f;
+            infoCard.style.borderBottomLeftRadius = infoCard.style.borderBottomRightRadius = 6f;
+            infoCard.style.marginBottom = 6f;
+            _content.Add(infoCard);
+
+            _infoLabel = MakeText("🔒 난이도 —", UTKColor.TextPrimary);
             _infoLabel.style.fontSize = 14f;
-            _content.Add(_infoLabel);
+            infoCard.Add(_infoLabel);
 
             _durLabel = MakeText("❤️ 내구도: -/-", UTKColor.GuildGreen);
             _durLabel.style.fontSize = 14f;
             _durLabel.style.marginTop = 4f;
-            _content.Add(_durLabel);
+            infoCard.Add(_durLabel);
 
             _timeLabel = MakeText("⏱️ 남은 시간: -초", UTKColor.TextSecondary);
             _timeLabel.style.fontSize = 14f;
             _timeLabel.style.marginTop = 2f;
-            _content.Add(_timeLabel);
+            infoCard.Add(_timeLabel);
 
-            // 픽 도구 선택 행
+            // 등급 선택 버튼 띠 — GitHub-dark 보조 패널
             var gradeRow = new VisualElement();
             gradeRow.style.flexDirection = FlexDirection.Row;
-            gradeRow.style.marginTop = 8f;
+            gradeRow.style.marginTop = 2f;
+            gradeRow.style.marginBottom = 2f;
+            gradeRow.style.paddingLeft = 6f;
+            gradeRow.style.paddingRight = 6f;
+            gradeRow.style.paddingTop = 5f;
+            gradeRow.style.paddingBottom = 5f;
+            gradeRow.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            gradeRow.style.borderTopWidth = gradeRow.style.borderBottomWidth = 1f;
+            gradeRow.style.borderLeftWidth = gradeRow.style.borderRightWidth = 1f;
+            gradeRow.style.borderTopColor = gradeRow.style.borderBottomColor =
+                gradeRow.style.borderLeftColor = gradeRow.style.borderRightColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            gradeRow.style.borderTopLeftRadius = gradeRow.style.borderTopRightRadius = 6f;
+            gradeRow.style.borderBottomLeftRadius = gradeRow.style.borderBottomRightRadius = 6f;
             _content.Add(gradeRow);
             var basic = UTKButton.Create("기본(내구5)", () => SelectGrade(LockpickingSystem.PickGrade.Basic), UTKButton.Variant.Secondary);
             var adv = UTKButton.Create("고급(내구10)", () => SelectGrade(LockpickingSystem.PickGrade.Advanced), UTKButton.Variant.Secondary);
