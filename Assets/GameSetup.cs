@@ -51,6 +51,17 @@ public class GameSetup : MonoBehaviour
         }
 
         // ── 메인 씬 모드 ────────────────────────
+        // MonsterSpawner.Start 전에 전역 스폰 일시중지를 해제한다. TerrainOnly 분기는 위에서 return하므로 적용되지 않는다.
+        try
+        {
+            if (MonsterSpawner.SpawningPaused)
+                MonsterSpawner.SetPaused(false);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("[GameSetup] ⚠️ 몬스터 스폰 재개 실패 — 게임 계속: " + e.Message);
+        }
+
         SetupPlayerComponents();
 
         // ── 동적 잔디 커버: 플레이어 추적 밀집 잔디 (CC1 09-05 시스템 — Configure 누락 복원) ──

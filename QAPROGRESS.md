@@ -30,7 +30,8 @@
 - **P3**: `TerritoryBuilder.SpawnInteriorFixtures`(상점/크래프트하우스)는 roomCenter(0,0,0) 상대 ±5m라 새 대전당 안에 자동 배치 — 좌표 변경 불필요.
 - **QA**: Unity batch compile `error CS=0` + "Exiting batchmode successfully" return code 0 (`castle_interior_compile.log`). delegate_task 600s 타임아웃 → **부모 직접**으로 가구 재배치·표지판 완성(hermes-delegation-timeout-fallback).
 - **보강(내 소속 전환 실내 자동 교체)**: `IndoorSceneTransition.cs`에 `TerritoryDatabase.OwnershipChanged`(`ProjectName.Core.Data`) 구독. 실내(castle)에 머무는 동안 해당 영지가 `PlayerOwned`로 전환되면 static `_activeCastleTerritoryKey/NationStyle/IsPlayerOwned`로 확인 후 기존 실내→실내 재전환 경로(`EnterBuilding(...,isPlayerOwned:true,key)`)로 `PlayerCastleInteriorBuilder` 실내로 즉시 재구성. 타 영지(CastleInteriorBuilder·전투용·상호작용 0)는 소유권 전환 전 기본 유지, 전환 시에만 내 성으로 교체. 중복 재전환(`_activeCastleIsPlayerOwned` 가드)·무한루프 방지. `TerritoryId.ToString()`(`East_01`)과 BuildingTrigger `_territoryKey` 포맷 일치 확인. 컴파일 `error CS 0` (`ownership_switch_compile.log`).
-- ⚠ **Play 판정 대기**: 플레이어 성 진입 시 7개 방 벽 분리·가구 방별 배치·입구 통행 확인. 추가로 타 영지 실내에 있는 동안 소유권 전환 시 내 성 실내로 즉시 바뀌는지 확인.
+- **보강(플레이어 영지 전쟁 참여 + 몬스터 스폰 재개 09-28)**: **AIWarSystem.cs** — `PlayerOwned` 영지를 자동 전쟁의 **방어자 후보로만** 포함(공격자는 LordOwned만 → 플레이어는 자동 공격 없음=RTS 직접 지휘), `playerTerritories` 풀 별도 수집, AI 영지 1개+플레이어 영지 있어도 전쟁 성립. `PLAYER_WAR_MIN_DAY=3` 초반 완충. `StartAIWar` 가드 완화(Defender=PlayerOwned 허용, Attacker=PlayerOwned 거부). `CompleteWar` Defender가 PlayerOwned였고 AI 승리 시 `SetOwnership(LordOwned)` 소유 역전 + **몰수 없음**(TerritoryLootSystem은 PlayerOwned 상실 시 몰수 안 함 — 골드/창고/인벤 보존 로그). AI-AI 전쟁 기존 100% 유지. **GameSetup.cs** — 메인 경로에서 `MonsterSpawner.SetPaused(false)` 재개(static 기본값 true 유지로 테스트/툴은 중단 가능, TerrainOnly 분기는 return으로 미적용). 컴파일 `error CS 0` (`playerwar_compile.log`·`monster_resume_compile.log`).
+- ⚠ **Play 판정 대기**: 플레이어 성 진입 시 7개 방 벽 분리·가구 방별 배치·입구 통행 확인. 추가로 타 영지 실내에 있는 동안 소유권 전환 시 내 성 실내로 즉시 바뀌는지 확인. 전쟁: 3일차 후 AI가 플레이어 영지 침공하는지, 메인 씬에서 몬스터가 다시 스폰되는지.
 
 ---
 

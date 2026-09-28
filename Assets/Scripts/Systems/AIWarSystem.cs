@@ -42,6 +42,9 @@ namespace ProjectName.Systems
         /// <summary>최대 동시 전쟁 수</summary>
         public const int MAX_CONCURRENT_WARS = 5;
 
+        /// <summary>플레이어 영지가 전쟁 대상이 될 수 있는 최소 게임 일자</summary>
+        private const int PLAYER_WAR_MIN_DAY = 3;
+
         /// <summary>최소 전쟁 간격 (같은 영지, 게임 시간 일)</summary>
         public const int MIN_WAR_COOLDOWN_DAYS = 10;
 
@@ -101,7 +104,7 @@ namespace ProjectName.Systems
         // ===== 메인 퍼블릭 메서드 =====
 
         /// <summary>
-        /// AI 국가 간 전쟁을 시작합니다. 전쟁 중인 영지는 PlayerOwned 또는 Unoccupied가 아니어야 합니다.
+        /// LordOwned 공격자가 LordOwned 또는 PlayerOwned 방어 영지를 공격하는 전쟁을 시작합니다.
         /// </summary>
         /// <param name="attacker">공격 영지 ID</param>
         /// <param name="defender">방어 영지 ID</param>
@@ -131,15 +134,23 @@ namespace ProjectName.Systems
                 return false;
             }
 
-            // 두 영지가 모두 LordOwned 상태인지 확인
+            // 공격자는 LordOwned만 허용하고, 방어자는 LordOwned 또는 PlayerOwned를 허용
             var stateA = db.GetState(attacker);
             var stateD = db.GetState(defender);
             if (stateA == null || stateD == null) return false;
 
             if (stateA.ownership != TerritoryOwnership.LordOwned ||
-                stateD.ownership != TerritoryOwnership.LordOwned)
+                (stateD.ownership != TerritoryOwnership.LordOwned &&
+                 stateD.ownership != TerritoryOwnership.PlayerOwned))
             {
-                Debug.Log($"[AIWarSystem] AI 전쟁은 LordOwned 영지 간에만 가능합니다.");
+                Debug.Log($"[AIWarSystem] 공격자는 LordOwned, 방어자는 LordOwned 또는 PlayerOwned 영지만 가능합니다.");
+                return false;
+            }
+
+            // 플레이어 영지는 게임 초반 완충 기간 동안 공격 대상에서 제외
+            if (stateD.ownership == TerritoryOwnership.PlayerOwned && currentDay < PLAYER_WAR_MIN_DAY)
+            {
+                Debug.Log($"[AIWarSystem] 초반 완충: {PLAYER_WAR_MIN_DAY}일차 전에는 플레이어 영지를 공격할 수 없습니다.");
                 return false;
             }
 
@@ -225,8 +236,9 @@ namespace ProjectName.Systems
             if (_lastCheckDay == currentDay) return; // 중복 체크 방지
             _lastCheckDay = currentDay;
 
-            // AI 국가 소속의 LordOwned 영지 목록 수집 (전쟁 중이 아닌 영지만)
+            // AI LordOwned는 공격자/방어자 후보, PlayerOwned는 방어자 후보로만 수집
             var aiTerritoriesPool = new List<TerritoryId>();
+            var playerTerritories = new List<TerritoryId>();
             var db = TerritoryDatabase.Instance;
 
             // 현재 전쟁에 참여 중인 영지 ID 집합 (빠른 조회용)
@@ -249,9 +261,17 @@ namespace ProjectName.Systems
                 {
                     aiTerritoriesPool.Add(def.id);
                 }
+                else if (currentDay >= PLAYER_WAR_MIN_DAY && state != null &&
+                         state.ownership == TerritoryOwnership.PlayerOwned && !warZone.Contains(def.id))
+                {
+                    // 플레이어 영지는 방어자 후보로만 추가한다 (공격자 후보 풀에 넣지 않음).
+                    playerTerritories.Add(def.id);
+                }
             }
 
-            if (aiTerritoriesPool.Count < 2) return; // 전쟁에 필요한 영지 부족
+            if (aiTerritoriesPool.Count == 0 ||
+                (aiTerritoriesPool.Count < 2 && playerTerritories.Count == 0))
+                return; // AI 공격자와 전쟁 대상 방어자 부족
 
             // ── Phase B: 발화 빈도를 공격 성향에 비례 ──
             // 풀의 평균 aggression(0~1)이 높을수록(공격적 AI일수록) 더 많은 전쟁을 발화.
@@ -266,22 +286,26 @@ namespace ProjectName.Systems
             }
             avgAggression /= aiTerritoriesPool.Count;
 
-            int warCount = Mathf.Min(Mathf.Max(1, Mathf.RoundToInt(avgAggression * 3f)), Mathf.Min(3, aiTerritoriesPool.Count / 2));
+            int maxPairCount = playerTerritories.Count == 0
+                ? aiTerritoriesPool.Count / 2 // 플레이어 후보가 없으면 기존 AI-AI 상한을 그대로 유지
+                : Mathf.Min(aiTerritoriesPool.Count, (aiTerritoriesPool.Count + playerTerritories.Count) / 2);
+            int warCount = Mathf.Min(Mathf.Max(1, Mathf.RoundToInt(avgAggression * 3f)), Mathf.Min(3, maxPairCount));
             Debug.Log($"[AIWarSystem] 자동 전쟁 체크: 후보 {aiTerritoriesPool.Count}개, 평균 공격성 {avgAggression:0.00} → 발화 {warCount}쌍");
 
             // ── Phase B: 공격 성향이 높은 영지가 공격자로 우선되도록 가중 선정 ──
             // 풀을 aggression 내림차순으로 정렬한 복제본을 만들고, 상위 K개 중 무작위로 공격자를 뽑음.
-            // 방어자는 기존과 동일하게 전체 풀에서 무작위 추출. aiTerritoriesPool 자체는 방어자 후보 +
-            // 중복 제거 관리용으로 유지 (공격자 후보도 pool에 항상 존재하므로 아래 Remove가 정상 동작).
+            // AI 공격자 후보는 LordOwned만 사용. 방어자는 AI + PlayerOwned 풀에서 추출한다.
             List<TerritoryId> attackerCandidates = new List<TerritoryId>(aiTerritoriesPool);
             attackerCandidates.Sort((a, b) => aggressionCache[b].CompareTo(aggressionCache[a]));
             int topCandidateCount = Mathf.Min(AttackerCandidateTopCount, attackerCandidates.Count);
+            var defenderCandidates = new List<TerritoryId>(aiTerritoriesPool);
+            defenderCandidates.AddRange(playerTerritories);
 
             for (int w = 0; w < warCount; w++)
             {
                 if (_activeWars.Count >= MAX_CONCURRENT_WARS) break;
 
-                // 공격자(성향 상위 K 중 무작위)와 방어자(전체 풀에서 무작위) 선택 (100회 시도, 실패 시 건너뜀)
+                // 공격자(성향 상위 K 중 무작위)와 방어자(AI/플레이어 영지에서 무작위) 선택
                 int maxPairAttempts = 100;
                 bool foundPair = false;
                 TerritoryId attacker = default;
@@ -290,7 +314,8 @@ namespace ProjectName.Systems
                 for (int attempt = 0; attempt < maxPairAttempts; attempt++)
                 {
                     attacker = attackerCandidates[Random.Range(0, topCandidateCount)];
-                    defender = aiTerritoriesPool[Random.Range(0, aiTerritoriesPool.Count)];
+                    if (defenderCandidates.Count == 0) break;
+                    defender = defenderCandidates[Random.Range(0, defenderCandidates.Count)];
 
                     // 공격자와 방어자가 같은 영지인 경우 재추출
                     if (attacker.Equals(defender))
@@ -308,9 +333,12 @@ namespace ProjectName.Systems
 
                 if (!foundPair) continue;
 
-                // 선택된 쌍을 풀에서 제거 (중복 선택 방지)
+                // 선택된 쌍을 풀에서 제거 (중복 선택 방지). 공격자는 LordOwned만 가능.
                 aiTerritoriesPool.Remove(attacker);
                 aiTerritoriesPool.Remove(defender);
+                playerTerritories.Remove(defender);
+                defenderCandidates.Remove(attacker);
+                defenderCandidates.Remove(defender);
 
                 StartAIWar(attacker, defender, currentDay);
             }
@@ -444,7 +472,9 @@ namespace ProjectName.Systems
 
             if (stateDefender == null || stateAttacker == null) return;
 
-            // 🔴 CRITICAL FIX: 방어 영지의 소속 국가를 공격자 국가로 이전
+            bool defenderWasPlayerOwned = stateDefender.ownership == TerritoryOwnership.PlayerOwned;
+
+            // 방어 영지의 실질적 소속 국가를 공격자 국가로 이전
             // TerritoryDefinition.nation은 readonly이므로 _conqueredNations 딕셔너리에 기록합니다.
             string defKey = war.defenderTerritoryId.ToString();
             _conqueredNations[defKey] = defAttacker.nation;
@@ -452,8 +482,9 @@ namespace ProjectName.Systems
             // 전투 상태 정리
             stateDefender.isUnderAttack = false;
 
-            // 소유권은 LordOwned로 유지 (AI 국가 간 전쟁이므로)
-            stateDefender.ownership = TerritoryOwnership.LordOwned;
+            // 점령 후 LordOwned로 전환. 플레이어 영지 상실이어도 금고/창고/인벤토리는 변경하지 않는다.
+            // TerritoryLootSystem은 PlayerOwned 점령에서만 몰수하므로 별도 몰수 호출은 하지 않는다.
+            db.SetOwnership(war.defenderTerritoryId, TerritoryOwnership.LordOwned);
 
             // 완료된 전쟁 정보는 큐에 저장
             AIWarData completed = war;
@@ -464,6 +495,10 @@ namespace ProjectName.Systems
             _activeWars[index] = completed;
 
             Debug.Log($"[AIWarSystem] 🏁 전쟁 완료! (ID:{war.warId}) {defAttacker.territoryName} 승리 → {defDefender.territoryName} 점령 (소속: {defDefender.nation} → {defAttacker.nation})");
+            if (defenderWasPlayerOwned)
+            {
+                Debug.Log($"[AIWarSystem] 플레이어 영지 상실: {defDefender.territoryName} → LordOwned. 몰수 없이 영지 골드/창고/인벤토리는 보존됩니다.");
+            }
 
             OnWarCompleted?.Invoke(completed);
 

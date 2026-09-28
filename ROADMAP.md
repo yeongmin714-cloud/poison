@@ -3485,4 +3485,8 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 - **특징:** 각 방 크기 상이(9×9~16×10), 벽 단차·오프셋으로 자연스러운 비대칭. 문 통로 2m. 가구 로직·이름·Nameplate·리플렉션 상호작용 어태치 100% 보존.
 - **컴파일:** `castle_interior_compile.log` error CS 0 + "Exiting batchmode successfully" return code 0.
 - **[보강 09-28]** **타 영지(전투용) ↔ 내 소속 전환 실내 자동 교체**: `IndoorSceneTransition`에 `TerritoryDatabase.OwnershipChanged` 구독 — 실내(castle)에 있던 동안 해당 영지가 `PlayerOwned`로 전환되면 즉시 실내→실내 재전환으로 `PlayerCastleInteriorBuilder`(내 성)로 교체. `_activeCastleTerritoryKey/NationStyle/IsPlayerOwned`로 추적, 중복 재전환 방지. (타 영지 `CastleInteriorBuilder`는 이미 전투용·상호작용 0 — 건드리지 않음.) 배치컴파일 error CS 0 (`ownership_switch_compile.log`).
+- **[보강 09-28]** **플레이어 영지 전쟁 참여 + 몬스터 스폰 재개**:
+  - `AIWarSystem`: `PlayerOwned` 영지를 **방어자 후보로만** 자동 전쟁에 포함(공격자=LordOwned만 — 플레이어 자동 공격 없음). `PLAYER_WAR_MIN_DAY=3` 초반 완충(3일차 전 플레이어 영지 무공격). `StartAIWar`가 PlayerOwned 방어 허용. `CompleteWar`에서 플레이어 영지가 AI에 패배 시 `SetOwnership(LordOwned)` 소유 역전+**몰수 없음**(골드/창고/인벤 보존). AI-AI 전쟁 100% 기존 유지.
+  - `GameSetup` 메인 경로에서 `MonsterSpawner.SetPaused(false)` 재개(TerrainOnly 씬은 미적용 — 지형관찰엔 몬스터 차단 유지).
+  - 배치컴파일 error CS 0 (`playerwar_compile.log`·`monster_resume_compile.log`).
 - ⚠ **Play 검증 대기:** 플레이어 성 진입 시 7개 방이 벽으로 분리·가구가 방별 배치·입구 통행 가능 확인.
