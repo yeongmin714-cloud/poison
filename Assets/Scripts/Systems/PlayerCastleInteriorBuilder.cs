@@ -56,10 +56,10 @@ namespace ProjectName.Systems
             // 좌우 대칭 부호 (variant 0 = -1 기존: 작업대/저장고 왼쪽, 무기고 오른쪽)
             float mx = mirrorX ? 1f : -1f;
 
-            // ===== 방 크기 (기존 20x6x15보다 약간 넓게) =====
-            const float roomWidth = 22f;
+            // ===== 48 x 36 대형 성 내부 (기존 22 x 16 대비 바닥면적 약 4.9배) =====
+            const float roomWidth = 48f;
             const float roomHeight = 6f;
-            const float roomDepth = 16f;
+            const float roomDepth = 36f;
 
             // 영지 고유 키 (작업대/저장고 상호작용 컴포넌트 설정용 — 국가 스타일 기반 매핑)
             string territoryKey = GetTerritoryKeyForNationStyle(nationStyle);
@@ -189,48 +189,81 @@ namespace ProjectName.Systems
             room.name = "PlayerCastleRoom";
 
             // ===================================================================
+            // 비대칭 다중 방 구조. 모든 칸막이는 한 방 오브젝트 내부의 로컬 좌표이며,
+            // room은 원점에 유지해 TerritoryBuilder/IndoorSceneTransition 참조를 보존한다.
+            // 실제 CreateRoom 구현에서 Wall_Back이 Z=-18 앞면이므로 해당 면만 입구로 교체.
+            // ===================================================================
+            Transform entranceWall = room.transform.Find("Wall_Back");
+            if (entranceWall != null) UnityEngine.Object.Destroy(entranceWall.gameObject);
+            IndoorBuilder.CreateInteriorWall(room, "EntranceWall_Left", 22f, roomHeight, 0.4f,
+                new Vector3(-13f, 0f, -roomDepth * 0.5f), 0f, 0f, 0.01f, wallMat);
+            IndoorBuilder.CreateInteriorWall(room, "EntranceWall_Right", 22f, roomHeight, 0.4f,
+                new Vector3(13f, 0f, -roomDepth * 0.5f), 0f, 0f, 0.01f, wallMat);
+
+            // 비대칭 실내 칸막이. 문 중심은 각 벽의 로컬 길이축 기준이며, 모두 2m 통로.
+            // 북쪽: 침실 / 부엌·연금 / 무기고
+            IndoorBuilder.CreateInteriorWall(room, "Wall_Bedroom_Kitchen", 12f, roomHeight, 0.4f,
+                new Vector3(-8f, 0f, 12f), 90f, 0f, 2f, wallMat);
+            IndoorBuilder.CreateInteriorWall(room, "Wall_Kitchen_Armory", 12f, roomHeight, 0.4f,
+                new Vector3(16f, 0f, 12f), 90f, 0f, 2f, wallMat);
+            IndoorBuilder.CreateInteriorWall(room, "Wall_North_OfficeHall", 16f, roomHeight, 0.4f,
+                new Vector3(-16f, 0f, 6f), 0f, 0f, 2f, wallMat);
+            IndoorBuilder.CreateInteriorWall(room, "Wall_North_Central", 24f, roomHeight, 0.4f,
+                new Vector3(4f, 0f, 6f), 0f, -4f, 2f, wallMat);
+
+            // 중앙 및 남쪽: 집무실 / 크래프트 / 대전당 / 병사배치 / 저장고
+            IndoorBuilder.CreateInteriorWall(room, "Wall_Office_Hall", 12f, roomHeight, 0.4f,
+                new Vector3(-10f, 0f, 0f), 90f, 0f, 2f, wallMat);
+            IndoorBuilder.CreateInteriorWall(room, "Wall_Craft_Office", 16f, roomHeight, 0.4f,
+                new Vector3(-16f, 0f, -6f), 0f, 0f, 2f, wallMat);
+            IndoorBuilder.CreateInteriorWall(room, "Wall_Hall_Soldiers", 24f, roomHeight, 0.4f,
+                new Vector3(8f, 0f, -6f), 90f, 2f, 2f, wallMat);
+            IndoorBuilder.CreateInteriorWall(room, "Wall_Storage_Soldiers", 16f, roomHeight, 0.4f,
+                new Vector3(16f, 0f, 0f), 0f, 0f, 2f, wallMat);
+
+            // ===================================================================
             // 1. 지휘 책상 + 관리용 책상/문서 (왕좌 대체 — 뒷벽 중앙, +z 방향)
             // ===================================================================
             GameObject commandDesk = IndoorFurnitureCatalog.CreateTable(3.2f, 1.2f, 1.1f, deskMat);
             commandDesk.name = "CommandDesk";
             commandDesk.transform.SetParent(room.transform);
-            commandDesk.transform.localPosition = new Vector3(commandZX, 0f, roomDepth * 0.5f - 1.8f);
+            commandDesk.transform.localPosition = new Vector3(-18.5f, 0f, 0.5f);
             AddNameplate(commandDesk, "🪑 지휘 책상");
 
             // 지휘관 의자 (책상 뒤에서 방 중앙을 향함)
             GameObject commandChair = IndoorFurnitureCatalog.CreateChair(1.1f, deskMat);
             commandChair.name = "CommandChair";
             commandChair.transform.SetParent(room.transform);
-            commandChair.transform.localPosition = new Vector3(commandZX, 0f, roomDepth * 0.5f - 2.9f);
+            commandChair.transform.localPosition = new Vector3(-18.5f, 0f, -0.8f);
 
             // 책상 위 문서들 (책상 x 시프트 추종)
             CreateBoxPrimitive(room, "DeskDocument_1", new Vector3(0.35f, 0.02f, 0.25f),
-                new Vector3(commandZX - 0.8f, 1.12f, roomDepth * 0.5f - 1.7f), paperMat);
+                new Vector3(-19.1f, 1.12f, 0.7f), paperMat);
             CreateBoxPrimitive(room, "DeskDocument_2", new Vector3(0.35f, 0.02f, 0.25f),
-                new Vector3(commandZX - 0.4f, 1.12f, roomDepth * 0.5f - 1.5f), paperMat);
+                new Vector3(-18.7f, 1.12f, 0.9f), paperMat);
             CreateBoxPrimitive(room, "DeskInkwell", new Vector3(0.08f, 0.12f, 0.08f),
-                new Vector3(commandZX + 0.9f, 1.17f, roomDepth * 0.5f - 1.6f), standMat);
+                new Vector3(-17.9f, 1.17f, 0.6f), standMat);
 
             // 관리용 사이드 책상 (집무실 보조) + 문서 더미 — 좌우 대칭(mx) 적용
             GameObject adminDesk = IndoorFurnitureCatalog.CreateTable(1.8f, 0.9f, 1.0f, deskMat);
             adminDesk.name = "AdminDesk";
             adminDesk.transform.SetParent(room.transform);
-            adminDesk.transform.localPosition = new Vector3(mx * 3.2f, 0f, roomDepth * 0.5f - 1.6f);
+            adminDesk.transform.localPosition = new Vector3(-15.5f, 0f, -0.5f);
             AddNameplate(adminDesk, "📜 관리 사무소");
 
             CreateBoxPrimitive(room, "AdminPaperStack_1", new Vector3(0.30f, 0.06f, 0.22f),
-                new Vector3(mx * 2.9f, 1.04f, roomDepth * 0.5f - 1.5f), paperMat);
+                new Vector3(-15.8f, 1.04f, -0.3f), paperMat);
             CreateBoxPrimitive(room, "AdminPaperStack_2", new Vector3(0.30f, 0.06f, 0.22f),
-                new Vector3(mx * 3.5f, 1.04f, roomDepth * 0.5f - 1.7f), paperMat);
+                new Vector3(-15.2f, 1.04f, -0.7f), paperMat);
 
             // 중앙 작전 회의 테이블 + 의자 2개
             GameObject planningTable = IndoorFurnitureCatalog.CreateTable(3.0f, 1.6f, 1.0f, deskMat);
             planningTable.name = "PlanningTable";
             planningTable.transform.SetParent(room.transform);
-            planningTable.transform.localPosition = new Vector3(0f, 0f, meetingZ);
+            planningTable.transform.localPosition = new Vector3(2f, 0f, 0f);
 
             CreateBoxPrimitive(room, "PlanningMap", new Vector3(0.8f, 0.02f, 0.6f),
-                new Vector3(0f, 1.02f, meetingZ), bannerMat); // 작전 지도
+                new Vector3(2f, 1.02f, 0f), bannerMat); // 작전 지도
 
             for (int side = -1; side <= 1; side += 2)
             {
@@ -252,7 +285,7 @@ namespace ProjectName.Systems
             GameObject lordBed = IndoorFurnitureCatalog.CreateBed(1.2f, 2.0f, bedMat);
             lordBed.name = "LordBed";
             lordBed.transform.SetParent(room.transform);
-            lordBed.transform.localPosition = new Vector3(mx * -3f, 0f, -roomDepth * 0.5f + 1.2f);
+            lordBed.transform.localPosition = new Vector3(-16f, 0f, 12f);
             AddNameplate(lordBed, "🛏️ 성주의 침대 (세이브)");
 
             // ===================================================================
@@ -260,7 +293,7 @@ namespace ProjectName.Systems
             // ===================================================================
             GameObject bannerRoot = new GameObject("PlayerBanner");
             bannerRoot.transform.SetParent(room.transform);
-            bannerRoot.transform.localPosition = new Vector3(0f, 0f, roomDepth * 0.5f - 0.45f);
+            bannerRoot.transform.localPosition = new Vector3(2f, 0f, 5.5f);
 
             // 깃대 2개
             CreateCylinderPrimitive(bannerRoot, "BannerPole_Left", 0.05f, 4.6f,
@@ -289,13 +322,13 @@ namespace ProjectName.Systems
             GameObject storageShelf1 = IndoorFurnitureCatalog.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
             storageShelf1.name = "StorageShelf_1";
             storageShelf1.transform.SetParent(room.transform);
-            storageShelf1.transform.localPosition = new Vector3(mx * (-roomWidth * 0.5f + 0.4f), 0f, 2.0f);
+            storageShelf1.transform.localPosition = new Vector3(16f, 0f, 1.5f);
             storageShelf1.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
             GameObject storageShelf2 = IndoorFurnitureCatalog.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
             storageShelf2.name = "StorageShelf_2";
             storageShelf2.transform.SetParent(room.transform);
-            storageShelf2.transform.localPosition = new Vector3(mx * (-roomWidth * 0.5f + 0.4f), 0f, -1.5f);
+            storageShelf2.transform.localPosition = new Vector3(16f, 0f, 4.0f);
             storageShelf2.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
             // Phase B: 저장고 상호작용 — StorageShelf_2 기준점에 TerritoryWarehouse 부착.
@@ -305,23 +338,23 @@ namespace ProjectName.Systems
 
             // 창고 상자 더미 (큐브 프리미티브) — 좌우 대칭(mx) 적용
             CreateBoxPrimitive(room, "StorageCrate_1", new Vector3(0.7f, 0.7f, 0.7f),
-                new Vector3(mx * -9.6f, 0.35f, 4.2f), crateMat);
+                new Vector3(13f, 0.35f, 1.5f), crateMat);
             CreateBoxPrimitive(room, "StorageCrate_2", new Vector3(0.7f, 0.7f, 0.7f),
-                new Vector3(mx * -9.6f, 0.35f, 5.1f), crateMat);
+                new Vector3(13f, 0.35f, 2.5f), crateMat);
             CreateBoxPrimitive(room, "StorageCrate_3", new Vector3(0.7f, 0.7f, 0.7f),
-                new Vector3(mx * -9.6f, 1.05f, 4.65f), crateMat);
+                new Vector3(13f, 1.05f, 2.0f), crateMat);
             CreateBoxPrimitive(room, "StorageCrate_4", new Vector3(0.9f, 0.9f, 0.9f),
-                new Vector3(mx * -8.7f, 0.45f, 5.8f), crateMat);
+                new Vector3(12f, 0.45f, 3.3f), crateMat);
             CreateBoxPrimitive(room, "StorageCrate_5", new Vector3(0.5f, 0.5f, 0.5f),
-                new Vector3(mx * -9.7f, 0.25f, 6.3f), crateMat);
+                new Vector3(13.5f, 0.25f, 3.5f), crateMat);
 
             // 저장고 통 (Cylinder)
             CreateCylinderPrimitive(room, "StorageBarrel", 0.4f, 1.0f,
-                new Vector3(mx * -8.9f, 0.5f, 3.0f), crateMat);
+                new Vector3(12f, 0.5f, 1.2f), crateMat);
 
             // 저장고 안내 팻말 (벽)
             GameObject storageSign = CreateBoxPrimitive(room, "StorageSign", new Vector3(0.05f, 0.7f, 2.4f),
-                new Vector3(mx * (-roomWidth * 0.5f + 0.1f), 2.5f, 0.25f), bannerMat);
+                new Vector3(8.5f, 2.5f, 3f), bannerMat);
             AddNameplate(storageSign, "🎒 저장고");
 
             // ===================================================================
@@ -331,7 +364,7 @@ namespace ProjectName.Systems
             {
                 float zPos = 3.0f - i * 3.0f;
                 CreateWeaponStand(room, $"WeaponStand_{i}",
-                    new Vector3(mx * (roomWidth * 0.5f - 0.6f), 0f, zPos), mirrorX ? 90f : -90f, standMat, bladeMat);
+                    new Vector3(21f, 0f, 15f - i * 3f), mirrorX ? 90f : -90f, standMat, bladeMat);
             }
 
             // Phase C: 무기고 상호작용 기준점 — WeaponStand_0 (첫 번째 무기 스탠드, z=3.0,
@@ -346,20 +379,20 @@ namespace ProjectName.Systems
 
             // 벽걸이 무기고 (벽 앞쪽) — 좌우 대칭(mx) 적용
             GameObject wallRack = CreateBoxPrimitive(room, "WeaponWallRack", new Vector3(0.08f, 1.8f, 2.0f),
-                new Vector3(mx * (roomWidth * 0.5f - 0.15f), 1.6f, -5.5f), standMat);
+                new Vector3(21.5f, 1.6f, 8f), standMat);
             if (wallRack != null)
             {
                 for (int i = 0; i < 4; i++)
                 {
                     float bladeZ = -6.1f + i * 0.4f;
                     CreateBoxPrimitive(room, $"WallWeapon_{i}", new Vector3(0.05f, 1.2f, 0.14f),
-                        new Vector3(mx * (roomWidth * 0.5f - 0.22f), 1.5f, bladeZ), bladeMat);
+                        new Vector3(21.5f, 1.5f, 7.4f + i * 0.4f), bladeMat);
                 }
             }
 
             // 무기고 안내 팻말 (벽) — 좌우 대칭(mx) 적용
             GameObject armorySign = CreateBoxPrimitive(room, "ArmorySign", new Vector3(0.05f, 0.7f, 2.4f),
-                new Vector3(mx * (roomWidth * 0.5f - 0.1f), 2.6f, 0f), bannerMat);
+                new Vector3(21f, 2.6f, 17f), bannerMat);
             AddNameplate(armorySign, "⚔️ 무기고");
 
             // Phase C: 무기고 상호작용 — WeaponStand_0에 TerritoryWarehouse 부착 (무기고 전용 창고).
@@ -375,7 +408,7 @@ namespace ProjectName.Systems
             GameObject workbench = IndoorFurnitureCatalog.CreateCounter(2.6f, 1.0f, 1.0f, workbenchMat);
             workbench.name = "Workbench";
             workbench.transform.SetParent(room.transform);
-            workbench.transform.localPosition = new Vector3(mx * -5f, 0f, -roomDepth * 0.5f + 0.6f);
+            workbench.transform.localPosition = new Vector3(-16f, 0f, -16f);
             AddNameplate(workbench, "🛠️ 작업대");
 
             // Phase A: 작업대 상호작용 — TerritoryCraftingStation 부착 (E키 → CraftingUI).
@@ -387,15 +420,15 @@ namespace ProjectName.Systems
 
             // 작업대 위 도구들 (모루 + 공구) — 좌우 대칭(mx) 적용
             CreateBoxPrimitive(room, "WorkbenchAnvil", new Vector3(0.5f, 0.25f, 0.35f),
-                new Vector3(mx * -5.6f, 1.13f, -roomDepth * 0.5f + 0.6f), bladeMat);
+                new Vector3(-16.5f, 1.13f, -16f), bladeMat);
             CreateBoxPrimitive(room, "WorkbenchTool_1", new Vector3(0.12f, 0.12f, 0.30f),
-                new Vector3(mx * -4.5f, 1.07f, -roomDepth * 0.5f + 0.45f), standMat);
+                new Vector3(-15.6f, 1.07f, -15.9f), standMat);
             CreateBoxPrimitive(room, "WorkbenchTool_2", new Vector3(0.12f, 0.12f, 0.30f),
-                new Vector3(mx * -4.3f, 1.07f, -roomDepth * 0.5f + 0.75f), standMat);
+                new Vector3(-15.4f, 1.07f, -16.2f), standMat);
 
             // 작업대 안내 팻말 (앞벽) — 좌우 대칭(mx) 적용
             GameObject workbenchSign = CreateBoxPrimitive(room, "WorkbenchSign", new Vector3(1.6f, 0.6f, 0.05f),
-                new Vector3(mx * -5f, 2.4f, -roomDepth * 0.5f + 0.1f), bannerMat);
+                new Vector3(-16f, 2.4f, -17.5f), bannerMat);
             AddNameplate(workbenchSign, "🛠️ 작업대");
 
             // ===================================================================
@@ -412,7 +445,7 @@ namespace ProjectName.Systems
             GameObject cookingTable = IndoorFurnitureCatalog.CreateCounter(1.4f, 0.95f, 0.9f, cookingMat);
             cookingTable.name = "CookingTable";
             cookingTable.transform.SetParent(room.transform);
-            cookingTable.transform.localPosition = new Vector3(mx * 6.2f, 0f, -6.3f);
+            cookingTable.transform.localPosition = new Vector3(1f, 0f, 14f);
             AddNameplate(cookingTable, "🍳 요리 테이블");
 
             // 요리 냄비 소품 (카운터 상판 위 — 시각 구분용)
@@ -425,7 +458,7 @@ namespace ProjectName.Systems
             GameObject alchemyTable = IndoorFurnitureCatalog.CreateTable(1.4f, 1.4f, 0.95f, alchemyMat);
             alchemyTable.name = "AlchemyTable";
             alchemyTable.transform.SetParent(room.transform);
-            alchemyTable.transform.localPosition = new Vector3(mx * 6.2f, 0f, 5.0f);
+            alchemyTable.transform.localPosition = new Vector3(6f, 0f, 9f);
             AddNameplate(alchemyTable, "🧪 연금술 테이블");
 
             // 연금 플라스크 소품 (테이블 상판 위 — 시각 구분용)
@@ -531,14 +564,14 @@ namespace ProjectName.Systems
             {
                 // 꽃병 받침대 (Cylinder 화분) — 뒷벽 코너 공백
                 CreateCylinderPrimitive(room, "PottedPlant_BackL", 0.45f, 0.9f,
-                    new Vector3(mx * -7.5f, 0.45f, roomDepth * 0.5f - 0.6f), crateMat);
+                    new Vector3(10f, 0.45f, 5.2f), crateMat);
                 CreateCylinderPrimitive(room, "PottedPlant_BackR", 0.45f, 0.9f,
-                    new Vector3(-mx * 7.5f, 0.45f, roomDepth * 0.5f - 0.6f), crateMat);
+                    new Vector3(-6f, 0.45f, 5.2f), crateMat);
                 // 장식 탁자 (전면벽 중앙 공백 — 작업대 반대편)
                 GameObject decorTable = IndoorFurnitureCatalog.CreateCounter(1.6f, 0.9f, 0.7f, deskMat);
                 decorTable.name = "DecorativeTable";
                 decorTable.transform.SetParent(room.transform);
-                decorTable.transform.localPosition = new Vector3(mx * 5f, 0f, -roomDepth * 0.5f + 0.6f);
+                decorTable.transform.localPosition = new Vector3(-4f, 0f, 5f);
                 // 표주 잔 (데코)
                 CreateCylinderPrimitive(decorTable, "Goblet", 0.12f, 0.25f,
                     new Vector3(0f, 0.55f, 0f), trimMat);
@@ -576,7 +609,37 @@ namespace ProjectName.Systems
                 new Color(1f, 0.88f, 0.65f), 8f, 0.8f);
 
             Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}, 레이아웃 변형: {layoutVariant}) — 석재 기둥 2열·화로 2기·문장 방패·러그 장식 포함");
+
+            // ===================================================================
+            // 9b. 방 표지판 (각 방 입구 근처 스탠드 — 자연스러운 실내 안내) + 방별 보조 조명
+            // ===================================================================
+            AddRoomSign(room, "Sign_Office", 1.6f, 0.5f, deskMat, -13.4f, -0.5f, 0f, "🖥️ 집무실");
+            AddRoomSign(room, "Sign_Craft", 1.6f, 0.5f, workbenchMat, -13.4f, -6.5f, 0f, "🛠️ 크래프트");
+            AddRoomSign(room, "Sign_Bedroom", 1.6f, 0.5f, bedMat, -13.4f, 12.0f, 0f, "🛏️ 침실");
+            AddRoomSign(room, "Sign_Kitchen", 1.6f, 0.5f, cookingMat, 3.0f, 12.8f, 0f, "🍳 부엌·연금");
+            AddRoomSign(room, "Sign_Armory", 1.6f, 0.5f, standMat, 18.5f, 11.5f, 0f, "⚔️ 무기고");
+            AddRoomSign(room, "Sign_Storage", 1.6f, 0.5f, crateMat, 12.5f, 5.2f, 0f, "🎒 저장고");
+
+            // 빈 병사 배치방 보조 조명 (남동 구역)
+            IndoorLighting.AddPointLight(room, new Vector3(16f, 4f, -9f), new Color(1f, 0.88f, 0.65f), 10f, 0.8f);
+            // 침실 보조 조명
+            IndoorLighting.AddPointLight(room, new Vector3(-16f, 4f, 12f), new Color(1f, 0.8f, 0.55f), 7f, 0.7f);
+
             return room;
+        }
+
+        /// <summary>바닥 스탠드 방 표지판 (기둥 + 상판 설치, Nameplate 부착).</summary>
+        private static void AddRoomSign(GameObject parent, string name, float width, float height,
+            Material mat, float x, float z, float yRot, string label)
+        {
+            GameObject sign = new GameObject(name);
+            sign.transform.SetParent(parent.transform);
+            sign.transform.localPosition = new Vector3(x, 0f, z);
+            sign.transform.localRotation = Quaternion.Euler(0f, yRot, 0f);
+            CreateCylinderPrimitive(sign, "Pole", 0.035f, 1.3f, new Vector3(0f, 0.65f, 0f), mat);
+            CreateBoxPrimitive(sign, "Board", new Vector3(width, height, 0.06f),
+                new Vector3(0f, 1.45f, 0f), mat);
+            AddNameplate(sign, label);
         }
 
         /// <summary>

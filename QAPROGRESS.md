@@ -19,6 +19,20 @@
 
 ---
 
+## 📌 세션 스냅샷 (2026-09-28 ✅ 플레이어 성 비대칭 다중방 리메이크)
+
+> **요구:** 실내가 단일 방(22×16)이라 가구가 작고 배치가 단조로움. 크래프트/부엌/침실/병사배치를 독립 방으로, 크기 약 5배, 방 크기·모양을 비대칭으로.
+
+- **P1 `IndoorBuilder.CreateInteriorWall`**: 내부 칸막이 벽 헬퍼 — 양면 Quad(MeshCollider) + 출입구 문 갭(2m), 사방 벽(가로/세로 rotation) 지원. `AddWallSegment`로 문 양옆 2조각×양면 4Quad.
+- **P2 `PlayerCastleInteriorBuilder` 리메이크**: roomWidth 22→**48**, roomDepth 16→**36** (바닥면적 352→1728 = **4.9배**). 입구 = Wall_Back 파괴 + `EntranceWall_Left/Right`(각 22m)로 중앙 4m 통로. 내부 칸막이 8개(침실/부엌·연금/무기고 북단, 집무실/크래프트/대전당/병사배치/저장고 중남) 각 문 2m.
+- **가구 재배치 35종**: 집무실(CommandDesk씨리즈/AdminDesk/PlanningTable) / 크래프트(Workbench+도구) / 침실(LordBed) / 부엌·연금(Cooking/AlchemyTable) / 무기고(WeaponStand_0~2+WallRack) / 저장고(StorageShelf+Crate) — 새 방 좌표로. **상호작용 어태치(작업대 TerritoryCraftingStation, 저장고·무기고 TerritoryWarehouse, CookingStation, AlchemyStation, LordBed Bed) 전부 보존**, WeaponStand_0 room 직계자식 유지.
+- **P2b**: 방 표지판 `AddRoomSign` 스탠드 6개(집무실/크래프트/침실/부엌·연금/무기고/저장고) + 병사배치·침실 보조 조명.
+- **P3**: `TerritoryBuilder.SpawnInteriorFixtures`(상점/크래프트하우스)는 roomCenter(0,0,0) 상대 ±5m라 새 대전당 안에 자동 배치 — 좌표 변경 불필요.
+- **QA**: Unity batch compile `error CS=0` + "Exiting batchmode successfully" return code 0 (`castle_interior_compile.log`). delegate_task 600s 타임아웃 → **부모 직접**으로 가구 재배치·표지판 완성(hermes-delegation-timeout-fallback).
+- ⚠ **Play 판정 대기**: 플레이어 성 진입 시 7개 방 벽 분리·가구 방별 배치·입구 통행 확인.
+
+---
+
 ## 📌 세션 스냅샷 (2026-09-28 ✅ 플레이어 성 내부 단독 이동 테스트 씬 + HQ 바닥 텍스처)
 
 > 기존 공용 IndoorScene은 Additive 런타임 씬이고, 플레이어 성 프리뷰 메뉴가 빌더만 호출해 HQ floor_flagstone 적용 경로를 거치지 않았음. 공용 씬은 건드리지 않고 별도 플레이 테스트 씬으로 격리.

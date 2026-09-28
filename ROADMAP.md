@@ -3468,3 +3468,20 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 - **[보강 09-28]** 방독면 면역 실제 동작화: `GasMaskEquipmentLink.cs` — 인벤 Mask 슬롯 장착/해제 ↔ `GasMaskSystem.Equip/Unequip` 연동(등급 매핑 steel→Iron/stone→Stone/special→Special/폴백 Wood) + `EquipmentManager.GetEquippedItemId` getter + GameSetup 배선. **G키 충돌 해소**: `GasMaskController._toggleKey` G→**V** (가스 분사기가 G키). 배치컴파일 error CS 0 (`gas_mask_equipment_compile.log`, 22.4s).
 - **[사용자 확정 09-28]** 설계 확정: **방독면=인벤 Mask 슬롯 장착 전용**, **분사=G키**. `GasMaskController`의 수동 V키 토글·`ToggleGasMask`/`_currentGrade`/`SetGrade` **제거** — 장착/해제는 `GasMaskEquipmentLink`(인벤)가 담당, 컨트롤러는 `GasMaskSystem.Update`(내구도 감소)+`GetStatusText`(UI)만 유지. 배치컴파일 error CS 0 (`gasmask_nokeys_compile.log`).
 - ⚠ **Play 검증 대기:** 에디터 Play 후 분사기 장착→물약사용 시 주변 원형 가스 확산/색상/방독면 면역 확인.
+
+---
+
+## Phase Interior-R: 🏰 플레이어 성 비대칭 다중방 리메이크 ✅ (2026-09-28)
+
+> **요구:** 실내 단일 방이라 가구가 작고 단조로움 → 크래프트/부엌/침실/병사배치를 **독립 방**으로, 크기 **약 5배**.
+
+| 단계 | 내용 | 상태 |
+|:----|:-----|:----:|
+| P1 | `IndoorBuilder.CreateInteriorWall` 헬퍼 (출입구 문 갭 Quad+MeshCollider, 양면) | ✅ error CS 0 |
+| P2 | `PlayerCastleInteriorBuilder` 22×16→**48×36**(바닥 4.9배), 비대칭 칸막이 벽 8개로 7방 분리(집무실/크래프트/침실/부엌·연금/무기고/병사배치/저장고+중앙 대전당), 가구 35종을 방별 재배치, 상호작용 앵커(작업대/저장고/무기고/요리/연금/침대) 전부 보존, 입구(Wall_Back 제거+좌우 벽) 4m 중앙 통로 | ✅ error CS 0 |
+| P2b | 방 표지판 6개(AddRoomSign 스탠드) + 병사배치·침실 보조 조명 | ✅ |
+| P3 | `TerritoryBuilder.SpawnInteriorFixtures` roomCenter 상대라 자동 호환(변경 불필요) | ✅ 확인 |
+
+- **특징:** 각 방 크기 상이(9×9~16×10), 벽 단차·오프셋으로 자연스러운 비대칭. 문 통로 2m. 가구 로직·이름·Nameplate·리플렉션 상호작용 어태치 100% 보존.
+- **컴파일:** `castle_interior_compile.log` error CS 0 + "Exiting batchmode successfully" return code 0.
+- ⚠ **Play 검증 대기:** 플레이어 성 진입 시 7개 방이 벽으로 분리·가구가 방별 배치·입구 통행 가능 확인.
