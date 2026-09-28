@@ -67,20 +67,84 @@ namespace ProjectName.UI.Toolkit
             _keyLabels = new Label[slotCount];
             _cachedIds = new string[slotCount];
 
+            // GitHub-dark surface containing the quick-slot grid.
+            var surface = new VisualElement();
+            surface.name = "QuickSlotCard";
+            surface.style.flexDirection = FlexDirection.Column;
+            surface.style.alignItems = Align.Stretch;
+            surface.style.paddingLeft = 12f;
+            surface.style.paddingRight = 12f;
+            surface.style.paddingTop = 9f;
+            surface.style.paddingBottom = 10f;
+            surface.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            surface.style.borderTopWidth = 1f;
+            surface.style.borderBottomWidth = 1f;
+            surface.style.borderLeftWidth = 1f;
+            surface.style.borderRightWidth = 1f;
+            surface.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            surface.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            surface.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
+            surface.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            surface.style.borderTopLeftRadius = 10f;
+            surface.style.borderTopRightRadius = 10f;
+            surface.style.borderBottomLeftRadius = 10f;
+            surface.style.borderBottomRightRadius = 10f;
+            Add(surface);
+
+            var heading = new VisualElement();
+            heading.name = "QuickSlotHeading";
+            heading.style.flexDirection = FlexDirection.Row;
+            heading.style.alignItems = Align.Center;
+            heading.style.marginBottom = 8f;
+            surface.Add(heading);
+
+            var title = new Label("QUICK SLOTS");
+            title.style.fontSize = 11f;
+            title.style.unityFontStyleAndWeight = FontStyle.Bold;
+            title.style.color = new StyleColor(UTKColor.TextPrimary);
+            heading.Add(title);
+
+            var hint = new Label("우클릭: 등록 / 해제");
+            hint.style.flexGrow = 1f;
+            hint.style.fontSize = 10f;
+            hint.style.color = new StyleColor(UTKColor.TextSecondary);
+            hint.style.unityTextAlign = TextAnchor.MiddleRight;
+            heading.Add(hint);
+
             var row = new VisualElement();
             row.name = "QuickRow";
             row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.FlexEnd;
-            Add(row);
+            row.style.alignItems = Align.Center;
+            row.style.justifyContent = Justify.Center;
+            surface.Add(row);
 
             for (int i = 0; i < slotCount; i++)
             {
                 var cell = new VisualElement();
                 cell.name = "QuickCell_" + i;
-                cell.style.flexDirection = FlexDirection.Row;
+                cell.AddToClassList("quick-slot-card");
+                cell.style.flexDirection = FlexDirection.Column;
                 cell.style.alignItems = Align.Center;
+                cell.style.justifyContent = Justify.Center;
                 cell.style.marginLeft = SlotGap * 0.5f;
                 cell.style.marginRight = SlotGap * 0.5f;
+                cell.style.paddingLeft = 4f;
+                cell.style.paddingRight = 4f;
+                cell.style.paddingTop = 4f;
+                cell.style.paddingBottom = 4f;
+                cell.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+                cell.style.borderTopWidth = 1f;
+                cell.style.borderBottomWidth = 1f;
+                cell.style.borderLeftWidth = 1f;
+                cell.style.borderRightWidth = 1f;
+                cell.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+                cell.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+                cell.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
+                cell.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+                cell.style.borderTopLeftRadius = 7f;
+                cell.style.borderTopRightRadius = 7f;
+                cell.style.borderBottomLeftRadius = 7f;
+                cell.style.borderBottomRightRadius = 7f;
                 row.Add(cell);
 
                 var slot = new UTKSlot();
@@ -91,15 +155,24 @@ namespace ProjectName.UI.Toolkit
 
                 var keyLabel = new Label((i + 1).ToString());
                 keyLabel.name = "Key_" + i;
-                keyLabel.style.width = 20f;
-                keyLabel.style.height = 20f;
-                keyLabel.style.fontSize = 12f;
+                keyLabel.style.width = 18f;
+                keyLabel.style.height = 18f;
+                keyLabel.style.marginBottom = 3f;
+                keyLabel.style.fontSize = 10f;
+                keyLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
                 keyLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-                // [F-UI Phase1] Figma 퀵슬롯 HotkeyBadge — 밝은 배지 #F0F3F5 + 다크 텍스트 #1A1D20 + r4
-                keyLabel.style.color = new StyleColor(new Color(0.10f, 0.11f, 0.13f, 1f));
-                keyLabel.style.backgroundColor = new StyleColor(UTKColor.TextPrimary);
-                keyLabel.style.borderTopLeftRadius = 4f; keyLabel.style.borderTopRightRadius = 4f;
-                keyLabel.style.borderBottomLeftRadius = 4f; keyLabel.style.borderBottomRightRadius = 4f;
+                keyLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+                keyLabel.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+                keyLabel.style.borderTopWidth = 1f;
+                keyLabel.style.borderBottomWidth = 1f;
+                keyLabel.style.borderLeftWidth = 1f;
+                keyLabel.style.borderRightWidth = 1f;
+                keyLabel.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+                keyLabel.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+                keyLabel.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
+                keyLabel.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+                keyLabel.style.borderTopLeftRadius = 5f; keyLabel.style.borderTopRightRadius = 5f;
+                keyLabel.style.borderBottomLeftRadius = 5f; keyLabel.style.borderBottomRightRadius = 5f;
                 cell.Add(keyLabel);
 
                 _slots[i] = slot;
@@ -178,6 +251,7 @@ namespace ProjectName.UI.Toolkit
             if (slot == null) return;
             if (Mgr == null)
             {
+                SetCardFilled(slot, false);
                 slot.SetIcon(null);
                 slot.SetCount(0);
                 slot.SetRank("common");
@@ -187,6 +261,7 @@ namespace ProjectName.UI.Toolkit
             if (!Mgr.HasItemInSlot(index))
             {
                 _cachedIds[index] = null;
+                SetCardFilled(slot, false);
                 slot.SetIcon(null);
                 slot.SetCount(0);
                 slot.SetRank("common");
@@ -198,6 +273,7 @@ namespace ProjectName.UI.Toolkit
 
             if (item != null)
             {
+                SetCardFilled(slot, true);
                 slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(item));
                 slot.SetRank(UTKRarity.ClassForIndex((int)item.rarity));
                 int invCount = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetItemCount(item.id) : 0;
@@ -205,10 +281,24 @@ namespace ProjectName.UI.Toolkit
             }
             else
             {
+                SetCardFilled(slot, false);
                 slot.SetIcon(null);
                 slot.SetCount(0);
                 slot.SetRank("common");
             }
+        }
+
+        // 카드 외곽선만 점유 상태에 맞춰 바꾼다. 슬롯 데이터/렌더링 경로는 그대로 유지.
+        private static void SetCardFilled(UTKSlot slot, bool filled)
+        {
+            var card = slot.parent;
+            if (card == null) return;
+            Color stroke = filled ? UTKColor.BorderGold : UTKColor.BorderBronze;
+            card.style.borderTopColor = new StyleColor(stroke);
+            card.style.borderBottomColor = new StyleColor(stroke);
+            card.style.borderLeftColor = new StyleColor(stroke);
+            card.style.borderRightColor = new StyleColor(stroke);
+            card.style.backgroundColor = new StyleColor(filled ? UTKColor.BgPanel : UTKColor.BgPanelDark);
         }
 
         // =====================================================================

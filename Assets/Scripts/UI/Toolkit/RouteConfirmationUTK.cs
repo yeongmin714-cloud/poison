@@ -65,21 +65,83 @@ namespace ProjectName.UI.Toolkit
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
-            _content.style.justifyContent = Justify.Center;
+            _content.style.justifyContent = Justify.FlexStart;
+            _content.style.paddingLeft = 16f;
+            _content.style.paddingRight = 16f;
+            _content.style.paddingTop = 14f;
+            _content.style.paddingBottom = 12f;
+
+            // 목적지 경로 헤더 카드
+            var routeCard = new VisualElement();
+            routeCard.style.flexDirection = FlexDirection.Column;
+            routeCard.style.paddingLeft = 14f;
+            routeCard.style.paddingRight = 14f;
+            routeCard.style.paddingTop = 12f;
+            routeCard.style.paddingBottom = 12f;
+            routeCard.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            routeCard.style.borderTopWidth = 1f;
+            routeCard.style.borderBottomWidth = 1f;
+            routeCard.style.borderLeftWidth = 1f;
+            routeCard.style.borderRightWidth = 1f;
+            routeCard.style.borderTopColor = new StyleColor(UTKColor.IronLine);
+            routeCard.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+            routeCard.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
+            routeCard.style.borderRightColor = new StyleColor(UTKColor.IronLine);
+            routeCard.style.borderTopLeftRadius = 8f;
+            routeCard.style.borderTopRightRadius = 8f;
+            routeCard.style.borderBottomLeftRadius = 8f;
+            routeCard.style.borderBottomRightRadius = 8f;
 
             _descLabel = MakeLabel("", UTKColor.TextPrimary);
             _descLabel.style.fontSize = 16f;
+            _descLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _descLabel.style.whiteSpace = WhiteSpace.Normal;
-            _content.Add(_descLabel);
+            routeCard.Add(_descLabel);
+            _content.Add(routeCard);
+
+            // 보조 카드: 자동 닫힘 타이머와 목적지 식별 정보
+            var detailsCard = new VisualElement();
+            detailsCard.style.flexDirection = FlexDirection.Column;
+            detailsCard.style.marginTop = 10f;
+            detailsCard.style.paddingLeft = 14f;
+            detailsCard.style.paddingRight = 14f;
+            detailsCard.style.paddingTop = 9f;
+            detailsCard.style.paddingBottom = 9f;
+            detailsCard.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            detailsCard.style.borderTopWidth = 1f;
+            detailsCard.style.borderBottomWidth = 1f;
+            detailsCard.style.borderLeftWidth = 1f;
+            detailsCard.style.borderRightWidth = 1f;
+            detailsCard.style.borderTopColor = new StyleColor(UTKColor.IronLine);
+            detailsCard.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
+            detailsCard.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
+            detailsCard.style.borderRightColor = new StyleColor(UTKColor.IronLine);
+            detailsCard.style.borderTopLeftRadius = 8f;
+            detailsCard.style.borderTopRightRadius = 8f;
+            detailsCard.style.borderBottomLeftRadius = 8f;
+            detailsCard.style.borderBottomRightRadius = 8f;
 
             _timerLabel = MakeLabel("", UTKColor.TextSecondary);
             _timerLabel.style.fontSize = 12f;
-            _content.Add(_timerLabel);
+            detailsCard.Add(_timerLabel);
+            var routeInfoLabel = MakeLabel("목적지 경로 정보", UTKColor.TextSecondary);
+            routeInfoLabel.style.fontSize = 11f;
+            routeInfoLabel.style.marginTop = 3f;
+            detailsCard.Add(routeInfoLabel);
+            _content.Add(detailsCard);
+
+            // 하단 액션 띠 — 상단 골드 구분선, 주요 이동/보조 취소
+            var actionSpacer = new VisualElement();
+            actionSpacer.style.flexGrow = 1f;
+            _content.Add(actionSpacer);
 
             var btnRow = new VisualElement();
             btnRow.style.flexDirection = FlexDirection.Row;
-            btnRow.style.alignSelf = Align.Center;
-            btnRow.style.marginTop = 14f;
+            btnRow.style.justifyContent = Justify.FlexEnd;
+            btnRow.style.alignItems = Align.Center;
+            btnRow.style.paddingTop = 10f;
+            btnRow.style.borderTopWidth = 1f;
+            btnRow.style.borderTopColor = new StyleColor(UTKColor.BorderGold);
             btnRow.Add(UTKButton.Create("🚶 이동", ExecuteAutoMoveAndClose, UTKButton.Variant.Primary));
             btnRow.Add(UTKButton.Create("취소", () => Close(), UTKButton.Variant.Secondary));
             _content.Add(btnRow);

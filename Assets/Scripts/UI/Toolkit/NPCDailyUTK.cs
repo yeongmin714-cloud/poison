@@ -62,25 +62,33 @@ namespace ProjectName.UI.Toolkit
 
         private NPCDailyUTK() : base("🏘️ NPC 일상", new Vector2(WinW, WinH))
         {
+            _content.style.backgroundColor = new StyleColor(new Color32(11, 14, 20, 255));
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
             _content.style.paddingTop = 6f;
             _content.style.paddingBottom = 6f;
 
+            var periodCard = CreateCard(new Color32(22, 27, 34, 255), 8f, 12f);
+            periodCard.style.marginBottom = 8f;
+            periodCard.style.flexDirection = FlexDirection.Column;
+
             _periodLabel = new Label("");
             _periodLabel.style.fontSize = 17f;
-            _periodLabel.style.color = new StyleColor(UTKColor.BorderGold);
-            _content.Add(_periodLabel);
+            _periodLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            periodCard.Add(_periodLabel);
 
             _countLabel = new Label("");
             _countLabel.style.fontSize = 12f;
             _countLabel.style.color = new StyleColor(UTKColor.TextSecondary);
-            _content.Add(_countLabel);
+            _countLabel.style.marginTop = 4f;
+            periodCard.Add(_countLabel);
+            _content.Add(periodCard);
 
             _list = new VisualElement();
             _list.name = "NPCDailyList";
             _list.style.flexGrow = 1f;
             _list.style.flexDirection = FlexDirection.Column;
+            _list.style.paddingTop = 2f;
             _content.Add(_list);
 
             ApplyUIToolkitFont(this);
@@ -155,11 +163,14 @@ namespace ProjectName.UI.Toolkit
             _list.Clear();
             var header = MakeLabel("NPC 일상 상태", UTKColor.TextSecondary, false);
             header.style.fontSize = 15f;
+            header.style.marginBottom = 6f;
             _list.Add(header);
 
             if (npcs.Count == 0)
             {
-                _list.Add(MakeLabel("표시할 NPC가 없습니다.", UTKColor.TextSecondary, true));
+                var emptyCard = CreateCard(new Color32(33, 38, 45, 255), 6f, 8f);
+                emptyCard.Add(MakeLabel("표시할 NPC가 없습니다.", UTKColor.TextSecondary, true));
+                _list.Add(emptyCard);
                 return;
             }
 
@@ -171,10 +182,47 @@ namespace ProjectName.UI.Toolkit
                     continue;
 
                 bool active = npc.activeInHierarchy;
-                var row = MakeLabel(npc.name + "  —  " + status, StateColor(active), false);
+                var row = CreateCard(new Color32(33, 38, 45, 255), 6f, 8f);
+                row.style.flexDirection = FlexDirection.Row;
+                row.style.alignItems = Align.Center;
+                row.style.justifyContent = Justify.SpaceBetween;
+                row.style.marginBottom = 6f;
                 row.style.opacity = active ? 1f : 0.45f;
+
+                var nameLabel = MakeLabel(npc.name, StateColor(active), true);
+                nameLabel.style.flexGrow = 1f;
+                nameLabel.style.flexShrink = 1f;
+                nameLabel.style.marginRight = 8f;
+                var statusLabel = MakeLabel(status, StateColor(active), true);
+                statusLabel.style.unityTextAlign = TextAnchor.MiddleRight;
+                statusLabel.style.flexShrink = 1f;
+                row.Add(nameLabel);
+                row.Add(statusLabel);
                 _list.Add(row);
             }
+        }
+
+        private static VisualElement CreateCard(Color background, float radius, float padding)
+        {
+            var card = new VisualElement();
+            card.style.backgroundColor = new StyleColor(background);
+            card.style.borderTopColor = new StyleColor(new Color32(46, 52, 61, 255));
+            card.style.borderBottomColor = new StyleColor(new Color32(46, 52, 61, 255));
+            card.style.borderLeftColor = new StyleColor(new Color32(46, 52, 61, 255));
+            card.style.borderRightColor = new StyleColor(new Color32(46, 52, 61, 255));
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            card.style.borderTopLeftRadius = radius;
+            card.style.borderTopRightRadius = radius;
+            card.style.borderBottomLeftRadius = radius;
+            card.style.borderBottomRightRadius = radius;
+            card.style.paddingTop = padding;
+            card.style.paddingBottom = padding;
+            card.style.paddingLeft = padding;
+            card.style.paddingRight = padding;
+            return card;
         }
 
         private static Color StateColor(bool active)
