@@ -1,19 +1,14 @@
 using UnityEngine;
 using ProjectName.Core;
-#pragma warning disable 0414
 
 namespace ProjectName.Systems
 {
     /// <summary>
-    /// 방독면 컨트롤러 — V 키로 착용/해제, 프레임 업데이트 처리.
+    /// 방독면 프레임 업데이트(내구도·유지시간 감소) — 장착/해제는 인벤토리 Mask 슬롯이 담당(→ GasMaskEquipmentLink).
+    /// 수동 키 토글 없음(V키 토글 제거) — 방독면은 인벤에서만 장착.
     /// </summary>
     public class GasMaskController : MonoBehaviour
     {
-        [Header("Gas Mask")]
-        // 가스 분사기(G키)와 충돌 방지 — 방독면은 V키
-        [SerializeField] private KeyCode _toggleKey = KeyCode.V;
-        [SerializeField] private GasMaskGrade _currentGrade = GasMaskGrade.Wood;
-
         private void Start()
         {
             if (!GasMaskSystem.IsInitialized)
@@ -22,35 +17,10 @@ namespace ProjectName.Systems
 
         private void Update()
         {
-            // V 키: 착용/해제 토글
-            if (Input.GetKeyDown(_toggleKey))
-            {
-                ToggleGasMask();
-            }
-
-            // 방독면 유지시간 업데이트
+            // 장착 상태와 무관하게 내구도/유지시간 시스템을 프레임마다 갱신
             GasMaskSystem.Update(Time.deltaTime);
         }
 
-        private void ToggleGasMask()
-        {
-            if (GasMaskSystem.IsActive)
-            {
-                GasMaskSystem.Unequip();
-                Debug.Log("[GasMaskController] 방독면 해제 (V)");
-            }
-            else
-            {
-                GasMaskSystem.Equip(_currentGrade);
-                Debug.Log($"[GasMaskController] 방독면 장착: {_currentGrade} (V)");
-            }
-        }
-
-        // Inspector에서 등급 변경 가능
-        public void SetGrade(GasMaskGrade grade)
-        {
-            _currentGrade = grade;
-        }
 
         /// <summary>
         /// 방독면 상태 문자열 (UI 표시용)

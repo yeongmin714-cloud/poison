@@ -3466,4 +3466,5 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 - **동작:** 분사기 장착 + 물약 장전 시 물약 버튼 → `radius=분사기 sprayRange`, 지속 4s, 물약1+가스3s 소모(SpecialAlloy 무소모), Poison/Mental은 적 공격·방독면 활성 주인/아군 무피해, Heal/Buff는 주인/아군 회복·버프.
 - **컴파일 검증:** `gascloud_batch_compile.log` — script compilation 26.3s · error CS 0 · "Exiting batchmode successfully" return code 0.
 - **[보강 09-28]** 방독면 면역 실제 동작화: `GasMaskEquipmentLink.cs` — 인벤 Mask 슬롯 장착/해제 ↔ `GasMaskSystem.Equip/Unequip` 연동(등급 매핑 steel→Iron/stone→Stone/special→Special/폴백 Wood) + `EquipmentManager.GetEquippedItemId` getter + GameSetup 배선. **G키 충돌 해소**: `GasMaskController._toggleKey` G→**V** (가스 분사기가 G키). 배치컴파일 error CS 0 (`gas_mask_equipment_compile.log`, 22.4s).
+- **[사용자 확정 09-28]** 설계 확정: **방독면=인벤 Mask 슬롯 장착 전용**, **분사=G키**. `GasMaskController`의 수동 V키 토글·`ToggleGasMask`/`_currentGrade`/`SetGrade` **제거** — 장착/해제는 `GasMaskEquipmentLink`(인벤)가 담당, 컨트롤러는 `GasMaskSystem.Update`(내구도 감소)+`GetStatusText`(UI)만 유지. 배치컴파일 error CS 0 (`gasmask_nokeys_compile.log`).
 - ⚠ **Play 검증 대기:** 에디터 Play 후 분사기 장착→물약사용 시 주변 원형 가스 확산/색상/방독면 면역 확인.
