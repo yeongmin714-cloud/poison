@@ -55,19 +55,39 @@ namespace ProjectName.UI.Toolkit
         private readonly Label _infoLabel;
         private readonly Label _statusLabel;
 
+        // ===== Figma 구조 (2026-09-28) — 영주 정보 카드 / 목록 / 상태 피드백 =====
+        private readonly VisualElement _lordInfoCard; // 영주 정보 카드
+        private readonly Label _statusCard;           // 지급 결과 카드
+
         private LordFeedWindowUTK() : base("🍗 영주 음식주기", new Vector2(WinW, WinH))
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
-            _summaryLabel = new Label("🍗 영주 음식주기");
-            _summaryLabel.AddToClassList("utk-title-label");
-            _summaryLabel.style.fontSize = 17f;
-            _content.Add(_summaryLabel);
+            // ── 영주 헤더 카드 ──
+            _lordInfoCard = new VisualElement();
+            _lordInfoCard.name = "LordFeedInfoCard";
+            _lordInfoCard.style.flexDirection = FlexDirection.Column;
+            _lordInfoCard.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _lordInfoCard.style.borderTopLeftRadius = _lordInfoCard.style.borderTopRightRadius = _lordInfoCard.style.borderBottomLeftRadius = _lordInfoCard.style.borderBottomRightRadius = UTKTheme.RadiusSub;
+            _lordInfoCard.style.borderTopWidth = _lordInfoCard.style.borderBottomWidth = _lordInfoCard.style.borderLeftWidth = _lordInfoCard.style.borderRightWidth = 1f;
+            _lordInfoCard.style.borderTopColor = _lordInfoCard.style.borderBottomColor = _lordInfoCard.style.borderLeftColor = _lordInfoCard.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            _lordInfoCard.style.paddingLeft = 10f;
+            _lordInfoCard.style.paddingRight = 10f;
+            _lordInfoCard.style.paddingTop = 8f;
+            _lordInfoCard.style.paddingBottom = 8f;
+            _lordInfoCard.style.marginBottom = 8f;
+            _content.Add(_lordInfoCard);
 
-            _infoLabel = MakeLabel("", UTKColor.TextSecondary);
-            _infoLabel.style.marginTop = 4f;
-            _content.Add(_infoLabel);
+            _summaryLabel = new Label("🍗 영주 음식주기");
+            _summaryLabel.style.fontSize = 17f;
+            _summaryLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _summaryLabel.style.color = new StyleColor(UTKTheme.TextMain);
+            _summaryLabel.style.marginBottom = 4f;
+            _lordInfoCard.Add(_summaryLabel);
+
+            _infoLabel = MakeLabel("", UTKTheme.TextSub);
+            _lordInfoCard.Add(_infoLabel);
 
             _list = new VisualElement();
             _list.name = "LordFeedList";
@@ -75,15 +95,29 @@ namespace ProjectName.UI.Toolkit
             _list.style.flexDirection = FlexDirection.Column;
             _content.Add(_list);
 
-            _statusLabel = MakeLabel("", UTKColor.TextPrimary);
-            _statusLabel.style.marginTop = 4f;
-            _content.Add(_statusLabel);
+            // ── 지급 결과 상태 카드 ──
+            _statusCard = new Label("");
+            _statusCard.style.fontSize = 13f;
+            _statusCard.style.color = new StyleColor(UTKTheme.Accent);
+            _statusCard.style.whiteSpace = WhiteSpace.Normal;
+            _statusCard.style.marginTop = 6f;
+            _statusCard.style.paddingLeft = 8f;
+            _statusCard.style.paddingTop = 5f;
+            _statusCard.style.paddingBottom = 5f;
+            _statusCard.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _statusCard.style.borderTopLeftRadius = _statusCard.style.borderTopRightRadius = _statusCard.style.borderBottomLeftRadius = _statusCard.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+            _content.Add(_statusCard);
+            _statusLabel = _statusCard;
 
             ApplyUIToolkitFont(this);
 
             style.display = DisplayStyle.None;
             style.left = 380f;
             style.top = 160f;
+            style.width = WinW;
+            style.height = WinH;
+            style.backgroundColor = new StyleColor(UTKTheme.BgBase);
+            style.borderTopLeftRadius = style.borderTopRightRadius = style.borderBottomLeftRadius = style.borderBottomRightRadius = UTKTheme.RadiusMain;
         }
 
         // =================== 생명주기 ===================
@@ -125,8 +159,7 @@ namespace ProjectName.UI.Toolkit
             {
                 _list.Add(MakeLabel("(영주실 문이 잠겨 있어 음식을 줄 수 없습니다 — 영주 중독도 " +
                                     TerritoryLordDoorSystem.DOOR_OPEN_ADDICTION_THRESHOLD.ToString("F0") +
-                                    " 이상 필요)", UTKColor.TextSecondary));
-                _list.Add(UTKButton.Create("닫기 ✕", Close, UTKButton.Variant.Danger));
+                                    " 이상 필요)", UTKTheme.TextSub));
                 return;
             }
 
@@ -147,9 +180,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             if (!any)
-                _list.Add(MakeLabel("(인벤토리에 음식(Food)이 없습니다.)", UTKColor.TextSecondary));
-
-            _list.Add(UTKButton.Create("닫기 ✕", Close, UTKButton.Variant.Danger));
+                _list.Add(MakeLabel("(인벤토리에 음식(Food)이 없습니다.)", UTKTheme.TextSub));
         }
 
         private VisualElement BuildFeedRow(PlayerInventory.ItemSlot slot)
@@ -158,8 +189,13 @@ namespace ProjectName.UI.Toolkit
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
             row.style.marginBottom = 4f;
+            row.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            row.style.borderTopLeftRadius = row.style.borderTopRightRadius = row.style.borderBottomLeftRadius = row.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+            row.style.paddingLeft = 8f;
+            row.style.paddingTop = 4f;
+            row.style.paddingBottom = 4f;
 
-            var name = MakeLabel("🍗 " + slot.item.displayName + " x" + slot.count, UTKColor.TextPrimary);
+            var name = MakeLabel("🍗 " + slot.item.displayName + " x" + slot.count, UTKTheme.TextMain);
             name.style.flexGrow = 1f;
             row.Add(name);
 
