@@ -103,13 +103,22 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
-            // ── 수집률 라벨 ──
-            _overallLabel = MkLabel("📊 전체 수집률: 0/0 (0.0%)", 14, UTKColor.TextPrimary, TextAnchor.MiddleLeft);
-            _overallLabel.style.marginBottom = 3f;
-            _content.Add(_overallLabel);
-            _catLabel = MkLabel("🏷️ 수집률: -", 13, UTKColor.TextSecondary, TextAnchor.MiddleLeft);
-            _catLabel.style.marginBottom = 4f;
-            _content.Add(_catLabel);
+            // ── 수집률 헤더 카드 (Figma 카드 패턴) ──
+            var headerCard = new VisualElement();
+            headerCard.name = "OverallCard";
+            headerCard.style.flexDirection = FlexDirection.Column;
+            headerCard.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            headerCard.style.borderTopLeftRadius = headerCard.style.borderTopRightRadius = headerCard.style.borderBottomLeftRadius = headerCard.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+            headerCard.style.paddingLeft = 10f;
+            headerCard.style.paddingTop = 5f;
+            headerCard.style.paddingBottom = 5f;
+            headerCard.style.marginBottom = 6f;
+            _content.Add(headerCard);
+
+            _overallLabel = MkLabel("📊 전체 수집률: 0/0 (0.0%)", 14, UTKTheme.TextMain, TextAnchor.MiddleLeft);
+            headerCard.Add(_overallLabel);
+            _catLabel = MkLabel("🏷️ 수집률: -", 13, UTKTheme.Gold, TextAnchor.MiddleLeft);
+            headerCard.Add(_catLabel);
 
             // ── 카테고리 탭 ──
             _tabBar = new VisualElement();
@@ -145,7 +154,7 @@ namespace ProjectName.UI.Toolkit
             _detail.style.width = new Length(42f, LengthUnit.Percent);
             body.Add(_detail);
 
-            _detailBody = MkLabel("항목을 선택하세요.", 14, UTKColor.TextSecondary, TextAnchor.UpperLeft);
+            _detailBody = MkLabel("항목을 선택하세요.", 14, UTKTheme.TextSub, TextAnchor.UpperLeft);
             _detailBody.style.whiteSpace = WhiteSpace.Normal;
             _detail.Add(_detailBody);
 
@@ -153,6 +162,10 @@ namespace ProjectName.UI.Toolkit
             style.display = DisplayStyle.None;
             style.left = 40f;
             style.top = 70f;
+            style.width = WinW;
+            style.height = WinH;
+            style.backgroundColor = new StyleColor(UTKTheme.BgBase);
+            style.borderTopLeftRadius = style.borderTopRightRadius = style.borderBottomLeftRadius = style.borderBottomRightRadius = UTKTheme.RadiusMain;
         }
 
         private void SwitchTab(int tab)
@@ -167,7 +180,7 @@ namespace ProjectName.UI.Toolkit
         private static void StyleTab(Button btn, bool active)
         {
             if (btn == null) return;
-            btn.style.color = new StyleColor(active ? UTKColor.AccentRare : UTKColor.TextSecondary);
+            btn.style.color = new StyleColor(active ? UTKTheme.Gold : UTKTheme.TextSub);
         }
 
         // =====================================================================
@@ -273,7 +286,7 @@ namespace ProjectName.UI.Toolkit
 
             if (all.Count == 0)
             {
-                var empty = MkLabel("이 카테고리에 항목이 없습니다.", 13, UTKColor.TextSecondary, TextAnchor.UpperLeft);
+                var empty = MkLabel("이 카테고리에 항목이 없습니다.", 13, UTKTheme.TextSub, TextAnchor.UpperLeft);
                 empty.style.flexGrow = 1f;
                 _grid.Add(empty);
             }
@@ -282,22 +295,25 @@ namespace ProjectName.UI.Toolkit
         private VisualElement BuildEntryCell(EncyclopediaEntry entry, bool discovered)
         {
             var cell = new VisualElement();
-            cell.AddToClassList("utk-slot");
             cell.style.width = EntryCellW;
             cell.style.height = EntryCellH;
-            cell.style.marginRight = 3f;
-            cell.style.marginBottom = 3f;
+            cell.style.marginRight = 4f;
+            cell.style.marginBottom = 4f;
             cell.style.justifyContent = Justify.Center;
+            cell.style.backgroundColor = new StyleColor(discovered ? UTKTheme.PanelSub : UTKTheme.BgBase);
+            cell.style.borderTopLeftRadius = cell.style.borderTopRightRadius = cell.style.borderBottomLeftRadius = cell.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+            cell.style.borderTopWidth = cell.style.borderBottomWidth = cell.style.borderLeftWidth = cell.style.borderRightWidth = 1f;
+            cell.style.borderTopColor = cell.style.borderBottomColor = cell.style.borderLeftColor = cell.style.borderRightColor = new StyleColor(discovered ? UTKTheme.Stroke : new Color(UTKTheme.Stroke.r, UTKTheme.Stroke.g, UTKTheme.Stroke.b, 0.4f));
 
             if (discovered)
             {
-                var lbl = MkLabel($"✅ {entry.entryName}", 12, UTKColor.TextPrimary, TextAnchor.MiddleCenter);
+                var lbl = MkLabel($"✅ {entry.entryName}", 12, UTKTheme.TextMain, TextAnchor.MiddleCenter);
                 lbl.style.whiteSpace = WhiteSpace.Normal;
                 cell.Add(lbl);
             }
             else
             {
-                var lbl = MkLabel("❌ ???", 12, UTKColor.TextSecondary, TextAnchor.MiddleCenter);
+                var lbl = MkLabel("❌ ???", 12, UTKTheme.TextSub, TextAnchor.MiddleCenter);
                 cell.Add(lbl);
             }
 
@@ -323,18 +339,27 @@ namespace ProjectName.UI.Toolkit
             Color rarityColor = entry.GetRarityColor();
             string rarityName = entry.rarity.ToString();
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"<b>{entry.entryName}</b>");
-            sb.AppendLine($"등급: {rarityName}");
+            sb.AppendLine("<b>" + entry.entryName + "</b>");
+            sb.AppendLine("등급: " + rarityName);
             if (!string.IsNullOrEmpty(entry.description))
                 sb.AppendLine("");
             sb.AppendLine(entry.description ?? "");
             if (!string.IsNullOrEmpty(entry.location))
             {
                 sb.AppendLine("");
-                sb.AppendLine($"📌 위치: {entry.location}");
+                sb.AppendLine("📌 위치: " + entry.location);
             }
             _detailBody.text = sb.ToString();
+            // 상세 카드 배경 — 등급색 테두리 + 다크 패널
             _detailBody.style.color = new StyleColor(rarityColor);
+            _detailBody.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _detailBody.style.borderTopLeftRadius = _detailBody.style.borderTopRightRadius = _detailBody.style.borderBottomLeftRadius = _detailBody.style.borderBottomRightRadius = UTKTheme.RadiusSub;
+            _detailBody.style.paddingLeft = 10f;
+            _detailBody.style.paddingRight = 10f;
+            _detailBody.style.paddingTop = 8f;
+            _detailBody.style.paddingBottom = 8f;
+            _detailBody.style.borderTopWidth = _detailBody.style.borderBottomWidth = _detailBody.style.borderLeftWidth = _detailBody.style.borderRightWidth = 2f;
+            _detailBody.style.borderTopColor = _detailBody.style.borderBottomColor = _detailBody.style.borderLeftColor = _detailBody.style.borderRightColor = new StyleColor(rarityColor);
 
             Debug.Log($"[EncyUTK] 항목 선택(발견): {entry.entryName} ({entry.entryId}) — 등급 {rarityName}");
         }
