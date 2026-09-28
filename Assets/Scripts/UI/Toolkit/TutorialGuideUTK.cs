@@ -87,11 +87,26 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
+            // GitHub-dark 요약 헤더 카드
+            var summaryCard = new VisualElement();
+            summaryCard.name = "GuideSummaryCard";
+            summaryCard.style.backgroundColor = new StyleColor(new Color32(22, 27, 34, 255)); // #161B22
+            summaryCard.style.paddingLeft = 14f;
+            summaryCard.style.paddingRight = 14f;
+            summaryCard.style.paddingTop = 12f;
+            summaryCard.style.paddingBottom = 12f;
+            summaryCard.style.marginBottom = 8f;
+            summaryCard.style.borderTopLeftRadius = 8f;
+            summaryCard.style.borderTopRightRadius = 8f;
+            summaryCard.style.borderBottomLeftRadius = 8f;
+            summaryCard.style.borderBottomRightRadius = 8f;
+
             _statLabel = new Label("");
             _statLabel.style.fontSize = 14f;
+            _statLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _statLabel.style.color = new StyleColor(UTKColor.GuildGreen);
-            _statLabel.style.marginBottom = 4f;
-            _content.Add(_statLabel);
+            summaryCard.Add(_statLabel);
+            _content.Add(summaryCard);
 
             _list = new ScrollView { name = "GuideList" };
             _list.style.flexGrow = 1f;
@@ -190,12 +205,28 @@ namespace ProjectName.UI.Toolkit
             bool done = HasShown(id);
 
             var box = new VisualElement();
+            box.name = "GuideCard_" + id;
             box.AddToClassList("utk-slot");
             box.style.flexDirection = FlexDirection.Column;
-            box.style.marginTop = 3f;
-            box.style.marginBottom = 3f;
-            box.style.paddingTop = 5f;
-            box.style.paddingBottom = 5f;
+            box.style.backgroundColor = new StyleColor(new Color32(33, 38, 45, 255)); // #21262D
+            box.style.borderTopColor = new StyleColor(new Color32(46, 52, 61, 255)); // #2E343D
+            box.style.borderBottomColor = new StyleColor(new Color32(46, 52, 61, 255));
+            box.style.borderLeftColor = new StyleColor(new Color32(46, 52, 61, 255));
+            box.style.borderRightColor = new StyleColor(new Color32(46, 52, 61, 255));
+            box.style.borderTopWidth = 1f;
+            box.style.borderBottomWidth = 1f;
+            box.style.borderLeftWidth = 1f;
+            box.style.borderRightWidth = 1f;
+            box.style.borderTopLeftRadius = 8f;
+            box.style.borderTopRightRadius = 8f;
+            box.style.borderBottomLeftRadius = 8f;
+            box.style.borderBottomRightRadius = 8f;
+            box.style.marginTop = 4f;
+            box.style.marginBottom = 4f;
+            box.style.paddingLeft = 12f;
+            box.style.paddingRight = 12f;
+            box.style.paddingTop = 10f;
+            box.style.paddingBottom = 10f;
 
             var row1 = new VisualElement();
             row1.style.flexDirection = FlexDirection.Row;
@@ -228,6 +259,7 @@ namespace ProjectName.UI.Toolkit
                 descLabel.style.color = new StyleColor(UTKColor.TextSecondary);
                 descLabel.style.whiteSpace = WhiteSpace.Normal;
                 descLabel.style.marginLeft = 26f;
+                descLabel.style.marginTop = 4f;
                 box.Add(descLabel);
             }
 
@@ -240,9 +272,9 @@ namespace ProjectName.UI.Toolkit
             var h = new Label(text);
             h.style.fontSize = 16f;
             h.style.unityFontStyleAndWeight = FontStyle.Bold;
-            h.style.color = new StyleColor(UTKColor.AccentMagic);
-            h.style.marginTop = 8f;
-            h.style.marginBottom = 2f;
+            h.style.color = new StyleColor(UTKColor.TextSecondary);
+            h.style.marginTop = 12f;
+            h.style.marginBottom = 4f;
             return h;
         }
 

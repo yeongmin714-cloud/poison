@@ -89,30 +89,65 @@ namespace ProjectName.UI.Toolkit
         {
             _content.style.flexDirection = FlexDirection.Column;
             _content.style.flexGrow = 1f;
+            _content.style.paddingLeft = 14f;
+            _content.style.paddingRight = 14f;
+            _content.style.paddingTop = 10f;
+            _content.style.paddingBottom = 10f;
+
+            // ── 안내 헤더 카드 ──
+            var headerCard = MakeCard(new Color32(0x16, 0x1B, 0x22, 0xFF));
+            headerCard.style.flexDirection = FlexDirection.Row;
+            headerCard.style.alignItems = Align.Center;
+            headerCard.style.marginBottom = 10f;
+            _content.Add(headerCard);
+
+            var headerCopy = new VisualElement();
+            headerCopy.style.flexGrow = 1f;
+            headerCopy.style.flexShrink = 1f;
+            headerCard.Add(headerCopy);
+
+            var headerTitle = new Label("🏳️ 나만의 국기 만들기");
+            headerTitle.style.fontSize = 17f;
+            headerTitle.style.color = new StyleColor(UTKColor.TextPrimary);
+            headerTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            headerCopy.Add(headerTitle);
+
+            var headerHint = new Label("이름과 문양을 정해 국기를 등록하세요.");
+            headerHint.style.fontSize = 12f;
+            headerHint.style.color = new StyleColor(UTKColor.TextSecondary);
+            headerHint.style.whiteSpace = WhiteSpace.Normal;
+            headerHint.style.marginTop = 4f;
+            headerCopy.Add(headerHint);
 
             // ── 국기 미리보기 ──
             _previewBox = new VisualElement();
-            _previewBox.style.height = 130f;
-            _previewBox.style.marginBottom = 10f;
+            _previewBox.style.width = 92f;
+            _previewBox.style.height = 74f;
+            _previewBox.style.marginLeft = 12f;
             _previewBox.style.alignItems = Align.Center;
             _previewBox.style.justifyContent = Justify.Center;
             _previewBox.style.flexDirection = FlexDirection.Column;
-            _content.Add(_previewBox);
+            headerCard.Add(_previewBox);
 
             _previewSymbol = new Label("🛡️");
-            _previewSymbol.style.fontSize = 44f;
-            _previewSymbol.style.color = Color.white;
-            _previewSymbol.style.marginBottom = 4f;
-            _content.Add(_previewSymbol);
+            _previewSymbol.style.fontSize = 30f;
+            _previewSymbol.style.color = new StyleColor(UTKColor.TextPrimary);
+            _previewBox.Add(_previewSymbol);
 
             _previewName = new Label("이름 없음");
-            _previewName.style.fontSize = 18f;
-            _previewName.style.color = Color.white;
+            _previewName.style.fontSize = 13f;
+            _previewName.style.color = new StyleColor(UTKColor.TextPrimary);
             _previewName.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _content.Add(_previewName);
+            _previewBox.Add(_previewName);
+
+            // ── 옵션/비용 정보 카드 ──
+            var infoCard = MakeCard(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            infoCard.style.flexGrow = 1f;
+            infoCard.style.marginBottom = 10f;
+            _content.Add(infoCard);
 
             // ── 이름 입력 ──
-            _content.Add(MakeSectionLabel("📛 이름 (최대 8자)"));
+            infoCard.Add(MakeSectionLabel("📛 이름 (최대 8자)"));
             _nameField = new TextField { maxLength = MaxNameLength, value = "" };
             _nameField.style.marginBottom = 6f;
             _nameField.RegisterValueChangedCallback(evt =>
@@ -120,33 +155,33 @@ namespace ProjectName.UI.Toolkit
                 _editName = evt.newValue ?? "";
                 RefreshPreview();
             });
-            _content.Add(_nameField);
+            infoCard.Add(_nameField);
 
             // ── 배경색 선택 ──
-            _content.Add(MakeSectionLabel("🎨 배경색"));
+            infoCard.Add(MakeSectionLabel("🎨 배경색"));
             _colorGrid = new VisualElement();
             _colorGrid.style.flexDirection = FlexDirection.Row;
             _colorGrid.style.flexWrap = Wrap.Wrap;
             _colorGrid.style.marginBottom = 8f;
-            _content.Add(_colorGrid);
+            infoCard.Add(_colorGrid);
             BuildColorGrid();
 
             // ── 문양 선택 ──
-            _content.Add(MakeSectionLabel("🔰 문양"));
+            infoCard.Add(MakeSectionLabel("🔰 문양"));
             _shapeGrid = new VisualElement();
             _shapeGrid.style.flexDirection = FlexDirection.Row;
             _shapeGrid.style.flexWrap = Wrap.Wrap;
             _shapeGrid.style.marginBottom = 8f;
-            _content.Add(_shapeGrid);
+            infoCard.Add(_shapeGrid);
             BuildShapeGrid();
 
             // ── 비용 정보 ──
             _costLabel = new Label("");
             _costLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _costLabel.style.fontSize = 14f;
-            _costLabel.style.marginTop = 4f;
+            _costLabel.style.marginTop = 8f;
             _costLabel.style.marginBottom = 4f;
-            _content.Add(_costLabel);
+            infoCard.Add(_costLabel);
 
             // ── 메시지 ──
             _messageLabel = new Label("");
@@ -156,12 +191,25 @@ namespace ProjectName.UI.Toolkit
             _messageLabel.style.marginTop = 4f;
             _messageLabel.style.marginBottom = 4f;
             _messageLabel.style.display = DisplayStyle.None;
-            _content.Add(_messageLabel);
+            infoCard.Add(_messageLabel);
 
-            // ── 완료 버튼 ──
+            // ── 하단 완료 액션 띠 ──
+            var actionStrip = new VisualElement();
+            actionStrip.style.flexDirection = FlexDirection.Row;
+            actionStrip.style.justifyContent = Justify.FlexEnd;
+            actionStrip.style.alignItems = Align.Center;
+            actionStrip.style.paddingLeft = 10f;
+            actionStrip.style.paddingRight = 10f;
+            actionStrip.style.paddingTop = 8f;
+            actionStrip.style.paddingBottom = 8f;
+            actionStrip.style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xFF));
+            actionStrip.style.borderTopWidth = 1f;
+            actionStrip.style.borderTopColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+
             _confirmBtn = UTKButton.Create("✅ 완료 (등록)", OnConfirm, UTKButton.Variant.Primary);
-            _confirmBtn.style.marginTop = 8f;
-            _content.Add(_confirmBtn);
+            _confirmBtn.style.minWidth = 150f;
+            actionStrip.Add(_confirmBtn);
+            _content.Add(actionStrip);
 
             ApplyUIToolkitFont(this);
             style.display = DisplayStyle.None;
@@ -306,6 +354,31 @@ namespace ProjectName.UI.Toolkit
             l.style.unityFontStyleAndWeight = FontStyle.Bold;
             l.style.marginTop = 6f;
             return l;
+        }
+
+        private static VisualElement MakeCard(Color background)
+        {
+            var card = new VisualElement();
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.paddingLeft = 12f;
+            card.style.paddingRight = 12f;
+            card.style.paddingTop = 10f;
+            card.style.paddingBottom = 10f;
+            card.style.backgroundColor = new StyleColor(background);
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            var stroke = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            card.style.borderTopColor = stroke;
+            card.style.borderBottomColor = stroke;
+            card.style.borderLeftColor = stroke;
+            card.style.borderRightColor = stroke;
+            card.style.borderTopLeftRadius = 6f;
+            card.style.borderTopRightRadius = 6f;
+            card.style.borderBottomLeftRadius = 6f;
+            card.style.borderBottomRightRadius = 6f;
+            return card;
         }
 
         // =================== 완료 처리 ===================

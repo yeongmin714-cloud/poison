@@ -59,6 +59,7 @@ namespace ProjectName.UI.Toolkit
         // ===== 레퍼런스 =====
         private readonly VisualElement _list;
         private Label _statsLabel;
+        private Label _warningLabel;
         private Label _detailLabel;
         private int _selectedIndex = -1;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
@@ -67,23 +68,50 @@ namespace ProjectName.UI.Toolkit
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
+            _content.style.paddingLeft = 12f;
+            _content.style.paddingRight = 12f;
+            _content.style.paddingTop = 10f;
+            _content.style.paddingBottom = 10f;
+
+            // 경고 헤더 카드 — 통계와 원한 경고를 하나의 시각적 그룹으로 구성.
+            var headerCard = new VisualElement();
+            headerCard.name = "RevengeHeaderCard";
+            StyleCard(headerCard, new Color32(0x16, 0x1B, 0x22, 0xFF), 8f);
+            headerCard.style.marginBottom = 8f;
+
+            _warningLabel = new Label("⚠️ 복수 대상이 남아 있습니다");
+            _warningLabel.style.fontSize = 15f;
+            _warningLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _warningLabel.style.color = new StyleColor(UTKColor.HealthRed);
+            _warningLabel.style.marginBottom = 4f;
+            headerCard.Add(_warningLabel);
 
             _statsLabel = new Label("🗡️ 복수명부");
-            _statsLabel.AddToClassList("utk-title-label");
-            _statsLabel.style.fontSize = 17f;
-            _content.Add(_statsLabel);
+            _statsLabel.style.fontSize = 12f;
+            _statsLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _statsLabel.style.whiteSpace = WhiteSpace.Normal;
+            headerCard.Add(_statsLabel);
+            _content.Add(headerCard);
 
-            _list = new VisualElement();
-            _list.name = "RevengeLordList";
-            _list.style.flexGrow = 1f;
+            var listScroll = new ScrollView(ScrollViewMode.Vertical);
+            listScroll.name = "RevengeLordList";
+            listScroll.style.flexGrow = 1f;
+            listScroll.style.flexShrink = 1f;
+            _list = listScroll.contentContainer;
+            _list.name = "RevengeLordListContent";
             _list.style.flexDirection = FlexDirection.Column;
-            _content.Add(_list);
+            _content.Add(listScroll);
 
+            var detailCard = new VisualElement();
+            detailCard.name = "RevengeDetailCard";
+            StyleCard(detailCard, new Color32(0x21, 0x26, 0x2D, 0xFF), 8f);
+            detailCard.style.marginTop = 8f;
             _detailLabel = new Label("영주를 선택하세요.");
             _detailLabel.style.fontSize = 13f;
-            _detailLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _detailLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             _detailLabel.style.whiteSpace = WhiteSpace.Normal;
-            _content.Add(_detailLabel);
+            detailCard.Add(_detailLabel);
+            _content.Add(detailCard);
 
             ApplyUIToolkitFont(this);
 
@@ -153,6 +181,9 @@ namespace ProjectName.UI.Toolkit
             var mgr = RevengeListManager.Instance;
             if (mgr == null || !mgr.IsInitialized)
             {
+                _warningLabel.text = "⚠️ 복수명부가 아직 준비되지 않았습니다";
+                _warningLabel.style.color = new StyleColor(UTKColor.HealthRed);
+                _statsLabel.text = "복수 기록을 불러올 수 없습니다.";
                 _list.Add(MakeLabel("(복수명부 미초기화)", UTKColor.TextSecondary));
                 return;
             }
@@ -161,12 +192,21 @@ namespace ProjectName.UI.Toolkit
             int total = all.Count;
             if (total == 0)
             {
+                _warningLabel.text = "✅ 처리할 원한이 없습니다";
+                _warningLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+                _statsLabel.text = "복수명부가 비어 있습니다.";
                 _list.Add(MakeLabel("복수 대상이 없습니다.", UTKColor.TextSecondary));
+                _detailLabel.text = "영주를 선택하세요.";
                 return;
             }
 
             int completed = mgr.GetCompletionCount();
             int revealedPoison = mgr.GetRevealedPoisonConspiratorCount();
+            int pending = total - completed;
+            _warningLabel.text = pending > 0
+                ? $"⚠️ 미처리 원한 {pending}건이 남아 있습니다"
+                : "✅ 모든 원한이 처리되었습니다";
+            _warningLabel.style.color = new StyleColor(pending > 0 ? UTKColor.HealthRed : UTKColor.TextSecondary);
             int totalPoison = mgr.GetPoisonConspirators().Count;
             _statsLabel.text = $"🗡️ 복수명부 — 발견: {revealedPoison}/{totalPoison} 독살 공모자 | 완료: {completed}/{total}";
 
@@ -191,43 +231,68 @@ namespace ProjectName.UI.Toolkit
 
         private void AddLordRow(RevengeListManager mgr, RevengeListEntry entry, bool isSelected, int idx)
         {
-            var row = new VisualElement();
-            row.name = "RevengeRow_" + entry.territoryId;
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.marginTop = 1f;
+            var card = new VisualElement();
+            card.name = "RevengeRow_" + entry.territoryId;
+            StyleCard(card, new Color32(0x21, 0x26, 0x2D, 0xFF), 8f);
+            card.style.marginBottom = 6f;
+            if (isSelected)
+                card.style.borderLeftColor = new StyleColor(UTKColor.HealthRed);
 
-            // 상태 라벨 (원본 상태 분기 재현)
+            // 대상 이름 / 발견 상태는 기존 분기를 그대로 유지.
             string label;
             Color color;
             if (!entry.isRevealed && !entry.isCompleted)
             {
-                label = "???";                         // 미발견 (회색)
+                label = "???";
                 color = UTKColor.TextSecondary;
             }
             else if (entry.isCompleted)
             {
-                label = "✅ " + entry.lordName;        // 완료 (묵은색)
+                label = "✅ " + entry.lordName;
                 color = UTKColor.TextSecondary;
             }
             else
             {
                 string poisonMark = entry.isPoisonConspirator ? " ☠️" : "";
-                label = entry.lordName + poisonMark;   // 공개 (주황 계열)
-                color = UTKColor.HoverGold;
+                label = entry.lordName + poisonMark;
+                color = UTKColor.TextPrimary;
             }
 
-            var text = MakeLabel(label, color);
-            text.style.flexGrow = 1f;
-            row.Add(text);
-
-            row.Add(UTKButton.Create("🔎", () =>
+            var heading = new VisualElement();
+            heading.style.flexDirection = FlexDirection.Row;
+            heading.style.alignItems = Align.Center;
+            var name = MakeLabel("🗡️ " + label, color);
+            name.style.fontSize = 14f;
+            name.style.unityFontStyleAndWeight = FontStyle.Bold;
+            name.style.flexGrow = 1f;
+            heading.Add(name);
+            heading.Add(UTKButton.Create("🔎 상세", () =>
             {
                 _selectedIndex = idx;
                 Debug.Log($"[RevengeUTK] 대상 선택 → {entry.lordName} ({entry.territoryId})");
                 RefreshList();
             }, isSelected ? UTKButton.Variant.Primary : UTKButton.Variant.Secondary));
+            card.Add(heading);
 
-            _list.Add(row);
+            // 원한 내용도 카드 안에 표시하되, 미공개 상태에서는 내용을 감춘다.
+            string reason = entry.isRevealed || entry.isCompleted
+                ? (entry.isPoisonConspirator ? "☠️ " : "") + entry.revengeReason
+                : "복수 이유: ???";
+            var content = MakeLabel(reason, UTKColor.TextSecondary);
+            content.style.marginTop = 4f;
+            card.Add(content);
+
+            if (!entry.isCompleted)
+            {
+                var actions = new VisualElement();
+                actions.style.flexDirection = FlexDirection.Row;
+                actions.style.marginTop = 6f;
+                actions.Add(UTKButton.Create("⚔️ 도전", () => OnChallenge(entry), UTKButton.Variant.Primary));
+                actions.Add(UTKButton.Create("🔍 추궁", () => OnInterrogate(mgr, entry), UTKButton.Variant.Secondary));
+                card.Add(actions);
+            }
+
+            _list.Add(card);
         }
 
         // ===== 우측 상세 패널 =====
@@ -284,22 +349,8 @@ namespace ProjectName.UI.Toolkit
                 statusColor = UTKColor.TextSecondary;
             }
 
-            // ⚔️ 도전 버튼 행 (미완료 대상만)
-            string challenge = entry.isCompleted ? "" : "\n\n[⚔️ 도전] 대상 영지에 전투를 시작합니다.";
-            _detailLabel.text = sb.ToString() + $"상태: {statusText}{challenge}";
-
-            // 도전 버튼 (미완료 시)
-            if (!entry.isCompleted)
-            {
-                var row = new VisualElement();
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.marginTop = 4f;
-                row.Add(UTKButton.Create("⚔️ 도전",
-                    () => OnChallenge(entry), UTKButton.Variant.Primary));
-                row.Add(UTKButton.Create("🔍 추궁",
-                    () => OnInterrogate(mgr, entry), UTKButton.Variant.Secondary));
-                _list.Add(row);
-            }
+            // 상세 정보는 선택 항목 카드 안에 표시. 도전/추궁 버튼은 AddLordRow가 구성한다.
+            _detailLabel.text = sb.ToString() + $"상태: {statusText}";
         }
 
         // ===== 도전 / 추궁 =====
@@ -348,6 +399,29 @@ namespace ProjectName.UI.Toolkit
                 }
             }
             return false;
+        }
+
+        private static void StyleCard(VisualElement card, Color background, float radius)
+        {
+            card.style.flexDirection = FlexDirection.Column;
+            card.style.backgroundColor = new StyleColor(background);
+            card.style.paddingTop = 10f;
+            card.style.paddingBottom = 10f;
+            card.style.paddingLeft = 12f;
+            card.style.paddingRight = 12f;
+            card.style.borderTopWidth = 1f;
+            card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = 1f;
+            card.style.borderRightWidth = 1f;
+            var stroke = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            card.style.borderTopColor = stroke;
+            card.style.borderBottomColor = stroke;
+            card.style.borderLeftColor = stroke;
+            card.style.borderRightColor = stroke;
+            card.style.borderTopLeftRadius = radius;
+            card.style.borderTopRightRadius = radius;
+            card.style.borderBottomLeftRadius = radius;
+            card.style.borderBottomRightRadius = radius;
         }
 
         private static Label MakeLabel(string text, Color color)
