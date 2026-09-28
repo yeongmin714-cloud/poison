@@ -42,7 +42,7 @@ namespace ProjectName.UI.Toolkit
 
         private const int MinSlots = 3;
         private const float WinW = 420f;
-        private const float SlotH = 60f;
+        private const float SlotH = 72f;
 
         private float _sleepHours;
         private int _selectedSlot = -1;
@@ -59,22 +59,51 @@ namespace ProjectName.UI.Toolkit
             style.alignItems = Align.Center;
             style.justifyContent = Justify.Center;
 
-            var title = new Label("저장 슬롯 선택");
-            title.style.fontSize = 26f;
-            title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.color = new StyleColor(new Color(0.9f, 0.7f, 0.3f, 1f));
-            title.style.marginBottom = 14f;
-            Add(title);
+            // GitHub-dark 카드: 헤더/슬롯 카드/하단 액션 띠를 하나의 스트로크 패널로 묶는다.
+            var card = new VisualElement();
+            card.name = "SaveSlotCard";
+            card.style.width = WinW;
+            card.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            card.style.borderTopWidth = card.style.borderBottomWidth = 1f;
+            card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = card.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 8f;
+            card.style.overflow = Overflow.Hidden;
+            Add(card);
+
+            var header = new Label("저장 슬롯 선택");
+            header.style.fontSize = 18f;
+            header.style.unityFontStyleAndWeight = FontStyle.Bold;
+            header.style.color = new StyleColor(UTKColor.TextPrimary);
+            header.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            header.style.paddingTop = header.style.paddingBottom = 14f;
+            header.style.paddingLeft = header.style.paddingRight = 16f;
+            header.style.borderBottomWidth = 1f;
+            header.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            card.Add(header);
 
             _slotList = new VisualElement();
             _slotList.name = "SlotList";
-            _slotList.style.width = WinW;
-            Add(_slotList);
+            _slotList.style.paddingTop = 12f;
+            _slotList.style.paddingBottom = 6f;
+            _slotList.style.paddingLeft = 14f;
+            _slotList.style.paddingRight = 14f;
+            card.Add(_slotList);
 
             var btnRow = new VisualElement();
+            btnRow.name = "SaveSlotActions";
             btnRow.style.flexDirection = FlexDirection.Row;
-            btnRow.style.marginTop = 14f;
-            Add(btnRow);
+            btnRow.style.justifyContent = Justify.FlexEnd;
+            btnRow.style.paddingTop = 10f;
+            btnRow.style.paddingBottom = 10f;
+            btnRow.style.paddingLeft = 14f;
+            btnRow.style.paddingRight = 14f;
+            btnRow.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            btnRow.style.borderTopWidth = 1f;
+            btnRow.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            card.Add(btnRow);
 
             _confirmBtn = UTKButton.Create("확인", OnConfirm, UTKButton.Variant.Primary);
             _confirmBtn.SetEnabled(false);
@@ -112,20 +141,39 @@ namespace ProjectName.UI.Toolkit
         {
             var cell = new VisualElement();
             cell.name = "Slot_" + index;
-            cell.style.width = WinW;
-            cell.style.height = SlotH;
+            cell.style.width = Length.Percent(100f);
+            cell.style.minHeight = SlotH;
             cell.style.flexDirection = FlexDirection.Column;
             cell.style.justifyContent = Justify.Center;
-            cell.style.paddingLeft = 14f;
+            cell.style.paddingLeft = 12f;
+            cell.style.paddingRight = 12f;
+            cell.style.paddingTop = 9f;
+            cell.style.paddingBottom = 9f;
             cell.style.marginBottom = 6f;
-            cell.style.backgroundColor = new StyleColor(
-                info != null ? new Color(0.2f, 0.35f, 0.5f, 0.9f) : new Color(0.3f, 0.3f, 0.3f, 0.8f));
+            cell.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            cell.style.borderTopWidth = cell.style.borderBottomWidth = 1f;
+            cell.style.borderLeftWidth = cell.style.borderRightWidth = 1f;
+            cell.style.borderTopColor = cell.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            cell.style.borderLeftColor = cell.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
+            cell.style.borderTopLeftRadius = cell.style.borderTopRightRadius = 8f;
+            cell.style.borderBottomLeftRadius = cell.style.borderBottomRightRadius = 8f;
             cell.pickingMode = PickingMode.Position;
 
-            var text = new Label(FormatSlotLabel(index, info));
-            text.style.color = new StyleColor(UTKColor.TextPrimary);
-            text.style.fontSize = 14f;
-            cell.Add(text);
+            var slotName = new Label($"슬롯 {index + 1}");
+            slotName.style.color = new StyleColor(UTKColor.TextPrimary);
+            slotName.style.fontSize = 14f;
+            slotName.style.unityFontStyleAndWeight = FontStyle.Bold;
+            cell.Add(slotName);
+
+            int day = info != null && info.time != null ? info.time.day : 0;
+            int lv = info != null && info.player != null ? info.player.level : 0;
+            string summary = info == null ? "비어있음" : $"Day {day} · Lv.{lv}";
+            string date = info == null ? "" : info.timestamp;
+            var details = new Label(string.IsNullOrEmpty(date) ? summary : $"{date}  ·  {summary}");
+            details.style.color = new StyleColor(UTKColor.TextSecondary);
+            details.style.fontSize = 12f;
+            details.style.marginTop = 3f;
+            cell.Add(details);
 
             int captured = index;
             cell.RegisterCallback<PointerDownEvent>(_ =>
@@ -138,14 +186,6 @@ namespace ProjectName.UI.Toolkit
             return cell;
         }
 
-        private string FormatSlotLabel(int index, SaveData info)
-        {
-            if (info == null)
-                return $"슬롯 {index + 1} — 비어있음";
-            int day = info.time != null ? info.time.day : 0;
-            int lv = info.player != null ? info.player.level : 0;
-            return $"슬롯 {index + 1} — {info.timestamp} (Day {day}, Lv.{lv})";
-        }
 
         // ===== 버튼 콜백 (원본 실측 직접 호출) =====
 

@@ -65,15 +65,28 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
+            // ── 달성 요약 헤더 카드 (GitHub-dark) ──
+            var headerCard = new VisualElement { name = "AchievementSummaryCard" };
+            headerCard.style.flexDirection = FlexDirection.Column;
+            headerCard.style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xFF));
+            headerCard.style.borderTopLeftRadius = headerCard.style.borderTopRightRadius = 8f;
+            headerCard.style.borderBottomLeftRadius = headerCard.style.borderBottomRightRadius = 8f;
+            headerCard.style.paddingLeft = 12f;
+            headerCard.style.paddingRight = 12f;
+            headerCard.style.paddingTop = 9f;
+            headerCard.style.paddingBottom = 9f;
+            headerCard.style.marginBottom = 8f;
+            _content.Add(headerCard);
+
             _statLabel = new Label("");
             _statLabel.style.fontSize = 14f;
+            _statLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _statLabel.style.color = new StyleColor(UTKColor.AccentRare);
-            _statLabel.style.marginBottom = 4f;
-            _content.Add(_statLabel);
+            headerCard.Add(_statLabel);
 
             _list = new ScrollView { name = "AchievementList" };
             _list.style.flexGrow = 1f;
-            _list.style.marginTop = 4f;
+            _list.style.marginTop = 2f;
             _content.Add(_list);
 
             ApplyUIToolkitFont(this);
@@ -150,13 +163,20 @@ namespace ProjectName.UI.Toolkit
 
         private static VisualElement BuildAchievementBox(AchievementSystem.AchievementDef def, bool unlocked)
         {
-            var box = new VisualElement();
-            box.AddToClassList("utk-slot");
+            var box = new VisualElement { name = "AchievementCard" };
             box.style.flexDirection = FlexDirection.Column;
-            box.style.marginTop = 3f;
-            box.style.marginBottom = 3f;
-            box.style.paddingTop = 5f;
-            box.style.paddingBottom = 5f;
+            box.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            box.style.borderTopColor = box.style.borderBottomColor = box.style.borderLeftColor = box.style.borderRightColor =
+                new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            box.style.borderTopWidth = box.style.borderBottomWidth = box.style.borderLeftWidth = box.style.borderRightWidth = 1f;
+            box.style.borderTopLeftRadius = box.style.borderTopRightRadius = 8f;
+            box.style.borderBottomLeftRadius = box.style.borderBottomRightRadius = 8f;
+            box.style.marginTop = 4f;
+            box.style.marginBottom = 4f;
+            box.style.paddingLeft = 12f;
+            box.style.paddingRight = 12f;
+            box.style.paddingTop = 9f;
+            box.style.paddingBottom = 9f;
 
             // 아이콘 + 제목 + 달성 표시
             var row1 = new VisualElement();
@@ -171,12 +191,13 @@ namespace ProjectName.UI.Toolkit
             var title = new Label(string.IsNullOrEmpty(def.title) ? def.id : def.title);
             title.style.fontSize = 15f;
             title.style.flexGrow = 1f;
-            title.style.color = new StyleColor(unlocked ? UTKColor.AccentRare : UTKColor.TextSecondary);
+            title.style.color = new StyleColor(UTKColor.TextPrimary);
+            title.style.unityFontStyleAndWeight = FontStyle.Bold;
             row1.Add(title);
 
             var state = new Label(unlocked ? "달성" : "미달성");
             state.style.fontSize = 12f;
-            state.style.color = new StyleColor(unlocked ? UTKColor.GuildGreen : UTKColor.TextSecondary);
+            state.style.color = new StyleColor(unlocked ? UTKColor.AccentRare : UTKColor.TextSecondary);
             state.style.width = 60f;
             state.style.unityTextAlign = TextAnchor.MiddleRight;
             row1.Add(state);
@@ -189,6 +210,7 @@ namespace ProjectName.UI.Toolkit
             desc.style.color = new StyleColor(UTKColor.TextSecondary);
             desc.style.whiteSpace = WhiteSpace.Normal;
             desc.style.marginLeft = 34f;
+            desc.style.marginTop = 3f;
             box.Add(desc);
 
             Debug.Log($"[AchieveUTK] 항목: {def.id} ({def.title}) [{(unlocked ? "달성" : "미달성")}]");

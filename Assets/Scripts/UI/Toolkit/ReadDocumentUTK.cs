@@ -63,39 +63,83 @@ namespace ProjectName.UI.Toolkit
         private Label _categoryLabel;
         private Label _locationLabel;
         private ScrollView _scrollView;
+        private VisualElement _headerCard;
 
         private ReadDocumentUTK() : base("📜 문서", new Vector2(WinW, WinH))
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
+            // 상단 메타데이터 카드
+            _headerCard = new VisualElement { name = "DocumentHeaderCard" };
+            _headerCard.style.flexDirection = FlexDirection.Column;
+            _headerCard.style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xFF));
+            _headerCard.style.paddingLeft = 16f;
+            _headerCard.style.paddingRight = 16f;
+            _headerCard.style.paddingTop = 14f;
+            _headerCard.style.paddingBottom = 12f;
+            _headerCard.style.marginBottom = 12f;
+            _headerCard.style.borderBottomWidth = 1f;
+            _headerCard.style.borderBottomColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            _headerCard.style.borderTopLeftRadius = 8f;
+            _headerCard.style.borderTopRightRadius = 8f;
+            _headerCard.style.borderBottomLeftRadius = 8f;
+            _headerCard.style.borderBottomRightRadius = 8f;
+            _content.Add(_headerCard);
+
             // 제목
             _titleLabel = new Label("📜 문서");
             _titleLabel.AddToClassList("utk-title-label");
             _titleLabel.style.fontSize = 22f;
+            _titleLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             _titleLabel.style.marginBottom = 6f;
-            _content.Add(_titleLabel);
+            _headerCard.Add(_titleLabel);
 
             // 분류 + 중요도
             _categoryLabel = new Label("");
             _categoryLabel.style.fontSize = 14f;
             _categoryLabel.style.unityFontStyleAndWeight = FontStyle.Italic;
-            _categoryLabel.style.color = new StyleColor(UTKColor.TextSecondary);
-            _content.Add(_categoryLabel);
+            _categoryLabel.style.color = new StyleColor(UTKColor.AccentRare);
+            _headerCard.Add(_categoryLabel);
 
             // 발견 위치
             _locationLabel = new Label("");
             _locationLabel.style.fontSize = 12f;
             _locationLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _locationLabel.style.marginTop = 4f;
-            _locationLabel.style.marginBottom = 8f;
-            _content.Add(_locationLabel);
+            _headerCard.Add(_locationLabel);
 
-            // 본문 (스크롤)
+            // 본문 스크롤 카드
+            var bodyCard = new VisualElement { name = "DocumentBodyCard" };
+            bodyCard.style.flexDirection = FlexDirection.Column;
+            bodyCard.style.flexGrow = 1f;
+            bodyCard.style.minHeight = 0f;
+            bodyCard.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            bodyCard.style.paddingLeft = 16f;
+            bodyCard.style.paddingRight = 16f;
+            bodyCard.style.paddingTop = 14f;
+            bodyCard.style.paddingBottom = 14f;
+            bodyCard.style.borderTopWidth = 1f;
+            bodyCard.style.borderBottomWidth = 1f;
+            bodyCard.style.borderLeftWidth = 1f;
+            bodyCard.style.borderRightWidth = 1f;
+            var cardBorder = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
+            bodyCard.style.borderTopColor = cardBorder;
+            bodyCard.style.borderBottomColor = cardBorder;
+            bodyCard.style.borderLeftColor = cardBorder;
+            bodyCard.style.borderRightColor = cardBorder;
+            bodyCard.style.borderTopLeftRadius = 8f;
+            bodyCard.style.borderTopRightRadius = 8f;
+            bodyCard.style.borderBottomLeftRadius = 8f;
+            bodyCard.style.borderBottomRightRadius = 8f;
+            _content.Add(bodyCard);
+
             _scrollView = new ScrollView();
             _scrollView.name = "DocumentScroll";
             _scrollView.style.flexGrow = 1f;
-            _content.Add(_scrollView);
+            _scrollView.style.minHeight = 0f;
+            _scrollView.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            bodyCard.Add(_scrollView);
 
             ApplyUIToolkitFont(this);
 
