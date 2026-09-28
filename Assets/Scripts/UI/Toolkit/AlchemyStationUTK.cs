@@ -79,20 +79,36 @@ namespace ProjectName.UI.Toolkit
             _herb1Index = 0;
             _herb2Index = 0;
 
+            // ── 약초 선택 카드 (Figma 카드 패턴) ──
+            var selectCard = new VisualElement();
+            selectCard.name = "AlchemySelectCard";
+            selectCard.style.flexDirection = FlexDirection.Column;
+            selectCard.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            selectCard.style.borderTopLeftRadius = selectCard.style.borderTopRightRadius = selectCard.style.borderBottomLeftRadius = selectCard.style.borderBottomRightRadius = UTKTheme.RadiusSub;
+            selectCard.style.borderTopWidth = selectCard.style.borderBottomWidth = selectCard.style.borderLeftWidth = selectCard.style.borderRightWidth = 1f;
+            selectCard.style.borderTopColor = selectCard.style.borderBottomColor = selectCard.style.borderLeftColor = selectCard.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            selectCard.style.paddingLeft = 10f;
+            selectCard.style.paddingRight = 10f;
+            selectCard.style.paddingTop = 8f;
+            selectCard.style.paddingBottom = 8f;
+            _content.Add(selectCard);
+
             var hint = new Label("약초를 선택하고 제조 버튼을 누르세요.");
             hint.style.fontSize = 13f;
-            hint.style.color = new StyleColor(UTKColor.TextSecondary);
-            _content.Add(hint);
+            hint.style.color = new StyleColor(UTKTheme.TextSub);
+            selectCard.Add(hint);
 
-            _herb1Name = BuildHerbRow("약초 1", 1);
-            _herb2Name = BuildHerbRow("약초 2", 2);
+            _herb1Name = BuildHerbRow(selectCard, "약초 1", 1);
+            _herb2Name = BuildHerbRow(selectCard, "약초 2", 2);
 
             _countLabel = new Label("");
             _countLabel.style.fontSize = 13f;
-            _countLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _countLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _countLabel.style.whiteSpace = WhiteSpace.Normal;
-            _content.Add(_countLabel);
+            _countLabel.style.marginTop = 6f;
+            selectCard.Add(_countLabel);
 
+            // ── 제조 버튼 띠 (Figma 액션 그리드) ──
             var btnRow = new VisualElement();
             btnRow.style.flexDirection = FlexDirection.Row;
             btnRow.style.marginTop = 10f;
@@ -100,37 +116,48 @@ namespace ProjectName.UI.Toolkit
 
             var craftBtn = UTKButton.Create("제조하기", OnCraftClicked, UTKButton.Variant.Primary);
             craftBtn.style.flexGrow = 1f;
+            craftBtn.style.marginRight = 6f;
             btnRow.Add(craftBtn);
 
             var resetBtn = UTKButton.Create("초기화", () => { _resultLabel.text = ""; RefreshCounts(); });
             resetBtn.style.flexGrow = 1f;
             btnRow.Add(resetBtn);
 
+            // ── 결과 패널 카드 ──
             _resultLabel = new Label("");
             _resultLabel.style.fontSize = 15f;
-            _resultLabel.style.color = new StyleColor(UTKColor.AccentRare);
+            _resultLabel.style.color = new StyleColor(UTKTheme.Gold);
             _resultLabel.style.whiteSpace = WhiteSpace.Normal;
             _resultLabel.style.marginTop = 10f;
+            _resultLabel.style.paddingLeft = 10f;
+            _resultLabel.style.paddingTop = 8f;
+            _resultLabel.style.paddingBottom = 8f;
+            _resultLabel.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _resultLabel.style.borderTopLeftRadius = _resultLabel.style.borderTopRightRadius = _resultLabel.style.borderBottomLeftRadius = _resultLabel.style.borderBottomRightRadius = UTKTheme.RadiusSub;
             _content.Add(_resultLabel);
 
             ApplyUIToolkitFont(this);
+            style.width = WinW;
+            style.height = WinH;
+            style.backgroundColor = new StyleColor(UTKTheme.BgBase);
+            style.borderTopLeftRadius = style.borderTopRightRadius = style.borderBottomLeftRadius = style.borderBottomRightRadius = UTKTheme.RadiusMain;
             RefreshCounts();
         }
 
         // ≡≡≡ UI 벌드 헬퍼 ≡≡≡
 
         /// <summary>약초 선택 행 (라벨 + ◀ 이름 ▶). slotId=1/2 대상 인덱스.</summary>
-        private Label BuildHerbRow(string title, int slotId)
+        private Label BuildHerbRow(VisualElement parent, string title, int slotId)
         {
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
             row.style.marginTop = 8f;
-            _content.Add(row);
+            parent.Add(row);
 
             var titleLabel = new Label(title + "  ");
             titleLabel.style.fontSize = 15f;
-            titleLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            titleLabel.style.color = new StyleColor(UTKTheme.TextMain);
             titleLabel.style.width = 62f;
             titleLabel.style.flexShrink = 0f;
             row.Add(titleLabel);
@@ -143,7 +170,7 @@ namespace ProjectName.UI.Toolkit
 
             var nameLabel = new Label("");
             nameLabel.style.fontSize = 15f;
-            nameLabel.style.color = new StyleColor(UTKColor.AccentRare);
+            nameLabel.style.color = new StyleColor(UTKTheme.Gold);
             nameLabel.style.flexGrow = 1f;
             nameLabel.style.whiteSpace = WhiteSpace.Normal;
             row.Add(nameLabel);
@@ -211,7 +238,7 @@ namespace ProjectName.UI.Toolkit
             var inv = PlayerInventory.Instance;
             if (inv == null)
             {
-                SetResult("인벤토리를 찾을 수 없습니다.", UTKColor.HealthRed);
+                SetResult("인벤토리를 찾을 수 없습니다.", UTKTheme.Danger);
                 return;
             }
 
@@ -219,14 +246,14 @@ namespace ProjectName.UI.Toolkit
             HerbInfo h2 = CurrentHerb(_herb2Index);
             if (string.IsNullOrEmpty(h1.id) || string.IsNullOrEmpty(h2.id))
             {
-                SetResult("약초를 선택해주세요.", UTKColor.HealthRed);
+                SetResult("약초를 선택해주세요.", UTKTheme.Danger);
                 return;
             }
 
             var comboResult = HerbComboDatabase.GetCombo(h1.id, h2.id);
             if (!comboResult.HasValue)
             {
-                SetResult($"{h1.displayName} + {h2.displayName} → 조합법이 없습니다.", UTKColor.TextSecondary);
+                SetResult($"{h1.displayName} + {h2.displayName} → 조합법이 없습니다.", UTKTheme.TextSub);
                 return;
             }
             var combo = comboResult.Value;
@@ -234,7 +261,7 @@ namespace ProjectName.UI.Toolkit
             // 재료 보유 확인 (원본: HasItem)
             if (!inv.HasItem(h1.id) || !inv.HasItem(h2.id))
             {
-                SetResult("재료가 부족합니다.", UTKColor.HealthRed);
+                SetResult("재료가 부족합니다.", UTKTheme.Danger);
                 return;
             }
 
@@ -254,26 +281,26 @@ namespace ProjectName.UI.Toolkit
                     PlayerStats.Instance.AddEXP(ExpReward);
 
                 SetResult($"🟢 {h1.displayName} + {h2.displayName} → {combo.resultName}\n제조 성공! 경험치 {ExpReward} 획득",
-                    UTKColor.GuildGreen);
+                    UTKTheme.Success);
                 float rate = CraftSuccessSystem.GetFinalSuccessRate(true, grade1, grade2);
                 Debug.Log($"[AlchemyUTK] 제조 성공: {h1.displayName}+{h2.displayName} → {combo.resultName} (성공률 {Mathf.RoundToInt(rate * 100f)}%)");
             }
             else if (craft == CraftResult.Fail_MaterialPreserved)
             {
-                SetResult($"🟡 {h1.displayName} + {h2.displayName} → 제조 실패 (재료 보존)", UTKColor.TextSecondary);
+                SetResult($"🟡 {h1.displayName} + {h2.displayName} → 제조 실패 (재료 보존)", UTKTheme.TextSub);
                 Debug.Log($"[AlchemyUTK] 제조 실패(재료보존): {h1.displayName}+{h2.displayName}");
             }
             else if (craft == CraftResult.Fail_MaterialDestroyed)
             {
                 inv.RemoveItem(h1.id, 1);   // 주재료 소실 (원본 부분실패)
-                SetResult($"🔴 {h1.displayName} + {h2.displayName} → 제조 실패! 주재료 소실", UTKColor.HealthRed);
+                SetResult($"🔴 {h1.displayName} + {h2.displayName} → 제조 실패! 주재료 소실", UTKTheme.Danger);
                 Debug.Log($"[AlchemyUTK] 제조 실패(재료소멸): {h1.displayName}+{h2.displayName}");
             }
             else // Fail_Burned
             {
                 inv.RemoveItem(h1.id, 1);
                 inv.RemoveItem(h2.id, 1);
-                SetResult("🔥 제조 대실패! 모든 재료 소실", UTKColor.HealthRed);
+                SetResult("🔥 제조 대실패! 모든 재료 소실", UTKTheme.Danger);
                 Debug.Log($"[AlchemyUTK] 제조 대실패(전소): {h1.displayName}+{h2.displayName}");
             }
 
