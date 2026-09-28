@@ -3484,4 +3484,5 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 - **특징:** 각 방 크기 상이(9×9~16×10), 벽 단차·오프셋으로 자연스러운 비대칭. 문 통로 2m. 가구 로직·이름·Nameplate·리플렉션 상호작용 어태치 100% 보존.
 - **컴파일:** `castle_interior_compile.log` error CS 0 + "Exiting batchmode successfully" return code 0.
+- **[보강 09-28]** **타 영지(전투용) ↔ 내 소속 전환 실내 자동 교체**: `IndoorSceneTransition`에 `TerritoryDatabase.OwnershipChanged` 구독 — 실내(castle)에 있던 동안 해당 영지가 `PlayerOwned`로 전환되면 즉시 실내→실내 재전환으로 `PlayerCastleInteriorBuilder`(내 성)로 교체. `_activeCastleTerritoryKey/NationStyle/IsPlayerOwned`로 추적, 중복 재전환 방지. (타 영지 `CastleInteriorBuilder`는 이미 전투용·상호작용 0 — 건드리지 않음.) 배치컴파일 error CS 0 (`ownership_switch_compile.log`).
 - ⚠ **Play 검증 대기:** 플레이어 성 진입 시 7개 방이 벽으로 분리·가구가 방별 배치·입구 통행 가능 확인.

@@ -2,6 +2,7 @@ using ProjectName.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ProjectName.Systems;
+using ProjectName.Core.Data;
 
 namespace ProjectName.UI
 {
@@ -20,6 +21,9 @@ namespace ProjectName.UI
         private static string _pendingNationStyle;
         private static bool _pendingIsPlayerOwned;
         private static string _pendingTerritoryKey;   // INTERIOR-VAR: 레이아웃 변형 결정론 시드용
+        private static string _activeCastleTerritoryKey;
+        private static string _activeCastleNationStyle;
+        private static bool _activeCastleIsPlayerOwned;
         private static Vector3? _returnPosition;      // 진입 직전 플레이어 위치(퇴출 복귀용)
         private const float INDOOR_FLOOR_Y = 0f;      // 실내 바닥 높이 (IndoorBuilder.CreateRoom: 바닥 XZ 평면 y=0)
         private static bool _initialized;
@@ -58,7 +62,31 @@ namespace ProjectName.UI
 
             BuildingEvents.OnEnterBuildingRequest += HandleEnterBuilding;
             BuildingEvents.OnExitBuildingRequest += ExitBuilding;
+            TerritoryDatabase.OwnershipChanged += OnTerritoryOwnershipChanged;
 
+        }
+
+        private static void OnTerritoryOwnershipChanged(TerritoryId id, TerritoryOwnership ownership)
+        {
+            try
+            {
+                if (ownership != TerritoryOwnership.PlayerOwned) return;
+                if (!IsIndoor || !IsIndoorSceneLoaded()) return;
+                if (string.IsNullOrEmpty(_activeCastleTerritoryKey)) return;
+                if (id.ToString() != _activeCastleTerritoryKey) return;
+                // Pending 값은 씬 빌드 완료 시 초기화되므로 현재 실내 소유 상태를 별도 추적한다.
+                if (_activeCastleIsPlayerOwned) return;
+
+                string nation = _activeCastleNationStyle ?? "Empire";
+                string territoryKey = _activeCastleTerritoryKey;
+                _activeCastleIsPlayerOwned = true; // 재전환 로딩 중 중복 이벤트/재호출 방지
+                Debug.Log($"[IndoorSceneTransition] ⚔️ 영지 {id} 내 소속 전환 — 실내를 플레이어 소유 성으로 재구성");
+                EnterBuilding("castle", nation, true, territoryKey);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[IndoorSceneTransition] 소유권 전환 실내 갱신 실패: {e.Message}");
+            }
         }
 
         private static void HandleEnterBuilding(string buildingType, string nationStyle, bool isPlayerOwned, string territoryKey)
@@ -168,6 +196,10 @@ namespace ProjectName.UI
 
             string buildingType = _pendingBuildingType ?? string.Empty;
             Debug.Log($"[IndoorSceneTransition][P20-6] 빌더 시작 — buildingType='{buildingType}'");   // 진단: type 누락 즉별
+            // 성이 아닌 건물 진입이면 기존 성의 추적 상태를 정리한다.
+            _activeCastleTerritoryKey = null;
+            _activeCastleNationStyle = null;
+            _activeCastleIsPlayerOwned = false;
 
             // IndoorScene을 활성 씬으로 설정
             SceneManager.SetActiveScene(scene);
@@ -190,6 +222,9 @@ namespace ProjectName.UI
                         break;
                     case "castle":
                         string nation = _pendingNationStyle ?? "Empire";
+                        _activeCastleTerritoryKey = _pendingTerritoryKey;
+                        _activeCastleNationStyle = nation;
+                        _activeCastleIsPlayerOwned = _pendingIsPlayerOwned;
                         // INTERIOR-VAR: 영지 키(우선)/nation+소유로 결정론 해시 → 8종 레이아웃 변형.
                         int layoutVariant = ComputeLayoutVariant(_pendingTerritoryKey, nation, _pendingIsPlayerOwned);
                         // 소유 상태 분기: 플레이어 소유 성 → PlayerCastleInteriorBuilder, 영주 성 → CastleInteriorBuilder
@@ -213,9 +248,15 @@ namespace ProjectName.UI
                         hqRoom = ShopInteriorBuilder.BuildShopInterior();
                         break;
                     case "cave":
+                        _activeCastleTerritoryKey = null;
+                        _activeCastleNationStyle = null;
+                        _activeCastleIsPlayerOwned = false;
                         hqRoom = CaveInteriorBuilder.BuildCaveInterior(_pendingNationStyle ?? "default", 1);
                         break;
                     default:
+                        _activeCastleTerritoryKey = null;
+                        _activeCastleNationStyle = null;
+                        _activeCastleIsPlayerOwned = false;
                         Debug.LogWarning($"[IndoorSceneTransition] 알 수 없는 buildingType: '{buildingType}'. 기본 주택 생성.");
                         hqRoom = HouseInteriorBuilder.BuildHouseInterior();
                         break;
@@ -407,6 +448,9 @@ namespace ProjectName.UI
                 SceneManager.MoveGameObjectToScene(exitingPlayer, worldScene);
             }
             _returnPosition = null;
+            _activeCastleTerritoryKey = null;
+            _activeCastleNationStyle = null;
+            _activeCastleIsPlayerOwned = false;
 
             // IndoorScene 언로드 — 플레이어가 이미 월드로 이동한 뒤라 안전
             Scene indoorScene = SceneManager.GetSceneByName(INDOOR_SCENE_NAME);

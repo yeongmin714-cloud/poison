@@ -29,7 +29,8 @@
 - **P2b**: 방 표지판 `AddRoomSign` 스탠드 6개(집무실/크래프트/침실/부엌·연금/무기고/저장고) + 병사배치·침실 보조 조명.
 - **P3**: `TerritoryBuilder.SpawnInteriorFixtures`(상점/크래프트하우스)는 roomCenter(0,0,0) 상대 ±5m라 새 대전당 안에 자동 배치 — 좌표 변경 불필요.
 - **QA**: Unity batch compile `error CS=0` + "Exiting batchmode successfully" return code 0 (`castle_interior_compile.log`). delegate_task 600s 타임아웃 → **부모 직접**으로 가구 재배치·표지판 완성(hermes-delegation-timeout-fallback).
-- ⚠ **Play 판정 대기**: 플레이어 성 진입 시 7개 방 벽 분리·가구 방별 배치·입구 통행 확인.
+- **보강(내 소속 전환 실내 자동 교체)**: `IndoorSceneTransition.cs`에 `TerritoryDatabase.OwnershipChanged`(`ProjectName.Core.Data`) 구독. 실내(castle)에 머무는 동안 해당 영지가 `PlayerOwned`로 전환되면 static `_activeCastleTerritoryKey/NationStyle/IsPlayerOwned`로 확인 후 기존 실내→실내 재전환 경로(`EnterBuilding(...,isPlayerOwned:true,key)`)로 `PlayerCastleInteriorBuilder` 실내로 즉시 재구성. 타 영지(CastleInteriorBuilder·전투용·상호작용 0)는 소유권 전환 전 기본 유지, 전환 시에만 내 성으로 교체. 중복 재전환(`_activeCastleIsPlayerOwned` 가드)·무한루프 방지. `TerritoryId.ToString()`(`East_01`)과 BuildingTrigger `_territoryKey` 포맷 일치 확인. 컴파일 `error CS 0` (`ownership_switch_compile.log`).
+- ⚠ **Play 판정 대기**: 플레이어 성 진입 시 7개 방 벽 분리·가구 방별 배치·입구 통행 확인. 추가로 타 영지 실내에 있는 동안 소유권 전환 시 내 성 실내로 즉시 바뀌는지 확인.
 
 ---
 
