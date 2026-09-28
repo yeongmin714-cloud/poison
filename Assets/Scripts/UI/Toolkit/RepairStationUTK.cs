@@ -59,6 +59,7 @@ namespace ProjectName.UI.Toolkit
         // ===== 레퍼런스 =====
         private readonly Label _goldLabel;
         private readonly Label _statusLabel;
+        private readonly VisualElement _statusCard;
         private readonly VisualElement _list;
         private readonly ScrollView _scroll;
         private IVisualElementScheduledItem _refreshTask;
@@ -76,18 +77,42 @@ namespace ProjectName.UI.Toolkit
             _goldLabel.style.fontSize = 18f;
             _content.Add(_goldLabel);
 
+            // 상태는 장비 목록과 구분되는 GitHub-dark 헤더 카드로 표시한다.
+            _statusCard = new VisualElement();
+            _statusCard.name = "RepairStatusCard";
+            _statusCard.style.flexDirection = FlexDirection.Column;
+            _statusCard.style.backgroundColor = new StyleColor(new Color32(33, 38, 45, 255)); // #21262D
+            _statusCard.style.borderLeftWidth = 1f;
+            _statusCard.style.borderRightWidth = 1f;
+            _statusCard.style.borderTopWidth = 1f;
+            _statusCard.style.borderBottomWidth = 1f;
+            _statusCard.style.borderLeftColor = new StyleColor(new Color32(46, 52, 61, 255)); // #2E343D
+            _statusCard.style.borderRightColor = new StyleColor(new Color32(46, 52, 61, 255));
+            _statusCard.style.borderTopColor = new StyleColor(new Color32(46, 52, 61, 255));
+            _statusCard.style.borderBottomColor = new StyleColor(new Color32(46, 52, 61, 255));
+            _statusCard.style.borderTopLeftRadius = 8f;
+            _statusCard.style.borderTopRightRadius = 8f;
+            _statusCard.style.borderBottomLeftRadius = 8f;
+            _statusCard.style.borderBottomRightRadius = 8f;
+            _statusCard.style.paddingLeft = 10f;
+            _statusCard.style.paddingRight = 10f;
+            _statusCard.style.paddingTop = 10f;
+            _statusCard.style.paddingBottom = 10f;
+            _statusCard.style.marginTop = 4f;
+            _statusCard.style.marginBottom = 6f;
+
+            var header = new Label("파손된 장비 목록");
+            header.style.fontSize = 15f;
+            header.style.color = new StyleColor(UTKColor.TextPrimary);
+            _statusCard.Add(header);
+
             _statusLabel = new Label("파손된 장비를 선택하여 수리하세요.");
             _statusLabel.style.fontSize = 14f;
             _statusLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _statusLabel.style.whiteSpace = WhiteSpace.Normal;
             _statusLabel.style.marginTop = 4f;
-            _content.Add(_statusLabel);
-
-            var header = new Label("─── 파손된 장비 목록 ───");
-            header.style.fontSize = 15f;
-            header.style.color = new StyleColor(UTKColor.TextPrimary);
-            header.style.marginTop = 8f;
-            _content.Add(header);
+            _statusCard.Add(_statusLabel);
+            _content.Add(_statusCard);
 
             _scroll = new ScrollView(ScrollViewMode.Vertical);
             _scroll.style.flexGrow = 1f;
@@ -209,24 +234,29 @@ namespace ProjectName.UI.Toolkit
 
         private void BuildRow(DamagedEntry entry, int gold)
         {
+            // 장비 하나를 독립된 GitHub-dark 카드로 구성한다.
             var row = new VisualElement();
             row.name = "RepairRow_" + entry.slotIndex;
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
-            row.style.backgroundColor = new StyleColor(new Color(0.15f, 0.15f, 0.20f, 0.9f));
+            row.style.backgroundColor = new StyleColor(new Color32(33, 38, 45, 255)); // #21262D
             row.style.borderLeftWidth = 1f;
             row.style.borderRightWidth = 1f;
             row.style.borderTopWidth = 1f;
             row.style.borderBottomWidth = 1f;
-            row.style.borderLeftColor = new StyleColor(UTKColor.IronLine);
-            row.style.borderRightColor = new StyleColor(UTKColor.IronLine);
-            row.style.borderTopColor = new StyleColor(UTKColor.IronLine);
-            row.style.borderBottomColor = new StyleColor(UTKColor.IronLine);
-            row.style.paddingLeft = 8f;
-            row.style.paddingRight = 8f;
-            row.style.paddingTop = 6f;
-            row.style.paddingBottom = 6f;
-            row.style.marginBottom = 3f;
+            row.style.borderLeftColor = new StyleColor(new Color32(46, 52, 61, 255)); // #2E343D
+            row.style.borderRightColor = new StyleColor(new Color32(46, 52, 61, 255));
+            row.style.borderTopColor = new StyleColor(new Color32(46, 52, 61, 255));
+            row.style.borderBottomColor = new StyleColor(new Color32(46, 52, 61, 255));
+            row.style.borderTopLeftRadius = 8f;
+            row.style.borderTopRightRadius = 8f;
+            row.style.borderBottomLeftRadius = 8f;
+            row.style.borderBottomRightRadius = 8f;
+            row.style.paddingLeft = 10f;
+            row.style.paddingRight = 10f;
+            row.style.paddingTop = 10f;
+            row.style.paddingBottom = 10f;
+            row.style.marginBottom = 6f;
             _list.Add(row);
 
             float ratio = entry.maxDurability > 0 ? (float)entry.currentDurability / entry.maxDurability : 0f;
@@ -241,6 +271,7 @@ namespace ProjectName.UI.Toolkit
 
             var costLabel = new Label($"💰 {entry.repairCost}G");
             costLabel.style.width = 84f;
+            costLabel.style.marginLeft = 6f;
             costLabel.style.fontSize = 14f;
             costLabel.style.color = new StyleColor(UTKColor.AccentRare);
             row.Add(costLabel);
@@ -250,6 +281,7 @@ namespace ProjectName.UI.Toolkit
                 () => TryRepairSlot(entry.slotIndex),
                 canAfford ? UTKButton.Variant.Primary : UTKButton.Variant.Danger);
             btn.style.width = 88f;
+            btn.style.marginLeft = 6f;
             btn.SetEnabled(canAfford);
             row.Add(btn);
 

@@ -115,9 +115,12 @@ namespace ProjectName.UI.Toolkit
             _notifyLabel.style.display = DisplayStyle.None;
             _content.Add(_notifyLabel);
 
-            _list = new VisualElement();
+            _list = new ScrollView(ScrollViewMode.Vertical);
             _list.name = "FestivalList";
             _list.style.flexDirection = FlexDirection.Column;
+            _list.style.flexGrow = 1f;
+            _list.style.flexShrink = 1f;
+            _list.style.maxHeight = 230f;
             _content.Add(_list);
 
             _detail = new VisualElement();
@@ -212,26 +215,71 @@ namespace ProjectName.UI.Toolkit
         private void DrawDetect(FestivalManager mgr)
         {
             _list.Clear();
+
+            // 섹션 헤더도 GitHub-dark 카드로 분리
+            var headerCard = CreateCard();
+            headerCard.style.paddingTop = 8f;
+            headerCard.style.paddingBottom = 8f;
             var title = MakeLabel("🎪 진행 중인 축제", UTKColor.BorderGold, false);
             title.style.fontSize = 15f;
-            _list.Add(title);
+            headerCard.Add(title);
+            _list.Add(headerCard);
 
             if (mgr == null || mgr.ActiveFestivals.Count == 0)
             {
-                _list.Add(MakeLabel("현재 진행 중인 축제가 없습니다.", UTKColor.TextSecondary, true));
+                var emptyCard = CreateCard();
+                emptyCard.Add(MakeLabel("현재 진행 중인 축제가 없습니다.", UTKColor.TextSecondary, true));
+                _list.Add(emptyCard);
                 return;
             }
 
             foreach (var festival in mgr.ActiveFestivals)
             {
-                var btn = UTKButton.Create(festival.emoji + " " + festival.festivalName + "  (" + festival.territoryId + ")",
-                    () =>
-                    {
-                        _selected = festival;
-                        Refresh();
-                    }, UTKButton.Variant.Secondary);
-                _list.Add(btn);
+                if (festival == null) continue;
+
+                var card = CreateCard();
+                card.style.flexDirection = FlexDirection.Row;
+                card.style.alignItems = Align.Center;
+
+                var details = new VisualElement();
+                details.style.flexDirection = FlexDirection.Column;
+                details.style.flexGrow = 1f;
+                details.style.flexShrink = 1f;
+
+                var name = MakeLabel(festival.emoji + " " + festival.festivalName, UTKColor.TextPrimary, true);
+                name.style.fontSize = 14f;
+                name.style.unityFontStyleAndWeight = FontStyle.Bold;
+                details.Add(name);
+                details.Add(MakeLabel("📍 영지: " + festival.territoryId, UTKColor.TextSecondary, false));
+                details.Add(MakeLabel("📅 Day " + festival.startDay + " ~ " + festival.endDay, UTKColor.TextSecondary, false));
+                details.Add(MakeLabel("✨ 보상: " + festival.GetEffect().GetSummary(), UTKTheme.Success, true));
+
+                var joinButton = UTKButton.Create("참여", () =>
+                {
+                    _selected = festival;
+                    Refresh();
+                }, UTKButton.Variant.Primary);
+                joinButton.style.marginLeft = 10f;
+
+                card.Add(details);
+                card.Add(joinButton);
+                _list.Add(card);
             }
+        }
+
+        private static VisualElement CreateCard()
+        {
+            var card = new VisualElement();
+            card.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            card.style.borderTopWidth = card.style.borderBottomWidth = card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
+            card.style.borderTopColor = card.style.borderBottomColor = card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 8f;
+            card.style.paddingLeft = 10f;
+            card.style.paddingRight = 10f;
+            card.style.paddingTop = 8f;
+            card.style.paddingBottom = 8f;
+            card.style.marginBottom = 6f;
+            return card;
         }
 
         private void DrawDetail()

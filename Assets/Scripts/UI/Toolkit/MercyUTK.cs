@@ -24,6 +24,16 @@ namespace ProjectName.UI.Toolkit
     /// </summary>
     public class MercyUTK : UTKWindowBase
     {
+        // Mercy 화면 한정 GitHub-dark 토큰 — 공용 테마/다른 창에는 영향 없음.
+        private static class GitHubDark
+        {
+            public static readonly Color Panel = new Color32(0x16, 0x1B, 0x22, 0xFF);
+            public static readonly Color PanelSub = new Color32(0x21, 0x26, 0x2D, 0xFF);
+            public static readonly Color TextMain = new Color32(0xF0, 0xF6, 0xFC, 0xFF);
+            public static readonly Color TextSub = new Color32(0x8B, 0x94, 0x9E, 0xFF);
+            public static readonly Color Stroke = new Color32(0x2E, 0x34, 0x3D, 0xFF);
+        }
+
         private static MercyUTK _instance;
 
         private const float WinW = 440f;
@@ -34,6 +44,7 @@ namespace ProjectName.UI.Toolkit
 
         private Label _msgLabel;
         private Label _lordLabel;
+        private Label _personalityLabel;
         private VisualElement _choiceHost;
         private VisualElement _rewardHost;
         private Label _rewardLabel;
@@ -47,46 +58,74 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexDirection = FlexDirection.Column;
             _content.style.paddingLeft = 16f;
             _content.style.paddingRight = 16f;
-            _content.style.paddingTop = 10f;
+            _content.style.paddingTop = 12f;
+            _content.style.paddingBottom = 14f;
+
+            // Figma GitHub-dark 대상 정보 카드: 이름, 성격, 항복 메시지를 한 덩어리로 표시.
+            var targetCard = new VisualElement();
+            targetCard.style.flexDirection = FlexDirection.Column;
+            targetCard.style.paddingLeft = 14f;
+            targetCard.style.paddingRight = 14f;
+            targetCard.style.paddingTop = 12f;
+            targetCard.style.paddingBottom = 12f;
+            targetCard.style.backgroundColor = new StyleColor(GitHubDark.Panel);
+            targetCard.style.borderTopWidth = targetCard.style.borderBottomWidth = 1f;
+            targetCard.style.borderLeftWidth = targetCard.style.borderRightWidth = 1f;
+            targetCard.style.borderTopColor = targetCard.style.borderBottomColor =
+                targetCard.style.borderLeftColor = targetCard.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            targetCard.style.borderTopLeftRadius = targetCard.style.borderTopRightRadius = 8f;
+            targetCard.style.borderBottomLeftRadius = targetCard.style.borderBottomRightRadius = 8f;
+            _content.Add(targetCard);
 
             _lordLabel = new Label("");
             _lordLabel.style.fontSize = 20f;
             _lordLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _lordLabel.style.color = new StyleColor(Color.white);
-            _lordLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-            _content.Add(_lordLabel);
+            _lordLabel.style.color = new StyleColor(GitHubDark.TextMain);
+            targetCard.Add(_lordLabel);
+
+            _personalityLabel = new Label("");
+            _personalityLabel.name = "MercyInfo";
+            _personalityLabel.style.fontSize = 13f;
+            _personalityLabel.style.color = new StyleColor(GitHubDark.TextSub);
+            _personalityLabel.style.marginTop = 4f;
+            targetCard.Add(_personalityLabel);
 
             _msgLabel = new Label("영주가 항복했습니다. 처형하시겠습니까? 살려주시겠습니까?");
-            _msgLabel.style.fontSize = 15f;
-            _msgLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            _msgLabel.style.fontSize = 14f;
+            _msgLabel.style.color = new StyleColor(GitHubDark.TextMain);
             _msgLabel.style.whiteSpace = WhiteSpace.Normal;
-            _msgLabel.style.marginTop = 12f;
-            _content.Add(_msgLabel);
+            _msgLabel.style.marginTop = 8f;
+            targetCard.Add(_msgLabel);
 
+            // 결정 액션 띠 — 버튼 콜백 및 결과 경로는 기존 그대로 유지.
             _choiceHost = new VisualElement();
             _choiceHost.style.flexDirection = FlexDirection.Row;
             _choiceHost.style.justifyContent = Justify.Center;
-            _choiceHost.style.marginTop = 24f;
+            _choiceHost.style.alignItems = Align.Center;
+            _choiceHost.style.marginTop = 12f;
+            _choiceHost.style.paddingTop = 8f;
+            _choiceHost.style.paddingBottom = 8f;
+            _choiceHost.style.paddingLeft = 8f;
+            _choiceHost.style.paddingRight = 8f;
+            _choiceHost.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
+            _choiceHost.style.borderTopWidth = _choiceHost.style.borderBottomWidth = 1f;
+            _choiceHost.style.borderLeftWidth = _choiceHost.style.borderRightWidth = 1f;
+            _choiceHost.style.borderTopColor = _choiceHost.style.borderBottomColor =
+                _choiceHost.style.borderLeftColor = _choiceHost.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            _choiceHost.style.borderTopLeftRadius = _choiceHost.style.borderTopRightRadius = 8f;
+            _choiceHost.style.borderBottomLeftRadius = _choiceHost.style.borderBottomRightRadius = 8f;
             _content.Add(_choiceHost);
 
             var executeBtn = UTKButton.Create("⚔️ 처형", OnExecute, UTKButton.Variant.Danger);
             executeBtn.style.width = 155f;
-            executeBtn.style.height = 50f;
-            executeBtn.style.marginRight = 18f;
+            executeBtn.style.height = 44f;
+            executeBtn.style.marginRight = 12f;
             _choiceHost.Add(executeBtn);
 
             var spareBtn = UTKButton.Create("🤝 살려주기", OnSpare, UTKButton.Variant.Primary);
             spareBtn.style.width = 155f;
-            spareBtn.style.height = 50f;
+            spareBtn.style.height = 44f;
             _choiceHost.Add(spareBtn);
-
-            var personality = new Label("");
-            personality.name = "MercyInfo";
-            personality.style.fontSize = 13f;
-            personality.style.color = new StyleColor(UTKColor.TextSecondary);
-            personality.style.marginTop = 18f;
-            personality.style.unityTextAlign = TextAnchor.MiddleCenter;
-            _content.Add(personality);
 
             // 보상 팝업 오버레이
             _rewardHost = new VisualElement();
@@ -101,16 +140,22 @@ namespace ProjectName.UI.Toolkit
             var rewardBox = new VisualElement();
             rewardBox.style.width = 340f;
             rewardBox.style.height = 180f;
-            rewardBox.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
-            rewardBox.style.borderTopWidth = 2; rewardBox.style.borderBottomWidth = 2;
-            rewardBox.style.borderLeftWidth = 2; rewardBox.style.borderRightWidth = 2;
+            rewardBox.style.paddingLeft = 14f;
+            rewardBox.style.paddingRight = 14f;
+            rewardBox.style.backgroundColor = new StyleColor(GitHubDark.Panel);
+            rewardBox.style.borderTopWidth = rewardBox.style.borderBottomWidth = 1f;
+            rewardBox.style.borderRightWidth = 1f;
+            rewardBox.style.borderLeftWidth = 4f;
             rewardBox.style.borderTopColor = rewardBox.style.borderBottomColor =
-                rewardBox.style.borderLeftColor = rewardBox.style.borderRightColor = new StyleColor(UTKColor.BorderGold);
+                rewardBox.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            rewardBox.style.borderLeftColor = new StyleColor(UTKColor.BorderGold);
+            rewardBox.style.borderTopLeftRadius = rewardBox.style.borderBottomLeftRadius = 8f;
+            rewardBox.style.borderTopRightRadius = rewardBox.style.borderBottomRightRadius = 8f;
             _rewardHost.Add(rewardBox);
 
             _rewardLabel = new Label("");
             _rewardLabel.style.fontSize = 15f;
-            _rewardLabel.style.color = new StyleColor(new Color(0.8f, 1f, 0.8f));
+            _rewardLabel.style.color = new StyleColor(GitHubDark.TextMain);
             _rewardLabel.style.whiteSpace = WhiteSpace.Normal;
             _rewardLabel.style.marginTop = 16f;
             _rewardLabel.style.marginLeft = 16f;
@@ -182,7 +227,7 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshChoice()
         {
-            _lordLabel.text = "🏳️ 영주 항복!";
+            _lordLabel.text = string.IsNullOrEmpty(_lordName) ? "🏳️ 영주 항복!" : $"🏳️ {_lordName}";
             var lord = LordSurrenderSystem.GetLordData(_territoryId);
             string info;
             if (lord.lordId != null)
@@ -191,8 +236,7 @@ namespace ProjectName.UI.Toolkit
                 info = $"성격: {personalityStr} | 선호: {(lord.preferredFood ?? "알 수 없음")}";
             }
             else info = $"영주: {_lordName}";
-            var infoLabel = _content.Q<Label>("MercyInfo");
-            if (infoLabel != null) infoLabel.text = info;
+            _personalityLabel.text = info;
         }
 
         // ===== 콜백 (원본 OnExecute/OnSpare 경로 실측) =====
