@@ -191,36 +191,36 @@ namespace ProjectName.UI.Toolkit
             _roundLabel = new Label(roundStr);
             _roundLabel.style.fontSize = 15f;
             _roundLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _roundLabel.style.color = new StyleColor(UTKColor.AccentMagic);
+            _roundLabel.style.color = new StyleColor(UTKTheme.Accent);
             _roundLabel.style.alignSelf = Align.Center;
             _roundLabel.style.marginBottom = 4f;
             _list.Add(_roundLabel);
 
             if (_fighter.name == null) // 아직 전투 데이터 없음
             {
-                _list.Add(Lbl("(대기 중 — 전투가 시작되면 표시됩니다)", UTKColor.TextSecondary));
+                _list.Add(Lbl("(대기 중 — 전투가 시작되면 표시됩니다)", UTKTheme.TextSub));
                 return;
             }
 
             // 상대 (빨강)
             _list.Add(Lbl($"⚔️ {_opponent.name} Lv.{_opponent.level}"));
             float oppRatio = _opponent.maxHP > 0 ? Mathf.Clamp01(_opponent.currentHP / _opponent.maxHP) : 0f;
-            var oppBar = BuildBar(oppRatio, UTKColor.HealthRed, new Color(0.3f, 0.1f, 0.1f, 1f));
+            var oppBar = BuildBar(oppRatio, UTKTheme.Danger, new Color(0.3f, 0.1f, 0.1f, 1f));
             _oppHPText = barText(oppBar);
             _list.Add(oppBar);
             _oppHPText.text = $"{Mathf.Max(0, _opponent.currentHP):F0}/{_opponent.maxHP:F0}";
-            _list.Add(Lbl($"⚡ 공격력: {_opponent.attack:F1}  🛡️ 방어력: {_opponent.defense:F1}", UTKColor.TextSecondary));
+            _list.Add(Lbl($"⚡ 공격력: {_opponent.attack:F1}  🛡️ 방어력: {_opponent.defense:F1}", UTKTheme.TextSub));
             _list.Add(new VisualElement { style = { height = 6f } });
 
             // 아군 (초록)
             string fighterIcon = _fighter.isPlayer ? "👤" : "🪖";
             _list.Add(Lbl($"{fighterIcon} {_fighter.name} Lv.{_fighter.level}"));
             float fgtRatio = _fighter.maxHP > 0 ? Mathf.Clamp01(_fighter.currentHP / _fighter.maxHP) : 0f;
-            var fgtBar = BuildBar(fgtRatio, UTKColor.GuildGreen, new Color(0.1f, 0.3f, 0.1f, 1f));
+            var fgtBar = BuildBar(fgtRatio, UTKTheme.Success, new Color(0.1f, 0.3f, 0.1f, 1f));
             _fgtHPText = barText(fgtBar);
             _list.Add(fgtBar);
             _fgtHPText.text = $"{Mathf.Max(0, _fighter.currentHP):F0}/{_fighter.maxHP:F0}";
-            _list.Add(Lbl($"⚡ 공격력: {_fighter.attack:F1}  🛡️ 방어력: {_fighter.defense:F1}", UTKColor.TextSecondary));
+            _list.Add(Lbl($"⚡ 공격력: {_fighter.attack:F1}  🛡️ 방어력: {_fighter.defense:F1}", UTKTheme.TextSub));
             _list.Add(new VisualElement { style = { height = 6f } });
 
             // 최근 라운드 로그
@@ -228,7 +228,7 @@ namespace ProjectName.UI.Toolkit
             {
                 var lr = _currentLog.rounds[_currentLog.rounds.Count - 1];
                 string lastLog = $"{lr.roundNumber}라운드:\n💥 {_fighter.name} → {_opponent.name}: {lr.fighterDamageDealt:F1} 데미지!\n💥 {_opponent.name} → {_fighter.name}: {lr.opponentDamageDealt:F1} 데미지!";
-                var ll = Lbl(lastLog, UTKColor.TextPrimary, 12f);
+                var ll = Lbl(lastLog, UTKTheme.TextMain, 12f);
                 ll.style.whiteSpace = WhiteSpace.Normal;
                 _list.Add(ll);
             }
@@ -250,10 +250,10 @@ namespace ProjectName.UI.Toolkit
             panel.style.borderBottomWidth = 2f;
             panel.style.borderLeftWidth = 2f;
             panel.style.borderRightWidth = 2f;
-            panel.style.borderTopColor = UTKColor.BorderGold;
-            panel.style.borderBottomColor = UTKColor.BorderGold;
-            panel.style.borderLeftColor = UTKColor.BorderGold;
-            panel.style.borderRightColor = UTKColor.BorderGold;
+            panel.style.borderTopColor = UTKTheme.Gold;
+            panel.style.borderBottomColor = UTKTheme.Gold;
+            panel.style.borderLeftColor = UTKTheme.Gold;
+            panel.style.borderRightColor = UTKTheme.Gold;
             panel.style.borderTopLeftRadius = 6f;
             panel.style.borderTopRightRadius = 6f;
             panel.style.borderBottomLeftRadius = 6f;
@@ -267,7 +267,7 @@ namespace ProjectName.UI.Toolkit
             _resultMsg = new Label(resultMsg);
             _resultMsg.style.fontSize = 26f;
             _resultMsg.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _resultMsg.style.color = new StyleColor(_currentLog.isVictory ? UTKColor.HoverGold : UTKColor.HealthRed);
+            _resultMsg.style.color = new StyleColor(_currentLog.isVictory ? UTKTheme.Gold : UTKTheme.Danger);
             _resultMsg.style.alignSelf = Align.Center;
             panel.Add(_resultMsg);
 
@@ -284,7 +284,7 @@ namespace ProjectName.UI.Toolkit
             {
                 _rewardMsg = new Label(reward);
                 _rewardMsg.style.fontSize = 15f;
-                _rewardMsg.style.color = new StyleColor(UTKColor.TextPrimary);
+                _rewardMsg.style.color = new StyleColor(UTKTheme.TextMain);
                 _rewardMsg.style.whiteSpace = WhiteSpace.Normal;
                 _rewardMsg.style.alignSelf = Align.Center;
                 panel.Add(_rewardMsg);
@@ -293,7 +293,7 @@ namespace ProjectName.UI.Toolkit
             float remain = Mathf.Max(0f, 5f - _resultTimer);
             _closeHint = new Label($"자동으로 닫힙니다... ({remain:F1}초)");
             _closeHint.style.fontSize = 11f;
-            _closeHint.style.color = new StyleColor(UTKColor.TextSecondary);
+            _closeHint.style.color = new StyleColor(UTKTheme.TextSub);
             _closeHint.style.alignSelf = Align.Center;
             _closeHint.style.marginTop = 4f;
             panel.Add(_closeHint);
@@ -310,7 +310,7 @@ namespace ProjectName.UI.Toolkit
             text.style.alignSelf = Align.FlexStart;
             text.style.paddingLeft = 4f;
             text.style.fontSize = 11f;
-            text.style.color = new StyleColor(UTKColor.TextPrimary);
+            text.style.color = new StyleColor(UTKTheme.TextMain);
             bar.Add(text);
             return text;
         }
@@ -338,7 +338,7 @@ namespace ProjectName.UI.Toolkit
         {
             var l = new Label(text ?? "");
             l.style.fontSize = size;
-            l.style.color = new StyleColor(color ?? UTKColor.TextPrimary);
+            l.style.color = new StyleColor(color ?? UTKTheme.TextMain);
             l.style.whiteSpace = WhiteSpace.Normal;
             return l;
         }

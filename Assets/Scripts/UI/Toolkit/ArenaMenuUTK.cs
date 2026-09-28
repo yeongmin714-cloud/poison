@@ -150,7 +150,7 @@ namespace ProjectName.UI.Toolkit
             var arena = ArenaSystem.Instance;
             if (arena == null)
             {
-                _list.Add(MakeLabel("(ArenaSystem 미생성)", UTKColor.TextSecondary));
+                _list.Add(MakeLabel("(ArenaSystem 미생성)", UTKTheme.TextSub));
                 return;
             }
 
@@ -179,7 +179,7 @@ namespace ProjectName.UI.Toolkit
             // ⚠️ 참가 가능 여부
             string checkMsg = arena.CanParticipate();
             if (checkMsg != null)
-                _list.Add(TextRow($"⚠️ {checkMsg}", UTKColor.HealthRed));
+                _list.Add(TextRow($"⚠️ {checkMsg}", UTKTheme.Danger));
 
             bool canParticipate = checkMsg == null && !arena.IsInBattle;
 
@@ -196,7 +196,7 @@ namespace ProjectName.UI.Toolkit
             }
             else
             {
-                row.Add(MakeLabel("(전투 진행 중이거나 참가 불가)", UTKColor.TextSecondary));
+                row.Add(MakeLabel("(전투 진행 중이거나 참가 불가)", UTKTheme.TextSub));
             }
             _list.Add(row);
 
@@ -207,16 +207,16 @@ namespace ProjectName.UI.Toolkit
             if (log != null)
             {
                 string title = log.isVictory ? "⚔️ 전투 결과 — 승리!" : "⚔️ 전투 결과 — 패배...";
-                _list.Add(SectionLabel(title, log.isVictory ? UTKColor.GuildGreen : UTKColor.HealthRed));
+                _list.Add(SectionLabel(title, log.isVictory ? UTKTheme.Success : UTKTheme.Danger));
                 _list.Add(TextRow($"🥊 {log.fighterName} vs {log.opponentName}"));
                 _list.Add(TextRow($"📊 총 {log.totalRounds}라운드 진행"));
                 if (log.isVictory)
                 {
                     _list.Add(ValueRow($"💰 보상: {log.rewardGold}G"));
                     if (log.bonusMultiplier > 1f)
-                        _list.Add(TextRow($"✨ 연승 보너스 x{log.bonusMultiplier:F1} 적용!", UTKColor.AccentRare));
+                        _list.Add(TextRow($"✨ 연승 보너스 x{log.bonusMultiplier:F1} 적용!", UTKTheme.Gold));
                     if (log.legendaryReward)
-                        _list.Add(TextRow("🏆 전설 보상: 아레나 챔피언 토큰 획득!", UTKColor.HoverGold));
+                        _list.Add(TextRow("🏆 전설 보상: 아레나 챔피언 토큰 획득!", UTKTheme.Gold));
                 }
             }
         }
@@ -257,7 +257,7 @@ namespace ProjectName.UI.Toolkit
             int totalItems = _guards.Count + CountAliveMercs(_mercs);
             if (totalItems == 0)
             {
-                _list.Add(MakeLabel("출전 가능한 병사나 용병이 없습니다.", UTKColor.TextSecondary));
+                _list.Add(MakeLabel("출전 가능한 병사나 용병이 없습니다.", UTKTheme.TextSub));
                 return;
             }
 
@@ -307,8 +307,14 @@ namespace ProjectName.UI.Toolkit
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
             row.style.marginTop = 2f;
+            row.style.marginBottom = 3f;
+            row.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            row.style.paddingLeft = 8f;
+            row.style.paddingTop = 4f;
+            row.style.paddingBottom = 4f;
+            row.style.borderTopLeftRadius = row.style.borderTopRightRadius = row.style.borderBottomLeftRadius = row.style.borderBottomRightRadius = 4f;
 
-            var text = MakeLabel(label, isSelected ? UTKColor.AccentRare : UTKColor.TextPrimary);
+            var text = MakeLabel(label, isSelected ? UTKTheme.Gold : UTKTheme.TextMain);
             text.style.flexGrow = 1f;
             row.Add(text);
 
@@ -367,7 +373,7 @@ namespace ProjectName.UI.Toolkit
             var l = new Label(text);
             l.style.fontSize = 17f;
             l.style.unityFontStyleAndWeight = FontStyle.Bold;
-            l.style.color = new StyleColor(color ?? UTKColor.AccentMagic);
+            l.style.color = new StyleColor(color ?? UTKTheme.Accent);
             l.style.marginTop = 6f;
             l.style.marginBottom = 2f;
             return l;
@@ -375,14 +381,14 @@ namespace ProjectName.UI.Toolkit
 
         private static Label TextRow(string text, Color? color = null)
         {
-            var l = MakeLabel(text, color ?? UTKColor.TextPrimary);
+            var l = MakeLabel(text, color ?? UTKTheme.TextMain);
             l.style.marginBottom = 2f;
             return l;
         }
 
         private static VisualElement ValueRow(string text)
         {
-            return MakeLabel(text, UTKColor.HoverGold, 14f);
+            return MakeLabel(text, UTKTheme.Gold, 14f);
         }
 
         // ===== 키/ESC + 코루틴 실행용 Updater =====
