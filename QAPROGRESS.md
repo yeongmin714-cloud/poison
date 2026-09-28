@@ -1,6 +1,21 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-28 (가스 클라우드 + 방독면 연계)
+> **최종 갱신:** 2026-09-28 (UI Fluent/GitHub-dark 전면 통일)
+
+## 📌 세션 스냅샷 (2026-09-28 ✅ UI Fluent/GitHub-dark 전면 통일 — P0~P1)
+
+> **지시:** 준수 판정(P6~P9) 포함 전 창을 피그마/플루언트 디자인 기준으로 재작업. 레이아웃·분위기 무조건 Figma 기준, 게임 로직은 Figma에 맞게 조정. 기준 = 기존 18종 Figma 창이 쓰는 GitHubDark 팔레트(플루언트 다크) + 카드/그리드/게이지 패턴.
+
+- **조사**: 전체 88개 UTK 중 Figma 기준(GitHubDark 인라인) 17개 / `UTKColor`(구식 브론즈·우드) 참조 48개 / 직접색 하드코딩 ~11개로 분류. 직접색 창들도 대부분 이미 GitHub-dark 크롬(#161B22/#0B0E14/#2E343D) 사용 — 진짜 미통일은 구식 `UTKColor` 팔레트였다.
+- **P0 `UTKTheme` 공용 토큰 신설** (`Assets/Scripts/UI/Toolkit/UTKTheme.cs`): Fluent/GitHub-dark 정적 팔레트 + Radius 상수(BgBase #0B0E14 / Panel #161B22 / PanelSub #21262D / Accent #58A6FF / Gold #E3B341 / TextMain #F0F6FC / TextSub #8B949E / Stroke #2E343D / Danger #F85149 / Success #3FB950 / Warn #D29922).
+- **P0 `UTKColor` 전면 승격** (`UTKControls.cs`): 구식 브론즈·우드(BgPanel 0x1C1C1C, BorderBronze, TextPrimary 0xF5EFE0) → GitHub-dark 팔레트로 리매핑. **48개 창이 참조하므로 한 번에 전 창 분위기 자동 통일.** 등급색(Rank* 시맨틱)은 유지.
+- **P1 남은 크롬색 정리**: `LoadingScreenUTK`(로고 Gold/진행바 PanelSub+Accent/팁 TextSub) + `WarNotificationUTK`(배너 배경 → Panel) — 마지막 구식 회색 크롬 제거.
+- **잔존 직접색 = 전부 시맨틱으로 판정**(유지): Minimap(지형·온도·소리색), Nameplate(티어·HP·국가색), GuardSquadHotbar(국가색 6종·아바타상태), HUD(하트/번개), DeathScreen(붉은 페이드), BowAimReticle(화살·티어색), EscMenu(골드타이틀), UTKCircularGauge·UTKDragDrop·HarvestResult·ItemDesc(게이지·고스트·골드). 데이터·상태 의미 색이라 Figma 팔레트로 대체하면 안 됨.
+- **QA**: 배치컴파일 `error CS=0` (`compile.log`) ×2회. EditMode **299/301**(기존 요리 2건 무관, 회귀 0). 굵은 괄호/대칭 검증. 커밋 `120cb71a`(P0) + LoadingScreen/WarNotif 크롬.
+
+- ⚠ **Play 판정 대기**: 에디터 Play → 자체 제작 창(밀매/영주/대화/도감/연금/아레나/미니맵/핫바/로딩/전쟁알림 등)이 전체적으로 GitHub-dark(Fluent) 다크 톤으로 통일 노출되는지 + 기존 Figma 창과 어울리는지 실제 화면 확인.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-28 ✅ LoL식 가스 클라우드 전개 + 방독면 면역)
 

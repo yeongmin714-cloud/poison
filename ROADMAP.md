@@ -3491,3 +3491,21 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
   - 배치컴파일 error CS 0 (`playerwar_compile.log`·`monster_resume_compile.log`).
 - **[보강 09-28]** **병사 장비 희귀도 난이도 차별화**: `GuardEquipmentSpawner` — 영지 난이도 보너스(0~4)만큼 장비 등급 승격(Ring1=0…Empire=4, 최대 Legendary). `GuardPlaceholder.GearDifficultyBonus` 프로퍼티 + `TerritoryBuilder.CreateGuard`(난이도 파라미터 추가)가 문지기/실내수비/주둔군 3경로에 설정. `SpawnEquipment`(스탯 장비)+`SpawnPlayerLoadout/RollLoadoutItem`(GLB 비주얼) 양쪽 반영, 기본 인자로 기존 동작 회귀 0. 배치컴파일 error CS 0 (`guardgear_compile.log`).
 - ⚠ **Play 검증 대기:** 플레이어 성 진입 시 7개 방이 벽으로 분리·가구가 방별 배치·입구 통행 가능 확인.
+
+---
+
+## 🎨 2026-09-28: UI Fluent/GitHub-dark 전면 통일 (UI-FLUENT P0~P1) ✅
+
+> **지시:** 준수 판정(P6~P9) 포함 전 창을 피그마/플루언트 디자인 기준으로 재작업. 레이아웃·분위기 무조건 Figma 기준, 게임 로직은 Figma에 맞게 조정.
+> **기준:** 기존 18종 Figma 창이 쓰는 GitHubDark 팔레트(플루언트 다크) + 카드/그리드/게이지 패턴.
+
+|| 항목 | 구현 | 상태 |
+|:--|:--|:--|:--:|
+| P0 | `UTKTheme` 공용 토큰 신설 | Fluent/GitHub-dark 정적 팔레트 + Radius 상수 — 신규 창 표준 팔레트 | ✅ 커밋 120cb71a |
+| P0 | `UTKColor` 전면 승격 | 구식 브론즈·우드(BgPanel 0x1C1C1C, TextPrimary 0xF5EFE0) → GitHub-dark 팔레트. **48개 창 참조 → 한 번에 전 창 분위기 자동 통일.** 등급색 유지 | ✅ |
+| P1 | 남은 크롬색 정리 | LoadingScreenUTK(로고 Gold/진행바 PanelSub+Accent/팁 TextSub) + WarNotificationUTK(배너 Panel) — 구식 회색 크롬 제거 | ✅ |
+| 잔존 | 직접색 판정 | Minimap/Nameplate/GuardSquadHotbar/HUD/DeathScreen/BowAim/EscMenu/Gauge/DragDrop/HarvestResult/ItemDesc — 전부 시맨틱(국가·HP·등급·위험·게임색)이라 유지 | ✅ 판정 |
+| 검증 | 배치컴파일 error CS=0 ×2, EditMode 299/301(기존 요리 2건 무관) | | ✅ |
+
+- **효과:** 구식 브론즈/우드 톤이던 자체 제작 창들(밀매/영주/대화/도감/연금/아레나/미니맵/핫바/로딩/전쟁알림 등)이 GitHub-dark(Fluent) 다크 톤으로 통일. 시맨틱 색(국가·HP·등급·위험·회복)은 데이터 의미라 유지.
+- ⚠ **Play 검증 대기:** 자체 제작 창들이 전체적으로 GitHub-dark 다크 톤으로 통일 노출 + 기존 Figma 창과 어울리는지 실제 화면 확인.
