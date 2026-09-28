@@ -11,6 +11,8 @@ namespace ProjectName.Core.Data
     {
         /// <summary>[P4] 아이템 섭취 발화 — 생선/음식 허기 회복 등 Systems 연계용.</summary>
         public static event System.Action<PlayerInventory.ItemData> ItemConsumed;
+        /// <summary>Systems가 등록 — true 반환 시 기본 소비를 건너뛰고 호출측이 처리.</summary>
+        public static System.Func<PlayerInventory.ItemData, bool> PreUseOverride;
         /// <summary>
         /// Use (consume) an item from inventory.
         /// </summary>
@@ -22,6 +24,10 @@ namespace ProjectName.Core.Data
                 Debug.LogWarning("[ConsumableSystem] Trying to use null item.");
                 return;
             }
+
+            // [GasCloud] 분사기 장착+물약 장전 시 물약 사용을 가스 구름 전개로 대체 (Systems가 등록)
+            if (PreUseOverride != null && PreUseOverride(item))
+                return;
 
             // Food 또는 Potion 카테고리 모두 허용 (Phase 34: 은신 물약/진정제 등)
             // [P4] 섭취 이벤트 발화 — Systems(HungerSystem)가 구독해 허기 회복(Core→Systems 참조 금지 규약)

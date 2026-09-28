@@ -20,7 +20,7 @@ namespace ProjectName.Systems
         public bool IsEquipped { get; private set; }
         public GasSprayerGrade CurrentGrade { get; private set; }
         public string EquippedSprayerName { get; private set; }  // "나무 가스 분사기"
-        public float CurrentSprayTimeRemaining { get; private set; }
+        public float CurrentSprayTimeRemaining { get; set; }
 
         // === C8-32 새 필드: 분사 상태 ===
         [SerializeField] private bool _isSpraying;

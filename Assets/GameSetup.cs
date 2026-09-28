@@ -97,6 +97,7 @@ public class GameSetup : MonoBehaviour
         // BootstrapTerrainDeco(호수 생성) 이후에 배선 — 물가 부재 시에도 시스템은 멱등 생성된다.
         EnsureFishingSystem();
         GiveStarterFishingRod();
+        EnsureGasSystem();  // 가스 분사기 컨트롤러 + 물약버튼 구름 전개 + 방독면 연계 배선
 
         // ── F3 결과 팝업: 낚시/채집/광질 공용 결과 UI — HarvestResultBridge publish를 폴링 소비 ──
         // (Systems→UI 역참조 없이 UI 어셈블리에서 참조 가능하므로 직접 Ensure)
@@ -886,7 +887,28 @@ public class GameSetup : MonoBehaviour
         }
     }
 
-    // ─────────────────────────  P29 적용 붕근 시스템 배선  ─────────────────────────
+
+    /// <summary>가스 분사기 컨트롤러 + 물약버튼 가스 구름 전개 + 방독면 연계 배선 (멱등).</summary>
+    private void EnsureGasSystem()
+    {
+        try
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null) { Debug.LogWarning("[GameSetup] Player 미발견 — 가스 시스템 스킵"); return; }
+            if (player.GetComponent<GasSprayerController>() == null)
+                player.AddComponent<GasSprayerController>();
+            if (player.GetComponent<GasSprayer>() == null)
+                player.AddComponent<GasSprayer>();
+            if (player.GetComponent<SprayInputHandler>() == null)
+                player.AddComponent<SprayInputHandler>();
+            GasCloudLauncher.RegisterHook();
+            Debug.Log("[GameSetup] ✅ 가스 분사기 + 물약버튼 가스 구름 전개 + 방독면 연계 배선 완료");
+        }
+        catch (System.Exception gasEx)
+        {
+            Debug.LogError($"[GameSetup] ⚠️ 가스 시스템 배선 실패 — 나머지 부트 계속: {gasEx.Message}");
+        }
+    }
 
     /// <summary>
     /// [P29] 낚시 시스템 + 미니게임 UI 보장 (멱등).

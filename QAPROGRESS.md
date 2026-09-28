@@ -1,6 +1,35 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-27 (부대 지정→우클릭 이동 — 부대 모드 Ctrl 없는 드래그 선택 연동)
+> **최종 갱신:** 2026-09-28 (가스 클라우드 + 방독면 연계)
+
+## 📌 세션 스냅샷 (2026-09-28 ✅ LoL식 가스 클라우드 전개 + 방독면 면역)
+
+> **가스통(분사기) + 물약버튼 → 플레이어 주변 원형 가스 구름 확산** (LoL 스킬 연출). 기존 `GasSprayer`는 정면 분사 콘 + 프리미티브 Quad 안개였고, 메인 GameSetup 배선이 0건이라 미동작이었음. 주변 확산 고품질 클라우드로 재구성 + 메인 배선.
+
+- **에셋:** `Resources/UI/GasCloud{Soft,Puff,Wisp,Ring}.png` 4종 베이크(4배 슈퍼샘플+LANCZOS, 노이즈 프랙탈 소프트 엣지). 초대형 Quad 프리미티브 `GasSprayer_Fog` 대체. meta isReadable:1.
+- **`GasCloudField.cs`** (Systems): 절차 파티클 클라우드 — 0.6s 반경 확장(부드러운 SmoothStep)→잔존→0.8s 페이드→자동 Destroy. 속성별 틴트(독=붉은/정신=보라/회복=초록/강화=파랑), 4개 자식 파티클(Soft/Puff/Wisp/Ring 확장펄스), URP 파티클 폴백 체인.
+- **`ConsumableSystem.PreUseOverride`** delegate 훅 추가 (Core.Data→Systems 우회 — Core는 Systems 직접 참조 불가 so delegate로 해소). 물약 사용 시 분사기 장착+물약장전이면 이 훅이 true 반환해 기본 복용을 건너뜀.
+- **`GasCloudLauncher.cs` + `GasCloudFieldEffect.cs`**: 물약버튼→`GasCloudField.Spawn`(반경=분사기 sprayRange, 지속 4s) + 물약1·가스3s 소모(SpecialAlloy 무소모) + 0.4s 틱 OverlapSphere로 속성별 효과: Poison/Mental=적 공격(6~10), **방독면(GasMaskSystem.IsActive) 활성 주인/아군 무피해**, Heal/Buff=주인/아군 회복/버프.
+- **배선:** `GameSetup.EnsureGasSystem()` — Player에 GasSprayerController/GasSprayer/SprayInputHandler 부착 + `GasCloudLauncher.RegisterHook()`. 날짜 09-28 이후 메인 배선 복원(기존엔 테스트 씬에만 AddComponent).
+- **보조 API:** `GasSprayerController.CurrentSprayTimeRemaining` setter public, `GuardPlaceholder.SetHP(float)`·`ApplyGasCloudBuff(...)` 추가.
+- **QA:** Unity batch compile `error CS=0`, `Script compilation 26.3s`, "Exiting batchmode successfully" return code 0 (로그 `gascloud_batch_compile.log`). 모든 수정 파일이 로그 시각보다 이전이라 전체 변경 반영 확인.
+- ⚠ **Play 판정 대기**: 에디터 Play → 분사기 장착 + 물약 장전 후 물약 사용 시 주변에 원형 가스 확산·속성별 색·방독면 면역이 실제로 보이는지 확인.
+
+---
+
+## 📌 세션 스냅샷 (2026-09-28 ✅ 플레이어 성 내부 단독 이동 테스트 씬 + HQ 바닥 텍스처)
+
+> 기존 공용 IndoorScene은 Additive 런타임 씬이고, 플레이어 성 프리뷰 메뉴가 빌더만 호출해 HQ floor_flagstone 적용 경로를 거치지 않았음. 공용 씬은 건드리지 않고 별도 플레이 테스트 씬으로 격리.
+
+- `Tools/Indoor/미리보기/플레이어 성 (Castle-Player)` → `Assets/Scenes/TestScenes/Test_PlayerCastleInterior.unity` 생성/열기. 씬 생성은 에디터 API, YAML 직접 편집 없음.
+- `PlayerCastleInteriorBuilder.BuildPlayerCastleInterior("Empire", 0)` → `IndoorMaterialFactory.ApplyToRoom(22,6,16)`로 `Resources/Indoor/floor_flagstone` 배선, 텍스처 로드/적용/UV tiling 로그. 테스트 씬에서만 천장 Renderer 비활성화.
+- Player tag 기본 캡슐 + CharacterController + WASD/방향키 이동/실내 경계 제한, Orthographic 추적 카메라 + 테스트 조명.
+- QA: Unity batch compile `error CS=0`, `CompileScripts: 2671.006ms`, 종료 성공; 신규 Systems/Editor 심볼 DLL 반영 확인. 네 파일 brace/paren 균형 및 `git diff --check` 통과.
+- QA review 후 공용 IndoorScene에 플레이테스트 훅을 영구 추가하려던 경로 제거. 공용 `IndoorScene.unity`/meta 변경 없음. 테스트 씬은 에디터 Play 전용, Build Settings 미등록.
+- ⚠ **Play 판정 대기**: 에디터에서 메뉴 실행 후 Play → floor_flagstone가 보이는지, WASD/방향키로 방 안을 이동하는지, 직교 카메라가 천장 없이 실내를 잘 프레이밍하는지 확인.
+
+---
+
 
 ## 📌 세션 스냅샷 (2026-09-27 ✅ 부대 지정 → 우클릭 이동 UX — 커밋 f05aced6)
 

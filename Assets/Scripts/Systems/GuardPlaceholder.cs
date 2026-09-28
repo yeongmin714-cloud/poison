@@ -1241,6 +1241,15 @@ namespace ProjectName.Systems
         /// <summary>체력 직접 설정 (GuardManager 부활/회복)</summary>
         public void SetHP(float hp) { _currentHP = Mathf.Clamp(hp, 0, _maxHP); }
 
+        /// <summary>가스 구름의 아군 버프 적용.</summary>
+        public void ApplyGasCloudBuff(float attack, float defense, float duration)
+        {
+            if (!IsAlly) return;
+            _allyAttackBuff += attack;
+            _allyDefenseBuff += defense;
+            _allyBuffRemaining += duration;
+        }
+
         /// <summary>부활 처리 (GuardResurrectionSystem에서 호출)</summary>
         public void Resurrect(float hpPercent = 0.1f)
         {

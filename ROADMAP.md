@@ -3414,6 +3414,22 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 컴파일 error CS 0, EditMode 재실행 299/301(기존 요리 2건 무관). ⚠ Play 검증 대기(부대 모드 드래그 선택 → 우클릭 이동 + 아이템 모드 공격 회귀 없음).
 
+## 🏰 2026-09-28: 플레이어 성 내부 단독 이동 테스트 씬
+> 기존 공용 `IndoorScene`은 Additive 런타임 로드 후 빌더가 매번 생성하는 씬. 기존 플레이어 성 프리뷰 메뉴는 빌더만 호출해 `IndoorSceneTransition.ApplyHighQualityInterior`를 거치지 않으므로 원하는 floor_flagstone 텍스처가 빠졌다. 사용자 요청에 따라 공용 씬/런타임 로직은 변경하지 않고 독립 테스트 씬을 생성한다.
+
+| 항목 | 구현 | 상태 |
+|:--|:--|:--:|
+| 진입점 | `Tools/Indoor/미리보기/플레이어 성 (Castle-Player)` → `TestScenes/Test_PlayerCastleInterior.unity` 생성/열기 | ✅ |
+| 내부 | PlayerCastleInteriorBuilder Empire variant 0 + `IndoorMaterialFactory.ApplyToRoom` (22×6×16), 텍스처 적용 로그 | ✅ |
+| 이동/카메라 | Player tag 기본 Capsule + CharacterController + WASD/방향키, 룸 경계 제한, 직교 추적 카메라 | ✅ |
+| 시야 | 테스트 전용 천장 renderer off (실내 감상), 테스트 scene directional light | ✅ |
+| 검증 | Unity batch compile CS=0, `CompileScripts: 2671ms`, symbols in Systems/Editor assemblies | ✅ |
+| Play 판정 대기 | Editor에서 메뉴 실행 → Play → 바닥 텍스처/캐릭터 이동/카메라 프레임 확인 | ⬜ |
+
+- 에디터 배치로 씬 에셋/메타 생성 완료. 기존 `IndoorScene.unity`는 수정하지 않았고 Build Settings에 테스트 씬은 추가하지 않음(에디터 전용 확인). 씬 실제 Play 동작은 아직 미확인.
+
+---
+
 ## 🌲 2026-09-23: GNB — Idyllic 자연 다양화 (새 GLB 팩 통합)
 > 목표: 메인씬 지형/장식(`IdyllicPrefabs` 풀)에 새 `새로운 glb/nature` 팩(480파일·테마×상태)을 추가 배치해 나무/돌/풀/꽃 다양성을 극대화. 기존 프리팹 156개는 유지.
 
@@ -3429,5 +3445,24 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | D | 연못가·수변 재배치 + 크기 Play 스샷 수렴 | ⏳ 대기 |
 | GA-T | 지형 다양화: 높낮이 강화(Outcrop/Ridge/사구) + 식생 색감(꽃밭) + 호수·흙길 리파인 | ✅ 커밋 9a0c03da, error CS 0 |
 | GA-T2 | 영지·마을 완전 평탄화 + 산/바위 콜라이더 배치 재활성 | ✅ 커밋 04ff4789, error CS 0 |
-- 접근: Editor 배치(`-executeMethod`)로 GLB 모델 → Idyllic 프리팹 구조(루트+LODGroup+LOD0/1/2+콜라이더) 합성. 대안 저위험: GLB 모델 자산을 카테고리 폴더에 직접 배치 후 `Resources.LoadAll<GameObject>` 수용 여부 확인.
-- 전제: 컴파일·EditMode는 검증, 최종 크기/어색함은 Play 스샷 피드백으로 수렴.
+|- 접근: Editor 배치(`-executeMethod`)로 GLB 모델 → Idyllic 프리팹 구조(루트+LODGroup+LOD0/1/2+콜라이더) 합성. 대안 저위험: GLB 모델 자산을 카테고리 폴더에 직접 배치 후 `Resources.LoadAll<GameObject>` 수용 여부 확인.
+|- 전제: 컴파일·EditMode는 검증, 최종 크기/어색함은 Play 스샷 피드백으로 수렴.
+
+---
+
+## Phase Gas: ☠️ LoL식 주변 확산 가스 클라우드 + 방독면 연계 ✅ (2026-09-28)
+
+> **목적:** 가스 분사기(가스통) 장착 + 물약 장전 상태에서 **물약 사용 버튼을 누르면 마시는 대신 플레이어 주변으로 가스 구름이 원형 확산** (LoL 스킬 연출). 방독면이 주인/아군을 가스 피해에서 보호.
+
+| 단계 | 내용 | 상태 |
+|:----|:-----|:----:|
+| 1 | 베이크 소프트 클라우드 스프라이트 4종 `Resources/UI/GasCloud{Soft,Puff,Wisp,Ring}.png` (초대형 Quad 프리미티브 대체) | ✅ meta isReadable:1 |
+| 2 | `GasCloudField.cs` — 확산 입자 클라우드 VFX (0.6s 반경 확장 → 잔존 → 페이드, 속성별 틴트, 자동 Destroy) | ✅ error CS 0 |
+| 3 | `ConsumableSystem.PreUseOverride` delegate 훅 (Core.Data→Systems 우회) | ✅ error CS 0 |
+| 4 | `GasCloudLauncher.cs` + `GasCloudFieldEffect.cs` — 물약버튼→구름전개 + 속성별 피해/버프(독/정신/회복/강화) + 방독면 면역 | ✅ error CS 0 |
+| 5 | `GameSetup.EnsureGasSystem()` 배선 (GasSprayerController/GasSprayer/SprayInputHandler + 훅 등록) | ✅ 배선 |
+| 6 | `GasSprayerController`(가스 setter public) + `GuardPlaceholder`(SetHP/ApplyGasCloudBuff) 보조 API | ✅ error CS 0 |
+
+- **동작:** 분사기 장착 + 물약 장전 시 물약 버튼 → `radius=분사기 sprayRange`, 지속 4s, 물약1+가스3s 소모(SpecialAlloy 무소모), Poison/Mental은 적 공격·방독면 활성 주인/아군 무피해, Heal/Buff는 주인/아군 회복·버프.
+- **컴파일 검증:** `gascloud_batch_compile.log` — script compilation 26.3s · error CS 0 · "Exiting batchmode successfully" return code 0.
+- ⚠ **Play 검증 대기:** 에디터 Play 후 분사기 장착→물약사용 시 주변 원형 가스 확산/색상/방독면 면역 확인.
