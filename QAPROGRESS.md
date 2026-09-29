@@ -1,6 +1,26 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-29 (테스트 42: 화살 개편 + Test_10 가스 씬 + 크리티컬 슬로우모션)
+> **최종 갱신:** 2026-09-29 (테스트 45: 화살/조준/패링 개편 + AERO 실측)
+
+## 📌 세션 스냅샷 (2026-09-29 ✅ 테스트 45 — 조준 Fluent·파티클 정리·트레일 연화·패링+슬로우모션 — 커밋 f6f2f441)
+
+> **지시:** ①조준 노란선 제거+조준경 Fluent 고급화 ②화살 발사/타격 이상한 파티클 제거(피격만) ③흰 꼬리 연화+도착점까지 ④가스 AERO 볼류메트릭 통합 실측 ⑤좌클릭 패링+슬로모션.
+
+### 변경 (P-ARROW6)
+- **P1 조준**: `PlayerCombat` 활 드로 진입부 `BowTrajectoryPreview.Ensure()` 호출 제거 → 골드 발광 궤적선(노란선) 미생성. `BowAimReticleUTK` 파워링 `FillColor`를 Fluent 액센트 `#58A6FF`(0.345,0.651,1)로. 리티클 베이크 PNG 5종 재베이크(4배 슈퍼샘플+LANCZOS, 탭퍼 팔끝) — 도트 흰코어+파랑글로우, 꺾쇠 각 모서리→중앙 대칭 프레임 (ASCII 방향 검증).
+- **P2 파티클 정리**: 발사 `SpawnMuzzlePuff`(PlayerCombat:545) 제거 / 타격 `SpawnStarFlare`(ArrowProjectile:581) 제거 — **피격 이펙트(데미지숫자·히트스톱·임팩트)만 유지**. `SpawnGroundPuff`(지면 박힘 먼지)는 유지(과장 아님 판정).
+- **P3 꼬리 연화+도착점**: `_trail.time 0.022→0.06`(도착점까지 잔상), `startWidth 0.16→0.07`, `endWidth 0.008→0.003`, 그래디언트 알파 `1/0.9/0.5→0.55/0.5/0.28` (연한 Fluent 라인).
+- **P5 좌클릭 패링**: `HumanoidClipDriver.TriggerParry()` 신설(`SetTrigger("Parry")`+0.45s 홀드) → `PlayerCombat` 좌클릭 패링 경로에 연결. 성공 시 `BulletTime.Get().Apply(0.35,0.06,0.12)` 슬로모션 + `TryParryImpactFX()` = `ShockwaveRingFX.Spawn`(확산링)+`ArrowProjectile.SpawnStarFlare`(감탄섬광).
+
+### AERO 가스 실측 (P4 결론)
+- **AERO = `Assets/Mirza/AERO - Volumetric Fog and Mist` 임포트 확인** (Materials/Shaders/Controller/Baking Set/데모씬/파티클 프리팹).
+- ⚠ **오프라인 Bake 기반 + FullscreenCustomLightingFeature(화면 전체 셰이더)** 구조 — **플레이어 추적 확산 구름에 단순 교체는 부적합**(베이킹 수동·전체화면 커스텀라이팅이라 플레이어 이동 확산용 아님).
+- ⚠ **게임 GPU = Intel HD Graphics 530 / VRAM 1GB** — 실시간 볼류메트릭 화면전체 포그 = 렉 확실. → **P4는 '소량 로컬 포그 시도→Play 실측 판정'으로 보류**, 현재 `GasCloudField`(베이크 스프라이트 파티클)는 유지.
+- 커밋 시 AERO/Magic Pig(Infinity PBR)·`플레이어 애니메이션/Two_Handed_Parry`는 사용자 임포트 대형 에셋(비추적) — git status `??`로 두고 소스만 커밋.
+
+### 검증
+- 배치컴파일(6000.4.10f1) **error CS 0**, batchmode exit 0, 로그 mtime > 수정파일 mtime.
+- ⚠️ **Play 검증 대기**: ①노란 궤적선 제거 확인 ②리티클 Fluent 렌더 ③화살 파티클 제거·연한 꼬리 ④좌클릭 패링 애니+슬로모션+확산링 ⑤가스(P4) 판정.
 
 ## 📌 세션 스냅샷 (2026-09-29 ✅ 테스트 42 라운드 — 화살 개편·Test_10 가스·크리슬로모)
 
