@@ -32,14 +32,17 @@ namespace ProjectName.UI.Toolkit
         private const string PrefsNameKey = "poison_hotbar_name_{0}";   // 원본과 동일 키
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void Bootstrap()
+        private static void Bootstrap() => Ensure();
+
+        /// <summary>씬 셋업에서 명시적으로 보장할 수 있는 멱등 UTK 핫바 부트스트랩.</summary>
+        public static void Ensure()
         {
             if (_instance != null) return;
             _instance = new HotbarUIUTK();
             var go = new GameObject("HotbarUIUTK");
             Object.DontDestroyOnLoad(go);
             go.AddComponent<Updater>().bar = _instance;
-            Debug.Log("[HotbarUTK] 부트스트랩 완료 — 하단 핫바(8슬롯) 준비");
+            Debug.Log("[HotbarUTK] Ensure 완료 — 하단 핫바(8슬롯) 준비");
         }
 
         // ===== 설정 =====

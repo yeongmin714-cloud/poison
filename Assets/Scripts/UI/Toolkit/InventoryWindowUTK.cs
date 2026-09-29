@@ -625,6 +625,65 @@ namespace ProjectName.UI.Toolkit
             Debug.Log($"[InventoryUTK] 슬롯 선택(클릭): {slotData.item.displayName} (슬롯 {slotIndex})");
         }
 
+        // 레거시 InventoryWindow의 장비 id 해석 규칙과 동일하게 유지한다.
+        private static readonly Dictionary<string, (string equipId, WeaponType type)> _weaponIdMap =
+            new Dictionary<string, (string, WeaponType)>
+            {
+                { "steel_sword", ("steel", WeaponType.Sword) },
+                { "iron_sword", ("iron", WeaponType.Sword) },
+                { "crystal_bow", ("crystal", WeaponType.Bow) },
+                { "wood_bow", ("wood", WeaponType.Bow) },
+                { "wood_spear", ("wood", WeaponType.Spear) },
+                { "spear", ("wood", WeaponType.Spear) },
+            };
+
+        private static bool TryResolveWeaponEquip(string itemId, out string equipId, out WeaponType type)
+        {
+            if (_weaponIdMap.TryGetValue(itemId, out var w))
+            {
+                equipId = w.equipId;
+                type = w.type;
+                return true;
+            }
+            string s = (itemId ?? string.Empty).ToLowerInvariant();
+            var parts = s.Split('_');
+            if (parts.Length == 3 && parts[0] == "weapon")
+            {
+                switch (parts[1])
+                {
+                    case "bow":   type = WeaponType.Bow;   break;
+                    case "spear": type = WeaponType.Spear; break;
+                    default:      type = WeaponType.Sword; break;
+                }
+                equipId = s;
+                return true;
+            }
+            type = s.Contains("bow") ? WeaponType.Bow
+                 : s.Contains("spear") ? WeaponType.Spear
+                 : WeaponType.Sword;
+            equipId = null;
+            foreach (var p in parts)
+            {
+                if (p == "weapon" || p == "sword" || p == "bow" || p == "spear" || p == "dagger") continue;
+                if (p == "steel" || p == "iron" || p == "crystal" || p == "wood" || p == "stone") { equipId = p; break; }
+            }
+            if (string.IsNullOrEmpty(equipId) && parts.Length > 1)
+                equipId = parts[parts.Length - 1];
+            return !string.IsNullOrEmpty(equipId);
+        }
+
+        private static EquipmentManager.EquipmentSlot MapArmorSlot(string id)
+        {
+            string s = (id ?? "").ToLowerInvariant();
+            if (s.Contains("helmet") || s.Contains("투구")) return EquipmentManager.EquipmentSlot.Helmet;
+            if (s.Contains("shoe") || s.Contains("boot") || s.Contains("신발")) return EquipmentManager.EquipmentSlot.Shoes;
+            if (s.Contains("glove") || s.Contains("장갑")) return EquipmentManager.EquipmentSlot.Gloves;
+            if (s.Contains("mask") || s.Contains("마스크")) return EquipmentManager.EquipmentSlot.Mask;
+            if (s.Contains("pack") || s.Contains("bag") || s.Contains("가방")) return EquipmentManager.EquipmentSlot.Bag;
+            if (s.Contains("cape") || s.Contains("망토") || s.Contains("shield") || s.Contains("방패") || s.EndsWith("_back")) return EquipmentManager.EquipmentSlot.Back;
+            return EquipmentManager.EquipmentSlot.Armor;
+        }
+
         /// <summary>[U8 요구] 가방 우클릭(비드래그) — 창고 열림 중=입고 / 소모품=사용 / 무기·방어구=장착.</summary>
         private void OnSlotRightClick(int slotIndex, PlayerInventory.ItemSlot slotRef, PlayerInventory.ItemData item)
         {
@@ -653,14 +712,50 @@ namespace ProjectName.UI.Toolkit
             }
             if (cat == PlayerInventory.ItemCategory.Weapon || cat == PlayerInventory.ItemCategory.Armor)
             {
-                var origin = ProjectName.UI.InventoryWindow.Instance;
-                if (origin != null)
+                // 시스템을 직접 호출해 레거시 InventoryWindow 인스턴스 유무와 무관하게 장착한다.
+                var playerT = GameObject.FindWithTag("Player")?.transform;
+                if (slotRef?.item == null) return;
+                if (playerT == null)
                 {
-                    origin.TryEquipItemPublic(slotRef);
+                    Debug.LogWarning("[InventoryWindow] Player 없음 — 장착 스킵");
                     RefreshGrid();
-                    Debug.Log($"[InventoryUTK] 장착(우클릭): {item.displayName}");
+                    return;
                 }
-                else Debug.LogWarning("[InventoryUTK] InventoryWindow.Instance 없음 — 장착 불가");
+
+                if (cat == PlayerInventory.ItemCategory.Weapon)
+                {
+                    // InventoryWindow.TryResolveWeaponEquip과 같은 id/type 해석 규칙.
+                    if (!TryResolveWeaponEquip(item.id, out string equipId, out WeaponType wType))
+                    {
+                        Debug.Log($"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: 무기 id 해석 실패)");
+                        RefreshGrid();
+                        return;
+                    }
+                    WeaponEquipManager.Equip(equipId, playerT, wType);
+                    bool ok = WeaponEquipManager.CurrentId == equipId;
+                    Debug.Log(ok
+                        ? $"[Equip] 우클릭 장착 {item.id} → 결과 성공 (equipId={equipId}, type={wType})"
+                        : $"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: 모델/손본 로드 실패 — equipId={equipId}, 매니저 로그 참조)");
+                }
+                else
+                {
+                    var em = EquipmentManager.Get();
+                    if (em == null)
+                    {
+                        Debug.Log($"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: EquipmentManager 생성 불가 — 비플레이)");
+                        RefreshGrid();
+                        return;
+                    }
+                    var equipSlot = MapArmorSlot(item.id);
+                    Debug.Log($"[Equip] 우클릭 장착 {item.id} → EquipmentManager.EquipItem 호출 (slot={equipSlot}, cat={item.category})");
+                    bool equipped = em.EquipItem(slotRef, equipSlot);
+                    Debug.Log(equipped
+                        ? $"[Equip] 우클릭 장착 {item.id} → 결과 성공 ({equipSlot}, 인벤에서 1개 제거됨)"
+                        : $"[Equip] 우클릭 장착 {item.id} → 결과 실패(사유: 기존 장비 해제 실패 or 인벤 가득 — {equipSlot})");
+                }
+
+                RefreshGrid();
+                Debug.Log($"[InventoryUTK] 장착(우클릭): {item.displayName}");
                 return;
             }
             if (cat == PlayerInventory.ItemCategory.Potion

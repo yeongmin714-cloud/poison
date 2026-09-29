@@ -56,8 +56,10 @@ namespace ProjectName.Systems
             //   (전투/F키 상호작용/화살 명중 등 실외 검증용 최소 구성)
             AttachAttackSystem();
             SetupTestDummies();   // 병사 1 + 몬스터 1
-            // [P22-5] EnsurePlayerHUD(IMGUI 하트 HUD) 제거 — 원형 게이지(StatusGaugesUTK) 대체
-            SetupUITestArena();            // 2026-09-10: UI 전수(미니맵/인벤/스탯/창고·크래프트 박스/전 아이템 시딩) — 실내 크래프트 재료 시딩 유지
+            // Test_10은 MainScene의 GameSetup/CoreSystemsBootstrap을 거치지 않으므로
+            // UTK 루트/패널을 이 씬에서 명시적으로 준비하고, 자가부트 창은 각 UI 타입 Ensure로 동일하게 보장.
+            SetupUITestArena();            // UTK 창 부트 + 창고·크래프트 박스/전 아이템 시딩
+
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
             // (기존: EnsureGameManager가 MonsterAggroSystem을 GM에 부착 — DontDestroyOnLoad가 아니라 씬 정리 경고는
@@ -1200,15 +1202,37 @@ namespace ProjectName.Systems
             var uiAsm = System.Reflection.Assembly.Load("ProjectName.UI");
             if (uiAsm == null) { Debug.LogWarning("[UITest] ⚠️ ProjectName.UI 어셈블리 미발견 — UI 부착 생략"); return; }
 
-            // ① 구식 MinimapUI 생성 제거 — UTK MinimapUTK(자가부트 + UIRoot 우상단 상시 표시)가 담당.
-            //    Ensure()는 멱등(인스턴스 존재 시 무시) — 자가부트 이상 시 대비 방어 호출.
-            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.MinimapUTK", "Ensure");
-            Debug.Log("[UITest] ✅ UTK 자가부트 창 표시: MinimapUTK/StatusWindowUTK(P키 자체 폴링)/HUD/Hotbar/TimeClock 등");
+            // Test_10은 MainScene의 GameSetup/CoreSystemsBootstrap을 통하지 않는다.
+            // 다른 씬에서 실행된 DisableAllUi 상태만 해제하고, UTK root/각 UI 초기화를 명시 보장한다.
+            var transition = typeof(ProjectName.Core.UITransitionState);
+            var disabledField = transition.GetField("DisableAllUi",
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            disabledField?.SetValue(null, false);
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.UIToolkitBootstrap", "Ensure");
 
-            // ② 구식 UIInventoryHotkey+InventoryWindow 생성 제거 — UTK 인벤은 UTKWireUp 브리지 경유.
-            //    단, 원본 핫키의 Update는 InventoryWindow.Instance(구식 창) 존재을 요구하므로 구식 창을
-            //    지우면 이벤트 발화자가 사라진다 → 경량 프로브(아래)가 동일 정적 이벤트를 발화한다.
-            //    (InventoryWindowUTK.Ensure는 Open 내부에서도 호출되므로 여기서 명시 불필요)
+            // 애플리케이션 루트가 살아 있는지 확인한 후 각 공용 UTK 화면을 중복 없이 명시 보장.
+            var bootType = uiAsm.GetType("ProjectName.UI.Toolkit.UIToolkitBootstrap");
+            var rootProp = bootType?.GetProperty("UIRoot", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (rootProp?.GetValue(null) == null)
+            {
+                Debug.LogWarning("[UITest] ⚠️ UTK root 준비 실패 — 테스트10 UI 셋업 중단");
+                return;
+            }
+
+            // IMGUI HUD/uGUI 핫바는 생성하지 않는다. 체력+스태미나 원형 게이지는 HUDUTK 소유.
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.MinimapUTK", "Ensure");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.HUDUTK", "Ensure");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.HotbarUIUTK", "Ensure");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.StatusWindowUTK", "Ensure");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.QuestWindowUTK", "Ensure");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.QuestJournalUTK", "Ensure");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.TimeClockGlassUTK", "Ensure");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.UTKWireUp", "Wire");
+            Debug.Log("[UITest] ✅ UTK app boot ensured: Minimap/HUD/Hotbar/Status/Quest/Journal/Clock + wire-up");
+
+            // ② 구식 UIInventoryHotkey+InventoryWindow 생성 제거 — UTK 인벤은 정적 브리지/프로브 경유.
+            // UTKWireUp.Wire()는 I키 이벤트에 연결하고 probe가 씬별 입력 이벤트를 발화한다.
+            // 구식 UIInventoryHotkey/InventoryWindow 컴포넌트는 생성하지 않는다.
             var probeGO = new GameObject("UTK_InventoryKeyProbe");
             probeGO.AddComponent<UtkInventoryKeyProbe>();
             Debug.Log("[UITest] ✅ I키 → UTKWireUp 브리지(UTK_InventoryKeyProbe 발화) — 구식 인벤/핫키 생성 없음");
