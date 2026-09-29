@@ -1249,6 +1249,49 @@ namespace ProjectName.Systems
 
             // 플레이어 인벤토리에도 대표 아이템 시딩(인벤 창 표시 검증용)
             SeedPlayerInventory();
+            SetupGasVerifyScene();   // [테스트 42] 가스 확인 씬 — 분사기/독·치료 물약/방독면
+        }
+
+        /// <summary>[테스트 42] 가스 시스템 확인용 — GameSetup.EnsureGasSystem 미러 배선 + 분사기 장착 + 독/치료 물약·방독면 지급.
+        /// 메인씬은 GameSetup이 담당하나 Test_10은 이를 거치지 않으므로 이 씬에서 직접 보장한다.
+        /// 분사기 장착은 인벤 ItemData 대신 컨트롤러 테스트 경로(Equip(grade))를 써 즉시 확인 가능하게 한다.</summary>
+        private void SetupGasVerifyScene()
+        {
+            var player = GameObject.FindWithTag("Player");
+            if (player == null) { Debug.LogWarning("[TestTerritoryCombat] Player 없음 — 가스 확인 스킵"); return; }
+
+            // ① 가스 시스템 컴포넌트 배선 (GameSetup.EnsureGasSystem 미러, 멱등)
+            if (player.GetComponent<GasSprayerController>() == null) player.AddComponent<GasSprayerController>();
+            if (player.GetComponent<GasSprayer>() == null) player.AddComponent<GasSprayer>();
+            if (player.GetComponent<GasMaskController>() == null) player.AddComponent<GasMaskController>();
+            GasCloudLauncher.RegisterHook();
+            GasMaskEquipmentLink.Register();
+
+            // ② 분사기 즉시 장착 (Wood 등급) — 인벤 ItemData 불필요 테스트 경로
+            var ctrl = player.GetComponent<GasSprayerController>();
+            if (ctrl != null) ctrl.Equip(GasSprayerGrade.Wood);
+            else Debug.LogWarning("[TestTerritoryCombat] 가스 분사기 컨트롤러 미부착 — 장착 생략");
+
+            // ③ 물약/방독면 지급 — ClassifyPotion이 독(Poison_)/치료(Heal_) 접두로 안개 속성을 분류
+            var inv = PlayerInventory.Instance;
+            if (inv != null)
+            {
+                inv.AddItem(new PlayerInventory.ItemData
+                {
+                    id = "Poison_TestPotion", displayName = "독 시험 물약",
+                    description = "가스 분사기에 장전하면 주변으로 독성 안개를 확산한다.",
+                    category = PlayerInventory.ItemCategory.Potion, maxStack = 10
+                }, 10);
+                inv.AddItem(new PlayerInventory.ItemData
+                {
+                    id = "Heal_TestPotion", displayName = "치료 시험 물약",
+                    description = "가스 분사기에 장전하면 주변으로 회복 안개를 확산한다.",
+                    category = PlayerInventory.ItemCategory.Potion, maxStack = 10
+                }, 10);
+                inv.AddItem(PlayerInventory.GasMaskWood, 1);   // 나무 방독면 — 인벤 Mask 슬롯 장착 시 면역
+                Debug.Log("[TestTerritoryCombat] ✅ 가스 확인 씬 배선 — 분사기(Wood)·독/치료 물약·방독면 지급");
+            }
+            else Debug.LogWarning("[TestTerritoryCombat] PlayerInventory 미생성 — 물약/방독면 지급 생략");
         }
 
         /// <summary>UTK 정적 무인자 메서드 리플렉션 호출(멱등 Ensure용) — 실패 시 셋업을 중단하지 않는다
