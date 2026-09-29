@@ -72,7 +72,7 @@ namespace ProjectName.UI.Toolkit
             _ring.style.height = 46f;
             _ring.style.left = CenterX - 23f;
             _ring.style.top = CenterY - 23f;
-            _ring.FillColor = new Color(0.9f, 0.95f, 1f, 0.92f);   // 밝은 하늘색 파워 링
+            _ring.FillColor = new Color(0.345f, 0.651f, 1f, 0.92f);   // [테스트45 P1] Fluent 액센트 #58A6FF 파워 링
             Add(_ring);
 
             // 꺾쇠 브래킷 4개

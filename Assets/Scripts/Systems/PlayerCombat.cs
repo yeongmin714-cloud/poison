@@ -252,7 +252,8 @@ namespace ProjectName.Systems
                     _bowDrawing = true;
                     _bowDrawHeldTime = 0f;
                     BowAimState.Begin();   // [P25-C1] 리티클 드로 시작
-                    BowTrajectoryPreview.Ensure();   // [2026-09-25 젤다식 탑다운 궤적선 예측] 호스트 지연 생성(1회, 영속)
+                    // [테스트45 P1] 조준 궤적 예측선(골드 발광 점) 제거 — 조준경만 남긴다.
+                    // BowTrajectoryPreview.Ensure();
                     _clipDriver?.TriggerBowDraw();   // [A 고품질] 사용자 애니 'Draw_and_Shoot_from_Back_1'(당기고 쏘기) 발화
                     AttackSoundLayerManager.PlayBowDraw(); // [활 드로] 좌클릭 press — 당김 스트레치 사운드 발화
                     return;
@@ -261,6 +262,8 @@ namespace ProjectName.Systems
                 _parryActive = true;
                 _parryActiveUntil = Time.time + ParryWindow;
                 _proceduralAnim?.TriggerAction("parry");
+                // [테스트45 P5] 좌클릭 패링 실클립(사용자 FBX Sword_Parry_Backward_1) + TryAttack 동반
+                _clipDriver?.TriggerParry();
                 TryAttack();
             }
         }
@@ -360,10 +363,28 @@ namespace ProjectName.Systems
                 _parryActive = false;   // 1회만
                 _parryActiveUntil = -999f;
                 _proceduralAnim?.TriggerAction("parry_success");
-                Debug.Log("[PlayerCombat] 🛡️ 패링 성공 — 근접 공격 흡수");
+                // [테스트45 P5] 패링 성공 = 슬로모션(0.35x 홀드)로 액션감 극대화 + 확산링 피드백
+                try { BulletTime.Get().Apply(0.35f, 0.06f, 0.12f); }
+                catch (System.Exception) { }
+                TryParryImpactFX();
+                Debug.Log("[PlayerCombat] 🛡️ 패링 성공 — 근접 공격 흡수 + 슬로모션");
                 return true;
             }
             return false;
+        }
+
+        /// <summary>[테스트45 P5] 패링 성공 순간 시각 피드백 — 검증된 ShockwaveRingFX 확산링 + 별섬광 (피격 이펙트와 별개 감탄용).</summary>
+        private void TryParryImpactFX()
+        {
+            try
+            {
+                // 패링 흡수 지점 = 플레이어 앞 1m
+                Vector3 p = transform.position + transform.forward * 1f + Vector3.up * 0.9f;
+                ShockwaveRingFX.Spawn(p, 1.6f, new Color(0.65f, 0.9f, 1f, 0.9f), 0.5f);   // Fluent 확산링
+                // 별섬광 — 피격 StarFlare는 화살에서 제거됐지만 패링 감탄용으로는 명시 재사용
+                try { ArrowProjectile.SpawnStarFlare(p); } catch (System.Exception) { }
+            }
+            catch (System.Exception e) { Debug.LogWarning($"[PlayerCombat] 패링 FX 실패: {e.Message}"); }
         }
 
         /// <summary>
@@ -542,7 +563,8 @@ namespace ProjectName.Systems
             CombatCameraEffects.PlayFireKick();
             LastBowPower = power;
             // [P25-C2] 발사 머즐 퍼프 — 활 위치에서 작은 먼지 퍼프(발사 연출).
-            ArrowProjectile.SpawnMuzzlePuff(origin);
+            // [테스트45 P2] 발사 머즐퍼프(이상한 파티클) 제거 — 화살 트레일만 남긴다.
+            // ArrowProjectile.SpawnMuzzlePuff(origin);
             // [TEST25-66차] 발사 성공 실측 로그 — 화살 비행(ArrowProjectile) + ArcheryShot(발사 애니) 동시 고정.
             Debug.Log("[PlayerCombat] 🏹 활 발사 성공 — 화살 비행(ArrowProjectile) + ArcheryShot(활 사격 애니)");
 

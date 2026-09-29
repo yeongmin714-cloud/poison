@@ -45,7 +45,7 @@ namespace ProjectName.Systems
             var tgrad = new Gradient();
             tgrad.SetKeys(
                 new[] { new GradientColorKey(new Color(1f, 0.99f, 0.97f), 0f), new GradientColorKey(strk1, 1f) },
-                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.15f), new GradientAlphaKey(0.5f, 0.45f), new GradientAlphaKey(0f, 1f) });
+                new[] { new GradientAlphaKey(0.55f, 0f), new GradientAlphaKey(0.5f, 0.15f), new GradientAlphaKey(0.28f, 0.45f), new GradientAlphaKey(0f, 1f) });
             _trail.colorGradient = tgrad;
 
             // 화살 종류별 2중 스파크/색상 변형 없이 모든 화살을 순백색 단일 네온 트레일로 표시.
@@ -67,9 +67,9 @@ namespace ProjectName.Systems
             // 아주 짧은 순백색 애더티브 네온 잔상. 70~84m/s 기준 약 1.5~1.85m 길이.
             _trail = GetComponent<TrailRenderer>();
             if (_trail == null) _trail = gameObject.AddComponent<TrailRenderer>();
-            _trail.time = 0.022f;
-            _trail.startWidth = 0.16f;        // 짧은 잔상의 발광 존재감
-            _trail.endWidth = 0.008f;         // 꼬리로 가늘게 테이퍼
+            _trail.time = 0.06f;             // [테스트45 P3] 발사~도착점까지 잔상 유지(0.022→0.06)
+            _trail.startWidth = 0.07f;        // [테스트45 P3] 흰 큼임 일부 감소 — 연한 Fluent 라인
+            _trail.endWidth = 0.003f;         // 꼬리로 극미세 테이퍼
             _trail.minVertexDistance = 0.03f; // 고속에서도 빈틈 없이
             _trail.generateLightingData = false;
             _trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -88,7 +88,7 @@ namespace ProjectName.Systems
             var tgrad = new Gradient();
             tgrad.SetKeys(
                 new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
-                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.15f), new GradientAlphaKey(0.5f, 0.45f), new GradientAlphaKey(0f, 1f) });
+                new[] { new GradientAlphaKey(0.55f, 0f), new GradientAlphaKey(0.5f, 0.15f), new GradientAlphaKey(0.28f, 0.45f), new GradientAlphaKey(0f, 1f) });
             _trail.colorGradient = tgrad;
         }
 
@@ -578,7 +578,8 @@ namespace ProjectName.Systems
                 // [P25-C4 안1] 적 명중 = 별 섬광 + 화살 소멸(예시 소멸형 절충).
                 //   기존 6초 타겟 박힘은 소멸로 대체 — 섬광/데미지 숫자/히트스톱/임팩트음이 즉각 피드백.
                 // [C 고품질] 마법 화살 관통 시에는 소멸하지 않고 비행 지속(트레일 잔상 강조).
-                SpawnStarFlare(hitPoint);
+                // [테스트45 P2] 타격 별섬광(이상한 파티클) 제거 — 피격 이펙트(데미지 숫자·히트스톱)만 남긴다.
+                // SpawnStarFlare(hitPoint);
                 if (piercedThis)
                 {
                     // 관통 — 데미지 처리는 위에서 적용, 화살은 계속 비행(한 대상만, 신규 적 재데미지).

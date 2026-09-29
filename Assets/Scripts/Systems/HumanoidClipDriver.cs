@@ -120,6 +120,16 @@ namespace ProjectName.Systems
             Debug.Log("[HumanoidClipDriver] DrawShoot 트리거 (활 드로—사용자 애니)");
         }
 
+        /// <summary>[테스트45 P5] 좌클릭 패링 애니 — Player_AC 'Parry' 상태 트리거(사용자 FBX: Sword_Parry_Backward_1).
+        /// 실클립 재생 + 홀드 → 성공/종료 시 자연 복귀.</summary>
+        public void TriggerParry()
+        {
+            if (_anim == null) return;
+            _anim.SetTrigger("Parry");
+            _attackHoldUntil = Mathf.Max(_attackHoldUntil, Time.time + 0.45f);   // 패링 모션 중 Speed 0 홀드
+            Debug.Log("[HumanoidClipDriver] Parry 트리거 (좌클릭 패링—사용자 애니)");
+        }
+
         private void OnDestroy()
         {
             PlayerHealth.OnPlayerDamaged -= OnPlayerDamagedFX;
