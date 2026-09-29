@@ -1,6 +1,20 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-29 (테스트 45: 화살/조준/패링 개편 + AERO 실측)
+> **최종 갱신:** 2026-09-29 (Weapon_Combo_2 3타 입력 버퍼 + 타격 판정 구현; Play 검증 대기)
+
+## 📌 세션 스냅샷 (2026-09-29 — Weapon_Combo_2 근접 콤보 재도입)
+
+> **지시:** 기존 단일 Attack 대신 `Weapon_Combo_2`의 3개 휘두름을 분할해 입력한다. 현재 스윙이 끝나기 전 클릭을 받으면 다음 타로 이어가고, 세 타 모두 독립 피해 판정을 실행한다.
+
+- **구현:** Fist/Sword 근접 공격은 `HumanoidClipDriver`가 기존 `WeaponCombo` 상태를 직접 재생한다. 136프레임 클립의 임시 구간 경계는 normalized time `0.331`, `0.676`; 구간 중 후속 클릭은 버퍼링해 최대 총 3타까지 경계에서 이어간다. 버퍼가 없으면 경계에서 잠시 홀드한 뒤 Idle로 종료.
+- **타격:** 각 애니메이션 세그먼트 시작 시 `PlayerCombat.ResolveComboSwingHit(stage)`를 1회 호출(자동조준→중앙 조준→근접 스윕 순). stage 1/2/3 각각 별도의 피해 판정과 스윙 FX/사운드가 연결됨. 후속 타격만 쿨다운 우회, 콤보 중 버퍼 용량이 찬 추가 클릭은 무시한다. Animator 콤보 재생이 불가하면 기존 단일 공격 피해 폴백을 사용해 중복 방지.
+- **무기 범위:** Bow 발사와 Spear 찌르기 경로는 유지. 변경 파일은 `HumanoidClipDriver.cs`, `PlayerCombat.cs`.
+- **검증:** 독립 QA에서 입력 버퍼/최대 3타/타당 1회 판정/비활성 Animator 폴백/Bow·Spear 경로를 정적 검토. Unity `./compile_test.sh` 성공, fresh `compile.log`: Tundra build success, `error CS=0`, batchmode exit code 0. `git diff --check` 통과.
+- ⚠ **Play 검증 대기:** Editor Play에서 ①각 타 애니메이션 경계 연속성 ②스윙별 실제 접촉 프레임과 피해 시점 ③1→2→3 선입력/최대타수/무입력 Idle 복귀 ④일반 Attack fallback 및 Bow/Spear 회귀를 확인해야 한다. 경계 상수는 렌더 샘플 기준 추정값이며 최종 튜닝 값으로 확정하지 않았다.
+
+---
+
+> **이전 기록:** 2026-09-29 (테스트 45: 화살/조준/패링 개편 + AERO 실측)
 
 ## 📌 세션 스냅샷 (2026-09-29 ✅ 테스트 45 — 조준 Fluent·파티클 정리·트레일 연화·패링+슬로우모션 — 커밋 f6f2f441)
 

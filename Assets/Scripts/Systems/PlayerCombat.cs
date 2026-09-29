@@ -428,16 +428,19 @@ namespace ProjectName.Systems
 
         private void TryAttack()
         {
-            // 연타 판정을 게이트 "전"에 계산 — 콤보 연타(2번째 이상 근접 클릭)는 공격 쿨다운을 우회해 매 타 피격이 들어간다.
-            //   [테스트 42 #3] 2연타 콤보가 1히트만 들어가던 원인 = 2번째 클릭이 attackSpeed 쿨다운에 막힘 → 콤보 연타는 우회.
+            bool fistOrSword = _currentWeapon != null
+                && (_currentWeapon.weaponType == WeaponType.Fist || _currentWeapon.weaponType == WeaponType.Sword);
+            bool comboActive = fistOrSword && _clipDriver != null && _clipDriver.IsPlayerMeleeComboActive;
+            bool comboFollowup = comboActive && _clipDriver.CanAcceptBufferedMeleeFollowup;
+
+            // Only an available Weapon_Combo_2 follow-up bypasses ordinary weapon cooldown.
+            // Reject full/finished combos before changing the accepted-click streak or timestamp.
+            if (comboActive && !comboFollowup) return;
+            if (!CanAttack && !comboFollowup) return;
+
             _attackStreak = (Time.time - _lastAttackTime <= AttackStreakWindow)
                 ? Mathf.Min(_attackStreak + 1, AttackStreakMax)
                 : 1;
-            // Bow는 조준/발사 리듬(쿨다운) 유지 — 근접 무기(검/주먹/창)의 연속 콤보 타격만 우회.
-            bool comboFollowup = _currentWeapon != null
-                && _currentWeapon.weaponType != WeaponType.Bow
-                && _attackStreak > 1;   // 2번째 이상 근접 연타 = 콤보 타격 → 쿨다운 무시(매 타 히트)
-            if (!CanAttack && !comboFollowup) return;
             _lastAttackTime = Time.time;
 
             // ── P6 (2026-09-11): 무기 타입별 좌클릭 공격 분기 ──
@@ -453,6 +456,11 @@ namespace ProjectName.Systems
                 TryBowShot(1f);   // 드로→릴리즈 외 즉발 회귀용 — 파워 풀(1f)
                 return;
             }
+
+            // Fist/Sword hit checks are resolved by HumanoidClipDriver once per Weapon_Combo_2 swing.
+            // LastAttackTime above still reports every accepted click so the driver can queue follow-ups.
+            if (_clipDriver != null && _clipDriver.CanPlayPlayerMeleeCombo && fistOrSword)
+                return;
 
             // Phase B: 무기별 스윙 사운드 레이어링
             PlayWeaponSwingSound();
@@ -505,6 +513,46 @@ namespace ProjectName.Systems
             if (!hitAny) TriggerCameraEffects();
 
             // 공격 전진 (attack lunge)
+            StartCoroutine(AttackLungeCoroutine());
+        }
+
+        /// <summary>Resolve one hit attempt and its damage/effects for a Weapon_Combo_2 swing segment.</summary>
+        public void ResolveComboSwingHit(int comboStage)
+        {
+            if (_currentWeapon == null) return;
+            _attackStreak = Mathf.Clamp(comboStage, 1, AttackStreakMax);
+            PlayWeaponSwingSound();
+
+            bool hitAny = false;
+            IDamageable autoAimTarget = FindTargetInCursorDirection();
+            if (autoAimTarget != null)
+            {
+                _currentTarget = autoAimTarget;
+                StartFaceTarget(autoAimTarget);
+                AttackTarget(_currentTarget);
+                hitAny = true;
+            }
+            else if (AttackCenterScreen())
+            {
+                hitAny = true;
+            }
+            else
+            {
+                IDamageable sweep = MeleeSweepFallback();
+                if (sweep != null)
+                {
+                    _currentTarget = sweep;
+                    StartFaceTarget(sweep);
+                    AttackTarget(sweep);
+                    hitAny = true;
+                }
+            }
+
+            if (!hitAny)
+            {
+                LastHitValid = false;
+                TriggerCameraEffects();
+            }
             StartCoroutine(AttackLungeCoroutine());
         }
 
