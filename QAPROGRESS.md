@@ -1,6 +1,19 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-29 (검증+미커밋 작업 트리 정리 — P-ANIM9·성내부 씬 코드 커밋, TestOutput 생성물 추적 제거)
+> **최종 갱신:** 2026-09-29 (테스트 10씬 UI 메인씬 UTK 통일 + 무기/방어구 우클릭 장착 레거시 의존 제거)
+
+## 📌 세션 스냅샷 (2026-09-29 ✅ 테스트 10씬 UI 메인씬(UTK) 통일 + 우클릭 장착 수리)
+
+> **지시:** 테스트 10씬의 인벤토리/창고/전리품/퀘스트/저널/스테이터스/체력바/핫바/스태미너/미니맵/시간표시를 메인씬과 동일한 UTK UI로. 기존 리포트: Test_10만 예전(IMGUI) HP바·핫바, 우클릭 장착 안 됨.
+
+- **루트 원인**: ① Test_10은 MainScene의 `GameSetup/CoreSystemsBootstrap`을 거치지 않아 자가부트(AfterSceneLoad) 창 중 일부(HUD/핫바 등)가 씬에서 안 붙고 `DisableAllUi` 잔존 시 루트 생성 저지. ② `InventoryWindowUTK`의 Weapon/Armor 우클릭 장착이 레거시 `InventoryWindow.Instance`(Test_10엔 null)에 위임 → 장착 무시.
+- **수정** (`4fa99cc1`, 배치컴파일 error CS=0 · EditMode 통과):
+  - `TestTerritoryCombatSetup.SetupUITestArena`: `DisableAllUi` 해제 → `UIToolkitBootstrap.Ensure` → UIRoot 확인 후 **Minimap/HUD/Hotbar/Status/Quest/Journal/TimeClock Ensure + UTKWireUp.Wire()** 명시 보장(멱등), I키 프로브 1개로 정리, IMGUI HUD/uGUI 핫바 생성 없음.
+  - `HotbarUIUTK`: public 멱등 `Ensure()` 신설(AfterSceneLoad 부트가 이를 호출) — 셋업서 명시 보장 가능.
+  - `InventoryWindowUTK.OnSlotRightClick` Weapon/Armor: 레거시 `InventoryWindow.Instance` 의존을 **시스템 직접 호출**(`WeaponEquipManager.Equip`+`CurrentId` 판정 / `EquipmentManager.Get().EquipItem`+`MapArmorSlot`)로 교체 — `TryResolveWeaponEquip`·`MapArmorSlot`·`_weaponIdMap`을 레거시와 1:1 동일 검증. 인스턴스 무관(테스트/메인 씬 모두 동작). 소모품·창고입고·비밀통행증 분기 불변.
+- ⚠ **Play 판정 대기**: Test_10 Play → HUD 원형 HP/스태미나, 새 핫바, 우클릭 장착(무기/방어구) 동작, I키 인벤/미니맵/시간표시 메인씬과 동일 노출.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-29 ✅ 미커밋 작업 트리 검증·정리 커밋)
 

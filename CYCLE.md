@@ -849,3 +849,11 @@
   - TestOutput 생성물 349종 추적 제거 + .gitignore(/TestOutput/, compile.log) — 재추적 방지.
 - Commits: c25d235d → 0c742193 → 1cf0a48e → 7832d751 (push 완료)
 - Date: 2026-09-29
+
+# Cycle: C-T10UI — 테스트 10씬 UI 메인씬(UTK) 통일 + 우클릭 장착 레거시 의존 제거
+- Status: ✅ (배치컴파일 CS=0, EditMode 통과, 커밋·푸시)
+- Details:
+  - 루트: ① Test_10은 GameSetup/CoreSystemsBootstrap 미경유 → 자가부트 UTK 창(HUD/핫바 등) 미부착 + DisableAllUi 잔존 루트 저지 ② InventoryWindowUTK 무기/방어구 우클릭 장착이 레거시 InventoryWindow.Instance(null) 의존.
+  - 수정: SetupUITestArena(DisableAllUi 해제 + UIToolkitBootstrap.Ensure + Minimap/HUD/Hotbar/Status/Quest/Journal/Clock Ensure + UTKWireUp.Wire, I키 프로브 1개) · HotbarUIUTK public Ensure · InventoryWindowUTK 우클릭 장착을 시스템 직접 호출(WeaponEquipManager/EquipmentManager, 해석 규칙 레거시 1:1 검증).
+- Commits: 4fa99cc1 (push)
+- Date: 2026-09-29

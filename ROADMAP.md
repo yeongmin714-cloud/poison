@@ -3597,3 +3597,17 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 **검증**: 배치컴파일 error CS=0 ×6회. EditMode 1차 **298/301**(+`WeaponCraft` 90% 확률 간헐) → **2차 재실행 299/301**(요리 2건만, 회귀 0). ✅ **자체 설계(ID) 창 GitHub-dark 카드 개편+판별 전수 완료 — 전체 창 Phase 종료.**
 
 - ⚠ **Play 검증 대기:** 대형/설정/알림 창 다크 톤+카드 구조 노출 확인.
+
+---
+
+## 🎨 2026-09-29: 테스트 10씬 UI 메인씬(UTK) 통일 + 우클릭 장착 수리 ✅
+
+> **요구:** Test_10(인벤/창고/전리품/퀘스트/저널/스테이터스/체력바/핫바/스태미너/미니맵/시간표시)을 메인씬과 동일한 UTK UI로. 리포트: Test_10만 예전 HP바·핫바, 우클릭 장착 안 됨.
+
+| 항목 | 상태 |
+|:--|:--:|
+| 루트① Test_10 자가부트 UTK 미부착/DisableAllUi 루트 저지 → SetupUITestArena에서 DisableAllUi 해제+UIToolkitBootstrap.Ensure+Minimap/HUD/Hotbar/Status/Quest/Journal/Clock Ensure+UTKWireUp.Wire 명시 | ✅ 커밋 `4fa99cc1` |
+| 루트② 무기/방어구 우클릭 장착 레거시 InventoryWindow.Instance(null) 의존 → 시스템 직접 호출(WeaponEquipManager/EquipmentManager, 해석 규칙 레거시 1:1) | ✅ 커밋 `4fa99cc1` |
+| HotbarUIUTK public 멱등 Ensure 신설 | ✅ 커밋 `4fa99cc1` |
+| 검증 | ✅ 배치컴파일 error CS=0, EditMode 통과 |
+| Play 판정 | ⏳ Test_10 Play: HUD 원형 HP/스태미나, 새 핫바, 우클릭 장착, I키 인벤/미니맵/시간표시 메인씬과 동일 노출 |
