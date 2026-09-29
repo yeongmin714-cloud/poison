@@ -28,6 +28,11 @@ namespace ProjectName.Systems
         // 현재 선택된 병사 목록
         private readonly List<GuardPlaceholder> _selectedGuards = new List<GuardPlaceholder>();
 
+        // Systems -> UI Toolkit 알림 브리지. UI 어셈블리는 이 이벤트를 구독해 선택 상태/박스 오버레이를 표시한다.
+        // UI 타입을 직접 참조하지 않아 asmdef 순환참조를 피한다.
+        public static event System.Action<IReadOnlyList<GuardPlaceholder>, int> SelectionChanged;
+        public static event System.Action<Rect, bool, Color, Color> SelectionBoxChanged;
+
         // [69차 후속17] 선택 오라 VFX — Hovl Studio Character auras/Buff(Resources 복사본)를
         //   선택 병사 발밑에 월드 스페이스로 렌더(IMGUI 원 위 추가 — 기존 화면표시 유지).
         private readonly Dictionary<GuardPlaceholder, GameObject> _selectionAuras =
@@ -40,7 +45,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>[2026-09-20] 선택 집합 ↔ 하이라이트 링/오라 동기화.
-        /// SC2식 SelectionRing 셰이더 링 우선(국가색 주입), 셰이더 없으면 기존 EarthTrail/MagicCircle2/Buff 폴백.
+        /// Fluent blue SelectionRing 셰이더 링 우선, 셰이더 없으면 절차 링 폴백.
         /// 선택 해제/사망 시 파괴, 이동 추종.</summary>
         private static Shader _ringShader;
         private static bool _ringShaderChecked;
@@ -75,6 +80,11 @@ namespace ProjectName.Systems
             foreach (var g in _selectedGuards)
             {
                 if (g == null) continue;
+                // GuardPlaceholder.SetSelected creates a legacy solid cylinder via
+                // SpecialEffectsController. Keep selection state unified, but ensure this
+                // thin, colliderless ring is the only world-space selection visual.
+                if (SpecialEffectsController.Instance != null)
+                    SpecialEffectsController.Instance.RemoveSelectionOutline(g);
                 if (_selectionAuras.TryGetValue(g, out var aura) && aura != null)
                 {
                     aura.transform.position = g.transform.position;   // 이동 추종
@@ -94,7 +104,7 @@ namespace ProjectName.Systems
             {
                 var go = new GameObject("SelectionRing");
                 go.transform.SetParent(g.transform, false);
-                go.transform.localPosition = Vector3.zero;
+                go.transform.localPosition = Vector3.up * 0.035f;
                 go.transform.localRotation = Quaternion.identity;
                 var ring = go.AddComponent<ProjectName.Systems.SelectionRingController>();
                 float unit = g.transform.localScale.x;
@@ -118,19 +128,15 @@ namespace ProjectName.Systems
             return inst;
         }
 
-        /// <summary>국가별 선택 링 색 — 동/서/남/북/기본(파랑).</summary>
+        /// <summary>선택 강조는 국가와 무관하게 Fluent blue로 통일.</summary>
         private static Color GetNationSelectionColor(string nation)
         {
-            if (string.IsNullOrEmpty(nation)) return new Color(0.2f, 0.5f, 1f);
-            if (nation.Contains("동")) return new Color(0.85f, 0.2f, 0.15f);
-            if (nation.Contains("서")) return new Color(0.25f, 0.5f, 0.95f);
-            if (nation.Contains("남")) return new Color(0.2f, 0.7f, 0.35f);
-            if (nation.Contains("북")) return new Color(0.6f, 0.35f, 0.9f);
-            return new Color(0.2f, 0.5f, 1f);
+            return new Color(0.345f, 0.651f, 1f, 1f); // #58A6FF
         }
 
         private void OnDestroy()
         {
+            PublishSelectionBox(false);
             foreach (var kv in _selectionAuras)
                 if (kv.Value != null) Destroy(kv.Value);
             _selectionAuras.Clear();
@@ -224,7 +230,20 @@ namespace ProjectName.Systems
             if (!Mouse.current.leftButton.isPressed)
                 _leftDownWithoutCtrl = false;
 
-            if (!_isDragging && !dragAllowed) return;   // 드래그 중이 아니면 (Ctrl 아니면서 부대 모드 아님) 스킵 — 좌클릭=공격 유지
+            // Right-click RTS orders are independent of drag-selection mode. Keep this
+            // separate from ContextCommandRouter's Ctrl+left-click interaction semantics.
+            if (Mouse.current.rightButton.wasPressedThisFrame && !ProjectName.Core.UITransitionState.PointerOverUI)
+            {
+                bool ctrlHeld = Keyboard.current != null &&
+                    (Keyboard.current.ctrlKey.isPressed || Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.rightCtrlKey.isPressed);
+                Vector2 mousePos = Mouse.current.position.ReadValue();
+                var commandSystem = RTSCommandSystem.Instance;
+                if (commandSystem != null)
+                    commandSystem.IssueRightClickCommand(mousePos, ctrlHeld);
+            }
+
+            // Normal left-click stays gated so existing combat behavior remains intact.
+            if (!_isDragging && !dragAllowed) return;
 
             // 좌클릭 드래그 시작 — (a) Ctrl+좌클릭 down (b) 홀드 중 Ctrl 늦게 누름 (c) 부대 모드 좌클릭
             bool startDrag = !_isDragging && dragAllowed && Mouse.current.leftButton.isPressed
@@ -272,18 +291,7 @@ namespace ProjectName.Systems
                     Debug.Log("[RTS] 드래그 미확정(이동량 한계 미달) — 단순 클릭은 공격용");
                 }
                 // 단순 클릭은 무시 (좌클릭은 공격용)
-            }
-
-            // 우클릭 명령 (RTSCommandSystem에 위임) — [P26] 선택 유무와 무관 전달. 미선택 Ctrl+우클릭은
-            // RTSCommandSystem 내부에서 전체 소속 병사로 폴백(일괄 이동). 비Ctrl 미선택은 무시됨.
-            if (Mouse.current.rightButton.wasPressedThisFrame)
-            {
-                bool ctrlHeld = Keyboard.current != null &&
-                    (Keyboard.current.ctrlKey.isPressed || Keyboard.current.leftCtrlKey.isPressed || Keyboard.current.rightCtrlKey.isPressed);
-                Vector2 mousePos = Mouse.current.position.ReadValue();
-
-                if (RTSCommandSystem.Instance != null)
-                    RTSCommandSystem.Instance.IssueRightClickCommand(mousePos, ctrlHeld);
+                PublishSelectionBox(false);
             }
 
             // H키 공격 중단 (RTSCommandSystem에 위임)
@@ -296,7 +304,9 @@ namespace ProjectName.Systems
 
         private void OnGUI()
         {
-            if (_isDragging)
+            // UTK 구독자가 연결된 경우 박스 렌더링은 UTK 오버레이에 위임한다.
+            // 소비자가 아직 없는 씬/부트 순서에서는 기존 IMGUI 표현을 안전망으로 유지.
+            if (_isDragging && SelectionBoxChanged == null)
                 DrawSelectionBoxGUI();
 
             // [P20-3 수리] IMGUI 파란 원은 항상 생략 — SelectionRing(셰이더/절차 폴백)이
@@ -356,7 +366,7 @@ namespace ProjectName.Systems
             }
         }
 
-        // ===== 선택 박스 (IMGUI) =====
+        // ===== 선택 박스 (IMGUI fallback) =====
         private void DrawSelectionBoxGUI()
         {
             // _selectionRect는 InputSystem 마우스 좌표 (원점 좌하단, y-up).
@@ -398,6 +408,26 @@ namespace ProjectName.Systems
             float w = Mathf.Abs(start.x - end.x);
             float h = Mathf.Abs(start.y - end.y);
             _selectionRect = new Rect(x, y, w, h);
+            PublishSelectionBox(true);
+        }
+
+        /// <summary>
+        /// UTK 오버레이 브리지. rect는 화면 좌표의 top-left 원점(y-down) 기준이며,
+        /// Systems 어셈블리에서 UI 어셈블리를 참조하지 않는다.
+        /// </summary>
+        private void PublishSelectionBox(bool visible)
+        {
+            Rect screenRect = new Rect(
+                _selectionRect.x,
+                Screen.height - _selectionRect.yMax,
+                _selectionRect.width,
+                _selectionRect.height);
+            SelectionBoxChanged?.Invoke(screenRect, visible, _selectionBoxColor, _selectionBorderColor);
+        }
+
+        private void NotifySelectionChanged()
+        {
+            SelectionChanged?.Invoke(_selectedGuardsReadOnly, _selectedGuards.Count);
         }
 
         // ===== 화면 좌표의 선택 Rect로 드래그 선택 =====
@@ -443,6 +473,11 @@ namespace ProjectName.Systems
             if (guard == null || _selectedGuards.Contains(guard)) return;
             _selectedGuards.Add(guard);
             guard.SetSelected(true);
+            // SetSelected(true) creates the legacy solid-cylinder outline synchronously.
+            // Remove it immediately rather than waiting until the next LateUpdate sync.
+            if (SpecialEffectsController.Instance != null)
+                SpecialEffectsController.Instance.RemoveSelectionOutline(guard);
+            NotifySelectionChanged();
         }
 
         /// <summary>
@@ -456,6 +491,7 @@ namespace ProjectName.Systems
                     guard.SetSelected(false);
             }
             _selectedGuards.Clear();
+            NotifySelectionChanged();
         }
 
         /// <summary>

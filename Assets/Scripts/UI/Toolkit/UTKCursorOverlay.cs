@@ -26,6 +26,8 @@ namespace ProjectName.UI.Toolkit
         private readonly VisualElement _icon;
         private readonly Texture2D _primary, _mine, _gather, _interact, _shop, _attack, _cook, _monster, _door;
         private HoverTargetClassifier.TargetKind _lastKind = HoverTargetClassifier.TargetKind.None;
+        private int _lastSelectionCount = -1;
+        private bool _lastCtrlHeld;
 
         public static UTKCursorOverlay Ensure()
         {
@@ -136,6 +138,8 @@ namespace ProjectName.UI.Toolkit
                     SetIcon(_primary);
                     _lastKind = HoverTargetClassifier.TargetKind.None;
                 }
+                _lastSelectionCount = -1;
+                _lastCtrlHeld = false;
                 return;
             }
 
@@ -143,16 +147,25 @@ namespace ProjectName.UI.Toolkit
                 UnityEngine.InputSystem.Mouse.current != null
                     ? UnityEngine.InputSystem.Mouse.current.position.ReadValue()
                     : Vector2.zero);
-
-            if (kind == _lastKind) return;
-            _lastKind = kind;
+            int selectionCount = GuardSelectionManager.Instance != null
+                ? GuardSelectionManager.Instance.SelectedCount
+                : 0;
             bool ctrl = IsCtrlHeld();
+
+            // Icon depends on target, guard selection, and Ctrl state. Refresh when any changes,
+            // even if the pointer remains over the same target.
+            if (kind == _lastKind
+                && selectionCount == _lastSelectionCount
+                && ctrl == _lastCtrlHeld) return;
+            _lastKind = kind;
+            _lastSelectionCount = selectionCount;
+            _lastCtrlHeld = ctrl;
             switch (kind)
             {
                 case HoverTargetClassifier.TargetKind.Mine:     SetIcon(_mine); break;
                 case HoverTargetClassifier.TargetKind.Gather:   SetIcon(_gather); break;
-                // 몬스터: 기본 공격(과녁) / Ctrl 홀드 시 정보(돋보기)
-                case HoverTargetClassifier.TargetKind.Monster:  SetIcon(ctrl ? _monster : _attack); break;
+                // 선택 병사가 있으면 몬스터는 강제 공격 아이콘이 Ctrl보다 우선.
+                case HoverTargetClassifier.TargetKind.Monster:  SetIcon(selectionCount > 0 ? _attack : (ctrl ? _monster : _attack)); break;
                 // 적 병사: 기본 공격(과녁) / Ctrl 홀드 시 상호작용(말풍선)
                 case HoverTargetClassifier.TargetKind.EnemyGuard: SetIcon(ctrl ? _interact : _attack); break;
                 case HoverTargetClassifier.TargetKind.Ally:     SetIcon(_interact); break;

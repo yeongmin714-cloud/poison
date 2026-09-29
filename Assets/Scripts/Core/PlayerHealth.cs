@@ -111,6 +111,20 @@ namespace ProjectName.Core
         /// </summary>
         public void TakeDamage(float damage)
         {
+            // AnimalAI/MonsterSkillSystem의 플레이어 대상 공격도 이 untyped 경로를 사용한다.
+            // 환경/시스템 전용 데미지는 typed 경로에서 명시적으로 패링 제외한다.
+            if (TryParryReflection())
+            {
+                Debug.Log($"[PlayerHealth] 🛡️ 패링으로 공격 흡수 ({damage} 데미지 차단)");
+                return;
+            }
+
+            ApplyDamage(damage);
+        }
+
+        /// <summary>공통 피해 처리. 패링 여부는 각 공개 TakeDamage 진입점에서 결정한다.</summary>
+        private void ApplyDamage(float damage)
+        {
             if (_isDead) return;
 
             // C21-02: 구르기 중 무적 (reflection-safe access)
@@ -180,20 +194,16 @@ namespace ProjectName.Core
         /// </summary>
         public void TakeDamage(float amount, Vector3 hitDirection, string weaponType = "melee")
         {
-            // [Phase 1-2] 패링 — 근접 공격에 한해 PlayerCombat.TryParry()로 흡수 시도.
-            // Core→Systems 어셈블리 참조 제약 피하기 위해 리플렉션으로 접근(안전 실패 — null/타입 불일치 시 미흡수).
-            if (weaponType == "melee")
+            // 무기 카테고리와 무관하게 패링하되, Arena 등 전투가 아닌 시스템 조정은 제외한다.
+            // Core→Systems 어셈블리 참조 제약을 피하기 위해 PlayerCombat은 리플렉션 경유.
+            if (IsParryEligibleDamageType(weaponType) && TryParryReflection())
             {
-                bool parried = TryParryReflection();
-                if (parried)
-                {
-                    Debug.Log($"[PlayerHealth] 🛡️ 패링으로 근접 공격 흡수 ({amount} 데미지 차단)");
-                    return;
-                }
+                Debug.Log($"[PlayerHealth] 🛡️ 패링으로 {weaponType ?? "알 수 없는 타입"} 공격 흡수 ({amount} 데미지 차단)");
+                return;
             }
 
-            // 기존 TakeDamage 호출 (방어력/무적 처리 포함)
-            TakeDamage(amount);
+            // 공통 피해 처리 (방어력/무적 처리 포함), 패링은 위에서만 판정한다.
+            ApplyDamage(amount);
 
             // hitDirection 기반 간단한 넉백 효과
             if (_playerTransform != null && hitDirection != Vector3.zero)
@@ -209,15 +219,38 @@ namespace ProjectName.Core
             }
         }
 
+        /// <summary>
+        /// 전투 피해는 무기 이름을 제한하지 않고 패링한다. 시스템/상태 피해로 확인된 타입만
+        /// 제외하며, null/빈 문자열과 새 전투 타입은 기존 무기 중립 동작을 유지한다.
+        /// </summary>
+        private static bool IsParryEligibleDamageType(string weaponType)
+        {
+            if (string.IsNullOrWhiteSpace(weaponType)) return true;
+
+            string tag = weaponType.Trim();
+            return !tag.Equals("arena", System.StringComparison.OrdinalIgnoreCase)
+                && !tag.Equals("poison", System.StringComparison.OrdinalIgnoreCase)
+                && !tag.Equals("overdose", System.StringComparison.OrdinalIgnoreCase)
+                && !tag.Equals("executed", System.StringComparison.OrdinalIgnoreCase)
+                && !tag.Equals("spy caught", System.StringComparison.OrdinalIgnoreCase)
+                && !tag.Equals("poison detected", System.StringComparison.OrdinalIgnoreCase)
+                && !tag.Equals("assassination", System.StringComparison.OrdinalIgnoreCase)
+                && !tag.StartsWith("gas", System.StringComparison.OrdinalIgnoreCase);
+        }
+
         /// <summary>[Phase 1-2] 리플렉션 안전 패링 판정 — Systems.PlayerCombat.TryParry() 호출.</summary>
         private bool TryParryReflection()
         {
             try
             {
-                // 프로젝트 리플렉션 관례(GameManager 선례): System.Type.GetType + GetProperty/GetMethod.
-                var cls = System.Type.GetType("ProjectName.Systems.PlayerCombat");
+                // Core→Systems 순환 참조를 피하면서 어셈블리 내 타입 조회까지 지원한다.
+                var cls = FindSystemType("PlayerCombat");
                 if (cls == null) return false;
-                var inst = cls.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null);
+                // 패링은 해당 플레이어의 컴포넌트에서 판정해야 하며, static Instance는 EditMode나 중복 씬에서
+                // 다른 플레이어를 가리킬 수 있으므로 같은 오브젝트를 우선 사용한다.
+                object inst = GetComponent(cls);
+                if (inst == null)
+                    inst = cls.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null);
                 if (inst == null) return false;
                 var m = cls.GetMethod("TryParry", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
                 if (m == null) return false;

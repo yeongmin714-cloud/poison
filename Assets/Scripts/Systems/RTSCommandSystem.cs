@@ -47,6 +47,14 @@ namespace ProjectName.Systems
                 _mainCamera = Camera.main;
         }
 
+        private Camera ResolveMainCamera()
+        {
+            // 카메라가 이 컴포넌트보다 늦게 활성화되는 경우도 명령 시점에 재탐색
+            if (_mainCamera == null || !_mainCamera.gameObject.activeInHierarchy)
+                _mainCamera = Camera.main;
+            return _mainCamera;
+        }
+
         /// <summary>
         /// 현재 선택된 병사들을 가져옴 (GuardSelectionManager에 위임)
         /// </summary>
@@ -79,7 +87,8 @@ namespace ProjectName.Systems
                 selected = GetFallbackGuards();
             }
             Debug.Log($"[RTSCommandSystem][P26] 우클릭 수신 — selected={selected?.Count ?? 0}(원선택 {originalSel?.Count ?? 0}) ctrl={ctrl} mouse={mousePosition}");
-            if (_mainCamera == null) { Debug.LogWarning("[RTSCommandSystem][P20-7] 카메라 null — 명령 불가"); return; }
+            Camera commandCamera = ResolveMainCamera();
+            if (commandCamera == null) { Debug.LogWarning("[RTSCommandSystem][P20-7] 카메라 null — 명령 불가"); return; }
 
             if (selected == null || selected.Count == 0)
             {
@@ -87,7 +96,7 @@ namespace ProjectName.Systems
                 return;
             }
 
-            Ray ray = _mainCamera.ScreenPointToRay(mousePosition);
+            Ray ray = commandCamera.ScreenPointToRay(mousePosition);
             if (!Physics.Raycast(ray, out RaycastHit hit, _raycastMaxDistance, _commandLayerMask))
             {
                 Debug.Log("[RTSCommandSystem] 레이캐스트 적중 실패");
@@ -95,7 +104,7 @@ namespace ProjectName.Systems
             }
 
             // 적 대상 확인 (IDamageable)
-            IDamageable target = hit.collider.GetComponent<IDamageable>();
+            IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
             if (target != null && target.IsAlive)
             {
                 // 공격 명령 — 페이드 마커(즉시), selected 전달(중복 호출 방지)
@@ -284,9 +293,10 @@ namespace ProjectName.Systems
         public bool TryGetHitPoint(Vector3 mousePosition, out Vector3 hitPoint)
         {
             hitPoint = Vector3.zero;
-            if (_mainCamera == null) return false;
+            Camera commandCamera = ResolveMainCamera();
+            if (commandCamera == null) return false;
 
-            Ray ray = _mainCamera.ScreenPointToRay(mousePosition);
+            Ray ray = commandCamera.ScreenPointToRay(mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit, _raycastMaxDistance, _commandLayerMask))
             {
                 hitPoint = hit.point;

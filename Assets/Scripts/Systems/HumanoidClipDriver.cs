@@ -13,7 +13,7 @@ namespace ProjectName.Systems
     ///   (Player_AC에만 추가) Roll, Jump
     ///
     /// ■ Player 모드 — CharacterController.velocity(수평)를 Speed로, PlayerCombat.LastAttackTime
-    ///   변화(클릭 엣지)를 WeaponCombo 콤보 스테이지 진행으로 변환(단일 테이크 슬라이스 + 플레이헤드 제어 B안),
+    ///   변화(클릭 엣지)를 AttackCombo/2/3 distinct clip stages로 변환하고 strike 타이밍에 히트를 판정하며,
     ///   PlayerMovement.IsRolling/IsJumping 상승엣지를 Roll/Jump 트리거로 변환한다.
     /// ■ Soldier 모드 — transform 위치 델타로 Speed를 계산하고, 공격은 GuardCombatAI가
     ///   TriggerAttack()으로 호출한다.
@@ -25,50 +25,18 @@ namespace ProjectName.Systems
         [Header("드라이브 모드")]
         public DriveMode mode = DriveMode.Player;
 
-        // ── WeaponCombo: 단일 테이크 슬라이스 콤보 (B안) ──
-        // 3연타 전체가 담긴 단일 클립(Weapon_Combo_2, 136f @30fps)을 WeaponCombo 상태 하나로 재생하고,
-        // 정규화 시간(normalizedTime)을 기준으로 스테이지 경계에서 플레이헤드를 홀드해 입력을 기다린다.
-        private const string ComboStateName = "WeaponCombo";
-        private const float ComboClipFrames = 136f;                    // Weapon_Combo_2 총 프레임(30fps)
-        private static readonly float[] ComboEndNormT = { 0.331f, 0.676f }; // 스테이지1/2 종료 경계(45f/92f). 3타는 클립 끝(1.0)
-        private const float ComboHoldGrace = 0.18f;                    // 이전 0.25 → 0.18 (연타 진입 감도 상향) — 경계 홀드 후 입력 대기 시간
-        // #48차 리커버리 감소: 이전 0.15 → 0.10 — 콤보 종료 시 Idle CrossFade 시간 단축(EndCombo 전용, 스테이지 전환 경로엔 미사용)
-        private const float ComboExitBlend = 0.10f;
-        // #48차 콤보 버퍼링: 경계 도달 전 클릭 버퍼 유효 시간(백업) — 이 안에 경계 도달하면 즉시 소비
-        private const float ComboBufferWindow = 0.35f;   // [테스트45] 2연타 판정 창 — 실제 마우스 연타(150~350ms)를 흡수 (0.12→0.35). "1클릭=첫스윙 후 idle, 2클릭=풀 더블콤보" 전환 기준.
-        // ── [2026-09-15 Phase B] 스테이지 클립 콤보: 컨트롤러의 트리거 구동 체인 사용 ──
-        // Player_AC.controller 실측(2026-09-15): AnyState→AttackCombo/AttackCombo2/AttackCombo3 전이가
-        // 트리거(동명) 조건으로 이미 존재. 각 상태 클립 = Double_Combo_Attack / Triple_Combo_Attack / Weapon_Combo_2.
-        // Legacy optional path; the active player melee combo below uses Weapon_Combo_2 directly.
-        private const bool UseStageClips = false;
+        // Distinct controller clips are played directly: each accepted click queues one later stage.
         private static readonly string[] StageStateNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
-        private static readonly string[] StageTriggerNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
-        private const float StageCancelGate = 0f;   // [테스트 42] 미사용(단일 더블콤보 분할 모델로 대체)
-        // [2026-09-15 Phase E] strike 동기 게이트 — 단일 더블콤보의 첫 스윙 타격점(중앙 부근).
-        private const float StageStrikeSyncNormT = 0.30f;
-        // [테스트 42 #2] 단일 더블콤보 분할 — AttackCombo(Double_Combo_Attack) 클립의 '첫 스윙' 끝 정규화 위치.
-        //   playhead를 여기서 잘라 단일 휘두르기(1클릭)로 idle 복귀, 2클릭(시간내) 시 이 경계를 넘겨 끝까지(양 스윙) 재생.
-        //   ⚠ 배치 상수 — Play 시 확인 후 미세조정(더블콤보 2스윙 균등 가정 0.5, 프레임 실측 시 수정).
-        private const float ComboSingleSwingEnd = 0.5f;
-        private int _comboStage;          // 0=비활성, 1..2 = 현재 스테이지(클릭 수) — 단일 더블콤보 분할 모델에선 1~2만
-        private bool _fullCombo;          // [테스트 42 #2] true=2클릭 풀 더블콤보(양 스윙), false=1클릭 단일(첫 스윙 후 idle)
-        private float _lastComboClick;    // [테스트 42 #2] 직전 콤보 클릭 시각(버퍼 판정용)
+        private const float StageStrikeSyncNormT = 0.32f;
+        private const float StageAdvanceNormT = 0.90f;
+        private const float ComboExitBlend = 0.10f;
+        private readonly bool[] _stageHitResolved = new bool[3];
+        private int _comboStage;          // 0=inactive, 1..3=current distinct swing stage
         // [2026-09-25 프리미엄 AttackArcVFX A/B] 인스펙터에서 켜면 실제 무기 궤적 3D 스윕 리본을 켠다(기본 OFF).
         [SerializeField, Header("AttackArcVFX (프리미엄 스윕 리본) A/B")]
         private bool _premiumArcEnabled;
-        // [2026-09-15 Phase E] strike 동기 대기 아크 — 클릭 즉시가 아닌 strike 프레임에서 발화할 아크 스테이지(0=없음).
-        private int _pendingStageArc;
         private float _comboStartTime = -999f;
-        private float _comboPinGraceStart = -999f;
-        // #48차 콤보 버퍼링: 경계 도달 전(스윙 중)에 들어온 연타 입력을 다음 스테이지로 캐리하는 1슬롯 버퍼.
-        // 경계 도달 프레임에 유효 버퍼를 즉시 소비해 홀드 없이 다음 스테이지로 이어붙인다(한 호흡 연속 몸동작).
-        private bool _comboBufferedClick;      // legacy stage-clip buffer (kept for the optional legacy path)
         private int _comboBufferedClicks;      // queued follow-up clicks; capped to three total swings
-        private float _comboBufferEndTime;     // legacy stage-clip buffer expiry timestamp
-        // #13: 타 완료 시점 십자가 VFX(Multiple Slashes) — 스테이지별 1회 발화 플래그 + 경계 통과 엣지 판정용
-        private readonly bool[] _comboCrossFired = new bool[3]; // 인덱스 0..2 = stage1..3 완료 크로스 발화 여부
-        private float _comboCrossPrevNormT;                     // 직전 감시 프레임의 normT
-        private bool _comboCrossPrevValid;                      // 첫 감시 프레임은 prev 없음(엣지 판정 스킵)
         private int _legacyImpactFired;   // 레거시 Attack* 상태 1회 슬래시 플래그
         private int _prevAttackStateHash = -1;
 
@@ -500,21 +468,20 @@ namespace ProjectName.Systems
                 Debug.Log($"[HumanoidClipDriver][Diag] 진단 기간 600초 종료 — 주기/전환 로그 중단 (state={ResolveStateName(_anim.GetCurrentAnimatorStateInfo(0))})");
             }
 
-            // 공격 상태 감시 — Attack*/WeaponCombo 진입 중 Speed 0 고정(Idle/Walk 인터럽트 차단)
+            // 공격 상태 감시 — Attack*/stage clip 진입 중 Speed 0 고정(Idle/Walk 인터럽트 차단)
             if (_anim != null)
             {
                 var stInfo = _anim.GetCurrentAnimatorStateInfo(0);
                 // ResolveStateName 미매핑 상태(AttackBase/AttackThrust/AttackCombo2/3)도 감지 — IsName 직접 비교
                 bool attackStateHold = stInfo.IsName("Attack") || stInfo.IsName("AttackBase") || stInfo.IsName("AttackThrust")
                     || stInfo.IsName("AttackCombo") || stInfo.IsName("AttackCombo2") || stInfo.IsName("AttackCombo3")
-                    || stInfo.IsName(ComboStateName)
                     || stInfo.IsName("ArcheryShot"); // P4: 활 발사 중에도 Speed 0 홀드(콤보 상태와 무관 고정)
                 if (attackStateHold)
                 {
                     // 공격 애니 재생 중: Speed 파라미터를 0으로 고정 — Idle/Walk로 가는 Speed 조건 전이 불발
                     _anim.SetFloat("Speed", 0f);
-                    // WeaponCombo 진행 중엔 상태 유지 시간 연장 — 경계 홀드/입력 대기 중에도 Idle/Walk 인터럽트 방지
-                    if (stInfo.IsName(ComboStateName) && _comboStage > 0)
+                    // Keep distinct melee clips protected from Speed-driven Idle/Walk transitions.
+                    if (_comboStage > 0 && GetCurrentStageClip(stInfo) > 0)
                         _attackHoldUntil = Mathf.Max(_attackHoldUntil, Time.time + 0.35f);
                 }
             }
@@ -552,8 +519,8 @@ namespace ProjectName.Systems
                         }
                         else
                         {
-                            // Fist/Sword: play the existing three-swing Weapon_Combo_2 take.
-                            // Each early click queues one next segment (maximum three total swings).
+                            // Each accepted LastAttackTime edge is one click. Start stage one now;
+                            // subsequent clicks queue distinct states, up to three total swings.
                             if (_comboStage > 0)
                             {
                                 _comboBufferedClicks = Mathf.Min(_comboBufferedClicks + 1, 3 - _comboStage);
@@ -561,16 +528,13 @@ namespace ProjectName.Systems
                             }
                             else
                             {
-                                ResetComboCrossFlags();
+                                for (int i = 0; i < _stageHitResolved.Length; i++) _stageHitResolved[i] = false;
                                 _comboStage = 1;
                                 _comboStartTime = Time.time;
-                                _comboPinGraceStart = -999f;
                                 _comboBufferedClicks = 0;
-                                _anim.Play(ComboStateName, 0, 0f);
+                                _anim.Play(StageStateNames[0], 0, 0f);
                                 FireComboTrail(1);
-                                FireComboSlash(1);
-                                _combat?.ResolveComboSwingHit(1);
-                                Debug.Log("[Combo] Weapon_Combo_2 시작 (stage 1)");
+                                Debug.Log("[Combo] AttackCombo 시작 (stage 1)");
                             }
                             _attackHoldUntil = Time.time + 0.6f;
                         }
@@ -578,83 +542,10 @@ namespace ProjectName.Systems
                 }
             }
 
-            // ── WeaponCombo per-frame 감시: 경계 플레이헤드 홀드 + 종료 + 타 완료 크로스 FX ──
+            // Distinct stage clips: resolve each hit at its strike marker, then either play the
+            // buffered next state near the previous clip's end or return to Idle automatically.
             var st = _anim.GetCurrentAnimatorStateInfo(0);
-            if (UseStageClips)
-            {
-                MonitorStageClip();
-            }
-            else
-            {
-            if (st.IsName(ComboStateName) && _comboStage > 0)
-            {
-                float normT = st.normalizedTime; // 단발 클립: 0→1
-
-                // #13: 타 완료 경계 통과 엣지 → 십자가 VFX(Multiple Slashes) 스테이지별 1회.
-                // 홀드 중 Play 재호출로 normT가 경계에 고정되므로 "직전 프레임 미통과 → 통과" 엣지로
-                // 판정해 정확히 1회만 발화한다. 경계: stage1 완료=0.331, stage2 완료=0.676, stage3 완료=클립 끝(1.0).
-                // 현재 스테이지와 무관하게 3개 경계를 모두 검사 — 클릭으로 스테이지가 같은 프레임에
-                // 건너뛰더라도 직전 스테이지의 완료 크로스를 놓치지 않는다.
-                for (int cIdx = 0; cIdx < _comboCrossFired.Length; cIdx++)
-                {
-                    if (_comboCrossFired[cIdx]) continue;
-                    float crossBoundary = cIdx < ComboEndNormT.Length ? ComboEndNormT[cIdx] : 1f;
-                    if (_comboCrossPrevValid && _comboCrossPrevNormT < crossBoundary && normT >= crossBoundary)
-                    {
-                        _comboCrossFired[cIdx] = true;
-                        FireComboCross(cIdx + 1);
-                    }
-                }
-                _comboCrossPrevNormT = normT;
-                _comboCrossPrevValid = true;
-
-                if (_comboStage < 3)
-                {
-                    float endNorm = ComboEndNormT[_comboStage - 1];
-                    if (normT >= endNorm)
-                    {
-                        if (_comboBufferedClicks > 0)
-                        {
-                            _comboBufferedClicks--;
-                            _comboStage++;
-                            _comboPinGraceStart = -999f;
-                            _anim.Play(ComboStateName, 0, Mathf.Min(endNorm + 0.001f, 0.999f));
-                            FireComboTrail(_comboStage);
-                            FireComboSlash(_comboStage);
-                            _combat?.ResolveComboSwingHit(_comboStage);
-                            Debug.Log($"[Combo] 버퍼 소비 → 스테이지 {_comboStage}");
-                        }
-                        else if (_comboPinGraceStart < 0f)
-                        {
-                            _anim.Play(ComboStateName, 0, endNorm);
-                            _comboPinGraceStart = Time.time;
-                        }
-                        else if (Time.time - _comboPinGraceStart > ComboHoldGrace)
-                        {
-                            EndCombo("무입력");
-                        }
-                    }
-                }
-                else if (normT >= 1f)
-                {
-                    EndCombo("3타 완료");
-                }
-            }
-            else if (_comboStage > 0 && Time.time - _comboStartTime > 0.5f)
-            {
-                // WeaponCombo 상태가 아닌데 콤보 플래그만 남은 경우(Roll/Jump/Hit 등 인터럽트) — 유예 후 리셋
-                _comboStage = 0;
-                _comboPinGraceStart = -999f;
-                _comboBufferedClick = false;   // legacy stage-clip buffer
-                _comboBufferedClicks = 0;
-                ResetComboCrossFlags();
-                WeaponSwingTrail.SetEmitting(false);   // [2026-09-12 P2] 인터럽트 리셋 — 스윙 트레일 방출 OFF
-                AttackArcVFX.Settle();   // [2026-09-25 프리미엄] 스윕 리본도 페이드아웃
-                // [Phase B] 콤보 스테이지 리셋 — 트레일 색상 오버라이드 해제
-                WeaponSwingTrail.SetComboStage(0);
-                Debug.Log("[Combo] 인터럽트 리셋");
-            }
-            } // [2026-09-15 Phase B] UseStageClips else 종료
+            MonitorStageClip();
 
             // ── 레거시 Attack* 상태 보존(기존 경로: TriggerAttack/창 등) — 상태 진입 1회 전방 슬래시 ──
             bool legacyAttack = st.IsName("Attack") || st.IsName("AttackBase") || st.IsName("AttackThrust")
@@ -732,126 +623,74 @@ namespace ProjectName.Systems
             _prevSpeedForTransition = _smoothedSpeed;
         }
 
-        // ── [2026-09-15 Phase B] 스테이지 클립 콤보 헬퍼 (트리거 구동) ──
-        /// <summary>현재 Animator 상태가 스테이지 클립(AttackCombo/2/3) 중 하나인지.</summary>
-        private bool IsInStageClip()
+        // ── Distinct stage clip combo helpers (direct state playback) ──
+        /// <summary>현재 Animator 상태의 스테이지 번호(0이면 stage clip 밖).</summary>
+        private int GetCurrentStageClip(AnimatorStateInfo state)
         {
-            if (_anim == null) return false;
-            var si = _anim.GetCurrentAnimatorStateInfo(0);
-            for (int i = 0; i < StageStateNames.Length; i++) if (si.IsName(StageStateNames[i])) return true;
-            return false;
+            for (int i = 0; i < StageStateNames.Length; i++)
+                if (state.IsName(StageStateNames[i])) return i + 1;
+            return 0;
         }
 
-        /// <summary>스테이지 클립 시작/재시작 — 트리거 발화 + 스테이지별 스윙 FX.</summary>
-        private void StartStageClip(int stage)
-        {
-            if (_anim == null) return;
-            ResetComboCrossFlags();
-            _comboStage = Mathf.Clamp(stage, 1, 3);
-            _comboPinGraceStart = -999f;
-            _comboBufferedClick = false;
-            _comboBufferedClicks = 0;
-            _comboStartTime = Time.time;
-            _anim.SetTrigger(StageTriggerNames[_comboStage - 1]);
-            FireComboTrail(_comboStage);                 // 트레일은 스윙 즉시 방출
-            FireComboSlash(_comboStage);                 // [60차: strike 동기 제거] 아크도 클릭 즉시 발화 — 사용자 요구(좌클릭 시 공격+이펙트 동시)
-            Debug.Log($"[Combo] stage={_comboStage} path=stageClip trigger={StageTriggerNames[_comboStage - 1]} (아크 즉시)");
-        }
-
-        /// <summary>다음 스테이지로 진행 — 트리거 발화 + 스테이지별 스윙 FX.</summary>
-        private void AdvanceStageClip(int stage)
-        {
-            if (_anim == null) return;
-            _comboStage = Mathf.Clamp(stage, 1, 3);
-            _comboPinGraceStart = -999f;
-            _comboBufferedClick = false;
-            _comboBufferedClicks = 0;
-            _comboStartTime = Time.time;
-            _anim.SetTrigger(StageTriggerNames[_comboStage - 1]);
-            FireComboTrail(_comboStage);                 // 트레일은 스윙 즉시 방출
-            FireComboSlash(_comboStage);                 // [60차: strike 동기 제거] 아크도 즉시 발화
-            Debug.Log($"[Combo] stage={_comboStage} path=stageClip 트리거 진행 (아크 즉시)");
-        }
-
-        /// <summary>
-        /// 스테이지 클립 per-frame 감시 — 진행률 게이트 통과 시 버퍼 클릭 소비, 상태 이탈 시 리셋.
-        /// 스테이지 클립은 컨트롤러 exit(≈0.92)로 자동 복귀하므로 별도 홀드/만료 처리가 필요 없다.
-        /// </summary>
+        /// <summary>스테이지 클립 per-frame 감시: strike당 1회 히트, 늦은 종료점에서 큐 소비/Idle 종료.</summary>
         private void MonitorStageClip()
         {
-            if (_anim == null) return;
-            if (IsInStageClip() && _comboStage > 0)
+            if (_anim == null || _comboStage <= 0) return;
+
+            AnimatorStateInfo state = _anim.GetCurrentAnimatorStateInfo(0);
+            int activeStage = GetCurrentStageClip(state);
+            if (activeStage == _comboStage)
             {
-                float normT = _anim.GetCurrentAnimatorStateInfo(0).normalizedTime;
-                // [Phase E] strike 동기 — 대기 아크를 strike 프레임(StageStrikeSyncNormT) 통과 순간 발화.
-                if (_pendingStageArc > 0 && normT >= StageStrikeSyncNormT)
+                float normT = state.normalizedTime;
+                int stageIndex = _comboStage - 1;
+
+                if (!_stageHitResolved[stageIndex] && normT >= StageStrikeSyncNormT)
                 {
-                    int arcStage = _pendingStageArc;
-                    _pendingStageArc = 0;   // 1회만 발화 (재대기 방지)
-                    FireComboSlash(arcStage);   // 아크 + 크로스 발화 (트레일은 이미 즉시 방출됨 — 중복 무해)
-                    Debug.Log($"[Combo] strike 동기 아크 발화 (stage={arcStage}, normT={normT:F2})");
+                    _stageHitResolved[stageIndex] = true;
+                    _combat?.ResolveComboSwingHit(_comboStage);
+                    FireComboSlash(_comboStage);
+                    Debug.Log($"[Combo] strike resolved stage={_comboStage} normT={normT:F2}");
                 }
-                // [테스트 42 #2] 단일 더블콤보 분할 — 2클릭 버퍼 소비 → 풀 더블콤보(양 스윙)로 전환(별도 클립 트리거 아님).
-                if (_comboBufferedClick && Time.time <= _comboBufferEndTime)
+
+                if (normT >= StageAdvanceNormT)
                 {
-                    _comboBufferedClick = false;
-                    _fullCombo = true;
-                    // _fullCombo 승격 — playhead를 해제해 AttackCombo(더블콤보) 클립이 끝까지(양 스윙) 재생되게 한다.
-                    Debug.Log("[Combo] 2클릭 확정 — 양 스윙 풀 재생");
+                    if (_comboStage < 3 && _comboBufferedClicks > 0)
+                    {
+                        _comboBufferedClicks--;
+                        _comboStage++;
+                        _comboStartTime = Time.time;
+                        _anim.Play(StageStateNames[_comboStage - 1], 0, 0f);
+                        FireComboTrail(_comboStage);
+                        Debug.Log($"[Combo] buffered click consumed → distinct stage {_comboStage}");
+                    }
+                    // With no queued click, leave the state alone so its controller exit-time
+                    // transition completes the clip and returns naturally to Idle.
                 }
-                // [테스트 42 #2] 단일 휘두르기 절사 — 1클릭(풀아님)이 첫 스윙 끝(ComboSingleSwingEnd)에 도달하면 idle 복귀.
-                else if (!_fullCombo && normT >= ComboSingleSwingEnd)
-                {
-                    // 플레이헤드를 첫 스윙 끝에 고정(2스윙이 안 보이게)한 뒤 Idle로 블렌드 아웃 — 단일 휘두르기 완료.
-                    _anim.Play("AttackCombo", 0, ComboSingleSwingEnd);
-                    EndCombo("단일 1휘두르기 완료(idle 복귀)");
-                }
+                return;
             }
-            else if (_comboStage > 0 && Time.time - _comboStartTime > 0.5f)
-            {
-                _comboStage = 0;
-                _pendingStageArc = 0;   // [Phase E] 대기 아크도 함께 리셋 (인터럽트 시 미발화 소멸)
-                _comboPinGraceStart = -999f;
-                _comboBufferedClick = false;
-                ResetComboCrossFlags();
-                WeaponSwingTrail.SetEmitting(false);
-                AttackArcVFX.Settle();   // [2026-09-25 프리미엄] 스윕 리본도 페이드아웃
-                WeaponSwingTrail.SetComboStage(0);
-                Debug.Log("[Combo] 인터럽트 리셋(stageClip)");
-            }
+
+            // State changed before the expected clip exit: treat it as an interrupt and clean FX/queue.
+            // A controller exit can also move to Idle; that is a normal end, but EndCombo cleanup is idempotent.
+            // Animator.Play/state evaluation can expose the previous state briefly; tolerate that
+            // handoff (also when chaining) but clear promptly if an unrelated state persists.
+            if (Time.time - _comboStartTime > 0.15f)
+                ResetInterruptedCombo("stage clip interrupted");
         }
 
-        /// <summary>WeaponCombo 종료 — Idle로 블렌드 아웃하고 콤보 상태 변수를 리셋.</summary>
-        private void EndCombo(string reason)
+        private void ResetInterruptedCombo(string reason)
         {
-            _anim.CrossFade("Idle", ComboExitBlend, 0);
-            // [2026-09-12 P2] 콤보 종료(무입력 홀드 만료/만료 Idle 크로스) — 스윙 트레일 방출 OFF
-            WeaponSwingTrail.SetEmitting(false);
-            AttackArcVFX.Settle();   // [2026-09-25 프리미엄] 스윕 리본도 페이드아웃
-            // [Phase B] 콤보 스테이지 리셋 — 트레일 색상 오버라이드 해제
-            WeaponSwingTrail.SetComboStage(0);
             _comboStage = 0;
-            _comboPinGraceStart = -999f;
-            _comboBufferedClick = false;   // legacy stage-clip buffer
             _comboBufferedClicks = 0;
-            ResetComboCrossFlags();   // #13: 종료 시 완료 크로스 플래그 리셋 — 다음 콤보에서 재발화 가능
-            Debug.Log($"[Combo] 종료({reason})");
+            for (int i = 0; i < _stageHitResolved.Length; i++) _stageHitResolved[i] = false;
+            WeaponSwingTrail.SetEmitting(false);
+            AttackArcVFX.Settle();
+            WeaponSwingTrail.SetComboStage(0);
+            Debug.Log($"[Combo] {reason}");
         }
 
-        /// <summary>
-        /// #13: 타 완료 크로스 플래그 리셋 — 콤보 시작/재시작/종료/인터럽트 리셋 시 호출.
-        /// prev normT도 무효화해 직전 콤보의 잔여 normT로 인한 가짜 엣지를 방지한다.
-        /// </summary>
-        private void ResetComboCrossFlags()
-        {
-            for (int i = 0; i < _comboCrossFired.Length; i++) _comboCrossFired[i] = false;
-            _comboCrossPrevNormT = 0f;
-            _comboCrossPrevValid = false;
-        }
 
         /// <summary>
-        /// [Phase E] 스테이지 클립 경로용 스윙 트레일 즉시 방출 — 아크(strike 동기)와 분리.
-        /// 트레일은 스윙 시작 즉시(정확한 손/무기 잔상), 아크는 MonitorStageClip이 StageStrikeSyncNormT에서 발화.
+        /// Stage clip path swing trail emitted at each stage start.
         /// </summary>
         private void FireComboTrail(int stage)
         {
@@ -878,17 +717,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// [2026-09-12 P2 스윙 트레일 전환] 콤보 스윙 FX — 무기 트레일 <see cref="WeaponSwingTrail"/>(무기 팁
-        /// TrailRenderer 흰 잔상) 방출 토글로 대체. 콤보 진입(1타)/스테이지 진행(2·3타)/4번째 클릭 재시작 —
-        /// 모든 발화 경로가 이 함수를 거치므로 여기서 SetEmitting(true) 1회면 충분(동일 값 재호출은 러너 내부에서
-        /// 무시 — 스팸 방지). 방출 OFF는 EndCombo(무입력 홀드 만료/만료 Idle 크로스)/인터럽트 리셋/레거시 Attack*
-        /// 탈출에서 수행.
-        /// [2026-09-13 스타일라이즈드 슬래시] Player 모드에 한정해 SlashVFXRunner.PlaySlashStage(스윙 아크 VFX,
-        /// slash5 골드 계열)를 병행 발화 — 트레일(잔상) + 아크(타격 임프레션) 이중 연출. Player 전용 근거:
-        /// FireComboSlash 호출부 3곳이 모두 UpdatePlayer 내부라 Soldier(UpdateSoldier)에선 도달하지 않으며
-        ///(grep 검증), mode==DriveMode.Player 게이트(EnsureBareFist 게이트 옆)로 이중 차단한다.
-        /// (기존 스윙 쿼드 규격 — pos/dir/roll — 는 42차 쿼드 폐기 때 제거되었다가 본 차 스타일라이즈드 슬래시
-        ///  발화로 부분 복원. 크로스는 45차부터 BasicHit 단일 경로(FireComboCross) — 구 TravisHit 참조 소멸.)
+        /// Combo FX path, with swing trails retained and optional premium arc support.
         /// </summary>
         private void FireComboSlash(int stage)
         {

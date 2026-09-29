@@ -1,21 +1,21 @@
-// SelectionRing.shader — SC2/RTS식 부대 선택 하이라이트 링 (URP, Additive)
-// 평면 Quad 위 링 UV 마스크: 두께 밴드 + 내/외측 글로우 + Time 펄스 + 회전 호 하이라이트 + 팀 컬러.
+// SelectionRing.shader — clean Fluent-style selection ring (URP, alpha blended)
+// Annular UV mask with a soft edge glow, gentle pulse, and team color.
 Shader "Custom/SelectionRing"
 {
     Properties
     {
         _TeamColor   ("Team Color", Color) = (0.2, 0.5, 1, 1)
-        _Intensity   ("Intensity", Range(0.5, 5)) = 1.6
+        _Intensity   ("Intensity", Range(0.5, 5)) = 1.0
         _RingRadius  ("Ring Radius", Range(0.4, 3)) = 1.0
-        _RingThickness ("Ring Thickness", Range(0.02, 0.4)) = 0.09
-        _GlowWidth   ("Glow Width", Range(0, 0.35)) = 0.12
-        _PulseSpeed  ("Pulse Speed", Range(0, 8)) = 1.4
-        _ArcSpeed    ("Arc Speed", Range(0, 3)) = 0.25
+        _RingThickness ("Ring Thickness", Range(0.02, 0.4)) = 0.035
+        _GlowWidth   ("Glow Width", Range(0, 0.35)) = 0.06
+        _PulseSpeed  ("Pulse Speed", Range(0, 8)) = 0.9
+        _ArcSpeed    ("Arc Speed", Range(0, 3)) = 0.0
     }
     SubShader
     {
         Tags { "RenderPipeline"="UniversalPipeline" "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" }
-        Blend One One
+        Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
         Cull Off
 
@@ -60,16 +60,16 @@ Shader "Custom/SelectionRing"
                                                _RingRadius + _RingThickness + _GlowWidth, d);
                 float ring = inner * outer;
 
-                // 펄스 (은은한 밝기 리플)
-                float pulse = 0.72 + 0.28 * sin(_Time.y * _PulseSpeed);
-
-                // 회전 호 하이라이트 (SC2 감성 — 뒤 28% 구간 밝게)
+                // Gentle, low-amplitude breathing; alpha stays zero outside the annulus.
+                float pulse = 0.94 + 0.06 * sin(_Time.y * _PulseSpeed);
+                // Keep optional arc animation for existing command-marker consumers;
+                // selection rings set _ArcSpeed to zero for an even Fluent appearance.
                 float ang = atan2(c.y, c.x);
-                float arc = frac(ang * 0.15915494309 + _Time.y * _ArcSpeed); // *1/(2pi)
-                float highlight = 0.55 + 0.45 * step(0.72, arc);
-
-                half3 col = _TeamColor.rgb * ring * highlight * pulse * _Intensity;
-                return half4(col, 1.0);
+                float arc = frac(ang * 0.15915494309 + _Time.y * _ArcSpeed);
+                float highlight = _ArcSpeed > 0.001 ? (0.55 + 0.45 * step(0.72, arc)) : 1.0;
+                half3 col = _TeamColor.rgb * _Intensity * highlight;
+                half alpha = saturate(ring * pulse * _TeamColor.a);
+                return half4(col, alpha);
             }
             ENDHLSL
         }

@@ -10,7 +10,8 @@
       "Unity.RenderPipelines.Core.Runtime",
       "Unity.Mathematics",
       "Unity.Burst",
-      "Unity.InferenceEngine"
+      "Unity.InferenceEngine",
+      "MagicPigGames.MagicTime"
     ],
   "autoReferenced": true,
   "overrideReferences": false,

@@ -67,6 +67,16 @@ namespace ProjectName.Systems
 
             _rend = quad.GetComponent<Renderer>();
             _mat = CreateRingMaterial(color);   // [P22-4] 공용 팩토리(셰이더/절차 폴백 통일)
+            // Keep the shared factory for range indicators, but tune this per-instance
+            // material as a restrained Fluent selection ring.
+            if (_mat != null && _mat.HasProperty("_RingThickness"))
+            {
+                _mat.SetFloat("_RingThickness", 0.035f);
+                _mat.SetFloat("_GlowWidth", 0.06f);
+                _mat.SetFloat("_Intensity", 1.0f);
+                _mat.SetFloat("_PulseSpeed", 0.9f);
+                _mat.SetFloat("_ArcSpeed", 0f);
+            }
             if (_rend != null && _mat != null) _rend.sharedMaterial = _mat;
         }
 

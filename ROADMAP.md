@@ -1,5 +1,7 @@
 # 🗺️ 포이즌 (Poison) — ROADMAP
 
+> **2026-09-30 진행 기록 (전투·궁술·RTS·선택 UI)**: 근접/패링, 화살 조준·궤적, RTS 우클릭/타겟팅 및 선택 오버레이 변경을 반영. Compile 성공, EditMode 306/310 부분 통과(아래 4개 실패 명시), Play 미실시. 관련 항목은 EditMode/Play QA 대기이며 어떤 Phase도 완료 처리하지 않는다.
+
 > **게임 개요:** 왕자가 독살당한 아버지(왕)의 복수를 위해, 독약/음식 크래프트, 암살, 영지 점령을 통해 왕위를 되찾는 3D 오픈월드 전략 RPG
 >
 > **Unity 6000.4.10f1**, URP 17.4.0, C# (.NET 8.0)
@@ -3636,6 +3638,7 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 > **요구(테스트 42 영상):** ①화살 조준 방향 ②화살 시각(GLB 제거→짧은 흰 네온 트레일) ③Test_10 가스 통·물약 ④공격 애니(콤보/속도/칼끝 스윙/무기별) ⑤화살 소리 제거 ⑥매직타임 활용.
 
+
 | 항목 | 상태 |
 |:--|:--:|
 | 화살 개편(A1 GLB→네온 트레일 / A2 조준 레이 정렬 / A3 소리 제거) | ✅ `25bb6f68` CS=0 |
@@ -3644,3 +3647,23 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | 공격 애니 코드 가처리(콤보 1~3타·버퍼링·무기별 분기·칼끝 스윙트레일) | ✅ 기존 구현 확인 |
 | 공격 애니 속도/그립/더블콤보 클립 선호 | ⏳ 애니메이션 에셋·리그 레벨 — Play 튜닝 대기(코드 성급 patch 금지) |
 | Play 판정 | ⏳ 화살 트레일·조준 / Test_10 가스 G키·방독면 / 크리슬로모 / 공격애니 품질 |
+
+---
+
+## ⚔️ 2026-09-30: 전투·궁술·RTS·선택 UI 후속 구현 진행 (QA 미완료)
+
+> **진행 기록:** 무기별 근접 클립/타격 단계 감지, 무기 문자열에 독립적인 패링 피해 흡수와 상태 피해 제외, 패링 중 후속 근접·활 입력 큐잉, 플레이어 Animator 로컬 슬로우/복원 변경을 반영. 화살은 공유 사거리 모델, 궤적 host 수명·정리, 발사 방향/조준 정렬 경로를 반영. RTS는 명령 시점 카메라 재획득, 자식 콜라이더의 부모 `IDamageable` 탐색, 우클릭 명령 및 UI 포인터 게이트를 반영. 선택 목록/인원/박스 Rect 이벤트와 `RTSSelectionOverlayUTK`(UTK 미구독 시 IMGUI fallback)도 추가. 구현 및 컴파일 결과가 있어도 EditMode 전체 통과나 런타임 완료를 의미하지 않는다.
+
+| 항목 | 구현 진행 | 상태 |
+|:--|:--|:--:|
+| 근접 콤보·패링·피해 판정 | 무기별 Controller 클립/타격별 감지; typed 및 기본 전투 피해의 패링 흡수; 시스템/상태 피해 제외; 패링 중 후속 공격·활 드로 큐잉; Animator 로컬 슬로우 | 코드 반영 · EditMode/Play QA 대기 |
+| 궁술 조준·화살 궤적 | 공통 속도 `84` / 수명 `0.15s` / 탐지거리 `10m`; 잔류 궤적 host 정리 및 발사 방향·조준 정렬 | 코드 반영 · EditMode/Play QA 대기 |
+| RTS 가드 명령·타겟팅 | 우클릭 명령/UI 포인터 게이트; 명령 시점 카메라 재획득; 자식 콜라이더에서 부모 `IDamageable` 탐색 | 코드 반영 · EditMode/Play QA 대기 |
+| 선택 시각화 | 선택 목록/인원/박스 Rect 이벤트 → `RTSSelectionOverlayUTK`; 선택 링 국가색 유지, 미구독 시 IMGUI 박스 fallback | 코드 반영 · EditMode/Play QA 대기 |
+| 공격 중 선택 입력 | 공격 중 선택 입력 동작은 아직 미구현 | ⬜ 미구현 |
+| 선택 링 Fluent 스타일 | 선택 링 Fluent 스타일 업데이트는 아직 미구현 | ⬜ 미구현 |
+| Compile | 2026-09-30 최신 작업 트리 Unity 컴파일 성공 | ✅ 통과 |
+| EditMode | 306/310 통과, 4건 실패: `CookingDatabase_AllRecipes_Loaded` (기대 760, 실제 2024); `WeaponCraft_CraftSuccess_ConsumesMaterials_GivesResult` (90% 성공 기대 `True`, 실제 `False`, 확률성); `ExplicitTypedHit_IsInterceptedByActiveParry("melee")` (EditMode에서 `Destroy may not be called from edit mode` 로그 — `ShockwaveRingFX.EnsureAssets`); `FindRecipe_UnknownCombo_ReturnsNull` (null 기대, `RecipeCatalog+RecipeDef` 반환) | ⚠ 부분 통과 · 실패 조사/QA 대기 |
+| Play | Play 실행 안 함 — Test_10/MainScene에서 전투·궁술·RTS 선택 및 UI 동작 미검증 | ⬜ 대기 |
+
+- **완료 처리 금지:** Compile 통과와 EditMode 306/310은 부분 검증일 뿐이다. 실패 4건 후속 확인 및 Test_10/MainScene Play QA가 남아 있으므로 이 진행 기록이나 관련 Phase를 완료로 표시하지 않는다.

@@ -14,7 +14,6 @@ namespace ProjectName.Systems
         public static ArrowManager Instance { get; private set; }
 
         [Header("화살 발사 설정")]
-        [SerializeField] private float _arrowSpeed = 84f;   // [테스트47] 70→84 — 화살 사거리 상향(축소중력과 결합, 실사거리 ~110m)
         [SerializeField] private Transform _arrowSpawnPoint; // 플레이어 손/활 위치
 
         private PlayerInventory _inventory;
@@ -32,6 +31,7 @@ namespace ProjectName.Systems
                 return;
             }
             Instance = this;
+            BowTrajectoryPreview.Kill();
             _inventory = PlayerInventory.Instance;
         }
 
@@ -83,8 +83,8 @@ namespace ProjectName.Systems
             // 발사체 생성 — origin 우선(호출부 지정 활 위치), 미지정 시 스폰 포인트/기본 위치
             Vector3 spawnPos = origin;
 
-            // 파워 반영 — 발사 속도(0~1 파워: 70%~120%)와 데미지(+power*8) 보정
-            float speed = _arrowSpeed * (0.7f + 0.5f * power);
+            // 파워 반영 — 기존 최소/최대 배율(70%~120%) 유지. 비행 튜닝은 Projectile이 단일 제공.
+            float speed = ArrowProjectile.GetSpeedForPower(power);
             int totalDamage = Mathf.RoundToInt(baseDamage + arrowData.damageBonus + power * 8f);
 
             // [70차 후속19/A3] 발사 직후 플레이어 콜라이더 충돌 무시 — 스폰 겹침으로 화살이 튕기는 것 방지

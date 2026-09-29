@@ -1,5 +1,46 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
+> **2026-09-30 검증 갱신 — 컴파일/EditMode 확인, Play 미실행**
+>
+> - **구현 반영**: 패링의 무기중립 피해 흡수 및 시스템 피해 제외, 패링 중 후속 근접/활 입력 대기, 플레이어 로컬 슬로우를 반영. RTS 우클릭 명령의 카메라 재획득·자식 콜라이더 대상 판정과 선택 UI(Toolkit 오버레이/IMGUI fallback)를 반영. 화살 사거리 공유 모델·수명 정리·발사/조준 정렬 변경도 반영.
+> - **Compile**: 2026-09-30 최신 작업 트리의 Unity 컴파일 성공을 확인.
+> - **EditMode**: 2026-09-30 결과 **306/310 통과, 4건 실패**. 전체 통과로 판정하지 않음.
+> - **Play**: 실행하지 않음. 런타임 동작은 미검증.
+> - 아래의 기존 “검증 대기/최신 라운드 진행 중/새 XML 없음” 표기는 이 갱신 이전의 기록이며, 위 날짜의 Compile/EditMode 결과로 대체한다. 구현/검증 상태만 기록하며 Phase 완료를 선언하지 않는다.
+
+> **2026-09-30 진행 메모 — 근접/패링 입력·화살 조준·RTS 입력 (검증 대기)**
+>
+> - **근접/패링 코드 변경**: 근접 공격을 무기별로 분리된 컨트롤러 클립 재생 경로로 구성. 패링 모션 중 들어온 공격 입력은 지연 큐잉하며, 큐 용량을 제한해 초과 입력은 받지 않도록 변경.
+> - **화살 코드 변경**: 사거리 튜닝을 공유 모델 기준으로 정리하고, 궤적 호스트 수명/정리 경로를 정돈. 발사 방향과 조준 표시의 정렬 경로도 반영.
+> - **RTS 코드 변경**: 드래그 선택 부대에 대한 우클릭 명령 입력과 UI 포인터 게이트를 반영. 선택된 몬스터에 커서를 강제 공격형으로 표시하는 변경은 확인되지 않아 완료로 기록하지 않음.
+> - **Fluent 링**: 링 관련 변경은 아직 수행하지 않음.
+> - **검증 상태(당시 기록)**: 작성 시점에는 Unity 컴파일, EditMode, Play 검증이 미실시였음. 2026-09-30 검증 갱신에서 컴파일 성공 및 EditMode 306/310(4건 실패)을 확인했으며, Play는 미실행.
+
+> **2026-09-30 후속 진행 — 패링 무기중립·RTS 우클릭·선택 UTK 작업 중 (Play 판정 대기)**
+>
+> - **패링**: `PlayerHealth`의 typed 전투 피해를 무기 문자열과 독립적으로 흡수하도록 수정하고, `TakeDamage(float)` 경로(AnimalAI/MonsterSkillSystem 기본 공격)도 패링 대상으로 연결. `arena`, `poison`, `overdose`, `executed`, `spy caught`, `poison detected`, `assassination`, `gas*` 상태/시스템 피해는 typed 경로에서 패링 제외. `PlayerCombat.TryParry()` 성공 시 1회 흡수, 기존 BulletTime과 MagicTimeUser 기반 플레이어 Animator 로컬 슬로우, 패링 모션 중 후속 공격/활 드로 입력 대기·재생을 구현. 연속 패링 baseline 유지 및 비활성화 시 회복·대기 입력 취소 보강.
+> - **RTS**: `RTSCommandSystem` 명령 시점 카메라 재획득, 적 타겟의 자식 콜라이더 적중 시 `GetComponentInParent<IDamageable>()`로 대상 판정. 지형 우클릭 이동·적 우클릭 공격의 command 분기 유지. Test_10은 전용 셋업에서 GuardSelectionManager/RTSCommandSystem을 보장.
+> - **선택 UI**: `GuardSelectionManager`가 선택 목록/인원 및 박스 Rect를 이벤트로 내보냄. 신규 `RTSSelectionOverlayUTK`가 Fluent 다크 선택 박스와 선택 인원 칩을 표시하며 포인터 픽킹을 무시. UTK 구독자가 없을 때 IMGUI 박스는 fallback.
+> - **컴파일(당시 기록)**: 앞선 수정본에서 `./compile_test.sh` 1회 성공(당시 CS 오류 0, batchmode exit 0). 당시에는 이후 변경의 최신 트리 검증을 대기했으나, 2026-09-30 갱신에서 최신 컴파일 성공을 확인.
+> - **EditMode(당시 기록)**: 기존 `run_editmode_check.sh` 출력은 XML 파싱 키가 잘못되어 `tests=None`을 내놓았음. 읽을 수 있었던 이전 결과 XML은 310개 중 307 통과, 3 실패(요리 카탈로그 기대값 760≠2024, 신규 패링 케이스의 EditMode 로그 기대치, 기존 RecipeCatalog unknown-combo). 패링 테스트는 로그 expectation을 보강했으나 당시에는 그 변경을 포함한 새 신뢰 가능한 결과 XML이 미확인이었음. 최신 확인 결과는 306/310 통과, 4건 실패. Play 테스트는 미실시.
+> - **주의**: `git status`에는 이 작업과 무관한 사용자 미추적 자료(스크린샷/영상, Magic Pig/AERO 에셋 및 임시 산출물)가 다수 존재. 이들은 보존하고 이번 작업에 스테이징하지 않음. 커밋/푸시는 아직 하지 않음.
+
+## 📌 스냅샷 (2026-09-30 — 패링·RTS·선택 UTK 후속 진행) — Play 검증 대기
+
+| 구역 | 반영 내용 | 판정 |
+|:--|:--|:--|
+| 패링 | 좌클릭 창+Parry 애니, 성공 1회 방어, MagicTimeUser/Animator 국소 슬로우, queued melee/Bow 동작 | 코드 반영·미검증 |
+| 피해 경로 | untyped 몬스터 피해도 패링 대상; 확인된 시스템 상태 타입 제외 | 코드 반영·정적 검토 |
+| RTS | 카메라 late-binding + 부모 체인 IDamageable 탐색 | 코드 반영·미검증 |
+| 선택 시각 | 박스/선택 수 이벤트 → `RTSSelectionOverlayUTK`, 월드 국가색 SelectionRing 유지 | 코드 반영·미검증 |
+| Compile | 2026-09-30 최신 작업 트리 컴파일 성공 확인 | 성공 |
+| EditMode | 2026-09-30 결과 306/310 — 4건 실패 | 전체 통과 아님 |
+| Play | Test_10 / MainScene 이동·공격·애니·UI 실측 미수행 | 대기 |
+
+---
+
+# ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검) [ARCHIVE MARKER]
+
 > **최종 갱신:** 2026-09-29 (Weapon_Combo_2 3타 입력 버퍼 + 타격 판정 구현; Play 검증 대기)
 
 ## 📌 세션 스냅샷 (2026-09-29 — Weapon_Combo_2 근접 콤보 재도입)

@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using ProjectName.Core;
 using ProjectName.Systems.Animation.Procedural;
 using Unity.Cinemachine;
+using MagicPigGames.MagicTime;
 
 namespace ProjectName.Systems
 {
@@ -67,11 +68,24 @@ namespace ProjectName.Systems
         private const float ChargeMaxHold = 0.8f;        // 차지 최대 충전 시간(초) — 오버차지 시 자동 강공
         private const float ChargeMinHold = 0.12f;       // 차지 인식 최소 홀드(초) — 그 이하는 일반 좌클릭 공격
         private const float ChargeDamageMultiplier = 1.8f; // 차지 강공 데미지 배율
-        private const float ParryWindow = 0.28f;         // 패링 방어 판정 창(초) — 공격/우클릭 시작 시점으로부터
+        private const float ParryWindow = 0.45f;         // 패링 모션과 공격 입력을 분리하는 단일 방어 창(실시간 초)
+        private const int MaxQueuedWeaponAttacks = 3;    // 패링 방어 창 중 보존할 최대 근접 클릭 수
         private float _chargeHeldTime;                   // 우클릭 홀드 누적 시간
         private bool _charging;                          // 차지 충전 중 여부
         private bool _parryActive;                       // 패링 방어 창 활성 여부
-        private float _parryActiveUntil;                 // 패링 창 만료 시각
+        private float _parryActiveUntil;                 // 패링 창 만료 시각(unscaled time)
+        private int _queuedWeaponAttacks;                // Parry 모션 중 입력된 일반 무기 공격(최대 3회)
+        private bool _queuedBowAction;                   // Parry 모션 중 Bow press pending
+        private bool _queuedBowReleased;                 // pending Bow가 창 만료 전 해제됐는지
+        private float _queuedBowHeldTime;                // queued Bow의 캡처된 홀드 시간
+        private Coroutine _parryImpactRoutine;
+        private bool _parrySlowActive;
+        private float _parrySlowRestoreValue = 1f;
+        private Animator _parryAnimator;
+        private MagicTimeUser _parryTimeUser;
+        private float _animatorSpeedBeforeParry = 1f;
+        private bool _parryAnimatorSpeedCaptured;
+        private const float ParryActionScale = 0.10f;
         public string ChargedClipName = "Charged_Upward_Slash"; // [Phase 1-1] 차지 클립 플러그인 — FBX 확보 시 클립명만 갱신
         public string ParryClipName = "Sword_Parry_Backward_1"; // [Phase 1-2] 패링 클립 플러그인 — FBX 확보 시 클립명만 갱신
 
@@ -133,6 +147,13 @@ namespace ProjectName.Systems
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             _currentWeapon = WeaponData.Fist;
+            _parryAnimator = GetComponentInChildren<Animator>();
+            _parryTimeUser = GetComponent<MagicTimeUser>();
+            if (_parryTimeUser == null) _parryTimeUser = GetComponentInChildren<MagicTimeUser>();
+            if (_parryTimeUser == null) _parryTimeUser = gameObject.AddComponent<MagicTimeUser>();
+            _parryTimeUser.transitionDuration = 0f;
+            _animatorSpeedBeforeParry = _parryAnimator != null ? _parryAnimator.speed : 1f;
+            _parryAnimatorSpeedCaptured = _parryAnimator != null;
 
             // ProceduralAnimationController 획득 (PlayerModel 자식)
             _proceduralAnim = GetComponentInChildren<ProceduralAnimationController>();
@@ -170,24 +191,40 @@ namespace ProjectName.Systems
             // 타겟 상태 업데이트 (사망 또는 범위 이탈 체크)
             UpdateTargetState();
 
-            // [Phase 1-1/1-2] 패링 창 만료 감시
-            if (_parryActive && Time.time >= _parryActiveUntil)
-            {
-                _parryActive = false;
-                _proceduralAnim?.TriggerAction("parry_end");
-            }
+            // 패링은 unscaled-time 윈도우라 로컬/글로벌 슬로우 중에도 정확히 종료한다.
+            bool parryWindowEnded = _parryActive && Time.unscaledTime >= _parryActiveUntil;
+            if (parryWindowEnded)
+                EndParryWindow();
+
+            // Drain at most one accepted melee click per frame, starting after the window/impact frame. TryAttack keeps its own cooldown/combo gates;
+            // retain the pending click when those gates reject it so each accepted click gets a distinct timestamp.
+            if (!parryWindowEnded && !_parryActive && _parryImpactRoutine == null && _queuedWeaponAttacks > 0
+                && TryAttack())
+                _queuedWeaponAttacks--;
 
             // [RTS 연동] 우클릭 차지(강공) 제거 — 부대 우클릭 명령(병사 이동/공격)과 겹침. 우클릭은 RTSCommandSystem 전용으로 해방. 패링은 좌클릭 기반 유지.
             bool isBowEquipped = _currentWeapon != null
                 && _currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow;
             if (Mouse.current != null)
             {
+                // Parry 중에는 Bow press를 아직 드로우로 넘기지 않는다. 홀드/릴리즈를 보존해 창 종료 후 재생한다.
+                if (_queuedBowAction && !_queuedBowReleased)
+                {
+                    if (Mouse.current.leftButton.wasReleasedThisFrame)
+                    {
+                        _queuedBowReleased = true;
+                        _queuedBowHeldTime = Mathf.Min(BowDrawMaxHold, _queuedBowHeldTime + Time.unscaledDeltaTime);
+                    }
+                    else if (Mouse.current.leftButton.isPressed)
+                    {
+                        _queuedBowHeldTime = Mathf.Min(BowDrawMaxHold, _queuedBowHeldTime + Time.unscaledDeltaTime);
+                    }
+                }
                 // [활 드로→릴리즈] 매 프레임 드로 누적 + 좌클릭 해제 = 릴리즈(파워 반영 발사)
-                // 근접 우클릭 차지와 별개 좌클릭 경로 — 검/창/Fist에는 영향 없음(_bowDrawing은 활에서만 true).
                 if (_bowDrawing)
                 {
                     _bowDrawHeldTime += Time.deltaTime;
-                    BowAimState.UpdatePower(Mathf.Clamp01(_bowDrawHeldTime / BowDrawMaxHold)); // [P25-C1] 리티클 파워
+                    BowAimState.UpdatePower(Mathf.Clamp01(_bowDrawHeldTime / BowDrawMaxHold));
                 }
                 if (Mouse.current.leftButton.wasReleasedThisFrame && _bowDrawing)
                 {
@@ -245,26 +282,31 @@ namespace ProjectName.Systems
                     GuardSelectionManager.consumeLeftClickAsDrag = false;   // 드래그로 소비
                     return;
                 }
-                // [활 드로 시작] 좌클릭 press 시 활이면 드로 시작 — 근접 parry/TryAttack 경로는 스킵하고
-                // 해제(wasReleasedThisFrame) 시 ReleaseBow로 파워 반영 발사. 근접 우클릭 차지와 무관.
-                if (isBowEquipped)
+                // Eligible world click: start one parry animation/window before any weapon animation.
+                // Subsequent click(s) inside the window queue the normal action without restarting Parry.
+                if (_parryActive)
                 {
-                    _bowDrawing = true;
-                    _bowDrawHeldTime = 0f;
-                    BowAimState.Begin();   // [P25-C1] 리티클 드로 시작
-                    // [테스트45 P1/테스트47 잔존 수리] 조준 궤적 예측선(BowTrajectoryPreview) 확실히 제거 — 조준 리티클만.
-                    BowTrajectoryPreview.Kill();
-                    _clipDriver?.TriggerBowDraw();   // [A 고품질] 사용자 애니 'Draw_and_Shoot_from_Back_1'(당기고 쏘기) 발화
-                    AttackSoundLayerManager.PlayBowDraw(); // [활 드로] 좌클릭 press — 당김 스트레치 사운드 발화
+                    if (isBowEquipped)
+                    {
+                        _queuedBowAction = true;
+                        _queuedBowReleased = false;
+                        _queuedBowHeldTime = 0f;
+                    }
+                    else _queuedWeaponAttacks = Mathf.Min(_queuedWeaponAttacks + 1, MaxQueuedWeaponAttacks);
                     return;
                 }
-                // [Phase 1-2] 패링 — 공격 시작 짧은 순간 방어 판정 창 (우클릭 차지 제거로 항상 패링 경로 실행)
+
                 _parryActive = true;
-                _parryActiveUntil = Time.time + ParryWindow;
+                _parryActiveUntil = Time.unscaledTime + ParryWindow;
                 _proceduralAnim?.TriggerAction("parry");
-                // [테스트47] 근접 공격 = 병사와 동일한 단일 Attack(TriggerParry 클립 호출 제거 —
-                //   Attack 트리거와 경합, 그리고 병사 동일 단순화 요구 반영). 패링 판정은 별도(_parryActive)로 유지.
-                TryAttack();
+                _clipDriver?.TriggerParry();
+                if (isBowEquipped)
+                {
+                    _queuedBowAction = true;
+                    _queuedBowReleased = false;
+                    _queuedBowHeldTime = 0f;
+                }
+                else _queuedWeaponAttacks = Mathf.Min(_queuedWeaponAttacks + 1, MaxQueuedWeaponAttacks);
             }
         }
 
@@ -355,22 +397,139 @@ namespace ProjectName.Systems
             Debug.Log($"[PlayerCombat] ⚡ 차지 강공: {targetName} 데미지 {damage} (충전 {damageMultiplier:F1}x)");
         }
 
-        /// <summary>[Phase 1-2] 패링 방어 판정 — PlayerHealth가 근접 피격 시 호출(false 반환 시 회피 처리).</summary>
+        /// <summary>PlayerHealth의 명시적 타격 판정에 대한 무기 중립 단일 패링.</summary>
         public bool TryParry()
         {
-            if (_parryActive)
+            if (!_parryActive) return false;
+
+            _parryActive = false;
+            _parryActiveUntil = -999f;
+            _proceduralAnim?.TriggerAction("parry_success");
+            try { BulletTime.Get().Apply(0.35f, 0.10f, 0.38f); }
+            catch (System.Exception) { }
+            // A retrigger during the same local-time effect must retain its original baseline.
+            if (!_parrySlowActive)
             {
-                _parryActive = false;   // 1회만
-                _parryActiveUntil = -999f;
-                _proceduralAnim?.TriggerAction("parry_success");
-                // [테스트45 P5] 패링 성공 = 슬로모션(0.35x 홀드)로 액션감 극대화 + 확산링 피드백
-                try { BulletTime.Get().Apply(0.35f, 0.06f, 0.12f); }
-                catch (System.Exception) { }
-                TryParryImpactFX();
-                Debug.Log("[PlayerCombat] 🛡️ 패링 성공 — 근접 공격 흡수 + 슬로모션");
-                return true;
+                _parrySlowRestoreValue = _parryTimeUser != null ? _parryTimeUser.LocalTimeScaleValue : 1f;
+                _parrySlowActive = true;
             }
-            return false;
+            if (_parryImpactRoutine != null) StopCoroutine(_parryImpactRoutine);
+            _parryImpactRoutine = StartCoroutine(ParryImpactRoutine());
+            TryParryImpactFX();
+            Debug.Log("[PlayerCombat] 🛡️ 패링 성공 — 무기 중립 흡수 + Magic Time/BulletTime 액션 슬로우");
+            return true;
+        }
+
+        private void EndParryWindow()
+        {
+            _parryActive = false;
+            _parryActiveUntil = -999f;
+            _proceduralAnim?.TriggerAction("parry_end");
+            if (_parryImpactRoutine == null)
+                ResumeQueuedParryAction();
+        }
+
+        private void ResumeQueuedParryAction()
+        {
+            if (_queuedBowAction)
+            {
+                _queuedWeaponAttacks = 0;
+                _queuedBowAction = false;
+                if (_queuedBowReleased)
+                {
+                    BowAimState.Release(_queuedBowHeldTime >= BowMinFire, _queuedBowHeldTime / BowDrawMaxHold);
+                    ReleaseBow(_queuedBowHeldTime / BowDrawMaxHold);
+                }
+                else
+                {
+                    _bowDrawing = true;
+                    _bowDrawHeldTime = _queuedBowHeldTime;
+                    _queuedBowAction = false;
+                    BowAimState.Begin();
+                    _clipDriver?.TriggerBowDraw();
+                    AttackSoundLayerManager.PlayBowDraw();
+                }
+                _queuedBowReleased = false;
+                _queuedBowHeldTime = 0f;
+                return;
+            }
+        }
+
+        private System.Collections.IEnumerator ParryImpactRoutine()
+        {
+            float initial = _parrySlowRestoreValue;
+            float dip = 0.10f;
+            float hold = 0.38f;
+            float restore = 0.28f;
+            float elapsed = 0f;
+            while (elapsed < dip)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                SetParryLocalTime(Mathf.Lerp(initial, ParryActionScale, Mathf.Clamp01(elapsed / dip)));
+                yield return null;
+            }
+            SetParryLocalTime(ParryActionScale);
+            elapsed = 0f;
+            while (elapsed < hold)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            elapsed = 0f;
+            while (elapsed < restore)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                SetParryLocalTime(Mathf.Lerp(ParryActionScale, initial, Mathf.Clamp01(elapsed / restore)));
+                yield return null;
+            }
+            SetParryLocalTime(initial);
+            _parryImpactRoutine = null;
+            _parrySlowActive = false;
+            ResumeQueuedParryAction();
+        }
+
+        private void SetParryLocalTime(float value)
+        {
+            if (_parryTimeUser != null)
+                _parryTimeUser.LocalTimeScaleValue = Mathf.Clamp(value, 0.05f, 1f);
+            if (_parryAnimator != null && _parryAnimatorSpeedCaptured)
+                _parryAnimator.speed = _animatorSpeedBeforeParry * (_parryTimeUser != null ? _parryTimeUser.TimeScale : 1f);
+        }
+
+        private void UpdateParryActionSlowMotion()
+        {
+            if (_parryTimeUser != null && _parryAnimator != null && _parryAnimatorSpeedCaptured)
+                _parryAnimator.speed = _animatorSpeedBeforeParry * _parryTimeUser.TimeScale;
+        }
+
+        private void OnDisable()
+        {
+            _parryActive = false;
+            if (_parryImpactRoutine != null)
+            {
+                StopCoroutine(_parryImpactRoutine);
+                _parryImpactRoutine = null;
+            }
+            if (_parrySlowActive && _parryTimeUser != null)
+                _parryTimeUser.LocalTimeScaleValue = Mathf.Clamp(_parrySlowRestoreValue, 0.05f, 1f);
+            _parrySlowActive = false;
+            _queuedWeaponAttacks = 0;
+            _queuedBowAction = false;
+            _queuedBowReleased = false;
+            _queuedBowHeldTime = 0f;
+            if (_bowDrawing)
+            {
+                _bowDrawing = false;
+                _bowDrawHeldTime = 0f;
+                BowAimState.Release(false, 0f);
+            }
+            if (_parryAnimator != null && _parryAnimatorSpeedCaptured)
+                _parryAnimator.speed = _animatorSpeedBeforeParry;
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         /// <summary>[테스트45 P5] 패링 성공 순간 시각 피드백 — 검증된 ShockwaveRingFX 확산링 + 별섬광 (피격 이펙트와 별개 감탄용).</summary>
@@ -426,7 +585,7 @@ namespace ProjectName.Systems
             _currentTarget = null;
         }
 
-        private void TryAttack()
+        private bool TryAttack()
         {
             bool fistOrSword = _currentWeapon != null
                 && (_currentWeapon.weaponType == WeaponType.Fist || _currentWeapon.weaponType == WeaponType.Sword);
@@ -435,8 +594,8 @@ namespace ProjectName.Systems
 
             // Only an available Weapon_Combo_2 follow-up bypasses ordinary weapon cooldown.
             // Reject full/finished combos before changing the accepted-click streak or timestamp.
-            if (comboActive && !comboFollowup) return;
-            if (!CanAttack && !comboFollowup) return;
+            if (comboActive && !comboFollowup) return false;
+            if (!CanAttack && !comboFollowup) return false;
 
             _attackStreak = (Time.time - _lastAttackTime <= AttackStreakWindow)
                 ? Mathf.Min(_attackStreak + 1, AttackStreakMax)
@@ -454,13 +613,13 @@ namespace ProjectName.Systems
             if (_currentWeapon != null && _currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow)
             {
                 TryBowShot(1f);   // 드로→릴리즈 외 즉발 회귀용 — 파워 풀(1f)
-                return;
+                return true;
             }
 
             // Fist/Sword hit checks are resolved by HumanoidClipDriver once per Weapon_Combo_2 swing.
             // LastAttackTime above still reports every accepted click so the driver can queue follow-ups.
             if (_clipDriver != null && _clipDriver.CanPlayPlayerMeleeCombo && fistOrSword)
-                return;
+                return true;
 
             // Phase B: 무기별 스윙 사운드 레이어링
             PlayWeaponSwingSound();
@@ -514,6 +673,7 @@ namespace ProjectName.Systems
 
             // 공격 전진 (attack lunge)
             StartCoroutine(AttackLungeCoroutine());
+            return true;
         }
 
         /// <summary>Resolve one hit attempt and its damage/effects for a Weapon_Combo_2 swing segment.</summary>
@@ -567,29 +727,39 @@ namespace ProjectName.Systems
             // ① 발사 사운드 — 무기별 레이어링
             PlayWeaponSwingSound();
 
-            // ① 사격 방향 계산 — 조준 레이(마우스 커서→월드 Ray)를 그대로 따름.
-            //    [테스트 42] 기존 y=0 강제 평탄화는 조준 레이의 수직 성분을 제거하고 자동조준이
-            //    타겟으로 재조준해 '조준한 방향 대신 엉뚱한 곳'으로 나가는 원인이었다.
-            //    → 커서 Ray를 그대로 발사 방향으로 사용(조준선·리티클과 정확히 정렬, WYSIWYG).
-            //    다만 탑다운 카메라 레이는 아래로 급해 발사 직후 지면에 꽂히므로(테스트 5 뿌리)
+            // ① 사격 방향 계산 — 조준 레이(마우스 커서→월드 Ray)를 사용.
             //    과한 하향만 클램프(≈ -14°)하고 상향/수평은 자유 — 고지대·경사 대상 조준 가능.
             Vector3 dir = transform.forward;
             if (_mainCamera != null && Mouse.current != null)
             {
                 Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-                Vector3 rayDir = ray.direction.normalized;
+                Vector3 rayDir = ray.direction;
                 if (rayDir.sqrMagnitude > 0.0001f)
                 {
+                    rayDir.Normalize();
                     if (rayDir.y < -0.25f) rayDir.y = -0.25f; // 급격한 지면 다이빙만 차단
                     dir = rayDir.normalized;
                 }
             }
+            // 단일 정규화 조준 방향을 발사와 수평 muzzle 정렬에 함께 사용.
+            if (dir.sqrMagnitude <= 0.0001f) dir = Vector3.forward;
+            dir.Normalize();
+            Vector3 launchForward = dir;
+            launchForward.y = 0f;
+            if (launchForward.sqrMagnitude <= 0.0001f)
+            {
+                launchForward = transform.forward;
+                launchForward.y = 0f;
+            }
+            if (launchForward.sqrMagnitude <= 0.0001f) launchForward = Vector3.forward;
+            launchForward.Normalize();
+            // 발사 순간에만 즉시 yaw 정렬 — 회전 코루틴이 스폰 계산 뒤를 덮지 않도록 한다.
+            transform.rotation = Quaternion.LookRotation(launchForward, Vector3.up);
             // (자동조준 재조준 제거 — 화살은 항상 조준 레이 방향으로 정확히 발사)
 
             // ③ 화살 소모 + 발사체 생성 — origin: 활 위치(전방 0.6m·눈높이 1.4m), 데미지: WeaponData.Bow.damage
             // [70차 후속18] 플레이어 중심 스폰이 몸을 뚫는 문제(테스트 4 실측) → 활 위치로 이동
-            Vector3 aimFwd = transform.forward; aimFwd.y = 0f; aimFwd.Normalize();
-            Vector3 origin = transform.position + aimFwd * 0.6f + Vector3.up * 1.4f;
+            Vector3 origin = transform.position + launchForward * 0.6f + Vector3.up * 1.4f;
             //    (화살 종류별 보너스 데미지 합산 + 파워 반영 속도/데미지는 ArrowManager 내부 처리)
             //    [TEST21-FOLLOWUP] ArrowManager lazy 자가 확보 — 씬 미부트/초기화 순서로 Instance가 null이면
             //    즉시 생성 시도(EnsureGameManager 보장과 이중 안전, 멱등). 없으면 발사 불가로 안내.

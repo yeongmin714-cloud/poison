@@ -13,8 +13,14 @@ namespace ProjectName.Systems
     [RequireComponent(typeof(Rigidbody))]
     public class ArrowProjectile : MonoBehaviour
     {
+        /// <summary>Shared bow-flight tuning used by firing and trajectory consumers.</summary>
+        public const float BaseSpeed = 84f;
+        public const float GravityScale = 0.15f;
+        public const float FlightLifetime = 10f;
+        public static float GetSpeedForPower(float power) => BaseSpeed * (0.7f + 0.5f * Mathf.Clamp01(power));
+
         private float _damage = 10f;
-        private float _lifetime = 5f;
+        private float _lifetime = FlightLifetime;
         private float _elapsed = 0f;
         private Rigidbody _rb;
         private Collider _collider;
@@ -24,7 +30,7 @@ namespace ProjectName.Systems
         private Quaternion _stuckRotation;
         /// <summary>[70차 후속19/C6] 발사 파워(0~1) — ArrowManager가 세팅. 파워 풀 명중 시 크리틱 연출.</summary>
         public float _power = 1f;
-        private static readonly float GravityScale = 0.15f;   // [테스트47] 0.22→0.15 — 중력 완화로 사거리 대폭 상향(더 멀리 퍼짐 궤적)
+
 
         /// <summary>[C 고품질] ArrowManager가 Spawn 후 주입 — 3티어 파라미터(관통/발광/스파크). Awake 이후 호출돼도 트레일은 유지.</summary>
         public void SetArrowData(ProjectName.Core.ArrowData data)
@@ -98,10 +104,13 @@ namespace ProjectName.Systems
             var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             go.name = "Arrow(Clone)";
             go.transform.position = position;
+            Vector3 launchDirection = direction.sqrMagnitude > 0.0001f
+                ? direction.normalized
+                : Vector3.forward;
             // [TEST27-68차] 축 정렬 수리 — Cylinder 길이축은 Y인데 LookRotation은 +Z를 진행방향으로 정렬해
             //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
             //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
-            go.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90f, 0f, 0f);
+            go.transform.rotation = Quaternion.LookRotation(launchDirection) * Quaternion.Euler(90f, 0f, 0f);
             go.transform.localScale = new Vector3(0.12f, 0.9f, 0.12f); // 콜라이더 판정 형태 유지(렌더러는 비표시)
 
             // Collider 설정
@@ -112,8 +121,8 @@ namespace ProjectName.Systems
             }
 
             var rb = go.AddComponent<Rigidbody>();
-            rb.useGravity = false;                 // [化살-사거리] 물리 중력 대신 아래 Update에서 축소 중력 수동 적용(45% 중력 → 약 2배 사거리)
-            rb.linearVelocity = direction * speed;
+            rb.useGravity = false;                 // 중력은 아래 Update에서 공유 설정값으로 수동 적용
+            rb.linearVelocity = launchDirection * speed;
             rb.linearDamping = 0f;                 // 비행 중 저항 없음
             rb.constraints = RigidbodyConstraints.FreezeRotation;
             rb.interpolation = RigidbodyInterpolation.Interpolate;   // [후속19/A4] 프레임 간 보간 — 트레일 끊김 완화
@@ -123,8 +132,8 @@ namespace ProjectName.Systems
 
 
             // [P20-4 진단] 스폰 회전 vs 조준 방향 정합 1회 실측 — "세워서 나감/방향 다름" 즉별
-            float dot = Vector3.Dot(go.transform.up, direction.normalized);
-            Debug.Log($"[Arrow][P20-4] 스폰 정합 — up·dir={dot:F3}(±1이 정상), dir={direction}");
+            float dot = Vector3.Dot(go.transform.up, launchDirection);
+            Debug.Log($"[Arrow][P20-4] 스폰 정합 — up·dir={dot:F3}(±1이 정상), dir={launchDirection}");
 
             // 화살 3D 형상은 표시하지 않음. 루트 콜라이더/리짓바디는 명중 판정용으로 그대로 유지.
             var renderer = go.GetComponent<MeshRenderer>();
@@ -342,8 +351,7 @@ namespace ProjectName.Systems
                 Destroy(gameObject);
             }
 
-            // [化살-사거리] 축소 중력 수동 적용 — useGravity=false 상태에서 속도에 가속 추가(0.45*지구중력).
-            //   박힌 화살(_stuck)/무중력 상태는 스킵.
+            // Shared scaled gravity; skip stuck arrows and any gravity-driven projectile.
             if (!_stuck && _rb != null && _rb.useGravity == false)
             {
                 _rb.linearVelocity += Physics.gravity * GravityScale * Time.deltaTime;
@@ -363,10 +371,7 @@ namespace ProjectName.Systems
             }
 
             // 회전을 속도 방향으로 정렬 (박힌 화살은 유지).
-            // [2026-09-20 방향 수정] 기존 transform.forward(+Z) 세팅은 Spawn에서 조립한
-            // 축 정렬(LookRotation*Euler(90,0,0): 촉을 진행축에 맞춤)을 매 프레임 덮어써서
-            // 화살 몸통이 진행 방향과 90° 어긋난 채 날아갔다(사용자 실측 "조준 방향으로 안 나감").
-            // Spawn과 동일한 복합 회전을 재적용해 비행 내내 촉이 진행 방향을 향하게 한다.
+            // The cylinder's local +Y shaft axis is aligned to velocity, matching its launch orientation.
             if (!_stuck && _rb != null && _rb.linearVelocity.magnitude > 0.1f)
             {
                 transform.rotation = Quaternion.LookRotation(_rb.linearVelocity.normalized) * Quaternion.Euler(90f, 0f, 0f);
