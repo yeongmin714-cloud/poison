@@ -857,3 +857,13 @@
   - 수정: SetupUITestArena(DisableAllUi 해제 + UIToolkitBootstrap.Ensure + Minimap/HUD/Hotbar/Status/Quest/Journal/Clock Ensure + UTKWireUp.Wire, I키 프로브 1개) · HotbarUIUTK public Ensure · InventoryWindowUTK 우클릭 장착을 시스템 직접 호출(WeaponEquipManager/EquipmentManager, 해석 규칙 레거시 1:1 검증).
 - Commits: 4fa99cc1 (push)
 - Date: 2026-09-29
+
+# Cycle: C-42 — 테스트 42 라운드 (화살 개편·Test_10 가스·크리슬로모·공격애니 조사)
+- Status: ✅ (A/B/C 커밋·푸시, D는 조사+에셋레벨 판정)
+- Details:
+  - A 화살: GLB/촉/깃털 모델 비표시 → 짧은(0.022s) 순백 네온 트레일. 조준 y=0 평탄화+자동조준 재조준 제거 → 커서 Ray 정렬 발사. 휘파람 제거. `25bb6f68`.
+  - B Test_10 가스: SetupGasVerifyScene — EnsureGasSystem 미러 + 분사기(Wood) 장착 + 독/치료 물약·방독면 지급. `fd86734c`.
+  - C 크리슬로모: Systems/BulletTime.cs 신규 + PlayCrit 0.4x 연동. MagicTime 에셋은 오브제별 구독 기반으로 추후. `0fed9274`.
+  - D 공격애니: 콤보 1→2→3타+버퍼링, 무기별(검=콤보/창=AttackThrust), 스윙 트레일 칼끝 부착 — **기존 구현 확인**. 속도·그립·Double/Triple 클립 선호는 애니메이션 에셋/리그 레벨 → Play 튜닝 필요(코드 성급 patch 금지).
+- Commits: 25bb6f68 → fd86734c → 0fed9274 (push). 배치컴파일 error CS=0 ×4.
+- Date: 2026-09-29

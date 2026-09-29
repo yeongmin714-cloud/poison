@@ -1,6 +1,22 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **최종 갱신:** 2026-09-29 (테스트 10씬 UI 메인씬 UTK 통일 + 무기/방어구 우클릭 장착 레거시 의존 제거)
+> **최종 갱신:** 2026-09-29 (테스트 42: 화살 개편 + Test_10 가스 씬 + 크리티컬 슬로우모션)
+
+## 📌 세션 스냅샷 (2026-09-29 ✅ 테스트 42 라운드 — 화살 개편·Test_10 가스·크리슬로모)
+
+> **지시:** 테스트 42 영상 기반 ①화살 조준 방향 ②화살 시각(GLB 제거→짧은 흰 네온 트레일) ③Test_10 가스 시딩 ④공격 애니(콤보/속도/칼끝스윙/무기별) ⑤화살 소리 제거 ⑥매직타임 활용.
+
+- **화살 개편** (`25bb6f68`, CS=0):
+  - A1 `ArrowProjectile.Spawn`: 화살 3D 형상(GLB/촉 Cone/깃털) **비표시**(렌더러 off) — 명중 콜라이더·리짓바디 유지. TrailRenderer를 **짧은(0.022s ~1.5m) 순백 네온 테이퍼**(애더티브 Unlit, 폭 0.16)로 — 화살 크기보다 짧게 비행 방향만 잔상. 이중 스파크 제거.
+  - A2 `PlayerCombat` bow: **y=0 강제 평탄화+자동조준 타겟 재조준 제거** → 커서 조준 Ray 그대로 발사(과한 하향만 -0.25 클램프). 조준선/리티클과 정확히 정렬(WYSIWYG).
+  - A3 화살 비행 휘파람(`PlayArrowWhistle`) 호출 제거 (방패막기 탁·카메라 히트피드백은 유지).
+- **Test_10 가스 씬** (`fd86734c`, CS=0): `SetupGasVerifyScene` — GameSetup.EnsureGasSystem 미러(GasSprayerController/GasSprayer/GasMaskController + GasCloudLauncher.RegisterHook + GasMaskEquipmentLink.Register), 분사기 즉시 장착(Wood), 독(Poison_TestPotion)/치료(Heal_TestPotion) 물약 + 나무 방독면 지급 → G키 분사/방독면 면역 확인 가능.
+- **크리티컬 슬로우모션** (`0fed9274`, CS=0): `Systems/BulletTime.cs` 신규(전역 `Time.timeScale` 디핑→홀드→복원 싱글톤) + `CombatCameraEffects.PlayCrit` 연동(0.4x). Magic Pig 'Magic Time' 에셋은 선별(오브제별 MagicTimeUser) 슬로우의 기반 — 전역 램프로 먼저 확보, 오브제별 확장은 추후.
+- **공격 애니(D) 조사 결론**: 콤보 1→2→3타 프레임 입력+버퍼링, 무기별 분기(검=WeaponCombo 슬래시/창=AttackThrust 찌르기), 스윙 트레일 **이미 칼끝 부착**(WeaponSwingTrail tipWorld, 그립 반대편) — 코드 가처리 항목은 **기존 구현 확인**. 남은 **속도·그립 퀄리티·클립(Double/Triple) 선호**는 **애니메이션 에셋/리그 레벨**(클립 샘플레이트·무기 본 구성) → Play 기반 튜닝 필요, 코드로 성급히 손대지 않음(회귀 위험).
+- **QA**: 배치컴파일 `error CS=0` ×4(A~C). 커밋 3건(A/B/C) push. 추적 트리 클린·원격 동기화.
+- ⚠ **Play 판정 대기**: ①화살 트레일(네온 짧은 잔상)·조준 정렬 ②Test_10 가스(분사기 장착→물약→G키 분사·방독면) ③크리티컬 슬로우모션 ④공격 애니(속도·그립·더블콤보 선호) — 에디터 Play + 테스트 42 재촬영 피드백 대기.
+
+---
 
 ## 📌 세션 스냅샷 (2026-09-29 ✅ 테스트 10씬 UI 메인씬(UTK) 통일 + 우클릭 장착 수리)
 
