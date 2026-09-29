@@ -48,31 +48,9 @@ namespace ProjectName.Systems
                 new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.15f), new GradientAlphaKey(0.5f, 0.45f), new GradientAlphaKey(0f, 1f) });
             _trail.colorGradient = tgrad;
 
-            // 강화 — 은빛 샤프 스파크 이중 트레일 (아직 없을 때만 생성; 기존 재질 공유)
-            if (_arrowData != null && _arrowData.sparkTrail && _sparkTrail == null && _trail.material != null)
-            {
-                try
-                {
-                    _sparkTrail = gameObject.AddComponent<TrailRenderer>();
-                    _sparkTrail.time = 0.08f;
-                    _sparkTrail.startWidth = 0.06f;
-                    _sparkTrail.endWidth = 0.005f;
-                    _sparkTrail.minVertexDistance = 0.05f;
-                    _sparkTrail.generateLightingData = false;
-                    _sparkTrail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                    _sparkTrail.receiveShadows = false;
-                    _sparkTrail.material = _trail.material;
-                    var sgrad = new Gradient();
-                    sgrad.SetKeys(
-                        new[] { new GradientColorKey(new Color(0.95f, 0.95f, 1f), 0f), new GradientColorKey(new Color(0.5f, 0.5f, 0.7f), 1f) },
-                        new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 0.6f) });
-                    _sparkTrail.colorGradient = sgrad;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.Log("[Arrow][C] 강화 스파크 트레일 생성 실패(무시): " + e.ToString());
-                }
-            }
+            // 화살 종류별 2중 스파크/색상 변형 없이 모든 화살을 순백색 단일 네온 트레일로 표시.
+            _trail.startColor = Color.white;
+            _trail.endColor = Color.white;
         }
 
         // [C 고품질] 3티어 파라미터(ArrowManager가 주입, Spawn 오버로드 경유)
@@ -80,23 +58,18 @@ namespace ProjectName.Systems
         private int _pierceRemaining = 0;        // 마법 화살 관통 잔여(적 1기)
         private int _piercedId = -1;             // 이미 관통한 대상 instanceId (중복 재데미지 방지)
         private float _sparkAccum = 0f;          // 강화 화살 스파크 방출 누적(초)
-        private TrailRenderer _sparkTrail = null; // 강화 전용 이중 트레일(은빛 스파크)
+
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
             _collider = GetComponent<Collider>();
-            // [P25-C3] 소형 밝은 트레일 복원 — P20-4가 "긴 선"이라 제거했던 원인은 과장된
-            //   시간(1.6s)·폭(0.45) 때문. 예시(BotW) 스타일: 짧고(0.4s) 가는(0.10→0.02)
-            //   화이트→하늘색 테이퍼로 비행 감을 살린다. 박힘 시 _trail.enabled=false로 제거.
-            // [2026-09-25 젤다 화살예시 재현] 비행 중 방향성 모션 스트릭(선형 흰→옅은 청).
-            // 예시(BoTW): 화살 길이 2~3배인 선명한 흰 잔상 + 애더티브 글로우. 기존 time 0.4s는 게임
-            // 속도에서 8~16m로 과하게 길게 번져 "모션 스트릭"이 아니라 스미어로 보였다 → 짧고 선명·발광으로.
+            // 아주 짧은 순백색 애더티브 네온 잔상. 70~84m/s 기준 약 1.5~1.85m 길이.
             _trail = GetComponent<TrailRenderer>();
             if (_trail == null) _trail = gameObject.AddComponent<TrailRenderer>();
-            _trail.time = 0.12f;              // [참조] ~2~3배 화살 길이 스트릭(고속일수록 길어짐 = 속도감)
-            _trail.startWidth = 0.12f;        // 선명 선두(샤프트 반경급)
-            _trail.endWidth = 0.02f;          // 꼬리 얇게 테이퍼
+            _trail.time = 0.022f;
+            _trail.startWidth = 0.16f;        // 짧은 잔상의 발광 존재감
+            _trail.endWidth = 0.008f;         // 꼬리로 가늘게 테이퍼
             _trail.minVertexDistance = 0.03f; // 고속에서도 빈틈 없이
             _trail.generateLightingData = false;
             _trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
@@ -113,31 +86,10 @@ namespace ProjectName.Systems
             tmat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             _trail.material = tmat;
             var tgrad = new Gradient();
-            var strk0 = new Color(1f, 0.99f, 0.97f);
-            var strk1 = _arrowData != null ? _arrowData.streakColor : new Color(0.75f, 0.82f, 1f);
             tgrad.SetKeys(
-                new[] { new GradientColorKey(strk0, 0f), new GradientColorKey(strk1, 1f) },  // 선명 흰→티어 스트릭색
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
                 new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0.9f, 0.15f), new GradientAlphaKey(0.5f, 0.45f), new GradientAlphaKey(0f, 1f) });
             _trail.colorGradient = tgrad;
-
-            // [C 고품질] 강화 화살 — 은빛 샤프 스파크 이중 트레일(짧고 또렷, 광량 보강)
-            if (_arrowData != null && _arrowData.sparkTrail)
-            {
-                _sparkTrail = gameObject.AddComponent<TrailRenderer>();
-                _sparkTrail.time = 0.08f;
-                _sparkTrail.startWidth = 0.06f;
-                _sparkTrail.endWidth = 0.005f;
-                _sparkTrail.minVertexDistance = 0.05f;
-                _sparkTrail.generateLightingData = false;
-                _sparkTrail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                _sparkTrail.receiveShadows = false;
-                _sparkTrail.material = tmat;   // 동일 애더티브 재질(공유)
-                var sgrad = new Gradient();
-                sgrad.SetKeys(
-                    new[] { new GradientColorKey(new Color(0.95f, 0.95f, 1f), 0f), new GradientColorKey(new Color(0.5f, 0.5f, 0.7f), 1f) },
-                    new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 0.6f) });
-                _sparkTrail.colorGradient = sgrad;
-            }
         }
 
         /// <summary>화살 발사</summary>
@@ -150,7 +102,7 @@ namespace ProjectName.Systems
             //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
             //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
             go.transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.12f, 0.9f, 0.12f); // [P20-4] (0.18,1.3)→(0.12,0.9) — 사용자 "여전히 큼" → 2차 축소
+            go.transform.localScale = new Vector3(0.12f, 0.9f, 0.12f); // 콜라이더 판정 형태 유지(렌더러는 비표시)
 
             // Collider 설정
             var collider = go.GetComponent<CapsuleCollider>();
@@ -169,40 +121,14 @@ namespace ProjectName.Systems
             var arrow = go.AddComponent<ArrowProjectile>();
             arrow._damage = damage;
 
-            AttackSoundLayerManager.PlayArrowWhistle();   // [E 고품질] 비행 휘파람(발사 직후)
 
             // [P20-4 진단] 스폰 회전 vs 조준 방향 정합 1회 실측 — "세워서 나감/방향 다름" 즉별
             float dot = Vector3.Dot(go.transform.up, direction.normalized);
             Debug.Log($"[Arrow][P20-4] 스폰 정합 — up·dir={dot:F3}(±1이 정상), dir={direction}");
 
-            // Renderer
+            // 화살 3D 형상은 표시하지 않음. 루트 콜라이더/리짓바디는 명중 판정용으로 그대로 유지.
             var renderer = go.GetComponent<MeshRenderer>();
-            if (renderer != null)
-            {
-                renderer.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                renderer.material.color = trailColor * 0.7f;
-            }
-
-            // [요구] 실제 화살 GLB 모델 장착(arrow.glb → arrow2 → arrow3 폴백, 전부 실패 시 원기둥 회귀).
-            //   성공 시 실린더 렌더러는 숨기고(콜라이더·트레일은 루트가 유지) 모델이 비주얼을 대체한다.
-            if (MountArrowModel(go))
-            {
-                if (renderer != null) renderer.enabled = false;
-            }
-            else
-            {
-                // [2026-09-17] 절차 조립 회귀 — 샤프트(실린더) + 촉(콘) + 플레처(사각조각 3개) 자식 추가.
-                //   피벗은 샤프트 중심 유지, 자식은 Rigidbody 없이 부모 종속, 콜라이더 제거로 2차 충돌 차단.
-                //   실패(Cone/Cube 프리미티브 null 등) 시에도 최소한 샤프트 실린더로 동작.
-                try
-                {
-                    AssembleArrow(go, trailColor);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.Log("[Arrow] 화살 머리/깃털 조립 실패 → 샤프트만 유지: " + e.ToString());
-                }
-            }
+            if (renderer != null) renderer.enabled = false;
 
             return arrow;
         }
@@ -638,9 +564,6 @@ namespace ProjectName.Systems
                     }
                 }
 
-                // [화살 명중 임팩트] 활은 PlayerCombat 근접 공격 경로를 타지 않으므로 여기서 직접
-                // 임팩트 사운드를 발화한다(활 명중 시 T/P 하이 피치 임팩트). isTarget 분기당 1회만 호출.
-                AttackSoundLayerManager.PlayAttackHit(ProjectName.Core.WeaponType.Bow, false);
 
                 // [70차 후속19/C2·C3] 명중 피드백 — 활 히트스톱+흔들림(파워 풀=PlayCrit 강화) + 데미지 숫자(골드)
                 if (_power >= 0.95f) CombatCameraEffects.PlayCrit();

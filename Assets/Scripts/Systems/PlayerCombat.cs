@@ -494,56 +494,24 @@ namespace ProjectName.Systems
             // ① 발사 사운드 — 무기별 레이어링
             PlayWeaponSwingSound();
 
-            // ① 사격 방향 계산 — 마우스 커서 Ray 우선, 실패(카메라/마우스 없음) 시 플레이어 전방
+            // ① 사격 방향 계산 — 조준 레이(마우스 커서→월드 Ray)를 그대로 따름.
+            //    [테스트 42] 기존 y=0 강제 평탄화는 조준 레이의 수직 성분을 제거하고 자동조준이
+            //    타겟으로 재조준해 '조준한 방향 대신 엉뚱한 곳'으로 나가는 원인이었다.
+            //    → 커서 Ray를 그대로 발사 방향으로 사용(조준선·리티클과 정확히 정렬, WYSIWYG).
+            //    다만 탑다운 카메라 레이는 아래로 급해 발사 직후 지면에 꽂히므로(테스트 5 뿌리)
+            //    과한 하향만 클램프(≈ -14°)하고 상향/수평은 자유 — 고지대·경사 대상 조준 가능.
             Vector3 dir = transform.forward;
             if (_mainCamera != null && Mouse.current != null)
             {
                 Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-                if (ray.direction.sqrMagnitude > 0.0001f)
+                Vector3 rayDir = ray.direction.normalized;
+                if (rayDir.sqrMagnitude > 0.0001f)
                 {
-                    // [70차 후속19] 커서 레이를 지면 기준 수평 방향으로 평탄화 — 탑다운 카메라의 레이는
-                    //   아래로 기울어져 있어 그대로 발사하면 화살이 땅으로 다이빙(테스트 5 실측 뿌리).
-                    Vector3 flat = new Vector3(ray.direction.x, 0f, ray.direction.z);
-                    if (flat.sqrMagnitude > 0.0001f)
-                        dir = flat.normalized;
+                    if (rayDir.y < -0.25f) rayDir.y = -0.25f; // 급격한 지면 다이빙만 차단
+                    dir = rayDir.normalized;
                 }
             }
-
-            // ② 조준 보정(자동 조준) 2026-09-16 — 커서 Ray가 적을 직접 못 맞히면 커서 방향(전방 반구)에서
-            //    가장 가까운 적으로 dir 보정. 기존 조준 수단(FindTargetInCursorDirection: Raycast→원뿔 스윕) 재사용.
-            //    보정은 직접 Raycast에 적 히트가 없을 때만 동작하며, cosθ>0.7 클램프로 화면 뒤 180도 스냅을 방지한다.
-            if (_mainCamera != null && Mouse.current != null)
-            {
-                Ray cursorRay = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-                bool directEnemyHit = false;
-                RaycastHit[] directHits = Physics.RaycastAll(cursorRay, _autoAimRange, _targetLayers);
-                for (int i = 0; i < directHits.Length && !directEnemyHit; i++)
-                {
-                    IDamageable dmg = directHits[i].collider.GetComponentInParent<IDamageable>();
-                    if (dmg != null && dmg.IsAlive) directEnemyHit = true;
-                }
-                if (!directEnemyHit)
-                {
-                    IDamageable target = FindTargetInCursorDirection();
-                    MonoBehaviour targetBehaviour = (target != null) ? target as MonoBehaviour : null;
-                    if (targetBehaviour != null)
-                    {
-                        Vector3 toTarget = targetBehaviour.transform.position - transform.position;
-                        if (toTarget.sqrMagnitude > 0.0001f)
-                        {
-                            toTarget.Normalize();
-                            if (Vector3.Dot(toTarget, transform.forward) > 0.7f)
-                            {
-                                // [70차 후속19] 자동 조준 방향도 지면 기준 평탄화 — 타겟 중심(y 낮음)으로 다이빙 방지
-                                toTarget.y = 0f;
-                                toTarget.Normalize();
-                                dir = toTarget;
-                                Debug.Log("[PlayerCombat] 자동 조준: " + targetBehaviour.name);
-                            }
-                        }
-                    }
-                }
-            }
+            // (자동조준 재조준 제거 — 화살은 항상 조준 레이 방향으로 정확히 발사)
 
             // ③ 화살 소모 + 발사체 생성 — origin: 활 위치(전방 0.6m·눈높이 1.4m), 데미지: WeaponData.Bow.damage
             // [70차 후속18] 플레이어 중심 스폰이 몸을 뚫는 문제(테스트 4 실측) → 활 위치로 이동
