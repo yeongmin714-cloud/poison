@@ -125,6 +125,8 @@ namespace ProjectName.Systems
         {
             if (Instance == null) return;
             Instance.PlayCritShake();
+            // [테스트 42] 크리티컬 임팩트 국소 슬로우모션 — 0.4배 디핑 후 짧게 홀드 후 복원 (히트스톱 보강)
+            BulletTime.Get().Apply(0.4f, 0.08f, 0.10f);
         }
 
         /// <summary>[70차 후속19/C1] 활 발사 킥 — 가벼운 흔들림만(HitStop 없음, 사격 리듬 유지).</summary>
