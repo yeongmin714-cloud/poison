@@ -321,7 +321,9 @@ namespace ProjectName.Systems
                         float handDistMin = Vector3.Distance(handBone.position, weapon.transform.TransformPoint(tb.min));
                         float handDistMax = Vector3.Distance(handBone.position, weapon.transform.TransformPoint(tb.max));
                         bool tipIsFar = handDistMax >= handDistMin;
-                        Debug.Log($"[Weapon] 팁-끝 진단: 손 거리 min={handDistMin:F2}m / max={handDistMax:F2}m → 칼끝({'max축' if tipIsFar else 'min축'}) = 손에서 {'먼 쪽(정상)' if tipIsFar else '가까운 쪽 ⚠뒤집힘'}, tipWorld={tipWorld:F2}");
+                        string tipAxis = tipIsFar ? "max축" : "min축";
+                        string tipDirection = tipIsFar ? "먼 쪽(정상)" : "가까운 쪽 ⚠뒤집힘";
+                        Debug.Log($"[Weapon] 팁-끝 진단: 손 거리 min={handDistMin:F2}m / max={handDistMax:F2}m → 칼끝({tipAxis}) = 손에서 {tipDirection}, tipWorld={tipWorld:F2}");
                     }
                     return true;
                 }
