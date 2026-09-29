@@ -312,6 +312,17 @@ namespace ProjectName.Systems
                 if (pose.GripStrategy == 3 && ComputeWeaponDataGrip(weapon, handBone, pose, out var tipData))
                 {
                     tipWorld = tipData;
+                    // [테스트 42 #3] 스윙 트레일 팁-끝 검증 진단 — 선택된 칼끝이 그립보다 '손에서 더 먼 쪽'인지.
+                    //   (검: 칼날 끝=손에서 먼 쪽, 손잡이=가까운 쪽). 0=손에서 더 먼 쪽=정상, 1=손잡이 쪽으로 뒤집힘(=튜닝 필요).
+                    var mf = weapon.GetComponentInChildren<MeshFilter>(true);
+                    if (mf != null && mf.sharedMesh != null)
+                    {
+                        var tb = mf.sharedMesh.bounds;
+                        float handDistMin = Vector3.Distance(handBone.position, weapon.transform.TransformPoint(tb.min));
+                        float handDistMax = Vector3.Distance(handBone.position, weapon.transform.TransformPoint(tb.max));
+                        bool tipIsFar = handDistMax >= handDistMin;
+                        Debug.Log($"[Weapon] 팁-끝 진단: 손 거리 min={handDistMin:F2}m / max={handDistMax:F2}m → 칼끝({'max축' if tipIsFar else 'min축'}) = 손에서 {'먼 쪽(정상)' if tipIsFar else '가까운 쪽 ⚠뒤집힘'}, tipWorld={tipWorld:F2}");
+                    }
                     return true;
                 }
 
