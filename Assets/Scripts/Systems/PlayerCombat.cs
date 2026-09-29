@@ -407,12 +407,16 @@ namespace ProjectName.Systems
 
         private void TryAttack()
         {
-            if (!CanAttack) return;
-            // 연타 카운터 갱신(2026-09-14): 직전 공격 후 0.6초 이내 재공격이면 +1(최대 3), 아니면 1로 리셋.
-            // _lastAttackTime 갱신 "전"에 판정해야 직전 공격 시각 기준으로 정상 판정된다.
+            // 연타 판정을 게이트 "전"에 계산 — 콤보 연타(2번째 이상 근접 클릭)는 공격 쿨다운을 우회해 매 타 피격이 들어간다.
+            //   [테스트 42 #3] 2연타 콤보가 1히트만 들어가던 원인 = 2번째 클릭이 attackSpeed 쿨다운에 막힘 → 콤보 연타는 우회.
             _attackStreak = (Time.time - _lastAttackTime <= AttackStreakWindow)
                 ? Mathf.Min(_attackStreak + 1, AttackStreakMax)
                 : 1;
+            // Bow는 조준/발사 리듬(쿨다운) 유지 — 근접 무기(검/주먹/창)의 연속 콤보 타격만 우회.
+            bool comboFollowup = _currentWeapon != null
+                && _currentWeapon.weaponType != WeaponType.Bow
+                && _attackStreak > 1;   // 2번째 이상 근접 연타 = 콤보 타격 → 쿨다운 무시(매 타 히트)
+            if (!CanAttack && !comboFollowup) return;
             _lastAttackTime = Time.time;
 
             // ── P6 (2026-09-11): 무기 타입별 좌클릭 공격 분기 ──

@@ -43,11 +43,16 @@ namespace ProjectName.Systems
         private const bool UseStageClips = true;
         private static readonly string[] StageStateNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
         private static readonly string[] StageTriggerNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
-        private const float StageCancelGate = 0.30f;   // 스테이지 클립 진행률 게이트 — 이 이상이면 다음 타 입력 즉시 소비(스윙 캔슬 허용)
-        // [2026-09-15 Phase E] 아크 발화 strike 동기 게이트 — StageCancelGate와 같은 지역(대략 clip진행 0.3~0.5)의
-        // strike 프레임에 아크/임팩트를 발화하기 위한 임계. 스테이지 클립 진행률이 이 값 이상이면 발화 대기 아크를 소진한다.
-        private const float StageStrikeSyncNormT = 0.38f;
-        private int _comboStage;          // 0=비활성, 1..3 = 현재 스테이지(클릭 수)
+        private const float StageCancelGate = 0f;   // [테스트 42] 미사용(단일 더블콤보 분할 모델로 대체)
+        // [2026-09-15 Phase E] strike 동기 게이트 — 단일 더블콤보의 첫 스윙 타격점(중앙 부근).
+        private const float StageStrikeSyncNormT = 0.30f;
+        // [테스트 42 #2] 단일 더블콤보 분할 — AttackCombo(Double_Combo_Attack) 클립의 '첫 스윙' 끝 정규화 위치.
+        //   playhead를 여기서 잘라 단일 휘두르기(1클릭)로 idle 복귀, 2클릭(시간내) 시 이 경계를 넘겨 끝까지(양 스윙) 재생.
+        //   ⚠ 배치 상수 — Play 시 확인 후 미세조정(더블콤보 2스윙 균등 가정 0.5, 프레임 실측 시 수정).
+        private const float ComboSingleSwingEnd = 0.5f;
+        private int _comboStage;          // 0=비활성, 1..2 = 현재 스테이지(클릭 수) — 단일 더블콤보 분할 모델에선 1~2만
+        private bool _fullCombo;          // [테스트 42 #2] true=2클릭 풀 더블콤보(양 스윙), false=1클릭 단일(첫 스윙 후 idle)
+        private float _lastComboClick;    // [테스트 42 #2] 직전 콤보 클릭 시각(버퍼 판정용)
         // [2026-09-25 프리미엄 AttackArcVFX A/B] 인스펙터에서 켜면 실제 무기 궤적 3D 스윕 리본을 켠다(기본 OFF).
         [SerializeField, Header("AttackArcVFX (프리미엄 스윕 리본) A/B")]
         private bool _premiumArcEnabled;
@@ -525,24 +530,31 @@ namespace ProjectName.Systems
                     if (UseStageClips)
                     {
                         // [2026-09-15 Phase B] 스테이지 클립 경로 — 트리거 구동(Double/Triple/Weapon_Combo_2)
+                        // [테스트 42 #2] 단일 더블콤보 분할 모델로 개편 — 3타/별도 클립(Triple/Weapon_Combo_2) 제거.
+                        //   AttackCombo(Double_Combo_Attack) 하나만 사용: 1클릭=첫 스윙 후 idle잘라 복귀,
+                        //   2클릭(시간내)=끝까지(양 스윙) 재생. 3타는 발생하지 않는다.
                         bool inStage = IsInStageClip();
-                        if (inStage && _comboStage > 0 && _comboStage < 3)
+                        if (!inStage)
                         {
-                            if (_anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= StageCancelGate)
-                            {
-                                AdvanceStageClip(_comboStage + 1);
-                            }
-                            else
-                            {
-                                _comboBufferedClick = true;
-                                _comboBufferEndTime = Time.time + ComboBufferWindow;
-                                Debug.Log($"[Combo] 클릭 버퍼 적립 (stageClip {_comboStage} 진행률 미달, 유효 {ComboBufferWindow:F2}s)");
-                            }
+                            // 신규 시작 — 더블콤보 클립 1타(첫 스윙)부터, 단일 상태 진입.
+                            StartStageClip(1);
+                            _fullCombo = false;
+                            _lastComboClick = Time.time;
+                            Debug.Log("[Combo] 더블콤보 1클릭 — 첫 스윙 후 idle(2클릭 시 양 스윙)");
                         }
-                        else
+                        else if (!_fullCombo && _lastComboClick >= 0f && Time.time - _lastComboClick <= ComboBufferWindow)
                         {
-                            StartStageClip(1);   // 신규 시작 또는 3타 완료 후 재시작
-                            Debug.Log(inStage ? "[Combo] stageClip 재시작(4번째 클릭 → 1타)" : "[Combo] stageClip 1타 시작");
+                            // 2클릭 — 단일 상태에서 버퍼 내 재클릭 → 풀 더블콤보(양 스윙)로 전환.
+                            _fullCombo = true;
+                            _comboBufferedClick = true;
+                            Debug.Log("[Combo] 더블콤보 2클릭 — 양 스윙 풀 재생");
+                        }
+                        else if (_lastComboClick >= 0f && Time.time - _lastComboClick > ComboBufferWindow)
+                        {
+                            // 버퍼 만료 후 추가 클릭 = 새 사이클(1클릭 단일) 시작
+                            StartStageClip(1);
+                            _fullCombo = false;
+                            _lastComboClick = Time.time;
                         }
                         _attackHoldUntil = Time.time + 0.6f;
                     }
@@ -814,11 +826,20 @@ namespace ProjectName.Systems
                     FireComboSlash(arcStage);   // 아크 + 크로스 발화 (트레일은 이미 즉시 방출됨 — 중복 무해)
                     Debug.Log($"[Combo] strike 동기 아크 발화 (stage={arcStage}, normT={normT:F2})");
                 }
-                if (_comboBufferedClick && Time.time <= _comboBufferEndTime && _comboStage < 3 && normT >= StageCancelGate)
+                // [테스트 42 #2] 단일 더블콤보 분할 — 2클릭 버퍼 소비 → 풀 더블콤보(양 스윙)로 전환(별도 클립 트리거 아님).
+                if (_comboBufferedClick && Time.time <= _comboBufferEndTime)
                 {
                     _comboBufferedClick = false;
-                    AdvanceStageClip(_comboStage + 1);
-                    Debug.Log($"[Combo] 버퍼 클릭 소비 → stageClip {_comboStage} (무홀드 연결)");
+                    _fullCombo = true;
+                    // _fullCombo 승격 — playhead를 해제해 AttackCombo(더블콤보) 클립이 끝까지(양 스윙) 재생되게 한다.
+                    Debug.Log("[Combo] 2클릭 확정 — 양 스윙 풀 재생");
+                }
+                // [테스트 42 #2] 단일 휘두르기 절사 — 1클릭(풀아님)이 첫 스윙 끝(ComboSingleSwingEnd)에 도달하면 idle 복귀.
+                else if (!_fullCombo && normT >= ComboSingleSwingEnd)
+                {
+                    // 플레이헤드를 첫 스윙 끝에 고정(2스윙이 안 보이게)한 뒤 Idle로 블렌드 아웃 — 단일 휘두르기 완료.
+                    _anim.Play("AttackCombo", 0, ComboSingleSwingEnd);
+                    EndCombo("단일 1휘두르기 완료(idle 복귀)");
                 }
             }
             else if (_comboStage > 0 && Time.time - _comboStartTime > 0.5f)
