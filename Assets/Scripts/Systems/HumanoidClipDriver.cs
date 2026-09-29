@@ -35,7 +35,7 @@ namespace ProjectName.Systems
         // #48차 리커버리 감소: 이전 0.15 → 0.10 — 콤보 종료 시 Idle CrossFade 시간 단축(EndCombo 전용, 스테이지 전환 경로엔 미사용)
         private const float ComboExitBlend = 0.10f;
         // #48차 콤보 버퍼링: 경계 도달 전 클릭 버퍼 유효 시간(백업) — 이 안에 경계 도달하면 즉시 소비
-        private const float ComboBufferWindow = 0.12f;
+        private const float ComboBufferWindow = 0.35f;   // [테스트45] 2연타 판정 창 — 실제 마우스 연타(150~350ms)를 흡수 (0.12→0.35). "1클릭=첫스윙 후 idle, 2클릭=풀 더블콤보" 전환 기준.
         // ── [2026-09-15 Phase B] 스테이지 클립 콤보: 컨트롤러의 트리거 구동 체인 사용 ──
         // Player_AC.controller 실측(2026-09-15): AnyState→AttackCombo/AttackCombo2/AttackCombo3 전이가
         // 트리거(동명) 조건으로 이미 존재. 각 상태 클립 = Double_Combo_Attack / Triple_Combo_Attack / Weapon_Combo_2.
@@ -557,6 +557,7 @@ namespace ProjectName.Systems
                             // 2클릭 — 단일 상태에서 버퍼 내 재클릭 → 풀 더블콤보(양 스윙)로 전환.
                             _fullCombo = true;
                             _comboBufferedClick = true;
+                            _comboBufferEndTime = Time.time + ComboBufferWindow;   // [테스트45] MonitorStageClip 승격 조건(Time.time<=endTime)이 타도록 만료시각 갱신
                             Debug.Log("[Combo] 더블콤보 2클릭 — 양 스윙 풀 재생");
                         }
                         else if (_lastComboClick >= 0f && Time.time - _lastComboClick > ComboBufferWindow)
