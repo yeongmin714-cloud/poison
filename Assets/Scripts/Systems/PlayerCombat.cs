@@ -252,8 +252,8 @@ namespace ProjectName.Systems
                     _bowDrawing = true;
                     _bowDrawHeldTime = 0f;
                     BowAimState.Begin();   // [P25-C1] 리티클 드로 시작
-                    // [테스트45 P1] 조준 궤적 예측선(골드 발광 점) 제거 — 조준경만 남긴다.
-                    // BowTrajectoryPreview.Ensure();
+                    // [테스트45 P1/테스트47 잔존 수리] 조준 궤적 예측선(BowTrajectoryPreview) 확실히 제거 — 조준 리티클만.
+                    BowTrajectoryPreview.Kill();
                     _clipDriver?.TriggerBowDraw();   // [A 고품질] 사용자 애니 'Draw_and_Shoot_from_Back_1'(당기고 쏘기) 발화
                     AttackSoundLayerManager.PlayBowDraw(); // [활 드로] 좌클릭 press — 당김 스트레치 사운드 발화
                     return;
@@ -262,8 +262,8 @@ namespace ProjectName.Systems
                 _parryActive = true;
                 _parryActiveUntil = Time.time + ParryWindow;
                 _proceduralAnim?.TriggerAction("parry");
-                // [테스트45 P5] 좌클릭 패링 실클립(사용자 FBX Sword_Parry_Backward_1) + TryAttack 동반
-                _clipDriver?.TriggerParry();
+                // [테스트47] 근접 공격 = 병사와 동일한 단일 Attack(TriggerParry 클립 호출 제거 —
+                //   Attack 트리거와 경합, 그리고 병사 동일 단순화 요구 반영). 패링 판정은 별도(_parryActive)로 유지.
                 TryAttack();
             }
         }

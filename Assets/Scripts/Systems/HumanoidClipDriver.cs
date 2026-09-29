@@ -537,97 +537,18 @@ namespace ProjectName.Systems
                     }
                     else
                     {
-                    if (UseStageClips)
-                    {
-                        // [2026-09-15 Phase B] 스테이지 클립 경로 — 트리거 구동(Double/Triple/Weapon_Combo_2)
-                        // [테스트 42 #2] 단일 더블콤보 분할 모델로 개편 — 3타/별도 클립(Triple/Weapon_Combo_2) 제거.
-                        //   AttackCombo(Double_Combo_Attack) 하나만 사용: 1클릭=첫 스윙 후 idle잘라 복귀,
-                        //   2클릭(시간내)=끝까지(양 스윙) 재생. 3타는 발생하지 않는다.
-                        bool inStage = IsInStageClip();
-                        if (!inStage)
-                        {
-                            // 신규 시작 — 더블콤보 클립 1타(첫 스윙)부터, 단일 상태 진입.
-                            StartStageClip(1);
-                            _fullCombo = false;
-                            _lastComboClick = Time.time;
-                            Debug.Log("[Combo] 더블콤보 1클릭 — 첫 스윙 후 idle(2클릭 시 양 스윙)");
-                        }
-                        else if (!_fullCombo && _lastComboClick >= 0f && Time.time - _lastComboClick <= ComboBufferWindow)
-                        {
-                            // 2클릭 — 단일 상태에서 버퍼 내 재클릭 → 풀 더블콤보(양 스윙)로 전환.
-                            _fullCombo = true;
-                            _comboBufferedClick = true;
-                            _comboBufferEndTime = Time.time + ComboBufferWindow;   // [테스트45] MonitorStageClip 승격 조건(Time.time<=endTime)이 타도록 만료시각 갱신
-                            Debug.Log("[Combo] 더블콤보 2클릭 — 양 스윙 풀 재생");
-                        }
-                        else if (_lastComboClick >= 0f && Time.time - _lastComboClick > ComboBufferWindow)
-                        {
-                            // 버퍼 만료 후 추가 클릭 = 새 사이클(1클릭 단일) 시작
-                            StartStageClip(1);
-                            _fullCombo = false;
-                            _lastComboClick = Time.time;
-                        }
-                        _attackHoldUntil = Time.time + 0.6f;
-                    }
-                    else
-                    {
-                    // WeaponCombo B안: 클릭 엣지 → 스테이지 진행/시작 (트리거 미사용, Play/CrossFade 직접 제어)
-                    var stInfo = _anim.GetCurrentAnimatorStateInfo(0);
-                    bool inCombo = stInfo.IsName(ComboStateName) && _comboStage > 0;
-                    if (inCombo && _comboStage < 3)
-                    {
-                        // #48차 콤보 버퍼링: 경계 홀드 대기 중(이미 경계 도달)이면 기존대로 즉시 진행,
-                        // 아직 경계 전(스윙 중)이면 버퍼 적립 — 경계 도달 프레임에 소비해 홀드 없이 연결.
-                        bool atBoundaryHold = stInfo.normalizedTime >= ComboEndNormT[_comboStage - 1];
-                        if (atBoundaryHold)
-                        {
-                            _comboStage++;
-                            _comboPinGraceStart = -999f;
-                            _comboBufferedClick = false;
-                            FireComboSlash(_comboStage);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
-                            Debug.Log($"[Combo] 스테이지 {_comboStage} 진행 (경계 홀드 중 즉시)");
-                        }
-                        else
-                        {
-                            _comboBufferedClick = true;
-                            _comboBufferEndTime = Time.time + ComboBufferWindow;
-                            Debug.Log($"[Combo] 클릭 버퍼 적립 (스테이지 {_comboStage} 경계 도달 시 소비, 유효 {ComboBufferWindow:F2}s)");
-                        }
-                    }
-                    else if (inCombo && _comboStage >= 3)
-                    {
-                        // #6: 4번째 클릭 — 콤보 재시작으로 매 클릭 스윙 FX 보장 (기존엔 완전 무시됨).
-                        // 3타가 이미 끝난 시점(normT>=1)의 클릭이면 미발화 완료 크로스를 먼저 1회 발화하고
-                        // 새 사이클을 1타부터 시작한다.
-                        if (!_comboCrossFired[2] && stInfo.normalizedTime >= 1f)
-                        {
-                            _comboCrossFired[2] = true;
-                            FireComboCross(3);
-                        }
-                        _anim.Play(ComboStateName, 0, 0f);
-                        _comboStage = 1;
-                        _comboPinGraceStart = -999f;
-                        _comboBufferedClick = false;   // #48차: 새 사이클 시작 — 미소비 버퍼 리셋
-                        _comboStartTime = Time.time;
-                        ResetComboCrossFlags();
-                        FireComboSlash(1);   // 재시작 즉시 1타 스윙 FX
-                        Debug.Log("[Combo] 재시작 (4번째 클릭 → 1타부터 새 사이클)");
-                    }
-                    else if (!inCombo)
-                    {
-                        _anim.Play(ComboStateName, 0, 0f);
-                        _comboStage = 1;
-                        _comboPinGraceStart = -999f;
-                        _comboBufferedClick = false;   // #48차: 콤보 신규 시작 — 미소비 버퍼 리셋
-                        _comboStartTime = Time.time;
-                        ResetComboCrossFlags();
-                        FireComboSlash(1);   // 클릭 즉시 스윙 FX — 임팩트 프레임 대기 없음
-                        Debug.Log("[Combo] WeaponCombo 1타 시작");
-                    }
-                    // 공격 상태 최소 유지 — 연타 중 Idle 경유 팝 방지
+                    // [테스트47] 근접 공격 = 병사와 동일한 단일 Attack 트리거만.
+                    //   이전의 스테이지 클립 콤보(Double/Triple), 2분할, WeaponCombo 3연타 로직을 전부 걷어냈다.
+                    //   병사(GuardCombatAI.TriggerAttack → SetTrigger("Attack"))와 완전히 동일한 경로로 단순화.
+                    ResetComboCrossFlags();
+                    _comboStage = 0;          // 스테이지 콤보 상태 완전 해제
+                    _fullCombo = false;
+                    _comboBufferedClick = false;
+                    _anim.SetTrigger("Attack");
+                    FireComboSlash(1);        // 근접 스윙 아크 FX(콤보 스테이지=1 틴트)
                     _attackHoldUntil = Time.time + 0.6f;
-                    } // P4: Fist/Sword WeaponCombo 분기 종료
-                    } // [2026-09-15 Phase B] UseStageClips else 종료
+                    Debug.Log("[Combo] 근접 공격 — 병사와 동일 단일 Attack 트리거");
+                    } // P4: Fist/Sword 공격 분기 단순화(콤보 제거)
                 }
             }
 

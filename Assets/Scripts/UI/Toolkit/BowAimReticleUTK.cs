@@ -59,19 +59,19 @@ namespace ProjectName.UI.Toolkit
             var brBR = Resources.Load<Texture2D>("UI/ReticleBracketBR");
 
             // 중앙 점
-            _dot = makeIcon(dotTex, 14f);
-            _dot.style.left = CenterX - 7f;
-            _dot.style.top = CenterY - 7f;
+            _dot = makeIcon(dotTex, 20f);   // [테스트47] 조준 도트 더 두껍게
+            _dot.style.left = CenterX - 10f;
+            _dot.style.top = CenterY - 10f;
             Add(_dot);
 
             // 파워 링(UTKCircularGauge — 시계방향 fill)
             _ring = new UTKCircularGauge();
             _ring.pickingMode = PickingMode.Ignore;
             _ring.style.position = Position.Absolute;
-            _ring.style.width = 46f;
-            _ring.style.height = 46f;
-            _ring.style.left = CenterX - 23f;
-            _ring.style.top = CenterY - 23f;
+            _ring.style.width = 56f;   // [테스트47] 파워링 더 크게
+            _ring.style.height = 56f;
+            _ring.style.left = CenterX - 28f;
+            _ring.style.top = CenterY - 28f;
             _ring.FillColor = new Color(0.345f, 0.651f, 1f, 0.92f);   // [테스트45 P1] Fluent 액센트 #58A6FF 파워 링
             Add(_ring);
 

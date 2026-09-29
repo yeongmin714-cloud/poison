@@ -24,7 +24,7 @@ namespace ProjectName.Systems
         private Quaternion _stuckRotation;
         /// <summary>[70차 후속19/C6] 발사 파워(0~1) — ArrowManager가 세팅. 파워 풀 명중 시 크리틱 연출.</summary>
         public float _power = 1f;
-        private static readonly float GravityScale = 0.22f;   // [화살-사거리2] 0.45→0.22 — 낙하 1.17s·사거리 ~80m(테스트 2: 여전히 짧음)
+        private static readonly float GravityScale = 0.15f;   // [테스트47] 0.22→0.15 — 중력 완화로 사거리 대폭 상향(더 멀리 퍼짐 궤적)
 
         /// <summary>[C 고품질] ArrowManager가 Spawn 후 주입 — 3티어 파라미터(관통/발광/스파크). Awake 이후 호출돼도 트레일은 유지.</summary>
         public void SetArrowData(ProjectName.Core.ArrowData data)
@@ -601,10 +601,10 @@ namespace ProjectName.Systems
                 if (_collider != null) _collider.enabled = false; // 중복 충돌 방지
                 DisableTrail();                                  // [P25-C3] 박힘 트레일 제거
 
-                // [P22-3] 박힘 진동 시작 + 지면 먼지 퍼프 1회(베이크 소프트 텍스처 파티클 — 과장 없음)
+                // [P22-3] 박힘 진동 시작 (지면 먼지 퍼프 SpawnGroundPuff는 테스트47에서 제거 — 검은 파티클 요구)
                 _wobbleTime = 0f;
                 _stuckRotation = transform.rotation;
-                SpawnGroundPuff();
+                // SpawnGroundPuff();
             }
         }
     }

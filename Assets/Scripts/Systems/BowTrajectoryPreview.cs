@@ -20,9 +20,13 @@ namespace ProjectName.Systems
         /// <summary>호스트 지연 생성 — PlayerCombat 활 드로 시작 시 1회 호출. 이후 영속.</summary>
         public static void Ensure()
         {
-            if (_host != null) return;
-            var go = new GameObject("BowTrajectoryPreview") { hideFlags = HideFlags.HideAndDontSave };
-            _host = go.AddComponent<BowTrajectoryHost>();
+            // [테스트47] 비활성화 — 조준 궤적 예측선은 이제 생성하지 않는다(노란선 제거 요구).
+        }
+
+        /// <summary>[테스트47] 존재하던 궤적 호스트 강제 파괴 — 재생성/잔존 확실 차단.</summary>
+        public static void Kill()
+        {
+            if (_host != null) { Object.Destroy(_host.gameObject); _host = null; }
         }
 
         private static BowTrajectoryHost _host;

@@ -71,12 +71,13 @@ namespace ProjectName.Systems
             Texture2D wispTexture = Resources.Load<Texture2D>("UI/GasCloudWisp");
             Texture2D ringTexture = Resources.Load<Texture2D>("UI/GasCloudRing");
 
+            // [테스트47] 포그 질감 — 입자 더 곱고(크기↓) 묽게(알파↓)·촘촘하게(개수↑)
             if (softTexture != null)
-                CreateCloudSystem("GasCloudSoft", softTexture, 24f, 18, _radius * 0.72f, 2.4f, 1.1f, false);
+                CreateCloudSystem("GasCloudSoft", softTexture, 40f, 34, _radius * 0.8f, 2.6f, 0.55f, false);
             if (puffTexture != null)
-                CreateCloudSystem("GasCloudPuff", puffTexture, 11f, 10, _radius * 0.55f, 2.0f, 0.8f, false);
+                CreateCloudSystem("GasCloudPuff", puffTexture, 22f, 20, _radius * 0.62f, 2.2f, 0.38f, false);
             if (wispTexture != null)
-                CreateCloudSystem("GasCloudWisp", wispTexture, 6f, 6, _radius * 0.82f, 3.0f, 0.38f, false);
+                CreateCloudSystem("GasCloudWisp", wispTexture, 14f, 12, _radius * 0.9f, 3.2f, 0.22f, false);
             if (ringTexture != null)
                 CreateCloudSystem("GasCloudRing", ringTexture, 0f, 1, 0.01f, ExpansionDuration, _radius * 2f, true);
 
@@ -151,7 +152,7 @@ namespace ProjectName.Systems
             Gradient alphaGradient = new Gradient();
             alphaGradient.SetKeys(
                 new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
-                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(0.52f, 0.12f), new GradientAlphaKey(0.32f, 0.72f), new GradientAlphaKey(0f, 1f) });
+                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(0.30f, 0.15f), new GradientAlphaKey(0.17f, 0.72f), new GradientAlphaKey(0f, 1f) });   // [테스트47] 더 묽게(옅게)
             colorOverLifetime.color = new ParticleSystem.MinMaxGradient(alphaGradient);
 
             ParticleSystem.SizeOverLifetimeModule sizeOverLifetime = particleSystem.sizeOverLifetime;
