@@ -66,9 +66,10 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 420f;   // [U8] 창고 전용 창 (인벤은 독립 창)
-        private const float WinH = 680f;
-        private const float SlotSize = 52f;
+        private const float WinW = 420f;   // Figma StoragePanel 420×760
+        private const float WinH = 760f;
+        private const float SlotSize = 68f; // Figma 슬롯 68×68
+        private const float SlotGap = 8f;   // Figma 그리드 간격 8
         private const int Columns = 5;     // 행당 N칸 (창고 원본 4열, UTK 그리드 5열)
         private const int MaxSlots = 20;   // 창고 최대 슬롯 (원본 WarehouseUI.MaxSlots / TerritoryWarehouse._maxSlots 기본)
         private const long RefreshMs = 250L;
@@ -101,6 +102,11 @@ namespace ProjectName.UI.Toolkit
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
+            // Figma StoragePanel 콘텐츠 패딩 20
+            _content.style.paddingTop = 20f;
+            _content.style.paddingBottom = 20f;
+            _content.style.paddingLeft = 20f;
+            _content.style.paddingRight = 20f;
 
             // ── 헤더 행: 제목 + 영지 선택 + 용량 ──
             var headerRow = new VisualElement();
@@ -536,10 +542,11 @@ namespace ProjectName.UI.Toolkit
         {
             cell.style.width = SlotSize;
             cell.style.height = SlotSize;
-            cell.style.marginTop = 2f;
-            cell.style.marginBottom = 2f;
-            cell.style.marginLeft = 3f;
-            cell.style.marginRight = 3f;
+            // Figma 그리드: 셀 68×68, 간격 8
+            cell.style.marginTop = 0f;
+            cell.style.marginBottom = SlotGap;
+            cell.style.marginLeft = 0f;
+            cell.style.marginRight = SlotGap;
         }
 
         // =====================================================================

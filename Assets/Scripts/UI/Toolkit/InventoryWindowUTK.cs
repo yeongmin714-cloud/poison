@@ -53,13 +53,15 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 560f;    // [독립 창] 좌측 인벤창(장비 2x5 + 가방 그리드 행당 5칸) — 설명/창고/전리품은 별개 창
-        private const float WinH = 700f;
+        private const float WinW = 420f;    // Figma InventoryPanel 420×760 (독립 최상위 창)
+        private const float WinH = 760f;
         private const int BagRows = 6;
-        private const int EquipColumns = 5; // 장비 2줄×5칸
-        private const int EquipRows = 2;
-        private const float SlotSize = 64f;
-        private const int Columns = 5;   // 가방 그리드 행당 칸 수 — Figma 규격 5열
+        private const int EquipColumns = 5; // Figma 장비 5열
+        private const int EquipRows = 2;    // Figma 장비 2행
+        private const float SlotSize = 68f; // Figma 슬롯 68×68
+        private const float SlotGap = 8f;   // Figma 가방 그리드 간격 8
+        private const float EquipGap = 4f;  // Figma 장비 그리드 간격 4
+        private const int Columns = 5;   // Figma 가방 그리드 행당 5칸
         private const long RefreshMs = 250L;
 
         // Epic은 공유 테마의 토큰이 아닌 의미론적 등급색으로 유지한다.
@@ -203,6 +205,11 @@ namespace ProjectName.UI.Toolkit
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
+            // Figma InventoryPanel 콘텐츠 패딩 20
+            _content.style.paddingTop = 20f;
+            _content.style.paddingBottom = 20f;
+            _content.style.paddingLeft = 20f;
+            _content.style.paddingRight = 20f;
 
             // ④ 월드 드롭 백드롭: UIRoot(전체 화면) — 인벤 드롭이 UI 밖이면 땅에 바구니.
             RegisterWorldDrop();
@@ -333,9 +340,10 @@ namespace ProjectName.UI.Toolkit
 
                 var equipSlot = new UTKSlot();
                 equipSlot.name = "EquipSlot_" + label;
-                equipSlot.style.width = 44f;
-                equipSlot.style.height = 44f;
+                equipSlot.style.width = SlotSize;   // Figma 68×68
+                equipSlot.style.height = SlotSize;
                 equipSlot.style.flexShrink = 0f;
+                equipSlot.style.marginRight = EquipGap;   // Figma 장비 gap 4
                 equipSlot.SetRank("common");
                 ApplyDarkSlotBase(equipSlot);   // [GitHub-dark] 빈 슬롯=다크 인셋 + 호버 액센트 틴트 (인벤 창 한정)
                 ApplyRankBorder(equipSlot, 0);  // [GitHub-dark] common 보조그레이 링
@@ -523,10 +531,11 @@ namespace ProjectName.UI.Toolkit
             cell.name = "InvSlot_" + idx;
             cell.style.width = SlotSize;
             cell.style.height = SlotSize;
-            cell.style.marginTop = 2f;
-            cell.style.marginBottom = 2f;
-            cell.style.marginLeft = 3f;
-            cell.style.marginRight = 3f;
+            // Figma 그리드: 셀 68×68, 간격 8, 콘텐츠 패딩 20
+            cell.style.marginTop = 0f;
+            cell.style.marginBottom = SlotGap;
+            cell.style.marginLeft = 0f;
+            cell.style.marginRight = SlotGap;
             ApplyDarkSlotBase(cell);   // [GitHub-dark] 모든 그리드 셀 다크 인셋 + 호버 액센트 틴트 (인벤 창 한정)
 
             if (idx < total && slots[idx] != null && slots[idx].item != null && slots[idx].count > 0)

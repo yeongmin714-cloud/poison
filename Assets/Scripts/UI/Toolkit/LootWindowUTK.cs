@@ -41,8 +41,8 @@ namespace ProjectName.UI.Toolkit
         // ===== 설정 (Figma loot-panel 420x360, 그리드 5열) =====
         private const long RefreshMs = 250L;
         private const int GridColumns = 5;   // Figma 5열
-        private const float SlotSize = 64f;
-        private const float SlotGap = 6f;
+        private const float SlotSize = 68f;  // Figma 슬롯 68×68
+        private const float SlotGap = 8f;    // Figma 그리드 간격 8
 
         /// <summary>등급 테두리 색 — Figma/GitHub-dark 팔레트(4~5=금/3=퍼플/1~2=액센트/0=보조).</summary>
         private static Color RankColor(int rarityIndex)
@@ -339,14 +339,12 @@ namespace ProjectName.UI.Toolkit
             slot.style.justifyContent = Justify.Center;
             ApplyDarkSlotStyle(slot, (int)entry.Item.rarity);   // [GitHub-dark] 슬롯 + 등급 상단 테두리
 
-            // 아이콘 (중앙)
+            // 아이콘 (중앙 32×32 — Figma 아이콘 규격)
             var icon = ItemIconDatabase.GetOrCreateIcon(entry.Item);
             var slotIcon = new VisualElement();
-            slotIcon.style.position = Position.Absolute;
-            slotIcon.style.left = 0f;
-            slotIcon.style.top = 0f;
-            slotIcon.style.right = 0f;
-            slotIcon.style.bottom = 0f;
+            slotIcon.style.width = 32f;
+            slotIcon.style.height = 32f;
+            slotIcon.style.alignSelf = Align.Center;
             slotIcon.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
             slotIcon.style.backgroundImage = UTKTextureSafe.ToBackground(icon);
             slot.Add(slotIcon);
@@ -356,7 +354,7 @@ namespace ProjectName.UI.Toolkit
             countLabel.style.position = Position.Absolute;
             countLabel.style.right = 4f;
             countLabel.style.bottom = 2f;
-            countLabel.style.fontSize = 12f;
+            countLabel.style.fontSize = 14f;   // Figma 카운트 14px
             countLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             countLabel.style.color = new StyleColor(UTKTheme.Gold);   // 카운트 — 골드 의미색
             slot.Add(countLabel);
