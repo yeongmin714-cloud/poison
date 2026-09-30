@@ -1,5 +1,7 @@
 # 🗺️ 포이즌 (Poison) — ROADMAP
 
+> **2026-09-30 계획 4단계(대표 다중창 확정)**: `InventoryWindowUTK`(대표)를 공용 `UTKTheme.ApplyWindowChrome` 크롬으로 이관(`dc855369`), `Place(0)` 좌 1/3. 설명(중앙·Place1)/창고(우측·Place2+UTKColor 승격 토큰)/전리품(우측) 3종은 이미 독립 최상위 창 + 3열 배치 + 동일 GitHub-dark 시각으로 4단계 준수 확인. 다중창은 별도 최상위 창 유지(단일 컨테이너 편입 금지).
+
 > **2026-09-30 계획 재개 기록 (영주 실내 확장 + no-frame UI)**: `CastleInteriorBuilder`가 설계도(실내 영주씬 예시 설계도.png) 기준 중앙 팔각 로비 + 5방(침실/제작소/창고/막사/연금술실) + 남쪽 입구 + 잠긴 4문으로 재구성됨. no-frame 크롬 레이어(`UTKWindowChrome` Frameless + `UTKThreeColumnLayout` 독립 창 배치 + `UTKTheme.ApplyWindowChrome`) 반영. Compile 성공(error CS 0), EditMode **345/343**(실패 2건은 기존 요리 데이터 계약 노후 단언), Play 미실시. `UTKThreeColumnLayout.ResponsiveColumns` 생성자 private→public 회귀 수리 포함. 관련 항목은 Play QA 대기이며 어떤 Phase도 완료 처리하지 않는다.
 
 > **2026-09-30 진행 기록 (전투·궁술·RTS·선택 UI)**: 근접/패링, 화살 조준·궤적, RTS 우클릭/타겟팅 및 선택 오버레이 변경을 반영. Compile 성공, EditMode 306/310 부분 통과(아래 4개 실패 명시), Play 미실시. 관련 항목은 EditMode/Play QA 대기이며 어떤 Phase도 완료 처리하지 않는다.

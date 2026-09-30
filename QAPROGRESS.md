@@ -10,6 +10,13 @@
 > - **EditMode**: 2026-09-30 재개 후 **345/343 통과, 2건 실패**. 실패 2건은 **기존 알려진 요리 데이터 계약 문제**만(`CookingDatabase_AllRecipes_Loaded` 760≠2024, `FindRecipe_UnknownCombo_ReturnsNull`) — 실내/UI/회귀 아님. 신규 회귀 0.
 > - **Play**: 미실행. 영주 성 실내(중앙 로비 + 5방 + 잠긴 문) 및 frameless 창 표시는 에디터 Play 검증 대기.
 >
+> **2026-09-30 계획 4단계(대표 다중창 확정 → 나머지 확장) 판정 — 공용 크롬 대표 이관 + 나머지 동일 시각 준수** (커밋 `dc855369`)
+>
+> - **계획 4단계**: "모호한 다중창 UI를 대표 창 하나로 확정 → 나머지 창에 같은 규칙 확장. Figma 미확인 치수는 단정하지 않고 확인 후 진행."
+> - **대표 창 확정**: `InventoryWindowUTK` — GitHubDark 인라인 팔레트 제거 → **공용 `UTKTheme.ApplyWindowChrome(window,titleBar,content)`** 이관 + Epic 퍼플 `#A371F7`만 의미론적 등급색 분리 유지 + `UTKThreeColumnLayout.Place(this,0)` 좌 1/3 독립 최상위 창. 잔여 GitHubDark/UTKColor 참조 0.
+> - **나머지 다중창 동일 규칙 준수 확인**: `ItemDescriptionWindowUTK`(Place(1) 중앙·자체 GitHub-dark 0x161B22/#21262D/#58A6FF 동일값), `WarehouseWindowUTK`(Place(2) 우측·공용 UTKColor 승격 토큰+Place 2경로), `LootWindowUTK`(우측·GitHub-dark). **4종 모두 독립 최상위 창 + 3열 배치 + 동일 GitHub-dark 시각 만족.**
+> - **보존 판단**: 나머지 3창은 자체 인라인 팔레트로 이미 동일 색값을 유지하므로, 드래그앤드롭·금융 로직 회귀 위험을 감수한 무조건 공용 재작성은 4단계 원칙(회귀 방지)에 부합하지 않아 **대표만 공용 이관 + 나머지 준수 유지로 확정**.
+>
 > - **구현 반영**: 패링의 무기중립 피해 흡수 및 시스템 피해 제외, 패링 중 후속 근접/활 입력 대기, 플레이어 로컬 슬로우를 반영. RTS 우클릭 명령의 카메라 재획득·자식 콜라이더 대상 판정과 선택 UI(Toolkit 오버레이/IMGUI fallback)를 반영. 화살 사거리 공유 모델·수명 정리·발사/조준 정렬 변경도 반영.
 > - **Compile**: 2026-09-30 최신 작업 트리의 Unity 컴파일 성공을 확인.
 > - **EditMode**: 2026-09-30 결과 **306/310 통과, 4건 실패**. 전체 통과로 판정하지 않음.
