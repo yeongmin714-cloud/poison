@@ -24,7 +24,8 @@ namespace ProjectName.UI.Toolkit
         protected readonly VisualElement _content;
         protected readonly Label _titleLabel;
         private readonly Button _closeButton;
-        private readonly VisualElement _titleBar;   // 드래그 대상
+        private readonly VisualElement _titleBar;   // 표준 크롬 타이틀바
+        private VisualElement _dragTarget;
         private readonly VisualElement _shadow;     // 9슬라이스 소프트 그림자 (부모에 형제로 부착)
         private bool _isOpen;
         private bool _dragging;
@@ -36,21 +37,38 @@ namespace ProjectName.UI.Toolkit
 
         public bool IsOpen => _isOpen;
         public string Title => _titleLabel.text;
+        /// <summary>Current presentation mode; Standard is the backward-compatible default.</summary>
+        public UTKWindowChrome Chrome { get; private set; }
+        /// <summary>True when the standard title bar and window border are suppressed.</summary>
+        public bool IsFrameless => Chrome == UTKWindowChrome.Frameless;
 
         /// <summary>윈도우 생성. size = 목표 유닛 크기 (예: 400x300).</summary>
         public UTKWindowBase(string title, Vector2Int size) : this(title, new Vector2(size.x, size.y))
         {
         }
 
-        /// <summary>윈도우 생성. size = 목표 유닛 크기 (예: (400,300)).</summary>
-        public UTKWindowBase(string title, Vector2 size)
+        /// <summary>Opt-in chrome overload; existing constructors retain standard chrome.</summary>
+        public UTKWindowBase(string title, Vector2Int size, UTKWindowChrome chrome)
+            : this(title, new Vector2(size.x, size.y), chrome)
         {
+        }
+
+        /// <summary>윈도우 생성. size = 목표 유닛 크기 (예: (400,300)).</summary>
+        public UTKWindowBase(string title, Vector2 size) : this(title, size, UTKWindowChrome.Standard)
+        {
+        }
+
+        /// <summary>윈도우 생성 with optional standard or frameless chrome.</summary>
+        public UTKWindowBase(string title, Vector2 size, UTKWindowChrome chrome)
+        {
+            Chrome = chrome;
             name = "UTKWindow_" + title;
             AddToClassList("utk-window");
             style.width = size.x;
             style.height = size.y;
 
-            // ── 타이틀 바 ──
+            // Keep the standard title controls in the tree for API/USS compatibility;
+            // frameless windows hide the entire bar and can supply a custom drag handle.
             var titleBar = new VisualElement();
             titleBar.AddToClassList("utk-title-bar");
             titleBar.name = "TitleBar";
@@ -66,19 +84,34 @@ namespace ProjectName.UI.Toolkit
             titleBar.Add(_closeButton);
             Add(titleBar);
 
-            // ── 컨텐츠 영역 ──
             _content = new VisualElement();
             _content.AddToClassList("utk-content");
             _content.name = "Content";
             Add(_content);
 
             _titleBar = titleBar;
+            _dragTarget = chrome == UTKWindowChrome.Frameless ? _content : titleBar;
+            if (chrome == UTKWindowChrome.Frameless)
+            {
+                titleBar.style.display = DisplayStyle.None;
+                AddToClassList("utk-window-frameless");
+                style.backgroundColor = new StyleColor(UTKTheme.Panel);
+                style.backgroundImage = StyleKeyword.Null;
+                style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 0f;
+                style.borderTopLeftRadius = style.borderTopRightRadius = 0f;
+                style.borderBottomLeftRadius = style.borderBottomRightRadius = 0f;
+                _content.style.paddingLeft = _content.style.paddingRight = 0f;
+                _content.style.paddingTop = _content.style.paddingBottom = 0f;
+            }
 
-            // 타이틀바 드래그 이동 (PointerManipulator 계열)
-            _titleBar.RegisterCallback<PointerDownEvent>(OnTitleBarPointerDown);
-            _titleBar.RegisterCallback<PointerMoveEvent>(OnTitleBarPointerMove);
-            _titleBar.RegisterCallback<PointerUpEvent>(OnTitleBarPointerUp);
-            _titleBar.RegisterCallback<PointerCaptureOutEvent>(_ => _dragging = false);
+            RegisterDragCallbacks(_dragTarget);
+            ApplyChrome();
+            // Separate windows are absolute-positioned by the caller/layout API.
+            style.position = Position.Absolute;
+            style.left = StyleKeyword.Auto;
+            style.top = StyleKeyword.Auto;
+            style.right = StyleKeyword.Auto;
+            style.bottom = StyleKeyword.Auto;
 
             // ── 소프트 그림자 (9슬라이스 글로우) ──
             // 윈도우 자체의 자식이 아닌 "형제"로 부모에 부착해야 창의 overflow:hidden에 안 잘린다.
@@ -174,6 +207,100 @@ namespace ProjectName.UI.Toolkit
         /// <summary>컨텐츠 영역 접근자 — 하위 컨트롤 추가용.</summary>
         public VisualElement Content => _content;
 
+        /// <summary>
+        /// Changes chrome without affecting visibility, placement, manager registration, or ESC stack.
+        /// Existing windows need not opt in; call this from a subclass for selective presentation.
+        /// </summary>
+        public void SetChrome(UTKWindowChrome chrome)
+        {
+            if (Chrome == chrome)
+                return;
+
+            UnregisterDragCallbacks(_dragTarget);
+            Chrome = chrome;
+            if (chrome == UTKWindowChrome.Frameless)
+            {
+                _titleBar.style.display = DisplayStyle.None;
+                AddToClassList("utk-window-frameless");
+                _dragTarget = _content;
+                style.backgroundImage = StyleKeyword.Null;
+                _content.style.paddingLeft = _content.style.paddingRight = 0f;
+                _content.style.paddingTop = _content.style.paddingBottom = 0f;
+            }
+            else
+            {
+                _titleBar.style.display = DisplayStyle.Flex;
+                RemoveFromClassList("utk-window-frameless");
+                _dragTarget = _titleBar;
+                _content.style.paddingLeft = _content.style.paddingRight = StyleKeyword.Null;
+                _content.style.paddingTop = _content.style.paddingBottom = StyleKeyword.Null;
+            }
+
+            RegisterDragCallbacks(_dragTarget);
+            ApplyChrome();
+        }
+
+        /// <summary>
+        /// Uses a custom element as a drag handle (including in frameless windows).
+        /// Set to null to restore the standard title bar or the frameless window surface.
+        /// </summary>
+        public void SetDragHandle(VisualElement handle)
+        {
+            UnregisterDragCallbacks(_dragTarget);
+            _dragTarget = handle ?? (IsFrameless ? _content : _titleBar);
+            RegisterDragCallbacks(_dragTarget);
+        }
+
+        /// <summary>Creates a theme panel inside the content area and returns it for population.</summary>
+        public VisualElement AddContentPanel(string panelName = null, bool secondary = false)
+        {
+            var panel = UTKTheme.CreatePanel(panelName, secondary);
+            _content.Add(panel);
+            return panel;
+        }
+
+        private void ApplyChrome()
+        {
+            if (IsFrameless)
+            {
+                style.backgroundColor = new StyleColor(UTKTheme.Panel);
+                style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 0f;
+                style.borderTopLeftRadius = style.borderTopRightRadius = 0f;
+                style.borderBottomLeftRadius = style.borderBottomRightRadius = 0f;
+                _content.style.paddingLeft = _content.style.paddingRight = 0f;
+                _content.style.paddingTop = _content.style.paddingBottom = 0f;
+            }
+            else
+            {
+                RemoveFromClassList("utk-window-frameless");
+                style.backgroundColor = StyleKeyword.Null;
+                style.backgroundImage = StyleKeyword.Null;
+                style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = StyleKeyword.Null;
+                style.borderTopLeftRadius = style.borderTopRightRadius = StyleKeyword.Null;
+                style.borderBottomLeftRadius = style.borderBottomRightRadius = StyleKeyword.Null;
+            }
+        }
+
+        private void RegisterDragCallbacks(VisualElement target)
+        {
+            if (target == null) return;
+            target.RegisterCallback<PointerDownEvent>(OnTitleBarPointerDown);
+            target.RegisterCallback<PointerMoveEvent>(OnTitleBarPointerMove);
+            target.RegisterCallback<PointerUpEvent>(OnTitleBarPointerUp);
+            target.RegisterCallback<PointerCaptureOutEvent>(OnDragCaptureOut);
+        }
+
+        private void UnregisterDragCallbacks(VisualElement target)
+        {
+            if (target == null) return;
+            target.UnregisterCallback<PointerDownEvent>(OnTitleBarPointerDown);
+            target.UnregisterCallback<PointerMoveEvent>(OnTitleBarPointerMove);
+            target.UnregisterCallback<PointerUpEvent>(OnTitleBarPointerUp);
+            target.UnregisterCallback<PointerCaptureOutEvent>(OnDragCaptureOut);
+        }
+
+        private void OnDragCaptureOut(PointerCaptureOutEvent evt) => _dragging = false;
+
         // ─────────────────────────── 훅 (오버라이드) ───────────────────────────
 
         /// <summary>Subclass에서 필요 시 오버라이드.</summary>
@@ -187,8 +314,12 @@ namespace ProjectName.UI.Toolkit
         private void OnTitleBarPointerDown(PointerDownEvent evt)
         {
             if (evt.button != 0) return;
+            // Frameless drag starts only when the exposed target itself was hit.
+            // Bubbling from controls (buttons, slots, ScrollViews, etc.) must not drag.
+            if (IsFrameless && (evt.target as VisualElement) != _dragTarget) return;
+            if (!IsFrameless && evt.target == _closeButton) return;
             _dragging = true;
-            _titleBar.CapturePointer(evt.pointerId);
+            _dragTarget.CapturePointer(evt.pointerId);
             evt.StopPropagation();
         }
 
@@ -207,7 +338,7 @@ namespace ProjectName.UI.Toolkit
         {
             if (!_dragging) return;
             _dragging = false;
-            _titleBar.ReleasePointer(evt.pointerId);
+            _dragTarget.ReleasePointer(evt.pointerId);
             evt.StopPropagation();
         }
 

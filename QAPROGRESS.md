@@ -1,6 +1,14 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **2026-09-30 검증 갱신 — 컴파일/EditMode 확인, Play 미실행**
+> **2026-09-30 계획 재개 — 영주 실내 확장 + no-frame UI 레이어 (컴파일/EditMode 확인, Play 대기)**
+>
+> - **재개 대상 계획**: "영주 실내 확장 및 Figma UI 전면 정합" (Screenshots/실내 영주씬 예시 설계도.png 기준). 1~2단계(실내)와 3~4단계(no-frame 크롬 레이어)가 작업 트리에 이미 반영돼 있어 이를 검증·봉합.
+> - **실내(1~2)**: `CastleInteriorBuilder.cs` — 48×36 성 내부를 중앙 팔각 로비 + 침실/제작소/창고/막사/연금술실(남서·남동) 5방 + 남쪽 입구 6m 현관 + 잠긴 4문(집무실/금고실/무기고/문서고)로 재구성. 가구는 `IndoorFurnitureCatalog`(기존 GLB 카탈로그)만 배치 — 임의 프리미티브 증가 없음(설계도 원칙).
+> - **no-frame UI(3~4)**: `UTKWindowBase.cs`에 `UTKWindowChrome{Standard,Frameless}` + `IsFrameless` 추가, frameless 時 표준 타이틀바 숨김·패널 크롬·사용자 지정 드래그 핸들. `UTKThreeColumnLayout.cs`에 독립 최상위 창 배치 헬퍼(`Place`/`PlaceAt`/`Center`/`RootWidth/Height`)와 창 내부 `CreateResponsiveColumns` 3열 로그. `UTKTheme.cs`에 `ApplyWindowChrome` 공용 크롬 + `UTKWindowChrome` enum.
+> - **컴파일 봉합**: 재개 중 `UTKThreeColumnLayout.ResponsiveColumns` 생성자가 `private`인데 바깥 팩토리 `CreateResponsiveColumns`가 `new`로 호출 → CS0122 3건. **생성자를 `public`으로 수리.** (직전 시도에서 `UTKWindowBase`의 `Chrome/ApplyChrome` 미정의 CS0103은 파일이 쓰여지는 중 읽혀 나온 일시적 상태였고, 최신 트리에선 0건.)
+> - **Compile**: 2026-09-30 재개 후 최신 트리 `./compile_test.sh` 성공 — `error CS 0`, `CompileScripts: 24979ms`, `Exiting batchmode successfully now!`, `Tundra build failed` 0. 모든 미커밋(가스/패링/RTS 포함)이 함께 깨끗하게 컴파일.
+> - **EditMode**: 2026-09-30 재개 후 **345/343 통과, 2건 실패**. 실패 2건은 **기존 알려진 요리 데이터 계약 문제**만(`CookingDatabase_AllRecipes_Loaded` 760≠2024, `FindRecipe_UnknownCombo_ReturnsNull`) — 실내/UI/회귀 아님. 신규 회귀 0.
+> - **Play**: 미실행. 영주 성 실내(중앙 로비 + 5방 + 잠긴 문) 및 frameless 창 표시는 에디터 Play 검증 대기.
 >
 > - **구현 반영**: 패링의 무기중립 피해 흡수 및 시스템 피해 제외, 패링 중 후속 근접/활 입력 대기, 플레이어 로컬 슬로우를 반영. RTS 우클릭 명령의 카메라 재획득·자식 콜라이더 대상 판정과 선택 UI(Toolkit 오버레이/IMGUI fallback)를 반영. 화살 사거리 공유 모델·수명 정리·발사/조준 정렬 변경도 반영.
 > - **Compile**: 2026-09-30 최신 작업 트리의 Unity 컴파일 성공을 확인.

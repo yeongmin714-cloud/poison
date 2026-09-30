@@ -1,58 +1,247 @@
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace ProjectName.UI.Toolkit
 {
     /// <summary>
-    /// P12 — 인벤/설명/창고 화면 3분할 레이아웃 (UIRoot 폭 기준).
-    /// 기존 고정 px 배치(16/596/1044)는 패널 스케일·해상도가 바뀌면 분할이 깨졌다.
-    /// UIRoot resolved 폭을 3등분해 각 창에 컬럼 폭/위치를 배정한다.
-    ///   좌 1/3 = InventoryWindowUTK, 중 1/3 = ItemDescriptionWindowUTK, 우 1/3 = WarehouseWindowUTK.
+    /// Placement helpers for independent top-level windows, plus an opt-in responsive
+    /// three-column composite layout for content hosted inside a single window.
+    /// These two patterns are deliberately separate: Place positions sibling windows;
+    /// CreateResponsiveColumns creates ordinary panels inside one window's Content.
     /// </summary>
     public static class UTKThreeColumnLayout
     {
-        public const float TopMargin = 96f;   // 기존 관례 유지(핫바/상단 HUD 회피)
+        public const float TopMargin = 96f;
+        public const float DefaultColumnGap = 12f;
+        public const float DefaultStackBreakpoint = 900f;
+        private const float FallbackWidth = 1920f;
+        private const float FallbackHeight = 1080f;
+        private static readonly ConditionalWeakTable<VisualElement, RequestedWidth> RequestedWidths =
+            new ConditionalWeakTable<VisualElement, RequestedWidth>();
 
-        /// <summary>UIRoot 폭 (실패 시 1920 폴백).</summary>
-        public static float RootWidth
+        private sealed class RequestedWidth
         {
-            get
+            public readonly float Value;
+            public bool IsClamped;
+
+            public RequestedWidth(float value)
             {
-                var root = UIToolkitBootstrap.UIRoot;
-                float w = root != null ? root.resolvedStyle.width : 0f;
-                return w > 0f ? w : 1920f;
+                Value = value;
             }
         }
 
-        public static float RootHeight
+        /// <summary>UIRoot resolved width (1920 fallback before layout resolves).</summary>
+        public static float RootWidth => ReadRootDimension(true);
+
+        /// <summary>UIRoot resolved height (1080 fallback before layout resolves).</summary>
+        public static float RootHeight => ReadRootDimension(false);
+
+        private static float ReadRootDimension(bool width)
         {
-            get
-            {
-                var root = UIToolkitBootstrap.UIRoot;
-                float h = root != null ? root.resolvedStyle.height : 0f;
-                return h > 0f ? h : 1080f;
-            }
+            var root = UIToolkitBootstrap.UIRoot;
+            float value = root != null
+                ? (width ? root.resolvedStyle.width : root.resolvedStyle.height)
+                : 0f;
+            return value > 0f ? value : (width ? FallbackWidth : FallbackHeight);
         }
 
-        /// <summary>컬럼 인덱스(0=좌/1=중/2=우)의 x 좌표 + 컬럼 내부 폭.</summary>
+        /// <summary>Legacy three-sibling-window column geometry (0=left, 1=center, 2=right).</summary>
         public static void GetColumn(int index, out float x, out float width)
         {
-            float w = RootWidth / 3f;
-            x = w * index;
-            width = w - 16f;   // 컬럼 간 16px 여백
+            int safeIndex = Mathf.Clamp(index, 0, 2);
+            float columnWidth = RootWidth / 3f;
+            x = columnWidth * safeIndex;
+            width = Mathf.Max(0f, columnWidth - 16f);
         }
 
-        /// <summary>창을 컬럼에 정렬 (폭이 컬럼보다 크면 좌측 정렬 유지).</summary>
+        /// <summary>
+        /// Positions an independent top-level window in one of the three root columns.
+        /// This does not create a composite layout; each window remains independently draggable.
+        /// </summary>
         public static void Place(VisualElement win, int index)
         {
             if (win == null) return;
-            GetColumn(index, out float x, out float colW);
-            win.style.left = x + 8f;                 // 컬럼 좌측 8px 인셋
+            GetColumn(index, out float x, out float columnWidth);
+            win.style.position = Position.Absolute;
+            win.style.left = x + 8f;
             win.style.top = TopMargin;
-            float winW = win.resolvedStyle.width;
-            if (winW <= 0f && win.style.width != null) winW = win.style.width.value.value;
-            if (winW > 0f && winW > colW)
-                win.style.width = colW;              // 컬럼 초과 시 컬럼 폭으로 수축
+            win.style.right = StyleKeyword.Auto;
+            win.style.bottom = StyleKeyword.Auto;
+            if (!RequestedWidths.TryGetValue(win, out RequestedWidth requestedWidth))
+            {
+                float initialWidth;
+                if (win.style.width != null && win.style.width.value.unit == Length.Unit.Pixel)
+                {
+                    initialWidth = win.style.width.value.value;
+                }
+                else if (win.style.width == null)
+                {
+                    initialWidth = win.resolvedStyle.width;
+                }
+                else
+                {
+                    float currentWidth = win.resolvedStyle.width;
+                    if (currentWidth <= 0f)
+                        currentWidth = win.style.width.value.value;
+                    if (currentWidth > columnWidth && columnWidth > 0f)
+                        win.style.width = columnWidth;
+                    return;
+                }
+
+                if (initialWidth <= 0f)
+                    return;
+
+                requestedWidth = new RequestedWidth(initialWidth);
+                RequestedWidths.Add(win, requestedWidth);
+            }
+
+            if (columnWidth > 0f && requestedWidth.Value > columnWidth)
+            {
+                win.style.width = columnWidth;
+                requestedWidth.IsClamped = true;
+            }
+            else if (requestedWidth.IsClamped)
+            {
+                win.style.width = requestedWidth.Value;
+                requestedWidth.IsClamped = false;
+            }
+        }
+
+        /// <summary>Positions an independent window at an explicit root-local location.</summary>
+        public static void PlaceAt(VisualElement win, Vector2 position)
+        {
+            if (win == null) return;
+            win.style.position = Position.Absolute;
+            win.style.left = position.x;
+            win.style.top = position.y;
+            win.style.right = StyleKeyword.Auto;
+            win.style.bottom = StyleKeyword.Auto;
+        }
+
+        /// <summary>Centers an independent window in the current root (placement can be refreshed).</summary>
+        public static void Center(VisualElement win, float topOffset = TopMargin)
+        {
+            if (win == null) return;
+            float width = win.resolvedStyle.width;
+            if (width <= 0f && win.style.width != null)
+                width = win.style.width.value.value;
+            PlaceAt(win, new Vector2(Mathf.Max(0f, (RootWidth - width) * 0.5f), topOffset));
+        }
+
+        /// <summary>
+        /// Creates three themed columns within a single window/content element. The columns
+        /// lay out in a row when there is room and stack vertically below the breakpoint.
+        /// </summary>
+        public static ResponsiveColumns CreateResponsiveColumns(
+            VisualElement host,
+            float gap = DefaultColumnGap,
+            float stackBreakpoint = DefaultStackBreakpoint)
+        {
+            return new ResponsiveColumns(host, gap, stackBreakpoint);
+        }
+
+        /// <summary>Live columns created by CreateResponsiveColumns.</summary>
+        public sealed class ResponsiveColumns
+        {
+            private readonly VisualElement _host;
+            private readonly VisualElement _container;
+            private readonly VisualElement[] _columns;
+            private readonly float _gap;
+            private readonly float _stackBreakpoint;
+
+            public VisualElement Container => _container;
+            public VisualElement Left => _columns[0];
+            public VisualElement Center => _columns[1];
+            public VisualElement Right => _columns[2];
+            public VisualElement this[int index] => _columns[Mathf.Clamp(index, 0, 2)];
+
+            public ResponsiveColumns(VisualElement host, float gap, float stackBreakpoint)
+            {
+                _host = host;
+                _gap = Mathf.Max(0f, gap);
+                _stackBreakpoint = Mathf.Max(0f, stackBreakpoint);
+                _columns = new VisualElement[3];
+                _container = new VisualElement { name = "UTKThreeColumnContainer" };
+                _container.AddToClassList("utk-three-column-layout");
+                _container.style.flexGrow = 1f;
+                _container.style.flexShrink = 1f;
+                _container.style.flexDirection = FlexDirection.Row;
+                _container.style.alignItems = Align.Stretch;
+                _container.style.minWidth = 0f;
+
+                for (int i = 0; i < _columns.Length; i++)
+                {
+                    var column = UTKTheme.CreatePanel("UTKColumn" + (i + 1));
+                    column.AddToClassList("utk-column");
+                    column.style.flexGrow = 1f;
+                    column.style.flexShrink = 1f;
+                    column.style.flexBasis = 0f;
+                    column.style.minWidth = 0f;
+                    if (i > 0)
+                        column.style.marginLeft = _gap;
+                    _columns[i] = column;
+                    _container.Add(column);
+                }
+
+                if (_host != null)
+                {
+                    _host.Add(_container);
+                    _host.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+                }
+                var root = UIToolkitBootstrap.UIRoot;
+                if (root != null)
+                    root.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+                UpdateDirection(AvailableWidth());
+            }
+
+            /// <summary>Stops responsive callbacks and removes this layout from its host.</summary>
+            public void Dispose()
+            {
+                if (_host != null)
+                {
+                    _host.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+                    if (_container.parent == _host)
+                        _host.Remove(_container);
+                }
+                var root = UIToolkitBootstrap.UIRoot;
+                if (root != null)
+                    root.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+
+            private void OnGeometryChanged(GeometryChangedEvent evt)
+            {
+                UpdateDirection(AvailableWidth());
+            }
+
+            private float AvailableWidth()
+            {
+                if (_host != null && _host.resolvedStyle.width > 0f)
+                    return _host.resolvedStyle.width;
+                return RootWidth;
+            }
+
+            private void UpdateDirection(float width)
+            {
+                bool stacked = width < _stackBreakpoint;
+                _container.style.flexDirection = stacked ? FlexDirection.Column : FlexDirection.Row;
+                for (int i = 0; i < _columns.Length; i++)
+                {
+                    var column = _columns[i];
+                    if (stacked)
+                    {
+                        column.style.flexBasis = StyleKeyword.Auto;
+                        column.style.width = StyleKeyword.Auto;
+                    }
+                    else
+                    {
+                        column.style.flexBasis = 0f;
+                        column.style.width = StyleKeyword.Null;
+                    }
+                    column.style.marginLeft = stacked || i == 0 ? 0f : _gap;
+                    column.style.marginTop = stacked && i > 0 ? _gap : 0f;
+                }
+            }
         }
     }
 }

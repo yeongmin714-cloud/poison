@@ -1,61 +1,135 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace ProjectName.UI.Toolkit
 {
     /// <summary>
-    /// 공용 Fluent/GitHub-dark 디자인 토큰 팔레트 (2026-09-28 전면 통일).
-    ///
-    /// 기준: 기존 18종 Figma 창이 각자 인라인으로 정의하던 GitHubDark 팔레트를
-    /// 중앙화한 것. 기존 창의 인라인 GitHubDark는 그대로 두고(회귀 0),
-    /// 미통일(하드코딩) 창들이 이 토큰을 참조해 분위기를 전면 통일한다.
-    ///
-    /// 그래서 2026-09-28 전환 작업 전까지 존재하던 모든 UTK 창의 기준 팔레트는
-    /// 이 클래스가 단일 소스가 된다.
+    /// Shared GitHub-dark / Fluent design tokens and small UI Toolkit styling helpers.
+    /// Existing windows can continue to use Theme.uss; helpers here are opt-in for new
+    /// panels and incremental window migrations.
     /// </summary>
     public static class UTKTheme
     {
-        // ===== GitHub-dark / Fluent dark 토큰 (F-UI 2026-09-23 확정) =====
-
-        /// <summary>최배경 (화면 밖/딤드). #0B0E14</summary>
+        // ===== GitHub-dark / Fluent dark tokens =====
+        /// <summary>Screen/backdrop base. #0B0E14</summary>
         public static readonly Color BgBase = Hex(0x0B0E14);
-        /// <summary>창 본체 패널. #161B22</summary>
+        /// <summary>Main panel. #161B22</summary>
         public static readonly Color Panel = Hex(0x161B22);
-        /// <summary>보조 패널(타이틀바/카드/행). #21262D</summary>
+        /// <summary>Secondary panel/title/card. #21262D</summary>
         public static readonly Color PanelSub = Hex(0x21262D);
-        /// <summary>강조(액센트). #58A6FF</summary>
+        /// <summary>Accent. #58A6FF</summary>
         public static readonly Color Accent = Hex(0x58A6FF);
-        /// <summary>희귀/활성/골드. #E3B341</summary>
+        /// <summary>Rare/active/gold. #E3B341</summary>
         public static readonly Color Gold = Hex(0xE3B341);
-        /// <summary>기본 텍스트. #F0F6FC</summary>
+        /// <summary>Primary text. #F0F6FC</summary>
         public static readonly Color TextMain = Hex(0xF0F6FC);
-        /// <summary>보조 텍스트. #8B949E</summary>
+        /// <summary>Secondary text. #8B949E</summary>
         public static readonly Color TextSub = Hex(0x8B949E);
-        /// <summary>테두리/구분선. #2E343D</summary>
+        /// <summary>Border/divider. #2E343D</summary>
         public static readonly Color Stroke = Hex(0x2E343D);
-        /// <summary>danger 레드(GitHub-dark). #F85149</summary>
+        /// <summary>Danger. #F85149</summary>
         public static readonly Color Danger = Hex(0xF85149);
-        /// <summary>success 그린(회복/체력). #3FB950</summary>
+        /// <summary>Success. #3FB950</summary>
         public static readonly Color Success = Hex(0x3FB950);
-        /// <summary>attention 옐로(경고). #D29922</summary>
+        /// <summary>Warning. #D29922</summary>
         public static readonly Color Warn = Hex(0xD29922);
-
-        /// <summary>danger hover. #DA3633</summary>
         public static readonly Color DangerHover = Hex(0xDA3633);
-        /// <summary>accent hover. #79C0FF</summary>
         public static readonly Color AccentHover = Hex(0x79C0FF);
-        /// <summary>success hover. #57AB5A</summary>
         public static readonly Color SuccessHover = Hex(0x57AB5A);
 
-        /// <summary>모서리 반경 — 메인 패널.</summary>
         public const int RadiusMain = 8;
-        /// <summary>모서리 반경 — 서브 패널/카드.</summary>
         public const int RadiusSub = 6;
-        /// <summary>모서리 반경 — 배지/칩.</summary>
         public const int RadiusBadge = 4;
+        public const float PanelBorderWidth = 1f;
+        public const float PanelPadding = 10f;
+
+        /// <summary>
+        /// Creates a consistently styled panel suitable for cards and composite layouts.
+        /// Use ApplyPanelStyle when styling an existing VisualElement instead.
+        /// </summary>
+        public static VisualElement CreatePanel(string name = null, bool secondary = false)
+        {
+            var panel = new VisualElement();
+            if (!string.IsNullOrEmpty(name))
+                panel.name = name;
+            panel.AddToClassList("utk-panel");
+            if (secondary)
+                panel.AddToClassList("utk-panel-sub");
+            ApplyPanelStyle(panel, secondary);
+            return panel;
+        }
+
+        /// <summary>Applies shared panel tokens without requiring a stylesheet class.</summary>
+        public static void ApplyPanelStyle(VisualElement panel, bool secondary = false)
+        {
+            if (panel == null)
+                return;
+
+            Color fill = secondary ? PanelSub : Panel;
+            panel.style.backgroundColor = new StyleColor(fill);
+            panel.style.color = new StyleColor(TextMain);
+            panel.style.borderTopWidth = PanelBorderWidth;
+            panel.style.borderBottomWidth = PanelBorderWidth;
+            panel.style.borderLeftWidth = PanelBorderWidth;
+            panel.style.borderRightWidth = PanelBorderWidth;
+            panel.style.borderTopColor = new StyleColor(Stroke);
+            panel.style.borderBottomColor = new StyleColor(Stroke);
+            panel.style.borderLeftColor = new StyleColor(Stroke);
+            panel.style.borderRightColor = new StyleColor(Stroke);
+            panel.style.borderTopLeftRadius = secondary ? RadiusSub : RadiusMain;
+            panel.style.borderTopRightRadius = secondary ? RadiusSub : RadiusMain;
+            panel.style.borderBottomLeftRadius = secondary ? RadiusSub : RadiusMain;
+            panel.style.borderBottomRightRadius = secondary ? RadiusSub : RadiusMain;
+            panel.style.paddingLeft = PanelPadding;
+            panel.style.paddingRight = PanelPadding;
+            panel.style.paddingTop = PanelPadding;
+            panel.style.paddingBottom = PanelPadding;
+        }
+
+        /// <summary>Shared theme chrome for windows explicitly opting into code styling.</summary>
+        public static void ApplyWindowChrome(VisualElement window, VisualElement titleBar, VisualElement content)
+        {
+            if (window == null)
+                return;
+
+            window.style.backgroundColor = new StyleColor(Panel);
+            window.style.color = new StyleColor(TextMain);
+            window.style.borderTopWidth = PanelBorderWidth;
+            window.style.borderBottomWidth = PanelBorderWidth;
+            window.style.borderLeftWidth = PanelBorderWidth;
+            window.style.borderRightWidth = PanelBorderWidth;
+            window.style.borderTopColor = new StyleColor(Stroke);
+            window.style.borderBottomColor = new StyleColor(Stroke);
+            window.style.borderLeftColor = new StyleColor(Stroke);
+            window.style.borderRightColor = new StyleColor(Stroke);
+            window.style.borderTopLeftRadius = RadiusMain;
+            window.style.borderTopRightRadius = RadiusMain;
+            window.style.borderBottomLeftRadius = RadiusMain;
+            window.style.borderBottomRightRadius = RadiusMain;
+
+            if (titleBar != null)
+            {
+                titleBar.style.backgroundColor = new StyleColor(PanelSub);
+                titleBar.style.borderBottomWidth = PanelBorderWidth;
+                titleBar.style.borderBottomColor = new StyleColor(Stroke);
+            }
+            if (content != null)
+                content.style.color = new StyleColor(TextMain);
+        }
 
         private static Color Hex(uint rgb)
         {
             return new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
         }
+    }
+}
+
+namespace ProjectName.UI.Toolkit
+{
+    /// <summary>Window presentation mode. Standard preserves the established Theme.uss chrome.</summary>
+    public enum UTKWindowChrome
+    {
+        Standard,
+        Frameless
     }
 }
