@@ -62,75 +62,39 @@ namespace ProjectName.UI.Toolkit
         private const int Columns = 5;   // 가방 그리드 행당 칸 수 — Figma 규격 5열
         private const long RefreshMs = 250L;
 
-        // =====================================================================
-        //  [Figma GitHub-dark 리스타일] 인벤 시각 스펙 — 기능 무수정, 이 창 한정 인라인 오버라이드.
-        //  Theme.uss / 공용 UTKSlot·UTKWindowBase·타 UTK 창은 절대 수정하지 않는다.
-        //  우드/양피지 배경 이미지 제거 → 다크 #161B22 패널 + 보조 #21262D + 스트로크 #2E343D.
-        //  =====================================================================
-        private static class GitHubDark
+        // Epic은 공유 테마의 토큰이 아닌 의미론적 등급색으로 유지한다.
+        private static readonly Color RankEpicColor = new Color32(0xA3, 0x71, 0xF7, 0xFF);
+
+        /// <summary>공유 UTKTheme 크롬 + 인벤 창의 기존 닫기 버튼 세부 스타일.</summary>
+        private void ApplyInventoryWindowStyle()
         {
-            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경 — 슬롯 인셋 바닥
-            public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
-            public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(타이틀바/닫기버튼)
-            public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트) — 호버
-            public static readonly Color Gold     = Hex(0xE3B341);   // 희귀/활성/골드
-            public static readonly Color TextMain = Hex(0xF0F6FC);   // 기본 텍스트
-            public static readonly Color TextSub  = Hex(0x8B949E);   // 보조 텍스트
-            public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/슬롯 stroke
-
-            // 레어도 링 — GitHub-dark 팔레트 정렬(epic은 프라이머 퍼플 #A371F7)
-            public static readonly Color RankCommon    = TextSub;
-            public static readonly Color RankBlue      = Accent;
-            public static readonly Color RankEpic      = Hex(0xA371F7);
-            public static readonly Color RankLegendary = Gold;
-            public static readonly Color RankUnique    = Gold;
-
-            private static Color Hex(uint rgb) =>
-                new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
-        }
-
-        /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
-        private void ApplyGitHubDarkWindowStyle()
-        {
-            // 창 본체: bg_window.png/브론즈 베벨 2px → 다크 패널 + 1px 스트로크 + r8 (이 창에서만)
-            style.backgroundColor = GitHubDark.Panel;
-            style.backgroundImage = new StyleBackground(StyleKeyword.None);
-            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
-            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
-            style.borderTopLeftRadius = 8f;
-            style.borderTopRightRadius = 8f;
-            style.borderBottomLeftRadius = 8f;
-            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
-            style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
-
-            // 타이틀 바: 보조 패널 #21262D + 하단 1px 스트로크 (상단 코너 r8 — 창 클리핑 정합)
             var titleBar = this.Q("TitleBar");
+            UTKTheme.ApplyWindowChrome(this, titleBar, _content);
+
+            // 이 창은 standalone 표준 크롬 창이며, 베이크된 우드 패널 이미지만 사용하지 않는다.
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
             if (titleBar != null)
             {
-                titleBar.style.backgroundColor = GitHubDark.PanelSub;
-                titleBar.style.borderTopLeftRadius = 8f;
-                titleBar.style.borderTopRightRadius = 8f;
-                titleBar.style.borderBottomWidth = 1f;
-                titleBar.style.borderBottomColor = GitHubDark.Stroke;
+                titleBar.style.borderTopLeftRadius = UTKTheme.RadiusMain;
+                titleBar.style.borderTopRightRadius = UTKTheme.RadiusMain;
             }
 
-            // 타이틀 라벨: 기본 텍스트
             if (_titleLabel != null)
-                _titleLabel.style.color = GitHubDark.TextMain;
+                _titleLabel.style.color = new StyleColor(UTKTheme.TextMain);
 
-            // 닫기 버튼: 보조 패널 바탕 + 스트로크 + r4(작은배지). 베이크 텍스처 미사용 — 기본 ✕ 텍스트 유지.
+            // 닫기 버튼: 보조 패널 바탕 + r4. 기본 ✕ 텍스트 유지.
             var closeBtn = this.Q<Button>("CloseButton");
             if (closeBtn != null)
             {
                 closeBtn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
-                closeBtn.style.backgroundColor = GitHubDark.PanelSub;
+                closeBtn.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
                 closeBtn.style.borderTopWidth = closeBtn.style.borderBottomWidth = closeBtn.style.borderLeftWidth = closeBtn.style.borderRightWidth = 0f;
-                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(GitHubDark.PanelSub);
-                closeBtn.style.borderTopLeftRadius = 4f;
-                closeBtn.style.borderTopRightRadius = 4f;
-                closeBtn.style.borderBottomLeftRadius = 4f;
-                closeBtn.style.borderBottomRightRadius = 4f;            // 작은배지 r4
-                closeBtn.style.color = GitHubDark.TextMain;
+                closeBtn.style.borderTopColor = closeBtn.style.borderBottomColor = closeBtn.style.borderLeftColor = closeBtn.style.borderRightColor = new StyleColor(UTKTheme.PanelSub);
+                closeBtn.style.borderTopLeftRadius = UTKTheme.RadiusBadge;
+                closeBtn.style.borderTopRightRadius = UTKTheme.RadiusBadge;
+                closeBtn.style.borderBottomLeftRadius = UTKTheme.RadiusBadge;
+                closeBtn.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+                closeBtn.style.color = new StyleColor(UTKTheme.TextMain);
             }
         }
 
@@ -140,18 +104,18 @@ namespace ProjectName.UI.Toolkit
         {
             if (slot == null) return;
             slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);   // 우드 베이크 이미지 제거
-            slot.style.backgroundColor = GitHubDark.BgBase;                        // 인셋 다크 바닥 #0B0E14
+            slot.style.backgroundColor = new StyleColor(UTKTheme.BgBase);            // 인셋 다크 바닥
             slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = 1f;
-            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            slot.style.borderTopLeftRadius = 6f;
-            slot.style.borderTopRightRadius = 6f;
-            slot.style.borderBottomLeftRadius = 6f;
-            slot.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            slot.style.borderTopLeftRadius = UTKTheme.RadiusSub;
+            slot.style.borderTopRightRadius = UTKTheme.RadiusSub;
+            slot.style.borderBottomLeftRadius = UTKTheme.RadiusSub;
+            slot.style.borderBottomRightRadius = UTKTheme.RadiusSub;
             var countLabel = slot.Q<Label>("Count");
-            if (countLabel != null) countLabel.style.color = GitHubDark.TextMain;
+            if (countLabel != null) countLabel.style.color = new StyleColor(UTKTheme.TextMain);
 
             // 호버 강조(시각만): 진입=액센트 테두리, 이탈=현재 등급색 복원(userData 경유 — 등급 갱신 추적)
-            slot.RegisterCallback<PointerEnterEvent>(_ => SetBorderColorAll(slot, GitHubDark.Accent));
+            slot.RegisterCallback<PointerEnterEvent>(_ => SetBorderColorAll(slot, UTKTheme.Accent));
             slot.RegisterCallback<PointerLeaveEvent>(_ =>
             {
                 var rank = RankColor(slot.userData is int i ? i : 0);
@@ -190,17 +154,17 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
-        /// <summary>GitHub-dark 레어도 팔레트 — 희귀/전설/유니크는 금색 #E3B341로 통일.</summary>
+        /// <summary>공유 토큰 기반 레어도 팔레트 — Epic 퍼플은 의미론적 색상으로 유지.</summary>
         private static Color? RankColor(int rarityIndex)
         {
             switch (rarityIndex)
             {
-                case 0: return GitHubDark.RankCommon;     // common — 보조그레이 #8B949E
+                case 0: return UTKTheme.TextSub;          // common — 보조그레이
                 case 1:
-                case 2: return GitHubDark.RankBlue;       // uncommon/rare — 액센트 #58A6FF
-                case 3: return GitHubDark.RankEpic;       // epic — 퍼플 #A371F7
+                case 2: return UTKTheme.Accent;           // uncommon/rare — 액센트
+                case 3: return RankEpicColor;             // epic — 의미론적 퍼플 #A371F7
                 case 4:
-                case 5: return GitHubDark.RankLegendary;  // legendary/unique — 금색 #E3B341
+                case 5: return UTKTheme.Gold;             // legendary/unique — 금색
                 default: return null;                     // 범위 밖 — Theme 기본 유지
             }
         }
@@ -257,7 +221,7 @@ namespace ProjectName.UI.Toolkit
 
             var equipTitle = new Label("장비");
             equipTitle.style.fontSize = 17f;
-            equipTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 라벨 기본 텍스트
+            equipTitle.style.color = new StyleColor(UTKTheme.TextMain);
             equipTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             leftCol.Add(equipTitle);
 
@@ -271,7 +235,7 @@ namespace ProjectName.UI.Toolkit
 
             var bagTitle = new Label("가방");
             bagTitle.style.fontSize = 17f;
-            bagTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 라벨 기본 텍스트
+            bagTitle.style.color = new StyleColor(UTKTheme.TextMain);
             bagTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             leftCol.Add(bagTitle);
 
@@ -285,7 +249,7 @@ namespace ProjectName.UI.Toolkit
 
             _selectedLabel = new Label("");
             _selectedLabel.style.fontSize = 13f;
-            _selectedLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 수치/설명 보조 텍스트
+            _selectedLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _selectedLabel.style.whiteSpace = WhiteSpace.Normal;
             _selectedLabel.style.marginTop = 4f;
             leftCol.Add(_selectedLabel);
@@ -294,8 +258,8 @@ namespace ProjectName.UI.Toolkit
 
             ApplyUIToolkitFont(this);
 
-            // [Figma GitHub-dark 리스타일] 다크 창 크롬 — 시각 전용, 기능 경로 무관(테스트 범위: 이 창 한정)
-            ApplyGitHubDarkWindowStyle();
+            // [Figma GitHub-dark 리스타일] 공유 UTKTheme 크롬 — 시각 전용.
+            ApplyInventoryWindowStyle();
 
             // 윈도우 자체 = ②Loot 수령 / ③패널 위 인벤 취소 타겟 (슬롯보다 하위 우선).
             UTKDragDrop.RegisterDropTarget(this, this);
