@@ -1,5 +1,14 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
+> **2026-09-30 Figma 슬롯 크기·간격·정렬 정합 (사용자 확정 "슬롯 크기/배치/정렬까지 같아야") — 커밋 `f332e645`**
+>
+> - **Figma 실측**: `fluent-game-inventory-ui`(15:4)/`loot-panel`(70:4)에서 슬롯 셀 **68×68**, 그리드 gap **8**, 장비 gap **4**, 콘텐츠 패딩 **20**, 아이콘 32×32, 카운트 14px, 등급선 = 슬롯 상단 68×3 확인.
+> - **정합**: `InventoryWindowUTK` 슬롯 64→68·장비 44→68·gap 8·패딩 20·창 560×700→**420×760** / `WarehouseWindowUTK` 슬롯 52→68·gap 8·패딩 20·창→**760** / `LootWindowUTK` 슬롯 64→68·gap 6→8·아이콘 중앙 32×32·카운트 12→14. 드래그드롭/우클릭 로직 보존.
+> - **컴파일 봉합**: `UTKThreeColumnLayout.cs`에서 `Length.Unit`(존재하지 않는 타입) → **`LengthUnit` enum**으로 수리 (인벤 420 폭 축소가 3열 배치를 호출하며 기존 backlog 표면화). ⚠ 이 파일은 다른 세션 미커밋(+19/-2 창 폭 클램프)과 섞여 있어 **커밋 제외, 작업 트리 유지**.
+> - **Compile**: `error CS 0`, `Exiting batchmode successfully now!` ✅
+> - **EditMode**: **345/340, 5건 실패**. 기존 요리 데이터 2건 + **신규 3건은 다른 세션 미커밋 소유**(`PlayerCombat.cs` attack-streak, `Theme.uss` bg_window 제거) — 본 Figma 정합과 무관.
+> - **Play**: 미실행. 인벤/창고/전리품 68×68 슬롯·gap 8·패딩 20 실측은 에디터 Play 대기.
+
 > **2026-09-30 계획 재개 — 영주 실내 확장 + no-frame UI 레이어 (컴파일/EditMode 확인, Play 대기)**
 >
 > - **재개 대상 계획**: "영주 실내 확장 및 Figma UI 전면 정합" (Screenshots/실내 영주씬 예시 설계도.png 기준). 1~2단계(실내)와 3~4단계(no-frame 크롬 레이어)가 작업 트리에 이미 반영돼 있어 이를 검증·봉합.
