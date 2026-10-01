@@ -30,7 +30,9 @@ namespace ProjectName.Systems
             NPC,         // 대화가능 NPC(NpcQuestGiver/NPCAmbientDialogue, 병사·몬스터 아닌 캐릭터) — 대화(말풍선)
             Door,        // LockedDoor(부모 체인 포함) — 열쇠
             Cook,        // 요리 스테이션(ProjectName.UI.CookingStation 계열, 리플렉션 판정) — 불
-            Shop         // 상점(ProjectName.UI.ShopPlaceholder, 리플렉션 판정) — 돈
+            Shop,        // 상점 건물(ProjectName.UI.ShopPlaceholder, 리플렉션 판정) — 돈
+            ShopNPC,     // 상점 NPC
+            Lord         // 영주
         }
 
         private const float MaxDistance = 200f;
@@ -44,6 +46,8 @@ namespace ProjectName.Systems
             System.Type.GetType("ProjectName.UI.CookingBench, ProjectName.UI");
         private static readonly System.Type ShopType =
             System.Type.GetType("ProjectName.UI.ShopPlaceholder, ProjectName.UI");
+        private static readonly System.Type TerritoryNpcType =
+            System.Type.GetType("ProjectName.UI.TerritoryNPCBehaviour, ProjectName.UI");
 
         /// <summary>
         /// 가장 가까운(레이 순서) 의미 있는 대상 종류를 반환.
@@ -116,12 +120,22 @@ namespace ProjectName.Systems
             var guard = go.GetComponentInParent<GuardPlaceholder>();
             if (guard != null) return guard.IsRecruited ? TargetKind.Ally : TargetKind.EnemyGuard;
 
-            // 6) NPC — 대화가능 마커(병사/몬스터 아닌 캐릭터). 마을 주민(NpcQuestGiver) 등.
+            // 6) Lord — Lord 계열 태그/컴포넌트는 Enemy 태그 폴백보다 먼저 판정.
+            if (tag == "Lord" || tag == "DraculaLord"
+                || go.GetComponentInParent<DraculaLord>() != null
+                || go.GetComponentInParent<LordFeedTarget>() != null)
+                return TargetKind.Lord;
+
+            // 7) NPC — 상점 여부를 먼저 확인하고, 비상점은 기존 대화 마커 경로를 유지.
+            //    TerritoryNPCBehaviour는 UI 어셈블리 타입이므로 리플렉션으로 부모 체인을 검색.
+            bool hasTerritoryNpc = GetComponentInParentUi(go, TerritoryNpcType);
+            if (hasTerritoryNpc && IsShopTerritoryNpc(go)) return TargetKind.ShopNPC;
             if (go.GetComponentInParent<NpcQuestGiver>() != null
-                || go.GetComponentInParent<NPCAmbientDialogue>() != null)
+                || go.GetComponentInParent<NPCAmbientDialogue>() != null
+                || hasTerritoryNpc)
                 return TargetKind.NPC;
 
-            // 7) (폴백) 적 태그 — AnimalAI/GuardPlaceholder 없는 태그 적(보스/드라큘라 등).
+            // 8) (폴백) 적 태그 — AnimalAI/GuardPlaceholder 없는 태그 적(보스/드라큘라 등).
             //    기존 Enemy 경로 유지 — ContextCommandRouter의 공격 폴백 스위치와 호환.
             if (IsEnemyTag(tag)) return TargetKind.Enemy;
 
@@ -143,6 +157,39 @@ namespace ProjectName.Systems
         private static bool GetComponentInParentUi(GameObject go, System.Type uiType)
         {
             return uiType != null && go.GetComponentInParent(uiType) != null;
+        }
+
+        /// <summary>TerritoryNPCBehaviour와 해당 NPCData에서 상점 플래그를 리플렉션으로 확인.</summary>
+        private static bool IsShopTerritoryNpc(GameObject go)
+        {
+            if (TerritoryNpcType == null) return false;
+            Component component = go.GetComponentInParent(TerritoryNpcType);
+            if (component == null) return false;
+
+            const System.Reflection.BindingFlags flags =
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public
+                | System.Reflection.BindingFlags.NonPublic;
+            System.Type componentType = component.GetType();
+            var isShopProperty = componentType.GetProperty("IsShopNPC", flags);
+            if (isShopProperty != null && isShopProperty.PropertyType == typeof(bool)
+                && (bool)isShopProperty.GetValue(component, null))
+                return true;
+
+            var npcDataProperty = componentType.GetProperty("NPCData", flags);
+            if (npcDataProperty == null) return false;
+            object npcData = npcDataProperty.GetValue(component, null);
+            if (npcData == null) return false;
+
+            System.Type npcDataType = npcData.GetType();
+            var shopFlagProperty = npcDataType.GetProperty("isShopNPC", flags)
+                ?? npcDataType.GetProperty("IsShopNPC", flags);
+            if (shopFlagProperty != null && shopFlagProperty.PropertyType == typeof(bool))
+                return (bool)shopFlagProperty.GetValue(npcData, null);
+
+            var shopFlagField = npcDataType.GetField("isShopNPC", flags)
+                ?? npcDataType.GetField("IsShopNPC", flags);
+            return shopFlagField != null && shopFlagField.FieldType == typeof(bool)
+                && (bool)shopFlagField.GetValue(npcData);
         }
 
         private static bool IsEnemyTag(string tag)
