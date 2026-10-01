@@ -21,8 +21,8 @@ namespace ProjectName.UI.Toolkit
         private static HarvestResultUTK _instance;
         private static Updater _updater;
 
-        private const float WinW = 500f;
-        private const float WinH = 620f;
+        private const float WinW = 480f;   // [Figma 72:17] ResultPanel 480×716/718/746 (낚시 기준 공용)
+        private const float WinH = 718f;
         private const long TickMs = 16L;
 
         // ===== GitHub-dark 팔레트 (F-UI 표준, 이 창 한정) =====
@@ -97,15 +97,15 @@ namespace ProjectName.UI.Toolkit
             panel.style.borderTopColor = panel.style.borderBottomColor = panel.style.borderLeftColor = panel.style.borderRightColor = new StyleColor(Dark.Stroke);
             panel.style.borderTopLeftRadius = 8f; panel.style.borderTopRightRadius = 8f;
             panel.style.borderBottomLeftRadius = 8f; panel.style.borderBottomRightRadius = 8f;
-            panel.style.paddingTop = 12f; panel.style.paddingBottom = 12f;
-            panel.style.paddingLeft = 12f; panel.style.paddingRight = 12f;
+            panel.style.paddingTop = 24f; panel.style.paddingBottom = 24f;   // [Figma 72:17] pad24
+            panel.style.paddingLeft = 24f; panel.style.paddingRight = 24f;
             Content.Add(panel);
 
             // PanelHeader — 서브타이틀 + Badge
             var head = new VisualElement();
             head.style.flexDirection = FlexDirection.Row;
             head.style.alignItems = Align.Center;
-            head.style.marginBottom = 6f;
+            head.style.marginBottom = 20f;   // [Figma 72:17] gap20
             panel.Add(head);
 
             _subtitle = new Label("FISHING RESULT");
@@ -130,7 +130,7 @@ namespace ProjectName.UI.Toolkit
             _verb = new Label("");
             _verb.style.fontSize = 18f;
             _verb.style.color = Dark.Accent;
-            _verb.style.marginTop = 6f;
+            _verb.style.marginTop = 20f;   // [Figma] gap20
             _verb.style.whiteSpace = WhiteSpace.Normal;
             panel.Add(_verb);
 
@@ -138,12 +138,12 @@ namespace ProjectName.UI.Toolkit
             _itemName.style.fontSize = 15f;
             _itemName.style.color = Dark.Gold;
             _itemName.style.whiteSpace = WhiteSpace.Normal;
-            _itemName.style.marginBottom = 8f;
+            _itemName.style.marginBottom = 20f;   // [Figma] gap20
             panel.Add(_itemName);
 
             // ItemImageSection — TierStrip(상단 4px) + 클래스 + 이미지
             var imageSec = new VisualElement();
-            imageSec.style.marginBottom = 8f;
+            imageSec.style.marginBottom = 20f;   // [Figma] gap20
             imageSec.style.paddingTop = 0f; imageSec.style.paddingBottom = 0f;
             imageSec.style.paddingLeft = 0f; imageSec.style.paddingRight = 0f;
             panel.Add(imageSec);
@@ -179,7 +179,7 @@ namespace ProjectName.UI.Toolkit
             // ItemSpecs — 3칸 SpecBox
             var specs = new VisualElement();
             specs.style.flexDirection = FlexDirection.Row;
-            specs.style.marginBottom = 8f;
+            specs.style.marginBottom = 20f;   // [Figma] gap20
             panel.Add(specs);
 
             BuildSpecBox(specs, out _spec1Label, out _spec1Val);
@@ -193,7 +193,7 @@ namespace ProjectName.UI.Toolkit
             descSec.style.borderBottomLeftRadius = 6f; descSec.style.borderBottomRightRadius = 6f;
             descSec.style.paddingTop = 8f; descSec.style.paddingBottom = 8f;
             descSec.style.paddingLeft = 10f; descSec.style.paddingRight = 10f;
-            descSec.style.marginBottom = 10f;
+            descSec.style.marginBottom = 20f;   // [Figma] gap20
             panel.Add(descSec);
 
             _descHeader = new Label("물고기 특징");
