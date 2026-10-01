@@ -3383,6 +3383,7 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 | 내부 | 전투로그 `CombatLogUTK` | BattleLogItem **580×90 고정·pad12/8·카드간격8·섹션 gap6** (기존 pad8/5·가변높이) — Figma 94:66/65 | ✅ `0ebe4b34` |
 | 내부 | 수집결과 `HarvestResultUTK` | ResultPanel **480×718·pad24·내부 gap20** (기존 500×620·pad12) — Figma 72:17 | ✅ `770ef52f` |
 | 내부 | 크래프트 `CraftBenchBaseUTK` | 재료 슬롯 **56→64**, 결과 **64→76** (기존 56/64) — Figma 63:39/63:57, 3파생(무기/연금/요리) 공유·로직 무수정 | ✅ `d2f1c0fd` |
+| 내부 | 상점 `ShopWindowUTK` | Buy/Sell 그리드 셀 **slotBox 78→68·슬롯 62→68·가격 66→68·margin 6→8** (기존 78폭 4열) — Figma 74:43/74:200 **68×68·gap8·5열**·flexWrap 기존→자동 5열·금융/클릭 무수정 | ✅ `75a4ed42` |
 | 게임플레이 | 낚시 `FishingSystem`+`FishingUTK` | **1바 핀 → Figma 2바 리일**(`물고기를 당기는 중` progress + `라인 장력` tension) — FishingSystem TryReel/ReelProgress/ReelTension 시뮬 신설(진행100%성공·장력100%라인끊김), FishingUTK 280×289·pad20/gap20·SPACE/Q — Figma 160:11 | ✅ `0301959e` |
 
 **EditMode**: 3커밋 모두 407/394 13건 — 전부 기존 baseline, **신규 회귀 0**. **Play**: 낚시 2바·전투로그/수집 카드 렌더 검증 대기.
