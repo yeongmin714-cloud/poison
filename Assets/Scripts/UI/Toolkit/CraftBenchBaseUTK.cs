@@ -71,8 +71,8 @@ namespace ProjectName.UI.Toolkit
                 int idx = i;
                 var slot = new UTKSlot();
                 slot.name = "BenchSlot_" + idx;
-                slot.style.width = 56f;
-                slot.style.height = 56f;
+                slot.style.width = 64f;   // [Figma 63:39] crafting-panel 재료 ItemSlot 64×64
+                slot.style.height = 64f;
                 slot.style.marginLeft = 4f;
                 slot.style.marginRight = 4f;
                 slot.SetRank("common");
@@ -93,8 +93,8 @@ namespace ProjectName.UI.Toolkit
 
                     _resultSlot = new UTKSlot();
                     _resultSlot.name = "BenchResult";
-                    _resultSlot.style.width = 64f;
-                    _resultSlot.style.height = 64f;
+                    _resultSlot.style.width = 76f;   // [Figma 63:57] crafting-panel 결과 ItemSlot 76×76
+                    _resultSlot.style.height = 76f;
                     _resultSlot.style.marginLeft = 4f;
                     _resultSlot.style.marginRight = 4f;
                     _resultSlot.SetRank("common");
