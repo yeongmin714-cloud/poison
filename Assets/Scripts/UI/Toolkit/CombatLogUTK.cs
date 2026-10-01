@@ -122,8 +122,8 @@ namespace ProjectName.UI.Toolkit
             style.position = Position.Absolute;
             style.left = 24f;
             style.top = 40f;
-            style.width = 560f;
-            style.height = 500f;
+            style.width = 620f;    // Figma daily-combat-log(94:6) BattleLogPanel 620×820
+            style.height = 820f;
             // [GitHub-dark] 창 본체 — 브론즈 베벨 제거, 다크 패널 + 1px 스트로크 + r8 (이 창 한정)
             style.backgroundColor = new StyleColor(GitHubDark.Panel);
             style.borderTopWidth = 1f;

@@ -52,8 +52,8 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 400f;
-        private const float WinH = 560f;
+        private const float WinW = 443f;    // Figma equip-inventory(84:4) EquipmentPanel 443×780
+        private const float WinH = 780f;
         private const float SlotSize = 56f;
         private const long RefreshMs = 400L;
 
