@@ -84,14 +84,14 @@ namespace ProjectName.UI.Toolkit
 
         private const long RefreshMs = 250L;
 
-        private SoldierManagementUTK() : base("⚔️ 병사 관리", new Vector2(960f, 560f))
+        private SoldierManagementUTK() : base("⚔️ 병사 관리", new Vector2(1300f, 820f))
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Row;
 
             // ── 좌: 목록 ──
             var left = new VisualElement();
-            left.style.width = Length.Percent(34f);
+            left.style.width = Length.Percent(31f);   // Figma SoldierList 400 / 총1280
             left.style.flexShrink = 0f;
             left.style.flexDirection = FlexDirection.Column;
             left.style.marginRight = 8f;
@@ -131,7 +131,7 @@ namespace ProjectName.UI.Toolkit
             // ── 중앙: 상세 ──
             var mid = new VisualElement();
             mid.style.flexGrow = 1f;
-            mid.style.width = Length.Percent(38f);
+            mid.style.width = Length.Percent(37f);   // Figma SoldierDetail 480 / 총1280
             mid.style.marginRight = 8f;
             _content.Add(mid);
             _detailRoot = BuildDetailRoot(mid);
@@ -139,7 +139,7 @@ namespace ProjectName.UI.Toolkit
             // ── 우: 배치 ──
             var right = new VisualElement();
             right.style.flexGrow = 1f;
-            right.style.width = Length.Percent(28f);
+            right.style.width = Length.Percent(31f);   // Figma Deployment 400 / 총1280
             right.style.flexDirection = FlexDirection.Column;
             _content.Add(right);
             BuildDeployPanel(right);
