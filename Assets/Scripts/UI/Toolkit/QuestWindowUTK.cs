@@ -208,7 +208,7 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 레퍼런스 =====
-        private readonly ScrollView _list;
+        private ScrollView _list;   // [Phase2a] readonly 제거 — BuildListZone()에서 초기화(독립 창 분리 기반)
         private Label _statActive, _statCompleted, _statAvailable, _statChain, _summaryFooter;
         private VisualElement _detailPanel, _rewardPanel;
         private Label _detailHeroTitle, _detailHeroTag, _detailStory;
@@ -224,8 +224,22 @@ namespace ProjectName.UI.Toolkit
             // [2026-10-01 Phase1] 3존을 Figma 절대좌표*1.333으로 배치:
             // 목록(53,53)533x1093 / 상세(613,280)693x640 / 보상(1333,53)533x1093
             // 호스트 _content는 절대배치 컨테이너 역할(투명, No pointer).
+            // [Phase2a] 3영역 빌더를 메서드로 추출 (동작 0 변화 — 독립 창 승격의 기반)
+            BuildListZone();
+            BuildDetailZone();
+            BuildRewardZone();
 
-            // ── [P4] 좌: QuestListPanel (필터탭 + 카드 목록 + 요약풋터) ──
+            ApplyUIToolkitFont(this);
+            if (!IsFrameless)
+                ApplyGitHubDarkStyle();   // [Frameless] 배경 투명 유지 — 타이틀바 없음, 크롬 리스타일 스킵
+            style.display = DisplayStyle.None;
+            style.left = 0f;
+            style.top = 0f;
+        }
+
+        // [Phase2a] 좌: QuestListPanel (필터탭 + 카드 목록 + 요약풋터)
+        private void BuildListZone()
+        {
             var listCol = new VisualElement();
             listCol.name = "QuestListPanel";
             listCol.style.flexDirection = FlexDirection.Column;
@@ -262,8 +276,11 @@ namespace ProjectName.UI.Toolkit
             _summaryFooter = MkLabel("동시 추적 제한 2 / 5 개 등록", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             _summaryFooter.style.marginTop = 3f;
             listCol.Add(_summaryFooter);
+        }
 
-            // ── [P4] 중앙: QuestDetailPanel ──
+        // [Phase2a] 중앙: QuestDetailPanel — 선택 퀘스트 상세(브리핑+목표)
+        private void BuildDetailZone()
+        {
             _detailPanel = new VisualElement();
             _detailPanel.name = "QuestDetailPanel";
             _detailPanel.style.flexDirection = FlexDirection.Column;
@@ -308,8 +325,11 @@ namespace ProjectName.UI.Toolkit
             _objectivesList.style.flexGrow = 1f;
             _objectivesList.style.marginTop = 4f;
             _detailPanel.Add(_objectivesList);
+        }
 
-            // ── [P4] 우: RewardPanel ──
+        // [Phase2a] 우: RewardPanel — 보상 목록
+        private void BuildRewardZone()
+        {
             _rewardPanel = new VisualElement();
             _rewardPanel.name = "RewardPanel";
             _rewardPanel.style.flexDirection = FlexDirection.Column;
@@ -335,13 +355,6 @@ namespace ProjectName.UI.Toolkit
             _rewardsList.style.flexGrow = 1f;
             _rewardsList.style.marginTop = 6f;
             _rewardPanel.Add(_rewardsList);
-
-            ApplyUIToolkitFont(this);
-            if (!IsFrameless)
-                ApplyGitHubDarkStyle();   // [Frameless] 배경 투명 유지 — 타이틀바 없음, 크롬 리스타일 스킵
-            style.display = DisplayStyle.None;
-            style.left = 0f;
-            style.top = 0f;
         }
 
         private void AddFilterTab(VisualElement parent, QuestFilter filter, string label)
