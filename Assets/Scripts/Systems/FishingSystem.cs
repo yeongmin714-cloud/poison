@@ -30,10 +30,14 @@ namespace ProjectName.Systems
         private Transform _player;
         private Coroutine _waitCoroutine;
 
-        // 미니게임 내부 상태 (FishingUI에서 읽음)
+        // 미니게임 내부 상태 (FishingUI에서 읽음 — 레거시 1바 핀 호환 유지)
         private float _pinPosition;
         private bool _pinDirectionRight = true;
         private float _sweetSpotStart;
+
+        // [Figma 160:11] 2바 리일 시뮬 — 진행(물고기 당기는 중) + 장력(라인/위험)
+        private float _reelProgress = 0f;   // 0..1 — Space로 증가, 1.0 도달 = 성공
+        private float _reelTension = 0f;    // 0..1 — Space로 증가·자연 감소, 1.0 도달 = 라인 끊김 실패
 
         // 팝업
         private string _popupMessage = "";
@@ -61,6 +65,16 @@ namespace ProjectName.Systems
 
         /// <summary>프로그레스바 너비 (픽셀, 고정 300)</summary>
         public float ProgressBarWidth => 300f;
+
+        // ===== [Figma 160:11] 2바 리일 상태 (새 UI가 읽음) =====
+        /// <summary>리일 진행률 0..1 (1.0 도달 = 성공/물고기 획득)</summary>
+        public float ReelProgress => _reelProgress;
+
+        /// <summary>라인 장력 0..1 (1.0 도달 = 라인 끊김/실패)</summary>
+        public float ReelTension => _reelTension;
+
+        /// <summary>라인 장력 위험 임계 (이상 시 위험 배지 표시)</summary>
+        public float TensionDangerThreshold => 0.75f;
 
         /// <summary>현재 팝업 메시지</summary>
         public string PopupMessage => _popupMessage;
@@ -109,7 +123,10 @@ namespace ProjectName.Systems
 
             // 낚시 중: 미니게임 핀 업데이트
             if (_isMinigameActive)
+            {
                 UpdatePinMovement();
+                UpdateReelSim();
+            }
 
             // E키로 낚시 종료
             if (Input.GetKeyDown(KeyCode.E))
@@ -189,6 +206,8 @@ namespace ProjectName.Systems
             _pinPosition = 0f;
             _pinDirectionRight = true;
             _sweetSpotStart = Random.Range(0f, ProgressBarWidth - SweetSpotWidth);
+            _reelProgress = 0f;
+            _reelTension = 0f;
         }
 
         // ===== 미니게임 핀 이동 =====
@@ -215,6 +234,87 @@ namespace ProjectName.Systems
                     _pinPosition = 0f;
                     _pinDirectionRight = true;
                 }
+            }
+        }
+
+        // ===== [Figma 160:11] 2바 리일 시뮬 =====
+        //  진행(물고기를 당기는 중)은 Space로 상승·시간 경과로 살짝 하락(물고기가 버팀).
+        //  장력은 Space로 상승·시간 경과로 완화. 장력 100% 도달 = 라인 끊겨 실패.
+        private void UpdateReelSim()
+        {
+            float progressDrain = 0.02f;  // 초당 진행 천천히 하락 (물고기가 저항)
+            float tensionRelax = 0.05f;   // 초당 장력 완화
+            _reelProgress = Mathf.Max(0f, _reelProgress - progressDrain * Time.deltaTime);
+            _reelTension = Mathf.Clamp(_reelTension - tensionRelax * Time.deltaTime, 0f, 1f);
+        }
+
+        /// <summary>
+        /// [Figma 160:11] Space 리일 입력 — 진행을 당긴다. 진행 100% 도달 = 성공, 장력 100% 도달 = 라인 끊김.
+        /// (레거시 TryCatch(핀 1바)와 별개 — 원본 호환 유지.)
+        /// </summary>
+        public void TryReel()
+        {
+            if (!_isMinigameActive) return;
+            if (PlayerInventory.Instance == null) return;
+
+            const float progressGain = 0.08f;   // 리일 1회 진행 상승
+            const float tensionCost  = 0.07f;   // 리일 1회 장력 상승
+
+            _reelProgress += progressGain;
+            _reelTension += tensionCost;
+
+            if (_reelTension >= 1f)
+            {
+                // 라인 끊김 — 실패
+                FinishMinigame(false);
+            }
+            else if (_reelProgress >= 1f)
+            {
+                // 다 당김 — 성공
+                FinishMinigame(true);
+            }
+        }
+
+        /// <summary>[Figma 2바] 미니게임 종료 — 성공 시 물고기 획득.</summary>
+        private void FinishMinigame(bool success)
+        {
+            bool wasActive = _isMinigameActive;
+            _isMinigameActive = false;
+            _isFishing = false;
+            _reelProgress = 0f;
+            _reelTension = 0f;
+
+            if (_waitCoroutine != null)
+            {
+                StopCoroutine(_waitCoroutine);
+                _waitCoroutine = null;
+            }
+
+            if (!wasActive) return;
+
+            if (success)
+            {
+                var fish = GetRandomFish();
+                if (fish != null)
+                {
+                    PlayerInventory.Instance.AddItem(fish, 1);
+                    ShowPopup($"{fish.displayName}(을)를 낚았습니다!");
+                    // [F3] 공용 결과 팝업 — Figma fishing-result-ui 템플릿
+                    HarvestResultBridge.Publish(
+                        HarvestResultBridge.HarvestKind.Fishing,
+                        "대어 획득 성공!",
+                        $"{fish.displayName}(을)를 낚았습니다!",
+                        fish.description ?? "물고기입니다.",
+                        fish.rarity,
+                        1,
+                        "인벤토리에 빈 공간이 충분한지 확인하십시오. 보관 시 무게가 적재량에 추가됩니다.",
+                        fish,
+                        immediate: true);
+                }
+            }
+            else
+            {
+                ShowPopup("라인이 끊어졌습니다! 물고기가 도망갔습니다.");
             }
         }
 
