@@ -841,10 +841,10 @@ namespace ProjectName.UI.Toolkit
         private VisualElement BuildBuyRow(ShopItem shopItem, int index)
         {
             var slotBox = new VisualElement();
-            slotBox.style.width = 78f;
+            slotBox.style.width = 68f;   // [Figma 74:43] Store ItemSlot 68×68
             slotBox.style.height = 92f;
-            slotBox.style.marginRight = 6f;
-            slotBox.style.marginBottom = 6f;
+            slotBox.style.marginRight = 8f;   // [Figma] 그리드 gap8 (68+8=76 → 380폭 5열)
+            slotBox.style.marginBottom = 8f;
             slotBox.style.flexDirection = FlexDirection.Column;
             slotBox.style.alignItems = Align.Center;
             slotBox.style.justifyContent = Justify.Center;
@@ -859,8 +859,8 @@ namespace ProjectName.UI.Toolkit
 
             // 아이콘 (UTKSlot — 등급 테두리)
             var slot = new UTKSlot();
-            slot.style.width = 62f;
-            slot.style.height = 62f;
+            slot.style.width = 68f;
+            slot.style.height = 68f;
             slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(shopItem.item));
             slot.SetRank(shopItem.isRare ? "unique" : "common");
             StyleShopSlot(slot, ring);   // [GitHub-dark] 레어도 링
@@ -882,7 +882,8 @@ namespace ProjectName.UI.Toolkit
             priceBar.style.color = UTKTheme.Gold;
             priceBar.style.fontSize = 12f;
             priceBar.style.unityTextAlign = TextAnchor.MiddleCenter;
-            priceBar.style.width = 66f;
+            priceBar.style.width = 68f;   // [Figma 74:48] PriceTag 68×14 (슬롯 폭과 동일)
+            priceBar.style.alignSelf = Align.Center;
             priceBar.style.marginTop = 4f;
             priceBar.style.borderTopLeftRadius = 4f;
             priceBar.style.borderTopRightRadius = 4f;
@@ -925,10 +926,10 @@ namespace ProjectName.UI.Toolkit
         private VisualElement BuildSellRow(PlayerInventory.ItemSlot slot)
         {
             var slotBox = new VisualElement();
-            slotBox.style.width = 78f;
+            slotBox.style.width = 68f;   // [Figma 74:200] Storage ItemSlot 68×68
             slotBox.style.height = 84f;
-            slotBox.style.marginRight = 6f;
-            slotBox.style.marginBottom = 6f;
+            slotBox.style.marginRight = 8f;   // [Figma] 그리드 gap8
+            slotBox.style.marginBottom = 8f;
             slotBox.style.flexDirection = FlexDirection.Column;
             slotBox.style.alignItems = Align.Center;
             slotBox.style.justifyContent = Justify.Center;
@@ -940,8 +941,8 @@ namespace ProjectName.UI.Toolkit
             slotBox.RegisterCallback<PointerDownEvent>(_ => { _detailSellSlot = slot; ShowDetail(null, false); });
 
             var itemSlot = new UTKSlot();
-            itemSlot.style.width = 62f;
-            itemSlot.style.height = 62f;
+            itemSlot.style.width = 68f;
+            itemSlot.style.height = 68f;
             itemSlot.SetIcon(ItemIconDatabase.GetOrCreateIcon(slot.item));
             itemSlot.SetRank(slot.item.rarity.ToString());
             itemSlot.SetCount(slot.count);
@@ -955,7 +956,8 @@ namespace ProjectName.UI.Toolkit
             priceBar.style.color = sellPrice > 0 ? UTKTheme.Gold : UTKTheme.Danger;
             priceBar.style.fontSize = 11f;
             priceBar.style.unityTextAlign = TextAnchor.MiddleCenter;
-            priceBar.style.width = 66f;
+            priceBar.style.width = 68f;   // [Figma 74:48] PriceTag 68×14
+            priceBar.style.alignSelf = Align.Center;
             priceBar.style.marginTop = 4f;
             priceBar.style.borderTopLeftRadius = 4f;
             priceBar.style.borderTopRightRadius = 4f;
