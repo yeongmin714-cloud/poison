@@ -26,6 +26,13 @@ namespace ProjectName.Systems
         /// <summary>[P28] 몬스터 정보창 요청 — MonsterInfoUTK 구독.</summary>
         public static event System.Action<AnimalAI> OnMonsterInfoRequested;
 
+        /// <summary>
+        /// [Phase D] 대상(영주/일반NPC/상점NPC) 상호작용 패널 요청 — InteractionPanelUTK 구독.
+        /// Systems(ContextCommandRouter)에서 분류된 대상 종류(kind)와 대상 게임오브젝트 컴포넌트(target)를
+        /// UI로 전달한다(순환참조 회피). 병사는 기존 OnInteractRequested(RaiseInteract) 경로를 유지.
+        /// </summary>
+        public static event System.Action<HoverTargetClassifier.TargetKind, object> OnTargetInteractionRequested;
+
         /// <summary>병사 정보창 열기 발화 (GuardInfoUTK 경유).</summary>
         public static void Raise(GuardPlaceholder guard)
         {
@@ -45,6 +52,12 @@ namespace ProjectName.Systems
         {
             if (monster != null)
                 OnMonsterInfoRequested?.Invoke(monster);
+        }
+
+        /// <summary>[Phase D] 상호작용 패널 열기 발화 (InteractionPanelUTK 경유).</summary>
+        public static void RaiseTargetInteraction(HoverTargetClassifier.TargetKind kind, object target)
+        {
+            OnTargetInteractionRequested?.Invoke(kind, target);
         }
     }
 }

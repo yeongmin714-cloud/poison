@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using ProjectName.Systems;
+using ProjectName.UI;
 
 namespace ProjectName.UI.Toolkit
 {
@@ -163,6 +164,67 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
+        }
+
+        // ===== [Phase D] 시스템 브리지 구독 + 액션 라우팅 =====
+
+        /// <summary>정적 구독 등록 — 클릭 트리거 → 패널 표시, 패널 액션 → 실제 창 개폐.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap()
+        {
+            _instance = new InteractionPanelUTK();
+            SoldierInteractBridge.OnTargetInteractionRequested += OnSystemTargetRequested;
+            ActionRequested += OnActionRequested;
+        }
+
+        /// <summary>Systems(ContextCommandRouter)가 분류한 대상으로 패널 열기.</summary>
+        private static void OnSystemTargetRequested(HoverTargetClassifier.TargetKind kind, object target)
+        {
+            Open(kind, target);
+        }
+
+        /// <summary>
+        /// [Phase D] 패널 버튼 액션 라우팅. 이번 단계에서 동작하는 것은:
+        ///   대화하기 → NPCInstance(NPCDialoguePanelUTK 선택지 패널), 상태보기(병사) → GuardInfoUTK,
+        ///   상점(ShopNPC) → ShopWindowUTK. 뇌물/포섭/물약/음식/선물/퀘스트/동맹/밀매는 미구현(로그만).
+        /// </summary>
+        private static void OnActionRequested(HoverTargetClassifier.TargetKind kind, string label, object target)
+        {
+            switch (label)
+            {
+                case "대화하기":
+                    OnTalkRequested(kind, target);
+                    break;
+                case "상태보기":
+                    if ((kind == HoverTargetClassifier.TargetKind.EnemyGuard
+                         || kind == HoverTargetClassifier.TargetKind.Ally) && target is GuardPlaceholder guard)
+                        SoldierInteractBridge.Raise(guard);   // GuardInfoUTK 정보창 (기존 경로)
+                    else
+                        Debug.Log($"[InteractionPanelUTK] 상태보기 미지원 대상: {kind}");
+                    break;
+                case "상점":
+                    if (kind == HoverTargetClassifier.TargetKind.ShopNPC)
+                        ShopWindowUTK.Open();
+                    else
+                        Debug.Log($"[InteractionPanelUTK] 상점 액션 대상 오류: {kind}");
+                    break;
+                default:
+                    Debug.Log($"[InteractionPanelUTK] 미구현 액션: {kind}/{label}");
+                    break;
+            }
+        }
+
+        /// <summary>대화하기 — NPCInstance면 선택지 패널, 영주/병사는 무해 처리.</summary>
+        private static void OnTalkRequested(HoverTargetClassifier.TargetKind kind, object target)
+        {
+            var npc = target as TerritoryNPCBehaviour;
+            if (npc != null
+                && !string.IsNullOrEmpty(npc.NPCData.NpcId))
+            {
+                NPCDialoguePanelUTK.Open(npc.NPCData);
+                return;
+            }
+            Debug.Log($"[InteractionPanelUTK] 대화 미지원 대상: {kind}");
         }
     }
 }

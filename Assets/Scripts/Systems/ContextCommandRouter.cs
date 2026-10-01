@@ -194,6 +194,18 @@ namespace ProjectName.Systems
                     Debug.Log($"[ContextCommandRouter] 몬스터 정보창 → {ai.MonsterId} (직접 레이캐스트)");
                     return true;
                 }
+
+                // (c) 영주/NPC/상점NPC — ResolveInteractionTarget(리플렉션 포함)으로 대상 컴포넌트 획득.
+                //     InteractionPanelUTK로 5종 분기 상호작용 패널을 띄운다. 병사는 기존 (a) 경로 유지.
+                var interactionKind =
+                    HoverTargetClassifier.ResolveInteractionTarget(hitGo, out HoverTargetClassifier.TargetKind tgtKind);
+                if (interactionKind != null && tgtKind != HoverTargetClassifier.TargetKind.None)
+                {
+                    SoldierInteractBridge.RaiseTargetInteraction(tgtKind, interactionKind);
+                    ConsumeLeftClick();
+                    Debug.Log($"[ContextCommandRouter] 상호작용 패널 → {tgtKind} (직접 레이캐스트)");
+                    return true;
+                }
             }
 
             return false;

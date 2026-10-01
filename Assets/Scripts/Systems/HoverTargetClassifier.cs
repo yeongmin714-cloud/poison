@@ -159,6 +159,29 @@ namespace ProjectName.Systems
             return uiType != null && go.GetComponentInParent(uiType) != null;
         }
 
+        /// <summary>
+        /// [Phase D] 영주/NPC/상점NPC의 실제 대상 컴포넌트를 반환(리플렉션 포함).
+        /// InteractionPanelUTK(ProjectName.UI)가 이 컴포넌트에서 NPCInstance(NPCData 프로퍼티)를 꺼낸다.
+        /// 해당 종류가 아니면 kind=None, target=null을 반환.
+        /// </summary>
+        public static object ResolveInteractionTarget(GameObject go, out TargetKind kind)
+        {
+            kind = ClassifyOne(go);   // 같은 클래스 내 private 호출 — 단일 객체 분류 재사용
+            if (kind == TargetKind.Lord)
+            {
+                var lordFeed = go.GetComponentInParent<LordFeedTarget>();
+                if (lordFeed != null) return lordFeed;
+                var draculaLord = go.GetComponentInParent<DraculaLord>();
+                if (draculaLord != null) return draculaLord;
+                return go;   // 태그(Lord)만으로 분류된 경우 폴백 — 게임오브젝트 반환
+            }
+            if (kind == TargetKind.NPC || kind == TargetKind.ShopNPC)
+                return go.GetComponentInParent(TerritoryNpcType);
+
+            kind = TargetKind.None;
+            return null;
+        }
+
         /// <summary>TerritoryNPCBehaviour와 해당 NPCData에서 상점 플래그를 리플렉션으로 확인.</summary>
         private static bool IsShopTerritoryNpc(GameObject go)
         {
