@@ -106,6 +106,14 @@ namespace ProjectName.Systems
 
             if (!left.wasPressedThisFrame) return;
 
+            // ===== [Phase D-2] 일반 좌클릭 → NPC/영주/상점NPC 상호작용 패널 =====
+            //  NPC 계열은 공격 대상(IDamageable)이 아니므로 좌클릭으로 곧바로 상호작용 패널을 연다.
+            //  병사/몬스터는 공격 대상이라 Ctrl+좌클릭(아래 명령 분기)으로만 연다(충돌 방지).
+            //  UI 위 클릭은 월드 상호작용 아님 → 스킵.
+            if (!UITransitionState.PointerOverUI
+                && TryRoutePlainNpcInteraction(Mouse.current.position.ReadValue()))
+                return;
+
             // ===== 명령 후보 조건 — Ctrl 홀드 + UI 위 아님 + 병사 선택 =====
             if (!IsCtrlHeld()) return;
             if (UITransitionState.PointerOverUI) return;                    // UI 위 클릭은 월드 명령 아님
@@ -196,20 +204,57 @@ namespace ProjectName.Systems
                 }
 
                 // (c) 영주/NPC/상점NPC — ResolveInteractionTarget(리플렉션 포함)으로 대상 컴포넌트 획득.
-                //     InteractionPanelUTK로 5종 분기 상호작용 패널을 띄운다. 병사는 기존 (a) 경로 유지.
-                var interactionKind =
-                    HoverTargetClassifier.ResolveInteractionTarget(hitGo, out HoverTargetClassifier.TargetKind tgtKind);
-                if (interactionKind != null && tgtKind != HoverTargetClassifier.TargetKind.None)
-                {
-                    SoldierInteractBridge.RaiseTargetInteraction(tgtKind, interactionKind);
-                    ConsumeLeftClick();
-                    Debug.Log($"[ContextCommandRouter] 상호작용 패널 → {tgtKind} (직접 레이캐스트)");
-                    return true;
-                }
-            }
+                            //     InteractionPanelUTK로 5종 분기 상호작용 패널을 띄운다. 병사는 기존 (a) 경로 유지.
+                            var interactionKind =
+                                HoverTargetClassifier.ResolveInteractionTarget(hitGo, out HoverTargetClassifier.TargetKind tgtKind);
+                            if (interactionKind != null && tgtKind != HoverTargetClassifier.TargetKind.None)
+                            {
+                                SoldierInteractBridge.RaiseTargetInteraction(tgtKind, interactionKind);
+                                ConsumeLeftClick();
+                                Debug.Log($"[ContextCommandRouter] 상호작용 패널 → {tgtKind} (직접 레이캐스트)");
+                                return true;
+                            }
+                        }
 
-            return false;
-        }
+                        return false;
+                    }
+
+                    /// <summary>
+                    /// [Phase D-2] 일반 좌클릭(no Ctrl)을 NPC/영주/상점NPC 상호작용 패널로 라우팅.
+                    ///  NPC 계열은 공격 대상(IDamageable)이 아니므로 병사/몬스터처럼 Ctrl이 필요 없다.
+                    ///  레이캐스트 대상은 ResolveInteractionTarget으로 판별 — NPC(NPC/ShopNPC/Lord) 계열이면
+                        ///  SoldierInteractBridge.RaiseTargetInteraction으로 상호작용 패널을 연다.
+                    /// </summary>
+                    private static bool TryRoutePlainNpcInteraction(Vector2 mouse)
+                    {
+                        Camera cam = Camera.main;
+                        if (cam == null) return false;
+
+                        Ray ray = cam.ScreenPointToRay(mouse);
+                        RaycastHit[] hits = Physics.RaycastAll(ray, 200f, ~0, QueryTriggerInteraction.Collide);
+                        if (hits == null || hits.Length == 0) return false;
+
+                        System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+                        foreach (RaycastHit hit in hits)
+                        {
+                            if (hit.collider == null) continue;
+                            var hitGo = hit.collider.gameObject;
+                            if (hitGo == null) continue;
+
+                            // NPC 계열(영주/NPC/ShopNPC)만 처리 — 병사/몬스터/지형은 여기서 걸러 남는다.
+                            var target = HoverTargetClassifier.ResolveInteractionTarget(hitGo, out HoverTargetClassifier.TargetKind kind);
+                            if (target != null)
+                            {
+                                SoldierInteractBridge.RaiseTargetInteraction(kind, target);
+                                ConsumeLeftClick();
+                                Debug.Log($"[ContextCommandRouter] NPC 상호작용 패널 → {kind} (좌클릭)");
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
 
         /// <summary>적 위 Ctrl+좌클릭 — 기존 RTS 공격 경로 유지(회귀 방지) + 좌클릭 소비.</summary>
         private void IssueAttackCommand(GuardSelectionManager gsm,

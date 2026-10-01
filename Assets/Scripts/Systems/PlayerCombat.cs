@@ -41,6 +41,7 @@ namespace ProjectName.Systems
 
         private WeaponData _currentWeapon;
         private float _lastAttackTime = -10f;
+        private long _acceptedAttackSequence;
         private Camera _mainCamera;
         private CinemachineImpulseSource _impulseSource;
 
@@ -70,6 +71,7 @@ namespace ProjectName.Systems
         private const float ChargeDamageMultiplier = 1.8f; // 차지 강공 데미지 배율
         private const float ParryWindow = 0.45f;         // 패링 모션과 공격 입력을 분리하는 단일 방어 창(실시간 초)
         private const int MaxQueuedWeaponAttacks = 3;    // 패링 방어 창 중 보존할 최대 근접 클릭 수
+        [SerializeField] private KeyCode _parryKey = KeyCode.V; // KeyBindings에는 전투 액션이 없어 인스펙터에서 변경 가능
         private float _chargeHeldTime;                   // 우클릭 홀드 누적 시간
         private bool _charging;                          // 차지 충전 중 여부
         private bool _parryActive;                       // 패링 방어 창 활성 여부
@@ -112,8 +114,10 @@ namespace ProjectName.Systems
 
         /// <summary>남은 쿨다운 시간 (0 이하이면 공격 가능)</summary>
         public float RemainingCooldown => Mathf.Max(0f, (_lastAttackTime + _currentWeapon?.attackSpeed ?? 1f) - Time.time);
-        // 애니메이션 폴링용: 마지막 공격 시각 (변화 감지로 공격 모션 트리거)
+        // 시간 기반 쿨다운/외부 연출용. 여러 accepted 입력의 구분은 AcceptedAttackSequence를 사용한다.
         public float LastAttackTime => _lastAttackTime;
+        /// <summary>Monotonic count of accepted TryAttack inputs; unlike LastAttackTime, same-time inputs remain distinct.</summary>
+        public long AcceptedAttackSequence => _acceptedAttackSequence;
 
         /// <summary>외부 장착 시스템(WeaponEquipManager)용 — WeaponData.Sword/Spear/Bow 정적 인스턴스를 반영.</summary>
         public void SetWeapon(WeaponData weapon)
@@ -188,6 +192,13 @@ namespace ProjectName.Systems
         {
             if (PlayerHealth.Instance != null && PlayerHealth.Instance.IsDead) return;
 
+            // A dedicated, remappable keyboard action starts parry only; hovering UI suppresses it like world clicks.
+            if (!ProjectName.Core.UITransitionState.PointerOverUI
+                && Keyboard.current != null
+                && _parryKey != KeyCode.None
+                && Keyboard.current.FindKeyOnCurrentKeyboardLayout(_parryKey.ToString().ToLowerInvariant())?.wasPressedThisFrame == true)
+                TryStartParry();
+
             // 타겟 상태 업데이트 (사망 또는 범위 이탈 체크)
             UpdateTargetState();
 
@@ -242,9 +253,15 @@ namespace ProjectName.Systems
             // 좌클릭 감지 (InputSystem)
             if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             {
+                Debug.Log($"[CombatInput] physical left click observed ui={ProjectName.Core.UITransitionState.PointerOverUI} "
+                    + $"squadMode={GuardSelectionManager.squadModeActive} parry={_parryActive} "
+                    + $"weapon={_currentWeapon?.weaponType.ToString() ?? "none"}");
                 // [U8 수리] UTK UI 위 좌클릭(인벤 드래그/슬롯 클릭)은 게임 공격으로 소비 금지
                 if (ProjectName.Core.UITransitionState.PointerOverUI)
+                {
+                    Debug.Log("[CombatInput] click consumed by UI pointer gate");
                     return;
+                }
                 // [폭탄] 이번 프레임 이미 폭탄 투척 → 근접/무기 공격 금지 (AttackSystem과 순서 무관)
                 if (BombArmController.BombThrowIssuedThisFrame)
                     return;
@@ -282,8 +299,18 @@ namespace ProjectName.Systems
                     GuardSelectionManager.consumeLeftClickAsDrag = false;   // 드래그로 소비
                     return;
                 }
-                // Eligible world click: start one parry animation/window before any weapon animation.
-                // Subsequent click(s) inside the window queue the normal action without restarting Parry.
+
+                // [Phase D-2] NPC/영주/상점NPC 좌클릭 — 공격 대상(IDamageable)이 아니므로
+                //  공격(빈 스윙) 대신 상호작용으로 전환. PlayerCombat가 먼저 돌아도 ContextCommandRouter와
+                //  충돌 없도록, 커서가 NPC 계열을 가리키면 이 프레임의 공격을 스킵한다.
+                //  HoverTargetClassifier는 Systems 어셈블리라 Systems→UI 참조 없이 호출 가능(순수 분류기).
+                if (IsPointerOverNpcInteraction())
+                {
+                    return;   // 상호작용 패널 처리는 ContextCommandRouter.Update가 담당
+                }
+
+                // Left click belongs only to the normal attack path. During an already-active parry
+                // it may queue that attack for after the defensive window, but never starts/restarts parry.
                 if (_parryActive)
                 {
                     if (isBowEquipped)
@@ -296,18 +323,31 @@ namespace ProjectName.Systems
                     return;
                 }
 
-                _parryActive = true;
-                _parryActiveUntil = Time.unscaledTime + ParryWindow;
-                _proceduralAnim?.TriggerAction("parry");
-                _clipDriver?.TriggerParry();
                 if (isBowEquipped)
                 {
-                    _queuedBowAction = true;
-                    _queuedBowReleased = false;
-                    _queuedBowHeldTime = 0f;
+                    _bowDrawing = true;
+                    _bowDrawHeldTime = 0f;
+                    BowAimState.Begin();
+                    _clipDriver?.TriggerBowDraw();
+                    AttackSoundLayerManager.PlayBowDraw();
                 }
-                else _queuedWeaponAttacks = Mathf.Min(_queuedWeaponAttacks + 1, MaxQueuedWeaponAttacks);
+                else
+                {
+                    TryAttack();
+                }
             }
+        }
+
+        private bool TryStartParry()
+        {
+            if (ProjectName.Core.UITransitionState.PointerOverUI || _parryActive)
+                return false;
+
+            _parryActive = true;
+            _parryActiveUntil = Time.unscaledTime + ParryWindow;
+            _proceduralAnim?.TriggerAction("parry");
+            _clipDriver?.TriggerParry();
+            return true;
         }
 
         /// <summary>[Phase 1-1] 차지 해제 — 충전 보너스 반영 강공 1타.</summary>
@@ -404,18 +444,25 @@ namespace ProjectName.Systems
 
             _parryActive = false;
             _parryActiveUntil = -999f;
-            _proceduralAnim?.TriggerAction("parry_success");
-            try { BulletTime.Get().Apply(0.35f, 0.10f, 0.38f); }
-            catch (System.Exception) { }
-            // A retrigger during the same local-time effect must retain its original baseline.
-            if (!_parrySlowActive)
+
+            // Success presentation and timed effects are runtime-only. Keep TryParry's state
+            // consumption valid for EditMode callers without starting coroutines or spawning FX.
+            if (Application.isPlaying)
             {
-                _parrySlowRestoreValue = _parryTimeUser != null ? _parryTimeUser.LocalTimeScaleValue : 1f;
-                _parrySlowActive = true;
+                _proceduralAnim?.TriggerAction("parry_success");
+                try { BulletTime.Get().Apply(0.35f, 0.10f, 0.38f); }
+                catch (System.Exception) { }
+                // A retrigger during the same local-time effect must retain its original baseline.
+                if (!_parrySlowActive)
+                {
+                    _parrySlowRestoreValue = _parryTimeUser != null ? _parryTimeUser.LocalTimeScaleValue : 1f;
+                    _parrySlowActive = true;
+                }
+                if (_parryImpactRoutine != null) StopCoroutine(_parryImpactRoutine);
+                _parryImpactRoutine = StartCoroutine(ParryImpactRoutine());
+                TryParryImpactFX();
             }
-            if (_parryImpactRoutine != null) StopCoroutine(_parryImpactRoutine);
-            _parryImpactRoutine = StartCoroutine(ParryImpactRoutine());
-            TryParryImpactFX();
+
             Debug.Log("[PlayerCombat] 🛡️ 패링 성공 — 무기 중립 흡수 + Magic Time/BulletTime 액션 슬로우");
             return true;
         }
@@ -590,22 +637,36 @@ namespace ProjectName.Systems
             bool fistOrSword = _currentWeapon != null
                 && (_currentWeapon.weaponType == WeaponType.Fist || _currentWeapon.weaponType == WeaponType.Sword);
             bool comboActive = fistOrSword && _clipDriver != null && _clipDriver.IsPlayerMeleeComboActive;
-            bool comboFollowup = comboActive && _clipDriver.CanAcceptBufferedMeleeFollowup;
+            bool comboFollowup = fistOrSword && _clipDriver != null && _clipDriver.CanAcceptBufferedMeleeFollowup;
+            bool expiredComboRestart = fistOrSword && _clipDriver != null && _clipDriver.CanRestartExpiredMeleeCombo;
+            bool canAttack = CanAttack;
 
-            // Only an available Weapon_Combo_2 follow-up bypasses ordinary weapon cooldown.
-            // Reject full/finished combos before changing the accepted-click streak or timestamp.
-            if (comboActive && !comboFollowup) return false;
-            if (!CanAttack && !comboFollowup) return false;
+            // A ready melee driver can reserve a follow-up while its accepted opener is still
+            // waiting for the next Update; only the bounded combo path bypasses weapon cooldown.
+            if (ShouldRejectMeleeAttack(comboActive, comboFollowup, expiredComboRestart, canAttack))
+            {
+                Debug.Log($"[CombatInput] attack rejected type={_currentWeapon?.weaponType.ToString() ?? "none"} "
+                    + $"comboActive={comboActive} followup={comboFollowup} expiredRestart={expiredComboRestart} cooldownReady={canAttack} "
+                    + $"sequence={_acceptedAttackSequence}");
+                return false;
+            }
+
+            if (fistOrSword && _clipDriver != null && _clipDriver.CanPlayPlayerMeleeCombo)
+                Debug.Log($"[CombatInput] melee accepted followup={comboFollowup} active={comboActive} "
+                    + $"sequence={_acceptedAttackSequence + 1} cooldownReady={canAttack}");
+            else if (fistOrSword && _clipDriver == null)
+                Debug.LogWarning("[CombatInput] melee accepted with no HumanoidClipDriver; using legacy fallback path");
 
             _attackStreak = (Time.time - _lastAttackTime <= AttackStreakWindow)
                 ? Mathf.Min(_attackStreak + 1, AttackStreakMax)
                 : 1;
             _lastAttackTime = Time.time;
+            _acceptedAttackSequence++;
 
             // ── P6 (2026-09-11): 무기 타입별 좌클릭 공격 분기 ──
             // Bow: 화살 발사 경로 — 발사체(ArrowProjectile)가 데미지를 담당하므로 근접
             //      AttackTarget/자동조준/근접 스윕을 호출하지 않는다(발사 성공/실패 모두 return).
-            //      LastAttackTime 갱신(위)으로 HumanoidClipDriver 감시(L456)가 Bow 분기에서
+            //      accepted sequence 갱신(위)으로 HumanoidClipDriver가 Bow 분기에서
             //      ArcheryShot을 자동 트리거 + TryBowShot 내부에서 TriggerBowShot()으로 명시 보강.
             // Spear/Fist/Sword: 기존 근접 공격 경로 유지(자동조준→AttackTarget 등).
             //      Spear는 사거리 4m < _autoAimRange 15m라 기존 조준 범위로 충분 — 별도 조정 없음.
@@ -617,7 +678,7 @@ namespace ProjectName.Systems
             }
 
             // Fist/Sword hit checks are resolved by HumanoidClipDriver once per Weapon_Combo_2 swing.
-            // LastAttackTime above still reports every accepted click so the driver can queue follow-ups.
+            // AcceptedAttackSequence above reports every accepted click so the driver can queue follow-ups.
             if (_clipDriver != null && _clipDriver.CanPlayPlayerMeleeCombo && fistOrSword)
                 return true;
 
@@ -676,6 +737,13 @@ namespace ProjectName.Systems
             return true;
         }
 
+        private static bool ShouldRejectMeleeAttack(bool comboActive, bool comboFollowup,
+            bool expiredComboRestart, bool canAttack)
+        {
+            return (comboActive && !comboFollowup && !expiredComboRestart)
+                || (!canAttack && !comboFollowup && !expiredComboRestart);
+        }
+
         /// <summary>Resolve one hit attempt and its damage/effects for a Weapon_Combo_2 swing segment.</summary>
         public void ResolveComboSwingHit(int comboStage)
         {
@@ -727,23 +795,25 @@ namespace ProjectName.Systems
             // ① 발사 사운드 — 무기별 레이어링
             PlayWeaponSwingSound();
 
-            // ① 사격 방향 계산 — 조준 레이(마우스 커서→월드 Ray)를 사용.
-            //    과한 하향만 클램프(≈ -14°)하고 상향/수평은 자유 — 고지대·경사 대상 조준 가능.
-            Vector3 dir = transform.forward;
-            if (_mainCamera != null && Mouse.current != null)
+            // Lazy manager setup remains unchanged; it also owns an optional configured muzzle transform.
+            if (ArrowManager.Instance == null)
             {
-                Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-                Vector3 rayDir = ray.direction;
-                if (rayDir.sqrMagnitude > 0.0001f)
-                {
-                    rayDir.Normalize();
-                    if (rayDir.y < -0.25f) rayDir.y = -0.25f; // 급격한 지면 다이빙만 차단
-                    dir = rayDir.normalized;
-                }
+                // Test_10 EnsureGameManager에서 생성 보장이 우선이지만, 다른 씬/순서 대비 런타임 자가 생성.
+                if (Application.isPlaying) { var go = new GameObject("ArrowManager"); go.AddComponent<ArrowManager>(); }
             }
-            // 단일 정규화 조준 방향을 발사와 수평 muzzle 정렬에 함께 사용.
-            if (dir.sqrMagnitude <= 0.0001f) dir = Vector3.forward;
-            dir.Normalize();
+
+            // Reticle screen point -> one world point -> direction from the actual muzzle to that point.
+            Vector2 aimScreenPoint = ArrowManager.GetAimScreenPoint();
+            Vector3 fallbackOrigin = transform.position + transform.forward * 0.6f + Vector3.up * 1.4f;
+            Vector3 origin = ArrowManager.Instance != null
+                ? ArrowManager.Instance.GetArrowSpawnOrigin(fallbackOrigin)
+                : fallbackOrigin;
+            Vector3 aimPoint = origin + transform.forward * 100f;
+            Vector3 dir = transform.forward.sqrMagnitude > 0.0001f ? transform.forward.normalized : Vector3.forward;
+            if (_mainCamera != null)
+                ArrowManager.TrySolveAim(_mainCamera, aimScreenPoint, origin, transform, out aimPoint, out dir);
+
+            // Turn the actor toward the resolved point horizontally; keep the full muzzle direction for launch.
             Vector3 launchForward = dir;
             launchForward.y = 0f;
             if (launchForward.sqrMagnitude <= 0.0001f)
@@ -752,22 +822,9 @@ namespace ProjectName.Systems
                 launchForward.y = 0f;
             }
             if (launchForward.sqrMagnitude <= 0.0001f) launchForward = Vector3.forward;
-            launchForward.Normalize();
-            // 발사 순간에만 즉시 yaw 정렬 — 회전 코루틴이 스폰 계산 뒤를 덮지 않도록 한다.
-            transform.rotation = Quaternion.LookRotation(launchForward, Vector3.up);
-            // (자동조준 재조준 제거 — 화살은 항상 조준 레이 방향으로 정확히 발사)
 
-            // ③ 화살 소모 + 발사체 생성 — origin: 활 위치(전방 0.6m·눈높이 1.4m), 데미지: WeaponData.Bow.damage
-            // [70차 후속18] 플레이어 중심 스폰이 몸을 뚫는 문제(테스트 4 실측) → 활 위치로 이동
-            Vector3 origin = transform.position + launchForward * 0.6f + Vector3.up * 1.4f;
-            //    (화살 종류별 보너스 데미지 합산 + 파워 반영 속도/데미지는 ArrowManager 내부 처리)
-            //    [TEST21-FOLLOWUP] ArrowManager lazy 자가 확보 — 씬 미부트/초기화 순서로 Instance가 null이면
-            //    즉시 생성 시도(EnsureGameManager 보장과 이중 안전, 멱등). 없으면 발사 불가로 안내.
-            if (ArrowManager.Instance == null)
-            {
-                // Test_10 EnsureGameManager에서 생성 보장이 우선이지만, 다른 씬/순서 대비 런타임 자가 생성.
-                if (Application.isPlaying) { var go = new GameObject("ArrowManager"); go.AddComponent<ArrowManager>(); }
-            }
+            // Existing base damage and draw power flow through unchanged to ArrowManager.
+            // Spawn before rotating the shooter so a configured child muzzle stays at the solved origin.
             bool fired = ArrowManager.Instance != null
                 && ArrowManager.Instance.TryShootArrow(origin, dir, WeaponData.Bow.damage, power);
             if (!fired)
@@ -777,6 +834,7 @@ namespace ProjectName.Systems
                 Debug.Log("[PlayerCombat] 🏹 활 발사 실패 — 화살 부족 or ArrowManager 미생성");
                 return;
             }
+            transform.rotation = Quaternion.LookRotation(launchForward.normalized, Vector3.up);
             // [70차 후속19/C1·C6] 발사 성공 — 소형 카메라 킥(활 전용) + 파워 기억(명중 시 크리틱 연출용)
             CombatCameraEffects.PlayFireKick();
             LastBowPower = power;
@@ -786,7 +844,7 @@ namespace ProjectName.Systems
             // [TEST25-66차] 발사 성공 실측 로그 — 화살 비행(ArrowProjectile) + ArcheryShot(발사 애니) 동시 고정.
             Debug.Log("[PlayerCombat] 🏹 활 발사 성공 — 화살 비행(ArrowProjectile) + ArcheryShot(활 사격 애니)");
 
-            // ③ 발사 애니 — ArcheryShot 명시 트리거. LastAttackTime은 TryAttack 시작부에서 이미 갱신되어
+            // ③ 발사 애니 — ArcheryShot 명시 트리거. AcceptedAttackSequence는 TryAttack 시작부에서 이미 갱신되어
             //    드라이버 감시가 Bow 분기에서 ArcheryShot을 자동 트리거하며, TriggerBowShot()은
             //    동일 프레임 중복 SetTrigger(무해)이자 드라이버 미연결 시나리오의 안전망이다.
             //    ⚠️ _rigAnim.Attack()은 Fist 근접 클립을 재생시킬 수 있어 Bow 경로에서는 호출하지 않는다.
@@ -807,6 +865,21 @@ namespace ProjectName.Systems
         {
             var mb = target as MonoBehaviour;
             return mb != null && mb.CompareTag("RecruitedSoldier");
+        }
+
+        /// <summary>
+        /// [Phase D-2] 커서가 NPC/영주/상점NPC 계열을 가리키는지 판정. 공격 대상(IDamageable)이 아닌
+        ///  캐릭터(NPC)를 좌클릭할 때 빈 스윙 공격을 막기 위한 가드. HoverTargetClassifier는 같은
+        ///  Systems 어셈블리의 순수 분류기라 순환참조 없이 직접 호출 가능.
+        /// </summary>
+        private static bool IsPointerOverNpcInteraction()
+        {
+            if (Mouse.current == null) return false;
+            Vector2 mouse = Mouse.current.position.ReadValue();
+            HoverTargetClassifier.TargetKind kind = HoverTargetClassifier.ClassifyAt(mouse);
+            return kind == HoverTargetClassifier.TargetKind.NPC
+                || kind == HoverTargetClassifier.TargetKind.ShopNPC
+                || kind == HoverTargetClassifier.TargetKind.Lord;
         }
 
         private IDamageable FindTargetInCursorDirection()
@@ -1235,34 +1308,6 @@ namespace ProjectName.Systems
         {
             var w = _currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist;
             AttackSoundLayerManager.PlayAttackHit(w, isBackAttack);
-        }
-        private void OnGUI()
-        {
-            // [70차 후속19/C5] 드로 중 조준 프리뷰 — 활 위치→조준 방향 얇은 궤적 라인(파워 비례 길이·알파).
-            if (!_bowDrawing || _mainCamera == null) return;
-
-            Vector3 aimFwd = transform.forward; aimFwd.y = 0f; aimFwd.Normalize();
-            Vector3 arrowOrigin = transform.position + aimFwd * 0.6f + Vector3.up * 1.4f;
-            Vector3 end = arrowOrigin + aimFwd * (12f + 50f * _bowDrawHeldTime / Mathf.Max(0.01f, BowDrawMaxHold));
-
-            Vector3 s0 = _mainCamera.WorldToScreenPoint(arrowOrigin);
-            Vector3 s1 = _mainCamera.WorldToScreenPoint(end);
-            if (s0.z < 0f || s1.z < 0f) return;
-            s0.y = Screen.height - s0.y; s1.y = Screen.height - s1.y;
-
-            float power = Mathf.Clamp01(_bowDrawHeldTime / Mathf.Max(0.01f, BowDrawMaxHold));
-            var prevColor = GUI.color;
-            GUI.color = new Color(1f, 0.85f, 0.4f, 0.25f + 0.45f * power);   // 골드 프리뷰 — 파워 비례 진해짐
-            Vector2 delta = new Vector2(s1.x - s0.x, s1.y - s0.y);
-            float len = delta.magnitude;
-            if (len > 1f)
-            {
-                float ang = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
-                GUIUtility.RotateAroundPivot(ang, s0);
-                GUI.DrawTexture(new Rect(s0.x, s0.y - 1.5f, len, 3f), Texture2D.whiteTexture);
-                GUI.matrix = Matrix4x4.identity;
-            }
-            GUI.color = prevColor;
         }
     }
 }
