@@ -76,8 +76,10 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 1340f;   // [P4] Figma quest-window 3열 (400 + detail + 400)
-        private const float WinH = 820f;
+        // [2026-10-01 Phase1] Figma 배경(게임화면 1920x1080) 위에 3개 판넬을 절대좌표*1.333로 배치.
+        // 호스트 창은 전체화면+투명 크롬(데이터 로직 무수정, 표시 구조만 Figma 재배열).
+        private const float WinW = 1920f;
+        private const float WinH = 1080f;
         private const long RefreshMs = 400L;
 
         // ===== [P4] 필터 =====
@@ -215,23 +217,27 @@ namespace ProjectName.UI.Toolkit
         private readonly List<Button> _filterTabs = new List<Button>();
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
 
-        private QuestWindowUTK() : base("📋 퀘스트", new Vector2(WinW, WinH))
+        private QuestWindowUTK() : base("📋 퀘스트", new Vector2(WinW, WinH), UTKWindowChrome.Frameless)
         {
+            // [Frameless] 배경 투명 — 게임 화면이 비치고, 아래 3개 판넬(목록/상세/보상)만 떠 보임.
             _content.style.flexGrow = 1f;
-            _content.style.flexDirection = FlexDirection.Row;
-            _content.style.paddingLeft = 6f;
-            _content.style.paddingRight = 6f;
-            _content.style.paddingTop = 4f;
-            _content.style.paddingBottom = 4f;
+            // [2026-10-01 Phase1] 3존을 Figma 절대좌표*1.333으로 배치:
+            // 목록(53,53)533x1093 / 상세(613,280)693x640 / 보상(1333,53)533x1093
+            // 호스트 _content는 절대배치 컨테이너 역할(투명, No pointer).
 
             // ── [P4] 좌: QuestListPanel (필터탭 + 카드 목록 + 요약풋터) ──
             var listCol = new VisualElement();
             listCol.name = "QuestListPanel";
             listCol.style.flexDirection = FlexDirection.Column;
-            listCol.style.width = 400f;   // Figma QuestListPanel 400
+            listCol.style.width = 533f;      // Figma 400x1.333
+            listCol.style.height = 1093f;    // Figma 820x1.333
+            listCol.style.position = Position.Absolute;
+            listCol.style.left = 53f;        // Figma 40x1.333
+            listCol.style.top = 53f;         // Figma 40x1.333
             listCol.style.flexShrink = 0;
-            listCol.style.paddingLeft = 6f;
-            listCol.style.paddingRight = 6f;
+            listCol.style.paddingLeft = 8f;
+            listCol.style.paddingRight = 8f;
+            ApplyDarkSlotStyle(listCol);     // 판넬 배경/테두리(독립 창처럼)
             _content.Add(listCol);
 
             var listHeader = MkLabel("퀘스트 목록  /  QUEST DECK", 17, GitHubDark.Gold, TextAnchor.MiddleLeft);
@@ -261,13 +267,15 @@ namespace ProjectName.UI.Toolkit
             _detailPanel = new VisualElement();
             _detailPanel.name = "QuestDetailPanel";
             _detailPanel.style.flexDirection = FlexDirection.Column;
-            _detailPanel.style.flexGrow = 1f;
-            _detailPanel.style.marginLeft = 8f;
-            _detailPanel.style.marginRight = 8f;
-            _detailPanel.style.paddingLeft = 8f;
-            _detailPanel.style.paddingRight = 8f;
-            _detailPanel.style.paddingTop = 6f;
-            _detailPanel.style.paddingBottom = 6f;
+            _detailPanel.style.width = 693f;    // Figma 520x1.333
+            _detailPanel.style.height = 640f;   // Figma 480x1.333
+            _detailPanel.style.position = Position.Absolute;
+            _detailPanel.style.left = 613f;     // Figma 460x1.333
+            _detailPanel.style.top = 280f;      // Figma 210x1.333
+            _detailPanel.style.paddingLeft = 10f;
+            _detailPanel.style.paddingRight = 10f;
+            _detailPanel.style.paddingTop = 8f;
+            _detailPanel.style.paddingBottom = 8f;
             ApplyDarkSlotStyle(_detailPanel);
             _content.Add(_detailPanel);
 
@@ -305,13 +313,16 @@ namespace ProjectName.UI.Toolkit
             _rewardPanel = new VisualElement();
             _rewardPanel.name = "RewardPanel";
             _rewardPanel.style.flexDirection = FlexDirection.Column;
-            _rewardPanel.style.width = 400f;   // Figma DeploymentPanel 400 (보상 카드)
+            _rewardPanel.style.width = 533f;    // Figma DeploymentPanel 400x1.333 (보상 카드)
+            _rewardPanel.style.height = 1093f;  // Figma 820x1.333
+            _rewardPanel.style.position = Position.Absolute;
+            _rewardPanel.style.left = 1333f;    // Figma 1000x1.333
+            _rewardPanel.style.top = 53f;       // Figma 40x1.333
             _rewardPanel.style.flexShrink = 0;
-            _rewardPanel.style.marginLeft = 6f;
-            _rewardPanel.style.paddingLeft = 8f;
-            _rewardPanel.style.paddingRight = 8f;
-            _rewardPanel.style.paddingTop = 6f;
-            _rewardPanel.style.paddingBottom = 6f;
+            _rewardPanel.style.paddingLeft = 10f;
+            _rewardPanel.style.paddingRight = 10f;
+            _rewardPanel.style.paddingTop = 8f;
+            _rewardPanel.style.paddingBottom = 8f;
             ApplyDarkSlotStyle(_rewardPanel);
             _content.Add(_rewardPanel);
 
@@ -326,10 +337,11 @@ namespace ProjectName.UI.Toolkit
             _rewardPanel.Add(_rewardsList);
 
             ApplyUIToolkitFont(this);
-            ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬 리스타일 — 이 창 한정 인라인
+            if (!IsFrameless)
+                ApplyGitHubDarkStyle();   // [Frameless] 배경 투명 유지 — 타이틀바 없음, 크롬 리스타일 스킵
             style.display = DisplayStyle.None;
-            style.left = 40f;
-            style.top = 40f;
+            style.left = 0f;
+            style.top = 0f;
         }
 
         private void AddFilterTab(VisualElement parent, QuestFilter filter, string label)
