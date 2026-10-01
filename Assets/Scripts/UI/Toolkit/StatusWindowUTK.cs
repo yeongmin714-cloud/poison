@@ -52,8 +52,8 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 1180f;
-        private const float WinH = 700f;
+        private const float WinW = 935f;
+        private const float WinH = 780f;
 
         // =====================================================================
         //  [GitHub-dark 리스타일] 캐릭터 정보 창 한정 인라인 오버라이드 — 기능 무수정, 시각 전용.
@@ -130,6 +130,7 @@ namespace ProjectName.UI.Toolkit
         private VisualElement _figAddictionFill;
         private Label _portraitHpLabel;        // Portrait HP 오버레이 텍스트
         private VisualElement _portraitHpFill;
+        private VisualElement _equipmentContent;
 
         private PlayerStats _subscribedStats;
         private EquipmentManager _subscribedEquip;
@@ -153,8 +154,29 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexDirection = FlexDirection.Row;
             _content.style.flexGrow = 1f;
 
-            BuildLeftZone();     // [P3 Figma] 좌: Identity → Portrait(+HP 오버레이) → Level/CoreStats → 특수 상태
-            BuildMiddleZone();   // [P3 Figma] 중: 기존 장비슬롯 6개 + 장비 보너스 (이동 배치)
+            BuildLeftZone();
+
+            var equipmentPanel = new VisualElement();
+            equipmentPanel.name = "EquipmentPanel";
+            equipmentPanel.style.width = 443f;
+            equipmentPanel.style.flexShrink = 0;
+            equipmentPanel.style.flexDirection = FlexDirection.Column;
+            equipmentPanel.style.height = new Length(100f, LengthUnit.Percent);
+            _content.Add(equipmentPanel);
+
+            var scrollView = new ScrollView(ScrollViewMode.Vertical);
+            scrollView.name = "EquipmentScrollView";
+            scrollView.style.flexGrow = 1f;
+            scrollView.style.flexShrink = 1f;
+            scrollView.style.minHeight = 0f;
+            equipmentPanel.Add(scrollView);
+
+            _equipmentContent = scrollView.contentContainer;
+            _equipmentContent.style.flexDirection = FlexDirection.Column;
+            _equipmentContent.style.flexGrow = 1f;
+            _equipmentContent.style.width = new Length(100f, LengthUnit.Percent);
+
+            BuildMiddleZone();
             BuildRightZone();
         }
 
@@ -167,10 +189,10 @@ namespace ProjectName.UI.Toolkit
         {
             var left = new VisualElement();
             left.name = "LeftZone";
-            left.style.width = 312f;
+            left.style.width = 480f;
             left.style.flexShrink = 0;
             left.style.flexDirection = FlexDirection.Column;
-            left.style.paddingRight = 14f;
+            left.style.marginRight = 12f;
             _content.Add(left);
 
             // ── [Figma] IdentityRow: 등급(칭호)/레벨 배지 + 캐릭터명 ──
@@ -333,11 +355,11 @@ namespace ProjectName.UI.Toolkit
         {
             var mid = new VisualElement();
             mid.name = "MiddleZone";
-            mid.style.width = 296f;
+            mid.style.width = 443f;
             mid.style.flexShrink = 0;
             mid.style.flexDirection = FlexDirection.Column;
-            mid.style.paddingRight = 14f;
-            _content.Add(mid);
+            mid.style.width = new Length(100f, LengthUnit.Percent);
+            _equipmentContent.Add(mid);
 
             // ── 장비슬롯 6개 (좌3열 + 우3열 그리드) ──
             var grid = new VisualElement();
@@ -400,9 +422,10 @@ namespace ProjectName.UI.Toolkit
         {
             var right = new VisualElement();
             right.name = "RightZone";
-            right.style.flexGrow = 1f;
+            right.style.width = new Length(100f, LengthUnit.Percent);
+            right.style.flexShrink = 0;
             right.style.flexDirection = FlexDirection.Column;
-            _content.Add(right);
+            _equipmentContent.Add(right);
 
             // ── 남은 포인트 ──
             _pendingLabel = MkLabel("남은 포인트: 0", 18, GitHubDark.TextSub, TextAnchor.MiddleRight);
