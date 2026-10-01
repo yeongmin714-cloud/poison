@@ -254,8 +254,7 @@ namespace ProjectName.UI.Toolkit
             ApplyDarkSlotStyle(listCol);     // 판넬 배경/테두리(독립 창처럼)
             _content.Add(listCol);
 
-            var listHeader = MkLabel("퀘스트 목록  /  QUEST DECK", 17, GitHubDark.Gold, TextAnchor.MiddleLeft);
-            listCol.Add(listHeader);
+            listCol.Add(BuildPanelBar("퀘스트 목록", "QUEST DECK", GitHubDark.Gold));
 
             // 필터 탭 [진행 중][완료]
             var tabRow = new VisualElement();
@@ -296,8 +295,7 @@ namespace ProjectName.UI.Toolkit
             ApplyDarkSlotStyle(_detailPanel);
             _content.Add(_detailPanel);
 
-            var detailHeader = MkLabel("임무 상세  /  OBJECTIVE", 16, GitHubDark.Accent, TextAnchor.MiddleLeft);
-            _detailPanel.Add(detailHeader);
+            _detailPanel.Add(BuildPanelBar("임무 상세", "OBJECTIVE", GitHubDark.Accent));
 
             _detailHeroTitle = MkLabel("퀘스트를 선택하세요", 19, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             _detailPanel.Add(_detailHeroTitle);
@@ -346,8 +344,7 @@ namespace ProjectName.UI.Toolkit
             ApplyDarkSlotStyle(_rewardPanel);
             _content.Add(_rewardPanel);
 
-            var rewardHeader = MkLabel("보상  /  REWARD", 16, GitHubDark.Gold, TextAnchor.MiddleLeft);
-            _rewardPanel.Add(rewardHeader);
+            _rewardPanel.Add(BuildPanelBar("보상", "REWARD", GitHubDark.Gold));
 
             _rewardsList = new VisualElement();
             _rewardsList.name = "RewardsList";
@@ -369,6 +366,29 @@ namespace ProjectName.UI.Toolkit
             StyleButton(tab, UTKButton.Variant.Secondary);
             _filterTabs.Add(tab);
             parent.Add(tab);
+        }
+
+        // [Phase2b] 각 판넬을 독립 창처럼 — 상단 타이틀바(제목 + ✕닫기). 닫기는 관리자 Close(3창 함께).
+        private VisualElement BuildPanelBar(string title, string enTitle, Color accent)
+        {
+            var bar = new VisualElement();
+            bar.name = "PanelTitleBar";
+            bar.style.flexDirection = FlexDirection.Row;
+            bar.style.alignItems = Align.Center;
+            bar.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
+            bar.style.borderTopWidth = bar.style.borderBottomWidth = bar.style.borderLeftWidth = bar.style.borderRightWidth = 1f;
+            bar.style.borderTopColor = bar.style.borderBottomColor = bar.style.borderLeftColor = bar.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            bar.style.borderTopLeftRadius = bar.style.borderTopRightRadius = 6f;
+            bar.style.borderBottomLeftRadius = bar.style.borderBottomRightRadius = 6f;
+            var titleLbl = MkLabel("  " + title + "  /  " + enTitle, 16, accent, TextAnchor.MiddleLeft);
+            titleLbl.style.flexGrow = 1f;
+            bar.Add(titleLbl);
+            var closeBtn = UTKButton.Create("✕", () => Close(), UTKButton.Variant.Secondary);
+            closeBtn.style.width = 30f;
+            closeBtn.style.height = 26f;
+            StyleButton(closeBtn, UTKButton.Variant.Secondary);
+            bar.Add(closeBtn);
+            return bar;
         }
 
         private static Label MkStatLabel(string text)
