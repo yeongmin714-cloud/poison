@@ -4611,3 +4611,13 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 - **검증**: 배치컴파일 **error CS=0**. EditMode 407 tests: **393 pass / 14 fail = 전부 기존 baseline 실패** (Cooking/FindRecipe 데이터계약, BowShot, GInput, Interior/Portal, ThemeUss 베이크 등 — `editmode-results.xml`과 동일, 이번 변경 신규 회귀 0).
 - **커밋**: 178dfd7a(PanelSettings+장비+전투로그) / a4a47b8e(상점+병사) / 5858bc18(퀘스트) / 7db076af(상태 2분할).
 - ⚠️ **Play 검증 대기**: ①1333 확대 후 장비/인벤 그리드가 2줄 유지되는지(기존 3줄 문제 해결) ②상하 60px 잘림이 HUD/핫바를 가리지 않는지 ③상태창 2분할·상점/병사/퀘스트 3열이 Figma와 동일한지.
+
+### UI 퀘스트 창 Figma 1:1 3독립 정합 (Phase1~3, 2026-10-01)
+사용자 요구 "퀘스트 열면 Figma 배치대로 3개 창이 뜨고 내부 판넬도 1:1" — 퀘스트부터 1개씩 전환.
+- **Phase1** (68759f52): `QuestWindowUTK` → Frameless 전체화면 호스트의 `_content`에 3판넬(목록/상세/보상)을 **Figma 절대좌표×1.333**으로 절대배치. 배치: 목록(53,53)533×1093, 상세(613,280)693×640, 보상(1333,53)533×1093. (Figma 1440×900 → 게임 1920×1080 스케일). 보상 우측 1867<1920 ✓, 상세 하단 920<1080 ✓. 데이터 로직 0수정.
+- **Phase2a** (4dc6bfea): 3영역 빌더(`BuildListZone/BuildDetailZone/BuildRewardZone`) 메서드 추출 — 독립 창 승격 기반. `_list` readonly 제거.
+- **Phase2b** (86200379): 3판넬 각자 **독립 창 타이틀바(제목+✕닫기)** 부여, 닫기는 관리자 `Close()` 라우팅(3창 함께 닫힘). `BuildPanelBar` 공용 헬퍼 추가.
+- **Phase3** (5d829a27): 퀘스트 카드 내부 Figma 정합 — 카드 padding 6→**12**, 진행 게이지 높이 8→**4**(Figma GaugeTrack).
+- 검증: 각 Phase 배치컴파일 CS=0 + EditMode 407 중 실패 13 = 전부 baseline, **신규 회귀 0**. (1회 14개 실패는 WeaponCraft 90% 확률형 랜덤 실패 — 재실행 통과로 회귀 아님 확인)
+- ⚠️ **Play 검증 대기**: ①호스트가 투명해서 게임화면이 비치고 3판넬이 Figma 배치로 뜨는지 ②타이틀바 닫기로 3창이 함께 닫히는지 ③카드 패딩/게이지가 Figma와 같은지.
+- 활용 지식: Frameless 전체화면 호스트 + 내부 절대배치로 "다수 패널이 배경 위에 Figma 배치대로" 구현(중첩 UTKWindowBase의 그림자/ESC충돌 회피). 게임화면 스케일 = Figma 1440×900 기준 ×1.333.
