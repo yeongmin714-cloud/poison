@@ -3373,6 +3373,19 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 - ~~현재 작업은 미커밋이다.~~ → **2026-09-29 커밋·푸시 완료** (배치컴파일 error CS=0, EditMode 통과). Play 검증 전에는 화면상 개선 완료로 표기하지 않는다.
 - Play 증거 기준: 최종 per-monster role map, 이동 피드 >0, 같은 실행의 종별 근접 영상(정면/측면)과 정지→이동→정지.
 
+## 🎨 2026-10-01: Figma 내부 규격 정합 + 낚시 2바 리일 (전체 창 외곽 실측·내부 정합)
+
+> **요구**: "전체 창 크기가 일치하지 않으면 그리드(2줄→3줄)가 넘친다 → Figma와 100% 동일한 UI. 창/그리드/슬롯 모두 일치. 배경=게임화면으로 보고." 실측 결과 **외곽 크기는 전부 정합됨** → 남은 것은 **내부 규격**. 커밋 `0ebe4b34`(전투로그)·`770ef52f`(수집결과)·`0301959e`(낚시 2바).
+
+| 단계 | 대상 | 정합 내용 | 상태 |
+|:--|:--|:--|:--|
+| 외곽 실측 | 전체 Figma 배킹 창 | WinW/WinH·총폭 전부 이미 정합 확인(상점1340·병사1300·전투로그620×820·장비443×780·상태480+443 2분할·퀘스트Frameless·인벤/창고/아이템상세) | ✅ 확정 |
+| 내부 | 전투로그 `CombatLogUTK` | BattleLogItem **580×90 고정·pad12/8·카드간격8·섹션 gap6** (기존 pad8/5·가변높이) — Figma 94:66/65 | ✅ `0ebe4b34` |
+| 내부 | 수집결과 `HarvestResultUTK` | ResultPanel **480×718·pad24·내부 gap20** (기존 500×620·pad12) — Figma 72:17 | ✅ `770ef52f` |
+| 게임플레이 | 낚시 `FishingSystem`+`FishingUTK` | **1바 핀 → Figma 2바 리일**(`물고기를 당기는 중` progress + `라인 장력` tension) — FishingSystem TryReel/ReelProgress/ReelTension 시뮬 신설(진행100%성공·장력100%라인끊김), FishingUTK 280×289·pad20/gap20·SPACE/Q — Figma 160:11 | ✅ `0301959e` |
+
+**EditMode**: 3커밋 모두 407/394 13건 — 전부 기존 baseline, **신규 회귀 0**. **Play**: 낚시 2바·전투로그/수집 카드 렌더 검증 대기.
+
 ## 🎨 2026-09-23: FIGMA UI 전환 (F-UI) — GitHub-dark 테마
 > Figma 파일(제목없음, 46프레임) 역설계 완료. 커서 19종 + 고유 UI 창 17종을 게임 해상도 기준 GitHub-dark 테마로 전환.
 

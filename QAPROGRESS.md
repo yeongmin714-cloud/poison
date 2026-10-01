@@ -1,5 +1,15 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
+> **2026-10-01 Figma 내부 규격 정합 + 낚시 2바 리일 재구현 (사용자 "1번으로 진행" 승인) — 커밋 `0ebe4b34`/`770ef52f`/`0301959e`**
+>
+> - **외곽 크기 최종 실측**: WinW/WinH·총폭 기준 모든 Figma 배킹 창이 이미 정합 확인 — 상점(1340×780·31/36/31), 병사(1300×820·31/37/31), 전투로그(620×820), 장비(443×780), 상태창(좌480+우443 2분할), 퀘스트(1920×1080 Frameless), 인벤/창고/아이템상세(420·420·480). → 남은 "창 일치" 작업은 내부 규격(카드/슬롯/게이지/패딩).
+> - **전투로그 정합** (`0ebe4b34`): `CombatLogUTK.BuildList` BattleLogItem **580×90 고정·pad12/8·카드 margin4/4(LogList gap8)·메타↔결과 gap6** — Figma 94:66/94:65 일치 (기존 pad 8/5·가변높이·margin3).
+> - **수집결과 정합** (`770ef52f`): `HarvestResultUTK` ResultPanel **WinW 500→480·WinH 620→718·패딩 12→24·내부 섹션 margin 8~10→20(gap20)** — Figma 72:17 일치.
+> - **낚시 Figma 2바 리일 재구현** (`0301959e`): Figma 낚시가 게임과 메커닉이 다름(게임=1바 핀 타이밍, Figma=`물고기를 당기는 중(progress)` + `라인 장력(tension)` 2바) → **FishingSystem**에 `ReelProgress/ReelTension` 시뮬·`TensionDangerThreshold(0.75)`·`TryReel()`(Space) 신설 — 진행 100% 도달=성공(물고기 획득+HarvestResultBridge), 장력 100%=라인 끊김 실패. 진행은 Space 상승·시간경과 하락(물고기 저항), 장력은 Space 상승·시간경과 완화. 레거시 `TryCatch/핀 getter`는 원본 FishingUI 호환 유지(원본 비수정). **FishingUTK** 전량 재작성: 280×289·pad20/gap20, TitleRow(🎣 낚시하기+ACTIVE/대기 중)→Line→ProgressSection(물고기 당기는 중+% + 8px 진행바)→TensionSection(라인장력+위험! + 8px 장력바)→Line→ActionGrid([SPACE]잡기 [Q]취소). Q=취소 신설, ESC 유지. 베이크 1바(핀·스위트스팟·바프레임) 참조 제거(입질 찌 FishingBite는 유지).
+> - **Compile**: 커밋별 `error CS 0` + `Exiting batchmode successfully now!` ✅ (textAlign→unityTextAlign 수리 1건).
+> - **EditMode**: 3커밋 모두 **407/394 13건 실패 — 전부 기존 baseline**(요리 데이터·BowShot·GInput·Interior·Portal·ThemeUss)과 동일 → **신규 회귀 0**.
+> - **Play**: 미실행. 낚시 2바/SPACE/Q 동작 및 전투로그·수집결과 카드 렌더는 에디터 Play 검증 대기.
+
 > **2026-09-30 Figma 슬롯 크기·간격·정렬 정합 (사용자 확정 "슬롯 크기/배치/정렬까지 같아야") — 커밋 `f332e645`**
 >
 > - **Figma 실측**: `fluent-game-inventory-ui`(15:4)/`loot-panel`(70:4)에서 슬롯 셀 **68×68**, 그리드 gap **8**, 장비 gap **4**, 콘텐츠 패딩 **20**, 아이콘 32×32, 카운트 14px, 등급선 = 슬롯 상단 68×3 확인.
