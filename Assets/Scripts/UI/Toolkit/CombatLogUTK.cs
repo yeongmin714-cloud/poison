@@ -263,12 +263,15 @@ namespace ProjectName.UI.Toolkit
                 var card = new VisualElement();
                 card.name = "BattleLogItem";
                 card.style.flexDirection = FlexDirection.Column;
-                card.style.marginTop = 3f;
-                card.style.marginBottom = 3f;
-                card.style.paddingLeft = 8f;
-                card.style.paddingRight = 8f;
-                card.style.paddingTop = 5f;
-                card.style.paddingBottom = 5f;
+                card.style.width = 580f;
+                card.style.height = 90f;   // [Figma 94:66] BattleLogItem 580×90 고정
+                card.style.minHeight = 90f;
+                card.style.marginTop = 4f;
+                card.style.marginBottom = 4f;   // [Figma 94:65] LogList gap8 (카드 사이 8)
+                card.style.paddingLeft = 12f;   // [Figma] pad 12/8
+                card.style.paddingRight = 12f;
+                card.style.paddingTop = 8f;
+                card.style.paddingBottom = 8f;
                 card.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
                 card.style.borderTopWidth = 1f;
                 card.style.borderBottomWidth = 1f;
@@ -309,7 +312,7 @@ namespace ProjectName.UI.Toolkit
                 var resultRow = new VisualElement();
                 resultRow.style.flexDirection = FlexDirection.Row;
                 resultRow.style.alignItems = Align.Center;
-                resultRow.style.marginTop = 3f;
+                resultRow.style.marginTop = 6f;   // [Figma 94:66] card gap6 (메타↔결과)
 
                 var fLabel = new Label("교전 결과");
                 fLabel.style.fontSize = 11f;
