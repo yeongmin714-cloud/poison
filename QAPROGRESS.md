@@ -65,7 +65,7 @@
 
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검) [ARCHIVE MARKER]
 
-> **최종 갱신:** 2026-09-29 (Weapon_Combo_2 3타 입력 버퍼 + 타격 판정 구현; Play 검증 대기)
+> **최종 갱신:** 2026-10-01 (Weapon_Combo_2 후속 클릭의 미소비 opener race 진단/버퍼 게이트 보강; Play 검증 대기)
 
 ## 📌 세션 스냅샷 (2026-09-29 — Weapon_Combo_2 근접 콤보 재도입)
 
@@ -75,7 +75,9 @@
 - **타격:** 각 애니메이션 세그먼트 시작 시 `PlayerCombat.ResolveComboSwingHit(stage)`를 1회 호출(자동조준→중앙 조준→근접 스윕 순). stage 1/2/3 각각 별도의 피해 판정과 스윙 FX/사운드가 연결됨. 후속 타격만 쿨다운 우회, 콤보 중 버퍼 용량이 찬 추가 클릭은 무시한다. Animator 콤보 재생이 불가하면 기존 단일 공격 피해 폴백을 사용해 중복 방지.
 - **무기 범위:** Bow 발사와 Spear 찌르기 경로는 유지. 변경 파일은 `HumanoidClipDriver.cs`, `PlayerCombat.cs`.
 - **검증:** 독립 QA에서 입력 버퍼/최대 3타/타당 1회 판정/비활성 Animator 폴백/Bow·Spear 경로를 정적 검토. Unity `./compile_test.sh` 성공, fresh `compile.log`: Tundra build success, `error CS=0`, batchmode exit code 0. `git diff --check` 통과.
-- ⚠ **Play 검증 대기:** Editor Play에서 ①각 타 애니메이션 경계 연속성 ②스윙별 실제 접촉 프레임과 피해 시점 ③1→2→3 선입력/최대타수/무입력 Idle 복귀 ④일반 Attack fallback 및 Bow/Spear 회귀를 확인해야 한다. 경계 상수는 렌더 샘플 기준 추정값이며 최종 튜닝 값으로 확정하지 않았다.
+- **2026-10-01 후속 입력 경로 진단/보강:** Editor.log에는 `WeaponCombo 시작 — accepted clicks=1`과 stage 1 판정 뒤 입력창 만료가 반복되며 후속 승인 로그가 없었다. 정적 경로를 보니 `PlayerCombat.TryAttack`은 드라이버가 opener sequence를 소비해 `_comboStage`를 만들기 전에는 follow-up gate가 닫혀 있어, 즉시 이어진 클릭이 무기 쿨다운에 걸릴 수 있었다. `HumanoidClipDriver.CanAcceptBufferedMeleeFollowup`가 활성 콤보 뿐 아니라 최근 accepted opener의 미소비 sequence를 보고 3타 한도 내 후속 슬롯을 예약하도록 변경. `PlayerCombat`에는 물리 클릭/UI gate 및 melee accepted/rejected 상태 로그 추가. Bow/Spear 경로는 변경하지 않음.
+- **EditMode:** 2026-10-01 최신 전체 실행 XML `TestOutput/editmode-results.xml`: 397개 중 384 통과, 13 실패(기존 테스트실패들). 콤보 관련 `HumanoidClipDriverComboTests` 11/11 통과. 새 `PlayerAttackSequenceTests.BufferedFollowupGate...`는 현재 실행에 포함되지 않았음(실행 시점보다 파일 수정이 늦음). XML에 `PlayerAttackSequenceTests` 한 실패(`MultipleAcceptedAttacksAtTheSameTime...`)도 있음. 테스트 XML 실제 root attributes 사용; wrapper의 `tests=None` 표시는 잘못된 필드명임.
+- ⚠ **컴파일/Play:** 별도 최신 batch compile 확인은 하지 않음. Play 재현 미실행. 새 로그와 게이트는 코드에 반영됐으나 실제 1/2/3 swing, 피해 횟수, Idle 전환은 여전히 미검증. Editor Play에서 ①각 타 연속성 ②스윙별 접촉/피해 ③1→2→3 입력과 초과 클릭 제한 ④무입력 Idle 복귀 ⑤fallback/Bow/Spear 회귀 확인 필요. 경계값은 Play 튜닝 전 잠정.
 
 ---
 
@@ -4596,3 +4598,16 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 ### 검증
 - 배치컴파일(6000.4.10f1) `CompileScripts: 14886ms`, **error CS 0**.
 - ⚠️ **Play 검증 대기**: ①영지·마을이 진짜 평지인지(성 45m 안 언덕 없음) ②산/바위에 캐릭터/몬스터가 잘 밟고 겉도는지(콜라이더) ③산이 성/자원노드/흙길과 안 겹치는지.
+
+### 🔲 UI-Figma 16:9 스케일·창 크기 정합 (2026-10-01)
+- **스케일 방식 채택**: PanelSettings ReferenceResolution 1920×1080(Match 0.5) → **1440×900 가로기준(Match 0)**. Figma 캔버스(1440×900) 기준, 게임 1920×1080에서 **×1.333 자동 일괄 확대**, 세로 900×1.333=1200>1080 → **상하 60px씩 잘림**(사용자 선택 "상하 잘림"). → 모든 창/그리드/슬롯이 Figma 비율로 자동 정합, 코드 배율 수동 곱 불필요.
+- **창별 논리 크기 → Figma 절대 px 교체** (드래그/금융/데이터 로직 무수정):
+  - 장비 `EquipmentWindowUTK` WinW 400×560 → **443×780** (Figma 84:4 EquipmentPanel)
+  - 전투로그 `CombatLogUTK` 560×500 → **620×820** (Figma 94:6 BattleLogPanel)
+  - 상점 `ShopWindowUTK` 1120×620 → **1340×780**, 열 44/28/28% → **31/36/31%** (Figma 420+480+420)
+  - 병사 `SoldierManagementUTK` 960×560 → **1300×820**, 열 34/38/28% → **31/37/31%** (Figma 400+480+400)
+  - 퀘스트 `QuestWindowUTK` 1280×640 → **1340×820**, list 380→400 / reward 330→400 (Figma 400+detail+400)
+  - 상태 `StatusWindowUTK` 1180×700 → **935×780 2분할 재구성**: 좌 CharacterStatus 480 + 우 Equipment·보조 443 ScrollView (Figma 84:4). 데이터 로직 40곳 보존.
+- **검증**: 배치컴파일 **error CS=0**. EditMode 407 tests: **393 pass / 14 fail = 전부 기존 baseline 실패** (Cooking/FindRecipe 데이터계약, BowShot, GInput, Interior/Portal, ThemeUss 베이크 등 — `editmode-results.xml`과 동일, 이번 변경 신규 회귀 0).
+- **커밋**: 178dfd7a(PanelSettings+장비+전투로그) / a4a47b8e(상점+병사) / 5858bc18(퀘스트) / 7db076af(상태 2분할).
+- ⚠️ **Play 검증 대기**: ①1333 확대 후 장비/인벤 그리드가 2줄 유지되는지(기존 3줄 문제 해결) ②상하 60px 잘림이 HUD/핫바를 가리지 않는지 ③상태창 2분할·상점/병사/퀘스트 3열이 Figma와 동일한지.
