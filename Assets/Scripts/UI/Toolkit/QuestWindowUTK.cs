@@ -683,8 +683,10 @@ namespace ProjectName.UI.Toolkit
             box.style.flexDirection = FlexDirection.Column;
             box.style.marginTop = 4f;
             box.style.marginBottom = 4f;
-            box.style.paddingTop = 6f;
-            box.style.paddingBottom = 6f;
+            box.style.paddingTop = 12f;    // Figma QuestSlot padding 12
+            box.style.paddingBottom = 12f;
+            box.style.paddingLeft = 12f;   // Figma QuestSlot padding 좌우 12
+            box.style.paddingRight = 12f;
             string qid = quest.questId;
             box.RegisterCallback<PointerDownEvent>(_ => { _selectedQuestId = qid; RefreshDisplay(); });
 
@@ -757,12 +759,12 @@ namespace ProjectName.UI.Toolkit
 
             var track = new VisualElement();
             track.style.flexGrow = 1f;
-            track.style.height = 8f;
+            track.style.height = 4f;   // Figma GaugeTrack 4px (카드 진행게이지)
             track.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
-            track.style.borderTopLeftRadius = 4f;
-            track.style.borderTopRightRadius = 4f;
-            track.style.borderBottomLeftRadius = 4f;
-            track.style.borderBottomRightRadius = 4f;
+            track.style.borderTopLeftRadius = 2f;
+            track.style.borderTopRightRadius = 2f;
+            track.style.borderBottomLeftRadius = 2f;
+            track.style.borderBottomRightRadius = 2f;
 
             var fill = new VisualElement();
             fill.style.height = new Length(100f, LengthUnit.Percent);
