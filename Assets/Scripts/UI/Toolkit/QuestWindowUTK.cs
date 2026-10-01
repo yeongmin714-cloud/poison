@@ -29,7 +29,7 @@ namespace ProjectName.UI.Toolkit
     ///  - 체인 진행 버튼:  QuestChainManager.Instance.CompleteCurrentNode(chainId)
     ///  - 보상 요약:       QuestRewardPreview.GetRewardSummary(QuestData)
     ///
-    /// 폴링 400ms(schedule.Execute().Every) + Q 키 토글 / ESC 닫기.
+    /// 데이터 갱신 폴링 400ms(schedule.Execute().Every) + ESC 닫기. 열기는 public Open/Toggle API 사용.
     /// </summary>
     public class QuestWindowUTK : UTKWindowBase
     {
@@ -46,7 +46,7 @@ namespace ProjectName.UI.Toolkit
             Object.DontDestroyOnLoad(go);
             var updater = go.AddComponent<Updater>();
             updater.window = _instance;
-            Debug.Log("[QuestWindowUTK] 초기화 완료 — Q키로 토글");
+            Debug.Log("[QuestWindowUTK] 초기화 완료");
         }
 
         /// <summary>팩토리 — 멱등 생성.</summary>
@@ -76,8 +76,8 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 1280f;   // [P4] 3열 수용 확장
-        private const float WinH = 640f;
+        private const float WinW = 1340f;   // [P4] Figma quest-window 3열 (400 + detail + 400)
+        private const float WinH = 820f;
         private const long RefreshMs = 400L;
 
         // ===== [P4] 필터 =====
@@ -228,7 +228,7 @@ namespace ProjectName.UI.Toolkit
             var listCol = new VisualElement();
             listCol.name = "QuestListPanel";
             listCol.style.flexDirection = FlexDirection.Column;
-            listCol.style.width = 380f;
+            listCol.style.width = 400f;   // Figma QuestListPanel 400
             listCol.style.flexShrink = 0;
             listCol.style.paddingLeft = 6f;
             listCol.style.paddingRight = 6f;
@@ -305,7 +305,7 @@ namespace ProjectName.UI.Toolkit
             _rewardPanel = new VisualElement();
             _rewardPanel.name = "RewardPanel";
             _rewardPanel.style.flexDirection = FlexDirection.Column;
-            _rewardPanel.style.width = 330f;
+            _rewardPanel.style.width = 400f;   // Figma DeploymentPanel 400 (보상 카드)
             _rewardPanel.style.flexShrink = 0;
             _rewardPanel.style.marginLeft = 6f;
             _rewardPanel.style.paddingLeft = 8f;
@@ -367,7 +367,7 @@ namespace ProjectName.UI.Toolkit
                 root.Add(this);
             StartRefreshLoop();
             RefreshDisplay();
-            Debug.Log("[QuestWindowUTK] 퀘스트 창 열림 (키: Q)");
+            Debug.Log("[QuestWindowUTK] 퀘스트 창 열림");
         }
 
         public override void Hide()
@@ -491,37 +491,41 @@ namespace ProjectName.UI.Toolkit
                 _list.Add(empty);
             }
 
-            // 선택 퀘스트 → 상세/보상 갱신
+            // 선택 퀘스트는 현재 필터에 표시될 수 있는 항목으로만 유지한다.
             string sel = _selectedQuestId;
-            if (string.IsNullOrEmpty(sel))
-            {
-                if (active.Count > 0) sel = active[0].questId;
-                else if (available.Count > 0) sel = available[0].questId;
-                else if (completed.Count > 0) sel = completed[0].questId;
-                else if (chains.Count > 0 && !string.IsNullOrEmpty(chains[0].Key.chainId)) sel = chains[0].Key.chainId;
-            }
-
-            // 선택이 더 이상 목록에 없으면 첫 항목으로 폴백
-            if (!string.IsNullOrEmpty(sel) && !IsQuestVisible(sel, active, completed, available, chains))
+            if (!IsQuestVisible(sel, active, completed, available, chains))
                 sel = null;
+
             if (string.IsNullOrEmpty(sel))
             {
-                if (active.Count > 0) sel = active[0].questId;
-                else if (available.Count > 0) sel = available[0].questId;
-                else if (completed.Count > 0) sel = completed[0].questId;
+                if (_filter == QuestFilter.All && chains.Count > 0)
+                    sel = chains[0].Key.chainId;
+                else if ((_filter == QuestFilter.All || _filter == QuestFilter.Active) && active.Count > 0)
+                    sel = active[0].questId;
+                else if (_filter == QuestFilter.All && available.Count > 0)
+                    sel = available[0].questId;
+                else if ((_filter == QuestFilter.All || _filter == QuestFilter.Completed) && completed.Count > 0)
+                    sel = completed[0].questId;
             }
             _selectedQuestId = sel;
 
-            RefreshDetail(sel);
+            RefreshDetail(sel, chains);
         }
 
         private bool IsQuestVisible(string questId, List<QuestData> active, List<QuestData> completed,
                                      List<QuestData> available, List<KeyValuePair<QuestChainData, QuestChainManager.ChainProgress>> chains)
         {
-            for (int i = 0; i < active.Count; i++) if (active[i].questId == questId) return true;
-            for (int i = 0; i < completed.Count; i++) if (completed[i].questId == questId) return true;
-            for (int i = 0; i < available.Count; i++) if (available[i].questId == questId) return true;
-            for (int i = 0; i < chains.Count; i++) if (chains[i].Key.chainId == questId) return true;
+            if (string.IsNullOrEmpty(questId)) return false;
+
+            if (_filter == QuestFilter.All || _filter == QuestFilter.Active)
+                for (int i = 0; i < active.Count; i++) if (active[i].questId == questId) return true;
+            if (_filter == QuestFilter.All || _filter == QuestFilter.Completed)
+                for (int i = 0; i < completed.Count; i++) if (completed[i].questId == questId) return true;
+            if (_filter == QuestFilter.All)
+            {
+                for (int i = 0; i < available.Count; i++) if (available[i].questId == questId) return true;
+                for (int i = 0; i < chains.Count; i++) if (chains[i].Key.chainId == questId) return true;
+            }
             return false;
         }
 
@@ -590,12 +594,30 @@ namespace ProjectName.UI.Toolkit
             desc.style.whiteSpace = WhiteSpace.Normal;
             box.Add(desc);
 
-            string btnText = hasChoices ? "선택(자동진행)" : "진행";
+            string btnText = hasChoices ? "선택" : "진행";
             string chainId = progress.chainId;
             var btn = UTKButton.Create(btnText, () =>
             {
                 if (hasChoices)
-                    Debug.LogWarning("[QuestWindowUTK] 선택지 체인 노드는 자동 진행(legacy QuestChoiceUI는 IMGUI)으로 처리.");
+                {
+                    var uiRoot = UIToolkitBootstrap.UIRoot;
+                    if (uiRoot != null)
+                    {
+                        QuestChoiceUTK.Show(chainId, node);
+                        var choicePopup = QuestChoiceUTK.Instance;
+                        if (choicePopup != null && choicePopup.parent != uiRoot)
+                        {
+                            choicePopup.RemoveFromHierarchy();
+                            uiRoot.Add(choicePopup);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[QuestWindowUTK] 선택지 팝업을 표시할 수 없습니다: UIToolkitBootstrap.UIRoot가 없습니다. 씬의 UI Toolkit 부트스트랩/UI Document를 초기화한 뒤 다시 시도하세요. 체인은 변경되지 않았습니다.");
+                    }
+                    return;
+                }
+
                 bool ok = QuestChainManager.Instance != null
                     && QuestChainManager.Instance.CompleteCurrentNode(chainId, -1);
                 Debug.Log($"[QuestWindowUTK] 체인 노드 진행({chainId}, 자동): 성공={ok}");
@@ -750,11 +772,57 @@ namespace ProjectName.UI.Toolkit
         //  [P4] 중앙 상세 + 우 보상 갱신
         //  =====================================================================
 
-        private void RefreshDetail(string questId)
+        private void RefreshDetail(string questId, List<KeyValuePair<QuestChainData, QuestChainManager.ChainProgress>> chains)
         {
             QuestData quest = FindQuestData(questId);
             if (string.IsNullOrEmpty(quest.questId))
             {
+                KeyValuePair<QuestChainData, QuestChainManager.ChainProgress> selectedChain = default;
+                for (int i = 0; i < chains.Count; i++)
+                {
+                    if (chains[i].Key.chainId == questId)
+                    {
+                        selectedChain = chains[i];
+                        break;
+                    }
+                }
+
+                if (selectedChain.Key != null)
+                {
+                    QuestChainData chain = selectedChain.Key;
+                    QuestChainManager.ChainProgress progress = selectedChain.Value;
+                    QuestChainNode node = chain.GetNode(progress.currentNodeId);
+                    _detailHeroTitle.text = string.IsNullOrEmpty(chain.chainTitle) ? chain.chainId : chain.chainTitle;
+                    int completedNodeCount = progress.completedNodeIds != null ? progress.completedNodeIds.Count : 0;
+                    _detailHeroTag.text = $"활성 퀘스트 체인  ·  노드 {completedNodeCount}/{(chain.nodes != null ? chain.nodes.Length : 0)}";
+                    _detailStory.text = string.IsNullOrEmpty(chain.chainDescription) ? "현재 진행 중인 퀘스트 체인입니다." : chain.chainDescription;
+                    _objectivesList.Clear();
+                    if (!string.IsNullOrEmpty(node.id))
+                    {
+                        var nodeTitle = MkLabel("현재 노드: " + (string.IsNullOrEmpty(node.title) ? node.id : node.title), 13, GitHubDark.Accent, TextAnchor.MiddleLeft);
+                        nodeTitle.style.whiteSpace = WhiteSpace.Normal;
+                        _objectivesList.Add(nodeTitle);
+                        if (!string.IsNullOrEmpty(node.description))
+                        {
+                            var nodeDescription = MkLabel(node.description, 12, GitHubDark.TextSub, TextAnchor.UpperLeft);
+                            nodeDescription.style.whiteSpace = WhiteSpace.Normal;
+                            _objectivesList.Add(nodeDescription);
+                        }
+                        if (node.objectives != null)
+                        {
+                            for (int i = 0; i < node.objectives.Length; i++)
+                                _objectivesList.Add(MkLabel("• " + node.objectives[i], 12, GitHubDark.TextMain, TextAnchor.MiddleLeft));
+                        }
+                    }
+                    else
+                    {
+                        _objectivesList.Add(MkLabel("현재 노드 정보를 찾을 수 없습니다.", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft));
+                    }
+
+                    RefreshRewards(new QuestData { questId = "" });
+                    return;
+                }
+
                 _detailHeroTitle.text = "퀘스트를 선택하세요";
                 _detailHeroTag.text = "";
                 _detailStory.text = "왼쪽 목록에서 퀘스트를 선택하면 상세 정보가 표시됩니다.";
@@ -934,11 +1002,8 @@ namespace ProjectName.UI.Toolkit
                     root.Add(window);
 
                 var kb = UnityEngine.InputSystem.Keyboard.current;
-                if (kb != null)
-                {
-                    if (kb.qKey.wasPressedThisFrame && window != null) if (window.IsOpen) window.Close(); else Toggle();;
-                    if (kb.escapeKey.wasPressedThisFrame && window != null && window.IsOpen) window.Close();
-                }
+                if (kb != null && kb.escapeKey.wasPressedThisFrame && window != null && window.IsOpen)
+                    window.Close();
             }
 
             private void OnDestroy()
