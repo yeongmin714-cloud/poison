@@ -5,6 +5,93 @@ using ProjectName.Core;
 
 namespace ProjectName.Systems
 {
+    /// <summary>Pure timing/authorization state for the two-swing Weapon_Combo_2 clip.</summary>
+    public sealed class MeleeComboStateMachine
+    {
+        public enum Decision { Inactive, Playing, Hold, Resume, Exit }
+
+        private int _acceptedClicks;
+        private float _lastClickTime;
+        private bool _active;
+        private bool _holding;
+        private bool _resumePending;
+
+        public int AcceptedClicks => _acceptedClicks;
+        public bool IsActive => _active;
+        public bool DidExitBecauseFollowupWindowExpired { get; private set; }
+
+        public void Start(float now)
+        {
+            _acceptedClicks = 1;
+            _lastClickTime = now;
+            _active = true;
+            _holding = false;
+            _resumePending = false;
+            DidExitBecauseFollowupWindowExpired = false;
+        }
+
+        public bool CanAcceptFollowup(float now, float clickWindow)
+        {
+            return _active && _acceptedClicks < 3 && now - _lastClickTime < clickWindow;
+        }
+
+        public bool IsFollowupWindowExpired(float now, float clickWindow)
+        {
+            return _active && now - _lastClickTime >= clickWindow;
+        }
+
+        public bool TryAcceptFollowup(float now, float clickWindow)
+        {
+            if (!CanAcceptFollowup(now, clickWindow)) return false;
+            _acceptedClicks++;
+            _lastClickTime = now;
+            _resumePending = _holding;
+            _holding = false;
+            return true;
+        }
+
+        public Decision Evaluate(float now, float normalizedTime, float clickWindow)
+        {
+            if (!_active) return Decision.Inactive;
+            DidExitBecauseFollowupWindowExpired = false;
+            if (_acceptedClicks == 3 && normalizedTime >= 1f)
+            {
+                _active = false;
+                return Decision.Exit;
+            }
+            float playbackLimit = _acceptedClicks / 3f;
+            if (_acceptedClicks < 3 && now - _lastClickTime >= clickWindow
+                && normalizedTime >= playbackLimit - 0.001f)
+            {
+                _active = false;
+                DidExitBecauseFollowupWindowExpired = true;
+                return Decision.Exit;
+            }
+            if (_resumePending)
+            {
+                _resumePending = false;
+                return Decision.Resume;
+            }
+
+            if (normalizedTime >= playbackLimit)
+            {
+                _holding = true;
+                return Decision.Hold;
+            }
+            return Decision.Playing;
+        }
+
+        public void Reset()
+        {
+            _acceptedClicks = 0;
+            _lastClickTime = 0f;
+            _active = false;
+            _holding = false;
+            _resumePending = false;
+            DidExitBecauseFollowupWindowExpired = false;
+        }
+    }
+
     /// <summary>
     /// 믹사모 Humanoid Animator 런타임 드라이버 (플레이어 / 병사).
     ///
@@ -12,8 +99,8 @@ namespace ProjectName.Systems
     ///   Speed(float) / 트리거 Attack, AttackCombo, Hit, Death
     ///   (Player_AC에만 추가) Roll, Jump
     ///
-    /// ■ Player 모드 — CharacterController.velocity(수평)를 Speed로, PlayerCombat.LastAttackTime
-    ///   변화(클릭 엣지)를 AttackCombo/2/3 distinct clip stages로 변환하고 strike 타이밍에 히트를 판정하며,
+    /// ■ Player 모드 — CharacterController.velocity(수평)를 Speed로, PlayerCombat.AcceptedAttackSequence
+    ///   변화(허용된 클릭 엣지)를 등록된 AttackCombo/2/3 상태의 순차 재생 및 strike 타이밍으로 변환하며,
     ///   PlayerMovement.IsRolling/IsJumping 상승엣지를 Roll/Jump 트리거로 변환한다.
     /// ■ Soldier 모드 — transform 위치 델타로 Speed를 계산하고, 공격은 GuardCombatAI가
     ///   TriggerAttack()으로 호출한다.
@@ -25,18 +112,36 @@ namespace ProjectName.Systems
         [Header("드라이브 모드")]
         public DriveMode mode = DriveMode.Player;
 
-        // Distinct controller clips are played directly: each accepted click queues one later stage.
         private static readonly string[] StageStateNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
+        private const string MeleeComboStateName = "WeaponCombo"; // retained for the separate Spear follow-up route
+        private const string MeleeComboExitStateName = "Idle";
+        private const string SpearOpenerStateName = "AttackThrust";
+        private const string SpearOpenerExitStateName = "Idle";
+        // Weapon_Combo_2 authors two sword swings: click 1 opens the first half, click 2 unlocks the rest.
+        private const int MaxMeleeComboClicks = 3;
         private const float StageStrikeSyncNormT = 0.32f;
         private const float StageAdvanceNormT = 0.90f;
+        private const float MeleeComboClickWindow = 0.85f;
+        private const float ComboSegmentStrikeNormT = 0.32f;
+        private const float SpearOpenerStrikeNormT = 0.50f;
         private const float ComboExitBlend = 0.10f;
+        private int _comboStage;          // 0=inactive, 1..3=current registered Animator stage
         private readonly bool[] _stageHitResolved = new bool[3];
-        private int _comboStage;          // 0=inactive, 1..3=current distinct swing stage
+        private bool _expiredComboRestartAvailable;
+        private int _comboBufferedClicks; // accepted followups queued for distinct registered states
+        private int _comboAcceptedClicks;
+        private readonly MeleeComboStateMachine _meleeCombo = new MeleeComboStateMachine();
+        private int _spearAcceptedClicks;
+        private float _spearOpenerAcceptedTime;
+        private bool _spearOpenerHitResolved;
+        private bool _spearFollowupHitResolved;
+        private bool _spearFollowupAuthorized;
+        private bool _spearFollowupStarted;
+        private float _spearStateTransitionTime;
         // [2026-09-25 프리미엄 AttackArcVFX A/B] 인스펙터에서 켜면 실제 무기 궤적 3D 스윕 리본을 켠다(기본 OFF).
         [SerializeField, Header("AttackArcVFX (프리미엄 스윕 리본) A/B")]
         private bool _premiumArcEnabled;
         private float _comboStartTime = -999f;
-        private int _comboBufferedClicks;      // queued follow-up clicks; capped to three total swings
         private int _legacyImpactFired;   // 레거시 Attack* 상태 1회 슬래시 플래그
         private int _prevAttackStateHash = -1;
 
@@ -46,8 +151,11 @@ namespace ProjectName.Systems
         private PlayerCombat _combat;
 
         private Vector3 _lastPos;
-        private float _prevCombatAttack = -999f;   // 직전 프레임의 LastAttackTime (클릭 엣지 감지)
+        private long _consumedAttackSequence;       // 마지막으로 소비한 accepted-attack sequence
+        private long _pendingAcceptedAttackInputs;  // sequence deltas retained until the active three-swing combo has room
+        private bool _acceptedMeleeRouteDispatchedThisUpdate;
         private float _prevPlayerHP = -1f;         // 직전 프레임의 PlayerHealth.CurrentHP (HP 감소 엣지 → HitLight)
+        private bool _pendingPlayerHitLight;
         private bool _prevRolling, _prevJumping;
         private float _prevSpeedForTransition = -999f;   // T-D3: Run→Walk 전환 연출용 직전 프레임 속도
         private bool _prevBow, _prevSpear, _prevThrow;   // T-D3: 무기 모드 엣지 감지
@@ -57,12 +165,73 @@ namespace ProjectName.Systems
         public bool CanPlayPlayerMeleeCombo => mode == DriveMode.Player && _anim != null
             && _anim.isActiveAndEnabled && _anim.isInitialized && _anim.runtimeAnimatorController != null;
         public bool IsPlayerMeleeComboActive => CanPlayPlayerMeleeCombo && _comboStage >= 1 && _comboStage <= 3;
-        public bool CanAcceptBufferedMeleeFollowup => CanPlayPlayerMeleeCombo
-            && _comboStage >= 1 && _comboStage <= 2 && _comboBufferedClicks < 3 - _comboStage;
+        public bool CanAcceptBufferedMeleeFollowup
+        {
+            get
+            {
+                if (!CanPlayPlayerMeleeCombo || _combat == null) return false;
 
+                long unconsumed = _combat.AcceptedAttackSequence - _consumedAttackSequence;
+                long pendingClicks = _pendingAcceptedAttackInputs + (unconsumed > 0 ? unconsumed : 0L);
+                if (_comboStage >= 1)
+                {
+                    bool windowOpen = _meleeCombo.CanAcceptFollowup(Time.time, MeleeComboClickWindow);
+                    return CanAcceptBufferedFollowup(true, _meleeCombo.AcceptedClicks, pendingClicks, windowOpen);
+                }
+
+                // The accepted opener may still be waiting for this driver's next Update. Reserve
+                // remaining combo slots from its unconsumed sequence delta, not the cooldown gate.
+                bool pendingOpenerInWindow = pendingClicks > 0
+                    && Time.time - _combat.LastAttackTime < MeleeComboClickWindow;
+                return CanAcceptBufferedFollowup(true, 0, pendingClicks, pendingOpenerInWindow);
+            }
+        }
+        /// <summary>True only when an active melee combo's click window elapsed; a new opener may bypass cooldown.</summary>
+        public bool CanRestartExpiredMeleeCombo => CanPlayPlayerMeleeCombo
+            && ((_comboStage >= 1 && _meleeCombo.IsFollowupWindowExpired(Time.time, MeleeComboClickWindow))
+                || _expiredComboRestartAvailable);
+
+        /// <summary>Only one timely second Spear click can authorize the WeaponCombo follow-up.</summary>
+        public bool CanAcceptSpearFollowup
+        {
+            get
+            {
+                if (!CanPlayPlayerMeleeCombo || _combat == null) return false;
+                long unconsumed = _combat.AcceptedAttackSequence - _consumedAttackSequence;
+                long pending = _pendingAcceptedAttackInputs + (unconsumed > 0 ? unconsumed : 0L);
+                float openerTime = _spearAcceptedClicks > 0 ? _spearOpenerAcceptedTime : _combat.LastAttackTime;
+                return EvaluateSpearFollowupAcceptance(_spearAcceptedClicks > 0, _spearAcceptedClicks, pending,
+                    openerTime, Time.time, MeleeComboClickWindow);
+            }
+        }
+        public bool IsSpearSequenceActive => CanPlayPlayerMeleeCombo && _spearAcceptedClicks > 0;
+        public bool CanRestartExpiredSpearSequence => IsSpearSequenceActive
+            && Time.time - _spearOpenerAcceptedTime >= MeleeComboClickWindow;
         /// <summary>T-D3+: 외부 시스템 발화용 퍼블릭 트리거(채집/경직/스턴/다운).</summary>
         public void TriggerHarvest() { if (_anim != null) _anim.SetTrigger("Harvest"); }
-        public void TriggerHitLight() { if (_anim != null) _anim.SetTrigger("HitLight"); }
+        public void TriggerHitLight()
+        {
+            if (_anim == null) return;
+            if (mode == DriveMode.Player)
+            {
+                AnimatorStateInfo current = _anim.GetCurrentAnimatorStateInfo(0);
+                bool transitioning = _anim.IsInTransition(0);
+                AnimatorStateInfo next = transitioning ? _anim.GetNextAnimatorStateInfo(0) : default(AnimatorStateInfo);
+                if (ShouldQueueExternalHitLight(true, IsMeleeAttackAnimatorState(current), transitioning,
+                    transitioning && IsMeleeAttackAnimatorState(next)))
+                {
+                    _pendingPlayerHitLight = true;
+                    return;
+                }
+            }
+            _anim.SetTrigger("HitLight");
+        }
+
+        private static bool ShouldQueueExternalHitLight(bool driveModeIsPlayer, bool currentStateIsMelee,
+            bool isTransitioning, bool nextStateIsMelee)
+        {
+            return driveModeIsPlayer && ShouldDeferHitLight(currentStateIsMelee, isTransitioning, nextStateIsMelee);
+        }
 
         // ── P4: 무기별 공격 애니 분기용 공용 트리거 (PlayerCombat 경유 호출 전용) ──
         // 의존 방향: PlayerCombat → 이 공용 API로만 트리거(PlayerCombat에서 _anim 직접 접근 금지).
@@ -70,9 +239,9 @@ namespace ProjectName.Systems
         public void TriggerSpearAttack()
         {
             if (_anim == null) return;
-            _anim.SetTrigger("Attack");
+            _anim.SetTrigger(SpearOpenerStateName);
             _attackHoldUntil = Time.time + 0.6f;   // 찌르기 중 Speed 0 홀드(Idle/Walk 인터럽트 방지)
-            Debug.Log("[HumanoidClipDriver] Spear 찌르기 트리거 (레거시 Attack 경로)");
+            Debug.Log("[HumanoidClipDriver] Spear 찌르기 트리거 (AttackThrust)");
         }
 
         /// <summary>활(Bow) 발사 애니 — ArcheryShot 트리거 발화. WeaponCombo 진입 금지.
@@ -195,6 +364,12 @@ namespace ProjectName.Systems
                 case DriveMode.Player:
                     _movement = GetComponentInParent<PlayerMovement>();
                     _combat = GetComponentInParent<PlayerCombat>();
+                    if (_combat != null)
+                    {
+                        _consumedAttackSequence = GetInitialConsumedAttackSequence(_combat.AcceptedAttackSequence);
+                        _pendingAcceptedAttackInputs = 0;
+                        Debug.Log($"[HumanoidClipDriver] Player sequence baseline={_consumedAttackSequence}; earlier fallback clicks will not replay");
+                    }
                     break;
                 case DriveMode.Soldier:
                     _lastPos = transform.position;
@@ -349,8 +524,134 @@ namespace ProjectName.Systems
         }
 
         // ───────────────────── Player 모드 ─────────────────────
+        private int GetCurrentStageClip(AnimatorStateInfo state)
+        {
+            for (int i = 0; i < StageStateNames.Length; i++)
+                if (state.IsName(StageStateNames[i])) return i + 1;
+            return 0;
+        }
+
+        private static string GetStageStateName(int stage)
+        {
+            return StageStateNames[Mathf.Clamp(stage, 1, MaxMeleeComboClicks) - 1];
+        }
+
+        private static bool TryResolveStageHit(int stage, float normalizedTime, bool[] alreadyResolved)
+        {
+            if (stage < 1 || stage > MaxMeleeComboClicks || alreadyResolved == null
+                || alreadyResolved.Length < MaxMeleeComboClicks) return false;
+            int index = stage - 1;
+            if (alreadyResolved[index] || normalizedTime < StageStrikeSyncNormT) return false;
+            alreadyResolved[index] = true;
+            return true;
+        }
+
+        private static bool TryResolveMeleeComboHit(int segment, float normalizedTime, bool[] alreadyResolved)
+        {
+            if (segment < 1 || segment > MaxMeleeComboClicks || alreadyResolved == null
+                || alreadyResolved.Length < MaxMeleeComboClicks) return false;
+            int index = segment - 1;
+            if (alreadyResolved[index] || normalizedTime < GetMeleeComboStrikeNormalizedTime(segment)) return false;
+            alreadyResolved[index] = true;
+            return true;
+        }
+
+        private static bool IsMeleeAttackStateName(string stateName)
+        {
+            return stateName == "AttackThrust" || stateName == MeleeComboStateName
+                || stateName == "Attack" || stateName == "AttackBase"
+                || stateName == "AttackCombo" || stateName == "AttackCombo2" || stateName == "AttackCombo3";
+        }
+
+        private static bool IsMeleeWeaponType(WeaponType weaponType)
+        {
+            return weaponType == WeaponType.Fist || weaponType == WeaponType.Sword
+                || weaponType == WeaponType.Spear;
+        }
+
+        private static bool IsMeleeAttackAnimatorState(AnimatorStateInfo state)
+        {
+            return state.IsName("AttackThrust") || state.IsName("WeaponCombo")
+                || state.IsName("Attack") || state.IsName("AttackBase")
+                || state.IsName("AttackCombo") || state.IsName("AttackCombo2") || state.IsName("AttackCombo3");
+        }
+
+        private static readonly int RollStateShortNameHash = Animator.StringToHash("Roll");
+        private static readonly int ParryStateShortNameHash = Animator.StringToHash("Parry");
+        private static readonly int StunStateShortNameHash = Animator.StringToHash("Stun");
+        private static readonly int DeathStateShortNameHash = Animator.StringToHash("Death");
+        private static readonly int KnockdownStateShortNameHash = Animator.StringToHash("Knockdown");
+        private static readonly int HitLightStateShortNameHash = Animator.StringToHash("HitLight");
+
+        private static bool ShouldDeferHitLight(bool currentStateIsMelee, bool isTransitioning, bool nextStateIsMelee)
+        {
+            // Keep protection across a melee state handoff, including AttackThrust → WeaponCombo.
+            return currentStateIsMelee || (isTransitioning && nextStateIsMelee);
+        }
+
+        private static bool IsHigherPriorityHitLightState(int stateShortNameHash)
+        {
+            return stateShortNameHash == RollStateShortNameHash
+                || stateShortNameHash == ParryStateShortNameHash
+                || stateShortNameHash == StunStateShortNameHash
+                || stateShortNameHash == DeathStateShortNameHash
+                || stateShortNameHash == KnockdownStateShortNameHash;
+        }
+
+        private static bool IsHitLightState(int stateShortNameHash)
+        {
+            return stateShortNameHash == HitLightStateShortNameHash;
+        }
+
+        private static bool ShouldDiscardPendingHitLight(int currentStateShortNameHash,
+            bool isTransitioning, int nextStateShortNameHash)
+        {
+            // AnyState triggers can override these states. Also drop a newly observed HP edge while
+            // HitLight is already active/entering, rather than retriggering it into a loop.
+            return IsHigherPriorityHitLightState(currentStateShortNameHash)
+                || (isTransitioning && IsHigherPriorityHitLightState(nextStateShortNameHash))
+                || IsHitLightState(currentStateShortNameHash)
+                || (isTransitioning && IsHitLightState(nextStateShortNameHash));
+        }
+
+        private static bool ShouldDeferHitLightForMeleeIntent(bool currentStateIsMelee,
+            bool isTransitioning, bool nextStateIsMelee, int comboStage,
+            int spearAcceptedClicks, bool pendingAcceptedMeleeRoute)
+        {
+            // Accepted Bow inputs are excluded by HasPendingAcceptedMeleeRoute; ArcheryShot itself
+            // is not considered a melee Animator state above.
+            return ShouldDeferHitLight(currentStateIsMelee, isTransitioning, nextStateIsMelee)
+                || comboStage > 0 || spearAcceptedClicks > 0 || pendingAcceptedMeleeRoute;
+        }
+
+        private static bool HasPendingAcceptedMeleeRoute(WeaponType currentWeaponType,
+            bool acceptedMeleeDispatchThisUpdate)
+        {
+            // This one-update intent is set only by dispatch's selected Fist/Sword/Spear branch.
+            // AcceptedAttackSequence has no per-input weapon association, so pending deltas are
+            // classified at dispatch time; Bow deltas never become melee intent. Combo/Spear
+            // logical state protects later frames after this transient marker is cleared.
+            return IsMeleeWeaponType(currentWeaponType) && acceptedMeleeDispatchThisUpdate;
+        }
+
+        private static bool ConsumePendingHitReaction(ref bool pending, bool committedMeleeAttack,
+            bool discardForPriorityState)
+        {
+            if (!pending) return false;
+            if (discardForPriorityState)
+            {
+                pending = false;
+                return false;
+            }
+            if (committedMeleeAttack) return false;
+            pending = false;
+            return true;
+        }
+
         private void UpdatePlayer()
         {
+            // Per-update dispatch evidence must not survive a drained sequence or route change.
+            _acceptedMeleeRouteDispatchedThisUpdate = false;
             // [2026-09-25 프리미엄 A/B] 인스펙터 체크박스 + F6 핫키 토글 — 켠 즉시 스윙에서 실제 블레이드 궤적 3D 스윕 리본 구동.
             if (Input.GetKeyDown(KeyCode.F6))
             {
@@ -423,10 +724,11 @@ namespace ProjectName.Systems
                 float hp = ph.CurrentHP;
                 if (_prevPlayerHP >= 0f && hp < _prevPlayerHP - 0.001f && !ph.IsDead)
                 {
-                    _anim.SetTrigger("HitLight");   // 피격 애니 — AnyState 트리거
+                    _pendingPlayerHitLight = true;
                     // 임팩트 FX는 PlayerHealth.OnPlayerDamaged 이벤트(Start 구독)로 이전 —
                     // 폴링 엣지 PlayImpact는 제거(회복 동시 발생 엣지 흡수/드라이버 부재 누락 등 결함 차단 + 중복 발화 방지).
                 }
+                if (ph.IsDead) _pendingPlayerHitLight = false;
                 _prevPlayerHP = hp;
             }
 
@@ -472,84 +774,123 @@ namespace ProjectName.Systems
             if (_anim != null)
             {
                 var stInfo = _anim.GetCurrentAnimatorStateInfo(0);
-                // ResolveStateName 미매핑 상태(AttackBase/AttackThrust/AttackCombo2/3)도 감지 — IsName 직접 비교
+                // Registered combo states and legacy attacks are protected from Speed transitions.
                 bool attackStateHold = stInfo.IsName("Attack") || stInfo.IsName("AttackBase") || stInfo.IsName("AttackThrust")
-                    || stInfo.IsName("AttackCombo") || stInfo.IsName("AttackCombo2") || stInfo.IsName("AttackCombo3")
-                    || stInfo.IsName("ArcheryShot"); // P4: 활 발사 중에도 Speed 0 홀드(콤보 상태와 무관 고정)
+                    || stInfo.IsName(MeleeComboStateName) || stInfo.IsName("AttackCombo")
+                    || stInfo.IsName("AttackCombo2") || stInfo.IsName("AttackCombo3") || stInfo.IsName("ArcheryShot");
                 if (attackStateHold)
                 {
                     // 공격 애니 재생 중: Speed 파라미터를 0으로 고정 — Idle/Walk로 가는 Speed 조건 전이 불발
                     _anim.SetFloat("Speed", 0f);
-                    // Keep distinct melee clips protected from Speed-driven Idle/Walk transitions.
-                    if (_comboStage > 0 && GetCurrentStageClip(stInfo) > 0)
+                    // Protect each registered stage from Speed-driven Idle/Walk transitions.
+                    if (_comboStage > 0 && GetCurrentStageClip(stInfo) == _comboStage)
                         _attackHoldUntil = Mathf.Max(_attackHoldUntil, Time.time + 0.35f);
                 }
             }
             if (_combat != null)
             {
-                float lat = _combat.LastAttackTime;
-                if (!Mathf.Approximately(lat, _prevCombatAttack))
+                _pendingAcceptedAttackInputs += ConsumeAttackSequenceDelta(_combat.AcceptedAttackSequence, ref _consumedAttackSequence);
+                long attackDelta = _pendingAcceptedAttackInputs;
+                for (long acceptedInput = 0; acceptedInput < attackDelta; acceptedInput++)
                 {
-                    _prevCombatAttack = lat;
-
                     // P4: 무기 타입별 공격 애니 분기 — Bow/Spear는 WeaponCombo(근접 3연타)에 진입 금지.
                     // Bow: ArcheryShot만 트리거(화살 소모/발사는 PlayerCombat이 ArrowManager로 담당).
                     // Spear: 레거시 Attack 트리거(AttackThrust 찌르기 경로).
-                    // Fist/Sword: 기존 WeaponCombo B안 로직 그대로(정밀튜닝 보존).
+                    // Fist/Sword: one accepted click starts or authorizes a segment of WeaponCombo.
                     var curWType = WeaponEquipManager.CurrentType;
                     if (curWType == WeaponType.Bow)
                     {
                         _anim.SetTrigger("ArcheryShot");
                         _attackHoldUntil = Time.time + 0.6f;   // 발사 중 Speed 0 홀드
+                        _pendingAcceptedAttackInputs--;
                         Debug.Log("[Combo] 활 발사 — WeaponCombo 미진행 (ArcheryShot)");
                     }
                     else if (curWType == WeaponType.Spear)
                     {
-                        _anim.SetTrigger("Attack");
-                        _attackHoldUntil = Time.time + 0.6f;   // 찌르기 중 Speed 0 홀드
-                        Debug.Log("[Combo] 창 찌르기 — 레거시 Attack 경로");
-                    }
-                    else
-                    {
-                        // PlayerCombat already applied the ordinary one-hit fallback when combo playback is unavailable.
-                        // Do not start a combo or resolve an additional swing here; leave any in-flight combo state intact.
-                        if ((curWType == WeaponType.Fist || curWType == WeaponType.Sword) && !CanPlayPlayerMeleeCombo)
+                        // Compare the accepted event time, not this delayed dispatch frame. A timely
+                        // buffered follow-up remains a follow-up even if the driver updates after expiry.
+                        float acceptedInputTime = _combat != null ? _combat.LastAttackTime : Time.time;
+                        bool expiredSpearRestart = IsSpearSequenceExpired(_spearAcceptedClicks > 0,
+                            _spearOpenerAcceptedTime, acceptedInputTime, MeleeComboClickWindow);
+                        if (expiredSpearRestart)
                         {
-                            Debug.Log("[Combo] Animator unavailable — melee combo skipped (PlayerCombat fallback retained)");
+                            // AttackThrust disallows a self-transition; explicitly replay its opener.
+                            ResetSpearSequence();
+                            StartSpearOpener(true);
+                        }
+                        else if (_spearAcceptedClicks == 0)
+                        {
+                            StartSpearOpener(false);
+                        }
+                        else if (ShouldAuthorizeSpearFollowupAtDispatch(_spearFollowupAuthorized,
+                            _spearAcceptedClicks))
+                        {
+                            // PlayerCombat already authorized this accepted sequence delta. Do not
+                            // re-check its click window while dispatching the buffered delta.
+                            _spearAcceptedClicks = 2;
+                            _spearOpenerAcceptedTime = Time.time; // restart cooldown window from the latest accepted stage
+                            _spearFollowupAuthorized = true;
+                            _spearFollowupHitResolved = false;
+                            _attackHoldUntil = Time.time + MeleeComboClickWindow;
                         }
                         else
                         {
-                            // Each accepted LastAttackTime edge is one click. Start stage one now;
-                            // subsequent clicks queue distinct states, up to three total swings.
-                            if (_comboStage > 0)
-                            {
-                                _comboBufferedClicks = Mathf.Min(_comboBufferedClicks + 1, 3 - _comboStage);
-                                Debug.Log($"[Combo] 근접 클릭 버퍼 (stage={_comboStage}, queued={_comboBufferedClicks})");
-                            }
-                            else
-                            {
-                                for (int i = 0; i < _stageHitResolved.Length; i++) _stageHitResolved[i] = false;
-                                _comboStage = 1;
-                                _comboStartTime = Time.time;
-                                _comboBufferedClicks = 0;
-                                _anim.Play(StageStateNames[0], 0, 0f);
-                                FireComboTrail(1);
-                                Debug.Log("[Combo] AttackCombo 시작 (stage 1)");
-                            }
-                            _attackHoldUntil = Time.time + 0.6f;
+                            // Defensive recovery for stale or inconsistent buffered sequence state.
+                            ResetSpearSequence();
+                            StartSpearOpener(true);
+                        }
+                        _spearStateTransitionTime = Time.time;
+                        _pendingAcceptedAttackInputs--;
+                        _acceptedMeleeRouteDispatchedThisUpdate = true;
+                        Debug.Log($"[Combo] Spear segment accepted={_spearAcceptedClicks}; opener=AttackThrust, follow-up=WeaponCombo");
+                    }
+                    else
+                    {
+                        // PlayerCombat applies its ordinary fallback when the Animator is unavailable.
+                        if ((curWType == WeaponType.Fist || curWType == WeaponType.Sword) && !CanPlayPlayerMeleeCombo)
+                        {
+                            _pendingAcceptedAttackInputs--;
+                            Debug.Log("[Melee] Animator unavailable — one-shot skipped (PlayerCombat fallback retained)");
+                        }
+                        else
+                        {
+                            if (!AcceptPlayerMeleeComboClick()) break;
+                            _acceptedMeleeRouteDispatchedThisUpdate = true;
                         }
                     }
                 }
             }
 
-            // Distinct stage clips: resolve each hit at its strike marker, then either play the
-            // buffered next state near the previous clip's end or return to Idle automatically.
+            if (_comboStage == 0 && _pendingAcceptedAttackInputs > 0
+                && (WeaponEquipManager.CurrentType == WeaponType.Sword || WeaponEquipManager.CurrentType == WeaponType.Fist))
+            {
+                while (_pendingAcceptedAttackInputs > 0 && AcceptPlayerMeleeComboClick())
+                    _acceptedMeleeRouteDispatchedThisUpdate = true;
+            }
+
+            // HitLight is full-body AnyState. Consume it only after accepted attack dispatch has
+            // established logical melee commitment; the Animator transition can still be pending.
+            AnimatorStateInfo hitCurrent = _anim.GetCurrentAnimatorStateInfo(0);
+            bool hitTransitioning = _anim.IsInTransition(0);
+            AnimatorStateInfo hitNext = hitTransitioning ? _anim.GetNextAnimatorStateInfo(0) : default(AnimatorStateInfo);
+            bool meleeAttackCommitted = ShouldDeferHitLightForMeleeIntent(
+                IsMeleeAttackAnimatorState(hitCurrent), hitTransitioning,
+                hitTransitioning && IsMeleeAttackAnimatorState(hitNext), _comboStage,
+                _spearAcceptedClicks,
+                HasPendingAcceptedMeleeRoute(WeaponEquipManager.CurrentType, _acceptedMeleeRouteDispatchedThisUpdate));
+            bool discardPendingHitLight = ShouldDiscardPendingHitLight(
+                hitCurrent.shortNameHash, hitTransitioning,
+                hitTransitioning ? hitNext.shortNameHash : 0);
+            if (ConsumePendingHitReaction(ref _pendingPlayerHitLight, meleeAttackCommitted, discardPendingHitLight))
+                _anim.SetTrigger("HitLight");   // 피격 애니 — AnyState 트리거, deferred once
+
+            // The single Weapon_Combo_2 clip is segmented/held by click authorization.
             var st = _anim.GetCurrentAnimatorStateInfo(0);
-            MonitorStageClip();
+            MonitorSpearSequence(st);
+            MonitorMeleeComboClip();
 
             // ── 레거시 Attack* 상태 보존(기존 경로: TriggerAttack/창 등) — 상태 진입 1회 전방 슬래시 ──
-            bool legacyAttack = st.IsName("Attack") || st.IsName("AttackBase") || st.IsName("AttackThrust")
-                || st.IsName("AttackCombo") || st.IsName("AttackCombo2") || st.IsName("AttackCombo3");
+            bool legacyAttack = st.IsName("Attack") || st.IsName("AttackBase") || st.IsName("AttackThrust");
             if (legacyAttack)
             {
                 int atkHash = st.fullPathHash;
@@ -623,65 +964,310 @@ namespace ProjectName.Systems
             _prevSpeedForTransition = _smoothedSpeed;
         }
 
-        // ── Distinct stage clip combo helpers (direct state playback) ──
-        /// <summary>현재 Animator 상태의 스테이지 번호(0이면 stage clip 밖).</summary>
-        private int GetCurrentStageClip(AnimatorStateInfo state)
+        private static long GetInitialConsumedAttackSequence(long acceptedAttackSequence)
         {
-            for (int i = 0; i < StageStateNames.Length; i++)
-                if (state.IsName(StageStateNames[i])) return i + 1;
-            return 0;
+            return acceptedAttackSequence > 0 ? acceptedAttackSequence : 0L;
         }
 
-        /// <summary>스테이지 클립 per-frame 감시: strike당 1회 히트, 늦은 종료점에서 큐 소비/Idle 종료.</summary>
-        private void MonitorStageClip()
+        private void MonitorSpearSequence(AnimatorStateInfo state)
+        {
+            if (_spearAcceptedClicks == 0) return;
+
+            bool isOpenerState = state.IsName(SpearOpenerStateName);
+            bool isFollowupState = state.IsName(MeleeComboStateName);
+            bool isOpenerExitState = state.IsName(SpearOpenerExitStateName);
+            bool recentlyDispatched = Time.time - _spearStateTransitionTime <= 0.15f;
+
+            // Follow-up approval is retained until the authored opener reaches its strike marker.
+            // At clip exit, jump to the registered combo clip's segment two; do not expect a
+            // follow-up input to retrigger AttackThrust or let the controller route it to Idle.
+            if (_spearFollowupAuthorized && !_spearFollowupStarted && _spearOpenerHitResolved
+                && (isOpenerState || isOpenerExitState))
+            {
+                _spearFollowupStarted = true;
+                _spearStateTransitionTime = Time.time;
+                _anim.Play(MeleeComboStateName, 0, GetSpearFollowupStartNormalizedTime());
+                Debug.Log("[Spear] AttackThrust exit → WeaponCombo stage 2");
+                return;
+            }
+
+            if (!recentlyDispatched && ShouldResetInterruptedSpearSequence(_spearAcceptedClicks > 0,
+                _spearOpenerHitResolved, _spearFollowupAuthorized, _spearFollowupStarted,
+                isOpenerState || isOpenerExitState, isFollowupState))
+            {
+                ResetSpearSequence();
+                return;
+            }
+
+            if (!_spearOpenerHitResolved && isOpenerState
+                && ShouldResolveSpearOpenerHit(true, Mathf.Max(0f, state.normalizedTime), _spearOpenerHitResolved))
+            {
+                _spearOpenerHitResolved = true;
+                FireComboTrail(1);
+                _combat?.ResolveComboSwingHit(1);
+                Debug.Log($"[Spear] AttackThrust hit resolved normT={state.normalizedTime:F2}");
+            }
+
+            // No follow-up was authorized: retire the opener once its real exit state is reached.
+            if (!_spearFollowupAuthorized && _spearOpenerHitResolved && isOpenerExitState)
+            {
+                ResetSpearSequence();
+                return;
+            }
+
+            if (!_spearFollowupAuthorized || !isFollowupState) return;
+            float normalizedTime = Mathf.Max(0f, state.normalizedTime);
+            if (ShouldResolveSpearFollowupHit(true, normalizedTime, _spearFollowupHitResolved))
+            {
+                _spearFollowupHitResolved = true;
+                FireComboTrail(2);
+                _combat?.ResolveComboSwingHit(2);
+                FireComboSlash(2);
+                Debug.Log($"[Spear] WeaponCombo follow-up hit resolved normT={normalizedTime:F2}");
+            }
+
+            if (normalizedTime >= GetMeleeComboPlaybackLimit(2))
+            {
+                _anim.CrossFade(MeleeComboExitStateName, ComboExitBlend, 0);
+                ResetSpearSequence();
+            }
+        }
+
+        private void StartSpearOpener(bool restart)
+        {
+            _spearAcceptedClicks = 1;
+            _spearOpenerAcceptedTime = Time.time;
+            _spearOpenerHitResolved = false;
+            _spearFollowupHitResolved = false;
+            _spearFollowupAuthorized = false;
+            _spearFollowupStarted = false;
+            _spearStateTransitionTime = Time.time;
+            if (restart)
+            {
+                // AttackThrust disallows a self-transition; explicitly rewind the authored state.
+                _anim.Play(SpearOpenerStateName, 0, GetSpearOpenerRestartNormalizedTime());
+                _attackHoldUntil = Time.time + 0.6f;
+            }
+            else
+            {
+                // Bypass any-state trigger arbitration for the opener. This accepted Spear click
+                // owns the AttackThrust state and must visibly start from its first frame.
+                _anim.Play(SpearOpenerStateName, 0, 0f);
+                _attackHoldUntil = Time.time + 0.6f;
+                Debug.Log("[HumanoidClipDriver] Spear opener played directly (AttackThrust, t=0)");
+            }
+        }
+
+        private void ResetSpearSequence()
+        {
+            _spearAcceptedClicks = 0;
+            _spearOpenerHitResolved = false;
+            _spearFollowupHitResolved = false;
+            _spearFollowupAuthorized = false;
+            _spearFollowupStarted = false;
+        }
+
+        private static bool IsSpearSequenceExpired(bool sequenceActive, float openerTime, float now, float clickWindow)
+        {
+            // Decimal click-window boundaries can subtract to one ULP below the configured value.
+            return sequenceActive && now - openerTime >= clickWindow - 0.0001f;
+        }
+
+        private static bool ShouldAuthorizeSpearFollowupAtDispatch(bool alreadyAuthorized, int acceptedClicks)
+        {
+            // PlayerCombat accepted this input edge before it advanced AcceptedAttackSequence.
+            // Only the pending accepted delta and current stage matter here; never re-evaluate time.
+            return !alreadyAuthorized && acceptedClicks == 1;
+        }
+
+        private static bool ShouldResetInterruptedSpearSequence(bool sequenceActive, bool openerHitResolved,
+            bool followupAuthorized, bool followupStarted, bool isOpenerState, bool isFollowupState)
+        {
+            if (!sequenceActive) return false;
+            if (followupStarted) return !isFollowupState;
+            if (followupAuthorized && openerHitResolved)
+                return !isOpenerState && !isFollowupState;
+            // Before the opener hit, idle/non-opener during trigger or exit transitions may be
+            // a valid controller handoff. Keep pending intent until a hit marker proves it played.
+            if (!openerHitResolved) return false;
+            return !isOpenerState && !isFollowupState;
+        }
+
+        private static float GetSpearOpenerRestartNormalizedTime()
+        {
+            return 0f;
+        }
+
+        private static float GetSpearFollowupStartNormalizedTime()
+        {
+            return 1f / 3f - 0.0001f;
+        }
+
+        private static float GetSpearFollowupStrikeNormalizedTime()
+        {
+            return (1f + ComboSegmentStrikeNormT) / 3f;
+        }
+
+        private static float GetMeleeComboPlaybackLimit(int acceptedClicks)
+        {
+            return Mathf.Clamp(acceptedClicks, 0, MaxMeleeComboClicks) / (float)MaxMeleeComboClicks;
+        }
+
+        private static float GetMeleeComboStrikeNormalizedTime(int clickSegment)
+        {
+            int segment = Mathf.Clamp(clickSegment, 1, MaxMeleeComboClicks) - 1;
+            return (segment + ComboSegmentStrikeNormT) / MaxMeleeComboClicks;
+        }
+
+        private static bool EvaluateSpearFollowupAcceptance(bool sequenceActive, int acceptedClicks, long pendingClicks,
+            float openerTime, float now, float clickWindow)
+        {
+            // A pending opener may accept its first rapid follow-up before the driver consumes the opener delta.
+            bool openerIsPending = !sequenceActive && pendingClicks == 1;
+            // Once the opener is active, any pending delta is the already-accepted second click, not capacity
+            // for another physical input. Its eventual dispatch is authorized separately, without a time check.
+            bool openerIsActive = sequenceActive && acceptedClicks == 1 && pendingClicks == 0;
+            // Decimal subtraction can be one ULP below a click-window boundary.
+            return (openerIsPending || openerIsActive) && now - openerTime < clickWindow - 0.0001f;
+        }
+
+        private static bool ShouldResolveSpearOpenerHit(bool isSpearOpener, float normalizedTime, bool alreadyResolved)
+        {
+            return isSpearOpener && !alreadyResolved && normalizedTime >= SpearOpenerStrikeNormT;
+        }
+
+        private static bool ShouldResolveSpearFollowupHit(bool authorized, float normalizedTime, bool alreadyResolved)
+        {
+            return authorized && !alreadyResolved && normalizedTime >= GetSpearFollowupStrikeNormalizedTime();
+        }
+
+        private static long ConsumeAttackSequenceDelta(long currentSequence, ref long consumedSequence)
+        {
+            long delta = currentSequence - consumedSequence;
+            consumedSequence = currentSequence;
+            return delta > 0 ? delta : 0;
+        }
+
+        private bool AcceptPlayerMeleeComboClick()
+        {
+            if (_anim == null) return false;
+
+            // AcceptedAttackSequence is dispatched from Update, which may run one or more frames
+            // after PlayerCombat accepted the click. Use that click's timestamp so a valid buffered
+            // follow-up is not reclassified as a late restart by driver scheduling.
+            float now = _combat != null ? _combat.LastAttackTime : Time.time;
+            if (_comboStage == 0)
+            {
+                _comboStage = 1;
+                for (int i = 0; i < _stageHitResolved.Length; i++) _stageHitResolved[i] = false;
+                _comboBufferedClicks = 0;
+                _comboAcceptedClicks = 1;
+                _expiredComboRestartAvailable = false;
+                _comboStartTime = now;
+                _meleeCombo.Start(now);
+                _anim.Play(MeleeComboStateName, 0, 0f);
+                FireComboTrail(1);
+                _attackHoldUntil = now + MeleeComboClickWindow;
+                _pendingAcceptedAttackInputs--;
+                Debug.Log("[Combo] Weapon_Combo_2 시작 (segment 1/3)");
+                return true;
+            }
+
+            if (HasComboFollowupCapacity(_comboAcceptedClicks, 0)
+                && _meleeCombo.CanAcceptFollowup(now, MeleeComboClickWindow))
+            {
+                bool accepted = _meleeCombo.TryAcceptFollowup(now, MeleeComboClickWindow);
+                if (!accepted) return false;
+                _comboAcceptedClicks = _meleeCombo.AcceptedClicks;
+                _comboStage = _comboAcceptedClicks;
+                _comboBufferedClicks = _comboAcceptedClicks - 1;
+                FireComboTrail(_comboAcceptedClicks);
+                _attackHoldUntil = Mathf.Max(_attackHoldUntil, now + MeleeComboClickWindow);
+                _pendingAcceptedAttackInputs--;
+                Debug.Log($"[Combo] Weapon_Combo_2 segment {_comboAcceptedClicks}/3 accepted; resume same clip");
+                return true;
+            }
+
+            if (_meleeCombo.IsFollowupWindowExpired(now, MeleeComboClickWindow))
+            {
+                AnimatorStateInfo previousState = _anim.GetCurrentAnimatorStateInfo(0);
+                int previousSegment = _comboAcceptedClicks;
+                if (previousSegment > 0 && TryResolveMeleeComboHit(previousSegment,
+                    Mathf.Max(0f, previousState.normalizedTime), _stageHitResolved))
+                {
+                    _combat?.ResolveComboSwingHit(previousSegment);
+                    FireComboSlash(previousSegment);
+                }
+                ResetInterruptedCombo("Weapon_Combo_2 follow-up window expired before accepted click dispatch", true);
+                return AcceptPlayerMeleeComboClick();
+            }
+
+            // Preserve the sequence delta if a transient capacity/order race is observed;
+            // PlayerCombat remains the gate that rejects invalid or overflowing clicks.
+            return false;
+        }
+
+        private static bool CanAcceptBufferedFollowup(bool animatorReady, int activeClicks,
+            long pendingClicks, bool followupWindowOpen)
+        {
+            if (!animatorReady || !followupWindowOpen || (activeClicks <= 0 && pendingClicks <= 0)) return false;
+            int pending = pendingClicks <= 0 ? 0
+                : pendingClicks >= MaxMeleeComboClicks ? MaxMeleeComboClicks : (int)pendingClicks;
+            int reservedTotal = Mathf.Clamp(activeClicks, 0, MaxMeleeComboClicks) + pending;
+            return reservedTotal < MaxMeleeComboClicks;
+        }
+
+        private static bool HasComboFollowupCapacity(int acceptedClicks, int pendingAcceptedInputs)
+        {
+            return acceptedClicks + pendingAcceptedInputs < MaxMeleeComboClicks;
+        }
+
+        /// <summary>One Weapon_Combo_2 clip segmented at click-count boundaries (1/3, 2/3, 1).</summary>
+        private void MonitorMeleeComboClip()
         {
             if (_anim == null || _comboStage <= 0) return;
 
             AnimatorStateInfo state = _anim.GetCurrentAnimatorStateInfo(0);
-            int activeStage = GetCurrentStageClip(state);
-            if (activeStage == _comboStage)
+            if (state.IsName(MeleeComboStateName))
             {
-                float normT = state.normalizedTime;
-                int stageIndex = _comboStage - 1;
-
-                if (!_stageHitResolved[stageIndex] && normT >= StageStrikeSyncNormT)
+                float normalizedTime = Mathf.Max(0f, state.normalizedTime);
+                for (int segment = 1; segment <= _comboAcceptedClicks; segment++)
                 {
-                    _stageHitResolved[stageIndex] = true;
-                    _combat?.ResolveComboSwingHit(_comboStage);
-                    FireComboSlash(_comboStage);
-                    Debug.Log($"[Combo] strike resolved stage={_comboStage} normT={normT:F2}");
+                    if (!TryResolveMeleeComboHit(segment, normalizedTime, _stageHitResolved)) continue;
+                    _combat?.ResolveComboSwingHit(segment);
+                    FireComboSlash(segment);
+                    Debug.Log($"[Combo] Weapon_Combo_2 strike resolved segment={segment} normT={normalizedTime:F2}");
                 }
 
-                if (normT >= StageAdvanceNormT)
+                MeleeComboStateMachine.Decision decision = _meleeCombo.Evaluate(
+                    Time.time, normalizedTime, MeleeComboClickWindow);
+                if (decision == MeleeComboStateMachine.Decision.Hold)
                 {
-                    if (_comboStage < 3 && _comboBufferedClicks > 0)
-                    {
-                        _comboBufferedClicks--;
-                        _comboStage++;
-                        _comboStartTime = Time.time;
-                        _anim.Play(StageStateNames[_comboStage - 1], 0, 0f);
-                        FireComboTrail(_comboStage);
-                        Debug.Log($"[Combo] buffered click consumed → distinct stage {_comboStage}");
-                    }
-                    // With no queued click, leave the state alone so its controller exit-time
-                    // transition completes the clip and returns naturally to Idle.
+                    float boundary = GetMeleeComboPlaybackLimit(_meleeCombo.AcceptedClicks);
+                    _anim.Play(MeleeComboStateName, 0, boundary);
+                }
+                else if (decision == MeleeComboStateMachine.Decision.Exit)
+                {
+                    bool expired = _meleeCombo.DidExitBecauseFollowupWindowExpired;
+                    _anim.CrossFade(MeleeComboExitStateName, ComboExitBlend, 0);
+                    ResetInterruptedCombo(expired
+                        ? "Weapon_Combo_2 follow-up window expired"
+                        : "Weapon_Combo_2 completed", expired);
                 }
                 return;
             }
 
-            // State changed before the expected clip exit: treat it as an interrupt and clean FX/queue.
-            // A controller exit can also move to Idle; that is a normal end, but EndCombo cleanup is idempotent.
-            // Animator.Play/state evaluation can expose the previous state briefly; tolerate that
-            // handoff (also when chaining) but clear promptly if an unrelated state persists.
             if (Time.time - _comboStartTime > 0.15f)
-                ResetInterruptedCombo("stage clip interrupted");
+                ResetInterruptedCombo("Weapon_Combo_2 interrupted or exited");
         }
 
-        private void ResetInterruptedCombo(string reason)
+        private void ResetInterruptedCombo(string reason, bool allowExpiredRestart = false)
         {
             _comboStage = 0;
             _comboBufferedClicks = 0;
-            for (int i = 0; i < _stageHitResolved.Length; i++) _stageHitResolved[i] = false;
+            _comboAcceptedClicks = 0;
+            _expiredComboRestartAvailable = allowExpiredRestart;
+            _meleeCombo.Reset();
             WeaponSwingTrail.SetEmitting(false);
             AttackArcVFX.Settle();
             WeaponSwingTrail.SetComboStage(0);
@@ -738,7 +1324,7 @@ namespace ProjectName.Systems
                     // 높이가 어색하면 up 값을 조정할 것. (앵커 계산은 호출부 단일 소스 — 러너 내부 계산 없음, 불일치 제거)
                     var t = transform;
                     Vector3 pos = t.position + t.forward * 0.8f + Vector3.up * 1.25f;   // 47차 후속9: 아크 전방 배치(0.55→0.8) — 스월 아크를 대상 방향 전방에 위치
-                    
+
                     // [2026-09-15 Phase A] 슬래시 호가 피격 대상(몬스터)을 향하도록 방향 계산
                     // LastHitPoint(최근 적중 지점) 또는 CurrentTarget 위치 기준으로 방향 계산
                     Vector3 dir;
@@ -765,7 +1351,7 @@ namespace ProjectName.Systems
                     float yawSign = (fwdFlat.sqrMagnitude > 0.000001f && dirFlat.sqrMagnitude > 0.000001f
                         && Vector3.SignedAngle(fwdFlat.normalized, dirFlat.normalized, Vector3.up) < 0f)
                         ? -1f : 1f;
-                    
+
                     // 46차 후속: playerRoot = 플레이어 루트(transform.root — EnsureBareFist와 동일 기준) 전달 —
                     // 슬래시 인스턴스가 플레이어에 부착되어 이동/회전을 추종한다(부착감). null이면 러너가 폴백.
                     // [2026-09-25 공격 FX] 사용자 지정: 스윙 슬래쉬 아크 에셋(SlashVFXRunner.PlaySlashStage) 제거 —
@@ -1138,6 +1724,7 @@ namespace ProjectName.Systems
         {
             if (_anim == null || _deathFired) return;
             _deathFired = true;
+            _pendingPlayerHitLight = false;
             _anim.SetTrigger("Death");
         }
     }

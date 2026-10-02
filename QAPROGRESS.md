@@ -1,5 +1,9 @@
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
+> **2026-10-02 진행/Telegram handoff:** 통합 계획 `.hermes/plans/2026-10-02-final-combat-archery-gas-quality-plan.md` 승인 후 구현 진행 중. 검 콤보·창·활·가스는 모두 아직 Play 시각 검증 전이며 완료 아님. 첫 목표는 `Weapon_Combo_2` 단일 클립의 클릭별 구간 재생(각 승인 swing당 hit 1회, 최대 3) 복구 후 Idle handoff만 봉합. 현재 active `AttackCombo/2/3` Sword 경로가 요청 계약과 충돌함을 확인했으나 아직 수정은 반영되지 않았다. Bow 시퀀스 EditMode 픽스는 test fixture의 WeaponData attackSpeed 생성자 clamp 원인이었고, fixture에서 0으로 명시한 뒤 대상 1/1 및 PlayerAttackSequenceTests 22/22 통과; 이는 활 조준의 Play 해결을 뜻하지 않는다. Telegram에서 이어서 지시하려면 봇 DM에 **“검 콤보 이어서 진행”**이라고 보내고 이 문서와 승인 계획을 기준으로 시작한다. 별도 Telegram turn은 이 CLI 세션을 자동 steer하지 않을 수 있으므로 같은 문서에 기록된 상태를 다시 읽어야 한다.
+
+---
+
 > **2026-10-01 Figma 내부 규격 정합 + 낚시 2바 리일 재구현 (사용자 "1번으로 진행" 승인) — 커밋 `0ebe4b34`/`770ef52f`/`0301959e`**
 >
 > - **외곽 크기 최종 실측**: WinW/WinH·총폭 기준 모든 Figma 배킹 창이 이미 정합 확인 — 상점(1340×780·31/36/31), 병사(1300×820·31/37/31), 전투로그(620×820), 장비(443×780), 상태창(좌480+우443 2분할), 퀘스트(1920×1080 Frameless), 인벤/창고/아이템상세(420·420·480). → 남은 "창 일치" 작업은 내부 규격(카드/슬롯/게이지/패딩).
@@ -87,9 +91,14 @@
 - **타격:** 각 애니메이션 세그먼트 시작 시 `PlayerCombat.ResolveComboSwingHit(stage)`를 1회 호출(자동조준→중앙 조준→근접 스윕 순). stage 1/2/3 각각 별도의 피해 판정과 스윙 FX/사운드가 연결됨. 후속 타격만 쿨다운 우회, 콤보 중 버퍼 용량이 찬 추가 클릭은 무시한다. Animator 콤보 재생이 불가하면 기존 단일 공격 피해 폴백을 사용해 중복 방지.
 - **무기 범위:** Bow 발사와 Spear 찌르기 경로는 유지. 변경 파일은 `HumanoidClipDriver.cs`, `PlayerCombat.cs`.
 - **검증:** 독립 QA에서 입력 버퍼/최대 3타/타당 1회 판정/비활성 Animator 폴백/Bow·Spear 경로를 정적 검토. Unity `./compile_test.sh` 성공, fresh `compile.log`: Tundra build success, `error CS=0`, batchmode exit code 0. `git diff --check` 통과.
-- **2026-10-01 후속 입력 경로 진단/보강:** Editor.log에는 `WeaponCombo 시작 — accepted clicks=1`과 stage 1 판정 뒤 입력창 만료가 반복되며 후속 승인 로그가 없었다. 정적 경로를 보니 `PlayerCombat.TryAttack`은 드라이버가 opener sequence를 소비해 `_comboStage`를 만들기 전에는 follow-up gate가 닫혀 있어, 즉시 이어진 클릭이 무기 쿨다운에 걸릴 수 있었다. `HumanoidClipDriver.CanAcceptBufferedMeleeFollowup`가 활성 콤보 뿐 아니라 최근 accepted opener의 미소비 sequence를 보고 3타 한도 내 후속 슬롯을 예약하도록 변경. `PlayerCombat`에는 물리 클릭/UI gate 및 melee accepted/rejected 상태 로그 추가. Bow/Spear 경로는 변경하지 않음.
-- **EditMode:** 2026-10-01 최신 전체 실행 XML `TestOutput/editmode-results.xml`: 397개 중 384 통과, 13 실패(기존 테스트실패들). 콤보 관련 `HumanoidClipDriverComboTests` 11/11 통과. 새 `PlayerAttackSequenceTests.BufferedFollowupGate...`는 현재 실행에 포함되지 않았음(실행 시점보다 파일 수정이 늦음). XML에 `PlayerAttackSequenceTests` 한 실패(`MultipleAcceptedAttacksAtTheSameTime...`)도 있음. 테스트 XML 실제 root attributes 사용; wrapper의 `tests=None` 표시는 잘못된 필드명임.
-- ⚠ **컴파일/Play:** 별도 최신 batch compile 확인은 하지 않음. Play 재현 미실행. 새 로그와 게이트는 코드에 반영됐으나 실제 1/2/3 swing, 피해 횟수, Idle 전환은 여전히 미검증. Editor Play에서 ①각 타 연속성 ②스윙별 접촉/피해 ③1→2→3 입력과 초과 클릭 제한 ④무입력 Idle 복귀 ⑤fallback/Bow/Spear 회귀 확인 필요. 경계값은 Play 튜닝 전 잠정.
+- **2026-10-01 후속 입력 경로 진단/보강:** Editor.log에는 `WeaponCombo 시작 — accepted clicks=1`과 stage 1 판정 뒤 입력창 만료가 반복되며 후속 승인 로그가 없었다. `PlayerCombat.TryAttack`의 드라이버 캐시가 `Start()` 1회 조회뿐이고 Test_10의 `TestPlayerAnimatorBoot`는 뒤늦게 Player-mode `HumanoidClipDriver`를 부착함을 확인. 후속 테스트3(2026-10-02) 로그에서 첫 클릭이 `melee accepted with no HumanoidClipDriver; using legacy fallback path`로 처리된 후 드라이버가 stage 1을 시작, 바로 다음 클릭은 `comboActive=False/followup=False/cooldownReady=False`로 거부됐다.
+- **2026-10-02 수정:** `PlayerCombat.TryAttack`은 캐시가 비었을 때 자식 계층에서 드라이버를 재탐색하고, Fist/Sword 공격 애니·타격 소유권은 Animator 준비 완료 시에만 콤보 드라이버에 맡긴다. 지연 부착된 Player-mode 드라이버는 Start에서 현재 `AcceptedAttackSequence`를 소비 기준점으로 초기화해 legacy fallback으로 이미 처리한 클릭을 콤보로 재생하지 않고, 이후 클릭만 받는다. Bow/Spear 경로는 변경하지 않았다.
+- **컴파일:** 2026-10-02 `TestCompile.CompileTest` 성공, 로그 `TestOutput/delayed-combo-compile.log`, CS 오류 0, `Exiting batchmode successfully now!`, Tundra failed 없음.
+- **대상 EditMode:** `TestOutput/delayed-combo-editmode.xml`: 33개 중 32 통과. 신규 지연 드라이버 탐색/sequence baseline 테스트 2개와 콤보 테스트 11개, 버퍼 게이트 테스트 10개는 통과. 기존 `MultipleAcceptedAttacksAtTheSameTime_AdvanceSequenceForEveryAttack` 1건 실패(Bow attack 경로 테스트); 이 수정의 콤보 경로와 분리해서 회귀 판정해야 한다.
+- ⚠ **Play:** 수정 후 Play 재현 미실행. 실제 연속 2클릭 콤보와 1타 후 끊김 해결은 미검증. 다음 확인은 Test_10/대상 씬에서 새 로그에 `discovered delayed HumanoidClipDriver`가 1회, 첫 클릭은 combo route, 두 번째는 `followup=true` 및 `[Combo] ... follow-up accepted`, 그리고 segment 2 판정이 기록되는지다. 시각적 연속성과 피격 경직 여부도 Play에서 분리 확인 필요.
+- **2026-10-02 단타 후 위치 떨림 조사/보강:** 테스트 3 재생 로그에서 1/2/3타 승인·타격은 정상 진행됨. 코드상 콤보 hit resolver가 `AttackTarget`을 통해 `RecoilCoroutine`을 시작하고, 그 프레임에 별도 `AttackLungeCoroutine`도 시작해 둘 다 `PlayerCombat.transform.position`을 직접 덮어쓴다. 동시에 `PlayerMovement`는 같은 Player 루트에 `CharacterController.Move`를 적용하고 지면 clamp 보정을 수행한다. 이 다중 위치 소유권이 combo-owned hit 이후 떨림의 코드상 원인으로 판단됨.
+- **수정:** 콤보 전용 hit 경로에 `comboOwnedImpact` 표시를 전달. 그 경로에서는 `PlayerCombat`의 위치 직접 리코일/런지를 생략하고, `Weapon_Combo_2` 애니메이션 및 `PlayerMovement`/CharacterController만 위치 이동을 소유하도록 했다. 비콤보 일반 공격의 기존 리코일/런지 경로는 유지. 데미지·HitStop·카메라/Haptic·타격 판정은 유지.
+- **검증:** 컴파일 CS 오류 0. `TestOutput/single-swing-jitter-tests.xml` 대상 테스트 35개 중 34개 통과; 신규 콤보 소유 movement-policy 2케이스 통과, 콤보 테스트 11/11 통과. 기존 Bow 테스트 `MultipleAcceptedAttacksAtTheSameTime_AdvanceSequenceForEveryAttack` 1건 실패(기존과 동일). Play 재검증은 아직 미실시; 떨림 해결 시각 판정은 pending.
 
 ---
 
@@ -4633,3 +4642,11 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 - 검증: 각 Phase 배치컴파일 CS=0 + EditMode 407 중 실패 13 = 전부 baseline, **신규 회귀 0**. (1회 14개 실패는 WeaponCraft 90% 확률형 랜덤 실패 — 재실행 통과로 회귀 아님 확인)
 - ⚠️ **Play 검증 대기**: ①호스트가 투명해서 게임화면이 비치고 3판넬이 Figma 배치로 뜨는지 ②타이틀바 닫기로 3창이 함께 닫히는지 ③카드 패딩/게이지가 Figma와 같은지.
 - 활용 지식: Frameless 전체화면 호스트 + 내부 절대배치로 "다수 패널이 배경 위에 Figma 배치대로" 구현(중첩 UTKWindowBase의 그림자/ESC충돌 회피). 게임화면 스케일 = Figma 1440×900 기준 ×1.333.
+
+### 🗡️ 검 콤보 단일 Weapon_Combo_2 클릭 구간분할 복원 (2026-10-02)
+- **회귀 원인 확정**: 런타임 디스패치(`AcceptPlayerMeleeComboClick`/`MonitorStageClip`)가 단일 `Weapon_Combo_2` 클립의 클릭 구간분할(순수 헬퍼 `GetMeleeComboPlaybackLimit`=클릭수/3, `GetMeleeComboStrikeNormalizedTime`=(seg-1+0.32)/3가 이미 코딩·검증됨)을 쓰지 않고 **별도 등록 상태(`AttackCombo/2/3` → Double_Combo_Attack/Triple_Combo_Attack/Weapon_Combo_2 서로 다른 FBX)를 순차 재생** → 한 클릭이 첫 스윙이 아니라 전체 콤보 클립 통째 재생 + 구간별 히트 소실. (commit 514d41ae/d46b0c31에서 등록 상태로 갈라짐, 사용자 원하는 방식은 281bf8f5 단일 클립 분할.)
+- **수정**: 검 검 콤보 디스패치를 `MeleeComboStateName`(`WeaponCombo`) 단일 클립 클릭 구간재생으로 재배선. 1·2·3 클릭 = 각각 1/3·2/3·1.0 경계까지 같은 클립 재생 + `TryResolveMeleeComboHit` strike(0.107/0.44/0.773)별 1히트. `_comboBufferedClicks` 재계산·`_comboStage`를 acceptedClicks으로 통일. Idle handoff는 `MeleeComboStateMachine.Evaluate`(Hold/Resume/Exit)로 홀드·복귀 분리. 창(Spear) follow-up도 같은 `WeaponCombo` 상태를 쓰므로 필드(`_spearAcceptedClicks`)로 소유권 분리 유지(무기 타입 배타).
+- ⚠️ 위임 타임아웃 폴백: code agent(600s)가 타임아웃 전 `MaxMeleeComboClicks` 3→2 축소 + strike 임의 변경으로 훼손 → **부모가 좁게 복구**(3타·strike 원식 복원). 위임 후 반드시 diff/상수 검증.
+- **검증**: 관련 테스트(검 콤보+등록+시퀀스) **58/58 통과**. 전체 EditMode **430 중 421 통과 / 9 실패 = 전부 기존 baseline**(Cooking 760vs2024·Interior topology 4·RecipeCatalog null·AttackTargetRing DontDestroy·AERO 격리·ThemeUss 베이크), **신규 회귀 0**.
+- **커밋**: [검 콤보]
+- ⚠️ **Play 검증 대기**: ①1클릭=첫 스윙만+Idle 복귀 ②2클릭=2스윙+히트2 ③3클릭=3스윙+히트3 ④4클릭=무동작 ⑤구간 경계 Idle 틈 없음 ⑥real-타이밍 클릭 감시.
