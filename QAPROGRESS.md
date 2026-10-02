@@ -4657,3 +4657,10 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 - **기존 구현 확장 미반영 (4건)**: `PlayerCastleInteriorTopologyTests` — `Footprint_IsSixTimes...`(6.0 vs 6.0025 허용오차)·`BuiltInterior_...`/`RuntimePortalOpenings_...`(EditMode Destroy 경고)·`PortalGraph_...`(실내 리메이크 후 벽/포탈 배치 계약 변화). 실내 6× 확장 작업의 테스트 허용오차/포탈 계약 미정리.
 - **환경/하네스 (2건)**: `ExecuteMovement_AttackCommandClearsAfterResolvedTargetDies`(`MonsterAggroSystem` EditMode `DontDestroyOnLoad` 예외), `IsolatedSessionWithoutConfiguredPipeline_LeavesGlobalPipelineSettingsUntouched`(AERO Error 로그 캡처 타이밍).
 - **UI 구현 변경 (1건)**: `ThemeUss_HasBakedBackgroundPngs` — Theme.uss가 UTKTheme 토큰 통일(09-28) 후 `bg_window.png` 등 베이크 참조 제거(`shadow_glow`만 유지). PNG 파일·meta는 존재. 테스트가 구식 베이크 참조를 기대.
+
+### 🛒 상점 테스트 씬 + 상점 NPC 배선 보완 (2026-10-02)
+- **상점 진입 경로 2종 확인**: ①E키 실외상점 `ShopPlaceholder`(VillageBuilder.CreateOutdoorShop, UTKWireUp이 ToggleShopRequestedUTK 구독→ShopWindowUTK) ②상점 NPC 클릭(HoverTargetClassifier.TargetKind.ShopNPC→InteractionPanelUTK "상점"→ShopWindowUTK).
+- **유령기능 발견/보수**: 상점 NPC 클릭 경로가 `HoverTargetClassifier.IsShopTerritoryNpc`가 `TerritoryNPCBehaviour.IsShopNPC` OR `NPCData.isShopNPC`를 리플렉션 조회하는데 둘 다 없어 **절대 ShopNPC 분류 안 되던 상태** → `NPCInstance`에 `public bool IsShopNPC` 필드 + `TerritoryNPCBehaviour`에 `public bool IsShopNPC => _npcData.IsShopNPC` 프로퍼티 추가(TerritoryNPCSpawner.cs). 이제 IsShopNPC=true NPC가 ShopNPC로 분류됨.
+- **새 테스트 씬**: `Test_13_Shop.unity` = Test_10 복제(초경량 셋업 씬, 새 guid 부여). `TestTerritoryCombatSetup.Awake`에 scene.name.Contains("Shop") 분기 → `SetupShopTestScene()`: 플레이어를 Ring1 동부(1450,0) 표면 배치 + PlayerStats.AddGold(500) + E키 상점 큐브(ShopPlaceholder 리플렉션 AddComponent) + 상점 NPC(Capsule+BoxCollider, IsShopNPC=true, TerritoryNPCBehaviour.Initialize, 리플렉션). 기존 Test_10 무영향.
+- **검증**: 컴파일 error CS 0. 전체 EditMode **421/430**(실패 9 = 전부 기존 baseline, 신규 회귀 0).
+- ⚠️ **Play 검증 대기**(Test_13_Shop 씬): ①E키 상점 열림/닫힘 ②상점 NPC 좌클릭→InteractionPanel→"상점"→ShopWindowUTK ③골드 500 반영 ④Ring1 상점 근접 배치 확인.

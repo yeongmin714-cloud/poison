@@ -22,6 +22,7 @@ namespace ProjectName.UI
         public List<string> Dialogues;
         public string TerritoryId;
         public int NpcIndex;
+        public bool IsShopNPC;
 
         public bool HasQuests => QuestIds != null && QuestIds.Count > 0;
     }
@@ -347,6 +348,7 @@ namespace ProjectName.UI
         [SerializeField] private NPCInstance _npcData;
 
         public NPCInstance NPCData => _npcData;
+        public bool IsShopNPC => _npcData.IsShopNPC;
 
         public void Initialize(NPCInstance data)
         {

@@ -68,6 +68,119 @@ namespace ProjectName.Systems
             // Phase 1 훅: Test_10 전용 애니 부트 — 레거시 Procedural/Neural 제거 + Player_AC/HumanoidClipDriver 부착
             var playerAnimBoot = GameObject.FindGameObjectWithTag("Player");
             if (playerAnimBoot != null) playerAnimBoot.AddComponent<TestPlayerAnimatorBoot>();
+
+            bool isShopScene = gameObject.scene.name != null && gameObject.scene.name.Contains("Shop");
+            if (isShopScene) SetupShopTestScene();
+        }
+
+        /// <summary>Test_13_Shop 전용 런타임 배치 — E키 상점, 클릭 상점 NPC, 테스트 골드.</summary>
+        private void SetupShopTestScene()
+        {
+            GameObject player = null;
+            try
+            {
+                player = GameObject.FindGameObjectWithTag("Player");
+                if (player == null)
+                {
+                    Debug.LogWarning("[TestTerritoryCombat] 상점 테스트 배치 실패: Player를 찾을 수 없습니다.");
+                    return;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[TestTerritoryCombat] 상점 테스트 Player 탐색 실패: {ex.Message}");
+                return;
+            }
+
+            try
+            {
+                PlayerStats stats = player.GetComponent<PlayerStats>();
+                if (stats == null) stats = PlayerStats.Instance;
+                if (stats != null)
+                {
+                    stats.AddGold(500, "shop_test_setup");
+                    Debug.Log("[TestTerritoryCombat] 상점 테스트 골드 +500 보장");
+                }
+                else
+                {
+                    Debug.LogWarning("[TestTerritoryCombat] 상점 테스트 골드 지급 실패: PlayerStats를 찾을 수 없습니다.");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[TestTerritoryCombat] 상점 테스트 골드 지급 실패: {ex.Message}");
+            }
+
+            // 상점 상호작용 반경(3m) 안에서 E키/클릭을 바로 시험하도록 Ring1 동부 표면에 플레이어를 배치.
+            try
+            {
+                player.transform.position = new Vector3(1450f, SurfaceY(1450f, 0f) + 1.02f, 0f);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[TestTerritoryCombat] 상점 테스트 플레이어 배치 실패: {ex.Message}");
+            }
+
+            Vector3 playerPosition = player.transform.position;
+            float kioskX = playerPosition.x + 2.5f;
+            float npcX = playerPosition.x - 2.5f;
+            float kioskY = SurfaceY(kioskX, playerPosition.z);
+            float npcY = SurfaceY(npcX, playerPosition.z);
+
+            try
+            {
+                GameObject kiosk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                kiosk.name = "TestShopKiosk";
+                kiosk.transform.position = new Vector3(kioskX, kioskY + 0.5f, playerPosition.z);
+                kiosk.GetComponent<Renderer>().sharedMaterial.color = new Color(0.85f, 0.66f, 0.25f);
+
+                System.Type shopType = System.Type.GetType("ProjectName.UI.ShopPlaceholder, ProjectName.UI");
+                if (shopType == null)
+                    Debug.LogError("[TestTerritoryCombat] E키 상점 생성 실패: ShopPlaceholder 타입을 찾을 수 없습니다.");
+                else
+                    kiosk.AddComponent(shopType);
+
+                Debug.Log($"[TestTerritoryCombat] E키 상점 배치 완료: {kiosk.transform.position}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[TestTerritoryCombat] E키 상점 배치 실패: {ex.Message}");
+            }
+
+            try
+            {
+                GameObject npc = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                npc.name = "TestShopNPC";
+                npc.transform.position = new Vector3(npcX, npcY + 1f, playerPosition.z);
+                npc.GetComponent<Renderer>().sharedMaterial.color = new Color(0.85f, 0.66f, 0.25f);
+
+                System.Type npcBehaviourType = System.Type.GetType("ProjectName.UI.TerritoryNPCBehaviour, ProjectName.UI");
+                System.Type npcDataType = System.Type.GetType("ProjectName.UI.NPCInstance, ProjectName.UI");
+                if (npcBehaviourType == null || npcDataType == null)
+                {
+                    Debug.LogError("[TestTerritoryCombat] 상점 NPC 생성 실패: TerritoryNPCBehaviour/NPCInstance 타입을 찾을 수 없습니다.");
+                }
+                else
+                {
+                    object npcData = System.Activator.CreateInstance(npcDataType);
+                    npcDataType.GetField("NpcId")?.SetValue(npcData, "test_shopkeeper");
+                    npcDataType.GetField("NpcName")?.SetValue(npcData, "상인 상점NPC");
+                    npcDataType.GetField("IsShopNPC")?.SetValue(npcData, true);
+
+                    Component behaviour = npc.AddComponent(npcBehaviourType);
+                    System.Reflection.MethodInfo initialize = npcBehaviourType.GetMethod("Initialize");
+                    if (initialize == null)
+                        Debug.LogError("[TestTerritoryCombat] 상점 NPC 초기화 실패: Initialize 메서드를 찾을 수 없습니다.");
+                    else
+                        initialize.Invoke(behaviour, new object[] { npcData });
+
+                    Debug.Log($"[TestTerritoryCombat] 상점 NPC 배치 완료: {npc.transform.position} (IsShopNPC=true)");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[TestTerritoryCombat] 상점 NPC 배치 실패: {ex.Message}");
+            }
         }
 
         // ================================================================
@@ -640,10 +753,19 @@ namespace ProjectName.Systems
             var player = GameObject.FindGameObjectWithTag("Player");
             if (player == null) return;
 
+            // PlayerCombat owns player Mouse0 melee input and combo progression. Adding AttackSystem
+            // here would create a second player click consumer (and a second direct-damage path).
+            if (player.GetComponent<PlayerCombat>() != null)
+            {
+                Debug.Log("[TestTerritoryCombat] PlayerCombat owns player melee clicks; AttackSystem not attached.");
+                return;
+            }
+
+            // Keep legacy direct-damage behavior only for a player without PlayerCombat.
             if (player.GetComponent<AttackSystem>() == null)
                 player.AddComponent<AttackSystem>();
 
-            Debug.Log("[TestTerritoryCombat] ✅ AttackSystem 부착 완료 — 좌클릭으로 공격 점검");
+            Debug.Log("[TestTerritoryCombat] ✅ AttackSystem 부착 완료 — PlayerCombat 없음");
         }
 
         // ================================================================
