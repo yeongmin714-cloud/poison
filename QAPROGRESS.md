@@ -4650,3 +4650,10 @@ EquipmentManager(Get()·lazy)/WeaponEquipManager(창·검·활 GripPose)/Invento
 - **검증**: 관련 테스트(검 콤보+등록+시퀀스) **58/58 통과**. 전체 EditMode **430 중 421 통과 / 9 실패 = 전부 기존 baseline**(Cooking 760vs2024·Interior topology 4·RecipeCatalog null·AttackTargetRing DontDestroy·AERO 격리·ThemeUss 베이크), **신규 회귀 0**.
 - **커밋**: [검 콤보]
 - ⚠️ **Play 검증 대기**: ①1클릭=첫 스윙만+Idle 복귀 ②2클릭=2스윙+히트2 ③3클릭=3스윙+히트3 ④4클릭=무동작 ⑤구간 경계 Idle 틈 없음 ⑥real-타이밍 클릭 감시.
+
+### 🧩 전체 EditMode 9건 실패 분류 (2026-10-02, baseline 기록)
+> 이 9건은 검·창·활·가스 4축과 무관한 **기존 baseline**. 계획 §7.3에 따라 승인 없이 임의 수정 않음. 전체 EditMode **430 중 421 pass / 9 fail**.
+- **테스트 데이터 낡음 (2건)**: `CookingDatabase_AllRecipes_Loaded`(테스트가 `RecipeCatalog.TotalCount 760` 기대 → 실제 카탈로그 2024종으로 확장됨), `FindRecipe_UnknownCombo_ReturnsNull`(없다고 기대한 Salmon×BlueFish/Slime삼중이 신규 카탈로그에 생김 → RecipeDef 반환). 코드 정상, 테스트 기대값 갱신 필요하나 요리 개편 승인 스코프 밖이라 보류.
+- **기존 구현 확장 미반영 (4건)**: `PlayerCastleInteriorTopologyTests` — `Footprint_IsSixTimes...`(6.0 vs 6.0025 허용오차)·`BuiltInterior_...`/`RuntimePortalOpenings_...`(EditMode Destroy 경고)·`PortalGraph_...`(실내 리메이크 후 벽/포탈 배치 계약 변화). 실내 6× 확장 작업의 테스트 허용오차/포탈 계약 미정리.
+- **환경/하네스 (2건)**: `ExecuteMovement_AttackCommandClearsAfterResolvedTargetDies`(`MonsterAggroSystem` EditMode `DontDestroyOnLoad` 예외), `IsolatedSessionWithoutConfiguredPipeline_LeavesGlobalPipelineSettingsUntouched`(AERO Error 로그 캡처 타이밍).
+- **UI 구현 변경 (1건)**: `ThemeUss_HasBakedBackgroundPngs` — Theme.uss가 UTKTheme 토큰 통일(09-28) 후 `bg_window.png` 등 베이크 참조 제거(`shadow_glow`만 유지). PNG 파일·meta는 존재. 테스트가 구식 베이크 참조를 기대.
