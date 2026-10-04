@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using ProjectName.Core;
+using ProjectName.Core.Data;
 using ProjectName.Systems;
 using UnityEngine;
 
@@ -41,6 +43,8 @@ namespace ProjectName.UI
         private GUIStyle _infoStyle;
         private GUIStyle _countStyle;
         private bool _stylesInitialized;
+        private string _currentQuestName;
+        private bool _currentQuestIsMain;
 
         // 캐싱된 마커 리스트 (매 프레임 QuestMarkerSystem에서 읽어옴)
         private readonly List<QuestMarkerData> _cachedMarkers = new List<QuestMarkerData>();
@@ -172,16 +176,19 @@ namespace ProjectName.UI
             Vector3 p2 = new Vector3(centerX + leftRot.x, centerY + leftRot.y, 0f);
             Vector3 p3 = new Vector3(centerX + rightRot.x, centerY + rightRot.y, 0f);
 
+            // QuestMarkerData에는 isMain이 없으므로 활성 퀘스트 이름으로 QuestData를 찾습니다.
+            Color questColor = GetQuestTypeColor(target.questName);
+
             // 삼각형 그리기 (3개의 선)
             Color origColor = GUI.color;
-            GUI.color = _arrowColor;
+            GUI.color = questColor;
 
             DrawLine(p1, p2);
             DrawLine(p2, p3);
             DrawLine(p3, p1);
 
             // 채워진 삼각형 (Texture2D 활용)
-            DrawFilledTriangle(p1, p2, p3, _arrowColor);
+            DrawFilledTriangle(p1, p2, p3, questColor);
 
             GUI.color = origColor;
         }
@@ -273,20 +280,11 @@ namespace ProjectName.UI
                 ? "도착!"
                 : $"{Mathf.RoundToInt(nearest.distanceFromPlayer)}m";
 
-            // 마커 색상 이모지 표시 (노란 동그라미 기본)
-            string colorEmoji = "🟡";
-            float hue;
-            float sat;
-            float val;
-            Color.RGBToHSV(nearest.markerColor, out hue, out sat, out val);
-            if (hue < 0.1f || hue > 0.9f) colorEmoji = "🔴";
-            else if (hue < 0.2f) colorEmoji = "🟠";
-            else if (hue < 0.4f) colorEmoji = "🟡";
-            else if (hue < 0.6f) colorEmoji = "🟢";
-            else if (hue < 0.75f) colorEmoji = "🔵";
-            else colorEmoji = "🟣";
-
-            string mainText = $"{colorEmoji} {nearest.questName} - {distanceText}";
+            bool isMainQuest = IsMainQuest(nearest.questName);
+            Color questColor = GetQuestTypeColor(nearest.questName);
+            string colorEmoji = isMainQuest ? "🟡" : "🔵";
+            string questColorHex = isMainQuest ? "E3B341" : "58A6FF";
+            string mainText = $"{colorEmoji} <color=#{questColorHex}>{nearest.questName}</color> - {distanceText}";
 
             // 그림자 (텍스트 오프셋)
             Color origTextColor = GUI.color;
@@ -297,7 +295,7 @@ namespace ProjectName.UI
             GUI.Label(shadowRect, mainText, _infoStyle);
 
             // 본문
-            GUI.color = _textColor;
+            GUI.color = questColor;
             Rect textRect = new Rect(panelX + 10f, panelY + 10f, _infoWidth - 10f, _infoHeight * 0.6f);
             GUI.Label(textRect, mainText, _infoStyle);
 
@@ -319,6 +317,36 @@ namespace ProjectName.UI
             }
 
             GUI.color = origTextColor;
+        }
+
+        private bool IsMainQuest(string questName)
+        {
+            if (string.IsNullOrEmpty(questName)) return false;
+            if (_currentQuestName == questName) return _currentQuestIsMain;
+
+            List<QuestData> activeQuests = QuestManager.GetActiveQuests();
+            if (activeQuests != null)
+            {
+                for (int i = 0; i < activeQuests.Count; i++)
+                {
+                    if (activeQuests[i].questName == questName)
+                    {
+                        _currentQuestName = questName;
+                        _currentQuestIsMain = activeQuests[i].isMain;
+                        return _currentQuestIsMain;
+                    }
+                }
+            }
+            _currentQuestName = questName;
+            _currentQuestIsMain = false;
+            return false;
+        }
+
+        private Color GetQuestTypeColor(string questName)
+        {
+            return IsMainQuest(questName)
+                ? new Color32(0xE3, 0xB3, 0x41, 0xFF)
+                : new Color32(0x58, 0xA6, 0xFF, 0xFF);
         }
 
         /// <summary>

@@ -257,7 +257,7 @@ namespace ProjectName.UI
             GUI.Box(new Rect(0, y, width, 112), "");
 
             string stateStr = state == QuestState.Active ? "🔄 진행 중" : "✅ 완료";
-            string colorHex = state == QuestState.Active ? "#FFDD44" : "#44FF44";
+            string colorHex = quest.isMain ? "#E3B341" : "#58A6FF";
 
             GUI.Label(new Rect(10, y + 4, width - 20, 33), $"<color={colorHex}>{quest.questName}</color>  {stateStr}", _styleTitle);
 

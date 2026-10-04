@@ -69,6 +69,9 @@ namespace ProjectName.Core.Data
         public string giverNpcId;
         public string[] prerequisiteQuestIds;
 
+        /// <summary>메인 퀘스트 여부 — 스토리 진행 퀘스트는 true, 서브 퀘스트는 false (기본값).</summary>
+        public bool isMain;
+
         /// <summary>대상 영지 ID (예: "East_01") — 퀘스트 마커/웨이포인트에 사용. null/빈 값 = 대상 영지 없음.</summary>
         public string targetTerritoryId;
 

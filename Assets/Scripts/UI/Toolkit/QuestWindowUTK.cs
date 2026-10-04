@@ -732,7 +732,8 @@ namespace ProjectName.UI.Toolkit
             box.Add(cardRow);
 
             // 제목 + 설명
-            var nameLabel = MkLabel(quest.questName, 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            Color questNameColor = quest.isMain ? GitHubDark.Gold : GitHubDark.Accent;
+            var nameLabel = MkLabel(quest.questName, 16, questNameColor, TextAnchor.MiddleLeft);
             nameLabel.style.whiteSpace = WhiteSpace.Normal;
             box.Add(nameLabel);
 
@@ -879,6 +880,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             _detailHeroTitle.text = quest.questName;
+            _detailHeroTitle.style.color = new StyleColor(quest.isMain ? GitHubDark.Gold : GitHubDark.Accent);
             _detailHeroTag.text = $"Lv.{quest.requiredLevel}  ·  {QuestRewardPreview.GetRewardSummary(quest)}";
             _detailStory.text = string.IsNullOrEmpty(quest.description) ? "—" : quest.description;
 

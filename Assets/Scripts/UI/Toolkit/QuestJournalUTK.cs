@@ -330,7 +330,8 @@ namespace ProjectName.UI.Toolkit
             var row1 = new VisualElement();
             row1.style.flexDirection = FlexDirection.Row;
             row1.style.alignItems = Align.Center;
-            var nameL = MkLabel(quest.questName, 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [GitHub-dark] 기본 텍스트
+            Color questNameColor = quest.isMain ? GitHubDark.Gold : GitHubDark.Accent;
+            var nameL = MkLabel(quest.questName, 16, questNameColor, TextAnchor.MiddleLeft);   // 메인=Gold / 서브=Blue
             nameL.style.flexGrow = 1f;
             row1.Add(nameL);
             string reward = QuestRewardPreview.GetRewardSummary(quest);
