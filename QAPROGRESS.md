@@ -1,3 +1,11 @@
+# 2026-10-04 복수명단 20명 LLM 대화 컨텍스트 배선 — 21:35 KST
+
+- **완료:** 복수명단 20명이 LLM과 그 인물답게 대화하도록 컨텍스트 배선.
+- **변경 (2파일, 커밋 aa0abeba):**
+  - `Systems/RevengeMainQuestDefinitions.cs` — `CharacterContexts`(Dictionary, revenge_01~20 ↔ 이름·표면 죄목·진짜 이유·지역, docs 20TH_STORIES 원문 기준) + `GetCharacterContext(questId)` system prompt 생성. "확인되지 않은 배후를 추측해 확정하지 말라" 소설 테마 반영.
+  - `UI/Toolkit/NPCDialogueUTK.cs` — `RequestRevengeDialogue(NPCInstance)`: 복수명단 questId 가진 NPC만 `GetCharacterContext`→`NPCDialogueAdapter.RequestDialogue(systemPrompt)`. 일반 NPC는 기존 대화 그대로. LLM 미설정 시 규칙 폴백. UnsubscribeRevengeDialogue로 구독 누수 방지.
+- **검증:** statically ①GetCharacterContext 20명 커버 ②NPCDialogueUTK 배선 위치 ③일반 NPC 기존 흐름 보존 확인. (Unity 배치컴파일은 이 WSL에서 vsock 에러로 불가 — 에디터 수동 검증 필요.)
+
 # 2026-10-04 복수명단 20명 메인 퀘스트 + 관계형 서브퀘스트 등록 — 21:20 KST
 
 - **완료:** 복수명단 20명을 isMain=true 메인 퀘스트로 새 등록(황금색), 관계형 서브퀘스트 파일럿 추가.
