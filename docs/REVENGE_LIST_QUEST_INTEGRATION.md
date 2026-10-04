@@ -198,6 +198,29 @@
 - 마을 주민 대사는 `NpcDialogueData`로 단계별 전환(의뢰 전/중/후 대사).
 - 완료 후 영지 NPC·주민 대사가 결과 반영 → 소설의 "이름을 지우지 않고 증언을 남긴다" 테마 구현.
 
+### 5-1-7. 보상 설계 (골드 / 장비 / 물약·연금 레시피) — 코드 실증
+
+| 보상 종류 | 게임 코드 경로 | 적용 대상 |
+|:---|:---|:---|
+| **골드** | `QuestReward.gold` → `PlayerStats.Instance.AddGold(gold, "quest_reward")` | 모든 서브/메인 |
+| **EXP** | `QuestReward.exp` → `PlayerStats.Instance.AddEXP(exp)` | 모든 서브/메인 |
+| **장비** | `QuestReward.items` → `PlayerInventory.Instance.AddItem(itemData, 1)` — `weapon_sword_steel`/`armor_leather`/`helmet_steel` 등 `WeaponCraftDatabase` 결과 ID | Ring2~4·가치 높은 서브 |
+| **물약·연금/요리 레시피** | `Recipe`(ScriptableObject, `RecipeType.Alchemy/Cooking`, `requiredLevel`, `baseSuccessRate`) — 보상 아이템 ID로 지급 후 제작 창에 해금 | 퀘스트 수수료·영장력 |
+| **호감도** | `QuestReward.affinity` → 영주 호감도 로그 | 영주 연계 서브 |
+
+**보상 규모 (Ring별):**
+
+| Ring | 골드 | EXP | 대표 장비/레시피 보상 |
+|:---|:---|:---|:---|
+| Ring1 | 10~15 | 20~30 | (없음 — 튜토리얼) |
+| Ring2 | 15~25 | 30~45 | `helmet_wood`/`armor_leather` |
+| Ring3 | 25~40 | 45~70 | `weapon_sword_steel`/`armor_stone` |
+| Ring4 | 40~60 | 70~100 | `weapon_sword_crystal`/`armor_crystal` |
+| 황제국 | 60~100 | 100~150 | `weapon_sword_crystal`/연금 레시피 |
+| 드라큘라 | 80~120 | 120~180 | 희귀 연금/밤의 초 연계 보상 |
+
+**20명 복수명단 보상:** 영주 처형/생존 시 — 공모자 10명은 `WeaponCraftDatabase`의 결정(晶) 티어 장비 + 연금 레시피, 나머지 10명은 스틸/스톤 장비 + 골드. (미확정 유지: 최종 독살범은 레시피로 특정하지 않음.)
+
 ## 6. 진행 흐름 (Ring 순서 — 소설 순서와 일치)
 
 1. **Ring1 동부** — 튜토리얼 + 첫 영지 4장 (마라·주민 문제 서브퀘스트)
