@@ -1,3 +1,12 @@
+# 2026-10-04 복수명단 20명 메인 퀘스트 → QuestChain 체인화 — 21:45 KST
+
+- **완료:** 복수명단 메인 퀘스트를 개별 등록에서 체인 구조로 승격(설계 8-2 해소).
+- **변경 (2파일, 커밋 5abdb9de):**
+  - `Systems/RevengeQuestChainDefinitions.cs` (신규) — `revenge_main` 체인 등록. `ScriptableObject.CreateInstance<QuestChainData>` + `QuestChainManager.Instance.RegisterChain`. 노드 `revenge_01~20`(RevengeMainQuestDefinitions.questId와 매핑), 각 노드 선택지 3개(처형/생존/추궁 — CreateNode/CreateChoice 헬퍼, nextNodeId로 체인 연결, 마지막 revenge_20=null 종료). 소설 톤 재설명(이름을 지우지 않는 자).
+  - `Systems/CoreSystemsBootstrap.cs` — `RevengeMainQuestDefinitions.RegisterAll()` 아래 `RevengeQuestChainDefinitions.RegisterAll();` 1줄.
+- **검증:** statically ①브레이스/괄호/대괄호 균형 ②CreateNode 20개 호출 ③각 노드 선택지 3종 ④import(Core.Data/Services) 정합 ⑤QuestChainManager namespace 일치 ⑥git add -p로 RegisterAll 줄만 stage, 무관 변경(EnsureGuardSelectionManager) 제외 ⑦정확히 2파일만 커밋. (Unity 배치 컴파일은 WSL vsock 에러로 불가 — 에디터 수동 검증 필요.)
+- **메모:** 무관 대량 미커밋 변경(CoreSystemsBootstrap의 EnsureGuardSelectionManager·private→public 등)이 작업 파일에 섞여 있어, `git reset`+`git add -p`로 내 줄만 정확히 스테이징 후 커밋하는 절차 사용.
+
 # 2026-10-04 복수명단 20명 LLM 대화 컨텍스트 배선 — 21:35 KST
 
 - **완료:** 복수명단 20명이 LLM과 그 인물답게 대화하도록 컨텍스트 배선.
