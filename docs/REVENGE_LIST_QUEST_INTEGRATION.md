@@ -110,6 +110,54 @@
   예) `닫힌 제분소` 완료 → 영주(복수명단 인물) 조우 가능. `기록실 빈칸` 완료 → 세 갈래 표식 단서.
 - NpcQuestGiver는 서브퀘스트를 `giverNpcId`(영지 NPC)가 부여.
 
+## 5-1. 대화 시스템 연계 (NPCDialogue / AmbientDialogue)
+
+퀘스트뿐 아니라 **NPC와의 대화가 소설 장면으로 자연스럽게 들어가도록** 게임의 기존 대화 시스템을 소설에 매핑한다.
+
+### 5-1-1. 기존 대화 시스템 (코드 확인 기준)
+
+| 시스템 | 파일 | 역할 | 소설 활용 |
+|:---|:---|:---|:---|
+| `NpcDialogueData` (ScriptableObject) | `Systems/NpcDialogueData.cs` | NPC별 시간대(아침/오후/저녁/밤)·날씨(비/눈/축제/전투)·E키 상호작용 대사 | 영지 주민 일상·장면 대사 |
+| `NPCDialogueUTK` / `NPCDialoguePanelUTK` | `UI/Toolkit/` | 선택지(질문) 기반 대화창 | 복수명단 인물 조우 대화 |
+| `NPCDialogueAdapter` | `Systems/NPCDialogueAdapter.cs` | **LLM 실시간 대화** (데일리 한도 + 규칙 폴백) — `DialogueReady` 이벤트 | 20명 인물과 개방형 대화 |
+| `NPCAmbientDialogue` / `AmbientDialogueManager` | `Systems/` | NPC가 걸으며 내뱉는 주변 대사 | 영지 분위기·장면 연출 |
+| `NpcQuestGiver` | `Systems/NpcQuestGiver.cs` | NPC 퀘스트 부여 | 서브퀘스트 전달자 |
+
+### 5-1-2. 복수명단 20명 대화 매핑
+
+각 영주(=복수명단 인물)를 조우하면, `NPCDialogueUTK` 선택지 대화로 **표면 죄목 → 이면 조사** 흐름을 연다.
+
+| 대화 단계 | 질문(선택지) | NPC 응답 | 게임 연계 |
+|:---|:---|:---|:---|
+| 1. 조우 | "당신이 아버지 명단의 (이름)이오?" | 표면 죄목을 인정/회피 | 짧은 대화 후 조사 시작 |
+| 2. 장부 | 장부/증언 확인 요구 | 실제 한 일을 드러냄 | `RevengeListManager.RevealReason` |
+| 3. 선택 | 처형 / 생존 / 추궁 | 결말 분기 대사 | `QuestChoiceResult` 분기 |
+| 4. 이면 | (LLM 개방형) 그 일로 바뀐 주민 이야기 | 자유 응답 | `NPCDialogueAdapter` LLM |
+
+- **LLM 실전:** `NPCDialogueAdapter`에 소설 인물 컨텍스트(이름·표면 죄목·진짜 이유)를 주고, 플레이어의 자유 질문에 그 인물답게 응답하게 한다. `DialogueReady`로 본문 톤("확인되지 않은 이름을 지우지 않는다")을 유지.
+- **규칙 폴백:** LLM 실패/한도 시 `NpcDialogueData`의 시간대·E키 대사로 안전 폴백 (기존 규칙 유지).
+
+### 5-1-3. 영지 82곳 대화 매핑
+
+각 영지 주민 NPC = `NpcDialogueData` ScriptableObject. 소설 영지 단편의 장면을 **시간대/분위기 대사**로 입힌다.
+
+| 영지 단편 모티프 | 주민 대사 예시 | 트리거 |
+|:---|:---|:---|
+| 닫힌 제분소 | "그 문은 몇 해 전부터 안 열렸지. 물레가 돌 때 소리가 났는데..." | 제분소 근처 (E키) |
+| 밤의 초 | 탑 아래 밤마다 초가 켜진다 — 밤 시간대 대사 | 밤 슬롯 |
+| 기록실의 빈칸 | 서기관 — 빈칸에 관한 익명 진술 | 기록실 조우 |
+| 불의 날 주 훈련 | 축제(불의 날) 대사가 소환수 출현 전 암시 | `_festivalDialogues` |
+
+- 주변 대사(`AmbientDialogueManager`)로 영지가 "이름을 지우지 않은 땅" 분위기를 흘린다.
+- 서브퀘스트 완료 후에는 해당 영지 주민 대사가 **결과를 반영**하도록 바뀐다 (예: 제분소 열림 → "이제 물레가 돈다").
+
+### 5-1-4. 대화-퀘스트 연동 규칙
+
+- **대사가 단서를 준다:** 주민 대사·LLM 대화 중 소설 핵심 단서(장부 수량·세 갈래 표식·실종 편지)가 등장하면 퀘스트 마커/저널 갱신.
+- **선택지가 진행을 바꾼다:** 처형/생존/추궁 선택 → `QuestChainManager` 노드 분기 + 해당 영지 주민 대사 전환.
+- **미확정 유지:** 독살범·왕비·세 갈래·도미를 특정하지 않는다 — 주민/LLM 대화도 이를 "확정된 이름"으로 말하지 않는다.
+
 ## 6. 진행 흐름 (Ring 순서 — 소설 순서와 일치)
 
 1. **Ring1 동부** — 튜토리얼 + 첫 영지 4장 (마라·주민 문제 서브퀘스트)
@@ -132,8 +180,12 @@
 1. **`TerritoryQuestDefinitions` 확장** — 82 영지 서브퀘스트 데이터 추가(영지 단편 매핑).
 2. **`QuestChainManager` 메인 체인 등록** — `revenge_main` 노드 체인 + 선택지 분기.
 3. **`RevengeListManager`/`Integration` 연계** — 영주 처형·독살 공모자 이벤트가 메인 체인 진행을 트리거.
-4. **UTK 매핑** — 서브/메인 퀘스트가 `QuestJournalUTK`에 표시되도록 연결.
-5. **검증** — Compile(error CS 0) + EditMode 회귀 + Test_10 Play에서 메인/서브 퀘스트 진행 확인.
+4. **`NpcDialogueData` ScriptableObject** — 82 영지 주민 대사 + 시간대/날씨/E키 매핑 (영지 단편).
+5. **`NPCDialogueAdapter` 컨텍스트** — 복수명단 20명 인물 컨텍스트(이름·표면 죄목·진짜 이유) 주입 + LLM 개방형 대화.
+6. **`NPCDialogueUTK` 선택지 대화** — 영주 조우 시 4단계(조우/장부/선택/이면) 질문지.
+7. **`AmbientDialogueManager`** — 영지 "이름을 지우지 않은 땅" 분위기 주변 대사.
+8. **UTK 매핑** — 서브/메인 퀘스트가 `QuestJournalUTK`에 표시되도록 연결.
+9. **검증** — Compile(error CS 0) + EditMode 회귀 + Test_10 Play에서 메인/서브 퀘스트 진행과 대화 확인.
 
 ## 9. 보호 범위
 
