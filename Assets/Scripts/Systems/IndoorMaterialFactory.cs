@@ -60,25 +60,19 @@ namespace ProjectName.Systems
         {
             lower = null; upper = null;
             if (!IndoorTextureLoader.HasFiles || UrpLit == null) return false;
-            if (IndoorTextureLoader.WallStone == null) return false;
-
             // 하부 석재 (높이 0~2m 밴드 가정 — 벽 쿼드의 하단 절반)
-            var stone = new Material(UrpLit) { name = "IndoorHQ_WallStone" };
-            var stoneTex = IndoorTextureLoader.WallStone;
-            IndoorTextureLoader.Configure(stoneTex, linear: false);
-            stone.mainTexture = stoneTex;
-            float sx = Mathf.Max(1f, Mathf.RoundToInt(roomWidth / IndoorTextureLoader.WallStoneCoverX));
-            float sy = Mathf.Max(1f, Mathf.RoundToInt((roomHeight * 0.5f) / IndoorTextureLoader.WallStoneCoverY));
-            stone.mainTextureScale = new Vector2(sx, sy);
-            stone.SetFloat("_Smoothness", 0.35f);
-            var sn = IndoorTextureLoader.WallStoneNormal;
-            if (sn != null)
-            {
-                IndoorTextureLoader.Configure(sn, linear: true);
-                stone.EnableKeyword("_NORMALMAP");
-                stone.SetTexture("_BumpMap", sn);
-                stone.SetTextureScale("_BumpMap", new Vector2(sx, sy));
-            }
+            var stone = new Material(UrpLit) { name = "IndoorHQ_CalmTopologyMasonry" };
+            // The supplied lower-wall image has high-frequency contrast and visible seams when
+            // repeated over the 117 m shell. Use a deterministic, tileable two-course ashlar
+            // texture for topology walls only; the original provider textures remain untouched.
+            stone.mainTexture = CreateCalmTopologyMasonryTexture();
+            stone.color = new Color(0.94f, 0.93f, 0.90f);
+            // Topology wall UVs are expressed in 2.2 x 1.1 m cover units per meter.
+            // Keep material scale at one to avoid double tiling.
+            stone.mainTextureScale = Vector2.one;
+            stone.SetFloat("_Smoothness", 0.12f);
+            // Intentionally omit the supplied noisy normal map. The mortar and broad block
+            // boundaries in the albedo provide restrained stone structure without pore noise.
             lower = stone;
 
             // 상부 회반죽
@@ -88,7 +82,7 @@ namespace ProjectName.Systems
                 var plasterTex = IndoorTextureLoader.WallPlaster;
                 IndoorTextureLoader.Configure(plasterTex, linear: false);
                 plaster.mainTexture = plasterTex;
-                plaster.mainTextureScale = new Vector2(sx, sy);
+                plaster.mainTextureScale = Vector2.one;
                 plaster.SetFloat("_Smoothness", 0.3f);
             }
             else
@@ -98,6 +92,63 @@ namespace ProjectName.Systems
             }
             upper = plaster;
             return true;
+        }
+
+        /// <summary>
+        /// Builds a deterministic, seam-free two-course ashlar tile for the player-castle shell.
+        /// One UV tile is the existing 2.2 x 1.1 m cover unit, so large walls do not gain
+        /// extra material-level tiling. Broad block faces replace the noisy supplied albedo/normal.
+        /// </summary>
+        private static Texture2D CreateCalmTopologyMasonryTexture()
+        {
+            const int width = 512;
+            const int height = 256;
+            const int courseHeight = height / 2;
+            const int blockWidth = width / 4;
+            const float mortarHalfWidth = 2.0f;
+            var texture = new Texture2D(width, height, TextureFormat.RGBA32, true, false)
+            {
+                name = "PlayerCastle_CalmAshlar_2Course",
+                wrapMode = TextureWrapMode.Repeat,
+                filterMode = FilterMode.Trilinear,
+                anisoLevel = 4
+            };
+            var pixels = new Color[width * height];
+            for (int y = 0; y < height; y++)
+            {
+                int course = y / courseHeight;
+                int localY = y % courseHeight;
+                int rowOffset = course == 0 ? 0 : blockWidth / 2;
+                for (int x = 0; x < width; x++)
+                {
+                    int shiftedX = (x + rowOffset) % width;
+                    int column = shiftedX / blockWidth;
+                    int inBlockX = shiftedX % blockWidth;
+                    float edgeX = Mathf.Min(inBlockX, blockWidth - inBlockX);
+                    float edgeY = Mathf.Min(localY, courseHeight - localY);
+                    float edge = Mathf.Min(edgeX, edgeY);
+                    float mortar = 1f - Mathf.SmoothStep(mortarHalfWidth - 0.5f,
+                        mortarHalfWidth + 0.5f, edge);
+                    // Stable low-amplitude per-block variation; no Random/global state or high-frequency noise.
+                    float variation = (StableBlockTone(column, course) - 0.5f) * 0.055f;
+                    float broadEdgeShade = Mathf.Clamp01(edge / 12f) * 0.025f;
+                    float value = 0.62f + variation + broadEdgeShade;
+                    Color stone = new Color(value * 1.01f, value, value * 0.96f, 1f);
+                    Color joint = new Color(0.39f, 0.375f, 0.35f, 1f);
+                    pixels[y * width + x] = Color.Lerp(stone, joint, mortar);
+                }
+            }
+            texture.SetPixels(pixels);
+            texture.Apply(true, false);
+            return texture;
+        }
+
+        private static float StableBlockTone(int column, int course)
+        {
+            int value = (column + 17) * 374761393 + (course + 31) * 668265263;
+            value = (value ^ (value >> 13)) * 1274126177;
+            value ^= value >> 16;
+            return (value & 0x00ffffff) / 16777215f;
         }
 
         /// <summary>목재 프레임 머티리얼 (기둥/보/문틀 — 기둥은 P17에서 제거됐지만 보/문틀용 유지).</summary>
@@ -112,6 +163,41 @@ namespace ProjectName.Systems
             m.mainTextureScale = new Vector2(1f, 2f);   // 세로 나뭇결 강조
             m.SetFloat("_Smoothness", 0.4f);
             return m;
+        }
+
+        /// <summary>Applies only the shared-provider floor material, leaving country fallback walls untouched.</summary>
+        public static void ApplyFloorToRoom(GameObject room, float width, float depth)
+        {
+            if (room == null || !IndoorTextureLoader.HasFiles) return;
+            Transform floor = room.transform.Find("Floor");
+            if (floor == null) return;
+            MeshRenderer renderer = floor.GetComponent<MeshRenderer>();
+            Material material = CreateFloor(width, depth);
+            if (renderer != null && material != null) renderer.sharedMaterial = material;
+        }
+
+        /// <summary>HQ stone surface material for procedural solid topology walls (null when unavailable).</summary>
+        public static Material CreateTopologyWall(float roomWidth, float roomHeight)
+        {
+            if (!TryCreateWall(roomWidth, roomHeight, out var lower, out _)) return null;
+            return lower;
+        }
+
+        /// <summary>Applies the shared indoor-provider material to all generated topology wall renderers.</summary>
+        public static void ApplyToTopologyWalls(GameObject room, float roomWidth, float roomHeight)
+        {
+            if (room == null || !IndoorTextureLoader.HasFiles) return;
+            Material wall = CreateTopologyWall(roomWidth, roomHeight);
+            if (wall == null) return;
+            foreach (Transform child in room.transform)
+            {
+                // Floor and ceiling also carry MeshColliders; do not overwrite the floor texture
+                // just applied by ApplyFloorToRoom. Every other collidable direct child is a topology wall.
+                if (child.name == "Floor" || child.name == "Ceiling" ||
+                    child.GetComponent<MeshCollider>() == null) continue;
+                var renderer = child.GetComponent<MeshRenderer>();
+                if (renderer != null) renderer.sharedMaterial = wall;
+            }
         }
 
         /// <summary>

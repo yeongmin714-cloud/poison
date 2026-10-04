@@ -797,6 +797,9 @@ namespace ProjectName.Systems
                 child.localScale *= TopologyFurnitureScale;
             }
 
+            // Add after legacy furniture scaling so portal trim remains in wall-local meters.
+            AddNonCollidingPortalStonework(room, GetTopologyWalls(), RoomHeight, WallThickness, shader);
+
             // Interaction anchors are explicitly assigned to their intended player-owned zones.
             SetAnchorPosition(room, "Workbench", GetAnchorPosition("Workbench"));
             SetAnchorPosition(room, "StorageShelf_2", GetAnchorPosition("StorageShelf_2"));
@@ -1002,6 +1005,95 @@ namespace ProjectName.Systems
                 case "empire": return "Empire_01";
                 default: return "Empire_01";
             }
+        }
+
+        /// <summary>
+        /// Adds shallow stone jambs and lintels to actual portals. Renderer-only meshes sit outside
+        /// the clear opening and never participate in collision or movement.
+        /// </summary>
+        private static void AddNonCollidingPortalStonework(GameObject room, WallLayout[] walls,
+            float wallHeight, float wallThickness, Shader shader)
+        {
+            if (room == null || walls == null || shader == null) return;
+            var trimMaterial = new Material(shader) { name = "PlayerCastle_PortalStoneTrim" };
+            trimMaterial.color = new Color(0.72f, 0.69f, 0.63f);
+            if (trimMaterial.HasProperty("_Smoothness")) trimMaterial.SetFloat("_Smoothness", 0.12f);
+            Mesh cubeMesh = CreateUnitCubeMesh();
+
+            foreach (WallLayout wall in walls)
+            {
+                if (wall.DoorwayWidth <= 0f || wall.DoorwayHeight <= 0f) continue;
+                Vector2 delta = wall.End - wall.Start;
+                if (delta.sqrMagnitude <= 0.0001f) continue;
+                float rotationY = Mathf.Atan2(-delta.y, delta.x) * Mathf.Rad2Deg;
+                var frame = new GameObject(wall.Name + "_NonCollidingStoneFrame");
+                frame.transform.SetParent(room.transform, false);
+                frame.transform.localPosition = new Vector3((wall.Start.x + wall.End.x) * 0.5f,
+                    0f, (wall.Start.y + wall.End.y) * 0.5f);
+                frame.transform.localRotation = Quaternion.Euler(0f, rotationY, 0f);
+
+                float faceOffset = wallThickness * 0.5f + 0.035f;
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    float z = side * faceOffset;
+                    float left = wall.DoorwayOffset - wall.DoorwayWidth * 0.5f;
+                    float right = wall.DoorwayOffset + wall.DoorwayWidth * 0.5f;
+                    CreateRendererOnlyStoneBox(frame.transform, wall.Name + "_JambL_" + side,
+                        new Vector3(left - 0.07f, wall.DoorwayHeight * 0.5f, z),
+                        new Vector3(0.14f, wall.DoorwayHeight, 0.12f), cubeMesh, trimMaterial);
+                    CreateRendererOnlyStoneBox(frame.transform, wall.Name + "_JambR_" + side,
+                        new Vector3(right + 0.07f, wall.DoorwayHeight * 0.5f, z),
+                        new Vector3(0.14f, wall.DoorwayHeight, 0.12f), cubeMesh, trimMaterial);
+                    CreateRendererOnlyStoneBox(frame.transform, wall.Name + "_Lintel_" + side,
+                        new Vector3(wall.DoorwayOffset, wall.DoorwayHeight + 0.075f, z),
+                        new Vector3(wall.DoorwayWidth + 0.28f, 0.15f, 0.12f), cubeMesh, trimMaterial);
+                }
+            }
+        }
+
+        private static void CreateRendererOnlyStoneBox(Transform parent, string name, Vector3 position,
+            Vector3 size, Mesh mesh, Material material)
+        {
+            var detail = new GameObject(name);
+            detail.transform.SetParent(parent, false);
+            detail.transform.localPosition = position;
+            detail.transform.localScale = size;
+            detail.AddComponent<MeshFilter>().sharedMesh = mesh;
+            detail.AddComponent<MeshRenderer>().sharedMaterial = material;
+            // No Collider by design: decorative portal stonework must not block movement.
+        }
+
+        private static Mesh CreateUnitCubeMesh()
+        {
+            var vertices = new List<Vector3>(24);
+            var triangles = new List<int>(36);
+            AddCubeFace(vertices, triangles, new Vector3(-0.5f, -0.5f, -0.5f),
+                new Vector3(-0.5f, 0.5f, -0.5f), new Vector3(0.5f, -0.5f, -0.5f), new Vector3(0.5f, 0.5f, -0.5f));
+            AddCubeFace(vertices, triangles, new Vector3(0.5f, -0.5f, 0.5f),
+                new Vector3(0.5f, 0.5f, 0.5f), new Vector3(-0.5f, -0.5f, 0.5f), new Vector3(-0.5f, 0.5f, 0.5f));
+            AddCubeFace(vertices, triangles, new Vector3(-0.5f, -0.5f, 0.5f),
+                new Vector3(-0.5f, 0.5f, 0.5f), new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(-0.5f, 0.5f, -0.5f));
+            AddCubeFace(vertices, triangles, new Vector3(0.5f, -0.5f, -0.5f),
+                new Vector3(0.5f, 0.5f, -0.5f), new Vector3(0.5f, -0.5f, 0.5f), new Vector3(0.5f, 0.5f, 0.5f));
+            AddCubeFace(vertices, triangles, new Vector3(-0.5f, 0.5f, -0.5f),
+                new Vector3(-0.5f, 0.5f, 0.5f), new Vector3(0.5f, 0.5f, -0.5f), new Vector3(0.5f, 0.5f, 0.5f));
+            AddCubeFace(vertices, triangles, new Vector3(-0.5f, -0.5f, 0.5f),
+                new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(0.5f, -0.5f, 0.5f), new Vector3(0.5f, -0.5f, -0.5f));
+            var mesh = new Mesh { name = "PlayerCastle_RendererOnlyStoneTrimMesh" };
+            mesh.SetVertices(vertices);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        private static void AddCubeFace(List<Vector3> vertices, List<int> triangles,
+            Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        {
+            int first = vertices.Count;
+            vertices.Add(a); vertices.Add(b); vertices.Add(c); vertices.Add(d);
+            triangles.Add(first); triangles.Add(first + 2); triangles.Add(first + 1);
+            triangles.Add(first + 2); triangles.Add(first + 3); triangles.Add(first + 1);
         }
 
         /// <summary>Cube 프리미티브 생성 + 재질 적용.</summary>

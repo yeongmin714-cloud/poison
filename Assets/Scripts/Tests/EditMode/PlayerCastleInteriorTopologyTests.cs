@@ -179,9 +179,14 @@ namespace ProjectName.Tests.EditMode
                 {
                     MeshRenderer wallRenderer = room.transform.Find("Lobby_North").GetComponent<MeshRenderer>();
                     Assert.That(wallRenderer.sharedMaterial.mainTexture,
-                        Is.SameAs(ProjectName.Core.IndoorTextureLoader.WallStone), "Provided masonry texture must be applied.");
+                        Is.Not.SameAs(ProjectName.Core.IndoorTextureLoader.WallStone),
+                        "Topology masonry must use the dedicated calm, seam-free ashlar tile.");
+                    Assert.That(wallRenderer.sharedMaterial.mainTexture.name,
+                        Is.EqualTo("PlayerCastle_CalmAshlar_2Course"));
                     Assert.That(wallRenderer.sharedMaterial.mainTextureScale, Is.EqualTo(Vector2.one),
                         "Topology UVs encode physical wall tiling; the material must not tile a second time.");
+                    Assert.That(wallRenderer.sharedMaterial.IsKeywordEnabled("_NORMALMAP"), Is.False,
+                        "Noisy supplied wall normal must not be used on the player-castle topology shell.");
                 }
             }
             finally
