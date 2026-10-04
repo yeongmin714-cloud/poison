@@ -1,3 +1,15 @@
+# 2026-10-04 퀘스트 UI 메인/서브 색상 구분 (QuestData.isMain) — 16:10 KST
+
+- **완료:** 사용자 요청 "메인=황금색, 서브=푸른색 구분". 코드 에이전트 위임 구현.
+- **변경 (5파일, 커밋 dbbeeaa6):**
+  - `Core/Data/QuestData.cs` — `public bool isMain;` 필드 추가 (기본 false=서브).
+  - `UI/Toolkit/QuestJournalUTK.cs` — 퀘스트명 라벨: `isMain ? Gold(#E3B341) : Accent(#58A6FF)`.
+  - `UI/QuestWindow.cs` (레거시 IMGUI) — 퀘스트명 `#E3B341` / `#58A6FF` 분기.
+  - `UI/Toolkit/QuestWindowUTK.cs` — 퀘스트 카드명·상세 제목 색상 분기.
+  - `UI/QuestMarkerHUD.cs` — 방향 화살표·정보패널 강조: isMain(🟡/Gold)/서브(🔵/파랑). QuestMarkerData에 isMain 없어 활성 퀘스트를 이름으로 매칭, 미일치 시 서브 색.
+- **검증:** Compile **error CS 0** (batchmode return 0). 설계 문서 `REVENGE_LIST_QUEST_INTEGRATION.md` 확정.
+- **메모:** 작업 트리에 활·가스·성내부 등 대량 미커밋 변경 존재 → 이번 퀘스트 작업 5파일만 지정 add·커밋 (git add -A 금지 준수).
+
 # 2026-10-04 Phase 2 성 내부 벽 시각 개선 — 차분한 ashlar 타일 + 문설주/린텔 — 13:40 KST
 
 - 진전: Phase 1(충돌 수정, b927e00f) 위에 벽 시각 개선을 적용. 사용자 승인 "플레이 확인 불가 — 계획 모두 진행 후 일괄 확인".
