@@ -84,6 +84,21 @@ namespace ProjectName.Systems
                     new QuestObjective { type = QuestObjectiveType.GatherItem, targetId = "herb_yellow", requiredCount = 2, description = "노란 약초 2개 채집" }
                 },
                 reward = new QuestReward { gold = 12, exp = 22 }
+            },
+            new QuestData
+            {
+                questId = "t1_clue_revenge_01", questName = "지워진 장부의 증언",
+                description = "영지 기록을 맡은 관리인이 장부를 조작했다는 소문을 조사해 달라고 합니다. 마을 주민에게 그가 세금 징수 때 주민들의 이름을 지켜주었다는 증언을 듣고, 관리인에게 돌아가 기록의 의미를 확인하세요.",
+                requiredLevel = 1,
+                giverNpcId = "t1_clue_keeper",
+                isMain = false,
+                objectives = new List<QuestObjective>
+                {
+                    new QuestObjective { type = QuestObjectiveType.TalkToNPC, targetId = "t1_clue_keeper", requiredCount = 1, description = "영지 기록 관리인에게 조사 의뢰 수락" },
+                    new QuestObjective { type = QuestObjectiveType.TalkToNPC, targetId = "t1_village_witness", requiredCount = 1, description = "마을 주민에게 장부에 관한 증언 청취" },
+                    new QuestObjective { type = QuestObjectiveType.TalkToNPC, targetId = "t1_clue_keeper", requiredCount = 1, description = "관리인에게 증언을 전하고 기록 확인" }
+                },
+                reward = new QuestReward { gold = 12, exp = 25 }
             }
         };
 

@@ -19,6 +19,8 @@ public class CoreSystemsBootstrap : MonoBehaviour
     {
         if (!_initializeOnAwake) return;
 
+        RevengeMainQuestDefinitions.RegisterAll();
+
         // 1. TerritoryDatabase 강제 초기화 (Lazy<T> 인스턴스 생성)
         ForceInitializeTerritoryDatabase();
 
