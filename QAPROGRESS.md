@@ -1,3 +1,13 @@
+# 2026-10-04 복수명단 20명 메인 퀘스트 + 관계형 서브퀘스트 등록 — 21:20 KST
+
+- **완료:** 복수명단 20명을 isMain=true 메인 퀘스트로 새 등록(황금색), 관계형 서브퀘스트 파일럿 추가.
+- **변경 (3파일, 커밋 c4b86b3e):**
+  - `Systems/RevengeMainQuestDefinitions.cs` (신규) — revenge_01~20, 전부 isMain=true. 소설 20명(알데바란~발로라) 이름·지역·보상, 실제 아이템 ID(PlayerInventory.SwordSteel 등), targetTerritoryId(East/West/North/South/Empire_XX) 사용.
+  - `Systems/CoreSystemsBootstrap.cs` — Awake 초기화 직후 `RevengeMainQuestDefinitions.RegisterAll();` 1줄 (중복 가드: _registered).
+  - `Systems/TerritoryQuestDefinitions.cs` — 관계형 서브퀘스트 `t1_clue_revenge_01` ("지워진 장부의 증언", isMain=false, 관리인→주민 증인→관리인 TalkToNPC 3단계).
+- **검증:** Compile 불가(WSL에서 Unity.exe vsock 에러로 batchmode 미기동) → **코드 정적 검증으로 대체**: ①isMain=true 20개 ②questId 중복 0 ③보상 아이템 11종 전부 PlayerInventory 상수 존재 ④targetTerritoryId 영지 패턴 일치 ⑤C# 브레이스/콤마 균형 ⑥git diff --cached로 무관 변경(EnsureGuardSelectionManager 등 대량 미커밋) 제외 확인 → 정확히 3파일만 커밋.
+- **메모:** Unity 배치컴파일이 이 WSL 환경에서 vsock(accept4 failed 110)로 시작 안 됨 — Play/EditMode 최종 검증은 에디터에서 수동 필요.
+
 # 2026-10-04 퀘스트 UI 메인/서브 색상 구분 (QuestData.isMain) — 16:10 KST
 
 - **완료:** 사용자 요청 "메인=황금색, 서브=푸른색 구분". 코드 에이전트 위임 구현.
