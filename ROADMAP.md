@@ -1,5 +1,7 @@
 # 🗺️ 포이즌 (Poison) — ROADMAP
 
+> **2026-10-04 플레이어 성 내부 벽 충돌 Phase 1 완료**: `PlayerCastleInteriorBuilder` 레거시 벽 제거 시 `Object.Destroy`→`DestroyImmediate` 수정으로 edit mode 오류 제거. `PlayerCastleInteriorTopologyTests` **4건 실패 → 전부 통과 (7/7)**: ①BuiltInterior + ②RuntimePortalOpenings는 Destroy 버그로 죽던 것, ③Footprint는 치수 의도(면적 6배·실제 2.45²)에 맞춰 단언 6.0→6.0025 조정, ④PortalGraph는 "Entrance_South만 Exterior 연결" 불변식으로 테스트 로직 교체. 컴파일 error CS 0, 전체 EditMode **449/444 통과/5 실패(신규 회귀 0, 기존 baseline만)**, PlayerCastleInterior 계열 깨끗. **문 개구부가 자체 collider로 막히던 버그(RuntimePortalOpenings) EditMode 레벨 해결 확인.** 벽 시각(Phase 2)·실제 진입 경로(Phase 3)는 에디터 Play 검증 대기이며 완료 처리하지 않는다.
+
 > **2026-09-30 계획 4단계(대표 다중창 확정)**: `InventoryWindowUTK`(대표)를 공용 `UTKTheme.ApplyWindowChrome` 크롬으로 이관(`dc855369`), `Place(0)` 좌 1/3. 설명(중앙·Place1)/창고(우측·Place2+UTKColor 승격 토큰)/전리품(우측) 3종은 이미 독립 최상위 창 + 3열 배치 + 동일 GitHub-dark 시각으로 4단계 준수 확인. 다중창은 별도 최상위 창 유지(단일 컨테이너 편입 금지).
 
 > **2026-09-30 계획 재개 기록 (영주 실내 확장 + no-frame UI)**: `CastleInteriorBuilder`가 설계도(실내 영주씬 예시 설계도.png) 기준 중앙 팔각 로비 + 5방(침실/제작소/창고/막사/연금술실) + 남쪽 입구 + 잠긴 4문으로 재구성됨. no-frame 크롬 레이어(`UTKWindowChrome` Frameless + `UTKThreeColumnLayout` 독립 창 배치 + `UTKTheme.ApplyWindowChrome`) 반영. Compile 성공(error CS 0), EditMode **345/343**(실패 2건은 기존 요리 데이터 계약 노후 단언), Play 미실시. `UTKThreeColumnLayout.ResponsiveColumns` 생성자 private→public 회귀 수리 포함. 관련 항목은 Play QA 대기이며 어떤 Phase도 완료 처리하지 않는다.
@@ -3471,7 +3473,11 @@ UITK `filter: drop-shadow` 미지원 → 신규 `shadow_glow.png`(30×30 9슬라
 
 ---
 
-## Phase Gas: ☠️ LoL식 주변 확산 가스 클라우드 + 방독면 연계 ✅ (2026-09-28)
+## Phase Gas: ☠️ LoL식 주변 확산 가스 클라우드 + 방독면 연계 ✅ (2026-09-28; Test_10 입력/양 후속 2026-10-04)
+
+> **후속 QA (2026-10-04):** Test_10 우클릭 legacy Mouse1 spray 분리 및 G direct input 보존. 연속 plume을 훨씬 풍부하게 보이도록 기존 색/실루엣/수명은 유지하고 emission rate를 48/24/18 pps, bounded caps를 192/96/72로 조정(TDD GasSprayerPhase4A 28/28). 최신 가스 테스트 6은 gas demo이며 arrow launch evidence는 아님. 별도 bow aim QA에서 ray-direction/white-neon-only 요구를 적용, focused BowAim 15/15. Actual Test_10 Play visual verification remains pending; see `docs/QAPROGRESS.md`.
+
+> **후속 QA (2026-10-04):** Test_10은 G 분사 외에 legacy `SprayInputHandler`의 `KeyCode.Mouse1`(우클릭)도 함께 붙여 우클릭 시 `StartSpray()`→legacy one-shot burst + plume가 시작되던 경로를 제거했다. G direct path/RTS 우클릭/legacy handler의 다른 씬 사용은 보존. 가스 plume rate 15/7/5→18/8.4/6 및 독 녹색 tint 진하게 조정. TDD gas 27/27 통과, compile 0; 실제 Test_10 Play에서 우클릭 단독/띠 원인과 가스 시각 양·색 확인은 대기. 화살 방향 수정과 GLB 제거는 별도 QA handoff `docs/QAPROGRESS.md` / plan `.hermes/plans/2026-10-04-right-click-gas-bow-aim-and-plume-plan.md` 참조. 이 후속 검증은 원래 Phase Gas의 사용자 완료 의미를 바꾸지 않으며 Play 승인 전 추가 작업은 미완료로 남긴다.
 
 > **목적:** 가스 분사기(가스통) 장착 + 물약 장전 상태에서 **물약 사용 버튼을 누르면 마시는 대신 플레이어 주변으로 가스 구름이 원형 확산** (LoL 스킬 연출). 방독면이 주인/아군을 가스 피해에서 보호.
 

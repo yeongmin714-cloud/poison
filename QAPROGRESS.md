@@ -1,6 +1,82 @@
+# 2026-10-04 플레이어 성 내부 벽 충돌 Phase 1 — Destroy→DestroyImmediate 버그 수정 — 12:55 KST
+
+- 계획: `.hermes/plans/2026-10-04_1236-player-castle-interior-walls-and-collision-plan.md` (벽면 입체감 + 벽 충돌). 이번 단계는 Phase 0 기준선 확정 + Phase 1 충돌 원인 수정.
+- **Phase 0 기준선 (EditMode 재현 확정):** `PlayerCastleInteriorTopologyTests` 7개 중 4개 실패.
+  - `BuiltInterior_...`(line 140) + `RuntimePortalOpenings_...`(line 194) — 공통 원인: `PlayerCastleInteriorBuilder.BuildPlayerCastleInterior`(line 363-367)가 레거시 벽(Wall_Front/Back/Left/Right) 제거 시 `UnityEngine.Object.Destroy()`를 호출 → edit mode에서 "Destroy may not be called from edit mode! Use DestroyImmediate instead." unhandled error log로 2개 테스트 사망.
+  - `Footprint_...`(line 16) — Expected 6.0f±1e-4, But was 6.00249958f. 실제 면적비 (117.6×88.2)/(48×36)=6.0025 (치수 배율 2.45²). 4:3 비율은 유지.
+  - `PortalGraph_...`(line 64) — "Only the south entrance may connect to exterior. Expected True, But was False." 테스트가 모든 portal에 대해 Exterior 연결을 요구하는데 실제 그래프는 오직 Entrance_South만 Exterior.
+- **Phase 1 수정 (코드 에이전트, TDD):** `PlayerCastleInteriorBuilder.cs` 레거시 벽 제거 루프에서 `Object.Destroy` → `Object.DestroyImmediate` 로 변경. 요청 범위 외 파일 무변경. 에디터 미실행 확인.
+- **검증:** `compile_test.sh` exit 0, C# 오류 0. focused EditMode `TestOutput/player-castle-phase1-results.xml` — fixture 7개 중 **5 통과 / 2 실패**. `BuiltInterior_...` 통과, `RuntimePortalOpenings_...` 통과 (MeshCollider.Raycast로 각 포털 중심 1.2m에서 실제 물리적 개구부 확인).
+- **남은 2건 실패 → 승인 후 수정 완료 (코드 에이전트):** ① Footprint — 사용자 결정 "치수 6배 의도·치수 유지" → 실수 2.45²=6.0025에 맞춰 단언 6.0→6.0025 조정(4:3비율·RoomHeight 유지, 주석에 근거), ② PortalGraph — line 64 엉터리 단언을 "Entrance_South만 Exterior 연결, 나머지 8개는 Exterior 아님" 불변식으로 교체. `PlayerCastleInteriorTopologyTests` **7/7 통과** (`TestOutput/PlayerCastleInteriorTopologyTests.xml`).
+- **전체 EditMode 회귀 (`TestOutput/phase1-full-editmode.log` / editmode-results.xml):** 449 total / **444 passed / 5 failed / 0 skip** — **신규 회귀 0**, 기존 baseline만: AERO isolated-log, AttackTargetRing DontDestroyOnLoad, CookingDatabase 760vs2024, RecipeCatalog unknown combo, ThemeUSS baked PNG. (이전 9건 실패 baseline → 성 내부 4건 해결로 5건 감소.) PlayerCastleInteriorTopologyTests 포함 전부 통과.
+- **Play 미실행:** Unity 에디터(Unity.exe) 비실행 → Phase 2 벽 시각 개선 + Phase 3 실제 진입 경로 Play 검증은 화면 캡처 불가로 보류. dirty 작업 트리 보존, commit/stage/push 없음.
+
+---
+
+# 2026-10-04 Aim-ray direction + neon-only arrow + major gas-volume increase — 10:05 KST
+
+- The user clarified the arrow request: add no object/model/effect; keep only existing white neon trail and correct flight direction along aim line. Test_6 is gas-only, not bow evidence.
+- Root cause in `ArrowManager.TrySolveAim`: aim pixel became a camera screen ray, but launch vector was recomputed from muzzle to the ray’s first non-shooter collider. In Test_10 this commonly means the broad default-layer ground MeshCollider; muzzle parallax can therefore rotate the flight off the indicated screen line. Now initial launch direction is the normalized screen ray direction itself; hit point remains diagnostics/target information. Two perspective pixels plus ground and displaced muzzle regression passed as part of BowAim fixture 15/15.
+- `ArrowProjectile` no longer creates procedural head/fletching mesh children. Root mesh renderer disabled, capsule collider/Rigidbody/gravity and existing additive white TrailRenderer retained. Regression `SpawnCreatesOnlyWhiteNeonTrailAndPhysicsBody` passed. No new arrow objects/effects added.
+- Test6 inspection: about 42.6s, 1240×828, gas/sprayer HUD present, no clear bow draw/release; plume still reads diffuse/sparse. Gas amount now materially raised only: rate 24/12/9 → 48/24/18 pps, caps 96/48/72 → 192/96/72. Same design/tint/lifetime/sizes/noise/fade/nozzle and gameplay tick, potion/fuel/range. TDD `gas-amount-much-more-red.xml` 1 fail → `gas-amount-much-more-green.xml` 28/28.
+- Compile exit 0, `compile.log` 09:56 success; fresh full EditMode `arrow-neon-ray-gas-volume-final-full-rerun.xml`: 449/440 pass/9 fail/0 skipped. Same nine prior baseline groups.
+- No Unity Editor was available, so no current-source Test_10 Play. Direction and visible gas-volume acceptance remain pending captured Game-view proof. Dirty workspace kept; no commit/stage/push.
+
+---
+
+# 2026-10-04 Bow release snapshot + gas amount boost — 09:05 KST
+
+---
+
+# 2026-10-04 Test_10 우클릭 가스/활 조준/가스 밀도 업데이트 — 01:12 KST
+
+- 우클릭 원인 확인: Test_10 `TestTerritoryCombatSetup.SetupGasVerifyScene()`가 legacy `SprayInputHandler`를 붙였고, 이 컴포넌트는 `KeyCode.Mouse1`(우클릭 홀드)로 `StartSpray()`를 호출해 one-shot `SpecialEffectsController` burst 및 continuous plume을 함께 시작했다. Test_10에서만 secondary handler 제거, G 직접 입력 보존. TDD RED 2 fail → `right-click-spray-input-green.xml` 26/26. Legacy class/다른 씬은 보존. 영상의 별도 지그재그 띠 owner는 여전히 미확정.
+- 가스 양/색 시각 조정: particle rates 15/7/5→18/8.4/6, AERO density .65→.78, poison green `(.62,1,.12,.5)`→`(.2,.65,.08,.5)`. 디자인 실루엣·수명·world trail 및 gameplay tick/dose/fuel/range 유지. `gas-rightclick-density-final.xml` 27/27. 화면 비교는 Play 대기.
+- 활: parry-queued release 및 direct Bow fallback가 새 draw session 없이 stale aim sample을 사용할 수 있던 경로를 fail-closed 취소하도록 수정; 일반 hold→release 유지. TDD RED 1 → GREEN `bow-stale-entry-green.xml` 13/13; final `bow-aim-glb-final.xml` 14/14 (camera freeze tests included). 실제 두 조준점 방향이 달라졌는지 Play 미확인.
+- 사용자 요청에 따라 ArrowProjectile의 GLB loader 제거, procedural shaft/head/fletchings 유지. Assets 전체 참조 audit 후 `arrow.glb`, `arrow2.glb`, `arrow3.glb` 및 `.meta` 각 3개 삭제. Runtime direction/physics/collider/trail 보존.
+- Compile exit 0, `compile.log` 01:08, Systems DLL 01:02/EditMode DLL 01:06. Full EditMode `user-request-gas-bow-final-full.xml`: 447 total, 438 pass, 9 fail, 0 skip. 동일 기존 실패군(AERO, AttackTargetRing, CookingDatabase, CastleInteriorTopology 4, RecipeCatalog, ThemeUSS).
+- Test_10 Play 미실행. 우클릭 단독 이상 효과와 지그재그 띠, 활 두 aim point의 launch 방향, 가스 밀도·색의 실제 pixels 검증 미승인. Dirty worktree 보존, commit/stage/push 없음.
+
+---
+
+# 2026-10-04 활 카메라 안정화 + 가스 알파 블렌딩 — 00:06 KST
+
+---
+
+# 2026-10-03 최신 활 조준/가스 VFX 진행 상태 — 22:38 KST
+
+- Test_10 G-held/player-following nozzle trail은 기존대로 보존. 영상4(87.1s)에서 초록 quads가 선명한 사각 덩어리/분리 퍼프로 보였고 reference(4.1s)는 부드럽고 겹치는 녹색 연무.
+- 원인: runtime URP Particles/Unlit material이 opaque shader defaults(surface 0, One/Zero, ZWrite 1) 상태였음. 소프트 알파 PNG/import는 정상(Soft/Lobe/Wisp 최대 alpha 198/212/185). `GasSprayer` material factory에서 alpha blending(RGB SrcAlpha/OneMinusSrcAlpha; alpha One/OneMinusSrcAlpha), Surface Transparent, keyword/tag/queue 및 ZWrite off를 명시함. 입자 발생률/크기/모양/수명·input·dose/fuel/damage cadence에는 손대지 않음.
+- TDD RED `gas-material-red.xml`: 1 failed (alpha blend destination factor 미설정) → GREEN `gas-material-focused.xml`: 25/25. Fresh compile: `compile_test.sh` exit 0, CS error/warning 0. Fresh full EditMode `gas-transparent-full-editmode.xml`: 438/429 pass/9 fail/0 skip; BowAim 7/7, GasSprayer 25/25. 남은 9개는 직전 XML과 같은 AERO/AttackTargetRing/CookingDatabase/CastleInteriorTopology×4/RecipeCatalog/ThemeUSS 실패.
+- Test_10 실제 Play 캡처는 아직 안 했으므로 softness/레이어링/fade/reference match는 미승인. material state/EditMode 통과는 rendered-pixel 검증이 아님.
+- 활 fixed-direction 보고도 아직 root cause confirmed/fixed 아님. 기존 화살 모션 영상은 실제 release와 별도 aim points를 연계하지 못하고 최신 코드보다 앞선 자료. 일반 firing code는 screen sample→current camera ray→muzzle direction→Rigidbody velocity 경로이며 정적 forward override 발견 안 됨. 서로 다른 지점으로 연속 발사하는 Test_10 Play capture/로그 필요. 작업 트리 dirty 사용자 변경 보존, commit/stage/push 안 함.
+
+---
+
+# 2026-10-03 최신 활 조준/가스 VFX 진행 상태 — 21:52 KST
+
+- 범위 내 Test_10 gas setup은 `SprayInputHandler`/GasSprayUTK를 보장하고 Poison_TestPotion 한 dose를 장전(자동분사 없음)하도록 수정. G-held는 legacy one-shot fog를 생략하고 world-space continuous plume으로 분리; public/manual StartSpray와 Mouse1 동작은 보존.
+- Test_10 boot order에서 ArrowManager가 PlayerInventory보다 먼저 생성되나 inventory를 재조회하도록 수정. 화살 spawn은 기존 GLB mount 헬퍼를 활성화하고, 실패 시 procedural arrow body fallback. Root physics collider/Rigidbody/trail 유지.
+- 검증: Unity compile exit 0, CS 오류/경고 0. Fresh EditMode XML `TestOutput/gas-bow-model-full-editmode.xml`: 437/428 pass/9 fail/0 skipped. BowAimAlignment 7/7, GasSprayerPhase4A 24/24 통과. 9개 실패는 직전 전체 XML과 동일 실패명·사유(AERO 1, AttackTargetRing 1, CookingDatabase 1, CastleInteriorTopology 4, RecipeCatalog 1, ThemeUSS 1).
+- `GasSprayerController.cs` 작업 트리에는 별도로 기존 dose 타이머/감소·자동 reload lifecycle 변경(=gameplay semantics)이 포함됨. 이를 단순 시각 변경 또는 dose 불변으로 보고하지 않는다.
+- Test_10 Play 캡처 미실행. 실제 화면 reticle-dot→camera ray→muzzle 정합, 새 화살 모델 외관, Gas trail 잔류·fade·참고영상 대비는 미승인/미검증. Play gate가 남아 있으므로 기능 완료 선언 금지. 더러운 작업 트리 보존; stage/commit/push 안 함.
+
+---
+
+# 2026-10-03 최신 활 조준/가스 VFX 진행 상태 — 20:40 KST
+
+- 이 항목은 아래 archive/handoff 기록을 대체하지 않고, 이번 재개의 최신 검증 결과만 추가한다. 작업 트리는 다수의 사용자 변경이 섞여 있어 정리·stage·commit/push를 하지 않았다.
+- 활 좌표 전달은 visible UTK reticle sample → camera ray → 첫 non-shooter hit → muzzle → initial Rigidbody velocity로 이어진다. `OffCenterAimHitReachesTheProjectileInitialVelocityAndLongAxis` focused XML은 1/1 통과. 실제 화면상의 dot 정합과 사용자 보고 발사 방향은 Play에서 재현/비교하지 못했으므로 해결 완료가 아니다.
+- GasSprayer 연속 분사 particle lifetime을 약 3–3.5초로 늘리고 시작 회전을 랜덤화했으며 gameplay cadence/fuel/dose/input은 건드리지 않았다. 설정 확인 테스트 `ContinuousSprayPuffsExpandAndFadeAcrossAnApproximatelyThreeSecondLifetime` 1/1 통과. 가스 영상(18:29)은 소스 변경(19:12)보다 오래된 자료라 새 외관의 증거가 아니며 Play 품질 승인은 남았다. potion `GasCloudField` 및 isolated custom compositor는 다른 경로다.
+- Compile script exit 0, `compile.log`: CS errors/warnings 0, batchmode normal exit. DLL mtimes(log보다 이전)와 freshness가 불일치하므로 최신 소스 전체 재빌드 근거에는 주의.
+- Full EditMode `TestOutput/full-current.xml`: 434 total, 425 passed, 9 failed. 실패 9건: AERO expected-log; AttackTargetRing EditMode DontDestroyOnLoad; CookingDatabase 760≠2024; CastleInteriorTopology 4(Destroy edit-mode×2, footprint 6.0≠6.00249958, portal graph); RecipeCatalog unknown combo; ThemeUss baked bg_window.png. 전체 통과 아님.
+- 다음: 편집기를 덮어쓰지 않는 조건에서 fresh compile 증거 및 최신 Editor.log 확인, Test_10 Play에서 같은 활 release를 계측·캡처하고 GasSprayer plume을 reference와 화면 비교. Play 전 완료 선언 금지.
+
+---
+
 # ✅ 포이즌 (Poison) — QA 진행 상황 (런타임 오류 점검)
 
-> **2026-10-02 진행/Telegram handoff:** 통합 계획 `.hermes/plans/2026-10-02-final-combat-archery-gas-quality-plan.md` 승인 후 구현 진행 중. 검 콤보·창·활·가스는 모두 아직 Play 시각 검증 전이며 완료 아님. 첫 목표는 `Weapon_Combo_2` 단일 클립의 클릭별 구간 재생(각 승인 swing당 hit 1회, 최대 3) 복구 후 Idle handoff만 봉합. 현재 active `AttackCombo/2/3` Sword 경로가 요청 계약과 충돌함을 확인했으나 아직 수정은 반영되지 않았다. Bow 시퀀스 EditMode 픽스는 test fixture의 WeaponData attackSpeed 생성자 clamp 원인이었고, fixture에서 0으로 명시한 뒤 대상 1/1 및 PlayerAttackSequenceTests 22/22 통과; 이는 활 조준의 Play 해결을 뜻하지 않는다. Telegram에서 이어서 지시하려면 봇 DM에 **“검 콤보 이어서 진행”**이라고 보내고 이 문서와 승인 계획을 기준으로 시작한다. 별도 Telegram turn은 이 CLI 세션을 자동 steer하지 않을 수 있으므로 같은 문서에 기록된 상태를 다시 읽어야 한다.
+> **2026-10-03 활 조준 fail-safe + 가스 플룸 에셋 보강 진행:** `Screenshots/화살 모션 테스트.mp4`와 `Screenshots/가스 살포 예시.mp4`를 확인. 활은 `BowAimReticleUTK`와 `TryBowShot`이 같은 cursor screen-point 공급원을 사용하지만, 발사 시 `TrySolveAim` 실패 반환을 무시해 transform.forward 방향으로 계속 발사할 수 있었고 `_mainCamera`도 release에서 재확인되지 않았다. 지금은 발사 때 활성 `MainCamera`를 다시 조회하고 카메라/solver 실패 시 발사를 취소(화살 소모 전)하도록 보강. 정상 경로는 화면 ray가 고른 aim point를 실제 muzzle에서 향하는 초기 벡터로 유지; 중력 이후 탄도는 별개. 독립 정적 QA에서 범위 내 차단 로직/데미지·파워 경로 문제 없음. `GasSprayer`는 기존 3개 제한 파티클 풀/월드 위치 잔류를 유지하면서 원형 Soft/Puff·매끈한 타원 Wisp 텍스처를 불규칙 고품질 `GasPlumeSoft/Lobe/Wisp` 512 RGBA 알파 마스크로 교체 연결하고, 회전 이미터 때문에 기존 파티클 방향이 흔들리지 않도록 `VelocityOverLifetime`을 끔. 파티클 상한 40/72, 입력·damage/dose/fuel cadence·효과 틱 불변. 텍스처 알파를 QA에 따라 약 30% 올렸으며 신규 최대 alpha 198/212/185, 경계 띠 alpha max 0/9/20. **2026-10-03 Compile:** 첫 시도 CS1612(`velocityOverLifetime` 모듈을 property chain으로 설정) 발견 후 로컬 module 변수로 수정, 최신 `compile_test.sh` 성공: CompileScripts 21185.975ms, `error CS=0`, Tundra failed 없음, `Exiting batchmode successfully now!`; source/DLL 최신 시각 확인. **EditMode:** 최신 XML 431 total, 422 pass/9 fail. 새/변경 BowAim 및 GasSprayer 타깃 테스트 실패 0; 남은 9개는 AERO expected-log 1, AttackTargetRing DontDestroyOnLoad 1, 요리 catalog 760≠2024 1, CastleInteriorTopology 4(기존 Destroy edit-mode/footprint/portal), RecipeCatalog unknown combo 1, ThemeUss baked-PNG 기대 1. XML `TestOutput/editmode-results.xml`; 전체 통과 아님. **Play 미실행:** 실제 UTK reticle-화살 벡터 정렬, 발사 애니/탄착, 새 가스 plume 외관·이동 잔류/회전/소산은 에디터 Play 영상 비교 전 완료 아님. 독립 static QA 완료. 계획/커밋/푸시 없음; 추적 범위 이외 dirty/untracked 사용자 파일 보존. 기존 콤보·창 동작은 이번 요청 범위가 아니며 기존 handoff 상태 유지.
 
 ---
 

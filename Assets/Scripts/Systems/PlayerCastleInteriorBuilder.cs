@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
 
@@ -17,6 +18,175 @@ namespace ProjectName.Systems
     /// </summary>
     public static class PlayerCastleInteriorBuilder
     {
+        // Preserve the former 4:3 footprint ratio while providing six times its area.
+        // All dimensions below are final room-local/world meters; the room root stays at unit scale.
+        public const float ExistingRoomWidth = 48f;
+        public const float ExistingRoomDepth = 36f;
+        public const float RoomWidth = 117.6f;
+        public const float RoomDepth = 88.2f;
+        public const float RoomHeight = 6f;
+        public const float WallThickness = 0.45f;
+        public const float PortalWidth = 3.2f;
+        public const float PortalHeight = 2.8f;
+        private const float TopologyFurnitureScale = 2.45f;
+
+        public readonly struct WallLayout
+        {
+            public readonly string Name;
+            public readonly Vector2 Start;
+            public readonly Vector2 End;
+            public readonly float DoorwayOffset;
+            public readonly float DoorwayWidth;
+            public readonly float DoorwayHeight;
+            public readonly string ConnectedFrom;
+            public readonly string ConnectedTo;
+
+            public WallLayout(string name, Vector2 start, Vector2 end, float doorwayWidth = 0f,
+                float doorwayHeight = 0f, float doorwayOffset = 0f, string connectedFrom = null,
+                string connectedTo = null)
+            {
+                Name = name; Start = start; End = end; DoorwayOffset = doorwayOffset;
+                DoorwayWidth = doorwayWidth; DoorwayHeight = doorwayHeight;
+                ConnectedFrom = connectedFrom; ConnectedTo = connectedTo;
+            }
+        }
+
+        public readonly struct PortalConnection
+        {
+            public readonly string WallName;
+            public readonly string From;
+            public readonly string To;
+            public PortalConnection(string wallName, string from, string to)
+            { WallName = wallName; From = from; To = to; }
+        }
+
+        private static readonly string[] ZoneNames = { "Bedroom", "Craft", "Storage", "Barracks", "Alchemy" };
+
+        /// <summary>North is +Z. Vertices are final room-local XZ coordinates in meters.</summary>
+        // The entry opening is on the south-east chamfer, aimed into a real walkable central corridor.
+        public static Vector2[] GetLobbyVertices() => new[]
+        {
+            new Vector2(-18f, 14f), new Vector2(18f, 14f), new Vector2(30f, 8f), new Vector2(30f, -8f),
+            new Vector2(18f, -14f), new Vector2(-18f, -14f), new Vector2(-30f, -8f), new Vector2(-30f, 8f)
+        };
+
+        private static bool IsInsideLobby(Vector2 point)
+        {
+            Vector2[] vertices = GetLobbyVertices();
+            bool inside = false;
+            for (int i = 0, j = vertices.Length - 1; i < vertices.Length; j = i++)
+            {
+                Vector2 a = vertices[i], b = vertices[j];
+                bool crosses = (a.y > point.y) != (b.y > point.y) &&
+                    point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x;
+                if (crosses) inside = !inside;
+            }
+            return inside;
+        }
+
+        public static string[] GetTopologyZoneNames() => (string[])ZoneNames.Clone();
+        public static Vector2 GetAnchorPosition(string anchorName)
+        {
+            switch (anchorName)
+            {
+                case "Workbench": return new Vector2(-40f, 25f);
+                case "StorageShelf_2": return new Vector2(40f, 25f);
+                case "WeaponStand_0": return new Vector2(-40f, -25f);
+                case "AlchemyTable": return new Vector2(40f, -25f);
+                case "LordBed": return new Vector2(0f, 29f);
+                case "CookingTable": return new Vector2(40f, 34f);
+                default: return Vector2.zero;
+            }
+        }
+
+        private static void SetAnchorPosition(GameObject room, string name, Vector2 position)
+        {
+            Transform anchor = room != null ? room.transform.Find(name) : null;
+            if (anchor == null) return;
+            Vector3 local = anchor.localPosition;
+            local.x = position.x;
+            local.z = position.y;
+            anchor.localPosition = local;
+        }
+
+        public static PortalConnection[] GetPortalConnections()
+        {
+            var portals = new List<PortalConnection>();
+            foreach (WallLayout wall in GetTopologyWalls())
+                if (wall.DoorwayWidth > 0f && !string.IsNullOrEmpty(wall.ConnectedFrom) &&
+                    !string.IsNullOrEmpty(wall.ConnectedTo))
+                    portals.Add(new PortalConnection(wall.Name, wall.ConnectedFrom, wall.ConnectedTo));
+            return portals.ToArray();
+        }
+
+        /// <summary>Returns the named room occupied by a final room-local XZ point, or null in the exterior.</summary>
+        public static string GetTopologyZoneAt(Vector2 point)
+        {
+            if (Mathf.Abs(point.x) > RoomWidth * 0.5f || Mathf.Abs(point.y) > RoomDepth * 0.5f)
+                return "Exterior";
+            if (IsInsideLobby(point)) return "Lobby";
+            if (Mathf.Abs(point.x) < 18f && point.y > 14f) return "Bedroom";
+            if (point.x < -18f && point.y > 8f) return "Craft";
+            if (point.x < -30f && point.y >= -8f && point.y <= 8f) return "Craft";
+            if (point.x > 18f && point.y > 8f) return "Storage";
+            if (point.x > 30f && point.y >= -8f && point.y <= 8f) return "Storage";
+            if (point.x < -2.1f && point.y < -14f) return "Barracks";
+            if (point.x > 2.1f && point.y < -14f) return "Alchemy";
+            if (Mathf.Abs(point.x) <= 2.1f && point.y < -14f) return "EntryHall";
+            return null;
+        }
+
+        /// <summary>
+        /// Named, floor-level XZ wall spans for the connected room ring around the central octagonal lobby.
+        /// A portal is a real cut in its named wall, and carries the two spaces it joins.
+        /// </summary>
+        public static WallLayout[] GetTopologyWalls()
+        {
+            float x = RoomWidth * 0.5f, z = RoomDepth * 0.5f;
+            Vector2[] lobby = GetLobbyVertices();
+            WallLayout S(string name, Vector2 a, Vector2 b, float doorwayWidth = 0f,
+                float doorwayHeight = 0f, float offset = 0f, string from = null, string to = null) =>
+                new WallLayout(name, a, b, doorwayWidth, doorwayHeight, offset, from, to);
+
+            return new[]
+            {
+                // Solid outer shell; the south entry opens into the dedicated central entry hall.
+                S("Exterior_North", new Vector2(-x, z), new Vector2(x, z)),
+                S("Exterior_West", new Vector2(-x, -z), new Vector2(-x, z)),
+                S("Exterior_East", new Vector2(x, -z), new Vector2(x, z)),
+                S("Entrance_South", new Vector2(-x, -z), new Vector2(x, -z), 4f, PortalHeight, 0f, "EntryHall", "Exterior"),
+
+                // Actual octagon openings: N Bedroom; NW/W Craft; NE/E Storage; SW Barracks; SE Alchemy;
+                // S is the entry hall. No portal directly joins two named rooms.
+                S("Lobby_North", lobby[0], lobby[1], PortalWidth, PortalHeight, 0f, "Lobby", "Bedroom"),
+                S("Lobby_NorthEast", lobby[1], lobby[2], PortalWidth, PortalHeight, 0f, "Lobby", "Storage"),
+                S("Lobby_East", lobby[2], lobby[3], PortalWidth, PortalHeight, 0f, "Lobby", "Storage"),
+                S("Lobby_SouthEast", lobby[3], lobby[4], PortalWidth, PortalHeight, 0f, "Lobby", "Alchemy"),
+                S("Lobby_South", lobby[4], lobby[5], 4f, PortalHeight, 0f, "Lobby", "EntryHall"),
+                S("Lobby_SouthWest", lobby[5], lobby[6], PortalWidth, PortalHeight, 0f, "Lobby", "Barracks"),
+                S("Lobby_West", lobby[6], lobby[7], PortalWidth, PortalHeight, 0f, "Lobby", "Craft"),
+                S("Lobby_NorthWest", lobby[7], lobby[0], PortalWidth, PortalHeight, 0f, "Lobby", "Craft"),
+
+                // N bedroom and uninterrupted NW/W and NE/E wings (each pair is one connected room).
+                S("Bedroom_West", new Vector2(-18f, 14f), new Vector2(-18f, z)),
+                S("Bedroom_East", new Vector2(18f, 14f), new Vector2(18f, z)),
+                S("Craft_NorthBoundary", new Vector2(-x, 8f), new Vector2(-30f, 8f)),
+                S("Craft_SouthBoundary", new Vector2(-x, -8f), new Vector2(-30f, -8f)),
+                S("Storage_NorthBoundary", new Vector2(30f, 8f), new Vector2(x, 8f)),
+                S("Storage_SouthBoundary", new Vector2(30f, -8f), new Vector2(x, -8f)),
+
+                // South rooms are separated by a walkable 4 m entry corridor from lobby to exterior.
+                S("EntryHall_West", new Vector2(-2f, -14f), new Vector2(-2f, -z)),
+                S("EntryHall_East", new Vector2(2f, -14f), new Vector2(2f, -z)),
+                S("EntryHall_NorthWest", new Vector2(-18f, -14f), new Vector2(-2f, -14f)),
+                S("EntryHall_NorthEast", new Vector2(2f, -14f), new Vector2(18f, -14f)),
+                // The lobby's SW/SE portal already defines the south room entrances. Extra vertical
+                // dividers here would sit directly behind those portals and seal the quadrant anchors.
+                // South rooms remain separated by the continuous entry-hall walls at x=±2.
+
+            };
+        }
+
         /// <summary>
         /// 국가 스타일에 맞는 플레이어 소유 중세 판타지 성 내부 생성.
         /// </summary>
@@ -56,10 +226,10 @@ namespace ProjectName.Systems
             // 좌우 대칭 부호 (variant 0 = -1 기존: 작업대/저장고 왼쪽, 무기고 오른쪽)
             float mx = mirrorX ? 1f : -1f;
 
-            // ===== 48 x 36 대형 성 내부 (기존 22 x 16 대비 바닥면적 약 4.9배) =====
-            const float roomWidth = 48f;
-            const float roomHeight = 6f;
-            const float roomDepth = 36f;
+            // Geometry and anchors are authored directly in final room-local meters.
+            const float roomWidth = RoomWidth;
+            const float roomHeight = RoomHeight;
+            const float roomDepth = RoomDepth;
 
             // 영지 고유 키 (작업대/저장고 상호작용 컴포넌트 설정용 — 국가 스타일 기반 매핑)
             string territoryKey = GetTerritoryKeyForNationStyle(nationStyle);
@@ -188,38 +358,23 @@ namespace ProjectName.Systems
 
             room.name = "PlayerCastleRoom";
 
-            // ===================================================================
-            // 비대칭 다중 방 구조. 모든 칸막이는 한 방 오브젝트 내부의 로컬 좌표이며,
-            // room은 원점에 유지해 TerritoryBuilder/IndoorSceneTransition 참조를 보존한다.
-            // 실제 CreateRoom 구현에서 Wall_Back이 Z=-18 앞면이므로 해당 면만 입구로 교체.
-            // ===================================================================
-            Transform entranceWall = room.transform.Find("Wall_Back");
-            if (entranceWall != null) UnityEngine.Object.Destroy(entranceWall.gameObject);
-            IndoorBuilder.CreateInteriorWall(room, "EntranceWall_Left", 22f, roomHeight, 0.4f,
-                new Vector3(-13f, 0f, -roomDepth * 0.5f), 0f, 0f, 0.01f, wallMat);
-            IndoorBuilder.CreateInteriorWall(room, "EntranceWall_Right", 22f, roomHeight, 0.4f,
-                new Vector3(13f, 0f, -roomDepth * 0.5f), 0f, 0f, 0.01f, wallMat);
-
-            // 비대칭 실내 칸막이. 문 중심은 각 벽의 로컬 길이축 기준이며, 모두 2m 통로.
-            // 북쪽: 침실 / 부엌·연금 / 무기고
-            IndoorBuilder.CreateInteriorWall(room, "Wall_Bedroom_Kitchen", 12f, roomHeight, 0.4f,
-                new Vector3(-8f, 0f, 12f), 90f, 0f, 2f, wallMat);
-            IndoorBuilder.CreateInteriorWall(room, "Wall_Kitchen_Armory", 12f, roomHeight, 0.4f,
-                new Vector3(16f, 0f, 12f), 90f, 0f, 2f, wallMat);
-            IndoorBuilder.CreateInteriorWall(room, "Wall_North_OfficeHall", 16f, roomHeight, 0.4f,
-                new Vector3(-16f, 0f, 6f), 0f, 0f, 2f, wallMat);
-            IndoorBuilder.CreateInteriorWall(room, "Wall_North_Central", 24f, roomHeight, 0.4f,
-                new Vector3(4f, 0f, 6f), 0f, -4f, 2f, wallMat);
-
-            // 중앙 및 남쪽: 집무실 / 크래프트 / 대전당 / 병사배치 / 저장고
-            IndoorBuilder.CreateInteriorWall(room, "Wall_Office_Hall", 12f, roomHeight, 0.4f,
-                new Vector3(-10f, 0f, 0f), 90f, 0f, 2f, wallMat);
-            IndoorBuilder.CreateInteriorWall(room, "Wall_Craft_Office", 16f, roomHeight, 0.4f,
-                new Vector3(-16f, 0f, -6f), 0f, 0f, 2f, wallMat);
-            IndoorBuilder.CreateInteriorWall(room, "Wall_Hall_Soldiers", 24f, roomHeight, 0.4f,
-                new Vector3(8f, 0f, -6f), 90f, 2f, 2f, wallMat);
-            IndoorBuilder.CreateInteriorWall(room, "Wall_Storage_Soldiers", 16f, roomHeight, 0.4f,
-                new Vector3(16f, 0f, 0f), 0f, 0f, 2f, wallMat);
+            // Replace the old rectangular shell; retain the walkable floor and ceiling at final dimensions.
+            room.transform.localScale = Vector3.one;
+            foreach (string legacyWall in new[] { "Wall_Front", "Wall_Back", "Wall_Left", "Wall_Right" })
+            {
+                Transform oldWall = room.transform.Find(legacyWall);
+                if (oldWall != null) UnityEngine.Object.DestroyImmediate(oldWall.gameObject);
+            }
+            foreach (WallLayout wall in GetTopologyWalls())
+            {
+                IndoorBuilder.CreateSolidInteriorWall(room, wall.Name, wall.Start, wall.End,
+                    RoomHeight, WallThickness, wall.DoorwayOffset, wall.DoorwayWidth,
+                    wall.DoorwayHeight, wallMat);
+            }
+            // The old procedural country wall texture is not appropriate for exposed masonry topology.
+            // Keep its floor override, and apply the provider's stone+normal material to topology meshes.
+            IndoorMaterialFactory.ApplyFloorToRoom(room, RoomWidth, RoomDepth);
+            IndoorMaterialFactory.ApplyToTopologyWalls(room, RoomWidth, RoomHeight);
 
             // ===================================================================
             // 1. 지휘 책상 + 관리용 책상/문서 (왕좌 대체 — 뒷벽 중앙, +z 방향)
@@ -227,14 +382,14 @@ namespace ProjectName.Systems
             GameObject commandDesk = IndoorFurnitureCatalog.CreateTable(3.2f, 1.2f, 1.1f, deskMat);
             commandDesk.name = "CommandDesk";
             commandDesk.transform.SetParent(room.transform);
-            commandDesk.transform.localPosition = new Vector3(-18.5f, 0f, 0.5f);
+            commandDesk.transform.localPosition = new Vector3(0f, 0f, 15f);
             AddNameplate(commandDesk, "🪑 지휘 책상");
 
             // 지휘관 의자 (책상 뒤에서 방 중앙을 향함)
             GameObject commandChair = IndoorFurnitureCatalog.CreateChair(1.1f, deskMat);
             commandChair.name = "CommandChair";
             commandChair.transform.SetParent(room.transform);
-            commandChair.transform.localPosition = new Vector3(-18.5f, 0f, -0.8f);
+            commandChair.transform.localPosition = new Vector3(0f, 0f, 13.5f);
 
             // 책상 위 문서들 (책상 x 시프트 추종)
             CreateBoxPrimitive(room, "DeskDocument_1", new Vector3(0.35f, 0.02f, 0.25f),
@@ -419,12 +574,12 @@ namespace ProjectName.Systems
             AttachUiComponent(workbench, TerritoryCraftingStationTypeName, territoryKey, "영지 작업대");
 
             // 작업대 위 도구들 (모루 + 공구) — 좌우 대칭(mx) 적용
-            CreateBoxPrimitive(room, "WorkbenchAnvil", new Vector3(0.5f, 0.25f, 0.35f),
-                new Vector3(-16.5f, 1.13f, -16f), bladeMat);
-            CreateBoxPrimitive(room, "WorkbenchTool_1", new Vector3(0.12f, 0.12f, 0.30f),
-                new Vector3(-15.6f, 1.07f, -15.9f), standMat);
-            CreateBoxPrimitive(room, "WorkbenchTool_2", new Vector3(0.12f, 0.12f, 0.30f),
-                new Vector3(-15.4f, 1.07f, -16.2f), standMat);
+            CreateBoxPrimitive(workbench, "WorkbenchAnvil", new Vector3(0.5f, 0.25f, 0.35f),
+                new Vector3(-0.5f, 1.13f, 0f), bladeMat);
+            CreateBoxPrimitive(workbench, "WorkbenchTool_1", new Vector3(0.12f, 0.12f, 0.30f),
+                new Vector3(0.4f, 1.07f, 0.1f), standMat);
+            CreateBoxPrimitive(workbench, "WorkbenchTool_2", new Vector3(0.12f, 0.12f, 0.30f),
+                new Vector3(0.6f, 1.07f, -0.2f), standMat);
 
             // 작업대 안내 팻말 (앞벽) — 좌우 대칭(mx) 적용
             GameObject workbenchSign = CreateBoxPrimitive(room, "WorkbenchSign", new Vector3(1.6f, 0.6f, 0.05f),
@@ -625,6 +780,55 @@ namespace ProjectName.Systems
             // 침실 보조 조명
             IndoorLighting.AddPointLight(room, new Vector3(-16f, 4f, 12f), new Color(1f, 0.8f, 0.55f), 7f, 0.7f);
 
+            // Scale furniture/decor uniformly into the expanded walkable footprint. The shell, floor,
+            // ceiling and topology walls are already authored in final meters and remain untouched.
+            foreach (Transform child in room.transform)
+            {
+                if (child.name == "Floor" || child.name == "Ceiling" ||
+                    child.name.StartsWith("Exterior_") || child.name.StartsWith("Entrance_") ||
+                    child.name.StartsWith("Lobby_") || child.name.Contains("Boundary") ||
+                    child.name.Contains("Divider") || child.name.StartsWith("Bedroom_") ||
+                    child.name.StartsWith("EntryHall_") || child.name.StartsWith("Barracks_") ||
+                    child.name.StartsWith("Alchemy_")) continue;
+                Vector3 position = child.localPosition;
+                position.x *= TopologyFurnitureScale;
+                position.z *= TopologyFurnitureScale;
+                child.localPosition = position;
+                child.localScale *= TopologyFurnitureScale;
+            }
+
+            // Interaction anchors are explicitly assigned to their intended player-owned zones.
+            SetAnchorPosition(room, "Workbench", GetAnchorPosition("Workbench"));
+            SetAnchorPosition(room, "StorageShelf_2", GetAnchorPosition("StorageShelf_2"));
+            SetAnchorPosition(room, "WeaponStand_0", GetAnchorPosition("WeaponStand_0"));
+            SetAnchorPosition(room, "AlchemyTable", GetAnchorPosition("AlchemyTable"));
+            SetAnchorPosition(room, "LordBed", GetAnchorPosition("LordBed"));
+            SetAnchorPosition(room, "StorageShelf_1", new Vector2(40f, 18f));
+            SetAnchorPosition(room, "CookingTable", GetAnchorPosition("CookingTable"));
+
+            // Keep legacy scenery beside the topology zone and stations it identifies.
+            SetAnchorPosition(room, "WeaponStand_1", new Vector2(-45f, -25f));
+            SetAnchorPosition(room, "WeaponStand_2", new Vector2(-50f, -25f));
+            SetAnchorPosition(room, "WorkbenchSign", new Vector2(-40f, 21.5f));
+            SetAnchorPosition(room, "StorageCrate_1", new Vector2(35f, 20f));
+            SetAnchorPosition(room, "StorageCrate_2", new Vector2(37f, 20f));
+            SetAnchorPosition(room, "StorageCrate_3", new Vector2(36f, 21f));
+            SetAnchorPosition(room, "StorageCrate_4", new Vector2(34f, 22f));
+            SetAnchorPosition(room, "StorageCrate_5", new Vector2(38f, 22f));
+            SetAnchorPosition(room, "StorageBarrel", new Vector2(44f, 20f));
+            SetAnchorPosition(room, "StorageSign", new Vector2(40f, 15f));
+            SetAnchorPosition(room, "WeaponWallRack", new Vector2(-40f, -20f));
+            SetAnchorPosition(room, "ArmorySign", new Vector2(-45f, -18f));
+            for (int i = 0; i < 4; i++)
+                SetAnchorPosition(room, $"WallWeapon_{i}", new Vector2(-40f, -20f + i * 0.5f));
+            SetAnchorPosition(room, "CommandDesk", new Vector2(0f, 36.75f));
+            SetAnchorPosition(room, "CommandChair", new Vector2(0f, 33.075f));
+            SetAnchorPosition(room, "Sign_Craft", new Vector2(-43f, 24f));
+            SetAnchorPosition(room, "Sign_Storage", new Vector2(45f, 22f));
+            SetAnchorPosition(room, "Sign_Armory", new Vector2(-45f, -22f));
+            SetAnchorPosition(room, "Sign_Bedroom", new Vector2(0f, 25f));
+            SetAnchorPosition(room, "Sign_Kitchen", new Vector2(45f, 34f));
+            room.transform.localScale = Vector3.one;
             return room;
         }
 
