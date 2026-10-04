@@ -66,6 +66,8 @@ namespace ProjectName.UI.Toolkit
         private Mode _mode = Mode.Dialogue;
         private readonly List<string> _dialogueLines = new List<string>();
         private int _currentLine;
+        private string _llmNpcKey;
+        private bool _llmSubscribed;
 
         // ===== 레퍼런스 =====
         private readonly VisualElement _list;
@@ -159,6 +161,7 @@ namespace ProjectName.UI.Toolkit
         {
             base.Hide();
             StopRefreshLoop();
+            UnsubscribeRevengeDialogue();
             Debug.Log("[NPCDialogUTK] NPC 대화 창 닫힘");
         }
 
@@ -185,6 +188,7 @@ namespace ProjectName.UI.Toolkit
 
         private void BeginDialogue(NPCInstance npc)
         {
+            UnsubscribeRevengeDialogue();
             if (string.IsNullOrEmpty(npc.NpcName))
             {
                 Debug.LogWarning("[NPCDialogUTK] 유효하지 않은 NPC 데이터");
@@ -209,6 +213,50 @@ namespace ProjectName.UI.Toolkit
             }
 
             Show();
+            Refresh();
+            RequestRevengeDialogue(npc);
+        }
+
+        // 복수명단 퀘스트를 가진 NPC만 LLM 대화를 요청한다. 일반 NPC의 기존 대화 흐름은 그대로 둔다.
+        private void RequestRevengeDialogue(NPCInstance npc)
+        {
+            string characterPrompt = null;
+            if (npc.QuestIds != null)
+            {
+                foreach (string questId in npc.QuestIds)
+                {
+                    characterPrompt = RevengeMainQuestDefinitions.GetCharacterContext(questId);
+                    if (!string.IsNullOrEmpty(characterPrompt)) break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(characterPrompt) || !LLMConfig.IsConfigured()) return;
+            var adapter = NPCDialogueAdapter.Instance;
+            if (adapter == null) return;
+
+            UnsubscribeRevengeDialogue();
+            _llmNpcKey = string.IsNullOrEmpty(npc.NpcId) ? npc.NpcName : npc.NpcId;
+            NPCDialogueAdapter.Subscribe(OnRevengeDialogueReady);
+            _llmSubscribed = true;
+            adapter.RequestDialogue(_llmNpcKey, characterPrompt, "플레이어에게 첫 인사를 건네세요.");
+        }
+
+        private void UnsubscribeRevengeDialogue()
+        {
+            if (!_llmSubscribed) return;
+            NPCDialogueAdapter.Unsubscribe(OnRevengeDialogueReady);
+            _llmSubscribed = false;
+            _llmNpcKey = null;
+        }
+
+        private void OnRevengeDialogueReady(string npcKey, string llmText)
+        {
+            if (!string.Equals(npcKey, _llmNpcKey) || string.IsNullOrEmpty(llmText)) return;
+            if (!IsOpen || _mode != Mode.Dialogue) return;
+
+            if (_dialogueLines.Count > 0)
+                _dialogueLines[0] = "\"" + llmText + "\"";
+            _currentLine = 0;
             Refresh();
         }
 

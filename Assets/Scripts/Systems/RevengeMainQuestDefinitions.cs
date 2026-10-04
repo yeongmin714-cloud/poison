@@ -12,6 +12,62 @@ namespace ProjectName.Systems
     {
         private static bool _registered;
 
+        private struct CharacterContext
+        {
+            public readonly string Name;
+            public readonly string SurfaceCharge;
+            public readonly string TrueReason;
+            public readonly string Region;
+
+            public CharacterContext(string name, string surfaceCharge, string trueReason, string region)
+            {
+                Name = name;
+                SurfaceCharge = surfaceCharge;
+                TrueReason = trueReason;
+                Region = region;
+            }
+        }
+
+        // 출처: docs/REVENGE_LIST_NOVEL_20TH_STORIES.md 「복수명단 20명 총람」.
+        // 표면 죄목은 명단의 주장, 진짜 이유는 문서가 제시한 인물의 이면으로 구분해 둔다.
+        private static readonly Dictionary<string, CharacterContext> CharacterContexts =
+            new Dictionary<string, CharacterContext>
+            {
+                { "revenge_01", new CharacterContext("알데바란", "국고를 탕진한 주모자", "수탈을 감사하려던 재무관", "서쪽 영지") },
+                { "revenge_02", new CharacterContext("에드릭", "군대를 분열시킨 자", "부패한 궁정에 반기든 애국 장군", "북부") },
+                { "revenge_03", new CharacterContext("베르나", "숙청 명단을 빼돌린 자", "사람들을 구하려던 역참지기", "여러 역참") },
+                { "revenge_04", new CharacterContext("라실", "징수량을 속인 자", "실종자들을 지킨 세금 징수관", "남부") },
+                { "revenge_05", new CharacterContext("오델", "부당한 판결을 남긴 자", "압박을 받고 서명한 법관", "남부 법정") },
+                { "revenge_06", new CharacterContext("카르덴", "왕자를 생포한 자", "명령을 받아 적은 사냥꾼 (세 갈래 표식)", "왕도·북부") },
+                { "revenge_07", new CharacterContext("이셀드릭", "외홮교역을 어지른 자", "감염지의 경계를 지킨 여성 의사", "동부 접경") },
+                { "revenge_08", new CharacterContext("가우든", "지도를 위조한 자", "없어진 마을의 이름을 지킨 도안가", "북부 설원") },
+                { "revenge_09", new CharacterContext("마이단", "사형 영장을 남발한 자", "가족을 살펴야만 했던 집행관", "황제국") },
+                { "revenge_10", new CharacterContext("루왼", "임금을 체불한 자", "광산 사고를 덮으려던 광업 책임자", "서부 사막") },
+                { "revenge_11", new CharacterContext("타르벤", "병참식을 몰래 판 자", "전염지의 병사를 살린 식료 관리인", "남부") },
+                { "revenge_12", new CharacterContext("올브레이", "학자금을 바겐세일한 자", "진실한 기록을 지킨 왕궁 서기관", "왕도 기록실") },
+                { "revenge_13", new CharacterContext("에몽", "조세 부과를 속인 자", "빈 마을을 살피던 측량관", "동부 초원") },
+                { "revenge_14", new CharacterContext("세레딘", "시장을 독점한 자", "도시 빈민을 먹인 상인", "황제국 시장") },
+                { "revenge_15", new CharacterContext("도므나", "반역 병사를 숨긴 자", "병사 처벌을 피시켜 주던 여장부", "북부 성곽") },
+                { "revenge_16", new CharacterContext("에일린", "운문을 위조한 자", "옛 국경을 그린 지도자", "서부") },
+                { "revenge_17", new CharacterContext("크라덴", "사자를 가로막은 자", "증언을 옮긴 통역사", "남부 해안") },
+                { "revenge_18", new CharacterContext("마르텐", "병기를 훔친 자", "민병을 무장시킨 대장장이", "동부") },
+                { "revenge_19", new CharacterContext("오레몽", "신뢰를 배신한 자", "어린이들을 은닉한 교사", "황제국") },
+                { "revenge_20", new CharacterContext("발로라", "금서를 유포한 자", "잃어버린 노래를 기록한 시인", "서부 사막 변방") }
+            };
+
+        /// <summary>복수명단 인물의 LLM 시스템 프롬프트. 해당하지 않는 questId는 null.</summary>
+        public static string GetCharacterContext(string questId)
+        {
+            if (string.IsNullOrEmpty(questId) || !CharacterContexts.TryGetValue(questId, out var context))
+                return null;
+
+            return "당신은 " + context.Name + "입니다. 명단에는 '" + context.SurfaceCharge +
+                   "'로 적혔으나, 이 인물의 진짜 이유는 '" + context.TrueReason +
+                   "'입니다. 소속/지역 힌트는 " + context.Region + "입니다. " +
+                   "명단의 죄목과 이면을 구분해 인물의 관점으로 말하고, 확인되지 않은 배후·이름·사실은 추측해 확정하지 마세요. " +
+                   "항상 인물에 어울리는 자연스러운 한국어로 짧게 답하세요.";
+        }
+
         /// <summary>복수명단의 메인 퀘스트를 한 번 등록한다.</summary>
         public static void RegisterAll()
         {
