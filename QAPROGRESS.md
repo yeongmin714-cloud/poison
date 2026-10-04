@@ -1,3 +1,17 @@
+# 2026-10-04 Phase 2 성 내부 벽 시각 개선 — 차분한 ashlar 타일 + 문설주/린텔 — 13:40 KST
+
+- 진전: Phase 1(충돌 수정, b927e00f) 위에 벽 시각 개선을 적용. 사용자 승인 "플레이 확인 불가 — 계획 모두 진행 후 일괄 확인".
+- **근본 원인 확정 (vision + 코드):** `wall_stone_lower.png`(2.2m 타일)이 ①고노이즈·고명암비(석재 전부 같은 고빈도 파임/짙은 회반죽이라 눈 쉴 곳 없음) ②이음새 미일치 → 반복 시 '벽지' 효과 ③117m 벽에 50회+ 반복 → 격자/진동 노이즈·평면. 또한 벽이 단순 박스 6면이라 문틀/문설주/상단 마감 부재.
+- **변경 (코드 에이전트, 3파일):**
+  - `IndoorMaterialFactory`: 플레이어 성 토폴로지 벽 전용 **결정론적 calm ashlar 타일**(512×256·2코스, 큰 석재 블록+엇갈린 줄눈, 실 seam-free, 절제 색조) 생성 적용. mainTextureScale=Vector2.one(이중 타일링 방지), Smoothness 0.12, 과노이즈 노멀맵 의도적 제외. 제공 텍스처/노멀맵은 불변.
+  - `PlayerCastleInteriorBuilder`: 각 문 개구부 바깥에 **렌더러 전용(MeshCollider 없음)** 문설주·린텔 추가 → 이동 블록 없음, 문 개구부/벽 형상/방·앵커·결정론 유지.
+  - `PlayerCastleInteriorTopologyTests`: 전용 타일(PlayerCastle_CalmAshlar_2Course) 사용 + 노이즈 노멀맵 미사용 계약으로 갱신.
+- **검증:** 컴파일 error CS 0, `PlayerCastleInteriorTopologyTests` **7/7**, 전체 EditMode `TestOutput/phase2-full-editmode.xml` **449/444 통과/5 실패(신규 회귀 0, 기존 baseline만)**.
+- **Play 미승인:** 에디터 미실행 → 화면 캡처 없어 벽 시각 최종 승인 보류, Play 검증 대기로 기록 (구현·EditMode까지만 검증).
+- 커밋 `02d84897` → push 완료.
+
+---
+
 # 2026-10-04 플레이어 성 내부 벽 충돌 Phase 1 — Destroy→DestroyImmediate 버그 수정 — 12:55 KST
 
 - 계획: `.hermes/plans/2026-10-04_1236-player-castle-interior-walls-and-collision-plan.md` (벽면 입체감 + 벽 충돌). 이번 단계는 Phase 0 기준선 확정 + Phase 1 충돌 원인 수정.
