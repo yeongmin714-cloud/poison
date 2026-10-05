@@ -53,9 +53,15 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 760f;
-        private const float WinH = 620f;
+        // Verified saved Figma frame 64:2 (crafting-panel), in 1920x1080 canvas pixels.
+        // The three panel rectangles are sibling VisualElements inside this one transaction owner.
+        public static readonly Rect FigmaBounds = new Rect(144f, 84f, 1632f, 912f);
+        public static readonly Rect CraftingPanelBounds = new Rect(144f, 84f, 504f, 912f);
+        public static readonly Rect DetailPanelBounds = new Rect(672f, 84f, 576f, 912f);
+        public static readonly Rect StoragePanelBounds = new Rect(1272f, 84f, 504f, 912f);
         private const float SlotSize = 64f;
+        public const int StoragePlaceholderCount = 25;
+        private const int StorageGridColumns = 5;
         private const long RefreshMs = 300L;
 
         // ===== 레시피 탭 필터 =====
@@ -75,26 +81,267 @@ namespace ProjectName.UI.Toolkit
         private Label _detailLabel;
         private VisualElement _recipeListHost;
         private VisualElement _ingGridHost;
+        private VisualElement _craftPanel;
+        private VisualElement _detailPanel;
+        private VisualElement _storagePanel;
         private Label _messageLabel;
         private IVisualElementScheduledItem _refreshTask;
+        private VisualElement _canvasLayoutRoot;
 
-        private CookingWindowUTK() : base("🍳 요리 테이블", new Vector2(WinW, WinH))
+        private CookingWindowUTK() : base("🍳 요리 테이블", FigmaBounds.size, UTKWindowChrome.Frameless)
         {
+            // One frameless owner retains the RecipeCatalog transaction and ESC lifecycle; its
+            // three positioned panel roots reproduce the sibling composition from Figma 64:2.
+            pickingMode = PickingMode.Ignore;
+            style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            _content.pickingMode = PickingMode.Position;
+            style.backgroundImage = StyleKeyword.Null;
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 0f;
+            style.left = FigmaBounds.x;
+            style.top = FigmaBounds.y;
             _content.style.flexGrow = 1f;
-            _content.style.flexDirection = FlexDirection.Column;
+            _content.style.position = Position.Relative;
+            _content.style.flexDirection = FlexDirection.Row;
 
+            BuildPanelRoots();
+            BuildPanelHeaders();
             BuildSlotRow();
             BuildRateLabel();
             BuildMainSplit();
             BuildFooter();
+            BuildStoragePanelContents();
 
             ApplyUIToolkitFont(this);
 
             RefreshAll();
             style.display = DisplayStyle.None;
-            style.left = 200f;
-            style.top = 80f;
             Debug.Log("[CookingUTK] 요리 창 생성됨 (3슬롯 카테고리 조합)");
+        }
+
+        private void BuildPanelRoots()
+        {
+            _craftPanel = CreatePanel("cooking-craft-panel", "Craft", CraftingPanelBounds);
+            _detailPanel = CreatePanel("cooking-detail-panel", "Detail", DetailPanelBounds);
+            _storagePanel = CreatePanel("cooking-storage-panel", "Storage", StoragePanelBounds);
+            _content.Add(_craftPanel);
+            _content.Add(_detailPanel);
+            _content.Add(_storagePanel);
+
+            // Reparent the existing widgets' owning containers; event handlers and recipe state remain
+            // on this single CookingWindowUTK instance.
+            _craftPanel.style.flexDirection = FlexDirection.Column;
+            _detailPanel.style.flexDirection = FlexDirection.Column;
+            _storagePanel.style.flexDirection = FlexDirection.Column;
+        }
+
+        private static VisualElement CreatePanel(string elementName, string title, Rect bounds)
+        {
+            var panel = new VisualElement { name = elementName };
+            panel.AddToClassList("cooking-panel");
+            panel.style.position = Position.Absolute;
+            panel.style.left = bounds.x - FigmaBounds.x;
+            panel.style.top = bounds.y - FigmaBounds.y;
+            panel.style.overflow = Overflow.Hidden;
+            panel.style.width = bounds.width;
+            panel.style.height = bounds.height;
+            panel.style.paddingLeft = panel.style.paddingRight = 24f;
+            panel.style.paddingTop = 18f;
+            panel.style.paddingBottom = 16f;
+            panel.style.backgroundColor = new StyleColor(UTKTheme.Panel);
+            panel.style.borderTopLeftRadius = panel.style.borderTopRightRadius = 12f;
+            panel.style.borderBottomLeftRadius = panel.style.borderBottomRightRadius = 12f;
+            panel.style.borderTopWidth = panel.style.borderBottomWidth = 1f;
+            panel.style.borderLeftWidth = panel.style.borderRightWidth = 1f;
+            panel.style.borderTopColor = panel.style.borderBottomColor = UTKTheme.Stroke;
+            panel.style.borderLeftColor = panel.style.borderRightColor = UTKTheme.Stroke;
+            return panel;
+        }
+
+        private void BuildPanelHeaders()
+        {
+            AddPanelHeader(_craftPanel, "🍳 요리 제작");
+            AddPanelHeader(_detailPanel, "선택한 요리 상세");
+            AddPanelHeader(_storagePanel, "재료 가방");
+        }
+
+        private void AddPanelHeader(VisualElement panel, string title)
+        {
+            var header = new VisualElement { name = panel.name + "-header" };
+            header.style.height = 44f;
+            header.style.flexDirection = FlexDirection.Row;
+            header.style.alignItems = Align.Center;
+            header.style.justifyContent = Justify.SpaceBetween;
+            header.style.marginBottom = 12f;
+            var label = new Label(title);
+            label.style.fontSize = 20f;
+            label.style.color = new StyleColor(UTKColor.TextPrimary);
+            header.Add(label);
+            if (panel == _craftPanel)
+            {
+                var close = UTKButton.Create("✕", Close, UTKButton.Variant.Secondary);
+                close.name = "cooking-close-button";
+                close.style.width = 36f;
+                close.style.height = 32f;
+                header.Add(close);
+            }
+            panel.Add(header);
+        }
+
+        private VisualElement MakeStorageGrid()
+        {
+            var grid = new VisualElement { name = "cooking-storage-grid" };
+            grid.style.flexDirection = FlexDirection.Row;
+            grid.style.flexWrap = Wrap.Wrap;
+            grid.style.width = 456f;
+            grid.style.justifyContent = Justify.FlexStart;
+            for (int i = 0; i < StoragePlaceholderCount; i++)
+            {
+                var placeholder = new VisualElement { name = "cooking-storage-placeholder-" + i };
+                placeholder.AddToClassList("cooking-storage-placeholder");
+                placeholder.style.width = 81.6f;
+                placeholder.style.height = 81.6f;
+                placeholder.style.marginRight = (i % StorageGridColumns == StorageGridColumns - 1) ? 0f : 9.6f;
+                placeholder.style.marginBottom = 9.6f;
+                placeholder.style.borderTopWidth = placeholder.style.borderBottomWidth = 1f;
+                placeholder.style.borderLeftWidth = placeholder.style.borderRightWidth = 1f;
+                placeholder.style.borderTopColor = placeholder.style.borderBottomColor = UTKTheme.Stroke;
+                placeholder.style.borderLeftColor = placeholder.style.borderRightColor = UTKTheme.Stroke;
+                placeholder.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+                grid.Add(placeholder);
+                _storageCells[i] = placeholder;
+            }
+            return grid;
+        }
+
+        private void RefreshStoragePanel()
+        {
+            if (_storageItemsHost == null) return;
+            _storageItemsHost.Clear();
+            for (int i = 0; i < _storageCells.Length; i++)
+                _storageCells[i].Clear();
+            var inv = PlayerInventory.Instance;
+            var items = new List<PlayerInventory.ItemSlot>();
+            var all = inv != null ? inv.GetAllSlots() : null;
+            int occupiedSlots = 0;
+            if (all != null)
+            {
+                for (int i = 0; i < all.Length; i++)
+                {
+                    var slot = all[i];
+                    if (slot == null || slot.item == null || slot.count <= 0) continue;
+                    occupiedSlots++;
+                    if (IsCookingIngredient(slot.item)) items.Add(slot);
+                }
+            }
+            int capacity = all != null ? all.Length : 0;
+            _storageCapacityLabel.text = $"인벤토리 슬롯 {occupiedSlots} / {capacity}";
+            _storageCapacityFill.style.width = capacity > 0 ? 456f * occupiedSlots / capacity : 0f;
+
+            int fixedCount = Mathf.Min(items.Count, StoragePlaceholderCount);
+            for (int i = 0; i < fixedCount; i++)
+            {
+                var ingredient = items[i].item;
+                var entry = new UTKSlot();
+                entry.name = "cooking-storage-item-" + i;
+                entry.style.position = Position.Absolute;
+                entry.style.left = 0f;
+                entry.style.top = 0f;
+                entry.style.width = Length.Percent(100f);
+                entry.style.height = Length.Percent(100f);
+                // UTKSlot's shared USS margins otherwise extend the overlay outside the fixed cell.
+                entry.style.marginLeft = 0f;
+                entry.style.marginRight = 0f;
+                entry.style.marginTop = 0f;
+                entry.style.marginBottom = 0f;
+                entry.SetIcon(ItemIconDatabase.GetOrCreateIcon(items[i].item));
+                entry.SetCount(items[i].count);
+                entry.SetRank(UTKRarity.ClassForIndex((int)items[i].item.rarity));
+                entry.tooltip = items[i].item.displayName;
+                entry.pickingMode = PickingMode.Position;
+                entry.RegisterCallback<PointerDownEvent>(evt =>
+                {
+                    if (evt.button == 1) return;
+                    PlaceIngredient(ingredient);
+                });
+                _storageCells[i].Add(entry);
+            }
+            for (int i = StoragePlaceholderCount; i < items.Count; i++)
+            {
+                var entry = new UTKSlot();
+                entry.name = "cooking-storage-item-overflow-" + (i - StoragePlaceholderCount);
+                entry.style.width = 81.6f;
+                entry.style.height = 81.6f;
+                entry.style.marginRight = ((i - StoragePlaceholderCount) % StorageGridColumns == StorageGridColumns - 1) ? 0f : 9.6f;
+                entry.style.marginBottom = 9.6f;
+                entry.SetIcon(ItemIconDatabase.GetOrCreateIcon(items[i].item));
+                entry.SetCount(items[i].count);
+                entry.SetRank(UTKRarity.ClassForIndex((int)items[i].item.rarity));
+                entry.tooltip = items[i].item.displayName;
+                entry.pickingMode = PickingMode.Ignore;
+                _storageItemsHost.Add(entry);
+            }
+        }
+
+        private VisualElement _storageItemsHost;
+        private VisualElement _storageScroll;
+        private Label _storageCapacityLabel;
+        private VisualElement _storageCapacityFill;
+        private readonly VisualElement[] _storageCells = new VisualElement[StoragePlaceholderCount];
+
+        private void BuildStoragePanelContents()
+        {
+            var title = new Label("재료 목록 · 보유 아이템");
+            title.style.fontSize = 14f;
+            title.style.marginTop = 8f;
+            _storagePanel.Add(title);
+            _storageScroll = new ScrollView(ScrollViewMode.Vertical) { name = "cooking-storage-scroll" };
+            _storageScroll.style.flexGrow = 1f;
+            _storageScroll.style.marginTop = 8f;
+            _storagePanel.Add(_storageScroll);
+            var content = _storageScroll.contentContainer;
+            var grid = MakeStorageGrid();
+            content.Add(grid);
+            _storageItemsHost = new VisualElement { name = "cooking-storage-overflow" };
+            _storageItemsHost.style.flexDirection = FlexDirection.Row;
+            _storageItemsHost.style.flexWrap = Wrap.Wrap;
+            _storageItemsHost.style.width = 456f;
+            content.Add(_storageItemsHost);
+
+            var footer = new VisualElement { name = "cooking-storage-footer" };
+            footer.style.width = 456f;
+            footer.style.height = 61.2f;
+            footer.style.flexShrink = 0f;
+            footer.style.marginTop = 14.4f;
+            footer.style.flexDirection = FlexDirection.Column;
+            footer.style.justifyContent = Justify.SpaceBetween;
+
+            var capacityRow = new VisualElement { name = "cooking-storage-capacity-row" };
+            capacityRow.style.height = 20f;
+            capacityRow.style.flexDirection = FlexDirection.Row;
+            capacityRow.style.alignItems = Align.Center;
+            capacityRow.style.justifyContent = Justify.SpaceBetween;
+            _storageCapacityLabel = new Label("인벤토리 슬롯 0 / 40") { name = "cooking-storage-capacity" };
+            _storageCapacityLabel.style.fontSize = 13f;
+            _storageCapacityLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            capacityRow.Add(_storageCapacityLabel);
+            footer.Add(capacityRow);
+
+            var track = new VisualElement { name = "cooking-storage-progress-track" };
+            track.style.width = 456f;
+            track.style.height = 7.2f;
+            track.style.flexShrink = 0f;
+            track.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            track.style.borderTopLeftRadius = track.style.borderTopRightRadius = 3.6f;
+            track.style.borderBottomLeftRadius = track.style.borderBottomRightRadius = 3.6f;
+            _storageCapacityFill = new VisualElement { name = "cooking-storage-progress-fill" };
+            _storageCapacityFill.style.height = 7.2f;
+            _storageCapacityFill.style.width = 0f;
+            _storageCapacityFill.style.backgroundColor = new StyleColor(UTKColor.GuildGreen);
+            _storageCapacityFill.style.borderTopLeftRadius = _storageCapacityFill.style.borderTopRightRadius = 3.6f;
+            _storageCapacityFill.style.borderBottomLeftRadius = _storageCapacityFill.style.borderBottomRightRadius = 3.6f;
+            track.Add(_storageCapacityFill);
+            footer.Add(track);
+            _storagePanel.Add(footer);
         }
 
         // =====================================================================
@@ -104,11 +351,11 @@ namespace ProjectName.UI.Toolkit
         /// <summary>상단: 재료 3슬롯 + → + 결과 슬롯.</summary>
         private void BuildSlotRow()
         {
-            var row = new VisualElement();
+            var row = new VisualElement { name = "cooking-input-slots" };
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
             row.style.marginBottom = 4f;
-            _content.Add(row);
+            _craftPanel.Add(row);
 
             for (int i = 0; i < 3; i++)
             {
@@ -124,7 +371,7 @@ namespace ProjectName.UI.Toolkit
                 title.style.color = new StyleColor(UTKColor.TextSecondary);
                 holder.Add(title);
 
-                var cell = new UTKSlot();
+                var cell = new UTKSlot { name = "cooking-input-slot-" + idx };
                 cell.style.width = SlotSize;
                 cell.style.height = SlotSize;
                 holder.Add(cell);
@@ -189,20 +436,23 @@ namespace ProjectName.UI.Toolkit
             _rateLabel.style.color = new StyleColor(UTKColor.GuildGreen);
             _rateLabel.style.marginTop = 2f;
             _rateLabel.style.marginBottom = 4f;
-            _content.Add(_rateLabel);
+            _rateLabel.name = "cooking-rate";
+            _craftPanel.Add(_rateLabel);
         }
 
-        /// <summary>중단: 좌측 레시피 목록(탭) / 우측 상세 + 재료 인벤토리 그리드.</summary>
+        /// <summary>Craft recipe list and center Detail panel ingredient selection.</summary>
         private void BuildMainSplit()
         {
-            var split = new VisualElement();
+            var split = new VisualElement { name = "cooking-recipe-browser" };
             split.style.flexGrow = 1f;
             split.style.flexDirection = FlexDirection.Row;
-            _content.Add(split);
+            split.style.minHeight = 260f;
+            _craftPanel.Add(split);
 
             // ── 좌: 레시피 목록 ──
             var left = new VisualElement();
-            left.style.width = 300f;
+            left.style.flexGrow = 1f;
+            left.style.flexBasis = 0f;
             left.style.flexShrink = 0;
             left.style.flexDirection = FlexDirection.Column;
             left.style.paddingRight = 8f;
@@ -217,44 +467,42 @@ namespace ProjectName.UI.Toolkit
             var tabs = new VisualElement();
             tabs.style.flexDirection = FlexDirection.Row;
             tabs.style.marginBottom = 4f;
+            tabs.name = "cooking-recipe-tabs";
             left.Add(tabs);
             AddTab(tabs, "전체", RecipeTab.All);
             AddTab(tabs, "작물", RecipeTab.Crop);
             AddTab(tabs, "생선", RecipeTab.Fish);
             AddTab(tabs, "몬스터", RecipeTab.Monster);
 
-            var recipeScroll = new ScrollView(ScrollViewMode.Vertical);
+            var recipeScroll = new ScrollView(ScrollViewMode.Vertical) { name = "cooking-recipe-list" };
             recipeScroll.style.flexGrow = 1f;
             left.Add(recipeScroll);
             _recipeListHost = recipeScroll.contentContainer;
 
             // ── 우: 상세 + 재료 인벤토리 ──
-            var right = new VisualElement();
-            right.style.flexGrow = 1f;
-            right.style.flexDirection = FlexDirection.Column;
-            right.style.paddingLeft = 8f;
-            split.Add(right);
-
             var detailTitle = new Label("요리 상세");
             detailTitle.style.fontSize = 15f;
             detailTitle.style.color = new StyleColor(UTKColor.TextPrimary);
-            right.Add(detailTitle);
+            _detailPanel.Add(detailTitle);
 
             _detailLabel = new Label("레시피를 선택하세요.");
             _detailLabel.style.fontSize = 13f;
             _detailLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _detailLabel.style.whiteSpace = WhiteSpace.Normal;
-            right.Add(_detailLabel);
+            _detailLabel.name = "cooking-selected-detail";
+            _detailPanel.Add(_detailLabel);
 
             var ingTitle = new Label("재료 (클릭 → 슬롯 배치 / 슬롯 우클릭 해제)");
             ingTitle.style.fontSize = 14f;
             ingTitle.style.color = new StyleColor(UTKColor.TextPrimary);
             ingTitle.style.marginTop = 6f;
-            right.Add(ingTitle);
+            _detailPanel.Add(ingTitle);
 
             var ingScroll = new ScrollView(ScrollViewMode.Vertical);
+            ingScroll.name = "cooking-detail-ingredients";
             ingScroll.style.flexGrow = 1f;
-            right.Add(ingScroll);
+            ingScroll.style.minHeight = 180f;
+            _detailPanel.Add(ingScroll);
             _ingGridHost = ingScroll.contentContainer;
             var grid = new VisualElement();
             grid.style.flexDirection = FlexDirection.Row;
@@ -281,14 +529,15 @@ namespace ProjectName.UI.Toolkit
             var cookBtn = UTKButton.Create("🔥 요리 제작하기 (COOK)", OnCookClicked, UTKButton.Variant.Primary);
             cookBtn.style.height = 40f;
             cookBtn.style.marginTop = 6f;
-            _content.Add(cookBtn);
+            cookBtn.name = "cooking-cook-action";
+            _craftPanel.Add(cookBtn);
 
             _messageLabel = new Label("");
             _messageLabel.style.fontSize = 14f;
             _messageLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _messageLabel.style.whiteSpace = WhiteSpace.Normal;
             _messageLabel.style.marginTop = 4f;
-            _content.Add(_messageLabel);
+            _craftPanel.Add(_messageLabel);
         }
 
         // =====================================================================
@@ -346,6 +595,7 @@ namespace ProjectName.UI.Toolkit
             RefreshRateAndDetail();
             RefreshRecipeList();
             RefreshIngredientGrid();
+            RefreshStoragePanel();
         }
 
         private void RefreshSlotRow()
@@ -718,13 +968,51 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            style.left = 200f;
-            style.top = 80f;
+            if (_canvasLayoutRoot != root)
+            {
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.UnregisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged);
+                _canvasLayoutRoot = root;
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.RegisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged);
+            }
+            ApplyFigmaBounds();
             for (int i = 0; i < 3; i++) _slots[i] = null;
             SetMessage("", UTKColor.TextSecondary);
             RefreshAll();
             StartRefreshLoop();
             Debug.Log("[CookingUTK] 요리 창 열림");
+        }
+
+        private void OnCanvasRootGeometryChanged(GeometryChangedEvent evt) => ApplyFigmaBounds();
+
+        private void ApplyFigmaBounds()
+        {
+            if (_canvasLayoutRoot == null) return;
+            Vector2 rootSize = new Vector2(_canvasLayoutRoot.resolvedStyle.width, _canvasLayoutRoot.resolvedStyle.height);
+            if (!FigmaCanvasLayout.Apply(this, FigmaBounds, _canvasLayoutRoot)) return;
+            ApplyPanelScale(rootSize);
+        }
+
+        private void ApplyPanelScale(Vector2 rootSize)
+        {
+            float scaleX = rootSize.x / FigmaCanvasLayout.CanvasWidth;
+            float scaleY = rootSize.y / FigmaCanvasLayout.CanvasHeight;
+            ApplyPanelBounds(_craftPanel, CraftingPanelBounds, scaleX, scaleY);
+            ApplyPanelBounds(_detailPanel, DetailPanelBounds, scaleX, scaleY);
+            ApplyPanelBounds(_storagePanel, StoragePanelBounds, scaleX, scaleY);
+        }
+
+        private static void ApplyPanelBounds(VisualElement panel, Rect figmaBounds, float scaleX, float scaleY)
+        {
+            panel.style.left = (figmaBounds.x - FigmaBounds.x) * scaleX;
+            panel.style.top = (figmaBounds.y - FigmaBounds.y) * scaleY;
+            // Preserve authored local dimensions for all controls. The root transform scales the
+            // complete fixed panel geometry, including padding, gaps, and child hit targets.
+            panel.style.width = figmaBounds.width;
+            panel.style.height = figmaBounds.height;
+            panel.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
+            panel.style.scale = new StyleScale(new Scale(new Vector2(scaleX, scaleY)));
         }
 
         public override void Hide()
@@ -743,7 +1031,7 @@ namespace ProjectName.UI.Toolkit
             if (_refreshTask != null) return;
             _refreshTask = schedule.Execute(() =>
             {
-                if (IsOpen) { RefreshSlotRow(); RefreshIngredientGrid(); RefreshRateAndDetail(); }
+                if (IsOpen) { RefreshSlotRow(); RefreshIngredientGrid(); RefreshStoragePanel(); RefreshRateAndDetail(); }
             }).Every(RefreshMs);
         }
 
