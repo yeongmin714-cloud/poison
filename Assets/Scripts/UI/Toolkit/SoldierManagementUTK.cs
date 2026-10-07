@@ -49,6 +49,15 @@ namespace ProjectName.UI.Toolkit
             public static readonly Color Stroke   = Hex(0x2E343D);
             public static readonly Color Health   = Hex(0x3FB950);
             public static readonly Color Danger   = Hex(0xF85149);
+            // [Figma 69:4 진실치] 글래스 요소 색 — 저장 트리 실측(화이트 틴트/글래스 스트로크/상태색)
+            public static readonly Color GlassStroke = new Color32(0x30, 0x36, 0x3D, 0x80);   // #30363D@0.5
+            public static readonly Color CardFill = new Color(1f, 1f, 1f, 0.02f);             // 슬롯 미선택
+            public static readonly Color CardFillSelected = new Color(1f, 1f, 1f, 0.08f);     // 슬롯 선택
+            public static readonly Color StatsFill = new Color(1f, 1f, 1f, 0.01f);            // StatsContainer
+            public static readonly Color GaugeTrackFill = new Color(1f, 1f, 1f, 0.08f);       // GaugeTrack
+            public static readonly Color MissionSelectedFill = new Color(0x58 / 255f, 0xA6 / 255f, 0xFF / 255f, 0.12f);
+            public static readonly Color StatusGreen = Hex(0x39D353);   // 배치 활성(피그마 상태 그린)
+            public static readonly Color StatusOrange = Hex(0xFF9E2C);  // 외교 특사
             private static Color Hex(uint rgb) =>
                 new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
         }
@@ -129,6 +138,9 @@ namespace ProjectName.UI.Toolkit
                 b.style.flexGrow = 1f;
                 b.style.height = 36.2f;
                 b.style.marginRight = i < flt.Length - 1 ? 4.8f : 0f;
+                b.style.fontSize = UTKTheme.FontTab;                 // [Figma] 14.4/700
+                b.style.unityFontStyleAndWeight = FontStyle.Bold;
+                b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = 7.2f;
                 StyleButton(b, false);
                 _filterTabs.Add(b);
                 filterRow.Add(b);
@@ -146,10 +158,10 @@ namespace ProjectName.UI.Toolkit
             summaryRow.style.alignItems = Align.Center;
             summaryRow.style.height = 34.4f;
             summaryRow.style.minHeight = 34.4f;
-            var summaryLeft = MkLabel("총원 · 임무 배치", 12f, GitHubDark.TextSub);
+            var summaryLeft = MkLabel("총원 · 임무 배치", UTKTheme.FontRowLabel, GitHubDark.TextSub);   // [Figma] 15.6/400
             summaryLeft.style.flexGrow = 1f;
             summaryRow.Add(summaryLeft);
-            _summaryLabel = MkLabel("", 13f, GitHubDark.TextMain);
+            _summaryLabel = MkLabel("", UTKTheme.FontRowLabel, GitHubDark.Accent);   // [Figma] 15.6/700 #58A6FF
             _summaryLabel.name = "DeploySummary";
             _summaryLabel.style.unityTextAlign = TextAnchor.MiddleRight;
             summaryRow.Add(_summaryLabel);
@@ -188,9 +200,7 @@ namespace ProjectName.UI.Toolkit
             panelRoot.style.height = Length.Percent(bounds.height / CompositionBounds.height * 100f);
             panelRoot.style.flexDirection = FlexDirection.Column;
             panelRoot.style.flexShrink = 0f;
-            panelRoot.style.backgroundColor = GitHubDark.Panel;
-            panelRoot.style.borderTopWidth = panelRoot.style.borderBottomWidth = panelRoot.style.borderLeftWidth = panelRoot.style.borderRightWidth = 1f;
-            panelRoot.style.borderTopColor = panelRoot.style.borderBottomColor = panelRoot.style.borderLeftColor = panelRoot.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            UTKTheme.ApplyFigmaGlass(panelRoot);   // [Figma 69:4 글래스] #161B22@0.7 + #30363D@0.5 1.2px + r14.4
             // [Figma 69:4] 패널 pad 24 + 세로 gap 19.2 + 모서리 L 데칼(14.4, 선 12)
             panelRoot.style.paddingLeft = panelRoot.style.paddingRight = 24f;
             panelRoot.style.paddingTop = panelRoot.style.paddingBottom = 24f;
@@ -268,31 +278,34 @@ namespace ProjectName.UI.Toolkit
             hero.style.height = 84.6f;
             hero.style.minHeight = 84.6f;
             hero.style.flexShrink = 0f;
-            hero.style.backgroundColor = GitHubDark.PanelSub;
-            hero.style.borderTopWidth = hero.style.borderBottomWidth = hero.style.borderLeftWidth = hero.style.borderRightWidth = 1f;
-            hero.style.borderTopColor = hero.style.borderBottomColor = hero.style.borderLeftColor = hero.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            hero.style.borderTopLeftRadius = hero.style.borderTopRightRadius = hero.style.borderBottomLeftRadius = hero.style.borderBottomRightRadius = 8f;
+            // [Figma SoldierHeroHeader] #FFFFFF@0.02 + #30363D@0.5 1.2px + r9.6
+            hero.style.backgroundColor = new StyleColor(GitHubDark.CardFill);
+            hero.style.borderTopWidth = hero.style.borderBottomWidth = hero.style.borderLeftWidth = hero.style.borderRightWidth = 1.2f;
+            hero.style.borderTopColor = hero.style.borderBottomColor = hero.style.borderLeftColor = hero.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
+            hero.style.borderTopLeftRadius = hero.style.borderTopRightRadius = hero.style.borderBottomLeftRadius = hero.style.borderBottomRightRadius = 9.6f;
             hero.style.paddingLeft = hero.style.paddingRight = hero.style.paddingTop = hero.style.paddingBottom = 14.4f;
             parent.Add(hero);
             var heroRow = new VisualElement();
             heroRow.style.flexDirection = FlexDirection.Row;
             heroRow.style.alignItems = Align.Center;
             heroRow.style.height = 31f;
-            _dName = MkLabel("병사를 선택하세요", 24f, GitHubDark.TextMain);
+            _dName = MkLabel("병사를 선택하세요", UTKTheme.FontDisplayName, GitHubDark.TextMain);   // [Figma] 26.4/700
+            _dName.style.unityFontStyleAndWeight = FontStyle.Bold;
             heroRow.Add(_dName);
             var heroSpacer = new VisualElement();
             heroSpacer.style.flexGrow = 1f;
             heroRow.Add(heroSpacer);
-            _dNationBadge = MkLabel("-", 11f, GitHubDark.TextSub);
-            _dNationBadge.style.backgroundColor = new StyleColor(new Color(0.08f, 0.10f, 0.13f, 1f));
-            _dNationBadge.style.borderTopWidth = _dNationBadge.style.borderBottomWidth = _dNationBadge.style.borderLeftWidth = _dNationBadge.style.borderRightWidth = 1f;
-            _dNationBadge.style.borderTopColor = _dNationBadge.style.borderBottomColor = _dNationBadge.style.borderLeftColor = _dNationBadge.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            // [Figma 등급 배지 규격] 12/700 + pad 9.6/2.4 + r4 — 국가색 데이터 없어 액센트 틴트로 자리 유지(위조 금지)
+            _dNationBadge = MkLabel("-", UTKTheme.FontBadge, GitHubDark.Accent);
+            _dNationBadge.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _dNationBadge.style.backgroundColor = new StyleColor(GitHubDark.MissionSelectedFill);   // #58A6FF@0.12
             _dNationBadge.style.borderTopLeftRadius = _dNationBadge.style.borderTopRightRadius = _dNationBadge.style.borderBottomLeftRadius = _dNationBadge.style.borderBottomRightRadius = 4f;
             _dNationBadge.style.paddingLeft = _dNationBadge.style.paddingRight = 9.6f;
             _dNationBadge.style.paddingTop = _dNationBadge.style.paddingBottom = 2.4f;
             heroRow.Add(_dNationBadge);
             hero.Add(heroRow);
-            _dLevel = MkLabel("", 13f, GitHubDark.TextSub);
+            _dLevel = MkLabel("", UTKTheme.FontRowValue, GitHubDark.TextSub);   // [Figma] 16.8/400
+            _dLevel.style.unityFontStyleAndWeight = FontStyle.Normal;
             _dLevel.style.marginTop = 4.8f;
             hero.Add(_dLevel);
 
@@ -301,10 +314,10 @@ namespace ProjectName.UI.Toolkit
             image.style.height = 384f;
             image.style.minHeight = 384f;
             image.style.flexShrink = 0f;
-            image.style.backgroundColor = GitHubDark.BgBase;
-            image.style.borderTopWidth = image.style.borderBottomWidth = image.style.borderLeftWidth = image.style.borderRightWidth = 1f;
-            image.style.borderTopColor = image.style.borderBottomColor = image.style.borderLeftColor = image.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            image.style.borderTopLeftRadius = image.style.borderTopRightRadius = image.style.borderBottomLeftRadius = image.style.borderBottomRightRadius = 8f;
+            image.style.backgroundColor = new StyleColor(GitHubDark.StatsFill);   // [Figma] #FFFFFF@0.01
+            image.style.borderTopWidth = image.style.borderBottomWidth = image.style.borderLeftWidth = image.style.borderRightWidth = 1.2f;
+            image.style.borderTopColor = image.style.borderBottomColor = image.style.borderLeftColor = image.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
+            image.style.borderTopLeftRadius = image.style.borderTopRightRadius = image.style.borderBottomLeftRadius = image.style.borderBottomRightRadius = 9.6f;
             image.style.justifyContent = Justify.Center;
             image.style.alignItems = Align.Center;
             _dImageHint = MkLabel("3D 미리보기", 15f, GitHubDark.TextSub);
@@ -316,10 +329,11 @@ namespace ProjectName.UI.Toolkit
             stats.style.height = 236.8f;
             stats.style.minHeight = 236.8f;
             stats.style.flexShrink = 0f;
-            stats.style.backgroundColor = GitHubDark.PanelSub;
-            stats.style.borderTopWidth = stats.style.borderBottomWidth = stats.style.borderLeftWidth = stats.style.borderRightWidth = 1f;
-            stats.style.borderTopColor = stats.style.borderBottomColor = stats.style.borderLeftColor = stats.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            stats.style.borderTopLeftRadius = stats.style.borderTopRightRadius = stats.style.borderBottomLeftRadius = stats.style.borderBottomRightRadius = 8f;
+            // [Figma StatsContainer] #FFFFFF@0.01 + #30363D@0.5 1.2px + r9.6
+            stats.style.backgroundColor = new StyleColor(GitHubDark.StatsFill);
+            stats.style.borderTopWidth = stats.style.borderBottomWidth = stats.style.borderLeftWidth = stats.style.borderRightWidth = 1.2f;
+            stats.style.borderTopColor = stats.style.borderBottomColor = stats.style.borderLeftColor = stats.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
+            stats.style.borderTopLeftRadius = stats.style.borderTopRightRadius = stats.style.borderBottomLeftRadius = stats.style.borderBottomRightRadius = 9.6f;
             stats.style.paddingLeft = stats.style.paddingRight = stats.style.paddingTop = stats.style.paddingBottom = 19.2f;
             parent.Add(stats);
             string[] statNames = { "공격력", "방어력", "체력", "민첩" };
@@ -333,10 +347,13 @@ namespace ProjectName.UI.Toolkit
                 labelRow.style.flexDirection = FlexDirection.Row;
                 labelRow.style.alignItems = Align.Center;
                 labelRow.style.height = 22f;
-                var name = MkLabel(statNames[i], 14f, GitHubDark.TextSub);
+                // [Figma StatRow] 라벨 16.8/700 #F0F6FC · 값 16.8/700 #58A6FF
+                var name = MkLabel(statNames[i], UTKTheme.FontCardName, GitHubDark.TextMain);
+                name.style.unityFontStyleAndWeight = FontStyle.Bold;
                 name.style.flexGrow = 1f;
                 labelRow.Add(name);
-                var val = MkLabel("-", 13f, GitHubDark.TextMain);
+                var val = MkLabel("-", UTKTheme.FontCardName, GitHubDark.Accent);
+                val.style.unityFontStyleAndWeight = FontStyle.Bold;
                 val.style.unityTextAlign = TextAnchor.MiddleRight;
                 labelRow.Add(val);
                 _statVals[i] = val;
@@ -346,13 +363,13 @@ namespace ProjectName.UI.Toolkit
                 var track = new VisualElement { name = "GaugeTrack" };
                 track.style.height = 9.6f;
                 track.style.marginTop = 7.2f;
-                track.style.backgroundColor = GitHubDark.BgBase;
-                track.style.borderTopLeftRadius = track.style.borderBottomLeftRadius = track.style.borderTopRightRadius = track.style.borderBottomRightRadius = 2f;
+                track.style.backgroundColor = new StyleColor(GitHubDark.GaugeTrackFill);   // [Figma] #FFFFFF@0.08
+                track.style.borderTopLeftRadius = track.style.borderBottomLeftRadius = track.style.borderTopRightRadius = track.style.borderBottomRightRadius = 4.8f;
                 var fill = new VisualElement { name = "GaugeFill" };
                 fill.style.height = new Length(100f, LengthUnit.Percent);
                 fill.style.width = new Length(0f, LengthUnit.Percent);
                 fill.style.backgroundColor = GitHubDark.Accent;
-                fill.style.borderTopLeftRadius = fill.style.borderBottomLeftRadius = fill.style.borderTopRightRadius = fill.style.borderBottomRightRadius = 2f;
+                fill.style.borderTopLeftRadius = fill.style.borderBottomLeftRadius = fill.style.borderTopRightRadius = fill.style.borderBottomRightRadius = 4.8f;
                 track.Add(fill);
                 _statBars[i] = fill;
                 row.Add(track);
@@ -365,13 +382,14 @@ namespace ProjectName.UI.Toolkit
             trait.style.height = 98f;
             trait.style.minHeight = 98f;
             trait.style.flexShrink = 0f;
-            trait.style.backgroundColor = GitHubDark.PanelSub;
-            trait.style.borderTopWidth = trait.style.borderBottomWidth = trait.style.borderLeftWidth = trait.style.borderRightWidth = 1f;
-            trait.style.borderTopColor = trait.style.borderBottomColor = trait.style.borderLeftColor = trait.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            trait.style.borderTopLeftRadius = trait.style.borderTopRightRadius = trait.style.borderBottomLeftRadius = trait.style.borderBottomRightRadius = 8f;
-            trait.style.paddingLeft = trait.style.paddingRight = trait.style.paddingTop = trait.style.paddingBottom = 14.4f;
-            trait.Add(MkLabel("고유 전술 특성", 14f, GitHubDark.Gold));
-            _dTraitText = MkLabel("-", 13f, GitHubDark.TextSub);
+            // [Figma TraitSection] 배경/테두리 없음(투명) — 텍스트만
+            trait.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            trait.style.paddingLeft = trait.style.paddingRight = 14.4f;
+            trait.style.paddingTop = trait.style.paddingBottom = 14.4f;
+            var traitTitle = MkLabel("고유 전술 특성", UTKTheme.FontRowLabel, GitHubDark.Accent);   // [Figma] 15.6/700 #58A6FF
+            traitTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            trait.Add(traitTitle);
+            _dTraitText = MkLabel("-", UTKTheme.FontBody, GitHubDark.TextSub);   // [Figma] 14.4/400
             _dTraitText.style.marginTop = 7.2f;
             _dTraitText.style.whiteSpace = WhiteSpace.Normal;
             trait.Add(_dTraitText);
@@ -398,7 +416,7 @@ namespace ProjectName.UI.Toolkit
             parent.Add(MkPanelHeader("임무 배치 및 제어", "DEPLOYMENT OPTIONS"));
 
             // [Figma SectionDescription 432×48.8]
-            var tip = MkLabel("병사를 목록에서 선택하고 우측 역할로 배치합니다.", 13f, GitHubDark.TextSub);
+            var tip = MkLabel("병사를 목록에서 선택하고 우측 역할로 배치합니다.", UTKTheme.FontRowLabel, GitHubDark.TextSub);   // [Figma] 15.6/400
             tip.style.whiteSpace = WhiteSpace.Normal;
             tip.style.height = 48.8f;
             tip.style.flexShrink = 0f;
@@ -418,10 +436,11 @@ namespace ProjectName.UI.Toolkit
                 row.style.marginBottom = 9.6f;
                 row.style.paddingLeft = row.style.paddingRight = 14.4f;
                 row.style.alignItems = Align.Center;
-                row.style.backgroundColor = GitHubDark.PanelSub;
-                row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 1f;
-                row.style.borderTopColor = row.style.borderBottomColor = row.style.borderLeftColor = row.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-                row.style.borderTopLeftRadius = row.style.borderTopRightRadius = row.style.borderBottomLeftRadius = row.style.borderBottomRightRadius = 8f;
+                // [Figma MissionOption] 기본 #FFFFFF@0.02 + #30363D@0.5 1.2 / 선택 #58A6FF@0.12 + #58A6FF 1.2 / r9.6
+                row.style.backgroundColor = new StyleColor(GitHubDark.CardFill);
+                row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 1.2f;
+                row.style.borderTopColor = row.style.borderBottomColor = row.style.borderLeftColor = row.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
+                row.style.borderTopLeftRadius = row.style.borderTopRightRadius = row.style.borderBottomLeftRadius = row.style.borderBottomRightRadius = 9.6f;
                 row.RegisterCallback<PointerDownEvent>(_ => SelectDeploymentTask(_deployDefs[idx].Item2));
 
                 var radio = new VisualElement { name = "DeploymentRadio_" + idx };
@@ -434,11 +453,13 @@ namespace ProjectName.UI.Toolkit
                 radio.style.marginRight = 14.4f;
                 row.Add(radio);
 
-                var name = MkLabel(_deployDefs[idx].Item1, 13f, GitHubDark.TextMain);
+                var name = MkLabel(_deployDefs[idx].Item1, UTKTheme.FontCardName, GitHubDark.TextMain);   // [Figma] 16.8/700
+                name.style.unityFontStyleAndWeight = FontStyle.Bold;
                 name.style.flexGrow = 1f;
                 row.Add(name);
 
-                var count = MkLabel("0명 활성", 12f, GitHubDark.TextSub);
+                var count = MkLabel("0명 활성", UTKTheme.FontTab, GitHubDark.TextSub);   // [Figma] 14.4/700 (활성 시 Accent — Refresh에서 갱신)
+                count.style.unityFontStyleAndWeight = FontStyle.Bold;
                 count.name = "DeploymentCount_" + idx;
                 count.style.minWidth = 77.2f;
                 count.style.height = 28.6f;
@@ -460,11 +481,14 @@ namespace ProjectName.UI.Toolkit
                 name = "ApplyDeploymentButton",
                 text = "선택 부대 배치 적용"
             };
-            // [Figma DeploymentFooter] ApplyButton 432×53.6, 상단 gap 14.4
+            // [Figma DeploymentFooter] ApplyButton 432×53.6, 상단 gap 14.4 — 라벨 16.8/700, r7.2
             _applyDeploymentButton.style.height = 53.6f;
             _applyDeploymentButton.style.marginTop = 14.4f;
             _applyDeploymentButton.style.flexShrink = 0f;
             StyleButton(_applyDeploymentButton, true);
+            _applyDeploymentButton.style.fontSize = UTKTheme.FontCardName;
+            _applyDeploymentButton.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _applyDeploymentButton.style.borderTopLeftRadius = _applyDeploymentButton.style.borderTopRightRadius = _applyDeploymentButton.style.borderBottomLeftRadius = _applyDeploymentButton.style.borderBottomRightRadius = 7.2f;
             parent.Add(_applyDeploymentButton);
             RefreshDeploymentOptions();
         }
@@ -500,16 +524,17 @@ namespace ProjectName.UI.Toolkit
                             assigned++;
                 }
                 _deploymentCounts[i].text = $"{assigned}명 활성";
+                _deploymentCounts[i].style.color = new StyleColor(assigned > 0 ? GitHubDark.Accent : GitHubDark.TextSub);   // [Figma] 활성=Accent
                 bool selected = task == _pendingTask;
                 VisualElement card = _deploymentCards[i];
-                Color border = selected ? GitHubDark.Accent : GitHubDark.Stroke;
+                Color border = selected ? GitHubDark.Accent : GitHubDark.GlassStroke;
                 card.style.borderTopColor = card.style.borderBottomColor = card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(border);
-                card.style.backgroundColor = selected ? new Color(0x1C / 255f, 0x2B / 255f, 0x3A / 255f, 1f) : GitHubDark.PanelSub;
+                card.style.backgroundColor = new StyleColor(selected ? GitHubDark.MissionSelectedFill : GitHubDark.CardFill);   // [Figma] #58A6FF@0.12 / #FFFFFF@0.02
                 var radio = card.Q("DeploymentRadio_" + i);
                 if (radio != null)
                 {
                     radio.style.borderTopColor = radio.style.borderBottomColor = radio.style.borderLeftColor = radio.style.borderRightColor =
-                        new StyleColor(selected ? GitHubDark.Accent : GitHubDark.Stroke);
+                        new StyleColor(selected ? GitHubDark.Accent : GitHubDark.GlassStroke);
                     radio.style.backgroundColor = new StyleColor(selected ? GitHubDark.Accent : new Color(0f, 0f, 0f, 0f));
                 }
             }
@@ -586,7 +611,7 @@ namespace ProjectName.UI.Toolkit
                 bool active = (FilterCat)i == _filter;
                 var b = _filterTabs[i];
                 b.style.backgroundColor = active ? GitHubDark.Accent : GitHubDark.PanelSub;
-                b.style.color = active ? GitHubDark.BgBase : GitHubDark.TextMain;
+                b.style.color = active ? GitHubDark.BgBase : GitHubDark.TextSub;   // [Figma] 활성 #0B0E14 / 비활성 #8B949E
             }
         }
 
@@ -607,7 +632,8 @@ namespace ProjectName.UI.Toolkit
             {
                 _guards.Clear();
                 _listScroll.Clear();
-                _listScroll.Add(MkLabel("병사 시스템 없음", 14f, GitHubDark.TextSub));
+                var emptyList = MkLabel("병사 시스템 없음", UTKTheme.FontBody, GitHubDark.TextSub);   // [Figma] 14.4/400
+                _listScroll.Add(emptyList);
                 _selected = null;
                 RefreshDetail();
                 RefreshSummary();
@@ -676,11 +702,14 @@ namespace ProjectName.UI.Toolkit
             card.style.marginBottom = 9.6f;
             card.style.paddingTop = card.style.paddingBottom = 14.4f;
             card.style.paddingLeft = card.style.paddingRight = 14.4f;
-            card.style.borderTopWidth = card.style.borderBottomWidth = card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
-            Color cardStroke = g == _selected ? GitHubDark.Accent : GitHubDark.Stroke;
+            // [Figma SoldierSlot] 선택 #FFFFFF@0.08+#58A6FF 1.8 / 미선택 #FFFFFF@0.02+#30363D@0.5 1.2 / r9.6
+            float cardStrokeWidth = g == _selected ? 1.8f : 1.2f;
+            card.style.borderTopWidth = card.style.borderBottomWidth = cardStrokeWidth;
+            card.style.borderLeftWidth = card.style.borderRightWidth = cardStrokeWidth;
+            Color cardStroke = g == _selected ? GitHubDark.Accent : GitHubDark.GlassStroke;
             card.style.borderTopColor = card.style.borderBottomColor = card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(cardStroke);
-            card.style.backgroundColor = g == _selected ? new Color(0x1C / 255f, 0x2B / 255f, 0x3A / 255f, 1f) : GitHubDark.PanelSub;
-            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 8f;
+            card.style.backgroundColor = new StyleColor(g == _selected ? GitHubDark.CardFillSelected : GitHubDark.CardFill);
+            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 9.6f;
             card.RegisterCallback<PointerDownEvent>(_ => SelectGuard(g));
 
             var tierStrip = new VisualElement { name = "SoldierTierStrip" };
@@ -709,10 +738,12 @@ namespace ProjectName.UI.Toolkit
             var info = new VisualElement();
             info.style.flexDirection = FlexDirection.Column;
             info.style.flexGrow = 1f;
-            var name = MkLabel(g.GuardName, 15f, GitHubDark.TextMain);
+            // [Figma NameRow/RoleRow] 이름 16.8/700 · 직책 14.4/400
+            var name = MkLabel(g.GuardName, UTKTheme.FontCardName, GitHubDark.TextMain);
             name.style.unityFontStyleAndWeight = FontStyle.Bold;
             info.Add(name);
-            var role = MkLabel(g.JobTitle ?? "병사", 12f, GitHubDark.TextSub);
+            var role = MkLabel(g.JobTitle ?? "병사", UTKTheme.FontBody, GitHubDark.TextSub);
+            role.style.unityFontStyleAndWeight = FontStyle.Normal;
             role.style.marginTop = 4.8f;
             info.Add(role);
             card.Add(info);
@@ -720,15 +751,27 @@ namespace ProjectName.UI.Toolkit
             var right = new VisualElement();
             right.style.flexDirection = FlexDirection.Column;
             right.style.alignItems = Align.FlexEnd;
-            var lv = MkLabel($"Lv.{g.Level}", 13f, GitHubDark.Accent);
+            // [Figma NameRow/StatusPill] Lv 14.4/700 #58A6FF · 상태 12/700(활성=그린/외교=주황/대기=보조)
+            var lv = MkLabel($"Lv.{g.Level}", UTKTheme.FontTab, GitHubDark.Accent);
+            lv.style.unityFontStyleAndWeight = FontStyle.Bold;
+            lv.style.unityTextAlign = TextAnchor.MiddleRight;
             right.Add(lv);
             var task = GetTaskName(g);
-            var st = MkLabel(task, 11f, GitHubDark.TextSub);
+            var st = MkLabel(task, UTKTheme.FontBadge, TaskStatusColor(task));
+            st.style.unityFontStyleAndWeight = FontStyle.Bold;
             st.style.unityTextAlign = TextAnchor.MiddleRight;
             right.Add(st);
             card.Add(right);
 
             return card;
+        }
+
+        /// <summary>[Figma StatusPill 상태색] 활성 배치=#39D353, 외교 특사=#FF9E2C, 대기=#8B949E.</summary>
+        private static Color TaskStatusColor(string taskName)
+        {
+            if (taskName == "특사") return GitHubDark.StatusOrange;
+            if (taskName != "대기") return GitHubDark.StatusGreen;
+            return GitHubDark.TextSub;
         }
 
         private static string GetTaskName(GuardPlaceholder g)
@@ -795,8 +838,11 @@ namespace ProjectName.UI.Toolkit
             h.style.paddingBottom = 14.4f;
             h.style.height = 52.8f;
             h.style.minHeight = 52.8f;
-            h.Add(MkLabel(title, 20f, GitHubDark.TextMain));
-            var s = MkLabel(subtitle, 11f, GitHubDark.TextSub);
+            var t = MkLabel(title, UTKTheme.FontTitle, GitHubDark.TextMain);   // [Figma] 21.6/700
+            t.style.unityFontStyleAndWeight = FontStyle.Bold;
+            h.Add(t);
+            var s = MkLabel(subtitle, UTKTheme.FontSubtitle, GitHubDark.TextSub);   // [Figma] 13.2/500
+            s.style.unityFontStyleAndWeight = FontStyle.Normal;
             s.style.marginLeft = 12f;
             s.style.marginTop = 5f;
             h.Add(s);
