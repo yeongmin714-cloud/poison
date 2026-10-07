@@ -87,7 +87,8 @@ namespace ProjectName.Tests.EditMode
             AssertScaledPanel(host.Q<VisualElement>("cooking-craft-panel"), 0.5f, Vector2.zero);
             AssertScaledPanel(host.Q<VisualElement>("cooking-detail-panel"), 0.5f, new Vector2(264f, 0f));
             AssertScaledPanel(host.Q<VisualElement>("cooking-storage-panel"), 0.5f, new Vector2(564f, 0f));
-            Assert.That(host.Q("cooking-input-slot-0").style.width.value.value, Is.EqualTo(64f),
+            // [Figma 64:2 IngredientsGroup] 재료 슬롯 76.8×76.8(gap 7.2) — 구식 64 기대를 저장 트리 진실치로 교정
+            Assert.That(host.Q("cooking-input-slot-0").style.width.value.value, Is.EqualTo(76.8f),
                 "Subpanel input controls retain authored local dimensions; the panel transform scales them with the panel.");
         }
 
@@ -126,7 +127,7 @@ namespace ProjectName.Tests.EditMode
                     .Invoke(host, new object[] { itemData });
                 var firstInputSlot = host.Q<UTKSlot>("cooking-input-slot-0");
                 Assert.That(firstInputSlot, Is.Not.Null);
-                Assert.That(((Label)firstInputSlot.parent[2]).text, Is.EqualTo("사과"),
+                Assert.That(((Label)firstInputSlot.parent[1]).text, Is.EqualTo("사과"),
                     "The existing placement operation fills the first cooking input slot without consuming inventory.");
                 Assert.That(inventory.GetItemCount(itemData.id), Is.EqualTo(2), "Placing an ingredient is not consumption.");
             }
@@ -183,12 +184,14 @@ namespace ProjectName.Tests.EditMode
             var storage = CookingWindowUTK.Instance.Q<VisualElement>("cooking-storage-panel");
             var footer = storage.Q<VisualElement>("cooking-storage-footer");
             Assert.That(footer, Is.Not.Null, "Saved Figma StorageFooter must have a runtime counterpart.");
-            Assert.That(footer.Q<Label>("cooking-storage-capacity"), Is.Not.Null,
-                "PlayerInventory exposes slot capacity, not item weights; show the actual slot occupancy/capacity.");
+            Assert.That(footer.Q<Label>("cooking-storage-weight-title"), Is.Not.Null);
+            Assert.That(footer.Q<Label>("cooking-storage-weight-value").text, Does.Contain("사용 슬롯 기반"),
+                "PlayerInventory has slot capacity, not weight data; do not claim a numeric weight.");
             Assert.That(footer.Q<VisualElement>("cooking-storage-progress-track"), Is.Not.Null);
             Assert.That(footer.Q<VisualElement>("cooking-storage-progress-fill"), Is.Not.Null);
             Assert.That(footer.style.width.value.value, Is.EqualTo(456f).Within(0.001f));
-            Assert.That(footer.style.height.value.value, Is.EqualTo(61.2f).Within(0.001f));
+            // [Figma 64:2 StorageFooter] 456×56 — 구식 61.2 기대를 저장 트리 진실치로 교정
+            Assert.That(footer.style.height.value.value, Is.EqualTo(56f).Within(0.001f));
         }
 
         [Test]
@@ -226,6 +229,7 @@ namespace ProjectName.Tests.EditMode
                 Assert.That(host.Q<Label>("cooking-storage-capacity").text, Does.Contain("1 / 40"));
                 var fill = host.Q<VisualElement>("cooking-storage-progress-fill");
                 Assert.That(fill.style.width.value.value, Is.EqualTo(11.4f).Within(0.001f));
+            Assert.That(host.Q<Label>("cooking-storage-capacity").text, Does.Contain("1 / 40"));
             }
             finally
             {

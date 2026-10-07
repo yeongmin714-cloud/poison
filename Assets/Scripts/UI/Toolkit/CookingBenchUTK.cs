@@ -15,6 +15,10 @@ namespace ProjectName.UI.Toolkit
     {
         private static CookingBenchUTK _instance;
 
+        // [아카이브 계약 — BenchVariant 선언] 요리 벤치 변형 필터: 카테고리 탭 없이 "전체"만.
+        // AlchemyBenchUTK(6탭)/WeaponForgeUTK(무기·장비·도구)와 같은 선언 패턴 — 베이스 기본값 의존 대신 변형이 명시.
+        protected override IReadOnlyList<string> RecipeFilters => new[] { "전체" };
+
         /// <summary>DB 고기명 → 인벤 아이템 ID 별칭 (표기 차이 흡수).</summary>
         private static readonly Dictionary<string, string> MeatAlias = new Dictionary<string, string>
         {
@@ -31,11 +35,28 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root == null) { Debug.LogWarning("[CookingBenchUTK] UIRoot 없음"); return; }
             if (_instance.parent == null) root.Add(_instance);
-            UTKThreeColumnLayout.Place(_instance, 1);
             _instance.Show();
         }
 
+        public static void Toggle()
+        {
+            if (_instance != null && _instance.IsOpen) { _instance.Close(); return; }
+            Open();
+        }
+
         private CookingBenchUTK() : base("🍲 요리 화덕", 2, new Vector2(520f, 560f)) { }
+
+        protected override string BenchSubtitle => "COOKING";
+        protected override string CombinationHeading => "요리 재료 조합";
+        protected override string RecipeHeading => "조리 가능한 요리 목록";
+        protected override string DetailHeading => "선택한 요리 상세";
+        protected override string DetailDescriptionHeading => "요리 및 효과 정보";
+        protected override string StorageHeading => "요리 재료";
+        protected override string StorageSource => "출처: 플레이어 인벤토리";
+        protected override string CraftActionText => "요리하기 (COOK)";
+        protected override bool ShowThirdIngredientPlaceholder => true;
+        protected override PlayerInventory.ItemData GetResultItemData(BenchRecipe recipe)
+            => ProjectName.Core.Data.DishDatabase.GetItemData(recipe.ResultName);
 
         protected override IReadOnlyList<BenchRecipe> Recipes
         {
@@ -53,6 +74,8 @@ namespace ProjectName.UI.Toolkit
                         ResultName = kv.Value.DishName,
                         MatIds = new[] { MeatAlias[parts[0]], GenericHerbId },
                         Note = kv.Value.Effect,
+                        rarity = ProjectName.Core.Data.DishDatabase.GetItemData(kv.Value.DishName) != null
+                            ? ProjectName.Core.Data.DishDatabase.GetItemData(kv.Value.DishName).rarity : ItemRarity.Common,
                     });
                 }
                 return list;
