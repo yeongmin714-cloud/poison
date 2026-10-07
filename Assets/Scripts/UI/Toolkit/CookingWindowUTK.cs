@@ -166,13 +166,7 @@ namespace ProjectName.UI.Toolkit
             panel.style.height = bounds.height;
             panel.style.paddingLeft = panel.style.paddingRight = 0f;
             panel.style.paddingTop = panel.style.paddingBottom = 0f;
-            panel.style.backgroundColor = new StyleColor(UTKTheme.Panel);
-            panel.style.borderTopLeftRadius = panel.style.borderTopRightRadius = 12f;
-            panel.style.borderBottomLeftRadius = panel.style.borderBottomRightRadius = 12f;
-            panel.style.borderTopWidth = panel.style.borderBottomWidth = 1f;
-            panel.style.borderLeftWidth = panel.style.borderRightWidth = 1f;
-            panel.style.borderTopColor = panel.style.borderBottomColor = UTKTheme.Stroke;
-            panel.style.borderLeftColor = panel.style.borderRightColor = UTKTheme.Stroke;
+            UTKTheme.ApplyFigmaGlass(panel);   // [Figma 64:2 글래스] @0.85 + #30363D@0.5 1.2px + r14.4
             return panel;
         }
 
@@ -197,12 +191,15 @@ namespace ProjectName.UI.Toolkit
             var group = new VisualElement { name = panel.name + "-title-group" };
             group.style.flexDirection = FlexDirection.Row;
             group.style.alignItems = Align.Center;
+            // [Figma 64:2 PanelHeader] 제목 24/700 + 영문 서브 14.4/500
             var label = new Label(title);
-            label.style.fontSize = 20f;
+            label.style.fontSize = UTKTheme.FontTitleLarge;
+            label.style.unityFontStyleAndWeight = FontStyle.Bold;
             label.style.color = new StyleColor(UTKColor.TextPrimary);
             group.Add(label);
             var subtitleLabel = new Label(subtitle);
-            subtitleLabel.style.fontSize = 12f;
+            subtitleLabel.style.fontSize = UTKTheme.FontTab;
+            subtitleLabel.style.unityFontStyleAndWeight = FontStyle.Normal;
             subtitleLabel.style.marginLeft = 10f;
             subtitleLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             group.Add(subtitleLabel);
@@ -459,8 +456,9 @@ namespace ProjectName.UI.Toolkit
             sectionTitle.style.position = Position.Absolute;
             sectionTitle.style.left = 19.2f;
             sectionTitle.style.top = 19.2f;
-            sectionTitle.style.fontSize = 14f;
-            sectionTitle.style.color = new StyleColor(UTKColor.TextSecondary);
+            sectionTitle.style.fontSize = UTKTheme.FontTab;                    // [Figma] 14.4/700 #58A6FF
+            sectionTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            sectionTitle.style.color = new StyleColor(UTKColor.AccentRare);
             section.Add(sectionTitle);
 
             for (int i = 0; i < 3; i++)
@@ -541,7 +539,8 @@ namespace ProjectName.UI.Toolkit
             _rateLabel.style.top = CombinationLocalBounds.y + 156.2f;
             _rateLabel.style.width = 417.6f;
             _rateLabel.style.height = 19f;
-            _rateLabel.style.fontSize = 13f;
+            _rateLabel.style.fontSize = UTKTheme.FontTab;   // [Figma] 14.4/400
+            _rateLabel.style.unityFontStyleAndWeight = FontStyle.Normal;
             _rateLabel.style.color = new StyleColor(UTKColor.GuildGreen);
             _craftPanel.Add(_rateLabel);
         }
@@ -568,7 +567,7 @@ namespace ProjectName.UI.Toolkit
             listTitle.style.left = 0f;
             listTitle.style.top = 0f;
             listTitle.style.height = 17f;
-            listTitle.style.fontSize = 14f;
+            listTitle.style.fontSize = UTKTheme.FontRowLabel;   // [Figma] 15.6
             listTitle.style.color = new StyleColor(UTKColor.TextPrimary);
             left.Add(listTitle);
 
@@ -606,13 +605,15 @@ namespace ProjectName.UI.Toolkit
             detailName.style.justifyContent = Justify.SpaceBetween;
             _detailPanel.Add(detailName);
             _detailLabel = new Label("레시피를 선택하세요.") { name = "cooking-selected-detail" };
-            _detailLabel.style.fontSize = 19f;
+            _detailLabel.style.fontSize = UTKTheme.FontTitle;   // [Figma] 21.6/700
+            _detailLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _detailLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             _detailLabel.style.whiteSpace = WhiteSpace.Normal;
             detailName.Add(_detailLabel);
             _detailRarityLabel = new Label("") { name = "cooking-selected-rarity" };
-            _detailRarityLabel.style.fontSize = 12f;
-            _detailRarityLabel.style.color = new StyleColor(UTKColor.AccentRare);
+            _detailRarityLabel.style.fontSize = UTKTheme.FontSubtitle;   // [Figma EPIC] 13.2/700 #BC8CFF
+            _detailRarityLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _detailRarityLabel.style.color = new StyleColor(new Color32(0xBC, 0x8C, 0xFF, 0xFF));
             detailName.Add(_detailRarityLabel);
 
             var image = new VisualElement { name = "cooking-detail-image-section" };
@@ -640,20 +641,22 @@ namespace ProjectName.UI.Toolkit
             description.style.paddingTop = 19.2f;
             _detailPanel.Add(description);
             var detailTitle = new Label("요리 사양 및 조리 정보");
-            detailTitle.style.fontSize = 15f;
-            detailTitle.style.color = new StyleColor(UTKColor.TextPrimary);
+            detailTitle.style.fontSize = UTKTheme.FontRowLabel;   // [Figma] 15.6/700 #58A6FF
+            detailTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            detailTitle.style.color = new StyleColor(UTKColor.AccentRare);
             description.Add(detailTitle);
             _detailStats = new Label("효과                         —\n재료 분류                      —");
             _detailStats.name = "cooking-detail-stats";
             _detailStats.style.whiteSpace = WhiteSpace.Normal;
             _detailStats.style.marginTop = 12f;
-            _detailStats.style.fontSize = 13f;
+            _detailStats.style.fontSize = UTKTheme.FontRowLabel;   // [Figma StatRow] 15.6/400
+            _detailStats.style.unityFontStyleAndWeight = FontStyle.Normal;
             _detailStats.style.color = new StyleColor(UTKColor.TextSecondary);
             description.Add(_detailStats);
             _detailIngredients = new Label("레시피 재료                      —") { name = "cooking-detail-ingredients" };
             _detailIngredients.style.whiteSpace = WhiteSpace.Normal;
             _detailIngredients.style.marginTop = 10f;
-            _detailIngredients.style.fontSize = 13f;
+            _detailIngredients.style.fontSize = UTKTheme.FontRowLabel;
             _detailIngredients.style.color = new StyleColor(UTKColor.TextSecondary);
             description.Add(_detailIngredients);
             _detailEffectsLabel = new Label("") { name = "cooking-detail-effect-label" };
@@ -685,6 +688,8 @@ namespace ProjectName.UI.Toolkit
             }, UTKButton.Variant.Secondary);
             btn.style.height = 37.2f;
             btn.style.width = 108.6f;
+            btn.style.fontSize = 15.6f;                        // [Figma 64:2 TabLabel] 15.6/700
+            btn.style.unityFontStyleAndWeight = FontStyle.Bold;
             btn.style.flexGrow = 0f;
             btn.style.flexShrink = 0f;
             btn.style.marginLeft = 0f;

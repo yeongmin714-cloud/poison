@@ -2,382 +2,709 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using ProjectName.Core;
-using ProjectName.UI;   // ItemIconDatabase
+using ProjectName.UI;
 
 namespace ProjectName.UI.Toolkit
 {
     /// <summary>
-    /// P18-C2 — 마인크래프트식 제작대 베이스 (UTK).
-    /// [구성] 상단: 상태 라벨 / 중단: 재료 슬롯 N개 + → + 결과 슬롯 / 하단: 레시피 북(스크롤).
-    /// [조작]
-    ///   재료 슬롯 좌클릭 = 인벤 재료 순환 배치 / 우클릭 = 슬롯 비우기
-    ///   레시피 행 클릭 = 재료 자동 배치(보유 시)
-    ///   결과 슬롯 클릭 = 제작 실행(매칭 성공 시)
-    /// [규약] placed는 UI 선택 상태일 뿐 — 실제 소모/지급은 TryCraft(Core)에서 1회.
+    /// Shared presentation/composition for legacy weapon, cooking and alchemy benches.
+    /// The recipe providers and TryCraft implementations remain owned by each concrete bench.
+    /// One frameless UTK window owns three sibling Figma panel roots and its normal ESC lifecycle.
     /// </summary>
     public abstract class CraftBenchBaseUTK : UTKWindowBase
     {
         public struct BenchRecipe
         {
-            public string ResultId;      // 제작 함수 식별자(무기=아이템ID / 요리=meatId|herbId / 물약=herb1|herb2)
+            public string ResultId;
             public string ResultName;
-            public string[] MatIds;      // 슬롯 수와 동일 길이 (빈 칸 null)
-            public string Note;          // 레벨 요구/효과 등 보조 표기
-            public ItemRarity rarity;    // [Milestone A/D] 성공률 희귀도 페널티·표시용
+            public string[] MatIds;
+            public string Note;
+            public ItemRarity rarity;
         }
 
-        /// <summary>[Milestone D] 레시피 발견 여부 — 미발견이면 "?" 블라인드(이름/아이콘/확률 숨김).
-        /// 무기/요리/물약 벤치가 RecipeDiscoverySystem으로 오버라이드(성공 시 MarkDiscovered → 공개).</summary>
-        protected virtual bool IsDiscovered(BenchRecipe r) => true;
+        public static readonly Rect CanvasBounds = new Rect(144f, 84f, 1632f, 912f);
+        public static readonly Rect CraftingPanelBounds = new Rect(144f, 84f, 504f, 912f);
+        public static readonly Rect DetailPanelBounds = new Rect(672f, 84f, 576f, 912f);
+        public static readonly Rect StoragePanelBounds = new Rect(1272f, 84f, 504f, 912f);
+        public static readonly Rect CraftHeaderBounds = new Rect(168f, 108f, 456f, 52.8f);
+        public static readonly Rect CraftCombinationBounds = new Rect(168f, 236.4f, 456f, 194.4f);
+        public static readonly Rect CraftRecipeListBounds = new Rect(168f, 470.4f, 456f, 419.2f);
+        public static readonly Rect CraftFooterBounds = new Rect(168f, 908.8f, 456f, 63.2f);
+        public static readonly Rect DetailHeaderBounds = new Rect(696f, 108f, 528f, 52.8f);
+        public static readonly Rect DetailNameBounds = new Rect(696f, 180f, 528f, 75.6f);
+        public static readonly Rect DetailImageBounds = new Rect(696f, 274.8f, 528f, 384f);
+        public static readonly Rect DetailDescriptionBounds = new Rect(696f, 678f, 528f, 294f);
+        public static readonly Rect StorageStatsBounds = new Rect(1296f, 180f, 456f, 24.6f);
+        public static readonly Rect StorageGridBounds = new Rect(1296f, 223.8f, 456f, 537.6f);
+        public const int StorageCellCount = 25;
+        public const int StorageColumnCount = 5;
+        public const float StorageCellSize = 81.6f;
+        public const float StorageCellGap = 9.6f;
 
-        /// <summary>[Milestone D] 레시피 성공률·운 표시 문자열 (발견 시에만 부가). 구체 벤치가 오버라이드.</summary>
-        protected virtual string RateHint(BenchRecipe r) => "";
+        protected virtual bool IsDiscovered(BenchRecipe recipe) => true;
+        protected virtual string RateHint(BenchRecipe recipe) => "";
+        protected virtual string BenchSubtitle => "CRAFTING";
+        protected virtual string CombinationHeading => "조합 레시피 슬롯";
+        protected virtual string RecipeHeading => "제작 가능한 레시피 목록";
+        protected virtual string DetailHeading => "선택한 결과 상세";
+        protected virtual string DetailDescriptionHeading => "레시피 및 아이템 정보";
+        protected virtual string StorageHeading => "재료 보관함";
+        protected virtual string StorageSource => "플레이어 인벤토리";
+        protected virtual string CraftActionText => "아이템 제작하기 (CRAFT)";
+        protected virtual bool ShowThirdIngredientPlaceholder => false;
+        protected virtual IReadOnlyList<string> RecipeFilters => new[] { "전체" };
+        protected virtual bool MatchesFilter(BenchRecipe recipe, string filter) => filter == "전체";
+        protected virtual PlayerInventory.ItemData GetResultItemData(BenchRecipe recipe)
+            => PlayerInventory.GetItemById(recipe.ResultId);
+        protected virtual string IngredientDisplayName(string itemId)
+        {
+            var item = PlayerInventory.GetItemById(itemId);
+            return item != null && !string.IsNullOrEmpty(item.displayName) ? item.displayName : itemId;
+        }
 
         protected readonly int SlotCount;
         private readonly UTKSlot[] _slots;
-        private readonly string[] _placed;          // 슬롯별 배치된 itemId (null=빈칸)
+        private readonly string[] _placed;
         private readonly Label _status;
-        private UTKSlot _resultSlot;
-        private Label _resultLabel;
-        private ScrollView _book;
-        private bool _craftable;
+        private readonly Label _rate;
+        private Label _detailName;
+        private Label _detailRarity;
+        private Label _detailDescription;
+        private readonly Label _storageStats;
+        private readonly Label _storageSourceLabel;
+        private VisualElement _detailImage;
+        private readonly ScrollView _book;
+        private readonly VisualElement _filterBar;
+        private readonly Button _craftButton;
+        private readonly UTKSlot _resultSlot;
+        private readonly Label _resultLabel;
+        private readonly VisualElement[] _storageCells = new VisualElement[StorageCellCount];
         private BenchRecipe _matched;
+        private BenchRecipe _selected;
+        private bool _hasSelection;
+        private bool _craftable;
+        private string _activeFilter = "전체";
+        private bool _refreshing;
 
-        protected CraftBenchBaseUTK(string title, int slotCount, Vector2 size) : base(title, size)
+        public VisualElement CraftPanelRoot { get; private set; }
+        public VisualElement DetailPanelRoot { get; private set; }
+        public VisualElement StoragePanelRoot { get; private set; }
+
+        protected CraftBenchBaseUTK(string title, int slotCount, Vector2 ignoredLegacySize)
+            : base(title, CanvasBounds.size, UTKWindowChrome.Frameless)
         {
             SlotCount = slotCount;
             _slots = new UTKSlot[slotCount];
             _placed = new string[slotCount];
+            pickingMode = PickingMode.Ignore;
+            style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            style.backgroundImage = StyleKeyword.Null;
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 0f;
+            style.left = CanvasBounds.x;
+            style.top = CanvasBounds.y;
+            _content.style.position = Position.Relative;
+            _content.style.width = CanvasBounds.width;
+            _content.style.height = CanvasBounds.height;
+            _content.style.paddingLeft = _content.style.paddingRight = 0f;
+            _content.style.paddingTop = _content.style.paddingBottom = 0f;
+            _content.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            _content.Clear();
 
-            _status = new Label("재료를 배치하거나 레시피를 클릭하세요.");
-            _status.style.fontSize = 14f;
-            _status.style.color = new StyleColor(UTKColor.TextSecondary);
-            _status.style.marginLeft = 10f;
-            _status.style.marginTop = 2f;
-            _status.style.whiteSpace = WhiteSpace.Normal;
-            _content.Add(_status);
+            CraftPanelRoot = CreatePanel("craft-bench-crafting-panel", CraftingPanelBounds);
+            DetailPanelRoot = CreatePanel("craft-bench-detail-panel", DetailPanelBounds);
+            StoragePanelRoot = CreatePanel("craft-bench-storage-panel", StoragePanelBounds);
+            _content.Add(CraftPanelRoot);
+            _content.Add(DetailPanelRoot);
+            _content.Add(StoragePanelRoot);
 
-            // ── 제작 행: 재료 슬롯 + → + 결과 ──
-            var craftRow = new VisualElement();
-            craftRow.style.flexDirection = FlexDirection.Row;
-            craftRow.style.alignItems = Align.Center;
-            craftRow.style.justifyContent = Justify.Center;
-            craftRow.style.marginTop = 8f;
-            craftRow.style.marginBottom = 8f;
-            _content.Add(craftRow);
+            AddPanelHeader(CraftPanelRoot, "craft-bench-crafting-header", title, BenchSubtitle, true);
+            AddPanelHeader(DetailPanelRoot, "craft-bench-detail-header", DetailHeading, "SPECIFICATIONS", false);
+            AddPanelHeader(StoragePanelRoot, "craft-bench-storage-header", StorageHeading, "INVENTORY", false);
 
+            var filters = new VisualElement { name = "craft-bench-recipe-filters" };
+            filters.style.position = Position.Absolute;
+            filters.style.left = 24f;
+            filters.style.top = 96f;
+            filters.style.width = 456f;
+            filters.style.height = 37.2f;
+            filters.style.flexDirection = FlexDirection.Row;
+            filters.style.alignItems = Align.Center;
+            CraftPanelRoot.Add(filters);
+            _filterBar = filters;
+
+            var combination = CreateRegion("craft-bench-combination-section", new Rect(24f, 152.4f, 456f, 194.4f));
+            CraftPanelRoot.Add(combination);
+            var comboTitle = MakeLabel(CombinationHeading, 14f, UTKColor.TextSecondary);
+            comboTitle.name = "craft-bench-combination-heading";
+            comboTitle.style.position = Position.Absolute;
+            comboTitle.style.left = 19.2f;
+            comboTitle.style.top = 19.2f;
+            combination.Add(comboTitle);
+
+            var flow = new VisualElement { name = "craft-bench-combination-flow" };
+            flow.style.position = Position.Absolute;
+            flow.style.left = 19.2f;
+            flow.style.top = 52f;
+            flow.style.width = 417.6f;
+            flow.style.height = 91.2f;
+            flow.style.flexDirection = FlexDirection.Row;
+            flow.style.alignItems = Align.Center;
+            combination.Add(flow);
+            bool showThirdSlot = ShowThirdIngredientPlaceholder && slotCount == 2;
+            float ingredientSlotSize = showThirdSlot ? 60f : 76.8f;
             for (int i = 0; i < slotCount; i++)
             {
-                int idx = i;
-                var slot = new UTKSlot();
-                slot.name = "BenchSlot_" + idx;
-                slot.style.width = 64f;   // [Figma 63:39] crafting-panel 재료 ItemSlot 64×64
-                slot.style.height = 64f;
-                slot.style.marginLeft = 4f;
-                slot.style.marginRight = 4f;
+                int index = i;
+                var slot = new UTKSlot { name = "BenchSlot_" + index };
+                slot.style.width = ingredientSlotSize;
+                slot.style.height = ingredientSlotSize;
+                slot.style.marginRight = showThirdSlot ? 4f : 7.2f;
                 slot.SetRank("common");
                 slot.RegisterCallback<PointerDownEvent>(evt =>
                 {
-                    if (evt.button == 0) CyclePlace(idx);
-                    else if (evt.button == 1) ClearSlot(idx);
+                    if (evt.button == 0) CyclePlace(index);
+                    else if (evt.button == 1) ClearSlot(index);
                 });
-                _slots[idx] = slot;
-                craftRow.Add(slot);
-
-                if (i == slotCount - 1)
-                {
-                    var arrow = new Label("  ➜  ");
-                    arrow.style.fontSize = 22f;
-                    arrow.style.color = new StyleColor(UTKColor.BorderBronze);
-                    craftRow.Add(arrow);
-
-                    _resultSlot = new UTKSlot();
-                    _resultSlot.name = "BenchResult";
-                    _resultSlot.style.width = 76f;   // [Figma 63:57] crafting-panel 결과 ItemSlot 76×76
-                    _resultSlot.style.height = 76f;
-                    _resultSlot.style.marginLeft = 4f;
-                    _resultSlot.style.marginRight = 4f;
-                    _resultSlot.SetRank("common");
-                    _resultSlot.RegisterCallback<PointerDownEvent>(evt =>
-                    {
-                        if (evt.button == 0 && _craftable) ExecuteCraft();
-                    });
-                    craftRow.Add(_resultSlot);
-
-                    _resultLabel = new Label("");
-                    _resultLabel.style.fontSize = 13f;
-                    _resultLabel.style.color = new StyleColor(UTKColor.AccentRare);
-                    _resultLabel.style.marginLeft = 8f;
-                    _resultLabel.style.maxWidth = 220f;
-                    _resultLabel.style.whiteSpace = WhiteSpace.Normal;
-                    craftRow.Add(_resultLabel);
-                }
+                _slots[index] = slot;
+                flow.Add(slot);
             }
+            if (showThirdSlot)
+            {
+                var placeholder = new UTKSlot { name = "BenchSlotPlaceholder_2", pickingMode = PickingMode.Ignore };
+                placeholder.style.width = ingredientSlotSize;
+                placeholder.style.height = ingredientSlotSize;
+                placeholder.style.marginRight = 4f;
+                placeholder.SetRank("common");
+                placeholder.tooltip = "추가 재료 슬롯 (시각 전용)";
+                flow.Add(placeholder);
+            }
+            var arrow = MakeLabel("→", 22f, UTKColor.BorderBronze);
+            arrow.name = "craft-bench-flow-arrow";
+            arrow.style.marginLeft = 4f;
+            arrow.style.marginRight = 8f;
+            flow.Add(arrow);
+            _resultSlot = new UTKSlot { name = "BenchResult" };
+            _resultSlot.style.width = showThirdSlot ? 72f : 91.2f;
+            _resultSlot.style.height = showThirdSlot ? 72f : 91.2f;
+            _resultSlot.SetRank("common");
+            _resultSlot.RegisterCallback<PointerDownEvent>(evt => { if (evt.button == 0) ExecuteCraft(); });
+            flow.Add(_resultSlot);
+            _resultLabel = MakeLabel("", 12f, UTKColor.TextPrimary);
+            _resultLabel.style.whiteSpace = WhiteSpace.Normal;
+            _resultLabel.style.maxWidth = 90f;
+            _resultLabel.style.marginLeft = 8f;
+            flow.Add(_resultLabel);
+            _status = MakeLabel("재료를 배치하거나 레시피를 선택하세요.", 12f, UTKColor.TextSecondary);
+            _status.name = "craft-bench-status";
+            _status.style.position = Position.Absolute;
+            _status.style.left = 19.2f;
+            _status.style.top = 149f;
+            _status.style.width = 280f;
+            _status.style.whiteSpace = WhiteSpace.Normal;
+            combination.Add(_status);
+            _rate = MakeLabel("", 13f, UTKColor.GuildGreen);
+            _rate.name = "craft-bench-success-rate";
+            _rate.style.position = Position.Absolute;
+            _rate.style.right = 19.2f;
+            _rate.style.top = 158f;
+            combination.Add(_rate);
 
-            // ── 레시피 북 ──
-            var bookTitle = new Label("📖 레시피 북 — 클릭하면 재료가 자동 배치됩니다");
-            bookTitle.style.fontSize = 14f;
-            bookTitle.style.color = new StyleColor(UTKColor.TextSecondary);
-            bookTitle.style.marginLeft = 10f;
-            _content.Add(bookTitle);
+            var recipeRegion = CreateRegion("craft-bench-recipe-list-section", new Rect(24f, 386.4f, 456f, 419.2f));
+            CraftPanelRoot.Add(recipeRegion);
+            var recipeHeading = MakeLabel(RecipeHeading, 14f, UTKColor.TextPrimary);
+            recipeHeading.name = "craft-bench-recipe-heading";
+            recipeRegion.Add(recipeHeading);
+            _book = new ScrollView(ScrollViewMode.Vertical) { name = "craft-bench-recipe-list" };
+            _book.style.position = Position.Absolute;
+            _book.style.left = 0f;
+            _book.style.top = 27f;
+            _book.style.width = 456f;
+            _book.style.height = 392.2f;
+            recipeRegion.Add(_book);
 
-            _book = new ScrollView(ScrollViewMode.Vertical);
-            _book.style.flexGrow = 1f;
-            _book.style.marginTop = 4f;
-            _book.style.marginLeft = 8f;
-            _book.style.marginRight = 8f;
-            _book.style.marginBottom = 6f;
-            _content.Add(_book);
+            var footer = CreateRegion("craft-bench-craft-footer", new Rect(24f, 824.8f, 456f, 63.2f));
+            CraftPanelRoot.Add(footer);
+            _craftButton = MakeButton(CraftActionText, ExecuteCraft, "craft-bench-craft-button");
+            _craftButton.style.position = Position.Absolute;
+            _craftButton.style.left = 0f;
+            _craftButton.style.top = 14.4f;
+            _craftButton.style.width = 456f;
+            _craftButton.style.height = 48.8f;
+            footer.Add(_craftButton);
 
+            BuildDetailPanel();
+            _storageStats = MakeLabel("사용 슬롯: 0 / 0", 13f, UTKColor.TextSecondary);
+            _storageStats.name = "craft-bench-storage-capacity";
+            _storageStats.style.position = Position.Absolute;
+            _storageStats.style.left = 24f;
+            _storageStats.style.top = 96f;
+            StoragePanelRoot.Add(_storageStats);
+            _storageSourceLabel = MakeLabel(StorageSource, 12f, UTKColor.TextSecondary);
+            _storageSourceLabel.name = "craft-bench-storage-source";
+            _storageSourceLabel.style.position = Position.Absolute;
+            _storageSourceLabel.style.left = 24f;
+            _storageSourceLabel.style.top = 121f;
+            StoragePanelRoot.Add(_storageSourceLabel);
+            BuildStorageGrid();
+            RebuildFilters();
             ApplyUIToolkitFont(this);
         }
 
-        // ─────────────────────────── 서브클래스 계약 ───────────────────────────
-
-        /// <summary>레시피 목록 (벤치별 소스).</summary>
         protected abstract IReadOnlyList<BenchRecipe> Recipes { get; }
-
-        /// <summary>실제 제작 실행 — Core 제작 함수 호출(소모/지급/성공률 포함). 성공 시 true.</summary>
         protected abstract bool TryCraft(BenchRecipe recipe, List<string> placedIds, out string message);
-
-        /// <summary>제작 성공 후 정리 (슬롯 비움 등).</summary>
-        protected virtual void OnCraftSuccess() { ClearAllSlots(); }
-
-        // ─────────────────────────── 표시/갱신 ───────────────────────────
+        protected virtual void OnCraftSuccess() => ClearAllSlots();
 
         protected override void OnWindowOpen()
         {
+            RebuildFilters();
             RebuildBook();
             RefreshMatch();
+            RefreshStorage();
+        }
+
+        private static VisualElement CreatePanel(string elementName, Rect canvasBounds)
+        {
+            var panel = new VisualElement { name = elementName };
+            panel.AddToClassList("craft-bench-panel");
+            panel.style.position = Position.Absolute;
+            panel.style.left = canvasBounds.x - CanvasBounds.x;
+            panel.style.top = canvasBounds.y - CanvasBounds.y;
+            panel.style.width = canvasBounds.width;
+            panel.style.height = canvasBounds.height;
+            panel.style.overflow = Overflow.Hidden;
+            UTKTheme.ApplyFigmaGlass(panel);   // [Figma 63:5/64:337 글래스] @0.85 + #30363D@0.5 1.2px + r14.4
+            return panel;
+        }
+
+        private static VisualElement CreateRegion(string elementName, Rect bounds)
+        {
+            var region = new VisualElement { name = elementName };
+            region.style.position = Position.Absolute;
+            region.style.left = bounds.x;
+            region.style.top = bounds.y;
+            region.style.width = bounds.width;
+            region.style.height = bounds.height;
+            region.style.flexDirection = FlexDirection.Column;
+            return region;
+        }
+
+        private void AddPanelHeader(VisualElement panel, string elementName, string title, string subtitle, bool close)
+        {
+            var header = CreateRegion(elementName, new Rect(24f, 24f, panel == DetailPanelRoot ? 528f : 456f, 52.8f));
+            header.style.flexDirection = FlexDirection.Row;
+            header.style.alignItems = Align.Center;
+            header.style.justifyContent = Justify.SpaceBetween;
+            var group = new VisualElement();
+            group.style.flexDirection = FlexDirection.Row;
+            group.style.alignItems = Align.Center;
+            var label = MakeLabel(title, 20f, UTKColor.TextPrimary);
+            label.name = elementName + "-title";
+            group.Add(label);
+            var sub = MakeLabel(subtitle, 11f, UTKColor.TextSecondary);
+            sub.style.marginLeft = 10f;
+            group.Add(sub);
+            header.Add(group);
+            if (close)
+            {
+                var closeButton = MakeButton("✕", Close, "craft-bench-close-button");
+                closeButton.style.width = 32f;
+                closeButton.style.height = 32f;
+                header.Add(closeButton);
+            }
+            panel.Add(header);
+        }
+
+        private void BuildDetailPanel()
+        {
+            var nameSection = CreateRegion("craft-bench-detail-name-section", new Rect(24f, 96f, 528f, 75.6f));
+            nameSection.style.flexDirection = FlexDirection.Row;
+            nameSection.style.alignItems = Align.Center;
+            nameSection.style.justifyContent = Justify.SpaceBetween;
+            DetailPanelRoot.Add(nameSection);
+            _detailName = MakeLabel("레시피를 선택하세요.", 19f, UTKColor.TextPrimary);
+            _detailName.name = "craft-bench-detail-name";
+            _detailName.style.whiteSpace = WhiteSpace.Normal;
+            nameSection.Add(_detailName);
+            _detailRarity = MakeLabel("", 12f, UTKColor.AccentRare);
+            _detailRarity.name = "craft-bench-detail-rarity";
+            nameSection.Add(_detailRarity);
+
+            var imageSection = CreateRegion("craft-bench-detail-image-section", new Rect(24f, 190.8f, 528f, 384f));
+            imageSection.style.alignItems = Align.Center;
+            imageSection.style.justifyContent = Justify.Center;
+            imageSection.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            DetailPanelRoot.Add(imageSection);
+            _detailImage = new VisualElement { name = "craft-bench-detail-actual-item-icon" };
+            _detailImage.style.width = 160f;
+            _detailImage.style.height = 160f;
+            _detailImage.style.backgroundPositionX = new BackgroundPosition(BackgroundPositionKeyword.Center);
+            _detailImage.style.backgroundPositionY = new BackgroundPosition(BackgroundPositionKeyword.Center);
+            _detailImage.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Contain);
+            imageSection.Add(_detailImage);
+
+            var description = CreateRegion("craft-bench-detail-description-section", new Rect(24f, 594f, 528f, 294f));
+            description.style.paddingLeft = description.style.paddingRight = 19.2f;
+            description.style.paddingTop = 19.2f;
+            DetailPanelRoot.Add(description);
+            var heading = MakeLabel(DetailDescriptionHeading, 15f, UTKColor.TextPrimary);
+            heading.name = "craft-bench-detail-description-heading";
+            description.Add(heading);
+            _detailDescription = MakeLabel("", 13f, UTKColor.TextSecondary);
+            _detailDescription.name = "craft-bench-detail-description";
+            _detailDescription.style.marginTop = 12f;
+            _detailDescription.style.whiteSpace = WhiteSpace.Normal;
+            _detailDescription.style.flexShrink = 1f;
+            description.Add(_detailDescription);
+        }
+
+        private void BuildStorageGrid()
+        {
+            var grid = CreateRegion("craft-bench-storage-grid", new Rect(24f, 139.8f, 456f, 537.6f));
+            grid.style.flexDirection = FlexDirection.Row;
+            grid.style.flexWrap = Wrap.Wrap;
+            StoragePanelRoot.Add(grid);
+            for (int i = 0; i < StorageCellCount; i++)
+            {
+                var cell = new VisualElement { name = "craft-bench-storage-cell-" + i };
+                cell.style.width = StorageCellSize;
+                cell.style.height = StorageCellSize;
+                cell.style.marginRight = i % StorageColumnCount == StorageColumnCount - 1 ? 0f : StorageCellGap;
+                cell.style.marginBottom = StorageCellGap;
+                cell.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+                cell.style.borderTopWidth = cell.style.borderBottomWidth = cell.style.borderLeftWidth = cell.style.borderRightWidth = 1f;
+                cell.style.borderTopColor = cell.style.borderBottomColor = cell.style.borderLeftColor = cell.style.borderRightColor = UTKTheme.Stroke;
+                grid.Add(cell);
+                _storageCells[i] = cell;
+            }
+        }
+
+        private static Label MakeLabel(string text, float size, Color color)
+        {
+            var label = new Label(text);
+            label.style.fontSize = size;
+            label.style.color = new StyleColor(color);
+            return label;
+        }
+
+        private static Button MakeButton(string text, System.Action action, string elementName)
+        {
+            var button = new Button(action) { text = text, name = elementName };
+            button.style.color = new StyleColor(UTKColor.TextPrimary);
+            button.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            button.style.borderTopWidth = button.style.borderBottomWidth = button.style.borderLeftWidth = button.style.borderRightWidth = 1f;
+            button.style.borderTopColor = button.style.borderBottomColor = button.style.borderLeftColor = button.style.borderRightColor = UTKTheme.Stroke;
+            return button;
+        }
+
+        private void RebuildFilters()
+        {
+            _filterBar.Clear();
+            foreach (var filter in RecipeFilters)
+            {
+                string captured = filter;
+                var button = MakeButton(filter, () =>
+                {
+                    _activeFilter = captured;
+                    RebuildFilters();
+                    RebuildBook();
+                }, "craft-bench-filter-" + filter);
+                button.style.height = 37.2f;
+                button.style.marginRight = 4f;
+                button.SetEnabled(captured != _activeFilter);
+                _filterBar.Add(button);
+            }
         }
 
         private void RebuildBook()
         {
             _book.Clear();
-            var inv = PlayerInventory.Instance;
-            foreach (var r in Recipes)
+            foreach (var recipe in Recipes)
             {
-                var row = new VisualElement();
+                if (!MatchesFilter(recipe, _activeFilter)) continue;
+                var row = new VisualElement { name = "craft-bench-recipe-row-" + recipe.ResultId };
+                row.style.height = 72f;
+                row.style.minHeight = 72f;
+                row.style.marginBottom = 7.2f;
+                row.style.paddingLeft = 9.6f;
+                row.style.paddingRight = 9.6f;
                 row.style.flexDirection = FlexDirection.Row;
                 row.style.alignItems = Align.Center;
-                row.style.height = 40f;
-                row.style.marginBottom = 2f;
-                row.style.paddingLeft = 4f;
-                row.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.03f));
-
-                var icon = new VisualElement();
-                icon.style.width = 30f;
-                icon.style.height = 30f;
-                var item = PlayerInventory.GetItemById(r.ResultId);
-                // [Milestone D] 미발견 레시피는 아이콘 감춤("?" 블라인드)
-                bool discovered = IsDiscovered(r);
-                icon.style.backgroundImage = discovered
-                    ? UTKTextureSafe.ToBackground(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null)
-                    : null;
+                row.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.035f));
+                var item = GetResultItemData(recipe);
+                var icon = new VisualElement { name = "recipe-result-icon" };
+                icon.style.width = icon.style.height = 52.8f;
+                if (item != null) icon.style.backgroundImage = UTKTextureSafe.ToBackground(ItemIconDatabase.GetOrCreateIcon(item));
                 row.Add(icon);
-
-                var have1 = inv != null && !string.IsNullOrEmpty(r.MatIds[0])
-                    ? inv.GetItemCount(r.MatIds[0]) : 0;
-                int have2 = inv != null && r.MatIds.Length > 1 && !string.IsNullOrEmpty(r.MatIds[1])
-                    ? inv.GetItemCount(r.MatIds[1]) : 0;
-                int need1 = CountOf(r, 0);
-                int need2 = r.MatIds.Length > 1 && !string.IsNullOrEmpty(r.MatIds[1]) ? 1 : 0;
-
-                bool enough = have1 >= need1 && (need2 == 0 || have2 >= 1);
-                string matText = DescribeMats(r);
-                // [Milestone D] 발견: 이름+확률+재료 / 미발견: "?"+재료(실험 힌트)
-                string nameText = discovered
-                    ? $"{r.ResultName} {RateHint(r)}  [{matText}]" + (enough ? "" : "  (재료부족)") + (string.IsNullOrEmpty(r.Note) ? "" : $"  {r.Note}")
-                    : $"?  [{matText}]" + (enough ? "" : "  (재료부족)");
-                var nameL = new Label(nameText);
-                nameL.style.fontSize = 13f;
-                nameL.style.flexGrow = 1f;
-                nameL.style.color = new StyleColor(enough ? UTKColor.TextPrimary : UTKColor.TextSecondary);
-                row.Add(nameL);
-
-                var captured = r;
+                var text = new VisualElement();
+                text.style.flexGrow = 1f;
+                text.style.marginLeft = 12f;
+                text.style.flexDirection = FlexDirection.Column;
+                text.style.justifyContent = Justify.Center;
+                var discovered = IsDiscovered(recipe);
+                var name = MakeLabel(discovered ? recipe.ResultName : "?", 14f, UTKColor.TextPrimary);
+                text.Add(name);
+                var mats = MakeLabel(DescribeMats(recipe), 11f, UTKColor.TextSecondary);
+                text.Add(mats);
+                row.Add(text);
+                var captured = recipe;
                 row.RegisterCallback<PointerDownEvent>(evt =>
                 {
-                    if (evt.button == 0) AutoFill(captured);
+                    if (evt.button != 0) return;
+                    _selected = captured;
+                    _hasSelection = true;
+                    AutoFill(captured);
+                    RefreshDetail(captured);
                 });
                 _book.Add(row);
             }
         }
 
-        private static int CountOf(BenchRecipe r, int matIndex)
+        private string DescribeMats(BenchRecipe recipe)
         {
-            // 슬롯 배치는 "재료 1개 = 슬롯 1칸" 방식이라 필요 수 = 그 재료가 등장하는 칸 수
-            int count = 0;
-            foreach (var m in r.MatIds)
-                if (m == r.MatIds[matIndex]) count++;
-            return count;
-        }
-
-        private string DescribeMats(BenchRecipe r)
-        {
-            var sb = new System.Text.StringBuilder();
+            var pieces = new List<string>();
             var seen = new List<string>();
-            foreach (var m in r.MatIds)
+            if (recipe.MatIds == null) return "재료 정보 없음";
+            foreach (var id in recipe.MatIds)
             {
-                if (string.IsNullOrEmpty(m) || seen.Contains(m)) continue;
-                seen.Add(m);
-                int need = 0;
-                foreach (var x in r.MatIds) if (x == m) need++;
-                var item = PlayerInventory.GetItemById(m);
-                string n = item != null ? item.displayName : m;
-                if (sb.Length > 0) sb.Append(", ");
-                sb.Append($"{n} x{need}");
+                if (string.IsNullOrEmpty(id) || seen.Contains(id)) continue;
+                seen.Add(id);
+                int count = 0;
+                foreach (var candidate in recipe.MatIds) if (candidate == id) count++;
+                pieces.Add(IngredientDisplayName(id) + " x" + count);
             }
-            return sb.Length > 0 ? sb.ToString() : "재료 없음";
+            return pieces.Count == 0 ? "재료 정보 없음" : string.Join(" · ", pieces);
         }
 
-        // ─────────────────────────── 슬롯 조작 ───────────────────────────
-
-        /// <summary>슬롯 좌클릭 — 인벤의 배치 가능 아이템 순환(재료 후보 = 레시피에 등장하는 아이템).</summary>
-        private void CyclePlace(int idx)
+        private void CyclePlace(int index)
         {
             var candidates = IngredientCandidates();
-            if (candidates.Count == 0) { _status.text = "배치할 재료가 인벤토리에 없습니다."; return; }
-
-            string current = _placed[idx];
-            int start = current != null ? candidates.FindIndex(c => c == current) + 1 : 0;
-            for (int k = 0; k < candidates.Count; k++)
+            if (candidates.Count == 0) { _status.text = "배치할 레시피 재료가 플레이어 인벤토리에 없습니다."; return; }
+            int start = _placed[index] != null ? candidates.FindIndex(c => c == _placed[index]) + 1 : 0;
+            for (int i = 0; i < candidates.Count; i++)
             {
-                string cand = candidates[(start + k) % candidates.Count];
-                _placed[idx] = cand;
-                var item = PlayerInventory.GetItemById(cand);
-                _slots[idx].SetIcon(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null);
+                var id = candidates[(start + i) % candidates.Count];
+                if (!CanPlace(id, index)) continue;
+                _placed[index] = id;
+                SetSlotIcon(index, id);
                 RefreshMatch();
                 return;
             }
         }
 
-        private void ClearSlot(int idx)
+        private void PlaceFromStorage(string itemId)
         {
-            _placed[idx] = null;
-            _slots[idx].SetIcon(null);
+            for (int i = 0; i < SlotCount; i++)
+            {
+                if (!string.IsNullOrEmpty(_placed[i])) continue;
+                if (!CanPlace(itemId, i)) break;
+                _placed[i] = itemId;
+                SetSlotIcon(i, itemId);
+                RefreshMatch();
+                return;
+            }
+            _status.text = "빈 재료 슬롯이 없거나 이 아이템은 현재 레시피 재료가 아닙니다.";
+        }
+
+        private bool CanPlace(string itemId, int targetIndex)
+        {
+            var inv = PlayerInventory.Instance;
+            if (inv == null || inv.GetItemCount(itemId) <= 0) return false;
+            int alreadyPlaced = 0;
+            for (int i = 0; i < _placed.Length; i++) if (_placed[i] == itemId) alreadyPlaced++;
+            return alreadyPlaced < inv.GetItemCount(itemId);
+        }
+
+        private void SetSlotIcon(int index, string itemId)
+        {
+            var item = PlayerInventory.GetItemById(itemId);
+            _slots[index].SetIcon(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null);
+        }
+
+        private void ClearSlot(int index)
+        {
+            _placed[index] = null;
+            _slots[index].SetIcon(null);
             RefreshMatch();
         }
 
         private void ClearAllSlots()
         {
-            for (int i = 0; i < SlotCount; i++) ClearSlot(i);
-        }
-
-        /// <summary>배치 가능 아이템 = 레시피 북에 등장하는 재료 중 인벤에 있는 것 (ID 중복 제거).</summary>
-        private List<string> IngredientCandidates()
-        {
-            var inv = PlayerInventory.Instance;
-            var set = new List<string>();
-            foreach (var r in Recipes)
+            for (int i = 0; i < SlotCount; i++)
             {
-                foreach (var m in r.MatIds)
-                {
-                    if (string.IsNullOrEmpty(m) || set.Contains(m)) continue;
-                    if (inv != null && inv.GetItemCount(m) > 0) set.Add(m);
-                }
-            }
-            return set;
-        }
-
-        /// <summary>레시피 클릭 — 필요 재료를 인벤에서 차감 없이 자동 배치.</summary>
-        private void AutoFill(BenchRecipe r)
-        {
-            var inv = PlayerInventory.Instance;
-            if (inv == null) return;
-            ClearAllSlots();
-            for (int i = 0; i < r.MatIds.Length && i < SlotCount; i++)
-            {
-                if (string.IsNullOrEmpty(r.MatIds[i])) continue;
-                if (inv.GetItemCount(r.MatIds[i]) <= 0)
-                {
-                    _status.text = $"재료 부족 — {DescribeMats(r)}";
-                    continue;
-                }
-                _placed[i] = r.MatIds[i];
-                var item = PlayerInventory.GetItemById(r.MatIds[i]);
-                _slots[i].SetIcon(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null);
+                _placed[i] = null;
+                _slots[i].SetIcon(null);
             }
             RefreshMatch();
         }
 
-        // ─────────────────────────── 매칭/제작 ───────────────────────────
+        private List<string> IngredientCandidates()
+        {
+            var result = new List<string>();
+            var inventory = PlayerInventory.Instance;
+            if (inventory == null) return result;
+            foreach (var recipe in Recipes)
+            {
+                if (recipe.MatIds == null) continue;
+                foreach (var id in recipe.MatIds)
+                    if (!string.IsNullOrEmpty(id) && !result.Contains(id) && inventory.GetItemCount(id) > 0) result.Add(id);
+            }
+            return result;
+        }
+
+        private void AutoFill(BenchRecipe recipe)
+        {
+            ClearAllSlots();
+            var inventory = PlayerInventory.Instance;
+            if (inventory == null) return;
+            var consumed = new Dictionary<string, int>();
+            for (int i = 0; i < recipe.MatIds.Length && i < SlotCount; i++)
+            {
+                string id = recipe.MatIds[i];
+                if (string.IsNullOrEmpty(id)) continue;
+                consumed.TryGetValue(id, out int used);
+                if (inventory.GetItemCount(id) <= used)
+                {
+                    _status.text = "재료 부족 — " + DescribeMats(recipe);
+                    continue;
+                }
+                _placed[i] = id;
+                consumed[id] = used + 1;
+                SetSlotIcon(i, id);
+            }
+            RefreshMatch();
+        }
 
         private void RefreshMatch()
         {
             var placed = new List<string>();
-            for (int i = 0; i < SlotCount; i++)
-                if (!string.IsNullOrEmpty(_placed[i])) placed.Add(_placed[i]);
-
+            foreach (var id in _placed) if (!string.IsNullOrEmpty(id)) placed.Add(id);
             _craftable = false;
             _matched = default;
             _resultSlot.SetIcon(null);
             _resultSlot.SetRank("common");
             _resultLabel.text = "";
-
-            if (placed.Count == 0) { _status.text = "재료를 배치하거나 레시피를 클릭하세요."; return; }
-
-            foreach (var r in Recipes)
+            _rate.text = "";
+            if (placed.Count == 0)
+            {
+                _status.text = "재료를 배치하거나 레시피를 선택하세요.";
+                _craftButton.SetEnabled(false);
+                return;
+            }
+            foreach (var recipe in Recipes)
             {
                 var need = new List<string>();
-                foreach (var m in r.MatIds) if (!string.IsNullOrEmpty(m)) need.Add(m);
-                if (need.Count != placed.Count) continue;
-
-                var pool = new List<string>(placed);
-                bool all = true;
-                foreach (var n in need)
+                if (recipe.MatIds != null) foreach (var id in recipe.MatIds) if (!string.IsNullOrEmpty(id)) need.Add(id);
+                if (!SameMultiset(need, placed)) continue;
+                _matched = recipe;
+                _craftable = true;
+                _selected = recipe;
+                _hasSelection = true;
+                var item = GetResultItemData(recipe);
+                bool discovered = IsDiscovered(recipe);
+                if (discovered)
                 {
-                    int idx = pool.FindIndex(p => p == n);
-                    if (idx < 0) { all = false; break; }
-                    pool.RemoveAt(idx);
+                    _resultSlot.SetIcon(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null);
+                    _resultSlot.SetRank(item != null ? UTKRarity.ClassForIndex((int)item.rarity) : "common");
+                    _resultLabel.text = recipe.ResultName;
+                    _rate.text = RateHint(recipe);
+                    _status.text = "제작 가능 — " + recipe.ResultName;
                 }
-                if (all && pool.Count == 0)
+                else
                 {
-                    _matched = r;
-                    _craftable = true;
-                    var item = PlayerInventory.GetItemById(r.ResultId);
-                    // [Milestone D] 발견: 아이콘/이름/확률 표시 / 미발견: "?" 블라인드(성공 시 레시피 획득)
-                    if (IsDiscovered(r))
-                    {
-                        _resultSlot.SetIcon(item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null);
-                        _resultSlot.SetRank(item != null ? UTKRarity.ClassForIndex((int)item.rarity) : "common");
-                        _resultLabel.text = r.ResultName
-                            + (string.IsNullOrEmpty(r.Note) ? "" : $"\n{r.Note}")
-                            + (string.IsNullOrEmpty(RateHint(r)) ? "" : $"  {RateHint(r)}");
-                        _status.text = $"제작 가능 — 클릭하여 {r.ResultName} 제작 ({RateHint(r)})";
-                    }
-                    else
-                    {
-                        _resultSlot.SetIcon(null);
-                        _resultSlot.SetRank("common");
-                        _resultLabel.text = "?  정체불명의 조합 — 제작 성공 시 레시피를 획득합니다.";
-                        _status.text = "제작 가능 — 성공 시 레시피를 획득합니다";
-                    }
-                    return;
+                    _resultLabel.text = "?";
+                    _status.text = "제작 가능 — 성공 시 레시피를 획득합니다.";
                 }
+                _craftButton.SetEnabled(true);
+                RefreshDetail(recipe);
+                return;
             }
             _status.text = "일치하는 제작법이 없습니다.";
+            _craftButton.SetEnabled(false);
+            if (_hasSelection) RefreshDetail(_selected);
+        }
+
+        private static bool SameMultiset(List<string> first, List<string> second)
+        {
+            if (first.Count != second.Count) return false;
+            var pool = new List<string>(second);
+            foreach (var item in first)
+            {
+                int index = pool.FindIndex(candidate => candidate == item);
+                if (index < 0) return false;
+                pool.RemoveAt(index);
+            }
+            return pool.Count == 0;
+        }
+
+        private void RefreshDetail(BenchRecipe recipe)
+        {
+            var item = GetResultItemData(recipe);
+            string name = IsDiscovered(recipe) ? recipe.ResultName : "미확인 레시피";
+            _detailName.text = name;
+            _detailRarity.text = item != null ? item.rarity.ToString().ToUpperInvariant() : recipe.rarity.ToString().ToUpperInvariant();
+            _detailImage.style.backgroundImage = item != null
+                ? UTKTextureSafe.ToBackground(ItemIconDatabase.GetOrCreateIcon(item))
+                : null;
+            var lines = new List<string>();
+            if (item != null && !string.IsNullOrEmpty(item.description)) lines.Add(item.description);
+            if (!string.IsNullOrEmpty(recipe.Note)) lines.Add(recipe.Note);
+            lines.Add("필요 재료: " + DescribeMats(recipe));
+            string rate = RateHint(recipe);
+            if (!string.IsNullOrEmpty(rate)) lines.Add(rate);
+            if (item == null) lines.Add("결과 아이템 상세 데이터는 등록되어 있지 않습니다.");
+            _detailDescription.text = string.Join("\n\n", lines);
+        }
+
+        private void RefreshStorage()
+        {
+            var inventory = PlayerInventory.Instance;
+            var all = inventory != null ? inventory.GetAllSlots() : null;
+            int occupied = 0;
+            if (all != null)
+                foreach (var entry in all) if (entry != null && entry.item != null && entry.count > 0) occupied++;
+            _storageStats.text = "사용 슬롯: " + occupied + " / " + (all != null ? all.Length : 0);
+            _storageSourceLabel.text = StorageSource;
+            for (int i = 0; i < _storageCells.Length; i++) _storageCells[i].Clear();
+            if (all == null) return;
+            int visible = Mathf.Min(StorageCellCount, all.Length);
+            for (int i = 0; i < visible; i++)
+            {
+                var entry = all[i];
+                if (entry == null || entry.item == null || entry.count <= 0) continue;
+                int capturedIndex = i;
+                var slot = new UTKSlot { name = "craft-bench-storage-item-" + i };
+                slot.style.position = Position.Absolute;
+                slot.style.left = slot.style.top = 0f;
+                slot.style.width = Length.Percent(100f);
+                slot.style.height = Length.Percent(100f);
+                slot.style.marginLeft = slot.style.marginRight = slot.style.marginTop = slot.style.marginBottom = 0f;
+                slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(entry.item));
+                slot.SetCount(entry.count);
+                slot.SetRank(UTKRarity.ClassForIndex((int)entry.item.rarity));
+                slot.tooltip = entry.item.displayName;
+                string itemId = entry.item.id;
+                slot.RegisterCallback<PointerDownEvent>(evt => { if (evt.button == 0) PlaceFromStorage(itemId); });
+                _storageCells[capturedIndex].Add(slot);
+            }
         }
 
         private void ExecuteCraft()
         {
             if (!_craftable) return;
             var placed = new List<string>();
-            for (int i = 0; i < SlotCount; i++)
-                if (!string.IsNullOrEmpty(_placed[i])) placed.Add(_placed[i]);
-
-            if (TryCraft(_matched, placed, out string msg))
+            foreach (var id in _placed) if (!string.IsNullOrEmpty(id)) placed.Add(id);
+            if (TryCraft(_matched, placed, out string message))
             {
-                _status.text = msg;
                 OnCraftSuccess();
+                _status.text = message;
             }
             else
             {
-                _status.text = msg;
-                // 실패(재료 소모 포함) — 슬롯 상태를 실제 인벤 기준으로 재정리
                 RefreshMatch();
+                _status.text = message;
             }
             RebuildBook();
+            RefreshStorage();
         }
     }
 }
