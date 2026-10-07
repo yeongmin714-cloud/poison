@@ -38,11 +38,26 @@ namespace ProjectName.UI.Toolkit
             _instance.OpenForBasket(basket);
         }
 
-        // ===== 설정 (Figma loot-panel 420x360, 그리드 5열) =====
+        // ===== 설정 (Figma node 70:5; centered in 1920x1080 canvas) =====
         private const long RefreshMs = 250L;
-        private const int GridColumns = 5;   // Figma 5열
-        private const float SlotSize = 68f;  // Figma 슬롯 68×68
-        private const float SlotGap = 8f;    // Figma 그리드 간격 8
+        public const int GridColumns = 5;
+        public const int VisibleSlotCount = 10;
+        public const float SlotSize = 81.6f;
+        public const float SlotGap = 9.6f;
+        public const float GridViewportHeight = 172.8f;
+        public static readonly Rect FigmaBounds = new Rect(708f, 324f, 504f, 432f);
+        public static int GetRenderedSlotCount(int itemCount) => Mathf.Max(VisibleSlotCount, itemCount);
+        public static int GetOverflowSlotCount(int itemCount) => Mathf.Max(0, itemCount - VisibleSlotCount);
+        public static float GetGridContentHeight(int renderedSlotCount)
+        {
+            int rows = (Mathf.Max(0, renderedSlotCount) + GridColumns - 1) / GridColumns;
+            return rows * SlotSize + Mathf.Max(0, rows - 1) * SlotGap;
+        }
+        public static float GetGridSlotBottomMargin(int slotOrdinal, int renderedSlotCount)
+        {
+            bool hasFollowingRow = slotOrdinal / GridColumns < (renderedSlotCount - 1) / GridColumns;
+            return hasFollowingRow ? SlotGap : 0f;
+        }
 
         /// <summary>등급 테두리 색 — Figma/GitHub-dark 팔레트(4~5=금/3=퍼플/1~2=액센트/0=보조).</summary>
         private static Color RankColor(int rarityIndex)
@@ -109,53 +124,91 @@ namespace ProjectName.UI.Toolkit
         // ===== 레퍼런스 =====
         private ILootBasket _basket;
         private readonly VisualElement _grid;            // 5열 그리드
+        private readonly ScrollView _gridScroll;
         private readonly Label _countLabel;              // "획득 아이템: n / 10"
         private readonly Label _badgeLabel;              // "습득 가능" 배지
         private readonly Label _emptyLabel;
         private readonly Button _acquireAllBtn;          // 풋터 "전부 습득하기"
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
 
-        private LootWindowUTK() : base("🎁 전리품", new Vector2(420f, 360f))
+        private LootWindowUTK() : base("🎁 전리품", new Vector2(504f, 432f), UTKWindowChrome.Frameless)
         {
+            // [Figma 70:4 loot-panel] 프레임리스 단일 패널 — pad 24 / 세로 gap 14.4 / 모서리 L 데칼 /
+            // PanelHeader(전리품+LOOT SECURED+닫기 31.2) / 드래그 핸들=헤더.
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
+            _content.style.paddingLeft = _content.style.paddingRight = 24f;
+            _content.style.paddingTop = _content.style.paddingBottom = 24f;
+            AddCornerDecals(this);
 
-            // ── 서브헤더: 좌측 "습득 가능" 배지 + 우측 카운트 ──
-            var subHeader = new VisualElement();
-            subHeader.style.flexDirection = FlexDirection.Row;
-            subHeader.style.justifyContent = Justify.SpaceBetween;
-            subHeader.style.alignItems = Align.Center;
-            subHeader.style.marginBottom = 6f;
-            _content.Add(subHeader);
+            // ── PanelHeader 456×48 ──
+            var panelHeader = new VisualElement { name = "LootPanelHeader" };
+            panelHeader.style.flexDirection = FlexDirection.Row;
+            panelHeader.style.alignItems = Align.Center;
+            panelHeader.style.height = 48f;
+            panelHeader.style.minHeight = 48f;
+            panelHeader.style.flexShrink = 0f;
+            panelHeader.Add(MkTextLabel("전리품", 20f, UTKTheme.TextMain));
+            var lootSub = MkTextLabel("LOOT SECURED", 11f, UTKTheme.TextSub);
+            lootSub.style.marginLeft = 12f;
+            lootSub.style.marginTop = 5f;
+            lootSub.style.flexGrow = 1f;
+            panelHeader.Add(lootSub);
+            var headerClose = new Button(Hide) { text = "×", name = "LootHeaderCloseButton" };
+            headerClose.style.width = 31.2f;
+            headerClose.style.height = 31.2f;
+            headerClose.style.flexShrink = 0f;
+            StyleButton(headerClose, UTKButton.Variant.Secondary);
+            panelHeader.Add(headerClose);
+            _content.Add(panelHeader);
+            SetDragHandle(panelHeader);
 
-            _badgeLabel = new Label("습득 가능");
+            // ── LootStats 456×26.6: '습득 가능' 배지(pad 9.6/4.8) + 우측 "획득 아이템: n / 10" ──
+            var stats = new VisualElement { name = "LootStats" };
+            stats.style.flexDirection = FlexDirection.Row;
+            stats.style.alignItems = Align.Center;
+            stats.style.height = 26.6f;
+            stats.style.minHeight = 26.6f;
+            stats.style.flexShrink = 0f;
+            stats.style.marginBottom = 14.4f;
+            _content.Add(stats);
+
+            _badgeLabel = new Label("습득 가능") { name = "LootBadge" };
             _badgeLabel.style.backgroundColor = UTKTheme.Accent;
             _badgeLabel.style.color = UTKTheme.BgBase;
             _badgeLabel.style.fontSize = 12f;
             _badgeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _badgeLabel.style.paddingTop = 2f;
-            _badgeLabel.style.paddingBottom = 2f;
-            _badgeLabel.style.paddingLeft = 8f;
-            _badgeLabel.style.paddingRight = 8f;
+            _badgeLabel.style.paddingTop = 4.8f;
+            _badgeLabel.style.paddingBottom = 4.8f;
+            _badgeLabel.style.paddingLeft = 9.6f;
+            _badgeLabel.style.paddingRight = 9.6f;
             _badgeLabel.style.borderTopLeftRadius = 4f;
             _badgeLabel.style.borderTopRightRadius = 4f;
             _badgeLabel.style.borderBottomLeftRadius = 4f;
             _badgeLabel.style.borderBottomRightRadius = 4f;
-            subHeader.Add(_badgeLabel);
+            stats.Add(_badgeLabel);
 
             _countLabel = new Label("");
-            _countLabel.style.fontSize = 13f;
+            _countLabel.style.fontSize = 12f;
             _countLabel.style.color = new StyleColor(UTKTheme.TextSub);
-            subHeader.Add(_countLabel);
+            _countLabel.style.unityTextAlign = TextAnchor.MiddleRight;
+            _countLabel.style.flexGrow = 1f;
+            stats.Add(_countLabel);
 
-            // ── 그리드 본문 (5열 wrap) ──
-            _grid = new VisualElement();
+            // ── 그리드 본문 (5열 wrap, 로직 무수정) ──
+            _gridScroll = new ScrollView(ScrollViewMode.Vertical);
+            _gridScroll.name = "LootGridScroll";
+            _gridScroll.style.height = GridViewportHeight;
+            _gridScroll.style.minHeight = GridViewportHeight;
+            _gridScroll.style.maxHeight = GridViewportHeight;
+            _gridScroll.style.flexShrink = 0f;
+            _grid = _gridScroll.contentContainer;
             _grid.name = "LootGrid";
             _grid.style.flexDirection = FlexDirection.Row;
             _grid.style.flexWrap = Wrap.Wrap;
-            _grid.style.marginTop = 4f;
-            _grid.style.flexGrow = 1f;
-            _content.Add(_grid);
+            _grid.style.alignContent = Align.FlexStart;
+            _grid.style.width = 456f;
+            _content.Add(_gridScroll);
 
             _emptyLabel = new Label("(전리품이 없습니다)");
             _emptyLabel.style.fontSize = 14f;
@@ -163,38 +216,70 @@ namespace ProjectName.UI.Toolkit
             _emptyLabel.style.marginTop = 12f;
             _content.Add(_emptyLabel);
 
-            // ── 풋터: "전부 습득하기" + "닫기" ──
-            var footer = new VisualElement();
+            // ── LootFooter [Figma 456×61.2, gap 9.6]: 전부 습득 222×46.8 + 닫기 224.4×46.8 ──
+            var footer = new VisualElement { name = "LootFooter" };
             footer.style.flexDirection = FlexDirection.Row;
-            footer.style.marginTop = 8f;
-            footer.style.paddingTop = 6f;
-            footer.style.borderTopWidth = 1f;
-            footer.style.borderTopColor = new StyleColor(UTKTheme.Stroke);
+            footer.style.alignItems = Align.Center;
+            footer.style.marginTop = 14.4f;
+            footer.style.flexShrink = 0f;
             _content.Add(footer);
 
             _acquireAllBtn = new Button(AcquireAll);
             _acquireAllBtn.text = "전부 습득하기";
-            _acquireAllBtn.style.flexGrow = 1f;
-            _acquireAllBtn.style.height = 32f;
-            _acquireAllBtn.style.marginRight = 8f;
+            _acquireAllBtn.style.width = 222f;
+            _acquireAllBtn.style.height = 46.8f;
+            _acquireAllBtn.style.marginRight = 9.6f;
             StyleButton(_acquireAllBtn, UTKButton.Variant.Primary);
             footer.Add(_acquireAllBtn);
 
             var closeBtnFooter = new Button(Hide);
             closeBtnFooter.text = "닫기";
-            closeBtnFooter.style.flexGrow = 1f;
-            closeBtnFooter.style.height = 32f;
+            closeBtnFooter.style.width = 224.4f;
+            closeBtnFooter.style.height = 46.8f;
             StyleButton(closeBtnFooter, UTKButton.Variant.Secondary);
             footer.Add(closeBtnFooter);
 
             ApplyUIToolkitFont(this);
-            var titleBar = this.Q("TitleBar");
-            UTKTheme.ApplyWindowChrome(this, titleBar, _content);
+            // [Figma] 창 본체 = 단일 패널 크롬(프레임리스) — 표준 타이틀바 대신 수동 패널 스타일
+            style.backgroundColor = new StyleColor(UTKTheme.Panel);
             style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            style.borderTopLeftRadius = style.borderTopRightRadius = style.borderBottomLeftRadius = style.borderBottomRightRadius = 8f;
 
             style.display = DisplayStyle.None;
-            style.left = 16f;   // Show()에서 우측 배치로 덮어씀
-            style.top = 10f;
+            style.left = FigmaBounds.x;
+            style.top = FigmaBounds.y;
+        }
+
+        /// <summary>[Figma 70:4] 패널 4모서리 L자 데칼(12선, 14.4 영역) — 시각 전용.</summary>
+        private static void AddCornerDecals(VisualElement host)
+        {
+            float w = FigmaBounds.width, h = FigmaBounds.height;
+            void Line(float left, float top, float lw, float lh)
+            {
+                var l = new VisualElement();
+                l.style.position = Position.Absolute;
+                l.style.left = left;
+                l.style.top = top;
+                l.style.width = lw;
+                l.style.height = lh;
+                l.style.backgroundColor = new StyleColor(UTKTheme.Stroke);
+                l.pickingMode = PickingMode.Ignore;
+                host.Add(l);
+            }
+            Line(0f, 0f, 12f, 1f); Line(0f, 0f, 1f, 12f);                       // TL
+            Line(w - 12f, 0f, 12f, 1f); Line(w - 1f, 0f, 1f, 12f);              // TR
+            Line(0f, h - 1f, 12f, 1f); Line(0f, h - 12f, 1f, 12f);              // BL
+            Line(w - 12f, h - 1f, 12f, 1f); Line(w - 1f, h - 12f, 1f, 12f);     // BR
+        }
+
+        private static Label MkTextLabel(string text, float size, Color color)
+        {
+            var l = new Label(text ?? "");
+            l.style.fontSize = size;
+            l.style.color = new StyleColor(color);
+            return l;
         }
 
         // =====================================================================
@@ -228,7 +313,7 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            ApplyRightPlacement();
+            ApplyFigmaPlacement(root);
             StartRefreshLoop();
             RefreshGrid();
             Debug.Log("[LootUTK] 전리품 창 열림 (" + (_basket != null ? _basket.BasketName : "?") + ")");
@@ -254,16 +339,10 @@ namespace ProjectName.UI.Toolkit
             _basket = null;
         }
 
-        /// <summary>우측 배치 — 화면 2/3 + 6 (원본 GetContextX(WINDOW_WIDTH) 관례), 높이 Screen-180</summary>
-        private void ApplyRightPlacement()
+        private void ApplyFigmaPlacement(VisualElement root)
         {
-            var root = UIToolkitBootstrap.UIRoot;
-            float sw = root != null ? root.worldBound.width : 1920f;
-            float sh = root != null ? root.worldBound.height : 1080f;
-            style.left = sw * 2f / 3f + 6f;
-            style.top = 10f;
-            style.width = sw / 3f - 12f;
-            style.height = sh - 180f;
+            if (root != null)
+                FigmaCanvasLayout.Apply(this, FigmaBounds, root);
         }
 
         // =====================================================================
@@ -313,28 +392,59 @@ namespace ProjectName.UI.Toolkit
 
             var items = _basket.Items;
             int total = items != null ? items.Count : 0;
+            int validOverflowCount = 0;
+            for (int i = VisibleSlotCount; i < total; i++)
+            {
+                var entry = items[i];
+                if (entry != null && entry.Item != null && entry.Count > 0)
+                    validOverflowCount++;
+            }
+            int renderedSlotCount = VisibleSlotCount + validOverflowCount;
 
             _grid.Clear();
 
-            for (int i = 0; i < total; i++)
+            for (int i = 0; i < VisibleSlotCount; i++)
+            {
+                if (items != null && i < total && items[i] != null && items[i].Item != null && items[i].Count > 0)
+                    _grid.Add(BuildSlot(items[i], i, i, renderedSlotCount));
+                else
+                    _grid.Add(BuildEmptySlot(i, renderedSlotCount));
+            }
+            for (int i = VisibleSlotCount; i < total; i++)
             {
                 var entry = items[i];
                 if (entry == null || entry.Item == null || entry.Count <= 0) continue;
-                _grid.Add(BuildSlot(entry, i));
+                _grid.Add(BuildSlot(entry, i, _grid.childCount, renderedSlotCount));
             }
 
             _countLabel.text = "획득 아이템: " + total + " / 10";
             Debug.Log("[LootUTK] 바구니 그리드 갱신: " + total + "개 항목");
         }
 
-        private VisualElement BuildSlot(LootEntry entry, int index)
+        private VisualElement BuildEmptySlot(int index, int renderedSlotCount)
         {
-            var slot = new VisualElement();
-            slot.name = "LootSlot_" + index;
+            var slot = new VisualElement { name = "LootSlotEmpty_" + index };
             slot.style.width = SlotSize;
             slot.style.height = SlotSize;
             slot.style.marginRight = SlotGap;
-            slot.style.marginBottom = SlotGap;
+            slot.style.marginBottom = GetGridSlotBottomMargin(index, renderedSlotCount);
+            slot.style.backgroundColor = UTKTheme.BgBase;
+            slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = 1f;
+            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            slot.style.borderTopLeftRadius = slot.style.borderTopRightRadius = 6f;
+            slot.style.borderBottomLeftRadius = slot.style.borderBottomRightRadius = 6f;
+            slot.pickingMode = PickingMode.Ignore;
+            return slot;
+        }
+
+        private VisualElement BuildSlot(LootEntry entry, int itemIndex, int slotOrdinal, int renderedSlotCount)
+        {
+            var slot = new VisualElement();
+            slot.name = "LootSlot_" + itemIndex;
+            slot.style.width = SlotSize;
+            slot.style.height = SlotSize;
+            slot.style.marginRight = SlotGap;
+            slot.style.marginBottom = GetGridSlotBottomMargin(slotOrdinal, renderedSlotCount);
             slot.style.alignItems = Align.Center;
             slot.style.justifyContent = Justify.Center;
             ApplyDarkSlotStyle(slot, (int)entry.Item.rarity);   // [GitHub-dark] 슬롯 + 등급 상단 테두리
@@ -360,7 +470,8 @@ namespace ProjectName.UI.Toolkit
             slot.Add(countLabel);
 
             // ② 슬롯 드래그 소스 (좌클릭) + 좌클릭 획득 없음/우클릭 획득
-            UTKDragDrop.MakeDraggable(slot, () => MakePayload(index, entry.Item), null, () => TakeLootRow(index));
+            // Overflow cells retain their basket index for drag and acquisition actions.
+            UTKDragDrop.MakeDraggable(slot, () => MakePayload(itemIndex, entry.Item), null, () => TakeLootRow(itemIndex));
 
             return slot;
         }
