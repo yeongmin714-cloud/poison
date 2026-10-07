@@ -314,11 +314,9 @@ namespace ProjectName.UI.Toolkit
             panel.style.height = bounds.height;
             panel.style.flexDirection = FlexDirection.Column;
             panel.style.overflow = Overflow.Hidden;
-            panel.style.backgroundColor = new StyleColor(GitHubDark.Panel);
-            panel.style.borderTopWidth = panel.style.borderBottomWidth = panel.style.borderLeftWidth = panel.style.borderRightWidth = 1f;
-            panel.style.borderTopColor = panel.style.borderBottomColor = panel.style.borderLeftColor = panel.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            UTKTheme.ApplyFigmaGlass(panel);   // [Figma 글래스] #161B22@0.85(사용자 조정) + #30363D@0.5 1.2px + r14.4
             panel.style.paddingLeft = panel.style.paddingRight = 24f;
-            panel.style.paddingTop = panel.style.paddingBottom = 18f;
+            panel.style.paddingTop = panel.style.paddingBottom = 24f;   // [Figma] 패널 pad 24
             return panel;
         }
 
@@ -335,8 +333,10 @@ namespace ProjectName.UI.Toolkit
             header.style.alignItems = Align.Center;
             header.style.height = 52.8f;
             header.style.minHeight = 52.8f;
-            header.Add(MkLabel("상태 정보", 20, GitHubDark.TextMain, TextAnchor.MiddleLeft));
-            var headerSub = MkLabel("CHARACTER STATUS", 11, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var statusTitle = MkLabel("상태 정보", UTKTheme.FontTitleLarge, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 24/700
+            statusTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            header.Add(statusTitle);
+            var headerSub = MkLabel("CHARACTER STATUS", UTKTheme.FontSubtitle, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 13.2/500
             headerSub.style.marginLeft = 12f;
             headerSub.style.marginTop = 5f;
             headerSub.style.flexGrow = 1f;
@@ -364,11 +364,13 @@ namespace ProjectName.UI.Toolkit
             identity.style.height = 85f;   // [Figma Identity 528×85] 흐름 체인 유지 — Portrait 200.2 착좌
             left.Add(identity);
 
-            _identityTitleLabel = MkLabel(GetTitleDisplay(), 11, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            _identityTitleLabel = MkLabel(GetTitleDisplay(), UTKTheme.FontRowLabel, GitHubDark.Gold, TextAnchor.MiddleLeft);   // [Figma] 15.6/700(등급색 유지)
+            _identityTitleLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             StyleBadge(_identityTitleLabel);
             identity.Add(_identityTitleLabel);
 
-            _identityLevelLabel = MkLabel("Lv.-", 11, GitHubDark.Accent, TextAnchor.MiddleLeft);
+            _identityLevelLabel = MkLabel("Lv.-", UTKTheme.FontRowLabel, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [Figma] 15.6/700
+            _identityLevelLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _identityLevelLabel.style.marginLeft = 6f;
             StyleBadge(_identityLevelLabel);
             identity.Add(_identityLevelLabel);
@@ -385,7 +387,7 @@ namespace ProjectName.UI.Toolkit
             viewport.AddToClassList("utk-slot");
             ApplyDarkSlotStyle(viewport);   // [GitHub-dark] 우드 배경 제거 → 다크 인셋 패널
             viewport.style.height = 312f;   // [Figma Portrait 528×312]
-            var vpLabel = MkLabel("3D 미리보기", 15, GitHubDark.TextSub, TextAnchor.MiddleCenter);
+            var vpLabel = MkLabel("3D 미리보기", UTKTheme.FontBody, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [Figma] 14.4/400
             viewport.Add(vpLabel);
             left.Add(viewport);
 
@@ -455,10 +457,13 @@ namespace ProjectName.UI.Toolkit
             levelBlock.style.marginRight = 24f;
             statsRow.Add(levelBlock);
 
-            levelBlock.Add(MkLabel("LEVEL", 11, GitHubDark.TextSub, TextAnchor.MiddleCenter));
-            _levelBlockValueLabel = MkLabel("1", 30, GitHubDark.TextMain, TextAnchor.MiddleCenter);
+            var lvCaption = MkLabel("LEVEL", UTKTheme.FontBadge, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [Figma] 12/400
+            lvCaption.style.unityFontStyleAndWeight = FontStyle.Normal;
+            levelBlock.Add(lvCaption);
+            _levelBlockValueLabel = MkLabel("1", UTKTheme.FontBigNumber, GitHubDark.Accent, TextAnchor.MiddleCenter);   // [Figma] 38.4/800 #58A6FF
+            _levelBlockValueLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             levelBlock.Add(_levelBlockValueLabel);
-            _expPercentLabel = MkLabel("EXP 0%", 12, GitHubDark.Gold, TextAnchor.MiddleCenter);
+            _expPercentLabel = MkLabel("EXP 0%", UTKTheme.FontSubtitle, GitHubDark.Gold, TextAnchor.MiddleCenter);   // [Figma] 13.2/500
             _expPercentLabel.style.marginTop = 6f;
             levelBlock.Add(_expPercentLabel);
 
@@ -480,7 +485,7 @@ namespace ProjectName.UI.Toolkit
                 row.style.alignItems = Align.Center;
                 row.style.height = 22f;   // [Figma StatsGrid 행 22]
 
-                var name = MkLabel(_coreStatNames[i], 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+                var name = MkLabel(_coreStatNames[i], UTKTheme.FontRowLabel, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 15.6/500
                 name.name = "CoreStat_" + new[] { "Attack", "Defense", "MaxHealth", "Agility" }[i];
                 name.style.width = 72f;
                 row.Add(name);
@@ -492,7 +497,8 @@ namespace ProjectName.UI.Toolkit
                 vsep.style.marginRight = 10f;
                 row.Add(vsep);
 
-                _coreValueLabels[i] = MkLabel("-", 14, GitHubDark.TextMain, TextAnchor.MiddleRight);
+                _coreValueLabels[i] = MkLabel("-", UTKTheme.FontRowValue, GitHubDark.Accent, TextAnchor.MiddleRight);   // [Figma] 16.8/700 #58A6FF
+                _coreValueLabels[i].style.unityFontStyleAndWeight = FontStyle.Bold;
                 _coreValueLabels[i].style.flexGrow = 1f;
                 row.Add(_coreValueLabels[i]);
 
@@ -512,7 +518,9 @@ namespace ProjectName.UI.Toolkit
             AddSep(left, 12f, 10f);
             _figSpecialSection = new VisualElement { name = "SpecialStatsSection" };
             _figSpecialSection.style.flexDirection = FlexDirection.Column;
-            _figSpecialSection.Add(MkLabel("특수 상태", 14, GitHubDark.Gold, TextAnchor.MiddleLeft));
+            var specialTitle = MkLabel("특수 상태", UTKTheme.FontTab, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 14.4/700 #8B949E
+            specialTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _figSpecialSection.Add(specialTitle);
 
             // 게이지1: 허기 — Figma '호감도' 자리는 플레이어 실존 '허기'(HungerSystem)로 대체 [O10 동일 소스]
             var figHunger = BuildCompactGauge("허기", GitHubDark.Accent);
@@ -535,8 +543,8 @@ namespace ProjectName.UI.Toolkit
             _statusPanel.style.top = 72f;
             _statusPanel.style.width = 576f;
             _statusPanel.style.height = 936f;
-            _statusPanel.style.backgroundColor = new StyleColor(GitHubDark.Panel);
-            _statusPanel.style.borderTopWidth = _statusPanel.style.borderBottomWidth = 1f;
+            _statusPanel.style.backgroundColor = new StyleColor(UTKTheme.GlassPanelFill);   // [Figma 글래스 0.85]
+            _statusPanel.style.borderTopWidth = _statusPanel.style.borderBottomWidth = 1.2f;
             _statusPanel.style.borderLeftWidth = _statusPanel.style.borderRightWidth = 1f;
             _statusPanel.style.borderTopColor = _statusPanel.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
             _statusPanel.style.borderLeftColor = _statusPanel.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
@@ -633,12 +641,15 @@ namespace ProjectName.UI.Toolkit
             header.style.height = 52.8f;
             header.style.flexDirection = FlexDirection.Row;
             header.style.alignItems = Align.Center;
-            var title = MkLabel("장착 장비", 20f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            var title = MkLabel("장착 장비", UTKTheme.FontTitleLarge, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 24/700
+            title.style.unityFontStyleAndWeight = FontStyle.Bold;
             header.Add(title);
-            var subtitle = MkLabel("LOADOUT MATRIX", 12f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var subtitle = MkLabel("LOADOUT MATRIX", UTKTheme.FontSubtitle, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 13.2/500
+            subtitle.style.unityFontStyleAndWeight = FontStyle.Normal;
             subtitle.style.marginLeft = 10f;
             header.Add(subtitle);
-            var stable = MkLabel("SYS_EQ_STABLE", 11f, GitHubDark.Health, TextAnchor.MiddleRight);
+            var stable = MkLabel("SYS_EQ_STABLE", UTKTheme.FontBadge, GitHubDark.Health, TextAnchor.MiddleRight);   // [Figma] 12/500
+            stable.style.unityFontStyleAndWeight = FontStyle.Normal;
             stable.style.flexGrow = 1f;
             header.Add(stable);
             content.Add(header);
@@ -653,7 +664,9 @@ namespace ProjectName.UI.Toolkit
             equipped.style.borderLeftWidth = equipped.style.borderRightWidth = 1f;
             equipped.style.borderTopColor = equipped.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
             equipped.style.borderLeftColor = equipped.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            equipped.Add(MkLabel("장착 중인 장비", 15f, GitHubDark.TextMain, TextAnchor.MiddleLeft));
+            var equippedTitle = MkLabel("장착 중인 장비", UTKTheme.FontTitleLarge, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [Figma] 19.2/700 #58A6FF
+            equippedTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            equipped.Add(equippedTitle);
             content.Add(equipped);
 
             // [Figma 84:4] EquipGrid 427.2×172.8 — ItemSlot 81.6×81.6 ×10(5열×2행), gap 4.8(양축).
@@ -680,8 +693,11 @@ namespace ProjectName.UI.Toolkit
             var packHeader = new VisualElement { name = "TacticalPackHeader" };
             packHeader.style.height = 58.2f;
             packHeader.style.flexDirection = FlexDirection.Column;
-            packHeader.Add(MkLabel("전술 배낭", 16f, GitHubDark.TextMain, TextAnchor.MiddleLeft));
-            packHeader.Add(MkLabel("TACTICAL PACK", 11f, GitHubDark.TextSub, TextAnchor.MiddleLeft));
+            var packTitle = MkLabel("전술 배낭", UTKTheme.FontTitleLarge, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 19.2/700
+            packTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            packHeader.Add(packTitle);
+            var packSub = MkLabel("TACTICAL PACK", UTKTheme.FontSubtitle, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 13.2/500
+            packHeader.Add(packSub);
             pack.Add(packHeader);
             var packScroll = new ScrollView(ScrollViewMode.Vertical) { name = "InventoryGridScroll" };
             packScroll.style.height = 465.6f;
@@ -715,7 +731,8 @@ namespace ProjectName.UI.Toolkit
             cell.style.marginRight = column == 4 ? 0f : 4.8f;
             cell.style.marginBottom = row == 1 ? 0f : 4.8f;
 
-            var equip = MkLabel("EQ", 9f, GitHubDark.Accent, TextAnchor.UpperLeft);
+            var equip = MkLabel("EQ", 9.6f, GitHubDark.Accent, TextAnchor.UpperLeft);   // [Figma] 9.6/700
+            equip.style.unityFontStyleAndWeight = FontStyle.Bold;
             equip.name = "EquipBadge_" + slot;
             equip.style.position = Position.Absolute;
             equip.style.left = 4.8f;
@@ -732,8 +749,8 @@ namespace ProjectName.UI.Toolkit
             _equipTierStrips[(int)slot] = strip;
             cell.Add(strip);
 
-            // 중앙 — 장착 아이템명(실존 데이터). Figma 아이콘 영역(21.6,21.6 ~ 60,60) 중앙 정렬.
-            var center = MkLabel("—", 10, GitHubDark.TextMain, TextAnchor.MiddleCenter);
+            // 중앙 — 장착 아이템명(실존 데이터). [Figma] 13.2/500 규격 계열
+            var center = MkLabel("—", UTKTheme.FontSubtitle, GitHubDark.TextMain, TextAnchor.MiddleCenter);
             center.name = "EquippedName_" + slot;
             center.style.position = Position.Absolute;
             center.style.left = 3.8f;
@@ -743,8 +760,9 @@ namespace ProjectName.UI.Toolkit
             _equipSlotLabels[(int)slot] = center;
             cell.Add(center);
 
-            // 하단 슬롯명 — Figma '투구' 라벨 자리(하단 중앙, y=66/높이11)
-            var slotName = MkLabel(label, 11, GitHubDark.TextSub, TextAnchor.MiddleCenter);
+            // 하단 슬롯명 — Figma '투구' 9.6/500 @(하단 중앙)
+            var slotName = MkLabel(label, 9.6f, GitHubDark.TextSub, TextAnchor.MiddleCenter);
+            slotName.style.unityFontStyleAndWeight = FontStyle.Normal;
             slotName.name = "EquipSlotName_" + slot;
             slotName.style.position = Position.Absolute;
             slotName.style.left = 0f;
@@ -776,7 +794,7 @@ namespace ProjectName.UI.Toolkit
             cell.style.alignItems = Align.Center;
             cell.style.justifyContent = Justify.Center;
             cell.pickingMode = PickingMode.Ignore;
-            var label = MkLabel("—", 10, GitHubDark.TextSub, TextAnchor.MiddleCenter);
+            var label = MkLabel("—", UTKTheme.FontSubtitle, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [Figma] 13.2/500
             label.name = "InventoryCellLabel_" + index;
             label.style.whiteSpace = WhiteSpace.Normal;
             cell.Add(label);

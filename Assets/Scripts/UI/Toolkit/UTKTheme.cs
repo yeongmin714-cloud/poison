@@ -158,7 +158,8 @@ namespace ProjectName.UI.Toolkit
         //  fill #161B22@0.7 + stroke #30363D@0.5 1.2px + r14.4 + DROP_SHADOW(y19.2/blur38.4/25%).
         //  ⚠ UI Toolkit 런타임은 BACKGROUND_BLUR 미지원 — 0.7 알파(배경 30% 비침)로 유사 효과만 제공.
         //  =====================================================================
-        public static readonly Color GlassPanelFill = new Color32(0x16, 0x1B, 0x22, 0xB3);   // 0.7 ≈ B3/255
+        // 사용자 조정(2026-10-08): 피그마 0.7보다 "조금 더 불투명" — 0.85. 배경 비침은 15%로 축소.
+        public static readonly Color GlassPanelFill = new Color32(0x16, 0x1B, 0x22, 0xD9);   // 0.85 ≈ D9/255
         public static readonly Color GlassPanelStroke = new Color32(0x30, 0x36, 0x3D, 0x80); // 0.5
         public const float GlassStrokeWidth = 1.2f;
         public const float GlassRadius = 14.4f;
