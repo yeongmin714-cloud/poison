@@ -1,3 +1,86 @@
+## 2026-10-07 Test_15_Livelihood 씬 — 낚시/채광/채집/농경 4활동 검증 씬
+
+## 2026-10-07 Figma 8창 백프로 정합 — 퀘스트창 복구·장비 10슬롯·병사/스테이터스/요리/전리품/저널 정합
+
+- **요청:** "피그마와 백퍼센트 일치하게 모든 ui를 변경" — 새 캡처 8장(전리품/퀘스트저널/연금/창고/요리/상시/병사/스테이터스 ui2) 기준. 방패=Back 실존 슬롯, 반지·목걸이 장비 신설, Telemetry 제외 확정.
+- **근본원인 수리 — 퀘스트창 기능 소실:** QuestWindowUTK의 유일한 열기 경로(Q키 토글)가 커밋 5858bc18(10-01)에서 유실돼 Updater에 escapeKey만 남았었음 → Q키 토글 복구(커밋 a4768a76). Q=3패널 퀘스트 창 / J=저널.
+- **장비 10슬롯:** EquipmentManager.EquipmentSlot 말단에 Ring/Necklace 추가(직렬화 인덱스 0~7 불변, ArmorVisualAttachSystem은 TryGetValue 폴백이라 무비주얼 안전) + StatusWindowUTK 84:4 정합(장비 10슬롯 5×2 81.6/gap4.8+EQ배지+TierStrip=장착 희귀색, PanelHeader '상태 정보'+CloseBtn 31.2 유지 — RemoveFromHierarchy는 Figma CloseBtn 실존과 모순이라 제거, Portrait 312+HudOverlay 상단 44.8, Stats 좌 LevelBlock 120+우 CoreStatsGrid 행22, 특수상태 '특수 상태 게이지/SPECIAL VITALS' 헤더). 인벤 우클릭 해제 가드 (int)slot<=8 → 전 슬롯(신설 슬롯 누락 버그).
+- **병사관리 69:4 노드트리 정합:** 3패널 pad24/gap19.2/모서리 L 데칼, PanelHeader(제목20+영문11, 52.8), SoldierSlot 432×86.4(좌 TierStrip 4.8·아바타 52.8 원형·gap9.6), 상세 HeroHeader 84.6(이름24+국가배지)+ImageFrame 384(3D 미리보기 placeholder)+StatsContainer 236.8(GaugeTrack 9.6·"cur / max" 형식)+TraitSection 98(실존 데이터만 — 모킹 특성 위조 금지), 배치 MissionOption 432×67.2(라디오 21.6·CountBadge 77.2×28.6)+ApplyButton 53.6.
+- **요리 64:2 봉합:** Storage placeholder 전 행 세로 gap 9.6(40슬롯 8행 — 마지막행 0 가정이 틀림), 푸터 값 라벨 "사용 슬롯 기반 N/40"(무게 데이터 없음 — 위조 금지, 인스턴스 부재 시 40 폴백), 상세 패널에 cooking-detail-ingredients 신설(요리 분류/레시피 재료 StatRow 분리). CookingBenchUTK에 '전체' 필터 선언(아카이브 계약).
+- **전리품 70:4:** 표준 타이틀바 → 프레임리스 PanelHeader(전리품+LOOT SECURED+닫기 31.2, 드래그 핸들=헤더), LootStats 26.6, 풋터 버튼 222/224.4×46.8 gap9.6, 데칼·패널 크롬. 그리드/습득 로직 무수정.
+- **퀘스트 저널 93:230 QuestListPanel 재구성:** 620×520 구형 → 480×984@(144,48) 프레임리스, PanelHeader(퀘스트 창+QUEST DECK+닫기), FilterTabs(진행 중/완료 36.2, TabActive=액센트 배경), QuestSlot 432×135.2(TierStrip 좌측 메인=Gold/서브=Accent·CategoryPill 주/부 임무·Lv·목표 요약 1줄+외 N개·GaugeTrack 4.8+%), SummaryFooter. 목표 상세는 Q키 창 소유(중복 제거).
+- **테스트 단정 교정 (구식 기대 → 저장 트리 진실치):** 요리 재료슬롯 64→76.8(64:2 IngredientsGroup), footer 높이 61.2→56, input slot parent[2]→parent[1], SoldierManagement Query 정확-이름→접두사 매칭, CraftBench "CraftingHelper" 위임 계약을 베이스→구상 프로바이더(WeaponForge/AlchemyBench 소스) 검증으로 교정.
+- **검증:** fresh batch compile `error CS 0`(매 단위). Figma focused EditMode **30/30 passed 0 failed**(SoldierManagementFigma69Tests+StatusEquipmentFigma84Tests+CookingWindowFigmaPhase4Tests+CraftBenchFigmaPhase4Tests+ShopLootFigmaPhase3Tests+EquipmentWindowFigmaToggleTests) — 기존 실패 8건(요리 5·스테 1·크래프트 2) 전부 봉합. 로그 `C:/temp/figma_all_232113.*`.
+- **연금술 64:337/HUD 23:6/창고 15:4:** CraftBenchBase 공용 구현(5열 81.6/9.6·StorageStats·푸터)이 베이스 테스트로 검증됨 — 연금은 변형 라벨(연금술 재료/출처)만 오버라이드. HUDUTK(게이지 306.4/468·137.6·gap24)/HotbarUIUTK(96·19.2)는 소스가 이미 아카이브 좌표와 일치 — 런타임 시각 대조는 Play 캡처 게이트로 남김.
+- **커밋 5건:** a4768a76(퀘스트 Q키+저널), eb009a1b(장비 10슬롯+스테이터스), 병사관리(69:4+테스트), 요리 봉합(4파일), 2e701e90(전리품). 파일 지정 add만 — 타 계획 미커밋(가스/활/성내부) 미포함. push는 사용자 지시 대기.
+- **Play 대기(미확인):** 4창+연금/HUD의 1920×1080 Play 캡처 vs Figma 렌더 픽셀 대조 — 소스/테스트 게이트만으로 100% 시각 승인 선언 금지(기존 규약). 스테이터스 장비 10슬롯 실렌더, 저널 카드 게이지, 퀘스트창 Q키 오픈 확인 필요.
+
+---
+
+- **요청:** "씬 하나 더 만들어 낚시 채광 채집 농경이 실제로 가능한지 확인".
+- **씬:** `Assets/Scenes/TestScenes/Test_15_Livelihood.unity` (Test_10 복제 + `.meta` guid 재생성 `5d513a68898a43dc9a45808e83a13b78`). 씬 이름 `Livelihood` 감지 → `TestTerritoryCombatSetup.Awake()`가 `SetupLivelihoodTestScene()` 배치 (기존 Test_10/13/14 무영향).
+- **배치 내용:**
+  - **낚시(신규 `SetupFishingArea`):** ① `FishingSystem` 싱글턴 보장(없으면 별도 GO에 부착) ② `PlayerInventory.FishingRodItem`(id=fishing_rod) 스타터 지급 — FishingSystem.IsNearWater→`HasItem("fishing_rod")` 체크 아이디와 일치(P29 통일안) ③ **Water 태그 원판**(실린더, 원점 남쪽 x=0,z=-22) — `GO.tag="Water"`를 LakeGenerator와 동일하게 try-catch로 설정(미정의 시 침묵 경고). IsNearWater가 플레이어 아래 Water 태그 콜라이더를 Raycast 반경 2.5m로 감지.
+  - **채광:** `SetupMiningNodes()` 재사용 — ResourceNode(Wood/Stone/IronOre) 프리미티브 큐브 3종(리플렉션 `_resourceType` 설정), 농장 center(0,18) 오프셋.
+  - **채집:** `SetupHerbs()` 재사용 — HerbPickup(Red/Purple/Green) 약초 3종(리플렉션 `_herbType` 설정).
+  - **농경:** `SetupFarm()` 재사용 — FarmingManager(or 생성) → `SpawnPlots(East,1,center(0,18), 2x2, 2.5m, Red, 2)` 밭.
+- **기반 재사용:** base Awake의 EnsureGameManager가 이미 FarmingSystem/GatheringSystem/GuardTaskSystem/ContextCommandRouter/ArrowManager를 보장 → 채광·채집·농경 입력/역할 경로 활성화.
+- **검증:** Compile **`error CS 0`** (배치 성공). 기존 `LordsWarVillageSetupTests` **3/3 통과**(회귀 0). 낚시 Water 태그는 TagManager에 "Water" 미정의 시 프리미티브 유지(낚시 미발화 가능) — Play에서 확인 필요.
+- **Play 대기(미확인):** ①물가(z=-22) E키→낚시 미니게임 오픈·물고기 획득 ②광물 좌클릭/접근 채광 ③허브 E키/좌클릭 채집 ④밭 E키 파종→성장→수확.
+- **작업 파일(미커밋):** `TestTerritoryCombatSetup.cs`(SetupLivelihoodTestScene + SetupFishingArea), `Test_15_Livelihood.unity`(+meta). **stage/commit/push 안 함(기록까지만 요청).**
+
+---
+
+## 2026-10-07 플레이어 성 실내(IndoorScene) 막사 배럭 아군 병사 배치 — 후속
+
+- **요청:** "지금 실내씬에 병사가 실제로 보이도록 — 3명 배치, 배럭에 실제 병사 보이도록".
+- **원인:** 플레이어 소유 성(`PlayerCastleInteriorBuilder`)은 IndoorSceneTransition에서 `SpawnInteriorFixtures`(상점/크래프트)만 호출하고, 실내 병사는 `SpawnInteriorDefenseGuards`(**적** 실내 수비병)가 영주 성(`CastleInteriorBuilder`)에서만 스폰되어 플레이어 성 실내엔 병사가 없었음.
+- **구현:**
+  - `TerritoryBuilder`에 공개 static `SpawnInteriorAlliedGuards(GameObject room, string nationStyle, int count=3)` 추가 — 배럭 지휘탁자(BarracksMapTable, authored local(-12.25,0,-14.3) → 2.45배 스케일 후 room 기준 final local(-30,0,-35)) 상대 오프셋으로 아군 3명을 한 줄 배치. 기존 `CreateGuard` 재사용 후 `SetRecruited(true)`(아군) + `HostileToPlayerFaction=false`(플레이어 비적대), 실내 바닥 y 재고정(`room.transform.position.y + 0.05`).
+  - `TerritoryBuilder.NationTypeForStyle(string)` private 헬퍼 추가 (eastern/western/southern/northern/empire → NationType; PlayerCastleInteriorBuilder와 동일 키).
+  - `IndoorSceneTransition` castle 분기: 플레이어 소유 성일 때 `SpawnInteriorFixtures` 뒤에 `SpawnInteriorAlliedGuards(hqRoom, nation)` 호출 추가(영주 성엔 기존 적 수비병 경로 유지).
+- **함정 해결:** ① `Transform.gameObject` 프로퍼티가 이 엔진 구문에서 CS1002 → `room.transform.position + 상대 오프셋` 방식으로 변환(Transform 체이닝 회피). ② `Vector3 base` 변수명 → CS1002(예약/구문 문제) → `barrackPos`로 변경. ③ `def.lord.personality`(struct getter) 직접 수정 금지 → `LordInfo` 사본 후 lord setter→dict 재대입(이전 사용자 요청 반영분).
+- **검증:** Compile **`error CS 0`** (배치 성공). Play(IndoorScene) 시각 확인 대기 — 문(E)→실내 진입 후 배럭 구역에서 아군 막사 병사 3명이 서 있는지.
+- **작업 파일(미커밋):** `TerritoryBuilder.cs`(+64), `IndoorSceneTransition.cs`(+5). **stage/commit/push 안 함(기록까지만 요청).**
+
+---
+
+## 2026-10-07 Test_14_LordsWarVillage 씬 — 영주 간 AI 전쟁·내 영지 실내 진입·마을 NPC 상호작용 검증 씬
+
+- **요청:** "새 테스트씬에서 실제로 영주가 다른 영지를 공격하는지 확인 — 타 소속 영지+영주 2 + 내 영지 1 + 병사, 내 영지 문→실내 진입, 작은 마을 상점 NPC/일반 NPC 상호작용". 후속 요청: "타 영지도 병사 몇 명 배치 + AI 영주가 명령에 따라 공격하러 가는 모습이 보이도록".
+- **씬:** `Assets/Scenes/TestScenes/Test_14_LordsWar.unity` (Test_10 복제 + `.meta` guid 재생성 `21555d0a2fa84306b4620caad78f3e60`). 씬 이름 `LordsWar` 감지 → `TestTerritoryCombatSetup.Awake()`가 `SetupLordsWarVillageTestScene()` 배치 (기존 Test_10/13 무영향).
+- **배치 내용:**
+  - 내 영지 `East_01` = PlayerOwned, 초록 성 구조물 + **문 BuildingTrigger**(Castle, nationStyle "Eastern", territoryKey "East_01") → E키(4m) → `IndoorScene` Additive 로드 → `PlayerCastleInteriorBuilder` 실내 진입. 내 수비병(아군) 2명.
+  - 타 영주 2: `West_01`·`South_01` = LordOwned. 서부 성격을 `Cruel`(공격성 0.90)로 리플렉션(공개 setter 없음, private `_definitions` dict 교체 — TerritoryDefinition/LordInfo 모두 struct라 LordInfo 사본→lord setter→재대입). 서부 성 + 침공군 **5명** / 남부 성 + 방어군 **4명**.
+  - **영주 공격 행진(보이도록):** `SpawnSoldier`가 병사 GameObject를 반환하게 변경 → 배치한 서부 침공군 5명에게 직접 `GuardPlaceholder.SetCommandTarget(남부, attack=true)` 부여 → Play에서 `Update→ExecuteMovement→StepToward`로 남부까지 실제 물리 이동·도달 시 교전. (기존 `WarMarchSimulation.TryStartMarch`는 내부 `SpawnGarrison`이 영지 전체 주둔군 70~80명을 중복 스폰하는 문제가 있어 직접 명령 방식으로 교체 — 테스트씬 과부하 방지.)
+  - **작은 마을:** 광장 + **상점 NPC**(`IsShopNPC=true`, 클릭→InteractionPanel "상점"→ShopWindowUTK) + **일반 주민 NPC**(`IsShopNPC=false`, 클릭→"대화하기"→NPCDialoguePanelUTK), 각 캡슐+콜라이더.
+- **컴파일 봉합:** 이전 ui정합 세션에서 미검증으로 남아 컴파일 차단하던 미커밋 4건 해결 — `SoldierManagementUTK.cs`(Color32→backgroundColor `new Color(...)` + border는 StyleColor) 2건, `CookingWindowUTK.cs`(존재하지 않는 `ScrollView.verticalScrollerVisibility` 제거). **Compile `error CS 0`** (배치 성공).
+- **EditMode(신규):** `Assets/Scripts/Tests/EditMode/LordsWarVillageSetupTests.cs` — **3/3 passed, 0 failed** (내 영지 PlayerOwned/타 영주 LordOwned 소유 · 서부 공격성 0.90 · 전쟁 사전조건 국가 상이/LordOwned). XML `TestOutput/lordswar-editmode.xml`. StartAIWar 전체 호출은 SpawnGarrison→CreateGuard가 EditMode에서 Destroy 호출하여 Play 검증 필요함을 테스트 주석에 명시.
+- **Play 대기(미확인):** 성 문 E→실내 진입, 서부 침공군 5명→남부 물리 행진·교전 시각, 마을 상점/주민 NPC 좌클릭 상호작용 창 열림.
+- **작업 파일(미커밋):** `TestTerritoryCombatSetup.cs`(씬 배치 + SpawnSoldier 반환 변경 + CommandMarchToSouth), `SoldierManagementUTK.cs`, `CookingWindowUTK.cs`(기존 ui정합 컴파일 봉합), `LordsWarVillageSetupTests.cs`(+meta), `Test_14_LordsWar.unity`(+meta). **stage/commit/push 안 함(기록까지만 요청).**
+
+---
+
+## 2026-10-07 Figma 15:4 창고 패리티 및 플레이어 성 실내 조명 — 진행 기록
+
+- **기준:** `.hermes/plans/figma-1920-baseline-2026-10-04/renders/15-4.png`. 저장 창고 panel `(1272,84,504,912)`, 내부 grid viewport `456×537.6`, `5×6` visible slots (`81.6px`, gap `9.6px`), 하단 일괄 보관/꺼내기 버튼.
+- **구현:** `WarehouseWindowUTK.cs`에서 5×6 뷰, 헤더/창고 용량, 빈 슬롯 dashed placeholder, 아이콘/수량/희귀도 띠, 버튼과 모서리 데칼을 Figma 좌표에 맞추고 화면 X/Y 비율별 스케일을 적용. 용량/저장·이동 도메인 계약은 유지하고 확장분은 scroll 가능. 용량 라벨은 Flex 흐름과 분리해 우측 절대 위치로 배치.
+- **조명:** `PlayerCastleInteriorBuilder.cs`에서 warm ambient를 낮추고 `AmbientMode.Flat`을 지정해 skybox 모드에 좌우되지 않도록 함. 입구·천장·기능 구역과 방별 point light를 은은한 warm accent 수준으로 조정.
+- **성 내부/상호작용:** 입구의 물리 화로 collider를 제거하되 warm light는 보존. 성 작업대는 `TerritoryCraftingStation`을 통해 Toolkit `WeaponForgeUTK`(Toolkit root 미존재 시 legacy `CraftingUI`)로 연결, 병영 지도 탁자는 병사 관리 station에 연결. E 입력과 Player/Stats 탐색 fallback을 보완.
+- **독립 source QA:** 확인된 축척 오류와 강한 보조광을 수정. 용량 라벨의 flex 겹침 가능성도 추가 수정했다. QA는 소스 리뷰이며 실제 Play 동작/픽셀 비교는 아님. 창고 슬롯별 동일 ID/내구도 처리, 일괄 작업의 부분 실패 등 기존 data-contract 위험은 이번 외형 작업에서 변경하지 않음.
+- **검증:** Unity 6000.4.10f1 fresh compile `C:/temp/warehouse_compile_final_20261007.log` 정상 종료, CS errors 0 (단, 별도 compile은 capacity-label 최종 helper보다 앞선 실행). 최종 helper 포함 focused EditMode `WarehouseStorageFigmaParityTests` **8/8 passed, 0 failed, 0 skipped**, XML `C:/temp/warehouse_final_verified_20261007.xml`. 성 입구/화로/작업대 관련 `PlayerCastleInterior` EditMode **9/9 passed, 0 failed, 0 skipped**, XML `C:/temp/castle_interior_editmode_final_20261007.xml`. 대상 소스 `git diff --check` 통과.
+- **시각/Play 확인 대기:** Play Game View 캡처와 Figma overlay 비교, 창고 실제 열기 및 중첩/스케일 점검, 조명 인상 검수, 성 문 통과·작업대 E→제작 창 표시, 저장/요리/연금/병사관리 station E 상호작용은 완료되지 않음. Unity Editor PID 12724 및 프로젝트 로드 확인만 있으며 실제 Editor/Game View 관찰 수단을 확보하지 못함. 따라서 런타임 픽셀 정합/실제 조도 승인/상호작용 완료로 표현하지 않음.
+- **에이전트 모델:** Hermes delegation 기본 모델을 `z-ai/glm-5.3-flash` / `openrouter`로 설정해 다음 코딩 서브에이전트 호출에 적용되도록 함. 백그라운드 디렉터 cron `mailbox-watch-director`도 같은 모델/provider로 설정. 두 관련 cron은 현재 paused 상태라 실행 재개는 하지 않음.
+- **작업트리/복구 주의:** stage/commit하지 않음. 이 기록을 업데이트하던 중 과거 QAPROGRESS working copy가 HEAD 기준으로 복원된 이력이 있어, 덮어쓰기 이전의 미커밋 기록 전체가 보존됐는지는 보장할 수 없음. 현재 파일은 HEAD baseline에 새 기록을 prepend한 상태이며, 이 diff 이외의 파일은 건드리지 않음.
+
+- **2026-10-07 침대 저장·연금/약물 크래프트 배선 및 CS0120 수정:** `AlchemyBenchUTK.TryCraftDrug()`의 static 문맥에서 인스턴스 `IngredientDisplayName()` 호출을 제거하고 `HerbDatabase`의 정적 이름 조회를 사용하도록 수정. Unity 6000.4.10f1 fresh batch compile `C:/temp/alchemy_cs0120_fix_compile_20261007.log` 성공 종료, `error CS` 없음.
+- `AlchemyStation` E 입력을 Input System + legacy 입력으로 통합하고, UI Toolkit 루트를 보장한 뒤 `AlchemyBenchUTK`를 엶. `UTKWireUp` 침대 경로에서도 UIRoot를 보장하고 기존 `SleepUTK` 저장 버튼(침대 스폰포인트 + `SaveManager.AutoSave`)을 유지.
+- 약물 레시피는 `DrugDatabase` 1~9단계를 기존 `HerbDatabase`의 정확한 authored 원료 ID와 `DrugEffectSystem.CreateDrugItem`에 연결. 미정의 희귀 재료를 요구하는 10단계는 제작 목록에서 제외. `HerbPickup`/`NaturalResourceSpawner`를 보강해 자연 채집에서 해당 authored herb ID를 얻을 수 있게 함. 기존 약초/물약 조합은 `CraftingHelper.CraftAlchemy` 경로 그대로.
+- **검증:** CS0120 포함 fresh compile 통과(`C:/temp/alchemy_cs0120_fix_compile_20261007.log`, 정상 종료, `error CS` 0). Focused EditMode 명령은 exit 0으로 끝났지만 testFilter 구문이 지원되지 않아 XML `total=0` / "No tests were executed" — 따라서 새 테스트 결과는 미판정이며, 필터 없이 재실행 필요. E 키/저장/제작 창의 Play 확인도 대기. Telegram 알림은 현재 연결 계정으로 보냈고 플랫폼 응답 성공(chat_id 6847418902, message_id 21576).
+- 변경/추가 파일은 `AlchemyBenchUTK.cs`, `AlchemyStation.cs`, `UTKWireUp.cs`, `HerbPickup.cs`, `NaturalResourceSpawner.cs`, `CraftBenchFigmaPhase4Tests.cs`(+meta), `PlayerCastleInteriorCollisionAndKitchenTests.cs`(+meta). 미커밋, stage/commit 안 함.
+
+---
+
 # 2026-10-04 복수명단 20명 메인 퀘스트 → QuestChain 체인화 — 21:45 KST
 
 - **완료:** 복수명단 메인 퀘스트를 개별 등록에서 체인 구조로 승격(설계 8-2 해소).
