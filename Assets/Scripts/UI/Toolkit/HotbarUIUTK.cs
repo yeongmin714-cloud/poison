@@ -47,9 +47,12 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 설정 =====
         private const int   SlotCount   = 8;        // 원본 SlotCount 대응
-        private const float SlotSize    = 64f;
-        private const float SlotGap     = 8f;
-        private const float Bottom      = 12f;
+        private const float SlotSize    = 96f; // Archived 23:6 SlotBox
+        private const float SlotGap     = 19.2f;
+        private const float FigmaLeft   = 629.6f;
+        private const float FigmaTop    = 861.6f;
+        private const float FigmaWidth  = 902.4f;
+        private const float FigmaHeight = 124.8f;
 
         private readonly UTKSlot[] _slots;
         private readonly Label[]   _keyLabels;
@@ -57,16 +60,18 @@ namespace ProjectName.UI.Toolkit
         private readonly string[]  _assignedNames;
         private bool _squadMode;                    // [U8 요구] Tab 전환 모드 — false=아이템, true=부대 지정
         private GuardPlaceholder[] _squadReps;      // [U8 배선] 부대 대표 병사 (정보창 진입용)
+        private IVisualElementScheduledItem _pulseSchedule;
 
         private HotbarUIUTK()
         {
             name = "Hotbar";
             AddToClassList("utk-hotbar");
             style.position = Position.Absolute;
-            style.left = 0f;
-            style.right = 0f;
-            style.bottom = Bottom;
-            style.alignItems = Align.Center;
+            style.left = FigmaLeft;
+            style.top = FigmaTop;
+            style.width = FigmaWidth;
+            style.height = FigmaHeight;
+            style.alignItems = Align.FlexStart;
             style.flexDirection = FlexDirection.Column;
             pickingMode = PickingMode.Position;
 
@@ -78,7 +83,9 @@ namespace ProjectName.UI.Toolkit
             var row = new VisualElement();
             row.name = "HotbarRow";
             row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.FlexEnd;
+            row.style.alignItems = Align.FlexStart;
+            row.style.width = FigmaWidth;
+            row.style.height = FigmaHeight;
             Add(row);
 
             for (int i = 0; i < SlotCount; i++)
@@ -87,22 +94,28 @@ namespace ProjectName.UI.Toolkit
                 cell.name = "HotbarCell_" + i;
                 cell.style.flexDirection = FlexDirection.Column;
                 cell.style.alignItems = Align.Center;
-                cell.style.marginLeft = SlotGap * 0.5f;
-                cell.style.marginRight = SlotGap * 0.5f;
+                cell.style.width = SlotSize;
+                cell.style.height = FigmaHeight;
+                cell.style.marginRight = i < SlotCount - 1 ? SlotGap : 0f;
+                cell.style.alignItems = Align.FlexStart;
+                cell.style.flexShrink = 0f;
                 row.Add(cell);
 
                 var slot = new UTKSlot();
                 slot.name = "Slot_" + i;
                 slot.style.width = SlotSize;
                 slot.style.height = SlotSize;
-                slot.style.marginBottom = 2f;
                 cell.Add(slot);
 
                 var keyLabel = new Label((i + 1).ToString());
                 keyLabel.name = "Key_" + i;
-                keyLabel.style.width = 22f;
-                keyLabel.style.height = 20f;
-                keyLabel.style.fontSize = 13f;
+                keyLabel.style.position = Position.Absolute;
+                keyLabel.style.left = 36f;
+                keyLabel.style.top = 84f;
+                keyLabel.style.width = 24f;
+                keyLabel.style.height = 24f;
+                keyLabel.style.fontSize = UTKTheme.FontSubtitle;   // [Figma 23:6] 13.2/900
+                keyLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
                 keyLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
                 keyLabel.style.color = new StyleColor(UTKColor.TextSecondary);
                 keyLabel.style.backgroundColor = new StyleColor(new Color(0.10f, 0.10f, 0.12f, 0.9f));
@@ -127,6 +140,41 @@ namespace ProjectName.UI.Toolkit
                 // [U8 요구] 좌클릭 드래그 드롭 = 핫바에 아이템 등록 (마인크래프트식)
                 UTKDragDrop.RegisterDropTarget(slot, new HotbarSlotDropTarget(capturedIndex));
             }
+
+            var tabHint = new VisualElement { name = "TabRotationHint" };
+            tabHint.style.position = Position.Absolute;
+            tabHint.style.left = 926.4f;
+            tabHint.style.top = 28.8f;
+            tabHint.style.width = 57.6f;
+            tabHint.style.height = 67.2f;
+            tabHint.style.alignItems = Align.Center;
+            tabHint.style.backgroundColor = new StyleColor(new Color(0.07f, 0.09f, 0.12f, 0.82f));
+            tabHint.style.borderTopLeftRadius = 6f; tabHint.style.borderTopRightRadius = 6f;
+            tabHint.style.borderBottomLeftRadius = 6f; tabHint.style.borderBottomRightRadius = 6f;
+            tabHint.pickingMode = PickingMode.Ignore;
+            var rotateHint = new Label("↻");
+            rotateHint.style.position = Position.Absolute;
+            rotateHint.style.left = 19.2f;
+            rotateHint.style.top = 24f;
+            rotateHint.style.width = 19.2f;
+            rotateHint.style.height = 19.2f;
+            rotateHint.style.fontSize = 15f;
+            rotateHint.style.color = new StyleColor(UTKColor.TextSecondary);
+            rotateHint.style.unityTextAlign = TextAnchor.MiddleCenter;
+            tabHint.Add(rotateHint);
+            var tabLabel = new Label("TAB");
+            tabLabel.style.position = Position.Absolute;
+            tabLabel.style.left = 14.4f;
+            tabLabel.style.top = 45.6f;
+            tabLabel.style.width = 28.8f;
+            tabLabel.style.height = 21.6f;
+            tabLabel.style.fontSize = UTKTheme.FontBadge;   // [Figma] 12/900
+            tabLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            tabLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            tabLabel.style.backgroundColor = new StyleColor(new Color(0.15f, 0.17f, 0.2f, 0.95f));
+            tabLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+            tabHint.Add(tabLabel);
+            Add(tabHint);
 
             // 원본 PlayerPrefs 데이터 소스 로드
             LoadAssignedFromPrefs();
@@ -166,16 +214,30 @@ namespace ProjectName.UI.Toolkit
             RefreshAllIcons();
 
             // 전환 펄스 애니 — 스케일 1.15 → 1.0 (150ms, unscaled)
+            if (_pulseSchedule != null)
+            {
+                _pulseSchedule.Pause();
+                _pulseSchedule = null;
+            }
             style.scale = new StyleScale(new Scale(new Vector2(1.15f, 1.15f)));
             float t = 0f;
-            schedule.Execute(() =>
+            IVisualElementScheduledItem pulseSchedule = null;
+            pulseSchedule = schedule.Execute(() =>
             {
                 t += Time.unscaledDeltaTime;
                 float k = Mathf.Clamp01(1f - t / 0.15f);
                 float s = 1f + 0.15f * k;
                 style.scale = new StyleScale(new Scale(new Vector2(s, s)));
-                if (k <= 0f) style.scale = StyleKeyword.Null;
-            }).Every(16L).ExecuteLater(0);
+                if (k <= 0f)
+                {
+                    style.scale = StyleKeyword.Null;
+                    pulseSchedule.Pause();
+                    if (_pulseSchedule == pulseSchedule) _pulseSchedule = null;
+                }
+            });
+            pulseSchedule.Every(16L);
+            pulseSchedule.ExecuteLater(0);
+            _pulseSchedule = pulseSchedule;
 
             Debug.Log($"[HotbarUTK] 모드 전환 → {(_squadMode ? "부대 지정" : "아이템")}");
         }
@@ -375,6 +437,8 @@ namespace ProjectName.UI.Toolkit
                 var root = UIToolkitBootstrap.UIRoot;
                 if (root != null && bar != null && bar.parent == null)
                     root.Add(bar);
+                if (root != null && bar != null)
+                    bar.ApplyFigmaBounds(root);
 
                 if (bar == null) return;
 
@@ -396,14 +460,74 @@ namespace ProjectName.UI.Toolkit
                 // GLB 아이콘 비동기 베이크 재시도 + 인벤 수량 변동 반영 — 1초 주기 (원본 Update 관례)
                 _tick -= Time.unscaledDeltaTime;
                 if (_tick <= 0f)
-                // GLB 아이콘 비동기 베이크 재시도 + 인벤 수량 변동 반영 — 1초 주기 (원본 Update 관례)
-                _tick -= Time.unscaledDeltaTime;
-                if (_tick <= 0f)
                 {
                     _tick = 1f;
                     if (bar.parent != null)
                         bar.RefreshAllIcons();
                 }
+            }
+        }
+
+        private void ApplyFigmaBounds(VisualElement root)
+        {
+            if (root == null) return;
+            Vector2 rootSize = new Vector2(root.resolvedStyle.width, root.resolvedStyle.height);
+            if (rootSize.x <= 0f || rootSize.y <= 0f) return;
+            Rect bounds = FigmaCanvasLayout.ScaleRect(new Rect(FigmaLeft, FigmaTop, FigmaWidth, FigmaHeight), rootSize);
+            style.position = Position.Absolute;
+            style.left = bounds.x;
+            style.top = bounds.y;
+            style.width = bounds.width;
+            style.height = bounds.height;
+            float sx = rootSize.x / FigmaCanvasLayout.CanvasWidth;
+            float sy = rootSize.y / FigmaCanvasLayout.CanvasHeight;
+            float cellWidth = SlotSize * sx;
+            float slotHeight = SlotSize * sy;
+            float cellHeight = FigmaHeight * sy;
+            float horizontalGap = Mathf.Max(0f, (FigmaWidth * sx - SlotCount * cellWidth) / (SlotCount - 1));
+            var row = this.Q<VisualElement>("HotbarRow");
+            if (row != null)
+            {
+                row.style.width = FigmaWidth * sx;
+                row.style.height = FigmaHeight * sy;
+            }
+
+            var hint = this.Q<VisualElement>("TabRotationHint");
+            if (hint != null)
+            {
+                hint.style.left = 926.4f * sx; hint.style.top = 28.8f * sy;
+                hint.style.width = 57.6f * sx; hint.style.height = 67.2f * sy;
+                var rotation = hint.Q<Label>();
+                if (rotation != null)
+                {
+                    rotation.style.left = 19.2f * sx;
+                    rotation.style.top = 24f * sy;
+                    rotation.style.width = 19.2f * sx;
+                    rotation.style.height = 19.2f * sy;
+                }
+                var badge = hint.childCount > 1 ? hint.ElementAt(1) as Label : null;
+                if (badge != null)
+                {
+                    badge.style.left = 14.4f * sx;
+                    badge.style.top = 45.6f * sy;
+                    badge.style.width = 28.8f * sx;
+                    badge.style.height = 21.6f * sy;
+                }
+            }
+
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var cell = this.Q<VisualElement>("HotbarCell_" + i);
+                if (cell == null) continue;
+                cell.style.width = cellWidth;
+                cell.style.height = cellHeight;
+                cell.style.marginRight = i < SlotCount - 1 ? horizontalGap : 0f;
+                _slots[i].style.width = cellWidth;
+                _slots[i].style.height = slotHeight;
+                _keyLabels[i].style.left = 36f * sx;
+                _keyLabels[i].style.top = 84f * sy;
+                _keyLabels[i].style.width = 24f * sx;
+                _keyLabels[i].style.height = 24f * sy;
             }
         }
     }
