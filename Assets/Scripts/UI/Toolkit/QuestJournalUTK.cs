@@ -67,9 +67,9 @@ namespace ProjectName.UI.Toolkit
             Open();
         }
 
-        // ===== 설정 (원본 WINDOW_WIDTH/HEIGHT 근사) =====
-        private const float WinW = 620f;
-        private const float WinH = 520f;
+        // ===== 설정 [Figma 93:230 QuestListPanel] 480×984 @(144,48) — 저널은 Figma 퀘스트 목록 패널 단독 창 =====
+        private const float WinW = 480f;
+        private const float WinH = 984f;
         private const long RefreshMs = 400L;
         private const int TabActive = 0;
         private const int TabCompleted = 1;
@@ -80,6 +80,7 @@ namespace ProjectName.UI.Toolkit
         //  =====================================================================
         private static class GitHubDark
         {
+            public static readonly Color BgBase   = Hex(0x0B0E14);   // 최배경 — 슬롯/게이지 인셋
             public static readonly Color Panel    = Hex(0x161B22);   // 창 본체 패널
             public static readonly Color PanelSub = Hex(0x21262D);   // 보조 패널(행/버튼)
             public static readonly Color Accent   = Hex(0x58A6FF);   // 강조(액센트) — 활성 탭/진행
@@ -185,40 +186,104 @@ namespace ProjectName.UI.Toolkit
         private int _activeTab = TabActive;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
 
-        private QuestJournalUTK() : base("📜 퀘스트 저널", new Vector2(WinW, WinH))
+        private QuestJournalUTK() : base("📜 퀘스트 저널", new Vector2(WinW, WinH), UTKWindowChrome.Frameless)
         {
+            // [Figma 93:230 QuestListPanel] 프레임리스 단일 패널 — pad 24 / 세로 gap 19.2 / 모서리 L 데칼 /
+            // PanelHeader(퀘스트 창+QUEST DECK+닫기 31.2) / FilterTabs(진행 중·완료 36.2) / 카드 432×135.2 / 요약 푸터.
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
+            _content.style.paddingLeft = _content.style.paddingRight = 24f;
+            _content.style.paddingTop = _content.style.paddingBottom = 24f;
+            AddCornerDecals(this);
 
-            // ── 통계 ──
-            _statLabel = MkLabel("🔄 진행 중: 0개  |  ✅ 완료: 0개", 13, GitHubDark.TextSub, TextAnchor.MiddleRight);   // [GitHub-dark] 보조 텍스트
-            _statLabel.style.marginBottom = 4f;
-            _content.Add(_statLabel);
+            // ── PanelHeader 432×52.8 ──
+            var panelHeader = new VisualElement { name = "PanelHeader" };
+            panelHeader.style.flexDirection = FlexDirection.Row;
+            panelHeader.style.alignItems = Align.Center;
+            panelHeader.style.height = 52.8f;
+            panelHeader.style.minHeight = 52.8f;
+            panelHeader.style.flexShrink = 0f;
+            panelHeader.Add(MkLabel("퀘스트 창", 20, GitHubDark.TextMain, TextAnchor.MiddleLeft));
+            var headerSub = MkLabel("QUEST DECK", 11, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            headerSub.style.marginLeft = 12f;
+            headerSub.style.marginTop = 5f;
+            headerSub.style.flexGrow = 1f;
+            panelHeader.Add(headerSub);
+            var headerClose = new Button(Hide) { text = "×", name = "JournalHeaderCloseButton" };
+            headerClose.style.width = 31.2f;
+            headerClose.style.height = 31.2f;
+            headerClose.style.flexShrink = 0f;
+            StyleButton(headerClose, UTKButton.Variant.Secondary);
+            panelHeader.Add(headerClose);
+            _content.Add(panelHeader);
+            SetDragHandle(panelHeader);
 
-            // ── 탭 ──
-            _tabBar = new VisualElement();
-            _tabBar.name = "TabBar";
+            // ── FilterTabs 432×36.2, gap 4.8 ──
+            _tabBar = new VisualElement { name = "FilterTabs" };
             _tabBar.style.flexDirection = FlexDirection.Row;
+            _tabBar.style.height = 36.2f;
+            _tabBar.style.minHeight = 36.2f;
+            _tabBar.style.marginTop = 19.2f;
+            _tabBar.style.marginBottom = 19.2f;
+            _tabBar.style.flexShrink = 0f;
             _content.Add(_tabBar);
 
-            _btnActive = UTKButton.Create("🔄 진행 중", () => SwitchTab(TabActive), UTKButton.Variant.Secondary);
-            _btnCompleted = UTKButton.Create("✅ 완료", () => SwitchTab(TabCompleted), UTKButton.Variant.Secondary);
-            StyleButton(_btnActive, UTKButton.Variant.Secondary);     // [GitHub-dark] 탭 버튼 인라인 리스타일
-            StyleButton(_btnCompleted, UTKButton.Variant.Secondary);
+            _btnActive = UTKButton.Create("진행 중", () => SwitchTab(TabActive), UTKButton.Variant.Secondary);
+            _btnCompleted = UTKButton.Create("완료", () => SwitchTab(TabCompleted), UTKButton.Variant.Secondary);
+            _btnActive.style.height = 36.2f;
+            _btnActive.style.flexGrow = 1f;
+            _btnActive.style.marginRight = 4.8f;
+            _btnCompleted.style.height = 36.2f;
+            _btnCompleted.style.flexGrow = 1f;
             _tabBar.Add(_btnActive);
             _tabBar.Add(_btnCompleted);
 
-            // ── 목록 ──
-            _list = new ScrollView { name = "JournalList" };
+            // ── QuestSlotsContainer (카드 목록) ──
+            _list = new ScrollView { name = "QuestSlotsContainer" };
             _list.style.flexGrow = 1f;
-            _list.style.marginTop = 6f;
+            _list.style.flexShrink = 1f;
             _content.Add(_list);
 
+            // ── SummaryFooter 432×34.4: 좌 라벨 + 우 실측값 ──
+            var footer = new VisualElement { name = "SummaryFooter" };
+            footer.style.flexDirection = FlexDirection.Row;
+            footer.style.alignItems = Align.Center;
+            footer.style.height = 34.4f;
+            footer.style.minHeight = 34.4f;
+            footer.style.flexShrink = 0f;
+            var footerLeft = MkLabel("퀘스트 현황", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            footerLeft.style.flexGrow = 1f;
+            footer.Add(footerLeft);
+            _statLabel = MkLabel("진행 0개 · 완료 0개", 13, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            footer.Add(_statLabel);
+            _content.Add(footer);
+
             ApplyUIToolkitFont(this);
-            ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬 리스타일 — 이 창 한정 인라인
+            ApplyGitHubDarkStyle();   // [GitHub-dark] 창 크롬(패널 배경+1px 스트로크+r8) — 이 창 한정 인라인
             style.display = DisplayStyle.None;
-            style.left = 60f;
-            style.top = 90f;
+            style.left = 144f;   // [Figma 93:230] QuestListPanel @(144,48)
+            style.top = 48f;
+        }
+
+        /// <summary>[Figma 93:230] 패널 4모서리 L자 데칼(12선) — 시각 전용.</summary>
+        private static void AddCornerDecals(VisualElement host)
+        {
+            void Line(float left, float top, float lw, float lh)
+            {
+                var l = new VisualElement();
+                l.style.position = Position.Absolute;
+                l.style.left = left;
+                l.style.top = top;
+                l.style.width = lw;
+                l.style.height = lh;
+                l.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
+                l.pickingMode = PickingMode.Ignore;
+                host.Add(l);
+            }
+            Line(0f, 0f, 12f, 1f); Line(0f, 0f, 1f, 12f);
+            Line(WinW - 12f, 0f, 12f, 1f); Line(WinW - 1f, 0f, 1f, 12f);
+            Line(0f, WinH - 1f, 12f, 1f); Line(0f, WinH - 12f, 1f, 12f);
+            Line(WinW - 12f, WinH - 1f, 12f, 1f); Line(WinW - 1f, WinH - 12f, 1f, 12f);
         }
 
         private void SwitchTab(int tab)
@@ -232,9 +297,10 @@ namespace ProjectName.UI.Toolkit
 
         private static void StyleTab(Button btn, bool active)
         {
-            if (btn == null || btn.resolvedStyle == null) return;
-            var c = active ? GitHubDark.Accent : GitHubDark.TextSub;   // [GitHub-dark] 활성 탭=액센트 / 비활성=보조
-            btn.style.color = new StyleColor(c);
+            if (btn == null) return;
+            // [Figma TabActive] 활성=액센트 배경 + 최배경 텍스트 / 비활성=보조 패널 + 기본 텍스트
+            btn.style.backgroundColor = new StyleColor(active ? GitHubDark.Accent : GitHubDark.PanelSub);
+            btn.style.color = new StyleColor(active ? GitHubDark.Panel : GitHubDark.TextMain);
         }
 
         // =====================================================================
@@ -293,7 +359,7 @@ namespace ProjectName.UI.Toolkit
             List<QuestData> completed = QuestManager.GetCompletedQuests();
 
             if (_statLabel != null)
-                _statLabel.text = $"🔄 진행 중: {active.Count}개  |  ✅ 완료: {completed.Count}개";
+                _statLabel.text = $"진행 {active.Count}개 · 완료 {completed.Count}개";
             Debug.Log($"[JournalUTK] 목록 갱신(탭={(_activeTab == TabActive ? "진행" : "완료")}): 진행 {active.Count} / 완료 {completed.Count}");
 
             List<QuestData> filtered = _activeTab == TabActive ? active : completed;
@@ -317,70 +383,125 @@ namespace ProjectName.UI.Toolkit
 
         private VisualElement BuildQuestEntry(QuestData quest)
         {
-            var box = new VisualElement();
-            box.AddToClassList("utk-slot");
-            ApplyDarkRowStyle(box);   // [GitHub-dark] 항목 박스 = 보조 패널 리스트 아이템 (bg #21262D + 스트로크 + r6)
-            box.style.flexDirection = FlexDirection.Column;
-            box.style.marginTop = 4f;
-            box.style.marginBottom = 4f;
-            box.style.paddingTop = 6f;
-            box.style.paddingBottom = 6f;
+            // [Figma 93:230 QuestSlot 432×135.2] pad 14.4 / 내부 gap 14.4 — TierStrip 좌측 세로(메인=Gold/서브=Accent — 기존 색 계약),
+            // CardHeader(CategoryPill+Lv) / CardBody(제목+목표 요약 1줄) / ProgressArea(GaugeTrack 4.8 + %).
+            // 목표 상세는 Q키 퀘스트 창(QuestWindowUTK) 상세 패널이 소유 — 저널 카드는 요약만.
+            var card = new VisualElement { name = "QuestSlot" };
+            card.style.height = 135.2f;
+            card.style.minHeight = 135.2f;
+            card.style.flexShrink = 0f;
+            card.style.marginBottom = 9.6f;
+            card.style.paddingLeft = 19.2f;   // TierStrip 4.8 + 카드 pad 14.4
+            card.style.paddingRight = 14.4f;
+            card.style.paddingTop = 14.4f;
+            card.style.paddingBottom = 14.4f;
+            ApplyDarkRowStyle(card);
+            card.style.borderTopLeftRadius = 8f;
+            card.style.borderTopRightRadius = 8f;
+            card.style.borderBottomLeftRadius = 8f;
+            card.style.borderBottomRightRadius = 8f;
 
-            // 이름 + 보상 요약(우측)
-            var row1 = new VisualElement();
-            row1.style.flexDirection = FlexDirection.Row;
-            row1.style.alignItems = Align.Center;
-            Color questNameColor = quest.isMain ? GitHubDark.Gold : GitHubDark.Accent;
-            var nameL = MkLabel(quest.questName, 16, questNameColor, TextAnchor.MiddleLeft);   // 메인=Gold / 서브=Blue
-            nameL.style.flexGrow = 1f;
-            row1.Add(nameL);
-            string reward = QuestRewardPreview.GetRewardSummary(quest);
-            if (!string.IsNullOrEmpty(reward))
-            {
-                var rw = MkLabel(reward, 13, GitHubDark.Gold, TextAnchor.MiddleRight);   // [GitHub-dark] 보상 — 골드
-                rw.style.width = 150f;
-                row1.Add(rw);
-            }
-            box.Add(row1);
+            var strip = new VisualElement { name = "TierStrip" };
+            strip.style.position = Position.Absolute;
+            strip.style.left = 0f;
+            strip.style.top = 0f;
+            strip.style.width = 4.8f;
+            strip.style.height = 135.2f;
+            strip.style.backgroundColor = new StyleColor(quest.isMain ? GitHubDark.Gold : GitHubDark.Accent);
+            strip.pickingMode = PickingMode.Ignore;
+            card.Add(strip);
 
-            // 설명
-            if (!string.IsNullOrEmpty(quest.description))
-            {
-                var d = MkLabel(quest.description, 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [GitHub-dark] 보조 텍스트
-                d.style.whiteSpace = WhiteSpace.Normal;
-                box.Add(d);
-            }
+            var header = new VisualElement { name = "CardHeader" };
+            header.style.flexDirection = FlexDirection.Row;
+            header.style.alignItems = Align.Center;
+            header.style.height = 18.8f;
+            header.style.minHeight = 18.8f;
+            header.style.marginBottom = 14.4f;
+            var pill = new Label(quest.isMain ? "주 임무" : "부 임무") { name = "CategoryPill" };
+            pill.style.fontSize = 11f;
+            pill.style.color = new StyleColor(quest.isMain ? GitHubDark.Gold : GitHubDark.Accent);
+            pill.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
+            pill.style.paddingLeft = pill.style.paddingRight = 7.2f;
+            pill.style.paddingTop = pill.style.paddingBottom = 2.4f;
+            pill.style.borderTopWidth = pill.style.borderBottomWidth = pill.style.borderLeftWidth = pill.style.borderRightWidth = 1f;
+            pill.style.borderTopColor = pill.style.borderBottomColor = pill.style.borderLeftColor = pill.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            pill.style.borderTopLeftRadius = pill.style.borderTopRightRadius = pill.style.borderBottomLeftRadius = pill.style.borderBottomRightRadius = 4f;
+            header.Add(pill);
+            var headerSpacer = new VisualElement();
+            headerSpacer.style.flexGrow = 1f;
+            header.Add(headerSpacer);
+            header.Add(MkLabel(quest.requiredLevel > 0 ? $"Lv.{quest.requiredLevel}" : "", 11, GitHubDark.Accent, TextAnchor.MiddleRight));
+            card.Add(header);
 
+            var body = new VisualElement { name = "CardBody" };
+            body.style.flexDirection = FlexDirection.Column;
+            var nameL = MkLabel(quest.questName, 16, quest.isMain ? GitHubDark.Gold : GitHubDark.Accent, TextAnchor.MiddleLeft);   // 메인=Gold / 서브=Blue 계약 유지
+            nameL.style.height = 20f;
+            nameL.style.minHeight = 20f;
+            body.Add(nameL);
+            var objL = MkLabel(BuildObjectiveSummary(quest), 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            objL.style.marginTop = 4.8f;
+            objL.style.whiteSpace = WhiteSpace.Normal;
+            body.Add(objL);
+            card.Add(body);
+
+            float pct;
+            Color fillColor;
             if (_activeTab == TabCompleted)
             {
-                var done = MkLabel("✅ 완료", 13, GitHubDark.Success, TextAnchor.MiddleLeft);   // [GitHub-dark] success 그린
-                box.Add(done);
-                return box;
+                pct = 100f;
+                fillColor = GitHubDark.Success;
+            }
+            else
+            {
+                int cur = 0, req = 0;
+                if (quest.objectives != null)
+                    for (int i = 0; i < quest.objectives.Count; i++)
+                    {
+                        cur += Mathf.Max(0, quest.objectives[i].currentCount);
+                        req += Mathf.Max(0, quest.objectives[i].requiredCount);
+                    }
+                pct = req > 0 ? Mathf.Clamp01((float)cur / req) * 100f : 0f;
+                fillColor = GitHubDark.Accent;
             }
 
-            // 진행 — 목표 진행도
-            if (quest.objectives != null)
-            {
-                for (int i = 0; i < quest.objectives.Count; i++)
-                {
-                    QuestObjective obj = quest.objectives[i];
-                    string objDesc = !string.IsNullOrEmpty(obj.description) ? obj.description : obj.type.ToString();
-                    string progress = $"{obj.currentCount}/{obj.requiredCount}";
-                    Color pc = obj.IsMet ? GitHubDark.Success : GitHubDark.Accent;   // [GitHub-dark] 달성=그린 / 진행=액센트
-                    var row = new VisualElement();
-                    row.style.flexDirection = FlexDirection.Row;
-                    var o = MkLabel($"▸ {objDesc}", 13, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [GitHub-dark] 기본 텍스트
-                    o.style.flexGrow = 1f;
-                    row.Add(o);
-                    var p = MkLabel(progress, 13, pc, TextAnchor.MiddleRight);
-                    p.style.width = 70f;
-                    row.Add(p);
-                    box.Add(row);
-                }
-            }
+            var progress = new VisualElement { name = "ProgressArea" };
+            progress.style.flexDirection = FlexDirection.Row;
+            progress.style.alignItems = Align.Center;
+            progress.style.height = 17f;
+            progress.style.marginTop = 14.4f;
+            var track = new VisualElement { name = "GaugeTrack" };
+            track.style.flexGrow = 1f;
+            track.style.height = 4.8f;
+            track.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
+            track.style.borderTopLeftRadius = track.style.borderTopRightRadius = track.style.borderBottomLeftRadius = track.style.borderBottomRightRadius = 2.4f;
+            var fill = new VisualElement { name = "GaugeFill" };
+            fill.style.height = new Length(100f, LengthUnit.Percent);
+            fill.style.width = new Length(pct, LengthUnit.Percent);
+            fill.style.backgroundColor = new StyleColor(fillColor);
+            fill.style.borderTopLeftRadius = fill.style.borderTopRightRadius = fill.style.borderBottomLeftRadius = fill.style.borderBottomRightRadius = 2.4f;
+            track.Add(fill);
+            progress.Add(track);
+            var pctLabel = MkLabel($"{pct:F0}%", 13, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            pctLabel.style.marginLeft = 9.6f;
+            pctLabel.style.width = 40f;
+            progress.Add(pctLabel);
+            card.Add(progress);
 
             Debug.Log($"[JournalUTK] 항목 렌더: {quest.questName} ({quest.questId})");
-            return box;
+            return card;
+        }
+
+        /// <summary>목표 요약 1줄 — 첫 목표 cur/req + 외 N개 (Figma 카드 1줄 구조, 데이터 손실 없이 집계).</summary>
+        private static string BuildObjectiveSummary(QuestData quest)
+        {
+            if (quest.objectives == null || quest.objectives.Count == 0)
+                return !string.IsNullOrEmpty(quest.description) ? quest.description : "";
+            var first = quest.objectives[0];
+            string d = !string.IsNullOrEmpty(first.description) ? first.description : first.type.ToString();
+            string s = $"{d} {first.currentCount}/{first.requiredCount}";
+            if (quest.objectives.Count > 1) s += $" 외 {quest.objectives.Count - 1}개";
+            return s;
         }
 
         // =====================================================================

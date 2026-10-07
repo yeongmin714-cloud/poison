@@ -76,15 +76,20 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        // [2026-10-01 Phase1] Figma 배경(게임화면 1920x1080) 위에 3개 판넬을 절대좌표*1.333로 배치.
-        // 호스트 창은 전체화면+투명 크롬(데이터 로직 무수정, 표시 구조만 Figma 재배열).
+        // Saved Figma frame 93:230 is the 1920x1080 canvas. Panel coordinates below are
+        // local to its origin (32082,3); this remains a full-screen transparent overlay host.
+        public static readonly Rect QuestListBounds = new Rect(144f, 48f, 480f, 984f);
+        public static readonly Rect QuestDetailBounds = new Rect(648f, 252f, 624f, 576f);
+        public static readonly Rect RewardBounds = new Rect(1296f, 48f, 480f, 984f);
         private const float WinW = 1920f;
         private const float WinH = 1080f;
         private const long RefreshMs = 400L;
 
         // ===== [P4] 필터 =====
-        private enum QuestFilter { All, Active, Completed }
-        private QuestFilter _filter = QuestFilter.All;
+        // Archived frame 93:230 has exactly two tabs. Available quests and active chains remain
+        // accessible under the in-progress tab so their existing accept/progress actions stay reachable.
+        private enum QuestFilter { Active, Completed }
+        private QuestFilter _filter = QuestFilter.Active;
 
         // ===== [P4] 선택된 퀘스트 =====
         private string _selectedQuestId;
@@ -210,7 +215,8 @@ namespace ProjectName.UI.Toolkit
         // ===== 레퍼런스 =====
         private ScrollView _list;   // [Phase2a] readonly 제거 — BuildListZone()에서 초기화(독립 창 분리 기반)
         private Label _statActive, _statCompleted, _statAvailable, _statChain, _summaryFooter;
-        private VisualElement _detailPanel, _rewardPanel;
+        private VisualElement _listPanel, _detailPanel, _rewardPanel;
+        private VisualElement _canvasLayoutRoot;
         private Label _detailHeroTitle, _detailHeroTag, _detailStory;
         private VisualElement _objectivesList;
         private VisualElement _rewardsList;
@@ -221,9 +227,12 @@ namespace ProjectName.UI.Toolkit
         {
             // [Frameless] 배경 투명 — 게임 화면이 비치고, 아래 3개 판넬(목록/상세/보상)만 떠 보임.
             _content.style.flexGrow = 1f;
-            // [2026-10-01 Phase1] 3존을 Figma 절대좌표*1.333으로 배치:
-            // 목록(53,53)533x1093 / 상세(613,280)693x640 / 보상(1333,53)533x1093
-            // 호스트 _content는 절대배치 컨테이너 역할(투명, No pointer).
+            // _content hosts only the three positioned panel roots; its parent window stays
+            // full-screen and transparent so the game remains visible around the overlays.
+            style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            _content.style.position = Position.Relative;
+            _content.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
             // [Phase2a] 3영역 빌더를 메서드로 추출 (동작 0 변화 — 독립 창 승격의 기반)
             BuildListZone();
             BuildDetailZone();
@@ -235,22 +244,85 @@ namespace ProjectName.UI.Toolkit
             style.display = DisplayStyle.None;
             style.left = 0f;
             style.top = 0f;
+            ApplyPanelScale(new Vector2(WinW, WinH));
+            RegisterCallback<AttachToPanelEvent>(OnCanvasAttached);
+            RegisterCallback<DetachFromPanelEvent>(OnCanvasDetached);
+        }
+
+        private void OnCanvasAttached(AttachToPanelEvent evt)
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root == null) return;
+            if (_canvasLayoutRoot != root)
+            {
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.UnregisterCallback<GeometryChangedEvent>(OnCanvasGeometryChanged);
+                _canvasLayoutRoot = root;
+                _canvasLayoutRoot.RegisterCallback<GeometryChangedEvent>(OnCanvasGeometryChanged);
+            }
+            ApplyCanvasScale();
+        }
+
+        private void OnCanvasDetached(DetachFromPanelEvent evt)
+        {
+            if (_canvasLayoutRoot == null) return;
+            _canvasLayoutRoot.UnregisterCallback<GeometryChangedEvent>(OnCanvasGeometryChanged);
+            _canvasLayoutRoot = null;
+        }
+
+        private void OnCanvasGeometryChanged(GeometryChangedEvent evt)
+        {
+            if (evt.target == _canvasLayoutRoot) ApplyCanvasScale();
+        }
+
+        private void ApplyCanvasScale()
+        {
+            if (_canvasLayoutRoot == null) return;
+            Vector2 rootSize = new Vector2(_canvasLayoutRoot.resolvedStyle.width, _canvasLayoutRoot.resolvedStyle.height);
+            if (rootSize.x <= 0f || rootSize.y <= 0f) return;
+            style.width = rootSize.x;
+            style.height = rootSize.y;
+            ApplyPanelScale(rootSize);
+        }
+
+        private void ApplyPanelScale(Vector2 rootSize)
+        {
+            float scaleX = rootSize.x / WinW;
+            float scaleY = rootSize.y / WinH;
+            ApplyPanelBounds(_listPanel, QuestListBounds, scaleX, scaleY);
+            ApplyPanelBounds(_detailPanel, QuestDetailBounds, scaleX, scaleY);
+            ApplyPanelBounds(_rewardPanel, RewardBounds, scaleX, scaleY);
+        }
+
+        private static void ApplyPanelBounds(VisualElement panel, Rect bounds, float scaleX, float scaleY)
+        {
+            if (panel == null) return;
+            panel.style.position = Position.Absolute;
+            panel.style.left = bounds.x * scaleX;
+            panel.style.top = bounds.y * scaleY;
+            panel.style.width = bounds.width;
+            panel.style.height = bounds.height;
+            panel.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
+            panel.style.scale = new StyleScale(new Scale(new Vector2(scaleX, scaleY)));
         }
 
         // [Phase2a] 좌: QuestListPanel (필터탭 + 카드 목록 + 요약풋터)
         private void BuildListZone()
         {
             var listCol = new VisualElement();
+            _listPanel = listCol;
             listCol.name = "QuestListPanel";
             listCol.style.flexDirection = FlexDirection.Column;
-            listCol.style.width = 533f;      // Figma 400x1.333
-            listCol.style.height = 1093f;    // Figma 820x1.333
+            listCol.style.width = QuestListBounds.width;
+            listCol.style.height = QuestListBounds.height;
             listCol.style.position = Position.Absolute;
-            listCol.style.left = 53f;        // Figma 40x1.333
-            listCol.style.top = 53f;         // Figma 40x1.333
+            listCol.style.left = QuestListBounds.x;
+            listCol.style.top = QuestListBounds.y;
             listCol.style.flexShrink = 0;
-            listCol.style.paddingLeft = 8f;
-            listCol.style.paddingRight = 8f;
+            listCol.style.paddingLeft = 24f;
+            listCol.style.paddingRight = 24f;
+            listCol.style.paddingTop = 24f;
+            listCol.style.paddingBottom = 24f;
             ApplyDarkSlotStyle(listCol);     // 판넬 배경/테두리(독립 창처럼)
             _content.Add(listCol);
 
@@ -260,21 +332,30 @@ namespace ProjectName.UI.Toolkit
             var tabRow = new VisualElement();
             tabRow.name = "FilterTabs";
             tabRow.style.flexDirection = FlexDirection.Row;
-            tabRow.style.marginTop = 6f;
+            tabRow.style.height = 36.2f;
+            tabRow.style.flexShrink = 0f;
+            tabRow.style.marginTop = 19.2f;
             listCol.Add(tabRow);
-            AddFilterTab(tabRow, QuestFilter.All, "전체");
             AddFilterTab(tabRow, QuestFilter.Active, "진행 중");
             AddFilterTab(tabRow, QuestFilter.Completed, "완료");
 
             _list = new ScrollView { name = "QuestList" };
             _list.style.flexGrow = 1f;
-            _list.style.marginTop = 4f;
+            _list.style.minHeight = 0f;
+            _list.style.marginTop = 19.2f;
             listCol.Add(_list);
 
             // 요약 풋터
+            var footerRow = new VisualElement { name = "SummaryFooter" };
+            footerRow.style.flexDirection = FlexDirection.Row;
+            footerRow.style.alignItems = Align.Center;
+            footerRow.style.height = 34.4f;
+            footerRow.style.flexShrink = 0f;
+            footerRow.style.marginTop = 18f;
             _summaryFooter = MkLabel("동시 추적 제한 2 / 5 개 등록", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
-            _summaryFooter.style.marginTop = 3f;
-            listCol.Add(_summaryFooter);
+            _summaryFooter.style.flexGrow = 1f;
+            footerRow.Add(_summaryFooter);
+            listCol.Add(footerRow);
         }
 
         // [Phase2a] 중앙: QuestDetailPanel — 선택 퀘스트 상세(브리핑+목표)
@@ -283,46 +364,72 @@ namespace ProjectName.UI.Toolkit
             _detailPanel = new VisualElement();
             _detailPanel.name = "QuestDetailPanel";
             _detailPanel.style.flexDirection = FlexDirection.Column;
-            _detailPanel.style.width = 693f;    // Figma 520x1.333
-            _detailPanel.style.height = 640f;   // Figma 480x1.333
+            _detailPanel.style.width = QuestDetailBounds.width;
+            _detailPanel.style.height = QuestDetailBounds.height;
             _detailPanel.style.position = Position.Absolute;
-            _detailPanel.style.left = 613f;     // Figma 460x1.333
-            _detailPanel.style.top = 280f;      // Figma 210x1.333
-            _detailPanel.style.paddingLeft = 10f;
-            _detailPanel.style.paddingRight = 10f;
-            _detailPanel.style.paddingTop = 8f;
-            _detailPanel.style.paddingBottom = 8f;
+            _detailPanel.style.left = QuestDetailBounds.x;
+            _detailPanel.style.top = QuestDetailBounds.y;
+            _detailPanel.style.paddingLeft = 24f;
+            _detailPanel.style.paddingRight = 24f;
+            _detailPanel.style.paddingTop = 24f;
+            _detailPanel.style.paddingBottom = 24f;
             ApplyDarkSlotStyle(_detailPanel);
             _content.Add(_detailPanel);
 
             _detailPanel.Add(BuildPanelBar("임무 상세", "OBJECTIVE", GitHubDark.Accent));
 
+            var hero = new VisualElement { name = "QuestHeroHeader" };
+            hero.style.flexDirection = FlexDirection.Column;
+            hero.style.height = 82.6f;
+            hero.style.flexShrink = 0f;
+            hero.style.marginTop = 19.2f;
+            hero.style.paddingLeft = 14.4f;
+            hero.style.paddingRight = 14.4f;
+            hero.style.paddingTop = 14.4f;
             _detailHeroTitle = MkLabel("퀘스트를 선택하세요", 19, GitHubDark.TextMain, TextAnchor.MiddleLeft);
-            _detailPanel.Add(_detailHeroTitle);
-
+            _detailHeroTitle.style.height = 31f;
+            hero.Add(_detailHeroTitle);
             _detailHeroTag = MkLabel("", 12, GitHubDark.Accent, TextAnchor.MiddleLeft);
-            _detailHeroTag.style.marginTop = 3f;
-            _detailPanel.Add(_detailHeroTag);
+            _detailHeroTag.style.marginTop = 4.8f;
+            _detailHeroTag.style.height = 18f;
+            hero.Add(_detailHeroTag);
+            _detailPanel.Add(hero);
 
+            var storySection = new VisualElement { name = "StorySection" };
+            storySection.style.flexDirection = FlexDirection.Column;
+            storySection.style.height = 141f;
+            storySection.style.flexShrink = 0f;
+            storySection.style.marginTop = 19.2f;
+            storySection.style.paddingLeft = 14.4f;
+            storySection.style.paddingRight = 14.4f;
+            storySection.style.paddingTop = 14.4f;
             var storyH = MkLabel("작전 브리핑", 14, GitHubDark.Gold, TextAnchor.MiddleLeft);
-            storyH.style.marginTop = 8f;
-            _detailPanel.Add(storyH);
-
+            storyH.style.height = 18f;
+            storySection.Add(storyH);
             _detailStory = MkLabel("—", 13, GitHubDark.TextSub, TextAnchor.UpperLeft);
             _detailStory.style.whiteSpace = WhiteSpace.Normal;
-            _detailStory.style.flexGrow = 1f;
-            _detailPanel.Add(_detailStory);
+            _detailStory.style.height = 87f;
+            _detailStory.style.marginTop = 7.2f;
+            storySection.Add(_detailStory);
+            _detailPanel.Add(storySection);
 
+            var objectivesSection = new VisualElement { name = "ObjectivesPanel" };
+            objectivesSection.style.flexDirection = FlexDirection.Column;
+            objectivesSection.style.flexGrow = 1f;
+            objectivesSection.style.minHeight = 0f;
+            objectivesSection.style.marginTop = 19.2f;
             var objH = MkLabel("달성 조건", 14, GitHubDark.Gold, TextAnchor.MiddleLeft);
-            objH.style.marginTop = 8f;
-            _detailPanel.Add(objH);
+            objH.style.height = 18f;
+            objectivesSection.Add(objH);
 
             _objectivesList = new VisualElement();
             _objectivesList.name = "ObjectivesSection";
             _objectivesList.style.flexDirection = FlexDirection.Column;
             _objectivesList.style.flexGrow = 1f;
-            _objectivesList.style.marginTop = 4f;
-            _detailPanel.Add(_objectivesList);
+            _objectivesList.style.minHeight = 0f;
+            _objectivesList.style.marginTop = 12f;
+            objectivesSection.Add(_objectivesList);
+            _detailPanel.Add(objectivesSection);
         }
 
         // [Phase2a] 우: RewardPanel — 보상 목록
@@ -331,16 +438,16 @@ namespace ProjectName.UI.Toolkit
             _rewardPanel = new VisualElement();
             _rewardPanel.name = "RewardPanel";
             _rewardPanel.style.flexDirection = FlexDirection.Column;
-            _rewardPanel.style.width = 533f;    // Figma DeploymentPanel 400x1.333 (보상 카드)
-            _rewardPanel.style.height = 1093f;  // Figma 820x1.333
+            _rewardPanel.style.width = RewardBounds.width;
+            _rewardPanel.style.height = RewardBounds.height;
             _rewardPanel.style.position = Position.Absolute;
-            _rewardPanel.style.left = 1333f;    // Figma 1000x1.333
-            _rewardPanel.style.top = 53f;       // Figma 40x1.333
+            _rewardPanel.style.left = RewardBounds.x;
+            _rewardPanel.style.top = RewardBounds.y;
             _rewardPanel.style.flexShrink = 0;
-            _rewardPanel.style.paddingLeft = 10f;
-            _rewardPanel.style.paddingRight = 10f;
-            _rewardPanel.style.paddingTop = 8f;
-            _rewardPanel.style.paddingBottom = 8f;
+            _rewardPanel.style.paddingLeft = 24f;
+            _rewardPanel.style.paddingRight = 24f;
+            _rewardPanel.style.paddingTop = 24f;
+            _rewardPanel.style.paddingBottom = 24f;
             ApplyDarkSlotStyle(_rewardPanel);
             _content.Add(_rewardPanel);
 
@@ -350,7 +457,10 @@ namespace ProjectName.UI.Toolkit
             _rewardsList.name = "RewardsList";
             _rewardsList.style.flexDirection = FlexDirection.Column;
             _rewardsList.style.flexGrow = 1f;
-            _rewardsList.style.marginTop = 6f;
+            _rewardsList.style.minHeight = 0f;
+            // The archive reserves a section-description block here, but no corresponding
+            // runtime data exists; preserve the spacing without inserting placeholder copy.
+            _rewardsList.style.marginTop = 87.2f;
             _rewardPanel.Add(_rewardsList);
         }
 
@@ -362,7 +472,9 @@ namespace ProjectName.UI.Toolkit
                 RefreshDisplay();
             }, UTKButton.Variant.Secondary);
             tab.style.flexGrow = 1f;
-            tab.style.height = 26f;
+            tab.style.height = 36.2f;
+            tab.style.minWidth = 0f;
+            tab.style.marginRight = filter == QuestFilter.Completed ? 0f : 8.4f;
             StyleButton(tab, UTKButton.Variant.Secondary);
             _filterTabs.Add(tab);
             parent.Add(tab);
@@ -375,6 +487,10 @@ namespace ProjectName.UI.Toolkit
             bar.name = "PanelTitleBar";
             bar.style.flexDirection = FlexDirection.Row;
             bar.style.alignItems = Align.Center;
+            bar.style.height = 52.8f;
+            bar.style.flexShrink = 0f;
+            bar.style.paddingLeft = 0f;
+            bar.style.paddingRight = 0f;
             bar.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
             bar.style.borderTopWidth = bar.style.borderBottomWidth = bar.style.borderLeftWidth = bar.style.borderRightWidth = 1f;
             bar.style.borderTopColor = bar.style.borderBottomColor = bar.style.borderLeftColor = bar.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
@@ -382,10 +498,12 @@ namespace ProjectName.UI.Toolkit
             bar.style.borderBottomLeftRadius = bar.style.borderBottomRightRadius = 6f;
             var titleLbl = MkLabel("  " + title + "  /  " + enTitle, 16, accent, TextAnchor.MiddleLeft);
             titleLbl.style.flexGrow = 1f;
+            titleLbl.style.minWidth = 0f;
             bar.Add(titleLbl);
             var closeBtn = UTKButton.Create("✕", () => Close(), UTKButton.Variant.Secondary);
+            closeBtn.style.flexShrink = 0f;
             closeBtn.style.width = 30f;
-            closeBtn.style.height = 26f;
+            closeBtn.style.height = 36.2f;
             StyleButton(closeBtn, UTKButton.Variant.Secondary);
             bar.Add(closeBtn);
             return bar;
@@ -491,7 +609,7 @@ namespace ProjectName.UI.Toolkit
             _list.Clear();
             bool any = false;
 
-            if (_filter != QuestFilter.Active && _filter != QuestFilter.Completed && chains.Count > 0)
+            if (_filter == QuestFilter.Active && chains.Count > 0)
             {
                 _list.Add(BuildChainHeader());
                 for (int i = 0; i < chains.Count; i++)
@@ -501,7 +619,7 @@ namespace ProjectName.UI.Toolkit
                 }
             }
 
-            if (_filter == QuestFilter.All || _filter == QuestFilter.Active)
+            if (_filter == QuestFilter.Active)
             {
                 for (int i = 0; i < active.Count; i++)
                 {
@@ -510,7 +628,7 @@ namespace ProjectName.UI.Toolkit
                 }
             }
 
-            if (_filter == QuestFilter.All || _filter == QuestFilter.Completed)
+            if (_filter == QuestFilter.Completed)
             {
                 for (int i = 0; i < completed.Count; i++)
                 {
@@ -519,8 +637,8 @@ namespace ProjectName.UI.Toolkit
                 }
             }
 
-            // 수락가능은 전체 필터에서만 노출 (Figma 카테고리 필 대응 상단 플로우)
-            if (_filter == QuestFilter.All)
+            // Keep acceptance reachable without adding a third tab that the archive does not contain.
+            if (_filter == QuestFilter.Active)
             {
                 for (int i = 0; i < available.Count; i++)
                 {
@@ -543,13 +661,13 @@ namespace ProjectName.UI.Toolkit
 
             if (string.IsNullOrEmpty(sel))
             {
-                if (_filter == QuestFilter.All && chains.Count > 0)
+                if (_filter == QuestFilter.Active && chains.Count > 0)
                     sel = chains[0].Key.chainId;
-                else if ((_filter == QuestFilter.All || _filter == QuestFilter.Active) && active.Count > 0)
+                else if (_filter == QuestFilter.Active && active.Count > 0)
                     sel = active[0].questId;
-                else if (_filter == QuestFilter.All && available.Count > 0)
+                else if (_filter == QuestFilter.Active && available.Count > 0)
                     sel = available[0].questId;
-                else if ((_filter == QuestFilter.All || _filter == QuestFilter.Completed) && completed.Count > 0)
+                else if (_filter == QuestFilter.Completed && completed.Count > 0)
                     sel = completed[0].questId;
             }
             _selectedQuestId = sel;
@@ -562,11 +680,11 @@ namespace ProjectName.UI.Toolkit
         {
             if (string.IsNullOrEmpty(questId)) return false;
 
-            if (_filter == QuestFilter.All || _filter == QuestFilter.Active)
+            if (_filter == QuestFilter.Active)
                 for (int i = 0; i < active.Count; i++) if (active[i].questId == questId) return true;
-            if (_filter == QuestFilter.All || _filter == QuestFilter.Completed)
+            if (_filter == QuestFilter.Completed)
                 for (int i = 0; i < completed.Count; i++) if (completed[i].questId == questId) return true;
-            if (_filter == QuestFilter.All)
+            if (_filter == QuestFilter.Active)
             {
                 for (int i = 0; i < available.Count; i++) if (available[i].questId == questId) return true;
                 for (int i = 0; i < chains.Count; i++) if (chains[i].Key.chainId == questId) return true;
@@ -579,9 +697,8 @@ namespace ProjectName.UI.Toolkit
             for (int i = 0; i < _filterTabs.Count; i++)
             {
                 Button b = _filterTabs[i];
-                bool active = (i == 0 && _filter == QuestFilter.All)
-                    || (i == 1 && _filter == QuestFilter.Active)
-                    || (i == 2 && _filter == QuestFilter.Completed);
+                bool active = (i == 0 && _filter == QuestFilter.Active)
+                    || (i == 1 && _filter == QuestFilter.Completed);
                 if (active)
                 {
                     b.style.backgroundColor = GitHubDark.Accent;
@@ -680,13 +797,17 @@ namespace ProjectName.UI.Toolkit
             var box = new VisualElement();
             box.AddToClassList("utk-slot");
             ApplyDarkRowStyle(box);
+            box.name = "QuestSlot";
             box.style.flexDirection = FlexDirection.Column;
-            box.style.marginTop = 4f;
-            box.style.marginBottom = 4f;
-            box.style.paddingTop = 12f;    // Figma QuestSlot padding 12
-            box.style.paddingBottom = 12f;
-            box.style.paddingLeft = 12f;   // Figma QuestSlot padding 좌우 12
-            box.style.paddingRight = 12f;
+            box.style.position = Position.Relative;
+            box.style.minHeight = 135.2f;
+            box.style.height = 135.2f;
+            box.style.flexShrink = 0f;
+            box.style.marginBottom = 9.6f;
+            box.style.paddingTop = 14.4f;
+            box.style.paddingBottom = 14.4f;
+            box.style.paddingLeft = 14.4f;
+            box.style.paddingRight = 14.4f;
             string qid = quest.questId;
             box.RegisterCallback<PointerDownEvent>(_ => { _selectedQuestId = qid; RefreshDisplay(); });
 
@@ -696,19 +817,27 @@ namespace ProjectName.UI.Toolkit
             Color stateColor = state == QuestState.Active ? GitHubDark.Accent
                 : state == QuestState.Completed ? GitHubDark.Success : GitHubDark.Gold;
 
-            // [P4 Figma 카드] 상단 행: TierStrip(좌 상태색 바) + CategoryPill + Lv.N
+            // [Figma 93:230] full-height TierStrip + data-backed category pill + level.
             var cardRow = new VisualElement();
+            cardRow.name = "CardHeader";
             cardRow.style.flexDirection = FlexDirection.Row;
             cardRow.style.alignItems = Align.Center;
+            cardRow.style.height = 18.8f;
+            cardRow.style.flexShrink = 0f;
 
             var tierStrip = new VisualElement();
-            tierStrip.style.width = 4f;
-            tierStrip.style.height = 74f;
+            tierStrip.name = "TierStrip";
+            tierStrip.style.width = 4.8f;
+            tierStrip.style.position = Position.Absolute;
+            tierStrip.style.left = -14.4f;
+            tierStrip.style.top = -14.4f;
+            tierStrip.style.bottom = -14.4f;
             tierStrip.style.backgroundColor = new StyleColor(stateColor);
-            tierStrip.style.marginRight = 6f;
-            cardRow.Add(tierStrip);
+            box.Add(tierStrip);
 
-            var pill = MkLabel(stateStr, 11, GitHubDark.TextSub, TextAnchor.MiddleCenter);
+            string categoryStr = quest.isMain ? "주 임무" : "부 임무";
+            var pill = MkLabel(categoryStr, 11, GitHubDark.TextSub, TextAnchor.MiddleCenter);
+            pill.name = "CategoryPill";
             pill.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
             pill.style.borderTopLeftRadius = 4f;
             pill.style.borderTopRightRadius = 4f;
@@ -716,33 +845,36 @@ namespace ProjectName.UI.Toolkit
             pill.style.borderBottomRightRadius = 4f;
             pill.style.paddingLeft = 6f;
             pill.style.paddingRight = 6f;
+            pill.style.height = 18.8f;
+            pill.style.flexShrink = 0f;
             cardRow.Add(pill);
 
             var levelLbl = MkLabel(quest.requiredLevel > 0 ? $"Lv.{quest.requiredLevel}" : "", 11, GitHubDark.Accent, TextAnchor.MiddleLeft);
             levelLbl.style.marginLeft = 6f;
             cardRow.Add(levelLbl);
 
-            var pad = new VisualElement();
-            pad.style.flexGrow = 1f;
-            cardRow.Add(pad);
-
-            var stateLbl = MkLabel(stateStr, 12, stateColor, TextAnchor.MiddleRight);
-            stateLbl.style.width = 70f;
-            cardRow.Add(stateLbl);
             box.Add(cardRow);
 
-            // 제목 + 설명
+            // 제목 + 설명 — Figma CardBody region with live quest data.
+            var cardBody = new VisualElement { name = "CardBody" };
+            cardBody.style.flexDirection = FlexDirection.Column;
+            cardBody.style.marginTop = 4.8f;
+            cardBody.style.flexShrink = 0f;
             Color questNameColor = quest.isMain ? GitHubDark.Gold : GitHubDark.Accent;
             var nameLabel = MkLabel(quest.questName, 16, questNameColor, TextAnchor.MiddleLeft);
+            nameLabel.style.minHeight = 20f;
             nameLabel.style.whiteSpace = WhiteSpace.Normal;
-            box.Add(nameLabel);
+            cardBody.Add(nameLabel);
 
             if (!string.IsNullOrEmpty(quest.description))
             {
                 var desc = MkLabel(quest.description, 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+                desc.style.minHeight = 17f;
+                desc.style.marginTop = 4.8f;
                 desc.style.whiteSpace = WhiteSpace.Normal;
-                box.Add(desc);
+                cardBody.Add(desc);
             }
+            box.Add(cardBody);
 
             // [P4 Figma] 진행 게이지 + %
             int objCount = quest.objectives != null ? quest.objectives.Count : 0;
@@ -755,12 +887,18 @@ namespace ProjectName.UI.Toolkit
             float prog = objCount > 0 ? (float)metCount / objCount : (state == QuestState.Completed ? 1f : 0f);
 
             var progRow = new VisualElement();
+            progRow.name = "ProgressArea";
             progRow.style.flexDirection = FlexDirection.Row;
             progRow.style.alignItems = Align.Center;
+            progRow.style.height = state == QuestState.Completed ? 17f : 26f;
+            progRow.style.flexShrink = 0f;
+            progRow.style.marginTop = 7.2f;
 
             var track = new VisualElement();
+            track.name = "GaugeTrack";
             track.style.flexGrow = 1f;
-            track.style.height = 4f;   // Figma GaugeTrack 4px (카드 진행게이지)
+            track.style.minWidth = 0f;
+            track.style.height = 4.8f;
             track.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
             track.style.borderTopLeftRadius = 2f;
             track.style.borderTopRightRadius = 2f;
@@ -768,6 +906,7 @@ namespace ProjectName.UI.Toolkit
             track.style.borderBottomRightRadius = 2f;
 
             var fill = new VisualElement();
+            fill.name = "GaugeFill";
             fill.style.height = new Length(100f, LengthUnit.Percent);
             fill.style.width = new Length(Mathf.Clamp01(prog) * 100f, LengthUnit.Percent);
             fill.style.backgroundColor = new StyleColor(stateColor);
@@ -775,43 +914,47 @@ namespace ProjectName.UI.Toolkit
             progRow.Add(track);
 
             var pct = MkLabel($"{Mathf.RoundToInt(Mathf.Clamp01(prog) * 100f)}%", 12, GitHubDark.TextMain, TextAnchor.MiddleRight);
-            pct.style.width = 44f;
+            pct.style.width = 32f;
+            pct.style.marginLeft = 6f;
             progRow.Add(pct);
+
+            // Keep existing accept/complete behavior inside the archived card bounds.
+            if (state == QuestState.Available || state == QuestState.Active)
+            {
+                Button actionButton;
+                if (state == QuestState.Available)
+                {
+                    actionButton = UTKButton.Create("수락", () =>
+                    {
+                        bool ok = QuestManager.AcceptQuest(qid);
+                        Debug.Log($"[QuestWindowUTK] 퀘스트 수락 시도({qid}): 성공={ok}");
+                        _selectedQuestId = null;
+                        RefreshDisplay();
+                    }, UTKButton.Variant.Primary);
+                    StyleButton(actionButton, UTKButton.Variant.Primary);
+                }
+                else
+                {
+                    bool completeable = quest.AllObjectivesMet;
+                    actionButton = UTKButton.Create("완료", () =>
+                    {
+                        bool ok = QuestManager.TryCompleteQuest(qid);
+                        Debug.Log($"[QuestWindowUTK] 퀘스트 완료 시도({qid}): 성공={ok}");
+                        _selectedQuestId = null;
+                        RefreshDisplay();
+                    }, UTKButton.Variant.Danger);
+                    actionButton.SetEnabled(completeable);
+                    StyleButton(actionButton, UTKButton.Variant.Danger);
+                }
+                actionButton.style.flexShrink = 0f;
+                actionButton.style.width = 54f;
+                actionButton.style.height = 26f;
+                actionButton.style.marginLeft = 7.2f;
+                progRow.Add(actionButton);
+            }
             box.Add(progRow);
 
             Debug.Log($"[QuestWindowUTK] 퀘스트 항목: {quest.questName} ({qid}) [{stateStr}] 진행 {metCount}/{objCount}");
-
-            // 수락 / 완료 버튼
-            if (state == QuestState.Available)
-            {
-                var btn = UTKButton.Create("수락", () =>
-                {
-                    bool ok = QuestManager.AcceptQuest(qid);
-                    Debug.Log($"[QuestWindowUTK] 퀘스트 수락 시도({qid}): 성공={ok}");
-                    _selectedQuestId = null;
-                    RefreshDisplay();
-                }, UTKButton.Variant.Primary);
-                StyleButton(btn, UTKButton.Variant.Primary);
-                btn.style.alignSelf = Align.FlexEnd;
-                btn.style.width = 64f;
-                box.Add(btn);
-            }
-            else if (state == QuestState.Active)
-            {
-                bool completeable = quest.AllObjectivesMet;
-                var btn = UTKButton.Create("완료", () =>
-                {
-                    bool ok = QuestManager.TryCompleteQuest(qid);
-                    Debug.Log($"[QuestWindowUTK] 퀘스트 완료 시도({qid}): 성공={ok}");
-                    _selectedQuestId = null;
-                    RefreshDisplay();
-                }, UTKButton.Variant.Danger);
-                btn.SetEnabled(completeable);
-                StyleButton(btn, UTKButton.Variant.Danger);
-                btn.style.alignSelf = Align.FlexEnd;
-                btn.style.width = 64f;
-                box.Add(btn);
-            }
 
             return box;
         }
@@ -881,7 +1024,7 @@ namespace ProjectName.UI.Toolkit
 
             _detailHeroTitle.text = quest.questName;
             _detailHeroTitle.style.color = new StyleColor(quest.isMain ? GitHubDark.Gold : GitHubDark.Accent);
-            _detailHeroTag.text = $"Lv.{quest.requiredLevel}  ·  {QuestRewardPreview.GetRewardSummary(quest)}";
+            _detailHeroTag.text = $"{(quest.isMain ? "주 임무" : "부 임무")}  ·  Lv.{quest.requiredLevel}  ·  {QuestRewardPreview.GetRewardSummary(quest)}";
             _detailStory.text = string.IsNullOrEmpty(quest.description) ? "—" : quest.description;
 
             // 목표 체크리스트
@@ -898,31 +1041,40 @@ namespace ProjectName.UI.Toolkit
         private VisualElement BuildObjectiveRow(QuestObjective obj)
         {
             var row = new VisualElement();
-            row.style.flexDirection = FlexDirection.Row;
-            row.style.alignItems = Align.Center;
-            row.style.marginTop = 2f;
-            row.style.marginBottom = 2f;
+            row.name = "GoalRow";
+            row.style.flexDirection = FlexDirection.Column;
+            row.style.height = 32f;
+            row.style.flexShrink = 0f;
 
             float ratio = obj.requiredCount > 0 ? Mathf.Clamp01((float)obj.currentCount / obj.requiredCount) : (obj.IsMet ? 1f : 0f);
             Color c = obj.IsMet ? GitHubDark.Success : GitHubDark.TextSub;
 
+            var contentRow = new VisualElement();
+            contentRow.style.flexDirection = FlexDirection.Row;
+            contentRow.style.alignItems = Align.Center;
+            contentRow.style.height = 20f;
+            row.Add(contentRow);
+
             var mark = MkLabel(obj.IsMet ? "✓" : "○", 15, c, TextAnchor.MiddleCenter);
-            mark.style.width = 22f;
-            row.Add(mark);
+            mark.style.width = 26.4f;
+            contentRow.Add(mark);
 
             var desc = MkLabel(obj.description ?? "목표", 13, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             desc.style.flexGrow = 1f;
+            desc.style.minWidth = 0f;
             desc.style.whiteSpace = WhiteSpace.Normal;
-            row.Add(desc);
+            contentRow.Add(desc);
 
             var cnt = MkLabel(obj.requiredCount > 0 ? $"{obj.currentCount}/{obj.requiredCount}" : (obj.IsMet ? "완료" : "진행"), 12, c, TextAnchor.MiddleRight);
-            cnt.style.width = 56f;
-            row.Add(cnt);
+            cnt.style.width = 47f;
+            contentRow.Add(cnt);
 
-            // 목표별 미니 게이지
+            // Objective gauge follows the archived full-width track geometry.
             var track = new VisualElement();
-            track.style.width = 44f;
-            track.style.height = 6f;
+            track.name = "GaugeTrack";
+            track.style.width = new Length(100f, LengthUnit.Percent);
+            track.style.height = 7.2f;
+            track.style.marginTop = 4.8f;
             track.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
             track.style.borderTopLeftRadius = 3f;
             track.style.borderTopRightRadius = 3f;
@@ -983,12 +1135,14 @@ namespace ProjectName.UI.Toolkit
             row.name = "RewardRow";
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
-            row.style.marginTop = 3f;
-            row.style.marginBottom = 3f;
-            row.style.paddingTop = 4f;
-            row.style.paddingBottom = 4f;
-            row.style.paddingLeft = 6f;
-            row.style.paddingRight = 6f;
+            row.style.height = 72f;
+            row.style.flexShrink = 0f;
+            row.style.marginTop = 4.8f;
+            row.style.marginBottom = 9.6f;
+            row.style.paddingTop = 12f;
+            row.style.paddingBottom = 12f;
+            row.style.paddingLeft = 12f;
+            row.style.paddingRight = 12f;
             row.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
             row.style.borderTopLeftRadius = 6f;
             row.style.borderTopRightRadius = 6f;
@@ -996,8 +1150,9 @@ namespace ProjectName.UI.Toolkit
             row.style.borderBottomRightRadius = 6f;
 
             var icon = new VisualElement();
-            icon.style.width = 30f;
-            icon.style.height = 30f;
+            icon.style.width = 48f;
+            icon.style.height = 48f;
+            icon.style.flexShrink = 0f;
             icon.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
             icon.style.borderTopWidth = 1f;
             icon.style.borderBottomWidth = 1f;
@@ -1012,10 +1167,12 @@ namespace ProjectName.UI.Toolkit
 
             var nameLbl = MkLabel(name, 14, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             nameLbl.style.flexGrow = 1f;
+            nameLbl.style.minWidth = 0f;
+            nameLbl.style.marginLeft = 14.4f;
             row.Add(nameLbl);
 
             var val = MkLabel(value, 13, accent, TextAnchor.MiddleRight);
-            val.style.width = 70f;
+            val.style.width = 57f;
             row.Add(val);
 
             return row;
@@ -1051,6 +1208,9 @@ namespace ProjectName.UI.Toolkit
                     root.Add(window);
 
                 var kb = UnityEngine.InputSystem.Keyboard.current;
+                // Q키 토글 복구 — 5858bc18(10-01)에서 유실된 유일한 열기 경로(퀘스트창 기능 소실 버그). ESC 닫기와 병행.
+                if (kb != null && kb.qKey.wasPressedThisFrame && window != null)
+                    if (window.IsOpen) window.Close(); else QuestWindowUTK.Toggle();   // Toggle은 static(싱글턴 토글)
                 if (kb != null && kb.escapeKey.wasPressedThisFrame && window != null && window.IsOpen)
                     window.Close();
             }
