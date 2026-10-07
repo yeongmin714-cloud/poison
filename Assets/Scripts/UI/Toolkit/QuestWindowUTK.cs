@@ -202,14 +202,15 @@ namespace ProjectName.UI.Toolkit
         private static void ApplyDarkSlotStyle(VisualElement slot)
         {
             if (slot == null) return;
+            // [Figma 93:230 패널 글래스] #161B22@0.85(사용자 조정) + #30363D@0.5 1.2px + r14.4
             slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);
-            slot.style.backgroundColor = GitHubDark.BgBase;
-            slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = 1f;
-            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            slot.style.borderTopLeftRadius = 6f;
-            slot.style.borderTopRightRadius = 6f;
-            slot.style.borderBottomLeftRadius = 6f;
-            slot.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+            slot.style.backgroundColor = new StyleColor(UTKTheme.GlassPanelFill);
+            slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = UTKTheme.GlassStrokeWidth;
+            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(UTKTheme.GlassPanelStroke);
+            slot.style.borderTopLeftRadius = UTKTheme.GlassRadius;
+            slot.style.borderTopRightRadius = UTKTheme.GlassRadius;
+            slot.style.borderBottomLeftRadius = UTKTheme.GlassRadius;
+            slot.style.borderBottomRightRadius = UTKTheme.GlassRadius;
         }
 
         // ===== 레퍼런스 =====
@@ -352,7 +353,7 @@ namespace ProjectName.UI.Toolkit
             footerRow.style.height = 34.4f;
             footerRow.style.flexShrink = 0f;
             footerRow.style.marginTop = 18f;
-            _summaryFooter = MkLabel("동시 추적 제한 2 / 5 개 등록", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            _summaryFooter = MkLabel("동시 추적 제한 2 / 5 개 등록", UTKTheme.FontRowLabel, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 15.6
             _summaryFooter.style.flexGrow = 1f;
             footerRow.Add(_summaryFooter);
             listCol.Add(footerRow);
@@ -386,7 +387,8 @@ namespace ProjectName.UI.Toolkit
             hero.style.paddingLeft = 14.4f;
             hero.style.paddingRight = 14.4f;
             hero.style.paddingTop = 14.4f;
-            _detailHeroTitle = MkLabel("퀘스트를 선택하세요", 19, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            _detailHeroTitle = MkLabel("퀘스트를 선택하세요", UTKTheme.FontDisplayName, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 26.4/700
+            _detailHeroTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             _detailHeroTitle.style.height = 31f;
             hero.Add(_detailHeroTitle);
             _detailHeroTag = MkLabel("", 12, GitHubDark.Accent, TextAnchor.MiddleLeft);
@@ -491,19 +493,24 @@ namespace ProjectName.UI.Toolkit
             bar.style.flexShrink = 0f;
             bar.style.paddingLeft = 0f;
             bar.style.paddingRight = 0f;
-            bar.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
-            bar.style.borderTopWidth = bar.style.borderBottomWidth = bar.style.borderLeftWidth = bar.style.borderRightWidth = 1f;
-            bar.style.borderTopColor = bar.style.borderBottomColor = bar.style.borderLeftColor = bar.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            bar.style.borderTopLeftRadius = bar.style.borderTopRightRadius = 6f;
-            bar.style.borderBottomLeftRadius = bar.style.borderBottomRightRadius = 6f;
-            var titleLbl = MkLabel("  " + title + "  /  " + enTitle, 16, accent, TextAnchor.MiddleLeft);
+            // [Figma 93:230 PanelHeader] 배경/테두리 없음 — 제목 21.6/700(accent) + 영문 13.2/500 + 닫기 31.2
+            bar.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            bar.style.borderTopWidth = bar.style.borderBottomWidth = bar.style.borderLeftWidth = bar.style.borderRightWidth = 0f;
+            var titleLbl = MkLabel(title, UTKTheme.FontTitle, accent, TextAnchor.MiddleLeft);
+            titleLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
             titleLbl.style.flexGrow = 1f;
             titleLbl.style.minWidth = 0f;
             bar.Add(titleLbl);
+            var enLbl = MkLabel(enTitle, UTKTheme.FontSubtitle, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            enLbl.style.unityFontStyleAndWeight = FontStyle.Normal;
+            enLbl.style.marginLeft = 12f;
+            enLbl.style.marginTop = 5f;
+            enLbl.style.flexShrink = 0f;
+            bar.Add(enLbl);
             var closeBtn = UTKButton.Create("✕", () => Close(), UTKButton.Variant.Secondary);
             closeBtn.style.flexShrink = 0f;
-            closeBtn.style.width = 30f;
-            closeBtn.style.height = 36.2f;
+            closeBtn.style.width = 31.2f;
+            closeBtn.style.height = 31.2f;
             StyleButton(closeBtn, UTKButton.Variant.Secondary);
             bar.Add(closeBtn);
             return bar;
@@ -836,7 +843,8 @@ namespace ProjectName.UI.Toolkit
             box.Add(tierStrip);
 
             string categoryStr = quest.isMain ? "주 임무" : "부 임무";
-            var pill = MkLabel(categoryStr, 11, GitHubDark.TextSub, TextAnchor.MiddleCenter);
+            var pill = MkLabel(categoryStr, UTKTheme.FontBadge, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [Figma] 12/700
+            pill.style.unityFontStyleAndWeight = FontStyle.Bold;
             pill.name = "CategoryPill";
             pill.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
             pill.style.borderTopLeftRadius = 4f;
@@ -849,7 +857,8 @@ namespace ProjectName.UI.Toolkit
             pill.style.flexShrink = 0f;
             cardRow.Add(pill);
 
-            var levelLbl = MkLabel(quest.requiredLevel > 0 ? $"Lv.{quest.requiredLevel}" : "", 11, GitHubDark.Accent, TextAnchor.MiddleLeft);
+            var levelLbl = MkLabel(quest.requiredLevel > 0 ? $"Lv.{quest.requiredLevel}" : "", UTKTheme.FontTab, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [Figma] 14.4/700
+            levelLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
             levelLbl.style.marginLeft = 6f;
             cardRow.Add(levelLbl);
 
@@ -861,14 +870,15 @@ namespace ProjectName.UI.Toolkit
             cardBody.style.marginTop = 4.8f;
             cardBody.style.flexShrink = 0f;
             Color questNameColor = quest.isMain ? GitHubDark.Gold : GitHubDark.Accent;
-            var nameLabel = MkLabel(quest.questName, 16, questNameColor, TextAnchor.MiddleLeft);
+            var nameLabel = MkLabel(quest.questName, UTKTheme.FontCardName, questNameColor, TextAnchor.MiddleLeft);   // [Figma] 16.8/700
+            nameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             nameLabel.style.minHeight = 20f;
             nameLabel.style.whiteSpace = WhiteSpace.Normal;
             cardBody.Add(nameLabel);
 
             if (!string.IsNullOrEmpty(quest.description))
             {
-                var desc = MkLabel(quest.description, 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+                var desc = MkLabel(quest.description, UTKTheme.FontBody, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 14.4/400
                 desc.style.minHeight = 17f;
                 desc.style.marginTop = 4.8f;
                 desc.style.whiteSpace = WhiteSpace.Normal;
