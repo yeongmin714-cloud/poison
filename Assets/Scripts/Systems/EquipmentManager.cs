@@ -36,7 +36,11 @@ namespace ProjectName.Systems
             Gloves,
             Back,
             Mask,
-            Bag
+            Bag,
+            // [Figma 84:4 + 사용자 확정 2026-10-07] 반지/목걸이 액세서리 슬롯 - 말단 추가로
+            // 기존 직렬화 인덱스(0~7) 불변. 시각 부착(ArmorVisualAttachSystem)은 폴백 포즈, 보너스는 실존 데이터만.
+            Ring,
+            Necklace
         }
 
         // 장비 슬롯 데이터

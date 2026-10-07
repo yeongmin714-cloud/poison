@@ -31,6 +31,160 @@ namespace ProjectName.UI.Toolkit
         private static InventoryWindowUTK _instance;
         public static InventoryWindowUTK Instance => _instance;
 
+        private void ApplyInventoryBodyLayout(bool requireAttachedPanel = true)
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root == null || _equipPanel == null || _bagViewport == null || _selectedLabel == null)
+                return;
+            if (requireAttachedPanel && (panel == null || _content.panel == null || panel != _content.panel || panel != root.panel))
+                return;
+            if (_isApplyingInventoryBodyLayout)
+                return;
+
+            Vector2 rootSize = new Vector2(root.resolvedStyle.width, root.resolvedStyle.height);
+            if (rootSize.x <= 0f || rootSize.y <= 0f || float.IsNaN(rootSize.x) || float.IsNaN(rootSize.y))
+                return;
+
+            _isApplyingInventoryBodyLayout = true;
+            try
+            {
+                float scaleX = rootSize.x / FigmaCanvasLayout.CanvasWidth;
+                Rect equipBody = InventoryClusterPanelRegions.ScalePanelLocal(InventoryClusterPanelRegions.InventoryEquipmentBody, rootSize);
+                Rect equipGridBody = InventoryClusterPanelRegions.ScalePanelLocal(InventoryClusterPanelRegions.InventoryEquipGridBody, rootSize);
+                Rect bagBody = InventoryClusterPanelRegions.ScalePanelLocal(InventoryClusterPanelRegions.InventoryBagViewport, rootSize);
+                Rect footerBody = InventoryClusterPanelRegions.ScalePanelLocal(InventoryClusterPanelRegions.InventoryFooterBody, rootSize);
+
+                // The Figma region origin is in window space. Translate it to _content-local space
+                // using the direct child's actual layout offset; never call ChangeCoordinatesTo here.
+                Vector2 contentOrigin = requireAttachedPanel
+                    ? new Vector2(_content.layout.x, _content.layout.y)
+                    : Vector2.zero;
+                SetLocalRect(_equipPanel, equipBody.x - contentOrigin.x, equipBody.y - contentOrigin.y, equipBody.width, equipBody.height);
+                SetLocalRect(_bagViewport, bagBody.x - contentOrigin.x, bagBody.y - contentOrigin.y, bagBody.width, bagBody.height);
+                SetLocalRect(_selectedLabel, footerBody.x - contentOrigin.x, footerBody.y - contentOrigin.y, footerBody.width, footerBody.height);
+
+                // Both Figma positions are window-local, so subtraction yields _equipPanel-local.
+                Rect equipGrid = new Rect(
+                    equipGridBody.x - equipBody.x,
+                    equipGridBody.y - equipBody.y,
+                    equipGridBody.width,
+                    equipGridBody.height);
+
+                float cell = InventoryClusterPanelRegions.CellSize * scaleX;
+                float bagGap = InventoryClusterPanelRegions.CellGap * scaleX;
+                float equipGap = InventoryClusterPanelRegions.EquipCellGap * scaleX;
+                float equipRowGap = Mathf.Max(0f, (equipGrid.height - EquipRows * cell) / (EquipRows - 1));
+                int rowIndex = 0;
+                foreach (var row in _equipPanel.Children())
+                {
+                    row.style.position = Position.Absolute;
+                    row.style.left = equipGrid.x;
+                    row.style.top = equipGrid.y + rowIndex * (cell + equipRowGap);
+                    row.style.width = equipGrid.width;
+                    row.style.height = cell;
+                    row.style.flexDirection = FlexDirection.Row;
+                    row.style.flexWrap = Wrap.NoWrap;
+                    row.style.justifyContent = Justify.FlexStart;
+                    row.style.marginBottom = 0f;
+                    int columnIndex = 0;
+                    foreach (var slot in row.Children())
+                    {
+                        slot.style.width = cell;
+                        slot.style.height = cell;
+                        slot.style.flexShrink = 0f;
+                        slot.style.marginRight = columnIndex < EquipColumns - 1 ? equipGap : 0f;
+                        columnIndex++;
+                    }
+                    rowIndex++;
+                }
+
+                _bagViewport.contentContainer.style.width = bagBody.width;
+                _bagViewport.contentContainer.style.flexWrap = Wrap.Wrap;
+                _bagViewport.contentContainer.style.justifyContent = Justify.Center;
+                _bagViewport.contentContainer.style.alignContent = Align.FlexStart;
+                _bagViewport.contentContainer.style.alignItems = Align.FlexStart;
+                _bagViewport.contentContainer.style.paddingLeft = 0f;
+                _bagViewport.contentContainer.style.paddingRight = 0f;
+                int bagSlotIndex = 0;
+                int bagSlotCount = _grid.childCount;
+                foreach (var slot in _grid.Children())
+                {
+                    slot.style.width = cell;
+                    slot.style.height = cell;
+                    slot.style.flexShrink = 0f;
+                    slot.style.marginLeft = 0f;
+                    slot.style.marginRight = bagSlotIndex % Columns < Columns - 1 ? bagGap : 0f;
+                    slot.style.marginTop = 0f;
+                    slot.style.marginBottom = bagSlotIndex / Columns < (bagSlotCount + Columns - 1) / Columns - 1 ? bagGap : 0f;
+                    bagSlotIndex++;
+                }
+            }
+            finally
+            {
+                _isApplyingInventoryBodyLayout = false;
+            }
+        }
+
+        private void OnInventoryAttached(AttachToPanelEvent evt)
+        {
+            RegisterRootGeometryCallback(UIToolkitBootstrap.UIRoot);
+            if (IsOpen)
+                ApplyInventoryBodyLayout();
+        }
+
+        private void OnInventoryDetached(DetachFromPanelEvent evt)
+        {
+            UnregisterRootGeometryCallback();
+        }
+
+        private void RegisterRootGeometryCallback(VisualElement root)
+        {
+            if (root == null || panel == null || root.panel != panel)
+                return;
+            if (_geometryRoot == root)
+                return;
+            UnregisterRootGeometryCallback();
+            _geometryRoot = root;
+            _geometryRoot.RegisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
+        }
+
+        private void UnregisterRootGeometryCallback()
+        {
+            if (_geometryRoot != null)
+            {
+                _geometryRoot.UnregisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
+                _geometryRoot = null;
+            }
+        }
+
+        private void OnRootGeometryChanged(GeometryChangedEvent evt)
+        {
+            var root = _geometryRoot;
+            if (root == null || evt.target != root || !IsOpen || _isApplyingInventoryBodyLayout || _isHandlingRootGeometry)
+                return;
+            if (panel == null || panel != root.panel || _content.panel != panel)
+                return;
+            _isHandlingRootGeometry = true;
+            try
+            {
+                InventoryClusterFigmaLayout.ApplyInventory(this, root);
+                ApplyInventoryBodyLayout();
+            }
+            finally
+            {
+                _isHandlingRootGeometry = false;
+            }
+        }
+
+        private static void SetLocalRect(VisualElement element, float x, float y, float width, float height)
+        {
+            element.style.position = Position.Absolute;
+            element.style.left = x;
+            element.style.top = y;
+            element.style.width = width;
+            element.style.height = height;
+        }
+
         /// <summary>팩토리 — UIRoot 좌측 배치(좌:인벤 관례). 멱등.</summary>
         public static void Ensure()
         {
@@ -41,27 +195,23 @@ namespace ProjectName.UI.Toolkit
         /// <summary>인벤 열기(팩토리 겸용).</summary>
         public static void Open()
         {
-            Ensure();
-            _instance.Show();
+            UTKInventoryClusterComposition.OpenInventory();
         }
 
-        /// <summary>토글(닫혀있으면 열고, 열려있으면 닫음).</summary>
+        /// <summary>인벤토리/상세 Figma sibling composition 토글.</summary>
         public static void Toggle()
         {
-            if (_instance != null && _instance.IsOpen) { _instance.Close(); return; }
-            Open();
+            UTKInventoryClusterComposition.ToggleInventory();
         }
 
         // ===== 설정 =====
-        private const float WinW = 420f;    // Figma InventoryPanel 420×760 (독립 최상위 창)
+        private const float WinW = 420f;    // Historical base constructor size; Show applies Figma outer bounds.
         private const float WinH = 760f;
-        private const int BagRows = 6;
+        private const int BagRows = InventoryClusterPanelRegions.InventoryVisibleBagRows;
         private const int EquipColumns = 5; // Figma 장비 5열
         private const int EquipRows = 2;    // Figma 장비 2행
-        private const float SlotSize = 68f; // Figma 슬롯 68×68
-        private const float SlotGap = 8f;   // Figma 가방 그리드 간격 8
-        private const float EquipGap = 4f;  // Figma 장비 그리드 간격 4
         private const int Columns = 5;   // Figma 가방 그리드 행당 5칸
+
         private const long RefreshMs = 250L;
 
         // Epic은 공유 테마의 토큰이 아닌 의미론적 등급색으로 유지한다.
@@ -173,6 +323,7 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 레퍼런스 =====
         private readonly VisualElement _grid;
+        private readonly ScrollView _bagViewport;
         private readonly VisualElement _equipPanel;        // [3분할] 좌측 상단 장비 2x5
         private readonly System.Collections.Generic.Dictionary<string, UTKSlot> _equipSlotIcons
             = new System.Collections.Generic.Dictionary<string, UTKSlot>();   // [P16-2] 장비 아이콘 슬롯
@@ -184,6 +335,9 @@ namespace ProjectName.UI.Toolkit
         private Label _selectedLabel;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
         private EquipmentManager _subscribedEquip;
+        private VisualElement _geometryRoot;
+        private bool _isApplyingInventoryBodyLayout;
+        private bool _isHandlingRootGeometry;
 
         /// <summary>현재 선택된 인벤 아이템 (QuickSlot 등록용 노출).</summary>
         private PlayerInventory.ItemData _selectedItemData;
@@ -205,61 +359,55 @@ namespace ProjectName.UI.Toolkit
         {
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
-            // Figma InventoryPanel 콘텐츠 패딩 20
-            _content.style.paddingTop = 20f;
-            _content.style.paddingBottom = 20f;
-            _content.style.paddingLeft = 20f;
-            _content.style.paddingRight = 20f;
+            // Root-scaled Figma body regions use _content-local coordinates; titlebar remains base chrome.
+            _content.style.paddingTop = 0f;
+            _content.style.paddingBottom = 0f;
+            _content.style.paddingLeft = 0f;
+            _content.style.paddingRight = 0f;
 
             // ④ 월드 드롭 백드롭: UIRoot(전체 화면) — 인벤 드롭이 UI 밖이면 땅에 바구니.
             RegisterWorldDrop();
 
-            // [3분할 레이아웃] 좌: 장비 2x5+가방 6x5 / 중: 설명창 / 우: 창고(상호작용시)
-            var columns = new VisualElement();
-            columns.style.flexDirection = FlexDirection.Row;
-            columns.style.flexGrow = 1f;
-            _content.Add(columns);
-
-            // ── 좌측 패널: 장비 2줄×5칸 + 가방 그리드(행당 5칸) ──
-            var leftCol = new VisualElement();
-            leftCol.style.flexGrow = 1f;   // 고정 380px 제거 — 창 폭을 채워 우측 빈 여백 제거(좌우 대칭)
-            leftCol.style.marginRight = 10f;
-            columns.Add(leftCol);
-
-            var equipTitle = new Label("장비");
-            equipTitle.style.fontSize = 17f;
-            equipTitle.style.color = new StyleColor(UTKTheme.TextMain);
-            equipTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            leftCol.Add(equipTitle);
-
-            _equipPanel = new VisualElement();
-            _equipPanel.style.flexDirection = FlexDirection.Row;
-            _equipPanel.style.flexWrap = Wrap.Wrap;
-            _equipPanel.style.justifyContent = Justify.Center;   // 장비 행 좌우 대칭(우측 쏠림 제거)
-            _equipPanel.style.marginBottom = 10f;
-            leftCol.Add(_equipPanel);
+            // 장비 본문(2×5) — inherited UTKWindowBase titlebar is intentionally not duplicated.
+            _equipPanel = new VisualElement { name = "InventoryEquipmentBody" };
+            _equipPanel.style.position = Position.Absolute;
+            _equipPanel.style.flexDirection = FlexDirection.Column;
+            _equipPanel.style.flexWrap = Wrap.NoWrap;
+            _equipPanel.style.alignContent = Align.FlexStart;
+            _equipPanel.style.alignItems = Align.FlexStart;
+            _equipPanel.style.justifyContent = Justify.FlexStart;
+            _content.Add(_equipPanel);
             BuildEquipPanel();
 
-            var bagTitle = new Label("가방");
-            bagTitle.style.fontSize = 17f;
-            bagTitle.style.color = new StyleColor(UTKTheme.TextMain);
-            bagTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            leftCol.Add(bagTitle);
-
-            _grid = new VisualElement();
+            // Keep _grid as ScrollView.contentContainer: refresh clear/add and slot DnD registration
+            // continue to target the same element, which remains the direct parent of every slot.
+            _bagViewport = new ScrollView(ScrollViewMode.Vertical) { name = "InventoryBagViewport" };
+            _bagViewport.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+            _bagViewport.verticalScrollerVisibility = ScrollerVisibility.Auto;
+            _bagViewport.style.position = Position.Absolute;
+            _bagViewport.style.overflow = Overflow.Hidden;
+            _bagViewport.contentContainer.style.flexDirection = FlexDirection.Row;
+            _bagViewport.contentContainer.style.flexWrap = Wrap.Wrap;
+            _bagViewport.contentContainer.style.justifyContent = Justify.FlexStart;
+            _bagViewport.contentContainer.style.alignContent = Align.FlexStart;
+            _bagViewport.contentContainer.style.alignItems = Align.FlexStart;
+            _bagViewport.contentContainer.style.width = Length.Percent(100f);
+            _bagViewport.contentContainer.style.flexGrow = 0f;
+            _bagViewport.contentContainer.style.flexShrink = 0f;
+            _content.Add(_bagViewport);
+            _grid = _bagViewport.contentContainer;
             _grid.name = "InvGrid";
-            _grid.style.flexDirection = FlexDirection.Row;
-            _grid.style.flexWrap = Wrap.Wrap;
-            _grid.style.justifyContent = Justify.Center;   // 행당 5칸 중앙 배치 — 행 좌우 여백 동일
-            _grid.style.marginTop = 6f;
-            leftCol.Add(_grid);
 
+            // Existing selection feedback occupies the Figma footer region.
             _selectedLabel = new Label("");
+            _selectedLabel.style.position = Position.Absolute;
             _selectedLabel.style.fontSize = 13f;
             _selectedLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _selectedLabel.style.whiteSpace = WhiteSpace.Normal;
-            _selectedLabel.style.marginTop = 4f;
-            leftCol.Add(_selectedLabel);
+            Add(_selectedLabel);
+            ApplyInventoryBodyLayout(requireAttachedPanel: false);
+            RegisterCallback<AttachToPanelEvent>(OnInventoryAttached);
+            RegisterCallback<DetachFromPanelEvent>(OnInventoryDetached);
 
             // [독립 창] 설명창은 ItemDescriptionWindowUTK(별개 창), 창고/전리품은 각각 독립 창.
 
@@ -286,8 +434,11 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            // [P12] 3분할 — 좌 1/3 컬럼 정렬 (해상도/스케일 무관)
+            // Exact outer Figma bounds call is preserved; all child sizes derive from this resolved root.
             UTKThreeColumnLayout.Place(this, 0);
+            InventoryClusterFigmaLayout.ApplyInventory(this, root);
+            RegisterRootGeometryCallback(root);
+            ApplyInventoryBodyLayout();
             EnsureEquipSubscription();
             StartRefreshLoop();
             RefreshGrid();
@@ -298,6 +449,7 @@ namespace ProjectName.UI.Toolkit
         public override void Hide()
         {
             base.Hide();
+            UnregisterRootGeometryCallback();
             StopRefreshLoop();
             Debug.Log("[InventoryUTK] 인벤토리 창 닫힘");
         }
@@ -324,36 +476,38 @@ namespace ProjectName.UI.Toolkit
             while (slots.Count < EquipColumns * EquipRows)
                 slots.Add(("", (EquipmentManager.EquipmentSlot)999));
 
-            foreach (var pair in slots)
+            VisualElement row = null;
+            for (int i = 0; i < slots.Count; i++)
             {
-                string label = pair.Item1;
-                var slot = pair.Item2;
-
-                // [P20-5 수리] 슬롯 옆 텍스트(부위명/아이템명) 전면 제거 — "장비창엔 슬롯만".
-                //   아이템 설명은 슬롯 호버/클릭 시 중앙 설명창(P20-1 수리본)이 담당.
-                var row = new VisualElement();
-                row.style.flexDirection = FlexDirection.Row;
-                row.style.alignItems = Align.Center;
-                row.style.justifyContent = Justify.Center;
-                row.style.marginBottom = 4f;
-                _equipPanel.Add(row);
+                string label = slots[i].Item1;
+                var slot = slots[i].Item2;
+                if (i % EquipColumns == 0)
+                {
+                    row = new VisualElement();
+                    row.style.flexDirection = FlexDirection.Row;
+                    row.style.alignItems = Align.Center;
+                    row.style.justifyContent = Justify.FlexStart;
+                    row.style.marginBottom = 0f;
+                    _equipPanel.Add(row);
+                }
 
                 var equipSlot = new UTKSlot();
                 equipSlot.name = "EquipSlot_" + label;
-                equipSlot.style.width = SlotSize;   // Figma 68×68
-                equipSlot.style.height = SlotSize;
+                equipSlot.style.width = InventoryClusterPanelRegions.CellSize;
+                equipSlot.style.height = InventoryClusterPanelRegions.CellSize;
                 equipSlot.style.flexShrink = 0f;
-                equipSlot.style.marginRight = EquipGap;   // Figma 장비 gap 4
+                equipSlot.style.marginRight = 0f;
                 equipSlot.SetRank("common");
                 ApplyDarkSlotBase(equipSlot);   // [GitHub-dark] 빈 슬롯=다크 인셋 + 호버 액센트 틴트 (인벤 창 한정)
                 ApplyRankBorder(equipSlot, 0);  // [GitHub-dark] common 보조그레이 링
                 row.Add(equipSlot);
                 _equipSlotIcons[slot.ToString()] = equipSlot;
 
-                // 우클릭 = 해제 (원본 TryRenderEmbedded 관례 — EquipmentManager.UnequipSlot)
-                row.RegisterCallback<PointerDownEvent>(evt =>
+                // 우클릭 = 해제 (EquipmentManager.UnequipSlot); 각 슬롯 요소가 소유권을 유지한다.
+                equipSlot.RegisterCallback<PointerDownEvent>(evt =>
                 {
-                    if (evt.button == 1 && (int)slot <= 8)
+                    // [10슬롯 확장] Ring/Necklace 포함 전 슬롯 우클릭 해제 허용 — 이전 (int)slot <= 8 가드는 신설 슬롯 제외 버그
+                    if (evt.button == 1)
                     {
                         bool ok = em.UnequipSlot(slot);
                         Debug.Log($"[InventoryUTK] 장비 해제(우클릭) slot={slot} → {ok}");
@@ -514,7 +668,7 @@ namespace ProjectName.UI.Toolkit
             _slotTargets.Clear();
             _grid.Clear();
 
-            int rows = total > 0 ? (total + Columns - 1) / Columns : 1;
+            int rows = Mathf.Max(BagRows, total > 0 ? (total + Columns - 1) / Columns : 0);
             for (int r = 0; r < rows; r++)
             {
                 for (int c = 0; c < Columns; c++)
@@ -523,19 +677,26 @@ namespace ProjectName.UI.Toolkit
                     _grid.Add(BuildSlotCell(slots, idx, total));
                 }
             }
+            ApplyInventoryBodyLayout();
         }
 
         private VisualElement BuildSlotCell(PlayerInventory.ItemSlot[] slots, int idx, int total)
         {
             var cell = new UTKSlot();
             cell.name = "InvSlot_" + idx;
-            cell.style.width = SlotSize;
-            cell.style.height = SlotSize;
-            // Figma 그리드: 셀 68×68, 간격 8, 콘텐츠 패딩 20
+            float rootWidth = UIToolkitBootstrap.UIRoot != null
+                ? UIToolkitBootstrap.UIRoot.resolvedStyle.width
+                : 0f;
+            float scaleX = rootWidth > 0f ? rootWidth / FigmaCanvasLayout.CanvasWidth : 1f;
+            float cellSize = InventoryClusterPanelRegions.CellSize * scaleX;
+            float cellGap = InventoryClusterPanelRegions.CellGap * scaleX;
+            cell.style.width = cellSize;
+            cell.style.height = cellSize;
+            cell.style.flexShrink = 0f;
             cell.style.marginTop = 0f;
-            cell.style.marginBottom = SlotGap;
+            cell.style.marginBottom = cellGap;
             cell.style.marginLeft = 0f;
-            cell.style.marginRight = SlotGap;
+            cell.style.marginRight = cellGap;
             ApplyDarkSlotBase(cell);   // [GitHub-dark] 모든 그리드 셀 다크 인셋 + 호버 액센트 틴트 (인벤 창 한정)
 
             if (idx < total && slots[idx] != null && slots[idx].item != null && slots[idx].count > 0)
