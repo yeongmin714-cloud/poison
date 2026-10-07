@@ -126,14 +126,15 @@ namespace ProjectName.UI.Toolkit
         /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
         private void ApplyGitHubDarkStyle()
         {
-            style.backgroundColor = GitHubDark.Panel;
+            // [Figma 93:230 글래스] #161B22@0.85(사용자 조정) + #30363D@0.5 1.2px + r14.4
+            style.backgroundColor = new StyleColor(UTKTheme.GlassPanelFill);
             style.backgroundImage = new StyleBackground(StyleKeyword.None);
-            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
-            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = GitHubDark.Stroke;
-            style.borderTopLeftRadius = 8f;
-            style.borderTopRightRadius = 8f;
-            style.borderBottomLeftRadius = 8f;
-            style.borderBottomRightRadius = 8f;   // 메인 반경 r8
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = UTKTheme.GlassStrokeWidth;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = new StyleColor(UTKTheme.GlassPanelStroke);
+            style.borderTopLeftRadius = UTKTheme.GlassRadius;
+            style.borderTopRightRadius = UTKTheme.GlassRadius;
+            style.borderBottomLeftRadius = UTKTheme.GlassRadius;
+            style.borderBottomRightRadius = UTKTheme.GlassRadius;
             style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
 
             var titleBar = this.Q("TitleBar");
@@ -203,7 +204,9 @@ namespace ProjectName.UI.Toolkit
             panelHeader.style.height = 52.8f;
             panelHeader.style.minHeight = 52.8f;
             panelHeader.style.flexShrink = 0f;
-            panelHeader.Add(MkLabel("퀘스트 창", 20, GitHubDark.TextMain, TextAnchor.MiddleLeft));
+            var jTitle = MkLabel("퀘스트 창", UTKTheme.FontTitle, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 21.6/700
+            jTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            panelHeader.Add(jTitle);
             var headerSub = MkLabel("QUEST DECK", 11, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             headerSub.style.marginLeft = 12f;
             headerSub.style.marginTop = 5f;
@@ -235,6 +238,10 @@ namespace ProjectName.UI.Toolkit
             _btnActive.style.marginRight = 4.8f;
             _btnCompleted.style.height = 36.2f;
             _btnCompleted.style.flexGrow = 1f;
+            _btnActive.style.fontSize = UTKTheme.FontTab;       // [Figma] 14.4/700
+            _btnActive.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _btnCompleted.style.fontSize = UTKTheme.FontTab;
+            _btnCompleted.style.unityFontStyleAndWeight = FontStyle.Bold;
             _tabBar.Add(_btnActive);
             _tabBar.Add(_btnCompleted);
 
@@ -418,7 +425,8 @@ namespace ProjectName.UI.Toolkit
             header.style.minHeight = 18.8f;
             header.style.marginBottom = 14.4f;
             var pill = new Label(quest.isMain ? "주 임무" : "부 임무") { name = "CategoryPill" };
-            pill.style.fontSize = 11f;
+            pill.style.fontSize = UTKTheme.FontBadge;   // [Figma] 12/700
+            pill.style.unityFontStyleAndWeight = FontStyle.Bold;
             pill.style.color = new StyleColor(quest.isMain ? GitHubDark.Gold : GitHubDark.Accent);
             pill.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
             pill.style.paddingLeft = pill.style.paddingRight = 7.2f;
@@ -430,16 +438,19 @@ namespace ProjectName.UI.Toolkit
             var headerSpacer = new VisualElement();
             headerSpacer.style.flexGrow = 1f;
             header.Add(headerSpacer);
-            header.Add(MkLabel(quest.requiredLevel > 0 ? $"Lv.{quest.requiredLevel}" : "", 11, GitHubDark.Accent, TextAnchor.MiddleRight));
+            var jLv = MkLabel(quest.requiredLevel > 0 ? $"Lv.{quest.requiredLevel}" : "", UTKTheme.FontTab, GitHubDark.Accent, TextAnchor.MiddleRight);   // [Figma] 14.4/700
+            jLv.style.unityFontStyleAndWeight = FontStyle.Bold;
+            header.Add(jLv);
             card.Add(header);
 
             var body = new VisualElement { name = "CardBody" };
             body.style.flexDirection = FlexDirection.Column;
-            var nameL = MkLabel(quest.questName, 16, quest.isMain ? GitHubDark.Gold : GitHubDark.Accent, TextAnchor.MiddleLeft);   // 메인=Gold / 서브=Blue 계약 유지
+            var nameL = MkLabel(quest.questName, UTKTheme.FontCardName, quest.isMain ? GitHubDark.Gold : GitHubDark.Accent, TextAnchor.MiddleLeft);   // [Figma] 16.8/700 + 메인/서브 색 계약
+            nameL.style.unityFontStyleAndWeight = FontStyle.Bold;
             nameL.style.height = 20f;
             nameL.style.minHeight = 20f;
             body.Add(nameL);
-            var objL = MkLabel(BuildObjectiveSummary(quest), 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var objL = MkLabel(BuildObjectiveSummary(quest), UTKTheme.FontBody, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 14.4/400
             objL.style.marginTop = 4.8f;
             objL.style.whiteSpace = WhiteSpace.Normal;
             body.Add(objL);

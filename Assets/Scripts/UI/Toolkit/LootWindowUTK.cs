@@ -148,7 +148,9 @@ namespace ProjectName.UI.Toolkit
             panelHeader.style.height = 48f;
             panelHeader.style.minHeight = 48f;
             panelHeader.style.flexShrink = 0f;
-            panelHeader.Add(MkTextLabel("전리품", 20f, UTKTheme.TextMain));
+            var lootTitle = MkTextLabel("전리품", UTKTheme.FontTitle, UTKTheme.TextMain);   // [Figma] 21.6/700
+            lootTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
+            panelHeader.Add(lootTitle);
             var lootSub = MkTextLabel("LOOT SECURED", 11f, UTKTheme.TextSub);
             lootSub.style.marginLeft = 12f;
             lootSub.style.marginTop = 5f;
@@ -176,7 +178,7 @@ namespace ProjectName.UI.Toolkit
             _badgeLabel = new Label("습득 가능") { name = "LootBadge" };
             _badgeLabel.style.backgroundColor = UTKTheme.Accent;
             _badgeLabel.style.color = UTKTheme.BgBase;
-            _badgeLabel.style.fontSize = 12f;
+            _badgeLabel.style.fontSize = UTKTheme.FontBadge;   // [Figma] 12/700
             _badgeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _badgeLabel.style.paddingTop = 4.8f;
             _badgeLabel.style.paddingBottom = 4.8f;
@@ -189,7 +191,8 @@ namespace ProjectName.UI.Toolkit
             stats.Add(_badgeLabel);
 
             _countLabel = new Label("");
-            _countLabel.style.fontSize = 12f;
+            _countLabel.style.fontSize = UTKTheme.FontBody;   // [Figma] 14.4/400
+            _countLabel.style.unityFontStyleAndWeight = FontStyle.Normal;
             _countLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _countLabel.style.unityTextAlign = TextAnchor.MiddleRight;
             _countLabel.style.flexGrow = 1f;
@@ -240,12 +243,12 @@ namespace ProjectName.UI.Toolkit
             footer.Add(closeBtnFooter);
 
             ApplyUIToolkitFont(this);
-            // [Figma] 창 본체 = 단일 패널 크롬(프레임리스) — 표준 타이틀바 대신 수동 패널 스타일
-            style.backgroundColor = new StyleColor(UTKTheme.Panel);
+            // [Figma 70:4 글래스] #161B22@0.85(사용자 조정) + #30363D@0.5 1.2px + r14.4
+            style.backgroundColor = new StyleColor(UTKTheme.GlassPanelFill);
             style.backgroundImage = new StyleBackground(StyleKeyword.None);
-            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
-            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = new StyleColor(UTKTheme.Stroke);
-            style.borderTopLeftRadius = style.borderTopRightRadius = style.borderBottomLeftRadius = style.borderBottomRightRadius = 8f;
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = UTKTheme.GlassStrokeWidth;
+            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = new StyleColor(UTKTheme.GlassPanelStroke);
+            style.borderTopLeftRadius = style.borderTopRightRadius = style.borderBottomLeftRadius = style.borderBottomRightRadius = UTKTheme.GlassRadius;
 
             style.display = DisplayStyle.None;
             style.left = FigmaBounds.x;
