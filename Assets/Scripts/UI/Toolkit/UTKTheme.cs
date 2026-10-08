@@ -186,6 +186,87 @@ namespace ProjectName.UI.Toolkit
             panel.style.borderBottomLeftRadius = GlassRadius;
             panel.style.borderBottomRightRadius = GlassRadius;
         }
+
+        // ── [Fluent 스크롤러] Unity 기본 스크롤러(두꺼운 트랙+화살표 버튼)는 GitHub-dark/Fluent 미학과 어긋난다.
+        //    Figma 프레임은 스크롤러가 없는 정적 목업(보이는 부분만 렌더)이므로, 런타임에서만 필요한
+        //    오버플로 스크롤은 "얇은 오버레이 썸"으로 최소 표현한다. (2026-10-08 사용자 확정: 스크롤 자체는 OK, 스타일만 Fluent화)
+        /// <summary>Fluent 스크롤러 썸 기본색 — 보조텍스트 #8B949E @ 0.35.</summary>
+        public static readonly Color FluentScrollThumb = new Color(0.545f, 0.580f, 0.616f, 0.35f);
+        /// <summary>Fluent 스크롤러 썸 호버색 — 보조텍스트 #8B949E @ 0.65.</summary>
+        public static readonly Color FluentScrollThumbHover = new Color(0.545f, 0.580f, 0.616f, 0.65f);
+        /// <summary>Fluent 스크롤러 트랙 — 화이트 @ 0.04 (거의 투명).</summary>
+        public static readonly Color FluentScrollTrack = new Color(1f, 1f, 1f, 0.04f);
+        /// <summary>Fluent 스크롤러 두께(px) — Figma 1.2× 패밀리의 6.</summary>
+        public const float FluentScrollThickness = 6f;
+
+        /// <summary>
+        /// 트리 전체의 모든 ScrollView에 Fluent 스크롤러를 일괄 적용한다(멱등).
+        /// UTKWindowBase.Show가 호출하는 중앙 적용 지점 — 개별 창의 지연 생성 ScrollView에도 직접 호출 가능.
+        /// </summary>
+        public static void ApplyFluentScrollers(VisualElement tree)
+        {
+            if (tree == null) return;
+            tree.Query<ScrollView>().ForEach(ApplyFluentScroller);
+        }
+
+        /// <summary>
+        /// ScrollView를 Fluent 스타일(얇은 트랙 + 둥근 반투명 썸 + 화살표 버튼 제거)로 통일한다.
+        /// 가로 스크롤은 숨기고 세로는 내용이 넘칠 때만 표시(ScrollerVisibility.Auto).
+        /// 멱등 — 중복 적용해도 콜백이 쌓이지 않는다(utk-fluent-scroller 마커 클래스).
+        /// </summary>
+        public static void ApplyFluentScroller(ScrollView sv)
+        {
+            if (sv == null || sv.ClassListContains("utk-fluent-scroller")) return;
+            sv.AddToClassList("utk-fluent-scroller");
+
+            sv.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
+            sv.verticalScrollerVisibility = ScrollerVisibility.Auto;
+
+            StyleFluentScroller(sv.verticalScroller, true);
+            StyleFluentScroller(sv.horizontalScroller, false);
+        }
+
+        private static void StyleFluentScroller(Scroller scroller, bool vertical)
+        {
+            if (scroller == null) return;
+            float t = FluentScrollThickness;
+
+            // 두께는 스크롤 방향의 교차축만 — 방향축은 레이아웃(100%)을 유지해야 붕괴되지 않는다.
+            if (vertical)
+                scroller.style.width = t;
+            else
+                scroller.style.height = t;
+            scroller.style.backgroundColor = new StyleColor(FluentScrollTrack);
+            scroller.style.borderTopWidth = scroller.style.borderBottomWidth =
+                scroller.style.borderLeftWidth = scroller.style.borderRightWidth = 0f;
+
+            // Fluent는 트랙+썸만 — 화살표(리피트) 버튼 제거.
+            if (scroller.lowButton != null) scroller.lowButton.style.display = DisplayStyle.None;
+            if (scroller.highButton != null) scroller.highButton.style.display = DisplayStyle.None;
+
+            var slider = scroller.slider;
+            if (slider == null) return;
+            if (vertical)
+                slider.style.width = t;
+            else
+                slider.style.height = t;
+            slider.style.backgroundColor = StyleKeyword.Null;
+
+            var dragger = slider.Q(className: "unity-base-slider__dragger");
+            if (dragger == null) return;
+            dragger.style.backgroundColor = new StyleColor(FluentScrollThumb);
+            dragger.style.borderTopWidth = dragger.style.borderBottomWidth =
+                dragger.style.borderLeftWidth = dragger.style.borderRightWidth = 0f;
+            dragger.style.borderTopLeftRadius = dragger.style.borderTopRightRadius =
+                dragger.style.borderBottomLeftRadius = dragger.style.borderBottomRightRadius = t * 0.5f;
+            if (vertical)
+                dragger.style.width = t;
+
+            dragger.RegisterCallback<PointerEnterEvent>(evt =>
+                dragger.style.backgroundColor = new StyleColor(FluentScrollThumbHover));
+            dragger.RegisterCallback<PointerLeaveEvent>(evt =>
+                dragger.style.backgroundColor = new StyleColor(FluentScrollThumb));
+        }
     }
 }
 

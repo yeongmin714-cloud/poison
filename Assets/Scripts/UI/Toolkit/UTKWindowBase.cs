@@ -181,6 +181,8 @@ namespace ProjectName.UI.Toolkit
             UTKWindowManager.Register(this);
             SyncShadow();
             OnWindowOpen();
+            // [Fluent 스크롤러] 전 창 공용 — 모든 자식 ScrollView를 얇은 오버레이형으로 통일(멱등).
+            UTKTheme.ApplyFluentScrollers(this);
         }
 
         /// <summary>닫기 (표시 제거 + 해제 + OnWindowClosed).</summary>

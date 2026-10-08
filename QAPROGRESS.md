@@ -1,3 +1,17 @@
+## 2026-10-08 Fluent 스크롤러 — 전 창 ScrollView 통일(사용자 지적 봉합)
+
+- **사용자 지적:** "피그마에는 스크롤이 없는데 왜 다 붙여놨냐, 그냥 피그마 크기와 똑같이 못 만드냐. 스크롤 자체는 오케이인데 플루언트 스타일에 맞게." → **스크롤 존재는 유지, 표현만 Fluent화 확정.**
+- **설명(기록):** Figma 프레임은 정적 목업이라 보이는 부분만 렌더(창고 5×6 등) — 런타임엔 실데이터(창고 40슬롯·레시피 수십 건)가 넘치므로 오버플로 스크롤이 필요. 창 박스 자체는 v3 등배수 계약으로 이미 Figma 절대좌표 등비 반영. 문제는 **스크롤러 표현**이었음: Theme.uss에 스크롤러 스타일이 전무해 28개 창이 Unity 기본 스크롤러(두꺼운 트랙+화살표 버튼)를 썼다.
+- **구현(공용 레이어 — 신규창=UTKTheme 패턴 준수):**
+  - `UTKTheme.ApplyFluentScroller(ScrollView)` — 가로 스크롤러 Hidden, 세로 Auto(넘칠 때만), 트랙 두께 6px(Figma 1.2× 패밀리)·화이트@0.04, **화살표(low/high) 버튼 제거**, 썸 #8B949E@0.35+반경3+호버@0.65(PointerEnter/Leave), 멱등 마커 클래스 `utk-fluent-scroller`(콜백 중복 방지).
+  - `UTKTheme.ApplyFluentScrollers(tree)` — 트리 일괄 적용. **UTKWindowBase.Show() 말미에 중앙 배선**(전 창 자동 — 전 창 base.Show() 경유 세션 실측 확인). 지연 생성 ScrollView는 창에서 직접 호출 가능.
+- **테스트 함정:** Show 전체 실행은 `UTKWindowManager.Ensure→DontDestroyOnLoad`가 EditMode 금지(알려진 baseline 계열) → 공용 루틴 서브트리 직접 적용 + Show 배선 소스 계약 단정으로 분리 검증.
+- **검증:** fresh compile `error CS` **0**. focused EditMode(FluentScrollerTests+FigmaCanvasLayoutTests+Cooking/CraftBench/Quest93) **53/53 passed, 0 failed**. XML `TestOutput/fluent_scroll_focused2.xml`.
+- **런타임 확인 대기(Play):** 썸 두께/반투명/호버 감, 가로 스크롤러 미표시, 넘침 없는 창에서 스크롤러 자체 미표시(Auto).
+- **커밋:** UTKTheme.cs, UTKWindowBase.cs(**부분 스테이징 — 컴포지션 계획의 IUTKCompositionPanel hunk는 미포함 분리**), FluentScrollerTests.cs(+meta), 본 기록. push 대기.
+
+---
+
 ## 2026-10-08 Figma 정합 v3 — 등배수 디자인공간 스케일(제작대·퀘스트 저널·요리) — P0~P4 완료
 
 - **요청:** ui4 스크린샷 3장(제작대/퀘스트 저널/요리 제작) — "아직도 일치하지 않는 부분이 많다, 대칭성 없는 창, 너무 커서 게임 화면에 안 들어가는 창". **투명도(글래스 0.85)는 현행 유지 확정.**
