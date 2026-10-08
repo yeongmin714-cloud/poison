@@ -1,3 +1,42 @@
+## 2026-10-09 배럭 침대 남벽 밖 버그 수리(TDD RED→GREEN) + AERO 포그 "실행완료" 판정(미실현 확정)
+
+- **사용자 보고 2건:** ①병사 관리창이 있는 곳이 배럭인데 침대 20개가 그보다 더 밑(남쪽)에 배치됨 ②실내 고품질화+aero asset 포그가 "실행됐다"고 했는데 전혀 안 됨 — 환각인지 실현인지 확인 요청.
+- **침대 근본원인(코드+테스트 실증):** 침대는 authored(소형 공간) 좌표로 세워지고 빌드 말미 `TopologyFurnitureScale=2.45` 스케일 패스(806행)를 통과하는데, 이전 값 z=-18~-26.8은 **×2.45 후 최종 -44.1~-65.7** — 방 절반 깊이가 44.1이라 0행이 남벽선(z=-44.1)에 붙고 1~4행은 **성 남벽 밖 외부**에 세워짐(사용자 보고 "더 밑에"와 정확히 일치). RED 실측: BarrackBed_1 collider min.z=-45.54로 이미 벽 밖.
+- **수리:** authored 좌표를 스케일 역산으로 재설계 — 열 x -4/-5.4/-6.8/-8.2, 행 z -7.2/-9.4/-11.6/-13.8/-16.0 → 최종 x -9.8~-20.1 / z -17.6~-39.2 = **배럭 구역(SW 사분면) 내부, 병사 관리 탁자(-30,-35) 동쪽 인접**. 탁자·아군 스폰(-30,-33)·무기고(x -39..-51)·입구 통로(x=±2)·남벽과 전부 무충돌.
+- **회귀 게이트 신설:** `PlayerCastleInteriorCollisionAndKitchenTests.BarrackBeds_TwentyStayInsideBarracksZoneClearOfTableAndEntrance` — 20개 존재·방 내부·`GetTopologyZoneAt=="Barracks"`·탁자 AABB 무교차·병사 스폰점 무침범·입구 통로 여유 단정(탁자 footprint는 GLB 풀이라 콜라이더 부재 → Renderer bounds 합본 사용).
+- **함정 교정:** 이 검증에서 기존 테스트 1건 실패 발견 — `BuiltInterior_HasNoPhysicalBrazierOrSouthEntranceBlockingProps`가 구 조명 계약(화광 (1,0.55,0.25)@|x|20~30)을 기대. 10-08 승인 개편("실내 어둡게+은은한 조명만")으로 입구측 광원이 저강도 웜 풀로 재편된 것이 진실치 → 단정을 "입구측(z<-35) 웜 광원 잔존 + 저강도(≤0.5)·근거리(≤7)"으로 교정. 물리 브레이저 금지 원칙은 유지.
+- **검증:** RED(기존 좌표) → **1 failed**(BarrackBed_1 남벽 밖) → 수리 → GREEN **4/4 passed, error CS 0**. XML `TestOutput/bed_red.xml`/`bed_red2.xml`/`bed_green.xml`. 토폴로지 회귀 별도 확인(아래).
+- **AERO 포그 판정 — "실행완료"는 환각/오인, 실현된 적 없음(확정):**
+  - `Assets/Mirza/AERO - Volumetric Fog and Mist`는 임포트만 된 상태. **09-29 기록: 전체화면 볼류메트릭은 게임 GPU(Intel HD 530/VRAM 1GB)에서 렉 확실 → P4 '소량 로컬 포그' 보류 판정**이 명시돼 있음(가스는 베이크 스프라이트 GasCloudField 유지).
+  - 10-08 텔레그램 병렬 세션의 실내 고급화 제안 5개 레버 중 ⑤번이 "볼류메트릭 포그(AERO 보유)"였으나, "진행해줘" 시 **1순위(포인트라이트 그림자)+3순위(MSAA)만 적용**하고 포그는 실행하지 않음. 이후 가스 반응 작업으로 흐름 이동.
+  - 유일한 AERO 활용 코드(`Rendering/AeroLocalizedGas*` 볼류메트릭 가스 파이프라인)는 **opt-in 격리 세션(AeroIsolatedRendererSession)이 EditMode 테스트에서만 생성** — 게임 런타임 부트스트랩 0, 플레이에서 절대 미발동.
+  - 실측: IndoorScene.unity m_Fog=0·AERO 참조 0건, 실내 빌더/IndoorLighting에 fog·AERO 참조 0건, 최근 플레이 Editor.log AERO 로그 0건. RenderSettings.fog는 야외(Biome/DayNight) 전용 — ROADMAP 3.6.3의 "[x] 안개 효과"는 **야외 메인씬용 density 0.008의 아주 옅은 fog**로 실내와 무관(사용자 기억의 출처로 추정).
+- **실내 고품질화 중 실제로 실현된 것:** URP 포인트라이트 그림자(AdditionalLightShadows 0→1)+소프트 섀도우 0→1+MSAA 1→4(URPAsset.asset — **미커밋 worktree**), 실내 앰비언트 대폭 축소+FlameLight 수리(커밋 ea6dbcc5), SSAO(원래 활성). 포그=0. Play 캡처 시각 검증은 여전히 미완료 게이트.
+- **다음:** 사용자 재실행 → 성 실내 배럭에서 침대 20개가 관리 탁자 옆에 세워져 있는지 확인(전리품/상세창 수리 확인과 함께). Phase 2(HUD 원형 링+하단 앵커) 진행. push 대기.
+
+---
+
+## 2026-10-09 상세창 v3 박스 과대 수리(커밋 b61e1120) — ui7 캡처 실측+코드 확정
+
+- **ui7 캡처 정밀 실측(기준 박스 오버레이+픽셀 스캔):** 인벤은 v3 기준 박스(108,63,378×684)와 거의 일치 — **클러스터 v3는 이전 실행부터 적용 중**이라 사용자에게 "변한 게 없다"로 보인 것. 단 상세창만 박스보다 상하좌우 과대(측정 ~11%)+창고와 겹침이 실측됨.
+- **근원 2건(코드 확정):** ①`ItemDescriptionWindowUTK.ApplyF4GitHubDarkStyle`의 `minWidth=480/minHeight=608` 가드가 디자인 박스(432×547.2)를 밟아 resolved=480×608로 과대 렌더 → 오른쪽 끝 984가 창고 좌측 954를 30px 침범 ②`TerritoryWarehouse:251 → static Open()`과 `UTKWireUp I키`가 **구계약 2인자 ApplyDetail**로 v3 기하를 덮어씀.
+- **수리:** min 가드 제거, static Open()을 v3 3인자 `ApplyDetail(i, i.Content, root)`로 전환, `ApplyDesignSpace` 중앙 경화(window min=박스 고정 — 잔존 min 가드 회귀 차단).
+- **검증:** fresh compile `error CS` **0**. focused(FigmaCanvasLayoutTests+ShopLootFigmaPhase3Tests) **33/33**. XML `TestOutput/p_detail_min.xml`.
+- **Figma 15:4 대비 잔여 구조 격차(Phase 3+ 과제로 기록):** 인벤 카테고리 탭 5종(전체/무기/방어구/소모품/재료) 미구현, 인벤토리 적재량 푸터(34.8/120.0 kg) 미구현, 폰트 패밀리 미통일.
+- **다음:** 사용자 재실행 → 상세창 크기 정상(432×547.2)+무겹침 확인. 이후 Phase 2(HUD 원형 링+하단 앵커) 진행. push 대기.
+
+---
+
+## 2026-10-09 클러스터 v3 런타임 적용 확정(사용자 로그) + 진단 로그 스로틀 커밋
+
+- **클러스터 3창 신코드 확인(미스터리 해소):** 사용자 재실행 로그에 인벤/상세/창고 `[FigmaV3] ok k=0.750` 전부 존재 — 이전 "인벤 상세 그대로"는 그 세션에서 클러스터 미개방(로그 부재)이 원인으로 판정. TerritoryWarehouse 상호작용 → OpenInventory 클러스터 → 인벤(144,84,504,912)/상세(672,175.2,576,729.6)/창고(1272,84,504,912) 입력 rect에 k=0.75 적용 = 기대 기하(108,63,378×684 / 504,131.4,432×547.2 / 954,63,378×684)와 정확히 일치, 무겹침, 루트 1440×902.29 안 전부 수용.
+- **이중스케일 아님 확인(spec 대조):** 상태 입력 rect(391.8,72,1136.4,936) = 84:4 spec CharacterStatusPanel 좌표 그대로, 병사(168,48,1584,984) = 69:4 SoldierListPanel 그대로 — 입력 rect는 Figma truth이고 ApplyDesignSpace가 ×k 적용. 계약대로 동작.
+- **스로틀 커밋 d467520d:** Status/Quest 업데이터 폴링 재적용의 무한 ok 로그 → 윈도우+rect 키별 k 변화 시만 로그. 사용자 로그에서 각 창 ok 1회만 기록 — 스로틀 정상 동작 확인.
+- **잔여 로그 판정(전부 비치명):** ①CookingStation/AlchemyStation `Configure` 리플렉션 미탐 → 기본값 폴백 경고 — 기존 잔여(작업대·station Play 검증) 계열, 직렬화 기본값으로 동작 유효 ②MonsterLevelData 폴백 SO 생성 — 기존 알려진 것 ③Package Manager access token 400 — 에디터 네트워크 노이즈.
+- **다음:** 클러스터 화면 캡처(사용자)로 시각 확정 → Phase 2(HUD 원형 링 가시화 + 하단 고정 앵커) → Phase 3 폰트 패밀리 통일 → Phase 4 실내 튜닝. push 대기.
+
+---
+
 ## 2026-10-09 계획 v2 Phase 0+1 — [FigmaV3] 진단 로그 + 전리품 오른쪽 위 배치(사용자 확정)
 
 - **Phase 0(관측 가능화):** `FigmaCanvasLayout.ApplyDesignSpace`에 중앙 진단 로그 — 성공 시 `[FigmaV3] {창}: ok k=... root=... rect=...`, 실패 시 `[FigmaV3] FAILED (root unresolved)` 경고(조용한 실패 제거). HUDUTK.PositionHost는 k 변화 시에만 게이지 호스트 기하 로그(폴링 스팸 방지). **사용자 재실행 후 콘솔/Editor.log의 [FigmaV3] 유무로 코드 신·구와 실패 지점을 관측 확정.**

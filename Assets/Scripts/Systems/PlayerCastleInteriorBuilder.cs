@@ -10,7 +10,7 @@ namespace ProjectName.Systems
     /// 플레이어가 점령한 "내 영지"이므로 중세 판타지 성 대전당으로 만든다:
     ///   - 지휘 책상 + 관리용 책상/문서 (집무 공간)
     ///   - 저장고 (선반/상자), 무기고 (무기 스탠드), 작업대
-    ///   - 중세 석재 기둥 2열 + 화로/토치 (따뜻한 주황빛 조명)
+    ///   - 중세 석재 기둥 2열 + 따뜻한 주황빛 조명 (문 진입로에 물리 화로 없음)
     ///   - 문장 방패/붉은 러그 장식, 플레이어 환영 배너 (유지)
     ///   - 잠금문 없음 (이미 내 것이므로 접근 가능)
     ///   - NameplateDisplay 기능 안내 라벨
@@ -61,6 +61,8 @@ namespace ProjectName.Systems
         }
 
         private static readonly string[] ZoneNames = { "Bedroom", "Craft", "Storage", "Barracks", "Alchemy" };
+        private static readonly Dictionary<string, WarehouseSystem> SeededCookingPantries =
+            new Dictionary<string, WarehouseSystem>();
 
         /// <summary>North is +Z. Vertices are final room-local XZ coordinates in meters.</summary>
         // The entry opening is on the south-east chamfer, aimed into a real walkable central corridor.
@@ -95,6 +97,7 @@ namespace ProjectName.Systems
                 case "AlchemyTable": return new Vector2(40f, -25f);
                 case "LordBed": return new Vector2(0f, 29f);
                 case "CookingTable": return new Vector2(40f, 34f);
+                case "CookingIngredientWarehouse": return new Vector2(45.5f, 34f);
                 default: return Vector2.zero;
             }
         }
@@ -217,7 +220,7 @@ namespace ProjectName.Systems
             // ===== 레이아웃 변형 파라미터 (결정론 테이블) =====
             // mirrorX: 가구 구역 좌우 대칭 (+,-x 스왑 — 단 상호작용 앵커 이름/참조는 유지)
             // pillarPerSide: 기둥 2열 개수(각 3~5), pillarXFac: 기둥 x 위치 계수(±3.5~±4.5)
-            // hearthZ: 화로 z 시프트, commandZX: 지휘책상 x 시프트(±)
+            // hearthZ: 입구 양쪽 따뜻한 조명 z 시프트, commandZX: 지휘책상 x 시프트(±)
             // meetingZ: 작전회의테이블 z 시프트, extraDecor: 추가 장식가구 유무
             GetLayoutVariantParams(layoutVariant,
                 out bool mirrorX, out int pillarPerSide, out float pillarXFac,
@@ -335,12 +338,9 @@ namespace ProjectName.Systems
             Material bedMat = new Material(shader) { name = "PlayerCastle_BedMat" };
             bedMat.color = new Color(0.62f, 0.46f, 0.30f); // 따뜻한 나무 침대 프레임
 
-            // 중세 판타지 장식 재질들 (석재 기둥/화로/러그)
+            // 중세 판타지 장식 재질들 (석재 기둥/러그)
             Material pillarMat = new Material(shader) { name = "PlayerCastle_PillarMat" };
             pillarMat.color = new Color(0.40f, 0.38f, 0.35f); // 회색 석재 기둥
-
-            Material hearthMat = new Material(shader) { name = "PlayerCastle_HearthMat" };
-            hearthMat.color = new Color(0.18f, 0.17f, 0.16f); // 화로 받침 짙은 회색
 
             Material rugMat = new Material(shader) { name = "PlayerCastle_RugMat" };
             rugMat.color = new Color(0.55f, 0.18f, 0.15f); // 붉은 카펫/문장 자수
@@ -566,13 +566,14 @@ namespace ProjectName.Systems
             workbench.transform.localPosition = new Vector3(-16f, 0f, -16f);
             AddNameplate(workbench, "🛠️ 작업대");
 
-            // Phase A: 작업대 상호작용 — TerritoryCraftingStation 부착 (E키 → CraftingUI).
-            // NameplateDisplay("🛠️ 작업대")는 유지. 프로젝트 ProjectSettings의 activeInputHandler가
-            // 2(Both)로 확인되어 InputSystem(Keyboard.current) 기반 상호작용 동작 가능.
-            // 참고: CraftingUI 프리팹이 씬/UIManager에 없으면 창이 열리지 않음(기존 인프라 동작, 범위 밖).
-            // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
+            // Equipment-crafting station: E opens WeaponForgeUTK when the Toolkit root is ready,
+            // with the legacy CraftingUI retained as a fallback for unmigrated scenes.
+            // The station supports both Input System and legacy E-key input. Keep UI attached
+            // through reflection because the Systems assembly cannot reference UI directly.
             AttachUiComponent(workbench, TerritoryCraftingStationTypeName, territoryKey, "영지 작업대");
 
+            // The doorway and its central walkable aisle stay free of physical props.
+            // Keep point-light ambience only; wall decor remains high and outside the opening.
             // 작업대 위 도구들 (모루 + 공구) — 좌우 대칭(mx) 적용
             CreateBoxPrimitive(workbench, "WorkbenchAnvil", new Vector3(0.5f, 0.25f, 0.35f),
                 new Vector3(-0.5f, 1.13f, 0f), bladeMat);
@@ -580,6 +581,38 @@ namespace ProjectName.Systems
                 new Vector3(0.4f, 1.07f, 0.1f), standMat);
             CreateBoxPrimitive(workbench, "WorkbenchTool_2", new Vector3(0.12f, 0.12f, 0.30f),
                 new Vector3(0.6f, 1.07f, -0.2f), standMat);
+
+            // Barracks map table: position it inside the expanded Barracks after the uniform
+            // 2.45 furniture scale, with enough clearance from the WeaponStand_0 armory station.
+            // E-key soldier-management interaction remains on the table without a Systems -> UI reference.
+            GameObject barracksMapTable = IndoorFurnitureCatalog.CreateTable(2.0f, 1.4f, 1.0f, deskMat);
+            barracksMapTable.name = "BarracksMapTable";
+            barracksMapTable.transform.SetParent(room.transform);
+            barracksMapTable.transform.localPosition = new Vector3(-12.25f, 0f, -14.3f);
+            AddNameplate(barracksMapTable, "⚔️ 병사 관리");
+            AttachUiComponent(barracksMapTable, CastleSoldierManagementStationTypeName,
+                "병사 관리", 1.8f);
+
+            // [2026-10-09 수리] 배럭 침대 20개 — 병사 관리 탁자(BarracksMapTable) 옆 배럭 구역
+            // (SW 사분면, GetTopologyZoneAt=="Barracks") 내부 4열×5행 그리드.
+            // ⚠ 좌표는 authored(소형 공간) 값이고, 빌드 말미의 ×2.45 가구 스케일 패스를 통과한
+            // 값이 최종 local이다: 열 x -4/-5.4/-6.8/-8.2 → 최종 -9.8/-13.2/-16.7/-20.1,
+            // 행 z -7.2/-9.4/-11.6/-13.8/-16.0 → 최종 -17.6/-23.0/-28.3/-33.8/-39.2.
+            // (이전 z=-18~-26.8은 스케일 후 -44.1~-65.7로 남벽 밖에 세워지는 버그였음 —
+            //  병사 관리창이 있는 배럭이 아니라 성 남벽 밖에 20개가 배치돼 있었다.)
+            // 최종 그리드 x -21.6..-8.3 / z -15.2..-41.7 — 탁자(최종 -30,-35)·아군 병사
+            // 스폰(-30,-33)·무기고(x -39..-51)·입구 통로(x=±2)·남벽(z=-44.1)과 전부 무충돌.
+            // 회귀 게이트: PlayerCastleInteriorCollisionAndKitchenTests.BarrackBeds_*
+            for (int row = 0; row < 5; row++)
+            {
+                for (int col = 0; col < 4; col++)
+                {
+                    GameObject barrackBed = IndoorFurnitureCatalog.CreateBed(1.2f, 2.0f, bedMat);
+                    barrackBed.name = $"BarrackBed_{row * 4 + col + 1}";
+                    barrackBed.transform.SetParent(room.transform);
+                    barrackBed.transform.localPosition = new Vector3(-4f - col * 1.4f, 0f, -7.2f - row * 2.2f);
+                }
+            }
 
             // 작업대 안내 팻말 (앞벽) — 좌우 대칭(mx) 적용
             GameObject workbenchSign = CreateBoxPrimitive(room, "WorkbenchSign", new Vector3(1.6f, 0.6f, 0.05f),
@@ -589,8 +622,7 @@ namespace ProjectName.Systems
             // ===================================================================
             // 5b. 요리/연금 스테이션 (CRAFTING_WAREHOUSE_PLAN Phase 1)
             //     기존 장비 작업대(5번)에 더해 요리·연금 상호작용 앵커를 추가.
-            //     배치: mx 쪽 x=6.2 열(기둥 최외곽 베이스 x=±5.0보다 안쪽 여백 0.5m,
-            //     화로/저장고/무기고 벽면 x=±10보다 안쪽) — z=-6.3(앞) / z=+5.0(뒤).
+            //     요리 카운터/연금대와 pantry는 Storage 구역에 배치되어 서로 간섭하지 않는다.
             //     작업대(앞벽 x=mx*-5)·장식탁자(extraDecor, x=mx*5, z=-7.4)는 반대편
             //     또는 z 간격 0.3m 이상이라 8개 variant 전부에서 겹치지 않음.
             //     참고: CookingStation/AlchemyStation에는 Configure 메서드가 없어
@@ -605,10 +637,21 @@ namespace ProjectName.Systems
 
             // 요리 냄비 소품 (카운터 상판 위 — 시각 구분용)
             CreateCylinderPrimitive(cookingTable, "CookingPot", 0.22f, 0.28f,
-                new Vector3(0f, 1.09f, 0f), hearthMat);
+                new Vector3(0f, 1.09f, 0f), standMat);
 
             // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
             AttachUiComponent(cookingTable, CookingStationTypeName);
+
+            // Dedicated pantry beside the cooking station. Keep its storage key independent from
+            // the general store and armory, while storing real items usable by both cooking paths.
+            GameObject cookingIngredientWarehouse = IndoorFurnitureCatalog.CreateShelf(1.8f, 1.8f, 0.6f, shelfMat, 3);
+            cookingIngredientWarehouse.name = "CookingIngredientWarehouse";
+            cookingIngredientWarehouse.transform.SetParent(room.transform);
+            cookingIngredientWarehouse.transform.localPosition = new Vector3(3.2f, 0f, 14f);
+            AddNameplate(cookingIngredientWarehouse, "🥩 요리 재료 창고");
+            string kitchenWarehouseKey = territoryKey + "_kitchen";
+            AttachUiComponent(cookingIngredientWarehouse, TerritoryWarehouseTypeName, kitchenWarehouseKey, 20, 2f);
+            SeedCookingIngredients(kitchenWarehouseKey);
 
             GameObject alchemyTable = IndoorFurnitureCatalog.CreateTable(1.4f, 1.4f, 0.95f, alchemyMat);
             alchemyTable.name = "AlchemyTable";
@@ -652,31 +695,18 @@ namespace ProjectName.Systems
             }
 
             // ===================================================================
-            // 7. 화로/토치 (입구 양쪽 벽 — 중세 성의 따스함)
+            // 7. Warm entrance-side point lights only; no physical braziers or coals.
             // ===================================================================
             for (int side = -1; side <= 1; side += 2)
             {
-                GameObject hearthRoot = new GameObject($"Hearth_{(side > 0 ? "Right" : "Left")}");
-                hearthRoot.transform.SetParent(room.transform);
-                hearthRoot.transform.localPosition = new Vector3(side * 10.0f, 0f, hearthZ);
-
-                // 화로 받침 (짙은 회색 석재 통)
-                CreateCylinderPrimitive(hearthRoot, "BrazierBowl", 0.55f, 0.9f,
-                    new Vector3(0f, 0.45f, 0f), hearthMat);
-                // 붉은 숯 (불멍 느낌)
-                CreateCylinderPrimitive(hearthRoot, "BrazierCoals", 0.35f, 0.25f,
-                    new Vector3(0f, 0.95f, 0f), rugMat);
-                AddNameplate(hearthRoot, "🔥 화로");
-
-                // 화로 불빛 (따뜻한 주황빛) — z 시프트 추종
                 IndoorLighting.AddPointLight(room,
                     new Vector3(side * 10.0f, 1.5f, hearthZ),
-                    new Color(1f, 0.55f, 0.25f), 7f, 0.9f);
+                    new Color(1f, 0.48f, 0.20f), 5f, 0.3f);
             }
 
-            // 앞쪽 기둥 토치 빛 — 기둥 x 시프트 추종
-            IndoorLighting.AddPointLight(room, new Vector3(-pillarX - 0.55f, 4.5f, -5f), new Color(1f, 0.6f, 0.3f), 6f, 0.7f);
-            IndoorLighting.AddPointLight(room, new Vector3(pillarX + 0.55f, 4.5f, -5f), new Color(1f, 0.6f, 0.3f), 6f, 0.7f);
+            // Subtle warm bounce near the front pillars; keep the central volume subdued.
+            IndoorLighting.AddPointLight(room, new Vector3(-pillarX - 0.55f, 4.5f, -5f), new Color(1f, 0.48f, 0.24f), 4.5f, 0.22f);
+            IndoorLighting.AddPointLight(room, new Vector3(pillarX + 0.55f, 4.5f, -5f), new Color(1f, 0.48f, 0.24f), 4.5f, 0.22f);
 
             // ===================================================================
             // 8. 중세 장식 — 왕실 문장 방패 + 붉은 러그 (기존 청색 배너는 유지)
@@ -694,7 +724,7 @@ namespace ProjectName.Systems
                     new Vector3(sx * 4.5f, 3.0f, roomDepth * 0.5f - 0.10f), rugMat);
             }
 
-            // 화로 위 좌/우벽 문장 방패 2개
+            // Entry-side left/right wall heraldic shields, mounted above the walking volume.
             for (int sx = -1; sx <= 1; sx += 2)
             {
                 string shieldSide = sx > 0 ? "R" : "L";
@@ -733,37 +763,36 @@ namespace ProjectName.Systems
             }
 
             // ===================================================================
-            // 9. 조명 — 중세 화로/토치의 따뜻한 주황빛 (촛불빛 톤, 은은한 점멸)
+            // 9. 조명 — 따뜻한 중세 촛불빛 톤의 주황빛, 은은한 점멸
             // ===================================================================
-            Color ambient = new Color(0.22f, 0.18f, 0.15f); // 살짝 어둡고 따뜻한 중세 톤
-            IndoorLighting.SetupIndoorLighting(room, ambient, 1.15f, true); // 화로 깜빡임(점멸) — 과하지 않게
+            // Force a color ambient mode: ambientLight has no visible effect while the active mode is Skybox.
+            // The additive indoor scene unload restores the world scene's lighting environment.
+            Color ambient = new Color(0.10f, 0.075f, 0.055f);
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            // 주변광 대폭 축소 — 횃불/불빛(포인트라이트)만 남는 은은한 실내 무드.
+            IndoorLighting.SetupIndoorLighting(room, ambient, 0.26f, true, 0.22f, 6f);
+            RenderSettings.ambientLight = new Color(ambient.r * 0.26f, ambient.g * 0.26f, ambient.b * 0.26f);
 
-            // 천장 중앙 메인 조명 (촛불빛톤)
+            // A subdued ceiling lantern leaves the room legible without flattening the candlelit mood.
             IndoorLighting.AddPointLight(room,
                 new Vector3(0f, roomHeight - 0.6f, 0f),
-                new Color(1f, 0.9f, 0.7f), 18f, 1.2f);
+                new Color(1f, 0.72f, 0.46f), 4.5f, 0.35f);
 
-            // 지휘 책상 위 조명 (촛불톤) — 책상 x 시프트 추종
+            // Small warm pools keep work areas readable while the aisles remain dimmer.
             IndoorLighting.AddPointLight(room,
                 new Vector3(commandZX, 4.2f, roomDepth * 0.5f - 1.8f),
-                new Color(1f, 0.85f, 0.6f), 9f, 1.0f);
-
-            // 작업대 위 조명
+                new Color(1f, 0.78f, 0.5f), 5.5f, 0.3f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * -5f, 3.8f, -roomDepth * 0.5f + 0.8f),
-                new Color(1f, 0.9f, 0.7f), 7f, 0.9f);
-
-            // 저장고 조명
+                new Color(1f, 0.82f, 0.58f), 5.5f, 0.3f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * -9.5f, 3.8f, 0.5f),
-                new Color(1f, 0.88f, 0.65f), 8f, 0.8f);
-
-            // 무기고 조명
+                new Color(1f, 0.78f, 0.5f), 6f, 0.35f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * 9.5f, 3.8f, 0.5f),
-                new Color(1f, 0.88f, 0.65f), 8f, 0.8f);
+                new Color(1f, 0.78f, 0.5f), 6f, 0.35f);
 
-            Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}, 레이아웃 변형: {layoutVariant}) — 석재 기둥 2열·화로 2기·문장 방패·러그 장식 포함");
+            Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}, 레이아웃 변형: {layoutVariant}) — 석재 기둥 2열·따뜻한 조명·문장 방패·러그 장식 포함");
 
             // ===================================================================
             // 9b. 방 표지판 (각 방 입구 근처 스탠드 — 자연스러운 실내 안내) + 방별 보조 조명
@@ -775,10 +804,9 @@ namespace ProjectName.Systems
             AddRoomSign(room, "Sign_Armory", 1.6f, 0.5f, standMat, 18.5f, 11.5f, 0f, "⚔️ 무기고");
             AddRoomSign(room, "Sign_Storage", 1.6f, 0.5f, crateMat, 12.5f, 5.2f, 0f, "🎒 저장고");
 
-            // 빈 병사 배치방 보조 조명 (남동 구역)
-            IndoorLighting.AddPointLight(room, new Vector3(16f, 4f, -9f), new Color(1f, 0.88f, 0.65f), 10f, 0.8f);
-            // 침실 보조 조명
-            IndoorLighting.AddPointLight(room, new Vector3(-16f, 4f, 12f), new Color(1f, 0.8f, 0.55f), 7f, 0.7f);
+            // 은은한 방별 보조 조명 — 실내 어둠을 유지하고 각 기능 구역만 살짝 비춘다.
+            IndoorLighting.AddPointLight(room, new Vector3(16f, 4f, -9f), new Color(1f, 0.82f, 0.58f), 5.5f, 0.3f);
+            IndoorLighting.AddPointLight(room, new Vector3(-16f, 4f, 12f), new Color(1f, 0.78f, 0.5f), 5.5f, 0.28f);
 
             // Scale furniture/decor uniformly into the expanded walkable footprint. The shell, floor,
             // ceiling and topology walls are already authored in final meters and remain untouched.
@@ -808,6 +836,7 @@ namespace ProjectName.Systems
             SetAnchorPosition(room, "LordBed", GetAnchorPosition("LordBed"));
             SetAnchorPosition(room, "StorageShelf_1", new Vector2(40f, 18f));
             SetAnchorPosition(room, "CookingTable", GetAnchorPosition("CookingTable"));
+            SetAnchorPosition(room, "CookingIngredientWarehouse", GetAnchorPosition("CookingIngredientWarehouse"));
 
             // Keep legacy scenery beside the topology zone and stations it identifies.
             SetAnchorPosition(room, "WeaponStand_1", new Vector2(-45f, -25f));
@@ -920,6 +949,8 @@ namespace ProjectName.Systems
             "ProjectName.UI.CookingStation, ProjectName.UI";
         private const string AlchemyStationTypeName =
             "ProjectName.UI.AlchemyStation, ProjectName.UI";
+        private const string CastleSoldierManagementStationTypeName =
+            "ProjectName.UI.CastleSoldierManagementStation, ProjectName.UI";
 
         /// <summary>
         /// 어셈블리 경계(ProjectName.UI)를 넘어 상호작용 컴포넌트를 리플렉션으로 부착한다.
@@ -988,6 +1019,39 @@ namespace ProjectName.Systems
             {
                 Debug.LogWarning($"[PlayerCastleInteriorBuilder] '{uiType.Name}'.Configure 호출 실패: {ex.Message}");
             }
+        }
+
+        private static void SeedCookingIngredients(string kitchenWarehouseKey)
+        {
+            if (string.IsNullOrEmpty(kitchenWarehouseKey)) return;
+
+            // WarehouseSystem is a persistent singleton and must be bootstrapped before the
+            // interior builder runs. Never create it here: AddComponent invokes Awake and can
+            // claim the production singleton even when the preview object is later disabled.
+            WarehouseSystem warehouse = WarehouseSystem.Instance;
+            if (warehouse == null)
+            {
+                Debug.LogWarning("[PlayerCastleInteriorBuilder] WarehouseSystem is not initialized; kitchen pantry seeding skipped.");
+                return;
+            }
+
+            if (SeededCookingPantries.TryGetValue(kitchenWarehouseKey, out WarehouseSystem seededBy) &&
+                seededBy == warehouse)
+                return;
+
+            var existing = warehouse.GetItems(kitchenWarehouseKey);
+
+            // Seed one real modern recipe pair (dish_116) only into an empty pantry. Any
+            // existing stock may be restored or partially consumed; never top it back up.
+            // Herb_Yakcho is not resolved by CookingWindowUTK's RecipeCatalog category resolver.
+            if (existing.Count == 0)
+            {
+                warehouse.AddItem(kitchenWarehouseKey, PlayerInventory.Fruit_Apple, 3);
+                warehouse.AddItem(kitchenWarehouseKey,
+                    RecipeCatalog.MonsterMeatItem("보통 육류", "토끼고기"), 3);
+            }
+
+            SeededCookingPantries[kitchenWarehouseKey] = warehouse;
         }
 
         /// <summary>
