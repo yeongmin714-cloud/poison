@@ -1,3 +1,34 @@
+## 2026-10-08 실내 조명 수리 + HUD 화면 앵커 복귀 + 전리품/상세 겹침 해소 (캡처 전 수정)
+
+- **사용자 보고 3건:** ①HUD가 너무 위로 뜸 → 예전 화면 앵커로 복귀 요청 ②창고/전리품/인벤 창 배열이 여전히 어색함 ③실내씬 변화 없음(고품질X·어둡지X) → 수정 후 사용자가 캡처.
+- **① HUD/핫바 앵커 복귀(등비 크기 유지):** a안의 풀캔버스 레터박스(Figma y=855.2×k)가 HUD를 위로 띄웠음. 복귀: 루트=화면 스트레치(예전 앵커), 게이지/핫바 위치는 **X/Y 축 분율 앵커(예전과 동일 배치)**, **크기만 등배수 k**(raw 크기+scale=k, transformOrigin 0,0) — 화면 앵커 유지 + 원형 왜곡 제거 하이브리드. HotbarUIUTK 동일(hotbar rect 축 분율 앵커).
+- **② 전리품/상세 겹침(배열 어색함의 확정 원인):** 전리품 라우트가 Loot(708,324,504,432) + 인벤(144,84) + **상세(672,175.2,576,729.6)를 동시 개방 — 상세 영역이 전리품 창과 완전히 겹쳐 가림**(Figma 70:4 캔버스는 전리품 단독 목업). 수정: UTKWireUp 전리품 라우트에서 ItemDescriptionWindowUTK.Open() 제외 → 전리품+인벤만(Figma 두 캔버스 조합, 무겹침). 창고 라우트(인벤+상세+창고=15:4 3열)는 Figma 그대로라 유지.
+- **③ 실내씬 어둡게(근본원인 수리):** 기본 IndoorScene에 **FlameLight 3개(강도 3.2·사거리 26 — 방 전체를 덮는 강한 화광) + 직사광 0.8**이 씬에 박혀 있어 빌더의 은은한 조명(0.22~0.3)이 완전히 묻힘(10-07 조명 작업이 안 보인 이유). 씬 YAML 수리: FlameLight 3×강도 0.55/사거리 9.5(벽난로 국소 화광), 직사광 0.12, m_AmbientMode 0(Skybox)→2(Flat)+어두운 웜 앰비언트(Sky 0.16,0.12,0.09 / Eq 0.10,0.08,0.06 / Ground 0.05,0.04,0.03) — 영주 성 경로(CastleInteriorBuilder는 ambientMode 미설정)도 씬 기본값으로 어둡게. 글로벌 품질은 이미 Very High(4) 복원 상태(M 미커밋) — 별도 수리 불필요 확인.
+- **검증:** fresh compile `error CS` **0**. 씬 YAML은 값만 수정(구조 불변). **Play 캡처 대기(사용자)**: ①HUD 하단 앵커 복귀 + 크기 균일 ②전리품 열림 시 인벤+전리품 2창(상세 없음) ③실내 어두운 웜톤(벽난로 국소 화광 + 어두운 앰비언트) ④병사 3명·침대 20개.
+- **커밋:** HUDUTK/HotbarUIUTK/UTKWireUp(기존 침대 가드 +6 동반)/IndoorScene.unity(LFS)/본 기록. push 대기.
+
+---
+
+## 2026-10-08 가스 반응 — 모든 대상 방독면 미착용 시 경직 (요청: 가스 종류 다양화 → 사용자 확정 "다 같이 경직")
+- **배럭 침대 20개 + 아군 병사 3명 (플레이어 성 실내)**: `PlayerCastleInteriorBuilder`에 `BarrackBed_1~20` 추가(4열×5행 그리드, 지휘탁자(-12.25,-14.3) 남쪽 z=-18~-26, CreateBed=수면 상호작용 보유). 병사 배치는 기존 `TerritoryBuilder.SpawnInteriorAlliedGuards(hqRoom, nation)`가 `IndoorSceneTransition` 플레이어 소유 성진입 분기(240행)에서 이미 3명(SetRecruited=true 아군, barrackPos -30,-35 주변) 배치 — 코드상 활성 확인. 침대는 병사 좌표(-30,-35)와 겹치지 않게 배치. 컴파일 error CS 0. **Play 캡처로 침대 20개 시각·병사 3명 실제 배치·배치 명령 동작 확인 필요**(게이트 대기).
+
+- **병사 피격 애니 활성화 (HitReactionDriver)**: 병사 `SoldierShield_AC`에 `Hit` 파라미터는 있지만 `HitLight`가 없어 `Apply()`의 non-fatal `TryAnimatorTrigger("HitLight")`가 조용히 무시되어 피격 애니가 안 나왔음(실측). `TryAnimatorTrigger`를 헬퍼 `TrySetIfExists`로 분리하고, 요청 트리거(`HitLight`/`Hit`)가 없으면 `Hit`로 폴백하도록 수정 — 병사는 `Hit` 보유라 즉시 피격 애니 발화, 플레이어는 `Player_AC`의 `HitLight` 그대로, `Hit`는 치명/폴백 겸용. 컴파일 error CS 0. 캡처 검증 대기.
+
+- **폭탄 넉백 보강 (3번 확정)**: `PlayerHealth.TakeDamage` 넉백을 weaponType 기반 강도 분기 — 폭발(`Explosion`)=6f 강한 넉백, 가스류(`gas*`/`poison`)=3f 중간, 기타=기존 2f (`GetKnockbackForce`). "폭탄 맞으면 플레이어도 넉백" 요구 반영.
+- **참고(조사)**: `Player_Animator.controller`에는 Hit/피격 애니 상태가 없음(상태=Attack/Base/Idle/Run/Walk 등만). 몬스터·병사·플레이어 모두 `HitReactionDriver` 절차 반응이 현 구조 — "피격 애니메이션 부착"은 사실 기반 이중 확인 후 절차 반응으로 유지.
+
+
+- **요구**: 내 소속 병사/타지 병사/플레이어/몬스터 — 방독면 미착용이면 가스 노출 시 경직 반응. (초기 "가스 종류별 다른 반응"은 사용자 확정 "다 같이 경직으로"로 단순화)
+- **실측 구조**: 가스 데미지 weaponType = `"Poison"(Bomb)`/`"GasSprayer_Poison"`/`"GasCloud_Poison"` 3종. 몬스터(AnimalAI)는 TakeDamage에서 이미 모든 공격에 HitReaction 경직 → 가스에도 자동 반응. 병사(GuardPlaceholder)는 HitReaction 부재(VFX만). 플레이어는 `PlayerHealth.IsParryEligible`이 gas/poison 접두를 패링 제외 처리(가스 별도 경로).
+- **구현**:
+  - `GasHitHelper.cs`(Systems 신규): `IsGasWeaponType`(gas/poison/gascloud 접두 판정) + `TryApplyGuardGasStun`(병사 전용 — 방독면 착용 시 false, 미착용 시 `HitReactionDriver.Apply(Light)`).
+  - `GuardPlaceholder.cs`: `_isGasMaskEquipped` 필드 + public `IsGasMaskEquipped` 프로퍼티(기본 false=미착용→반응). `TakeDamage`에서 가스 피격 시 `TryApplyGuardGasStun`.
+  - `GasSprayer.cs`/`Bomb.cs`: 플레이어는 방독면(`GasMaskSystem.IsActive`) 착용 중이면 독가스 효과 면제(GasCloudLauncher 기존 로직과 일치).
+  - 몬스터는 자체 HitReaction 경로로 이미 가스 반응 충족(추가 호출 시 이중 반응 회귀 우려 → 미수정).
+- **검증**: fresh compile `error CS` **0**. Play 캡처(경직 반응·방독면 면제) 게이트는 미완료.
+- **미커밋**: 4파일(GasHitHelper 신규, GuardPlaceholder, GasSprayer, Bomb). 커밋은 지시 대기.
+
+---
 ## 2026-10-08 Figma 정합 v3 이관 5차(완결) — HUD(23:6) a안 등배수 전환
 
 - **사용자 확정:** "a안으로 가자" — HUD도 Figma 캔버스 등비 통일(레터박스 허용), 작업 후 텔레그램 알림 요청.

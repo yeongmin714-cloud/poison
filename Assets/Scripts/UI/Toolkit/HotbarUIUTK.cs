@@ -473,8 +473,17 @@ namespace ProjectName.UI.Toolkit
             if (root == null) return;
             Vector2 rootSize = new Vector2(root.resolvedStyle.width, root.resolvedStyle.height);
             if (rootSize.x <= 0f || rootSize.y <= 0f) return;
-            // [Figma 정합 v3] 등배수 디자인공간(a안) — 창 박스=핫바 rect×k, 내부 raw+scale=k(자기 디자인공간).
-            FigmaCanvasLayout.ApplyDesignSpace(this, this, new Rect(FigmaLeft, FigmaTop, FigmaWidth, FigmaHeight), root);
+            // [Figma 정합 v3 / 화면 앵커 복귀(사용자 확정)] 위치는 예전 축 분율 앵커, 크기만 등배수 k.
+            float anchorX = rootSize.x / FigmaCanvasLayout.CanvasWidth;
+            float anchorY = rootSize.y / FigmaCanvasLayout.CanvasHeight;
+            float k = Mathf.Min(anchorX, anchorY);
+            style.position = Position.Absolute;
+            style.left = FigmaLeft * anchorX;
+            style.top = FigmaTop * anchorY;
+            style.width = FigmaWidth;
+            style.height = FigmaHeight;
+            style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
+            style.scale = new StyleScale(new Scale(new Vector2(k, k)));
             float cellWidth = SlotSize;
             float slotHeight = SlotSize;
             float cellHeight = FigmaHeight;

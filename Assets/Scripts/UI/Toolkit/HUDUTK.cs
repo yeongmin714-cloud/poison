@@ -142,29 +142,25 @@ namespace ProjectName.UI.Toolkit
         private void PositionHost()
         {
             if (panel == null) return;
-            // [Figma 정합 v3] 등배수 디자인공간(a안 확정) — 루트=raw 1920×1080 풀캔버스 + scale=k,
-            // 게이지 호스트는 Figma 절대좌표(306.4, 855.2) raw 고정. X/Y 독립 스케일(종횡비 왜곡) 제거.
+            // [Figma 정합 v3 / 화면 앵커 복귀(사용자 확정)] 루트=화면 스트레치 유지(예전 앵커),
+            // 게이지 위치는 X/Y 축 분율 앵커(예전과 동일 배치) — 크기만 등배수 k로 통일(종횡비 왜곡 제거).
             var uiRoot = UIToolkitBootstrap.UIRoot;
             Vector2 rootSize = uiRoot != null
                 ? new Vector2(uiRoot.resolvedStyle.width, uiRoot.resolvedStyle.height)
                 : new Vector2(panel.visualTree.worldBound.width, panel.visualTree.worldBound.height);
-            float k = FigmaCanvasLayout.DesignScale(rootSize);
+            if (rootSize.x <= 0f || rootSize.y <= 0f) return;
+            float anchorX = rootSize.x / FigmaCanvasLayout.CanvasWidth;
+            float anchorY = rootSize.y / FigmaCanvasLayout.CanvasHeight;
+            float k = Mathf.Min(anchorX, anchorY);
             if (k <= 0f) return;
 
-            style.position = Position.Absolute;
-            style.left = 0f;
-            style.top = 0f;
-            style.right = StyleKeyword.Auto;
-            style.bottom = StyleKeyword.Auto;
-            style.width = FigmaCanvasLayout.CanvasWidth;
-            style.height = FigmaCanvasLayout.CanvasHeight;
-            style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
-            style.scale = new StyleScale(new Scale(new Vector2(k, k)));
-
-            _gaugeHost.style.left = 306.4f;
-            _gaugeHost.style.top = 855.2f;
+            // 게이지 호스트 = 예전 화면 앵커(축 분율) + raw 크기 + 등비 scale
+            _gaugeHost.style.left = 306.4f * anchorX;
+            _gaugeHost.style.top = 855.2f * anchorY;
             _gaugeHost.style.width = GaugeSize * 2f + GaugeGap;
             _gaugeHost.style.height = GaugeSize;
+            _gaugeHost.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
+            _gaugeHost.style.scale = new StyleScale(new Scale(new Vector2(k, k)));
             ApplyGaugeScale(_hpGauge, 0f, 1f, 1f);
             ApplyGaugeScale(_staminaGauge, GaugeSize + GaugeGap, 1f, 1f);
         }

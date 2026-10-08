@@ -32,6 +32,8 @@ namespace ProjectName.UI.Toolkit
             // 침대 상호작용 → 수면 UTK (폴백: 원본 SleepUI)
             Bed.OnInteractRequestedUTK += bed =>
             {
+                if (bed == null) return;
+                UIToolkitBootstrap.Ensure();
                 if (UIToolkitBootstrap.UIRoot != null)
                 {
                     SleepUTK.Ensure();
@@ -43,6 +45,10 @@ namespace ProjectName.UI.Toolkit
                     Debug.Log("[UTKWire] UTK 루트 미준비 — 원본 SleepUI 폴백");
                     SleepUI.Instance.Show(bed);
                 }
+                else
+                {
+                    Debug.LogWarning("[UTKWire] 침대 수면 UI를 열 수 없음: UIRoot와 SleepUI가 모두 없습니다.");
+                }
             };
 
             // 전리품 바구니 → 전리품 UTK (폴백: 원본 LootWindow 경유 공개 메서드)
@@ -53,7 +59,9 @@ namespace ProjectName.UI.Toolkit
                     LootWindowUTK.Ensure();
                     LootWindowUTK.Open(basket);
                     InventoryWindowUTK.Open();            // [U8 요구] 전리품 열림 시 인벤 동시 표시
-                    ItemDescriptionWindowUTK.Open();
+                    // [Figma 정합 v3 / 배열 수리] 상세창(672,175.2,576,729.6)은 전리품(708,324,504,432)과
+                    // Figma 좌표상 완전히 겹쳐 전리품 창을 가린다 — 전리품 라우트에서는 개방하지 않는다(70:4 캔버스는 전리품 단독).
+                    // ItemDescriptionWindowUTK.Open();
                     Debug.Log("[UTKWire] 바구니 → LootWindowUTK + 인벤/설명 동시 표시");
                 }
                 else
