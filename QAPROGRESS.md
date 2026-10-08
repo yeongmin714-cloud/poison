@@ -1,3 +1,14 @@
+## 2026-10-08 Figma 정합 v3 이관 3차 — 전리품(70:4) 등배수 전환 + 클러스터 위임 부분 완료
+
+- **LootWindowUTK(70:4) 이관 완료:** ApplyFigmaPlacement가 `FigmaCanvasLayout.ApplyDesignSpace(this, _content, FigmaBounds, root)` 단일 경로로 전환(기존 FigmaCanvasLayout.Apply X/Y 독립 제거), 모서리 데칼을 _content(디자인공간) 내부로 이동, GeometryChanged 재적용 훅 신설.
+- **테스트:** ShopLootFigmaPhase3Tests에 디자인공간 계약 UnityTest 신설(창 박스=FigmaBounds×k, Content raw 504×432+scale=k, 내부 header 48/scroll 172.8/grid 456 raw). 함정 교정 2건: ①k 기대값은 루트 resolved에서 산출(PanelSettings 반올림 — 708 기대 707.723 실측) ②AssertRawWidth 추가(그리드는 width=456/height 미설정 — height 전용 헬퍼 오판). focused **7/7 passed**.
+- **위임(서브에이전트) 타임아웃 부분 완료:** Loot만 완결. Inventory/ItemDescription/Warehouse(15:4 클러스터)는 미이관 — **ItemDescriptionWindowUTK의 대형 working-tree diff(+212)는 이전 4창 정합 계획의 미커밋 재구조화로 판정, 본 커밋 제외(혼동 방지)**. Warehouse의 ApplyStorageBodyLayout(SetStorageRect+rootSize 스케일)은 다음 세션에서 regions 좌표계 확인 후 전환 필요.
+- **HUD(23:6):** 오버레이 앵커링(하단 게이지/핫바) 특성상 등배수 레터박스가 부자연스러울 수 있어 별도 판단 필요 — 사용자 확정 후 진행.
+- **검증:** fresh compile error CS 0, focused 7/7. XML `TestOutput/loot_focused3.xml`.
+- **커밋:** LootWindowUTK.cs + ShopLootFigmaPhase3Tests.cs(+meta) + 본 기록. push 대기.
+
+---
+
 ## 2026-10-08 Figma 정합 v3 이관 2차 — 스테이터스/장비(84:4·83:4) 등배수 전환
 
 - **StatusWindowUTK:** ApplyCanvasScale의 X/Y 독립 재스케일(sx/sy 수동 계산, statusOnly/조합 2모드)을 `FigmaCanvasLayout.ApplyDesignSpace` 1경로로 교체 — statusOnly 프레임=(0,0,1920,1080), 조합 프레임=CompositionCanvasBounds(391.8,72,1136.4,936). 패널은 빌드 시 raw Figma 좌표(_statusPanel 672,72,576,936 등) 그대로 — 재스케일 경로 제거. 250ms _scaleRefresh 재적용 유지(멱등).

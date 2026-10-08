@@ -123,6 +123,7 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 레퍼런스 =====
         private ILootBasket _basket;
+        private VisualElement _canvasLayoutRoot;         // [Figma 정합 v3] 등배수 스케일 소스(UIRoot)
         private readonly VisualElement _grid;            // 5열 그리드
         private readonly ScrollView _gridScroll;
         private readonly Label _countLabel;              // "획득 아이템: n / 10"
@@ -139,7 +140,8 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexDirection = FlexDirection.Column;
             _content.style.paddingLeft = _content.style.paddingRight = 24f;
             _content.style.paddingTop = _content.style.paddingBottom = 24f;
-            AddCornerDecals(this);
+            // [Figma 정합 v3] 모서리 데칼은 디자인공간(_content, raw 504×432)에 부착 — raw 좌표 유지 + k 등비 스케일.
+            AddCornerDecals(_content);
 
             // ── PanelHeader 456×48 ──
             var panelHeader = new VisualElement { name = "LootPanelHeader" };
@@ -316,6 +318,14 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
+            if (_canvasLayoutRoot != root)
+            {
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.UnregisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged);
+                _canvasLayoutRoot = root;
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.RegisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged);
+            }
             ApplyFigmaPlacement(root);
             StartRefreshLoop();
             RefreshGrid();
@@ -342,10 +352,16 @@ namespace ProjectName.UI.Toolkit
             _basket = null;
         }
 
+        private void OnCanvasRootGeometryChanged(GeometryChangedEvent evt) => ApplyFigmaPlacement(_canvasLayoutRoot);
+
+        /// <summary>
+        /// [Figma 정합 v3] 등배수 디자인공간 — 창 박스=FigmaBounds×k, _content는 raw 504×432 유지 + scale=k.
+        /// 기존 X/Y 독립 스케일(FigmaCanvasLayout.Apply → ScaleRect)은 계약에서 제거됐다.
+        /// </summary>
         private void ApplyFigmaPlacement(VisualElement root)
         {
             if (root != null)
-                FigmaCanvasLayout.Apply(this, FigmaBounds, root);
+                FigmaCanvasLayout.ApplyDesignSpace(this, _content, FigmaBounds, root);
         }
 
         // =====================================================================
