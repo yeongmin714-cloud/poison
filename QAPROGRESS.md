@@ -1,3 +1,13 @@
+## 2026-10-09 계획 v2 Phase 0+1 — [FigmaV3] 진단 로그 + 전리품 오른쪽 위 배치(사용자 확정)
+
+- **Phase 0(관측 가능화):** `FigmaCanvasLayout.ApplyDesignSpace`에 중앙 진단 로그 — 성공 시 `[FigmaV3] {창}: ok k=... root=... rect=...`, 실패 시 `[FigmaV3] FAILED (root unresolved)` 경고(조용한 실패 제거). HUDUTK.PositionHost는 k 변화 시에만 게이지 호스트 기하 로그(폴링 스팸 방지). **사용자 재실행 후 콘솔/Editor.log의 [FigmaV3] 유무로 코드 신·구와 실패 지점을 관측 확정.**
+- **Phase 1(전리품 오른쪽 위 — 사용자 확정):** `LootWindowUTK.CompositionBounds=(1272,84,504,432)` 신설(15:4 우측 컬럼 위치 차용) + `Open(basket, Rect canvasRectOverride)` 오버로드 + `_activeBounds` 필드(ApplyFigmaPlacement가 활성 rect 사용). UTKWireUp 바구니 라우트가 조합 rect 전달 → **인벤(144,84) 좌측 + 전리품 우상단, 무겹침**. 기본 Open(basket)은 70:4 단독 좌표(708,324) 유지.
+- **테스트 결함 발견·수리(진단 로그가 밝힘):** ShopLoot UnityTest가 스트레치된 UIRoot에 style.width를 강제 설정해 resolved가 프레임마다 요동(실측 1919.25→1440) — 리사이즈 섹션 제거, 자연 resolved에서 k 산출로 재작성. + 조합 배치 단정 추가(CompositionBounds 상수 + 라우트 전달 소스 계약).
+- **검증:** fresh compile `error CS` **0**. focused EditMode(ShopLoot+FigmaCanvasLayout) **33/33 passed, 0 failed**. XML `TestOutput/p01b_focused.xml`.
+- **다음(캡처 확정 후):** Phase 2 HUD 폼·하단 정렬, Phase 3 폰트 패밀리 통일(350+ 임의 크기 → Figma 1.2× 패밀리), Phase 4 실내 튜닝(화광 강화·직사광 그림자). push 대기.
+
+---
+
 ## 2026-10-08 실내 조명 수리 + HUD 화면 앵커 복귀 + 전리품/상세 겹침 해소 (캡처 전 수정)
 
 - **사용자 보고 3건:** ①HUD가 너무 위로 뜸 → 예전 화면 앵커로 복귀 요청 ②창고/전리품/인벤 창 배열이 여전히 어색함 ③실내씬 변화 없음(고품질X·어둡지X) → 수정 후 사용자가 캡처.

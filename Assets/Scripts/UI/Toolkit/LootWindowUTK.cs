@@ -35,7 +35,21 @@ namespace ProjectName.UI.Toolkit
         {
             if (basket == null) return;
             Ensure();
-            _instance.OpenForBasket(basket);
+            _instance.OpenForBasket(basket, null);
+        }
+
+        /// <summary>
+        /// [Figma 정합 v3 / 조합 배치(사용자 확정)] 바구니 라우트 조합(인벤 좌측 + 전리품 우상단)용 위치 오버라이드.
+        /// Figma 70:4 단독 캔버스는 전리품 중앙(708,324)이지만, 인벤(144,84,504,912)과 함께 열릴 때는
+        /// 15:4 우측 컬럼(스토리지 위치)을 차용해 오른쪽 위에 배치한다.
+        /// </summary>
+        public static readonly Rect CompositionBounds = new Rect(1272f, 84f, 504f, 432f);
+
+        public static void Open(ILootBasket basket, Rect canvasRectOverride)
+        {
+            if (basket == null) return;
+            Ensure();
+            _instance.OpenForBasket(basket, canvasRectOverride);
         }
 
         // ===== 설정 (Figma node 70:5; centered in 1920x1080 canvas) =====
@@ -123,6 +137,7 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 레퍼런스 =====
         private ILootBasket _basket;
+        private Rect _activeBounds = FigmaBounds;   // [Figma 정합 v3] 기본=70:4 단독 좌표, 조합 개방 시 오버라이드
         private VisualElement _canvasLayoutRoot;         // [Figma 정합 v3] 등배수 스케일 소스(UIRoot)
         private readonly VisualElement _grid;            // 5열 그리드
         private readonly ScrollView _gridScroll;
@@ -292,9 +307,13 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
 
         /// <summary>특정 바스켓 열기. 빈/회수 불가 바구니는 무시(원본 OpenForBasket 규약).</summary>
-        public void OpenForBasket(ILootBasket basket)
+        public void OpenForBasket(ILootBasket basket) => OpenForBasket(basket, null);
+
+        /// <summary>[Figma 정합 v3] 캔버스 rect 오버라이드 열기 — 조합 배치(우측 상단 컬럼)용.</summary>
+        public void OpenForBasket(ILootBasket basket, Rect? canvasRectOverride)
         {
             if (basket == null || basket.IsEmpty || !basket.IsAvailable) return;
+            _activeBounds = canvasRectOverride ?? FigmaBounds;
             _basket = basket;
             Show();
         }
@@ -361,7 +380,7 @@ namespace ProjectName.UI.Toolkit
         private void ApplyFigmaPlacement(VisualElement root)
         {
             if (root != null)
-                FigmaCanvasLayout.ApplyDesignSpace(this, _content, FigmaBounds, root);
+                FigmaCanvasLayout.ApplyDesignSpace(this, _content, _activeBounds, root);
         }
 
         // =====================================================================

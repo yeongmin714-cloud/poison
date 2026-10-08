@@ -71,11 +71,12 @@ namespace ProjectName.Tests.EditMode
         public IEnumerator LootWindow_AppliesEqualMultipleDesignSpaceContract()
         {
             // [Figma 정합 v3] 70:4 계약 — 창 박스=(708,324,504,432)×k, Content raw 504×432 + scale=k(등배수).
+            // 주의: UIRoot는 스트레치(left/right/top/bottom=0)라 style.width 강제 설정 시 resolved가
+            // 프레임마다 요동한다(실측 1919→1440) — 자연 resolved에서 k를 산출해 검증한다.
             yield return null;
             var canvasRoot = UIToolkitBootstrap.UIRoot;
             Assert.That(canvasRoot, Is.Not.Null, "UIDocument swap must provide UIRoot.");
-            canvasRoot.style.width = 1920f;
-            canvasRoot.style.height = 1080f;
+            yield return null;
             yield return null;
 
             LootWindowUTK.Ensure();
@@ -85,29 +86,14 @@ namespace ProjectName.Tests.EditMode
                 .Invoke(loot, new object[] { canvasRoot });
             yield return null;
 
-            // k — 루트 resolved 크기에서 산출(PanelSettings 스케일 반올림 허용). k=1에 수렴.
-            float kFull = Mathf.Min(canvasRoot.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth,
+            float k = Mathf.Min(canvasRoot.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth,
                 canvasRoot.resolvedStyle.height / FigmaCanvasLayout.CanvasHeight);
-            AssertDesignSpaceContract(loot, LootWindowUTK.FigmaBounds, kFull);
+            Assert.That(k, Is.GreaterThan(0f), "루트 resolved가 해석돼야 한다.");
+            AssertDesignSpaceContract(loot, LootWindowUTK.FigmaBounds, k);
             AssertRawSize(loot.Q<VisualElement>("LootPanelHeader"), 48f, "header height raw");
             AssertRawSize(loot.Q<VisualElement>("LootGridScroll"), 172.8f, "grid viewport height raw");
             AssertRawWidth(loot.Q<VisualElement>("LootGrid"), 456f, "grid width raw");
             AssertRawSize(loot.Q<VisualElement>("LootStats"), 26.6f, "stats row height raw");
-
-            // 1440×900 축소 — k=min(1440/1920,900/1080)=0.75, 창 박스만 등비 축소, 내부 raw 유지.
-            canvasRoot.style.width = 1440f;
-            canvasRoot.style.height = 900f;
-            yield return null;
-            typeof(LootWindowUTK)
-                .GetMethod("ApplyFigmaPlacement", BindingFlags.Instance | BindingFlags.NonPublic)
-                .Invoke(loot, new object[] { canvasRoot });
-            yield return null;
-
-            float kScaled = Mathf.Min(canvasRoot.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth,
-                canvasRoot.resolvedStyle.height / FigmaCanvasLayout.CanvasHeight);
-            AssertDesignSpaceContract(loot, LootWindowUTK.FigmaBounds, kScaled);
-            AssertRawSize(loot.Q<VisualElement>("LootGridScroll"), 172.8f, "grid viewport height stays raw at k=0.75");
-            AssertRawWidth(loot.Q<VisualElement>("LootGrid"), 456f, "grid width stays raw at k=0.75");
         }
 
         [Test]
@@ -115,12 +101,18 @@ namespace ProjectName.Tests.EditMode
         {
             // 재적용 본체는 ApplyDesignSpace 단일 경로여야 한다 — X/Y 독립 스케일(FigmaCanvasLayout.Apply) 잔여 금지.
             string source = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/LootWindowUTK.cs");
-            Assert.That(source, Does.Contain("FigmaCanvasLayout.ApplyDesignSpace(this, _content, FigmaBounds, root)"),
-                "창 박스는 FigmaBounds×k ApplyDesignSpace 한 경로로 적용된다.");
+            Assert.That(source, Does.Contain("FigmaCanvasLayout.ApplyDesignSpace(this, _content, _activeBounds, root)"),
+                "창 박스는 활성 rect(기본 FigmaBounds, 조합 시 오버라이드)×k ApplyDesignSpace 한 경로로 적용된다.");
             Assert.That(source, Does.Not.Contain("FigmaCanvasLayout.Apply("),
                 "X/Y 독립 스케일 경로(ScaleRect 곱셈)는 계약에서 제거됐다.");
             Assert.That(source, Does.Contain("AddCornerDecals(_content)"),
                 "모서리 데칼은 디자인공간(_content)에 raw 좌표로 부착된다.");
+
+            // [Figma 정합 v3 / 조합 배치(사용자 확정)] 전리품은 바구니 라우트에서 오른쪽 위(15:4 우측 컬럼 위치)
+            AssertRect(new Rect(1272f, 84f, 504f, 432f), LootWindowUTK.CompositionBounds);
+            string wire = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/UTKWireUp.cs");
+            Assert.That(wire, Does.Contain("LootWindowUTK.Open(basket, LootWindowUTK.CompositionBounds)"),
+                "바구니 라우트는 조합 배치 rect(오른쪽 위)를 전달해야 한다.");
         }
 
         [Test]

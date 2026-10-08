@@ -105,9 +105,15 @@ namespace ProjectName.UI.Toolkit
             if (window == null || designSpace == null || canvasRoot == null)
                 return false;
 
-            float scale = DesignScale(new Vector2(canvasRoot.resolvedStyle.width, canvasRoot.resolvedStyle.height));
+            Vector2 rootSize = new Vector2(canvasRoot.resolvedStyle.width, canvasRoot.resolvedStyle.height);
+            float scale = DesignScale(rootSize);
             if (scale <= 0f)
+            {
+                // [FigmaV3 진단] 루트 미해석 시 조용한 실패 대신 관측 가능하게 — 스테일/조기적용 판정용.
+                Debug.LogWarning($"[FigmaV3] ApplyDesignSpace FAILED (root unresolved {rootSize}) win={window.name} rect={figmaBounds}");
                 return false;
+            }
+            Debug.Log($"[FigmaV3] {window.name}: ok k={scale:F3} root={rootSize} rect=({figmaBounds.x},{figmaBounds.y},{figmaBounds.width},{figmaBounds.height})");
 
             window.style.position = Position.Absolute;
             window.style.left = figmaBounds.x * scale;

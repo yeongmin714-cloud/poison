@@ -57,7 +57,8 @@ namespace ProjectName.UI.Toolkit
                 if (UIToolkitBootstrap.UIRoot != null)
                 {
                     LootWindowUTK.Ensure();
-                    LootWindowUTK.Open(basket);
+                    // [Figma 정합 v3 / 조합 배치(사용자 확정)] 전리품을 오른쪽 위(15:4 우측 컬럼 위치)로 — 인벤 좌측+전리품 우상단 무겹침
+                    LootWindowUTK.Open(basket, LootWindowUTK.CompositionBounds);
                     InventoryWindowUTK.Open();            // [U8 요구] 전리품 열림 시 인벤 동시 표시
                     // [Figma 정합 v3 / 배열 수리] 상세창(672,175.2,576,729.6)은 전리품(708,324,504,432)과
                     // Figma 좌표상 완전히 겹쳐 전리품 창을 가린다 — 전리품 라우트에서는 개방하지 않는다(70:4 캔버스는 전리품 단독).

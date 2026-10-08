@@ -163,7 +163,15 @@ namespace ProjectName.UI.Toolkit
             _gaugeHost.style.scale = new StyleScale(new Scale(new Vector2(k, k)));
             ApplyGaugeScale(_hpGauge, 0f, 1f, 1f);
             ApplyGaugeScale(_staminaGauge, GaugeSize + GaugeGap, 1f, 1f);
+            // [FigmaV3 진단] 값 변화 시에만 로그 — 스테일/겹침 판정용.
+            if (Mathf.Abs(k - _lastLoggedK) > 0.001f)
+            {
+                _lastLoggedK = k;
+                Debug.Log($"[FigmaV3] HUD gaugeHost left={_gaugeHost.style.left.value.value:F1} top={_gaugeHost.style.top.value.value:F1} w={_gaugeHost.style.width.value.value:F1} scale={k:F3} root={rootSize}");
+            }
         }
+
+        private float _lastLoggedK = -1f;
 
         private static void ApplyGaugeScale(VisualElement gauge, float left, float sx, float sy)
         {
