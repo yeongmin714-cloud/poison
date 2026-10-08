@@ -1,3 +1,16 @@
+## 2026-10-08 Figma 정합 v3 이관 4차 — 인벤/상세/창고 클러스터(15:4) 등배수 전환 완료
+
+- **InventoryClusterFigmaLayout:** ApplyInventory/ApplyDetail/ApplyWarehouse에 designSpace 3-arg 오버로드 신설(ApplyDesignSpace 경로) — 기존 2-arg(X/Y 독립 Apply)는 잔여 호환용 유지.
+- **InventoryWindowUTK(144,84,504,912):** ApplyInventoryBodyLayout의 ScalePanelLocal/셀 스케일 곱셈 제거 → regions raw(장비 24,127.4,456,230.4 / 가방 뷰포트 / 푸터), 셀 81.6·갭 9.6/4.8 raw. CreateBagSlot 스케일 제거.
+- **ItemDescriptionWindowUTK(672,175.2,576,729.6):** ApplyDetail 3-arg 전환, ApplyDetailBodyLayout의 ScaleDetailRegion 제거 → ToPanelLocal raw 섹션 배치.
+- **WarehouseWindowUTK(1272,84,504,912):** SetStorageRect raw 시그니처로 교체(ScaleStorageBody/contentOrigin 제거), _whColumn/뷰포트/데칼/케파시티/그리드 셀 전부 raw, ApplyWarehouseCellLayout의 루트 크기 스케일 블록 제거.
+- **배치:** 세 창 모두 Show에서 자기 Figma rect×k 등배수 적용 — 균등 3등분(Place)은 초기값으로만 잔존(적용 시 덮어씀).
+- **주의:** ItemDescriptionWindowUTK 커밋에 이전 4창 정합 계획의 미커밋 내부 재구조화(섹션 named 분할, 아이콘 376 등)가 동반 포함됨(같은 파일 — 분리 불가, 컴파일 0+focused 통과로 채택).
+- **검증:** fresh compile `error CS` **0**. focused EditMode(WarehouseParity+WHStorage+WHTransfer+FigmaCanvasLayout+ShopLoot+EquipToggle+CompositionLifecycle) **58/58 passed, 0 failed**. XML `TestOutput/clus_focused.xml`.
+- **잔여:** HUD(23:6) 오버레이 앵커링 판단(사용자 확정 필요), Play 캡처 게이트, push.
+
+---
+
 ## 2026-10-08 Figma 정합 v3 이관 3차 — 전리품(70:4) 등배수 전환 + 클러스터 위임 부분 완료
 
 - **LootWindowUTK(70:4) 이관 완료:** ApplyFigmaPlacement가 `FigmaCanvasLayout.ApplyDesignSpace(this, _content, FigmaBounds, root)` 단일 경로로 전환(기존 FigmaCanvasLayout.Apply X/Y 독립 제거), 모서리 데칼을 _content(디자인공간) 내부로 이동, GeometryChanged 재적용 훅 신설.

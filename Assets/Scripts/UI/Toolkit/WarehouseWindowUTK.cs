@@ -416,7 +416,7 @@ namespace ProjectName.UI.Toolkit
             if (root != null && parent == null)
                 root.Add(this);
             UTKThreeColumnLayout.Place(this, 2);   // [P12] 우측 1/3
-            InventoryClusterFigmaLayout.ApplyWarehouse(this, root);
+            InventoryClusterFigmaLayout.ApplyWarehouse(this, _content, root);   // [Figma 정합 v3] 등배수
             RegisterRootGeometryCallback(root);
             ApplyStorageBodyLayout();
             StartRefreshLoop();
@@ -476,7 +476,7 @@ namespace ProjectName.UI.Toolkit
             _isHandlingRootGeometry = true;
             try
             {
-                InventoryClusterFigmaLayout.ApplyWarehouse(this, root);
+                InventoryClusterFigmaLayout.ApplyWarehouse(this, _content, root);   // [Figma 정합 v3] 등배수
                 ApplyStorageBodyLayout();
             }
             finally
@@ -520,40 +520,38 @@ namespace ProjectName.UI.Toolkit
             {
                 style.backgroundImage = new StyleBackground(StyleKeyword.None);
                 style.backgroundColor = new StyleColor(PanelBg);
-                float sx = rootSize.x / FigmaCanvasLayout.CanvasWidth;
-                float sy = rootSize.y / FigmaCanvasLayout.CanvasHeight;
-                Vector2 contentOrigin = panel != null ? new Vector2(_content.layout.x, _content.layout.y) : Vector2.zero;
-                SetStorageRect(this.Q("StorageHeader"), InventoryClusterPanelRegions.StorageHeaderBody, rootSize, contentOrigin);
-                SetStorageRect(_storageStats, InventoryClusterPanelRegions.StorageStatsBody, rootSize, contentOrigin);
-                SetStorageRect(_storageColumnsRow, InventoryClusterPanelRegions.StorageGridBody, rootSize, contentOrigin);
-                SetStorageRect(_storageFooter, InventoryClusterPanelRegions.StorageFooterBody, rootSize, contentOrigin);
+                // [Figma 정합 v3] regions는 윈도우-로컬 raw Figma px — 등배수는 디자인공간이 담당.
+                SetStorageRect(this.Q("StorageHeader"), InventoryClusterPanelRegions.StorageHeaderBody);
+                SetStorageRect(_storageStats, InventoryClusterPanelRegions.StorageStatsBody);
+                SetStorageRect(_storageColumnsRow, InventoryClusterPanelRegions.StorageGridBody);
+                SetStorageRect(_storageFooter, InventoryClusterPanelRegions.StorageFooterBody);
                 _whColumn.style.position = Position.Absolute;
                 _whColumn.style.left = 0f;
                 _whColumn.style.top = 0f;
-                _whColumn.style.width = InventoryClusterPanelRegions.StorageGridBody.width * sx;
-                _whColumn.style.height = InventoryClusterPanelRegions.StorageGridBody.height * sy;
+                _whColumn.style.width = InventoryClusterPanelRegions.StorageGridBody.width;
+                _whColumn.style.height = InventoryClusterPanelRegions.StorageGridBody.height;
                 _whGridViewport.style.position = Position.Absolute;
                 _whGridViewport.style.left = 0f;
                 _whGridViewport.style.top = 0f;
-                _whGridViewport.style.width = InventoryClusterPanelRegions.StorageGridBody.width * sx;
-                _whGridViewport.style.height = InventoryClusterPanelRegions.StorageGridBody.height * sy;
+                _whGridViewport.style.width = InventoryClusterPanelRegions.StorageGridBody.width;
+                _whGridViewport.style.height = InventoryClusterPanelRegions.StorageGridBody.height;
                 var statusBand = new Rect(
                     InventoryClusterPanelRegions.StorageFooterBody.x,
                     InventoryClusterPanelRegions.StorageFooterBody.y,
                     InventoryClusterPanelRegions.StorageFooterBody.width,
                     14.4f);
-                SetStorageRect(_statusLabel, statusBand, rootSize, contentOrigin);
-                SetStorageRect(_storeAllButton, InventoryClusterPanelRegions.StoreAllButtonBody, rootSize, contentOrigin);
-                SetStorageRect(_retrieveAllButton, InventoryClusterPanelRegions.RetrieveAllButtonBody, rootSize, contentOrigin);
+                SetStorageRect(_statusLabel, statusBand);
+                SetStorageRect(_storeAllButton, InventoryClusterPanelRegions.StoreAllButtonBody);
+                SetStorageRect(_retrieveAllButton, InventoryClusterPanelRegions.RetrieveAllButtonBody);
 
                 var heading = _whColumn.childCount > 0 ? _whColumn[0] : null;
                 if (heading != null) heading.style.display = DisplayStyle.None;
-                ApplyCornerDecalLayout(sx, sy);
-                ApplyCapacityLabelLayout(_capacityLabel, sx, sy);
+                ApplyCornerDecalLayout(1f, 1f);   // [Figma 정합 v3] 데칼 raw 좌표 — 스케일은 디자인공간
+                ApplyCapacityLabelLayout(_capacityLabel, 1f, 1f);
                 _closeButton.style.left = 448.8f - 24f;
                 _closeButton.style.top = 27.6f - 24f;
                 _whGridViewport.style.overflow = Overflow.Hidden;
-                _whGridViewport.contentContainer.style.width = InventoryClusterPanelRegions.StorageGridBody.width * sx;
+                _whGridViewport.contentContainer.style.width = InventoryClusterPanelRegions.StorageGridBody.width;
                 _whGridViewport.contentContainer.style.paddingTop = 0f;
                 _whGridViewport.contentContainer.style.paddingLeft = 0f;
                 _whGridViewport.contentContainer.style.paddingRight = 0f;
@@ -574,22 +572,9 @@ namespace ProjectName.UI.Toolkit
         {
             if (_isApplyingWarehouseCellLayout || _whGridViewport == null || _whGrid == null)
                 return;
+            // [Figma 정합 v3] 그리드 셀은 raw Figma px(81.6/9.6) — 등배수는 디자인공간 스케일이 담당.
             float width = InventoryClusterPanelRegions.StorageGridBody.width;
             float height = InventoryClusterPanelRegions.StorageGridBody.height;
-            if (UIToolkitBootstrap.UIRoot != null)
-            {
-                Vector2 rootSize = new Vector2(UIToolkitBootstrap.UIRoot.resolvedStyle.width, UIToolkitBootstrap.UIRoot.resolvedStyle.height);
-                if (rootSize.x > 0f && rootSize.y > 0f)
-                {
-                    width *= rootSize.x / FigmaCanvasLayout.CanvasWidth;
-                    height *= rootSize.y / FigmaCanvasLayout.CanvasHeight;
-                }
-            }
-            else if (_whGridViewport.resolvedStyle.width > 0f && _whGridViewport.resolvedStyle.height > 0f)
-            {
-                width = _whGridViewport.resolvedStyle.width;
-                height = _whGridViewport.resolvedStyle.height;
-            }
             _isApplyingWarehouseCellLayout = true;
             try
             {
@@ -663,15 +648,15 @@ namespace ProjectName.UI.Toolkit
             label.style.fontSize = 12f * sy;
         }
 
-        private static void SetStorageRect(VisualElement element, Rect panelRect, Vector2 rootSize, Vector2 contentOrigin)
+        private static void SetStorageRect(VisualElement element, Rect panelRect)
         {
+            // [Figma 정합 v3] raw 윈도우-로컬 Figma px — 등배수 스케일은 디자인공간(_content)이 담당.
             if (element == null) return;
-            Rect scaled = InventoryClusterPanelRegions.ScaleStorageBody(panelRect, rootSize);
             element.style.position = Position.Absolute;
-            element.style.left = scaled.x - contentOrigin.x;
-            element.style.top = scaled.y - contentOrigin.y;
-            element.style.width = scaled.width;
-            element.style.height = scaled.height;
+            element.style.left = panelRect.x;
+            element.style.top = panelRect.y;
+            element.style.width = panelRect.width;
+            element.style.height = panelRect.height;
         }
 
         // =====================================================================

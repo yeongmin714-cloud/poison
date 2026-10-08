@@ -59,28 +59,35 @@ namespace ProjectName.UI.Toolkit
         private readonly Label _spec2Label; private readonly Label _spec2Val;
         private readonly Label _spec3Label; private readonly Label _spec3Val;
         private readonly Label _itemDesc;        // DescriptionSection 본문
+        private readonly VisualElement _headerSection;
+        private readonly VisualElement _nameSection;
+        private readonly VisualElement _imageSection;
+        private readonly VisualElement _specsSection;
+        private readonly VisualElement _descriptionSection;
+
+        private bool _isApplyingDetailLayout;
+        private bool _isHandlingRootGeometry;
+        private VisualElement _geometryRoot;
 
         private ItemDescriptionWindowUTK() : base("상세 정보", new Vector2(WinW, WinH))
         {
 
             // ── PanelHeader: subtitle 'SPECIFICATIONS' — 타이틀(창 크롬)은 이미 '상세 정보'  ──
-            var header = new VisualElement();
-            header.style.flexDirection = FlexDirection.Row;
-            header.style.alignItems = Align.Center;
-            header.style.marginBottom = 10f;
-            Content.Add(header);
+            _headerSection = new VisualElement { name = "DetailHeaderSection" };
+            _headerSection.style.flexDirection = FlexDirection.Row;
+            _headerSection.style.alignItems = Align.Center;
+            Content.Add(_headerSection);
             var subtitle = new Label("SPECIFICATIONS");
             subtitle.style.fontSize = 13f;
             subtitle.style.color = Dark.TextSub;
             subtitle.style.flexGrow = 1f;
-            header.Add(subtitle);
+            _headerSection.Add(subtitle);
 
             // ── ItemNameSection: 이름 + Tier 배지 ──
-            var nameRow = new VisualElement();
-            nameRow.style.flexDirection = FlexDirection.Row;
-            nameRow.style.alignItems = Align.Center;
-            nameRow.style.marginBottom = 8f;
-            Content.Add(nameRow);
+            _nameSection = new VisualElement { name = "DetailNameSection" };
+            _nameSection.style.flexDirection = FlexDirection.Row;
+            _nameSection.style.alignItems = Align.Center;
+            Content.Add(_nameSection);
 
             _itemName = new Label("아이템을 선택하세요");
             _itemName.style.fontSize = 24f;
@@ -88,7 +95,7 @@ namespace ProjectName.UI.Toolkit
             _itemName.style.unityFontStyleAndWeight = FontStyle.Bold;
             _itemName.style.whiteSpace = WhiteSpace.Normal;
             _itemName.style.flexGrow = 1f;
-            nameRow.Add(_itemName);
+            _nameSection.Add(_itemName);
 
             _tierClass = new Label("");
             _tierClass.style.fontSize = 13f;
@@ -99,20 +106,20 @@ namespace ProjectName.UI.Toolkit
             _tierClass.style.paddingTop = 3f; _tierClass.style.paddingBottom = 3f;
             _tierClass.style.paddingLeft = 10f; _tierClass.style.paddingRight = 10f;
             _tierClass.style.marginLeft = 8f;
-            nameRow.Add(_tierClass);
+            _nameSection.Add(_tierClass);
 
             // ── ItemImageSection: TierStrip + 이미지 320px (세로) ──
-            var imageSec = new VisualElement();
-            imageSec.style.marginBottom = 10f;
-            Content.Add(imageSec);
+            _imageSection = new VisualElement { name = "DetailImageSection" };
+            _imageSection.style.overflow = Overflow.Hidden;
+            Content.Add(_imageSection);
 
             _tierStrip = new VisualElement();
             _tierStrip.style.height = 4f;
             _tierStrip.style.marginBottom = 4f;
-            imageSec.Add(_tierStrip);
+            _imageSection.Add(_tierStrip);
 
             _iconPreview = new VisualElement();
-            _iconPreview.style.height = 220f;          // 창 비율상 세로 축소 (608 창에서 320은 과대)
+            _iconPreview.style.height = 376f;
             _iconPreview.style.backgroundColor = Dark.Inset;
             _iconPreview.style.borderTopWidth = 1; _iconPreview.style.borderBottomWidth = 1;
             _iconPreview.style.borderLeftWidth = 1; _iconPreview.style.borderRightWidth = 1;
@@ -121,45 +128,154 @@ namespace ProjectName.UI.Toolkit
             _iconPreview.style.borderTopLeftRadius = 6f; _iconPreview.style.borderTopRightRadius = 6f;
             _iconPreview.style.borderBottomLeftRadius = 6f; _iconPreview.style.borderBottomRightRadius = 6f;
             _iconPreview.style.alignSelf = Align.Center;
-            imageSec.Add(_iconPreview);
+            _iconPreview.style.width = 528f;
+            _iconPreview.style.alignSelf = Align.FlexStart;
+            _imageSection.Add(_iconPreview);
 
             // ── StatsGrid: SpecBox 3칸 (등급/수량/기타) ──
-            var specs = new VisualElement();
-            specs.style.flexDirection = FlexDirection.Row;
-            specs.style.marginBottom = 10f;
-            Content.Add(specs);
+            _specsSection = new VisualElement { name = "DetailSpecsSection" };
+            _specsSection.style.flexDirection = FlexDirection.Row;
+            _specsSection.style.width = Length.Percent(100f);
+            _specsSection.style.height = 48f;
+            _specsSection.style.marginBottom = 8f;
 
-            BuildSpecBox(specs, "등급", out _spec1Label, out _spec1Val);
-            BuildSpecBox(specs, "수량", out _spec2Label, out _spec2Val);
-            BuildSpecBox(specs, "카테고리", out _spec3Label, out _spec3Val);
+            BuildSpecBox(_specsSection, "등급", out _spec1Label, out _spec1Val);
+            BuildSpecBox(_specsSection, "수량", out _spec2Label, out _spec2Val);
+            BuildSpecBox(_specsSection, "카테고리", out _spec3Label, out _spec3Val);
 
             // ── DescriptionSection ──
-            var descSec = new VisualElement();
-            descSec.style.flexGrow = 1f;
-            descSec.style.backgroundColor = Dark.Inset;
-            descSec.style.borderTopLeftRadius = 6f; descSec.style.borderTopRightRadius = 6f;
-            descSec.style.borderBottomLeftRadius = 6f; descSec.style.borderBottomRightRadius = 6f;
-            descSec.style.paddingTop = 10f; descSec.style.paddingBottom = 10f;
-            descSec.style.paddingLeft = 12f; descSec.style.paddingRight = 12f;
-            Content.Add(descSec);
+            _descriptionSection = new VisualElement { name = "DetailDescriptionSection" };
+            _descriptionSection.style.backgroundColor = Dark.Inset;
+            _descriptionSection.style.borderTopLeftRadius = 6f; _descriptionSection.style.borderTopRightRadius = 6f;
+            _descriptionSection.style.borderBottomLeftRadius = 6f; _descriptionSection.style.borderBottomRightRadius = 6f;
+            _descriptionSection.style.paddingTop = 10f; _descriptionSection.style.paddingBottom = 10f;
+            _descriptionSection.style.paddingLeft = 12f; _descriptionSection.style.paddingRight = 12f;
+            Content.Add(_descriptionSection);
+            _descriptionSection.Add(_specsSection);
 
             var descHead = new Label("아이템 설명");
             descHead.style.fontSize = 14f;
             descHead.style.color = Dark.Accent;
             descHead.style.marginBottom = 4f;
-            descSec.Add(descHead);
+            _descriptionSection.Add(descHead);
 
             _itemDesc = new Label("");
             _itemDesc.style.fontSize = 14f;
             _itemDesc.style.color = Dark.TextMain;
             _itemDesc.style.whiteSpace = WhiteSpace.Normal;
-            descSec.Add(_itemDesc);
+            _descriptionSection.Add(_itemDesc);
 
             ApplyF4GitHubDarkStyle();   // (창 크롬 GitHub-dark)
             ApplyUIToolkitFont(this);
+            RegisterCallback<AttachToPanelEvent>(OnDetailAttached);
+            RegisterCallback<DetachFromPanelEvent>(OnDetailDetached);
+            RegisterCallback<GeometryChangedEvent>(OnDetailGeometryChanged);
 
             style.display = DisplayStyle.None;
-            UTKThreeColumnLayout.Place(this, 1);
+        }
+
+        private void ApplyDetailBodyLayout()
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root == null || panel == null || Content.panel == null || panel != Content.panel || panel != root.panel || _isApplyingDetailLayout)
+                return;
+
+            Vector2 rootSize = new Vector2(root.resolvedStyle.width, root.resolvedStyle.height);
+            if (rootSize.x <= 0f || rootSize.y <= 0f || float.IsNaN(rootSize.x) || float.IsNaN(rootSize.y))
+                return;
+
+            _isApplyingDetailLayout = true;
+            try
+            {
+                Rect header = InventoryClusterFigmaLayout.ScaleDetailRegion(
+                    InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.DetailHeader, InventoryClusterFigmaLayout.DetailBounds), rootSize);
+                Rect name = InventoryClusterFigmaLayout.ScaleDetailRegion(
+                    InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.DetailItemName, InventoryClusterFigmaLayout.DetailBounds), rootSize);
+                Rect image = InventoryClusterFigmaLayout.ScaleDetailRegion(
+                    InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.DetailItemImage, InventoryClusterFigmaLayout.DetailBounds), rootSize);
+                Rect description = InventoryClusterFigmaLayout.ScaleDetailRegion(
+                    InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.DetailDescription, InventoryClusterFigmaLayout.DetailBounds), rootSize);
+
+                // Figma region coordinates are window-local. Translate to Content-local only after attachment,
+                // using the actual direct child's layout offset instead of ChangeCoordinatesTo.
+                Vector2 contentOrigin = new Vector2(Content.layout.x, Content.layout.y);
+                SetSectionRect(_headerSection, header, contentOrigin);
+                SetSectionRect(_nameSection, name, contentOrigin);
+                SetSectionRect(_imageSection, image, contentOrigin);
+                SetSectionRect(_descriptionSection, description, contentOrigin);
+                _iconPreview.style.width = image.width;
+                _iconPreview.style.height = Mathf.Max(0f, image.height - _tierStrip.resolvedStyle.height - _tierStrip.resolvedStyle.marginBottom);
+            }
+            finally
+            {
+                _isApplyingDetailLayout = false;
+            }
+        }
+
+        private static void SetSectionRect(VisualElement section, Rect rect, Vector2 contentOrigin)
+        {
+            section.style.position = Position.Absolute;
+            section.style.left = rect.x - contentOrigin.x;
+            section.style.top = rect.y - contentOrigin.y;
+            section.style.width = rect.width;
+            section.style.height = rect.height;
+        }
+
+        private void OnDetailAttached(AttachToPanelEvent evt)
+        {
+            RegisterRootGeometryCallback(UIToolkitBootstrap.UIRoot);
+            if (IsOpen)
+            {
+                InventoryClusterFigmaLayout.ApplyDetail(this, UIToolkitBootstrap.UIRoot);
+                ApplyDetailBodyLayout();
+            }
+        }
+
+        private void OnDetailDetached(DetachFromPanelEvent evt)
+        {
+            UnregisterRootGeometryCallback();
+        }
+
+        private void RegisterRootGeometryCallback(VisualElement root)
+        {
+            if (root == null || panel == null || root.panel != panel || _geometryRoot == root)
+                return;
+            UnregisterRootGeometryCallback();
+            _geometryRoot = root;
+            _geometryRoot.RegisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
+        }
+
+        private void UnregisterRootGeometryCallback()
+        {
+            if (_geometryRoot == null)
+                return;
+            _geometryRoot.UnregisterCallback<GeometryChangedEvent>(OnRootGeometryChanged);
+            _geometryRoot = null;
+        }
+
+        private void OnRootGeometryChanged(GeometryChangedEvent evt)
+        {
+            var root = _geometryRoot;
+            if (root == null || evt.target != root || !IsOpen || _isApplyingDetailLayout || _isHandlingRootGeometry)
+                return;
+            if (panel == null || panel != root.panel || Content.panel != panel)
+                return;
+
+            _isHandlingRootGeometry = true;
+            try
+            {
+                InventoryClusterFigmaLayout.ApplyDetail(this, Content, root);   // [Figma 정합 v3]
+                ApplyDetailBodyLayout();
+            }
+            finally
+            {
+                _isHandlingRootGeometry = false;
+            }
+        }
+
+        private void OnDetailGeometryChanged(GeometryChangedEvent evt)
+        {
+            ApplyDetailBodyLayout();
         }
 
         private void BuildSpecBox(VisualElement parent, string label, out Label lbl, out Label val)
@@ -232,14 +348,32 @@ namespace ProjectName.UI.Toolkit
             return _instance;
         }
 
-        public void PlaceCenterColumn() => UTKThreeColumnLayout.Place(this, 1);
+        public void PlaceCenterColumn()
+        {
+            UTKThreeColumnLayout.Place(this, 1);
+        }
+
+        protected override void OnWindowOpen()
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root != null && panel != null && panel == root.panel)
+            {
+                InventoryClusterFigmaLayout.ApplyDetail(this, Content, root);   // [Figma 정합 v3]
+                ApplyDetailBodyLayout();
+            }
+        }
 
         public static void Open()
         {
             var i = Ensure();
             if (i == null) return;
             if (!i.IsOpen) i.Show();
-            i.CenterOnScreen();
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root != null && i.panel != null && i.panel == root.panel)
+            {
+                InventoryClusterFigmaLayout.ApplyDetail(i, root);
+                i.ApplyDetailBodyLayout();
+            }
             i.BringToFront();
         }
 

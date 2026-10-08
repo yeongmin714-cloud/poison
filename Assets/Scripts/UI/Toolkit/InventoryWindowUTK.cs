@@ -48,11 +48,11 @@ namespace ProjectName.UI.Toolkit
             _isApplyingInventoryBodyLayout = true;
             try
             {
-                float scaleX = rootSize.x / FigmaCanvasLayout.CanvasWidth;
-                Rect equipBody = InventoryClusterPanelRegions.ScalePanelLocal(InventoryClusterPanelRegions.InventoryEquipmentBody, rootSize);
-                Rect equipGridBody = InventoryClusterPanelRegions.ScalePanelLocal(InventoryClusterPanelRegions.InventoryEquipGridBody, rootSize);
-                Rect bagBody = InventoryClusterPanelRegions.ScalePanelLocal(InventoryClusterPanelRegions.InventoryBagViewport, rootSize);
-                Rect footerBody = InventoryClusterPanelRegions.ScalePanelLocal(InventoryClusterPanelRegions.InventoryFooterBody, rootSize);
+                // [Figma 정합 v3] regions는 윈도우-로컬 raw Figma px — 등배수 스케일은 디자인공간이 담당.
+                Rect equipBody = InventoryClusterPanelRegions.InventoryEquipmentBody;
+                Rect equipGridBody = InventoryClusterPanelRegions.InventoryEquipGridBody;
+                Rect bagBody = InventoryClusterPanelRegions.InventoryBagViewport;
+                Rect footerBody = InventoryClusterPanelRegions.InventoryFooterBody;
 
                 // The Figma region origin is in window space. Translate it to _content-local space
                 // using the direct child's actual layout offset; never call ChangeCoordinatesTo here.
@@ -70,9 +70,9 @@ namespace ProjectName.UI.Toolkit
                     equipGridBody.width,
                     equipGridBody.height);
 
-                float cell = InventoryClusterPanelRegions.CellSize * scaleX;
-                float bagGap = InventoryClusterPanelRegions.CellGap * scaleX;
-                float equipGap = InventoryClusterPanelRegions.EquipCellGap * scaleX;
+                float cell = InventoryClusterPanelRegions.CellSize;
+                float bagGap = InventoryClusterPanelRegions.CellGap;
+                float equipGap = InventoryClusterPanelRegions.EquipCellGap;
                 float equipRowGap = Mathf.Max(0f, (equipGrid.height - EquipRows * cell) / (EquipRows - 1));
                 int rowIndex = 0;
                 foreach (var row in _equipPanel.Children())
@@ -167,7 +167,7 @@ namespace ProjectName.UI.Toolkit
             _isHandlingRootGeometry = true;
             try
             {
-                InventoryClusterFigmaLayout.ApplyInventory(this, root);
+                InventoryClusterFigmaLayout.ApplyInventory(this, _content, root);   // [Figma 정합 v3] 등배수
                 ApplyInventoryBodyLayout();
             }
             finally
@@ -436,7 +436,7 @@ namespace ProjectName.UI.Toolkit
                 root.Add(this);
             // Exact outer Figma bounds call is preserved; all child sizes derive from this resolved root.
             UTKThreeColumnLayout.Place(this, 0);
-            InventoryClusterFigmaLayout.ApplyInventory(this, root);
+            InventoryClusterFigmaLayout.ApplyInventory(this, _content, root);   // [Figma 정합 v3] 등배수
             RegisterRootGeometryCallback(root);
             ApplyInventoryBodyLayout();
             EnsureEquipSubscription();
@@ -684,12 +684,9 @@ namespace ProjectName.UI.Toolkit
         {
             var cell = new UTKSlot();
             cell.name = "InvSlot_" + idx;
-            float rootWidth = UIToolkitBootstrap.UIRoot != null
-                ? UIToolkitBootstrap.UIRoot.resolvedStyle.width
-                : 0f;
-            float scaleX = rootWidth > 0f ? rootWidth / FigmaCanvasLayout.CanvasWidth : 1f;
-            float cellSize = InventoryClusterPanelRegions.CellSize * scaleX;
-            float cellGap = InventoryClusterPanelRegions.CellGap * scaleX;
+            // [Figma 정합 v3] 셀은 raw Figma px(81.6/9.6) — 등배수는 디자인공간 스케일이 담당.
+            float cellSize = InventoryClusterPanelRegions.CellSize;
+            float cellGap = InventoryClusterPanelRegions.CellGap;
             cell.style.width = cellSize;
             cell.style.height = cellSize;
             cell.style.flexShrink = 0f;
