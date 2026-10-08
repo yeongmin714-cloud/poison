@@ -190,14 +190,14 @@ namespace ProjectName.UI.Toolkit
         // ── [Fluent 스크롤러] Unity 기본 스크롤러(두꺼운 트랙+화살표 버튼)는 GitHub-dark/Fluent 미학과 어긋난다.
         //    Figma 프레임은 스크롤러가 없는 정적 목업(보이는 부분만 렌더)이므로, 런타임에서만 필요한
         //    오버플로 스크롤은 "얇은 오버레이 썸"으로 최소 표현한다. (2026-10-08 사용자 확정: 스크롤 자체는 OK, 스타일만 Fluent화)
-        /// <summary>Fluent 스크롤러 썸 기본색 — 보조텍스트 #8B949E @ 0.35.</summary>
-        public static readonly Color FluentScrollThumb = new Color(0.545f, 0.580f, 0.616f, 0.35f);
-        /// <summary>Fluent 스크롤러 썸 호버색 — 보조텍스트 #8B949E @ 0.65.</summary>
-        public static readonly Color FluentScrollThumbHover = new Color(0.545f, 0.580f, 0.616f, 0.65f);
-        /// <summary>Fluent 스크롤러 트랙 — 화이트 @ 0.04 (거의 투명).</summary>
-        public static readonly Color FluentScrollTrack = new Color(1f, 1f, 1f, 0.04f);
-        /// <summary>Fluent 스크롤러 두께(px) — Figma 1.2× 패밀리의 6.</summary>
-        public const float FluentScrollThickness = 6f;
+        /// <summary>Fluent 스크롤러 썸 기본색 — 보조텍스트 #8B949E @ 0.22 (사용자 확정: 더 투명하게).</summary>
+        public static readonly Color FluentScrollThumb = new Color(0.545f, 0.580f, 0.616f, 0.22f);
+        /// <summary>Fluent 스크롤러 썸 호버색 — 보조텍스트 #8B949E @ 0.5.</summary>
+        public static readonly Color FluentScrollThumbHover = new Color(0.545f, 0.580f, 0.616f, 0.5f);
+        /// <summary>Fluent 스크롤러 트랙 — 화이트 @ 0.03 (거의 완전 투명).</summary>
+        public static readonly Color FluentScrollTrack = new Color(1f, 1f, 1f, 0.03f);
+        /// <summary>Fluent 스크롤러 두께(px) — Figma 1.2× 패밀리의 4.8 (사용자 확정: 더 얇게).</summary>
+        public const float FluentScrollThickness = 4.8f;
 
         /// <summary>
         /// 트리 전체의 모든 ScrollView에 Fluent 스크롤러를 일괄 적용한다(멱등).

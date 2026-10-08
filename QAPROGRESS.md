@@ -1,3 +1,21 @@
+## 2026-10-08 Figma 정합 v3 이관 1차 — 스크롤러 미세조정 + 퀘스트창(93:230)·병사관리(69:4) 등배수 전환
+
+- **사용자 지시:** "두께 조금 더 얇게, 투명도 조금 더 투명하게. 남은 작업 넘어가자."
+- **스크롤러 수치 조정(UTKTheme 상수 — 테스트는 상수 참조라 무영향):** 두께 6→**4.8px**(Figma 1.2× 패밀리), 썸 알파 0.35→**0.22**, 호버 0.65→**0.5**, 트랙 0.04→**0.03**.
+- **QuestWindowUTK(93:230, Q키 풀캔버스 호스트) 등배수 이관:**
+  - `CanvasBounds=(0,0,1920,1080)` 신설, ApplyCanvasScale → `ApplyDesignSpace(this, _content, CanvasBounds, root)`.
+  - ApplyPanelScale/ApplyPanelBounds(패널별 X/Y 독립 scale — 비-16:9 세로 신장 원인) **삭제**. 패널은 Build*Zone의 raw 좌표(144,48,480,984 / 648,252,624,576 / 1296,48,480,984) 고정.
+  - GeometryChanged/Attach 훅은 기존 그대로 재적용.
+- **SoldierManagementUTK(69:4) 등배수 이관:**
+  - ApplyCompositionBounds의 percent(X/Y 독립) 배치 → `ApplyDesignSpace(this, _content, CompositionBounds=(168,48,1584,984), root)`.
+  - CreatePanelRoot percent → 컴포지션 상대 **raw px**(0/504/1104 오프셋).
+  - CenterSelf(중앙 정렬) 제거 — Figma 절대좌표(168k,48k) 준수. GeometryChanged 훅 유지.
+- **테스트:** QuestWindowFigma93Tests — raw 패널 단정 + 신규 `QuestWindow_DeclaresUniformDesignSpaceContract`(ApplyDesignSpace 배선 + ApplyPanelScale 부재 단정). SoldierManagementFigma69Tests — AssertPercentRect/AssertPanelGeometry(percent) → **AssertRawRect**(raw px 단정) + 1440×900 섹션을 등배수 기대(k=0.75, 창 박스 축소, Content raw+scale=k, X/Y 동일 스케일)로 재작성.
+- **검증:** fresh compile `error CS` **0**. focused EditMode(Soldier69+Quest93+Fluent+SoldierLifecycle) **12/12 passed, 0 failed**. XML `TestOutput/mig1_focused.xml`.
+- **커밋:** 스크롤러 상수 + 2창 이관 + 2테스트 + 본 기록. push 대기. **다음 이관 대상:** Status(84:4) → Warehouse/Inventory(15:4) → Loot(70:4) → HUD(23:6, 오버레이형 별도 판단).
+
+---
+
 ## 2026-10-08 Fluent 스크롤러 — 전 창 ScrollView 통일(사용자 지적 봉합)
 
 - **사용자 지적:** "피그마에는 스크롤이 없는데 왜 다 붙여놨냐, 그냥 피그마 크기와 똑같이 못 만드냐. 스크롤 자체는 오케이인데 플루언트 스타일에 맞게." → **스크롤 존재는 유지, 표현만 Fluent화 확정.**

@@ -81,6 +81,8 @@ namespace ProjectName.UI.Toolkit
         public static readonly Rect QuestListBounds = new Rect(144f, 48f, 480f, 984f);
         public static readonly Rect QuestDetailBounds = new Rect(648f, 252f, 624f, 576f);
         public static readonly Rect RewardBounds = new Rect(1296f, 48f, 480f, 984f);
+        /// <summary>[Figma 정합 v3] 풀캔버스 호스트 디자인공간 — 창 박스=CanvasBounds×k(등배수), 내부 raw px.</summary>
+        public static readonly Rect CanvasBounds = new Rect(0f, 0f, 1920f, 1080f);
         private const float WinW = 1920f;
         private const float WinH = 1080f;
         private const long RefreshMs = 400L;
@@ -245,7 +247,8 @@ namespace ProjectName.UI.Toolkit
             style.display = DisplayStyle.None;
             style.left = 0f;
             style.top = 0f;
-            ApplyPanelScale(new Vector2(WinW, WinH));
+            // [Figma 정합 v3] 패널은 Build*Zone의 raw Figma 좌표 그대로 — 등배수 스케일은 Attach 시
+            // ApplyDesignSpace가 _content에 일괄 적용(패널별 X/Y 독립 재스케일 경로는 제거됨).
             RegisterCallback<AttachToPanelEvent>(OnCanvasAttached);
             RegisterCallback<DetachFromPanelEvent>(OnCanvasDetached);
         }
@@ -279,32 +282,9 @@ namespace ProjectName.UI.Toolkit
         private void ApplyCanvasScale()
         {
             if (_canvasLayoutRoot == null) return;
-            Vector2 rootSize = new Vector2(_canvasLayoutRoot.resolvedStyle.width, _canvasLayoutRoot.resolvedStyle.height);
-            if (rootSize.x <= 0f || rootSize.y <= 0f) return;
-            style.width = rootSize.x;
-            style.height = rootSize.y;
-            ApplyPanelScale(rootSize);
-        }
-
-        private void ApplyPanelScale(Vector2 rootSize)
-        {
-            float scaleX = rootSize.x / WinW;
-            float scaleY = rootSize.y / WinH;
-            ApplyPanelBounds(_listPanel, QuestListBounds, scaleX, scaleY);
-            ApplyPanelBounds(_detailPanel, QuestDetailBounds, scaleX, scaleY);
-            ApplyPanelBounds(_rewardPanel, RewardBounds, scaleX, scaleY);
-        }
-
-        private static void ApplyPanelBounds(VisualElement panel, Rect bounds, float scaleX, float scaleY)
-        {
-            if (panel == null) return;
-            panel.style.position = Position.Absolute;
-            panel.style.left = bounds.x * scaleX;
-            panel.style.top = bounds.y * scaleY;
-            panel.style.width = bounds.width;
-            panel.style.height = bounds.height;
-            panel.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
-            panel.style.scale = new StyleScale(new Scale(new Vector2(scaleX, scaleY)));
+            // [Figma 정합 v3] 등배수 디자인공간 — 창 박스=CanvasBounds×k, _content raw 1920×1080 + scale=k.
+            // 기존 패널별 X/Y 독립 scale(비-16:9 세로 신장 원인)은 제거하고 조상 스케일에 일임한다.
+            FigmaCanvasLayout.ApplyDesignSpace(this, _content, CanvasBounds, _canvasLayoutRoot);
         }
 
         // [Phase2a] 좌: QuestListPanel (필터탭 + 카드 목록 + 요약풋터)

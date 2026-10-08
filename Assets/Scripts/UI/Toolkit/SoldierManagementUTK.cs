@@ -194,10 +194,11 @@ namespace ProjectName.UI.Toolkit
         {
             var panelRoot = new VisualElement { name = panelName };
             panelRoot.style.position = Position.Absolute;
-            panelRoot.style.left = Length.Percent(bounds.x / CompositionBounds.width * 100f);
-            panelRoot.style.top = Length.Percent(bounds.y / CompositionBounds.height * 100f);
-            panelRoot.style.width = Length.Percent(bounds.width / CompositionBounds.width * 100f);
-            panelRoot.style.height = Length.Percent(bounds.height / CompositionBounds.height * 100f);
+            // [Figma 정합 v3] 컴포지션 상대 raw Figma px — 등배수 스케일은 _content 디자인공간이 담당.
+            panelRoot.style.left = bounds.x;
+            panelRoot.style.top = bounds.y;
+            panelRoot.style.width = bounds.width;
+            panelRoot.style.height = bounds.height;
             panelRoot.style.flexDirection = FlexDirection.Column;
             panelRoot.style.flexShrink = 0f;
             UTKTheme.ApplyFigmaGlass(panelRoot);   // [Figma 69:4 글래스] #161B22@0.7 + #30363D@0.5 1.2px + r14.4
@@ -258,10 +259,9 @@ namespace ProjectName.UI.Toolkit
             style.position = Position.Absolute;
             style.right = StyleKeyword.Auto;
             style.bottom = StyleKeyword.Auto;
-            style.left = Length.Percent(CompositionBounds.x / FigmaCanvasLayout.CanvasWidth * 100f);
-            style.top = Length.Percent(CompositionBounds.y / FigmaCanvasLayout.CanvasHeight * 100f);
-            style.width = Length.Percent(CompositionBounds.width / FigmaCanvasLayout.CanvasWidth * 100f);
-            style.height = Length.Percent(CompositionBounds.height / FigmaCanvasLayout.CanvasHeight * 100f);
+            // [Figma 정합 v3] 등배수 디자인공간 — 창 박스=CompositionBounds×k, _content raw 1584×984 + scale=k.
+            // 기존 percent(X/Y 독립) 배치는 비-16:9 게임창에서 찌그러지므로 등배수 계약으로 교체.
+            FigmaCanvasLayout.ApplyDesignSpace(this, _content, CompositionBounds, root);
         }
 
         // ===== 중앙 상세 [Figma 69:118 SoldierDetailPanel] =====
@@ -549,7 +549,7 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            CenterSelf();
+            // [Figma 정합 v3] 위치/크기는 CompositionBounds×k(등배수) — 중앙 정렬(CenterSelf) 대신 Figma 절대좌표 준수.
             StartRefresh();
             RefreshAll();
             if (root != null)
@@ -573,16 +573,6 @@ namespace ProjectName.UI.Toolkit
             _geometryRoot = null;
             base.Hide();
             StopRefresh();
-        }
-
-        private void CenterSelf()
-        {
-            var root = UIToolkitBootstrap.UIRoot;
-            if (root == null) return;
-            float pw = root.resolvedStyle.width;
-            float ph = root.resolvedStyle.height;
-            if (pw > 0f) style.left = (pw - resolvedStyle.width) * 0.5f;
-            if (ph > 0f) style.top = (ph - resolvedStyle.height) * 0.5f;
         }
 
         private void StartRefresh()

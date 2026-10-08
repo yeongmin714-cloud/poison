@@ -97,9 +97,9 @@ namespace ProjectName.Tests.EditMode
             Assert.That(composition.Content.childCount, Is.EqualTo(3),
                 "The Figma 69:4 composition must have exactly three sibling panel roots.");
 
-            AssertPercentRect(list, SoldierManagementUTK.SoldierListBounds, SoldierManagementUTK.CompositionBounds.width, SoldierManagementUTK.CompositionBounds.height);
-            AssertPercentRect(detail, SoldierManagementUTK.SoldierDetailBounds, SoldierManagementUTK.CompositionBounds.width, SoldierManagementUTK.CompositionBounds.height);
-            AssertPercentRect(deployment, SoldierManagementUTK.DeploymentBounds, SoldierManagementUTK.CompositionBounds.width, SoldierManagementUTK.CompositionBounds.height);
+            AssertRawRect(list, SoldierManagementUTK.SoldierListBounds);
+            AssertRawRect(detail, SoldierManagementUTK.SoldierDetailBounds);
+            AssertRawRect(deployment, SoldierManagementUTK.DeploymentBounds);
             Assert.That(composition.Q<ScrollView>(), Is.Not.Null, "Soldier listing remains in the list panel.");
             Assert.That(composition.Q<Label>("DeploySummary"), Is.Not.Null, "The live summary remains in the list panel.");
             Assert.That(composition.Q<Button>("DeploymentCloseButton"), Is.Not.Null, "The frameless composition keeps a visible close affordance.");
@@ -118,60 +118,32 @@ namespace ProjectName.Tests.EditMode
             canvasRoot.style.width = 1440f;
             canvasRoot.style.height = 900f;
             yield return null;
-            AssertPercentRect(list, SoldierManagementUTK.SoldierListBounds, SoldierManagementUTK.CompositionBounds.width, SoldierManagementUTK.CompositionBounds.height);
-            AssertPercentRect(detail, SoldierManagementUTK.SoldierDetailBounds, SoldierManagementUTK.CompositionBounds.width, SoldierManagementUTK.CompositionBounds.height);
-            AssertPercentRect(deployment, SoldierManagementUTK.DeploymentBounds, SoldierManagementUTK.CompositionBounds.width, SoldierManagementUTK.CompositionBounds.height);
-            float scaledRootWidth = canvasRoot.resolvedStyle.width;
-            float scaledRootHeight = canvasRoot.resolvedStyle.height;
-            Vector2 actualRootSize = new Vector2(scaledRootWidth, scaledRootHeight);
-            var expectedComposition = FigmaCanvasLayout.ScaleRect(SoldierManagementUTK.CompositionBounds, actualRootSize);
-            var directCanvasScale = new Rect(
-                SoldierManagementUTK.CompositionBounds.x * scaledRootWidth / FigmaCanvasLayout.CanvasWidth,
-                SoldierManagementUTK.CompositionBounds.y * scaledRootHeight / FigmaCanvasLayout.CanvasHeight,
-                SoldierManagementUTK.CompositionBounds.width * scaledRootWidth / FigmaCanvasLayout.CanvasWidth,
-                SoldierManagementUTK.CompositionBounds.height * scaledRootHeight / FigmaCanvasLayout.CanvasHeight);
-            AssertRect(directCanvasScale, expectedComposition);
-
-            Assert.That(composition.resolvedStyle.left, Is.EqualTo(168f * scaledRootWidth / FigmaCanvasLayout.CanvasWidth).Within(1f));
-            Assert.That(composition.resolvedStyle.top, Is.EqualTo(48f * scaledRootHeight / FigmaCanvasLayout.CanvasHeight).Within(1f));
-            Assert.That(composition.resolvedStyle.width, Is.EqualTo(1584f * scaledRootWidth / FigmaCanvasLayout.CanvasWidth).Within(1f));
-            Assert.That(composition.resolvedStyle.height, Is.EqualTo(984f * scaledRootHeight / FigmaCanvasLayout.CanvasHeight).Within(1f));
-            AssertPanelGeometry(list, SoldierManagementUTK.SoldierListBounds);
-            AssertPanelGeometry(detail, SoldierManagementUTK.SoldierDetailBounds);
-            AssertPanelGeometry(deployment, SoldierManagementUTK.DeploymentBounds);
+            AssertRawRect(list, SoldierManagementUTK.SoldierListBounds);
+            AssertRawRect(detail, SoldierManagementUTK.SoldierDetailBounds);
+            AssertRawRect(deployment, SoldierManagementUTK.DeploymentBounds);
+            // [Figma 정합 v3] 등배수 디자인공간 — k=min(1440/1920,900/1080)=0.75, 창 박스만 등비 축소,
+            // 패널은 raw Figma px 유지(조상 _content scale=k). X/Y 독립 신장은 계약에서 제거됐다.
+            float k = Mathf.Min(1440f / FigmaCanvasLayout.CanvasWidth, 900f / FigmaCanvasLayout.CanvasHeight);
+            Assert.That(composition.resolvedStyle.left, Is.EqualTo(168f * k).Within(1f));
+            Assert.That(composition.resolvedStyle.top, Is.EqualTo(48f * k).Within(1f));
+            Assert.That(composition.resolvedStyle.width, Is.EqualTo(1584f * k).Within(1f));
+            Assert.That(composition.resolvedStyle.height, Is.EqualTo(984f * k).Within(1f));
+            Assert.That(composition.Content.style.width.value.value, Is.EqualTo(1584f).Within(0.001f),
+                "디자인공간은 raw Figma px 크기를 유지한다.");
+            Assert.That(composition.Content.style.height.value.value, Is.EqualTo(984f).Within(0.001f));
+            Assert.That(composition.Content.style.scale.value.value.x, Is.EqualTo(k).Within(0.001f));
+            Assert.That(composition.Content.style.scale.value.value.y, Is.EqualTo(k).Within(0.001f),
+                "등배수 계약 — X/Y 스케일이 동일해야 한다(종횡비 왜곡 금지).");
         }
 
-        private static void AssertPanelGeometry(VisualElement panelRoot, Rect bounds)
+        private static void AssertRawRect(VisualElement element, Rect bounds)
         {
-            var panelHost = panelRoot.parent;
-            var hostContent = panelHost.contentRect;
-            // UI Toolkit resolves percent children from the content box after the parent's border inset.
-            // The authored style percentages are separately asserted against normalized Figma bounds above.
-            var hostContainingBlock = hostContent.size;
-            var expected = new Rect(
-                bounds.x / SoldierManagementUTK.CompositionBounds.width * hostContainingBlock.x,
-                bounds.y / SoldierManagementUTK.CompositionBounds.height * hostContainingBlock.y,
-                bounds.width / SoldierManagementUTK.CompositionBounds.width * hostContainingBlock.x,
-                bounds.height / SoldierManagementUTK.CompositionBounds.height * hostContainingBlock.y);
-            var actual = new Rect(panelRoot.resolvedStyle.left, panelRoot.resolvedStyle.top,
-                panelRoot.resolvedStyle.width, panelRoot.resolvedStyle.height);
-            Assert.That(hostContent.width, Is.GreaterThan(0f));
-            Assert.That(hostContent.height, Is.GreaterThan(0f));
-            AssertRect(expected, actual);
-        }
-
-        private static void AssertPercentRect(VisualElement element, Rect bounds, float hostWidth, float hostHeight)
-        {
-            AssertPercent(element.style.left, bounds.x / hostWidth * 100f, "left");
-            AssertPercent(element.style.top, bounds.y / hostHeight * 100f, "top");
-            AssertPercent(element.style.width, bounds.width / hostWidth * 100f, "width");
-            AssertPercent(element.style.height, bounds.height / hostHeight * 100f, "height");
-        }
-
-        private static void AssertPercent(StyleLength actual, float expected, string property)
-        {
-            Assert.That(actual.value.unit, Is.EqualTo(LengthUnit.Percent), property + " should scale with the parent.");
-            Assert.That(actual.value.value, Is.EqualTo(expected).Within(0.001f), property + " percentage");
+            // [Figma 정합 v3] 패널 스타일은 raw Figma px 고정 — 루트 크기와 무관(등배수는 조상 스케일).
+            Assert.That(element.style.left.value.unit, Is.EqualTo(LengthUnit.Pixel), "left unit");
+            Assert.That(element.style.left.value.value, Is.EqualTo(bounds.x).Within(0.001f));
+            Assert.That(element.style.top.value.value, Is.EqualTo(bounds.y).Within(0.001f));
+            Assert.That(element.style.width.value.value, Is.EqualTo(bounds.width).Within(0.001f));
+            Assert.That(element.style.height.value.value, Is.EqualTo(bounds.height).Within(0.001f));
         }
 
         private static void AssertRect(Rect expected, Rect actual)
