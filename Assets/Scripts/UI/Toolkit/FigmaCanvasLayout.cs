@@ -109,8 +109,17 @@ namespace ProjectName.UI.Toolkit
             float scale = DesignScale(rootSize);
             if (scale <= 0f)
             {
-                // [FigmaV3 진단] 루트 미해석 시 조용한 실패 대신 관측 가능하게 — 스테일/조기적용 판정용.
-                Debug.LogWarning($"[FigmaV3] ApplyDesignSpace FAILED (root unresolved {rootSize}) win={window.name} rect={figmaBounds}");
+                // [FigmaV3 진단+수리] 루트 미해석(부착 직후/부팅 초) — 조용한 실패 대신 경고 후
+                // 100ms 간격 최대 5회 자동 재시도(클로저 카운터 — 성공 시 중단). 스테일 판정은 로그로 관측.
+                Debug.LogWarning($"[FigmaV3] ApplyDesignSpace FAILED (root unresolved {rootSize}) win={window.name} rect={figmaBounds} — 재시도 예약");
+                int attempts = 0;
+                window.schedule.Execute(() =>
+                {
+                    if (ApplyDesignSpace(window, designSpace, figmaBounds, canvasRoot)) return;
+                    attempts++;
+                    if (attempts < 5)
+                        window.schedule.Execute(() => ApplyDesignSpace(window, designSpace, figmaBounds, canvasRoot)).StartingIn(100);
+                }).StartingIn(100);
                 return false;
             }
             Debug.Log($"[FigmaV3] {window.name}: ok k={scale:F3} root={rootSize} rect=({figmaBounds.x},{figmaBounds.y},{figmaBounds.width},{figmaBounds.height})");
