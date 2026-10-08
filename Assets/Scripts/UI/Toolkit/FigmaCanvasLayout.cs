@@ -135,6 +135,11 @@ namespace ProjectName.UI.Toolkit
             window.style.top = figmaBounds.y * scale;
             window.style.width = figmaBounds.width * scale;
             window.style.height = figmaBounds.height * scale;
+            // [Figma 정합 v3 경화] 윈도우 min 크기 = 디자인 박스 — 구 고정 min 가드(예: 상세 480×608)가
+            // 박스를 밟아 과대 렌더하는 회귀를 중앙에서 차단. min을 박스로 고정하면 content 최소 요구가
+            // 창 기하를 다시 키우지 못한다(내용 초과는 designSpace 내부 스크롤 담당).
+            window.style.minWidth = figmaBounds.width * scale;
+            window.style.minHeight = figmaBounds.height * scale;
 
             designSpace.style.width = figmaBounds.width;
             designSpace.style.height = figmaBounds.height;

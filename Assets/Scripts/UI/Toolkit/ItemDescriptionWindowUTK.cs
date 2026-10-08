@@ -311,8 +311,9 @@ namespace ProjectName.UI.Toolkit
             style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = new StyleColor(Dark.Stroke);
             style.borderTopLeftRadius = 8f; style.borderTopRightRadius = 8f;
             style.borderBottomLeftRadius = 8f; style.borderBottomRightRadius = 8f;
+            // [Figma 정합 v3] min 가드 제거 — 구 고정 크기(480×608)가 디자인 박스(432×547.2)를
+            // 밟아 상세창이 11% 과대 렌더+창고 겹침의 원인. ApplyDesignSpace가 박스=min을 보장.
             style.color = Dark.TextMain;
-            style.minWidth = WinW; style.minHeight = WinH;
 
             var titleBar = this.Q("TitleBar");
             if (titleBar != null)
@@ -371,7 +372,9 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && i.panel != null && i.panel == root.panel)
             {
-                InventoryClusterFigmaLayout.ApplyDetail(i, root);
+                // [Figma 정합 v3] I키/창고 진입 경로도 디자인공간 계약으로 — 구 2인자 계약(독립 X/Y 스케일)이
+                // v3 기하를 덮어써 상세창 과대+창고 겹침을 유발했다.
+                InventoryClusterFigmaLayout.ApplyDetail(i, i.Content, root);
                 i.ApplyDetailBodyLayout();
             }
             i.BringToFront();
