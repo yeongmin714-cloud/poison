@@ -1,3 +1,13 @@
+## 2026-10-08 Figma 정합 v3 이관 5차(완결) — HUD(23:6) a안 등배수 전환
+
+- **사용자 확정:** "a안으로 가자" — HUD도 Figma 캔버스 등비 통일(레터박스 허용), 작업 후 텔레그램 알림 요청.
+- **HUDUTK:** PositionHost를 등배수 디자인공간으로 전환 — 루트=raw 1920×1080 풀캔버스 + scale=k(transformOrigin 0,0), 게이지 호스트는 Figma 절대좌표(306.4, 855.2) raw 고정, ApplyGaugeScale은 raw(1,1). 기존 worldBound(물리) 기반 X/Y 독립 스케일 제거 → UIRoot resolved 논리 크기 기반 k로 패널 스케일 불일치도 수리.
+- **HotbarUIUTK:** ApplyFigmaBounds를 자기 디자인공간(window==designSpace)으로 전환 — 창 박스=핫바 rect(629.6,861.6,902.4,124.8)×k, 내부 셀 96/키캡 24/힌트 926.4,28.8 전부 raw. horizontalGap raw 재계산.
+- **검증:** fresh compile `error CS` **0** (HUD/핫바 전용 EditMode 테스트 미존재 — 컴파일 게이트). 런타임 확인 대기: 16:9에서 기존과 동일 렌더, 비-16:9에서 좌상단 앵커 등비 축소(하단 고정 해제가 a안 트레이드오프).
+- **v3 이관 전체 완료:** CraftBench·QuestJournal·Cooking·QuestWin·Soldier·Status·Loot·Inventory·ItemDesc·Warehouse·HUD·Hotbar. 커밋 29e21e02→본 커밋. 잔여 게이트: Play 캡처(ui5) 시각 승인 + push(지시 시).
+
+---
+
 ## 2026-10-08 Figma 정합 v3 이관 4차 — 인벤/상세/창고 클러스터(15:4) 등배수 전환 완료
 
 - **InventoryClusterFigmaLayout:** ApplyInventory/ApplyDetail/ApplyWarehouse에 designSpace 3-arg 오버로드 신설(ApplyDesignSpace 경로) — 기존 2-arg(X/Y 독립 Apply)는 잔여 호환용 유지.

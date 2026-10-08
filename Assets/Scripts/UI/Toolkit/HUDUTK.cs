@@ -46,10 +46,10 @@ namespace ProjectName.UI.Toolkit
         private const int   PollMs     = 250;
         private const float Bottom     = 14f;   // 하단 정렬 (핫바와 같은 기준)
 
-        // [통합] 핫바 옆 원형 게이지 — 조그맣게 (핫바 슬롯 64px와 어울림)
-        private const float GaugeSize     = 54f;   // 원형 링 지름
-        private const float GaugeGap      = 10f;
-        private const float GaugeIconSize = 30f;   // 중앙 하트/번개 아이콘
+        // [Figma 23:6] 캔버스 내 게이지 bounds와 아이콘 중심 크기
+        private const float GaugeSize     = 137.6f; // Figma 23:6 gauge bounds
+        private const float GaugeGap      = 24f;    // Figma gauge-to-gauge gap
+        private const float GaugeIconSize = 68.8f;  // Figma center icon bounds
 
         // [Figma GitHub-dark + 사용자 설계] 링 색
         private readonly Color _hpColor = new Color(1f, 0.30f, 0.30f, 1f);       // 체력 링 — 레드빛 (하트)
@@ -77,9 +77,7 @@ namespace ProjectName.UI.Toolkit
             StartPolling();
         }
 
-        /// <summary>[통합 09-24] 핫바 바로 옆(왼쪽) 원형 게이지 — 하트(체력)+번개(스태미나), 시계방향.
-        ///  좌표는 폴링 첫 틱에 핫바 중앙 기준으로 정렬(panel width 실측) — 핫바 왼쪽 여백.
-        ///  미니맵(우상단)/다른 체력바와 겹치지 않는다.</summary>
+        /// <summary>Archived 23:6 gauge pair. Figma node names both say stamina-gauge; runtime semantics use heart=HP then bolt=stamina.</summary>
         private void BuildHotbarGauges()
         {
             _ringTex  = Resources.Load<Texture2D>("UI/HudGaugeRing");
@@ -89,14 +87,15 @@ namespace ProjectName.UI.Toolkit
             _gaugeHost = new VisualElement();
             _gaugeHost.name = "HotbarGauges";
             _gaugeHost.style.position = Position.Absolute;
-            _gaugeHost.style.bottom = Bottom;
+            _gaugeHost.style.top = 855.2f; // Figma HUD_Canvas local coordinates
             _gaugeHost.style.flexDirection = FlexDirection.Row;
             _gaugeHost.pickingMode = PickingMode.Ignore;
             Add(_gaugeHost);
 
-            // 하트(체력) = 핫바에 더 먼 쪽 : 번개(스태미나) = 핫바에 더 가까운 쪽
-            _staminaGauge = BuildOneGauge("StaminaGauge", _boltTex, _stColor);
+            // The archive node labels both gauges "stamina-gauge" and its child labels do not settle the runtime meter identity.
+            // Preserve the existing user-approved game mapping (red heart=HP, yellow bolt=stamina), positioned explicitly at Figma bounds.
             _hpGauge      = BuildOneGauge("HpGauge",      _heartTex, _hpColor);
+            _staminaGauge = BuildOneGauge("StaminaGauge", _boltTex, _stColor);
 
             // 폴링 첫 틱 전 기본값 (가득 찬 오표시 방지)
             if (_hpGauge != null)      _hpGauge.Fraction = 0f;
@@ -143,14 +142,51 @@ namespace ProjectName.UI.Toolkit
         private void PositionHost()
         {
             if (panel == null) return;
-            float pw = panel.visualTree.worldBound.width;
-            if (pw <= 0f) return;
+            // [Figma 정합 v3] 등배수 디자인공간(a안 확정) — 루트=raw 1920×1080 풀캔버스 + scale=k,
+            // 게이지 호스트는 Figma 절대좌표(306.4, 855.2) raw 고정. X/Y 독립 스케일(종횡비 왜곡) 제거.
+            var uiRoot = UIToolkitBootstrap.UIRoot;
+            Vector2 rootSize = uiRoot != null
+                ? new Vector2(uiRoot.resolvedStyle.width, uiRoot.resolvedStyle.height)
+                : new Vector2(panel.visualTree.worldBound.width, panel.visualTree.worldBound.height);
+            float k = FigmaCanvasLayout.DesignScale(rootSize);
+            if (k <= 0f) return;
 
-            float hostW = GaugeSize * 2f + GaugeGap;
-            float hotbarW = 8f * 64f + 7f * 8f;            // 8슬롯 핫바 근사 폭 (HotbarUIUTK)
-            float hotbarLeft = (pw * 0.5f) - (hotbarW * 0.5f);
-            // 핫바 왼쪽 끝에서 12px 떨어진 위치
-            _gaugeHost.style.left = hotbarLeft - hostW - 12f;
+            style.position = Position.Absolute;
+            style.left = 0f;
+            style.top = 0f;
+            style.right = StyleKeyword.Auto;
+            style.bottom = StyleKeyword.Auto;
+            style.width = FigmaCanvasLayout.CanvasWidth;
+            style.height = FigmaCanvasLayout.CanvasHeight;
+            style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
+            style.scale = new StyleScale(new Scale(new Vector2(k, k)));
+
+            _gaugeHost.style.left = 306.4f;
+            _gaugeHost.style.top = 855.2f;
+            _gaugeHost.style.width = GaugeSize * 2f + GaugeGap;
+            _gaugeHost.style.height = GaugeSize;
+            ApplyGaugeScale(_hpGauge, 0f, 1f, 1f);
+            ApplyGaugeScale(_staminaGauge, GaugeSize + GaugeGap, 1f, 1f);
+        }
+
+        private static void ApplyGaugeScale(VisualElement gauge, float left, float sx, float sy)
+        {
+            if (gauge == null) return;
+            gauge.style.position = Position.Absolute;
+            gauge.style.left = left * sx;
+            gauge.style.top = 0f;
+            gauge.style.width = GaugeSize * sx;
+            gauge.style.height = GaugeSize * sy;
+            var icon = gauge.Q<VisualElement>();
+            if (icon != null)
+            {
+                float iconInsetX = (GaugeSize - GaugeIconSize) * 0.5f;
+                float iconInsetY = iconInsetX;
+                icon.style.left = iconInsetX * sx;
+                icon.style.top = iconInsetY * sy;
+                icon.style.width = GaugeIconSize * sx;
+                icon.style.height = GaugeIconSize * sy;
+            }
         }
 
         // ===== 폴링 =====

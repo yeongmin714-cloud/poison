@@ -473,45 +473,39 @@ namespace ProjectName.UI.Toolkit
             if (root == null) return;
             Vector2 rootSize = new Vector2(root.resolvedStyle.width, root.resolvedStyle.height);
             if (rootSize.x <= 0f || rootSize.y <= 0f) return;
-            Rect bounds = FigmaCanvasLayout.ScaleRect(new Rect(FigmaLeft, FigmaTop, FigmaWidth, FigmaHeight), rootSize);
-            style.position = Position.Absolute;
-            style.left = bounds.x;
-            style.top = bounds.y;
-            style.width = bounds.width;
-            style.height = bounds.height;
-            float sx = rootSize.x / FigmaCanvasLayout.CanvasWidth;
-            float sy = rootSize.y / FigmaCanvasLayout.CanvasHeight;
-            float cellWidth = SlotSize * sx;
-            float slotHeight = SlotSize * sy;
-            float cellHeight = FigmaHeight * sy;
-            float horizontalGap = Mathf.Max(0f, (FigmaWidth * sx - SlotCount * cellWidth) / (SlotCount - 1));
+            // [Figma 정합 v3] 등배수 디자인공간(a안) — 창 박스=핫바 rect×k, 내부 raw+scale=k(자기 디자인공간).
+            FigmaCanvasLayout.ApplyDesignSpace(this, this, new Rect(FigmaLeft, FigmaTop, FigmaWidth, FigmaHeight), root);
+            float cellWidth = SlotSize;
+            float slotHeight = SlotSize;
+            float cellHeight = FigmaHeight;
+            float horizontalGap = Mathf.Max(0f, (FigmaWidth - SlotCount * cellWidth) / (SlotCount - 1));
             var row = this.Q<VisualElement>("HotbarRow");
             if (row != null)
             {
-                row.style.width = FigmaWidth * sx;
-                row.style.height = FigmaHeight * sy;
+                row.style.width = FigmaWidth;
+                row.style.height = FigmaHeight;
             }
 
             var hint = this.Q<VisualElement>("TabRotationHint");
             if (hint != null)
             {
-                hint.style.left = 926.4f * sx; hint.style.top = 28.8f * sy;
-                hint.style.width = 57.6f * sx; hint.style.height = 67.2f * sy;
+                hint.style.left = 926.4f; hint.style.top = 28.8f;
+                hint.style.width = 57.6f; hint.style.height = 67.2f;
                 var rotation = hint.Q<Label>();
                 if (rotation != null)
                 {
-                    rotation.style.left = 19.2f * sx;
-                    rotation.style.top = 24f * sy;
-                    rotation.style.width = 19.2f * sx;
-                    rotation.style.height = 19.2f * sy;
+                    rotation.style.left = 19.2f;
+                    rotation.style.top = 24f;
+                    rotation.style.width = 19.2f;
+                    rotation.style.height = 19.2f;
                 }
                 var badge = hint.childCount > 1 ? hint.ElementAt(1) as Label : null;
                 if (badge != null)
                 {
-                    badge.style.left = 14.4f * sx;
-                    badge.style.top = 45.6f * sy;
-                    badge.style.width = 28.8f * sx;
-                    badge.style.height = 21.6f * sy;
+                    badge.style.left = 14.4f;
+                    badge.style.top = 45.6f;
+                    badge.style.width = 28.8f;
+                    badge.style.height = 21.6f;
                 }
             }
 
@@ -524,10 +518,10 @@ namespace ProjectName.UI.Toolkit
                 cell.style.marginRight = i < SlotCount - 1 ? horizontalGap : 0f;
                 _slots[i].style.width = cellWidth;
                 _slots[i].style.height = slotHeight;
-                _keyLabels[i].style.left = 36f * sx;
-                _keyLabels[i].style.top = 84f * sy;
-                _keyLabels[i].style.width = 24f * sx;
-                _keyLabels[i].style.height = 24f * sy;
+                _keyLabels[i].style.left = 36f;
+                _keyLabels[i].style.top = 84f;
+                _keyLabels[i].style.width = 24f;
+                _keyLabels[i].style.height = 24f;
             }
         }
     }
