@@ -122,7 +122,13 @@ namespace ProjectName.UI.Toolkit
                 }).StartingIn(100);
                 return false;
             }
-            Debug.Log($"[FigmaV3] {window.name}: ok k={scale:F3} root={rootSize} rect=({figmaBounds.x},{figmaBounds.y},{figmaBounds.width},{figmaBounds.height})");
+            // [FigmaV3 진단] 윈도우+rect별 k 변화 시만 로그(폴링 재적용 스팸 방지).
+            string sig = $"{window.name}|{figmaBounds.x:F1},{figmaBounds.y:F1},{figmaBounds.width:F1},{figmaBounds.height:F1}";
+            if (!LastLoggedK.TryGetValue(sig, out float prevK) || Mathf.Abs(prevK - scale) > 0.0005f)
+            {
+                LastLoggedK[sig] = scale;
+                Debug.Log($"[FigmaV3] {window.name}: ok k={scale:F3} root={rootSize} rect=({figmaBounds.x},{figmaBounds.y},{figmaBounds.width},{figmaBounds.height})");
+            }
 
             window.style.position = Position.Absolute;
             window.style.left = figmaBounds.x * scale;
@@ -141,5 +147,8 @@ namespace ProjectName.UI.Toolkit
         {
             return value > 0f && !float.IsNaN(value) && !float.IsInfinity(value);
         }
+
+        /// <summary>[FigmaV3 진단] 윈도우+rect별 마지막 로그 k — 변화 시만 로그(스팸 방지).</summary>
+        private static readonly System.Collections.Generic.Dictionary<string, float> LastLoggedK = new();
     }
 }
