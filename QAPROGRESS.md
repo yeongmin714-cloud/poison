@@ -1,4 +1,24 @@
-## 2026-10-07 Test_15_Livelihood 씬 — 낚시/채광/채집/농경 4활동 검증 씬
+## 2026-10-08 Figma 정합 v3 — 등배수 디자인공간 스케일(제작대·퀘스트 저널·요리) — P0~P4 완료
+
+- **요청:** ui4 스크린샷 3장(제작대/퀘스트 저널/요리 제작) — "아직도 일치하지 않는 부분이 많다, 대칭성 없는 창, 너무 커서 게임 화면에 안 들어가는 창". **투명도(글래스 0.85)는 현행 유지 확정.**
+- **픽셀 실측 진단(스크린샷 패널 검출 + Figma spec/64-2 진실치 대조):**
+  - **제작대(무기) 1145×750:** 좌패널 395px(34.5%)·중앙 496px(43.3%) — Figma는 26.25/30%. **보관함 패널이 화면 오른쪽 밖으로 밀려나 131px만 노출, 하단 잘림.**
+  - **퀘스트 저널 1067×776:** 414px(38.8%) 풀높이, **상하 클립** — Figma는 25% 폭 + 상하 4.4% 여백.
+  - **요리 1142×737:** 좌 326(28.5%)/중앙 373(32.7%)/우 295(25.8%) **좌우 비대칭**(Figma는 504/504 대칭), 패널 h/w 2.03 vs Figma 1.81(세로 신장).
+- **근본원인(3종):** ① `CraftBenchBaseUTK` — 스케일링 전무(CanvasBounds raw 논리픽셀, FigmaCanvasLayout 미사용). ② `QuestJournalUTK` — style.left/top/size raw, Show에 적용 경로 없음. ③ `CookingWindowUTK` — 창/패널 박스는 스케일했지만 ApplyPanelBounds가 패널에 X/Y **독립** scale을 걸어 비-16:9 게임창에서 세로 신장 + FigmaCanvasLayout.ScaleRect 자체가 X/Y 독립이라 종횡비 왜곡.
+- **해법 — "1920×1080 디자인공간 등배수(min) 스케일" 계약 신설** (plans/2026-10-08_figma-designspace-uniform-scale.md):
+  - `FigmaCanvasLayout.DesignScale(rootSize)` = min(rootW/1920, rootH/1080) — 종횡비 무관 비율 불변, 항상 화면 수렴. `ApplyDesignSpace(window, designSpace, figmaBounds, canvasRoot)` — 창 박스=figma×k, designSpace는 raw Figma px + `style.scale=k` + transformOrigin(0,0). 내부 자식은 **기존 raw 좌표 그대로** 정답이 됨(요소별 수정 불필요).
+  - **CraftBenchBaseUTK(무기 제작대+연금 동시 수혜):** Show에서 ApplyDesignSpace(this, _content, CanvasBounds) + GeometryChanged 훅 신설. 내부 빌드 코드 무수정.
+  - **QuestJournalUTK:** `JournalBounds=(144,48,480,984)` 신규 상수, Show에서 ApplyDesignSpace + 훅. 데칼을 _content 내부로 이동(스케일 동반).
+  - **CookingWindowUTK:** ApplyPanelScale/ApplyPanelBounds(X/Y 독립 스케일 경로) **삭제** → ApplyDesignSpace 단일 경로. 패널은 CreatePanel raw 오프셋 유지.
+  - 기존 ScaleRect/Apply/Place는 미이행 창(69:4/84:4/15:4/70:4/93:230 창/23:6 등) 호환용 유지 — **다음 Phase에서 동일 계약 이관 예정**.
+- **검증:** fresh batch compile `error CS` **0**. focused EditMode(FigmaCanvasLayoutTests+CraftBenchFigmaPhase4Tests+CookingWindowFigmaPhase4Tests+QuestWindowFigma93Tests) **48/48 passed, 0 failed** — 신규 단정: DesignScale 등배수/비-16:9 min/불능 입력 0, ApplyDesignSpace 기각 경로, 요리 UIDocument k=0.5 실해석(창 72,42,816,456 + _content raw 1632×912 scale 0.5 + 패널 raw 오프셋), 저널/제작대 계약 소스 단정. XML `TestOutput/figma_ds_focused.xml`.
+- **런타임 확인 대기(Play):** 3창 재캡처(ui5) — 패널이 화면 안에 수렴하고 좌우 패널 대칭·비율이 Figma와 일치하는지. 포인터 피킹/드래그/스크롤/ESC가 스케일 transform에서 정상 동작하는지.
+- **커밋:** 위 4소스+4테스트(신규 2+meta 포함)+계획 문서+본 기록. 미커밋 타계획(가스/활/성내부) 미포함. push 대기.
+
+---
+
+
 
 ## 2026-10-08 Figma 타이포·글래스 정합 — 전 창 전파 완료(사용자 승인 후)
 

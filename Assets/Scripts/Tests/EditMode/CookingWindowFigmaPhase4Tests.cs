@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using ProjectName.Core;
 using ProjectName.UI.Toolkit;
@@ -20,8 +22,8 @@ namespace ProjectName.Tests.EditMode
             AssertRect(new Rect(672f, 84f, 576f, 912f), CookingWindowUTK.DetailPanelBounds);
             AssertRect(new Rect(1272f, 84f, 504f, 912f), CookingWindowUTK.StoragePanelBounds);
             string source = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/CookingWindowUTK.cs");
-            Assert.That(source, Does.Contain("FigmaCanvasLayout.Apply(this, FigmaBounds, _canvasLayoutRoot)"),
-                "The existing host must map the saved Figma group bounds when the root resolves.");
+            Assert.That(source, Does.Contain("FigmaCanvasLayout.ApplyDesignSpace(this, _content, FigmaBounds, _canvasLayoutRoot)"),
+                "The existing host must map the design-space contract (window box = FigmaBounds x k, raw-px content scaled by k) when the root resolves.");
             Assert.That(source, Does.Contain("UTKWindowChrome.Frameless"),
                 "The host must not retain the old standard window title/border chrome.");
         }
@@ -44,8 +46,6 @@ namespace ProjectName.Tests.EditMode
             CookingWindowUTK.Ensure();
             var host = CookingWindowUTK.Instance;
             Assert.That(host, Is.Not.Null);
-            typeof(CookingWindowUTK).GetMethod("ApplyPanelScale", BindingFlags.Instance | BindingFlags.NonPublic)
-                .Invoke(host, new object[] { new Vector2(1920f, 1080f) });
 
             var craft = host.Q<VisualElement>("cooking-craft-panel");
             var detail = host.Q<VisualElement>("cooking-detail-panel");
@@ -75,21 +75,58 @@ namespace ProjectName.Tests.EditMode
             Assert.That(host.Q("cooking-close-button"), Is.Not.Null, "Frameless host still needs a visible close control.");
         }
 
-        [Test]
-        public void HostGeometryUpdate_ScalesEveryPanelAndItsInternalGeometryAtHalfCanvas()
+        [UnityTest]
+        public IEnumerator HostGeometryUpdate_AppliesDesignSpaceAtHalfCanvasKeepingPanelsRaw()
         {
+            var documentObject = new GameObject("CookingDesignSpaceTestDocument");
+            var document = documentObject.AddComponent<UIDocument>();
+            document.panelSettings = Resources.Load<PanelSettings>("UI/PanelSettings");
+            Assert.That(document.panelSettings, Is.Not.Null, "Expected the project's existing UI PanelSettings resource.");
+            yield return null;
+
+            var canvasRoot = new VisualElement { name = "cooking-design-space-test-root" };
+            document.rootVisualElement.Add(canvasRoot);
+            canvasRoot.style.width = 960f;
+            canvasRoot.style.height = 540f;
+            yield return null;
+            Assert.That(canvasRoot.resolvedStyle.width, Is.EqualTo(960f).Within(1f));
+            Assert.That(canvasRoot.resolvedStyle.height, Is.EqualTo(540f).Within(1f));
+
             CookingWindowUTK.Ensure();
             var host = CookingWindowUTK.Instance;
-            MethodInfo apply = typeof(CookingWindowUTK).GetMethod("ApplyPanelScale", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(apply, Is.Not.Null, "Canvas geometry updates must scale actual panel roots and child geometry.");
-            apply.Invoke(host, new object[] { new Vector2(960f, 540f) });
+            Assert.That(host, Is.Not.Null);
+            typeof(CookingWindowUTK)
+                .GetField("_canvasLayoutRoot", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(host, canvasRoot);
+            host.style.display = DisplayStyle.Flex;
+            canvasRoot.Add(host);
+            yield return null;
 
-            AssertScaledPanel(host.Q<VisualElement>("cooking-craft-panel"), 0.5f, Vector2.zero);
-            AssertScaledPanel(host.Q<VisualElement>("cooking-detail-panel"), 0.5f, new Vector2(264f, 0f));
-            AssertScaledPanel(host.Q<VisualElement>("cooking-storage-panel"), 0.5f, new Vector2(564f, 0f));
-            // [Figma 64:2 IngredientsGroup] 재료 슬롯 76.8×76.8(gap 7.2) — 구식 64 기대를 저장 트리 진실치로 교정
+            MethodInfo applyFigmaBounds = typeof(CookingWindowUTK).GetMethod("ApplyFigmaBounds", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(applyFigmaBounds, Is.Not.Null, "Canvas geometry updates must apply the design-space contract.");
+            applyFigmaBounds.Invoke(host, null);
+            yield return null;
+
+            // 창 박스 = FigmaBounds × k (k = min(960/1920, 540/1080) = 0.5, 등배수)
+            AssertRect(new Rect(72f, 42f, 816f, 456f), BoundsOf(host));
+            // designSpace(_content)는 raw Figma px 유지 + 균일 스케일 k
+            Assert.That(host.Content.style.width.value.value, Is.EqualTo(1632f).Within(0.001f),
+                "The design space keeps the raw Figma pixel size.");
+            Assert.That(host.Content.style.height.value.value, Is.EqualTo(912f).Within(0.001f));
+            Assert.That(host.Content.style.scale.value.value.x, Is.EqualTo(0.5f).Within(0.001f));
+            Assert.That(host.Content.style.scale.value.value.y, Is.EqualTo(0.5f).Within(0.001f));
+            Assert.That(host.Content.style.transformOrigin.value,
+                Is.EqualTo(new TransformOrigin(Length.Percent(0), Length.Percent(0))));
+            // 패널 박스는 CreatePanel의 raw 오프셋 진실치 그대로 — 재스케일 경로 없음
+            AssertRect(new Rect(0f, 0f, 504f, 912f), BoundsOf(host.Q<VisualElement>("cooking-craft-panel")));
+            AssertRect(new Rect(528f, 0f, 576f, 912f), BoundsOf(host.Q<VisualElement>("cooking-detail-panel")));
+            AssertRect(new Rect(1128f, 0f, 504f, 912f), BoundsOf(host.Q<VisualElement>("cooking-storage-panel")));
+            // [Figma 64:2 IngredientsGroup] 재료 슬롯 76.8×76.8 — designSpace 내부 authored raw 크기 유지
             Assert.That(host.Q("cooking-input-slot-0").style.width.value.value, Is.EqualTo(76.8f),
-                "Subpanel input controls retain authored local dimensions; the panel transform scales them with the panel.");
+                "Subpanel input controls retain authored local dimensions; the design space transform scales them uniformly.");
+
+            host.RemoveFromHierarchy();
+            UnityEngine.Object.DestroyImmediate(documentObject);
         }
 
         [Test]
@@ -291,19 +328,6 @@ namespace ProjectName.Tests.EditMode
         {
             return new Rect(element.style.left.value.value, element.style.top.value.value,
                 element.style.width.value.value, element.style.height.value.value);
-        }
-
-        private static void AssertScaledPanel(VisualElement panel, float scale, Vector2 expectedPosition)
-        {
-            Assert.That(panel, Is.Not.Null);
-            Assert.That(panel.style.left.value.value, Is.EqualTo(expectedPosition.x).Within(0.001f));
-            Assert.That(panel.style.top.value.value, Is.EqualTo(expectedPosition.y).Within(0.001f));
-            float expectedWidth = panel.name == "cooking-detail-panel" ? 576f : 504f;
-            Assert.That(panel.style.width.value.value, Is.EqualTo(expectedWidth).Within(0.001f));
-            Assert.That(panel.style.height.value.value, Is.EqualTo(912f).Within(0.001f));
-            Assert.That(panel.style.scale.value.value.x, Is.EqualTo(scale).Within(0.001f));
-            Assert.That(panel.style.scale.value.value.y, Is.EqualTo(scale).Within(0.001f));
-            Assert.That(panel.style.transformOrigin.value, Is.EqualTo(new TransformOrigin(0f, 0f, 0f)));
         }
 
         private static void AssertRect(Rect expected, Rect actual)

@@ -1187,30 +1187,9 @@ namespace ProjectName.UI.Toolkit
         private void ApplyFigmaBounds()
         {
             if (_canvasLayoutRoot == null) return;
-            Vector2 rootSize = new Vector2(_canvasLayoutRoot.resolvedStyle.width, _canvasLayoutRoot.resolvedStyle.height);
-            if (!FigmaCanvasLayout.Apply(this, FigmaBounds, _canvasLayoutRoot)) return;
-            ApplyPanelScale(rootSize);
-        }
-
-        private void ApplyPanelScale(Vector2 rootSize)
-        {
-            float scaleX = rootSize.x / FigmaCanvasLayout.CanvasWidth;
-            float scaleY = rootSize.y / FigmaCanvasLayout.CanvasHeight;
-            ApplyPanelBounds(_craftPanel, CraftingPanelBounds, scaleX, scaleY);
-            ApplyPanelBounds(_detailPanel, DetailPanelBounds, scaleX, scaleY);
-            ApplyPanelBounds(_storagePanel, StoragePanelBounds, scaleX, scaleY);
-        }
-
-        private static void ApplyPanelBounds(VisualElement panel, Rect figmaBounds, float scaleX, float scaleY)
-        {
-            panel.style.left = (figmaBounds.x - FigmaBounds.x) * scaleX;
-            panel.style.top = (figmaBounds.y - FigmaBounds.y) * scaleY;
-            // Preserve authored local dimensions for all controls. The root transform scales the
-            // complete fixed panel geometry, including padding, gaps, and child hit targets.
-            panel.style.width = figmaBounds.width;
-            panel.style.height = figmaBounds.height;
-            panel.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
-            panel.style.scale = new StyleScale(new Scale(new Vector2(scaleX, scaleY)));
+            // [Figma 정합 v3] 등배수 디자인공간 — 창 박스=FigmaBounds×k, 패널은 CreatePanel의 raw 오프셋 그대로
+            // (_content가 designSpace: raw 1632×912 + scale=k). 패널 박스 재스케일 경로는 제거됨.
+            FigmaCanvasLayout.ApplyDesignSpace(this, _content, FigmaBounds, _canvasLayoutRoot);
         }
 
         public override void Hide()

@@ -126,6 +126,16 @@ namespace ProjectName.Tests.EditMode
             Assert.That(matchesFilter.Invoke(bench, new object[] { stageOne, "정신성" }), Is.EqualTo(false));
         }
 
+        [Test]
+        public void ShowLifecycle_AppliesUniformDesignSpaceScalingToBenchContent()
+        {
+            string source = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/CraftBenchBaseUTK.cs");
+            Assert.That(source, Does.Contain("FigmaCanvasLayout.ApplyDesignSpace(this, _content, CanvasBounds, _canvasLayoutRoot)"),
+                "The bench must map its window box from CanvasBounds x k while the raw-px content container scales by k (등배수 디자인공간).");
+            Assert.That(source, Does.Contain("RegisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged)"),
+                "UIRoot geometry changes must reapply the design-space scale.");
+        }
+
         private static void AssertStyleRect(VisualElement element, Rect expected)
         {
             Assert.That(element.style.left.value.value, Is.EqualTo(expected.x).Within(0.001f));

@@ -70,6 +70,8 @@ namespace ProjectName.UI.Toolkit
         // ===== 설정 [Figma 93:230 QuestListPanel] 480×984 @(144,48) — 저널은 Figma 퀘스트 목록 패널 단독 창 =====
         private const float WinW = 480f;
         private const float WinH = 984f;
+        /// <summary>[Figma 정합 v3] 저널 디자인공간 바운드(테스트 참조용) — 창 박스=JournalBounds×k(등배수).</summary>
+        public static readonly Rect JournalBounds = new Rect(144f, 48f, WinW, WinH);
         private const long RefreshMs = 400L;
         private const int TabActive = 0;
         private const int TabCompleted = 1;
@@ -186,6 +188,7 @@ namespace ProjectName.UI.Toolkit
         private readonly ScrollView _list;
         private int _activeTab = TabActive;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
+        private VisualElement _canvasLayoutRoot;   // [Figma 정합 v3] UIRoot 훅 — 등배수 디자인공간 스케일 재적용용
 
         private QuestJournalUTK() : base("📜 퀘스트 저널", new Vector2(WinW, WinH), UTKWindowChrome.Frameless)
         {
@@ -195,7 +198,7 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexDirection = FlexDirection.Column;
             _content.style.paddingLeft = _content.style.paddingRight = 24f;
             _content.style.paddingTop = _content.style.paddingBottom = 24f;
-            AddCornerDecals(this);
+            AddCornerDecals(_content);   // [Figma 정합 v3] 데칼도 디자인공간(_content) 내부에 두어 창 스케일 k와 함께 등비 축소
 
             // ── PanelHeader 432×52.8 ──
             var panelHeader = new VisualElement { name = "PanelHeader" };
@@ -320,11 +323,32 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
+            if (_canvasLayoutRoot != root)
+            {
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.UnregisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged);
+                _canvasLayoutRoot = root;
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.RegisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged);
+            }
+            ApplyJournalLayout();
             StyleTab(_btnActive, _activeTab == TabActive);
             StyleTab(_btnCompleted, _activeTab == TabCompleted);
             StartRefreshLoop();
             RefreshDisplay();
             Debug.Log("[JournalUTK] 저널 열림 (키: J)");
+        }
+
+        // =====================================================================
+        //  [Figma 정합 v3] 등배수 디자인공간 스케일 — 창 박스=JournalBounds×k, 내부 raw px+scale=k
+        // =====================================================================
+
+        private void OnCanvasRootGeometryChanged(GeometryChangedEvent evt) => ApplyJournalLayout();
+
+        private void ApplyJournalLayout()
+        {
+            if (_canvasLayoutRoot == null) return;
+            FigmaCanvasLayout.ApplyDesignSpace(this, _content, JournalBounds, _canvasLayoutRoot);
         }
 
         public override void Hide()

@@ -85,6 +85,7 @@ namespace ProjectName.UI.Toolkit
         private bool _craftable;
         private string _activeFilter = "전체";
         private bool _refreshing;
+        private VisualElement _canvasLayoutRoot;   // [Figma 정합 v3] UIRoot 훅 — 등배수 디자인공간 스케일 재적용용
 
         public VisualElement CraftPanelRoot { get; private set; }
         public VisualElement DetailPanelRoot { get; private set; }
@@ -260,6 +261,35 @@ namespace ProjectName.UI.Toolkit
             RebuildBook();
             RefreshMatch();
             RefreshStorage();
+        }
+
+        // =====================================================================
+        //  [Figma 정합 v3] 등배수 디자인공간 스케일 — 창 박스=CanvasBounds×k, 내부 raw px+scale=k
+        // =====================================================================
+
+        public override void Show()
+        {
+            base.Show();
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root != null && parent == null)
+                root.Add(this);
+            if (_canvasLayoutRoot != root)
+            {
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.UnregisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged);
+                _canvasLayoutRoot = root;
+                if (_canvasLayoutRoot != null)
+                    _canvasLayoutRoot.RegisterCallback<GeometryChangedEvent>(OnCanvasRootGeometryChanged);
+            }
+            ApplyBenchLayout();
+        }
+
+        private void OnCanvasRootGeometryChanged(GeometryChangedEvent evt) => ApplyBenchLayout();
+
+        private void ApplyBenchLayout()
+        {
+            if (_canvasLayoutRoot == null) return;
+            FigmaCanvasLayout.ApplyDesignSpace(this, _content, CanvasBounds, _canvasLayoutRoot);
         }
 
         private static VisualElement CreatePanel(string elementName, Rect canvasBounds)
