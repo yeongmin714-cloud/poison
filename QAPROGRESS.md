@@ -1,3 +1,12 @@
+## 2026-10-08 Figma 정합 v3 이관 2차 — 스테이터스/장비(84:4·83:4) 등배수 전환
+
+- **StatusWindowUTK:** ApplyCanvasScale의 X/Y 독립 재스케일(sx/sy 수동 계산, statusOnly/조합 2모드)을 `FigmaCanvasLayout.ApplyDesignSpace` 1경로로 교체 — statusOnly 프레임=(0,0,1920,1080), 조합 프레임=CompositionCanvasBounds(391.8,72,1136.4,936). 패널은 빌드 시 raw Figma 좌표(_statusPanel 672,72,576,936 등) 그대로 — 재스케일 경로 제거. 250ms _scaleRefresh 재적용 유지(멱등).
+- **테스트:** StatusEquipmentFigma84Tests는 bounds 상수 단정만이라 무영향 확인.
+- **게이트:** compile error CS 0. (focused는 다음 유닛과 합동 실행 예정 — 이관 3차에서 일괄 게이트)
+- **다음:** Warehouse/Inventory/ItemDescription(15:4 클러스터 — InventoryClusterPanelRegions 기반, SetStorageRect contentOrigin 보정 필요) + Loot(70:4) → 위임 진행. HUD(23:6)는 오버레이 앵커링 특성상 별도 판단 필요.
+
+---
+
 ## 2026-10-08 Figma 정합 v3 이관 1차 — 스크롤러 미세조정 + 퀘스트창(93:230)·병사관리(69:4) 등배수 전환
 
 - **사용자 지시:** "두께 조금 더 얇게, 투명도 조금 더 투명하게. 남은 작업 넘어가자."

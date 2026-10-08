@@ -1287,37 +1287,12 @@ namespace ProjectName.UI.Toolkit
         {
             if (canvasRoot == null) return;
             _scaleRoot = canvasRoot;
-            float sx = canvasRoot.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth;
-            float sy = canvasRoot.resolvedStyle.height / FigmaCanvasLayout.CanvasHeight;
-            if (sx <= 0f || sy <= 0f) return;
-            if (_statusOnly)
-            {
-                style.left = 0f;
-                style.top = 0f;
-                style.width = StatusOnlyFrameWidth * sx;
-                style.height = StatusOnlyFrameHeight * sy;
-                _content.style.width = StatusOnlyFrameWidth * sx;
-                _content.style.height = StatusOnlyFrameHeight * sy;
-                _statusPanel.style.left = StatusOnlyCanvasBounds.x * sx;
-                _statusPanel.style.top = StatusOnlyCanvasBounds.y * sy;
-                _statusPanel.style.width = StatusOnlyCanvasBounds.width * sx;
-                _statusPanel.style.height = StatusOnlyCanvasBounds.height * sy;
-                return;
-            }
-            style.left = CompositionCanvasBounds.x * sx;
-            style.top = CompositionCanvasBounds.y * sy;
-            style.width = CompositionCanvasBounds.width * sx;
-            style.height = CompositionCanvasBounds.height * sy;
-            _content.style.width = CompositionCanvasBounds.width * sx;
-            _content.style.height = CompositionCanvasBounds.height * sy;
-            _statusPanel.style.left = StatusPanelLocalBounds.x * sx;
-            _statusPanel.style.top = StatusPanelLocalBounds.y * sy;
-            _statusPanel.style.width = StatusPanelLocalBounds.width * sx;
-            _statusPanel.style.height = StatusPanelLocalBounds.height * sy;
-            _equipmentPanel.style.left = EquipmentPanelLocalBounds.x * sx;
-            _equipmentPanel.style.top = EquipmentPanelLocalBounds.y * sy;
-            _equipmentPanel.style.width = EquipmentPanelLocalBounds.width * sx;
-            _equipmentPanel.style.height = EquipmentPanelLocalBounds.height * sy;
+            // [Figma 정합 v3] 등배수 디자인공간 — 창 박스=프레임×k, _content는 raw Figma px + scale=k.
+            // 패널은 빌드 시의 raw Figma 좌표 그대로(542~) — 기존 X/Y 독립 재스케일(비-16:9 신장 원인)은 제거.
+            Rect frame = _statusOnly
+                ? new Rect(0f, 0f, StatusOnlyFrameWidth, StatusOnlyFrameHeight)
+                : CompositionCanvasBounds;
+            FigmaCanvasLayout.ApplyDesignSpace(this, _content, frame, canvasRoot);
         }
 
         // =====================================================================
