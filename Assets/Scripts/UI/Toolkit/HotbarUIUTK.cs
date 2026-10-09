@@ -54,6 +54,11 @@ namespace ProjectName.UI.Toolkit
         private const float FigmaWidth  = 902.4f;
         private const float FigmaHeight = 124.8f;
 
+        // [계획 v2 Phase 2] 화면 하단 고정 앵커 여백 — 스케일 후 핫바 시각 하단이 화면 하단에서 12px 위에 고정.
+        // 하단 고정 앵커는 사용자 요구(캡처 간 세로 편차 제거) — Figma 캔버스 y=861.6 좌표 규약과 의도적 차이(계획 v2 Phase 2 기록).
+        // (FigmaTop은 생성자 초기값용으로만 잔존 — 매 프레임 ApplyFigmaBounds가 하단 앵커로 덮어씀.)
+        public  const float HotbarBottomMarginPx = 12f;
+
         private readonly UTKSlot[] _slots;
         private readonly Label[]   _keyLabels;
         private readonly string[]  _assignedIds;    // 슬롯별 등록 itemId (PlayerPrefs 반영본)
@@ -473,13 +478,17 @@ namespace ProjectName.UI.Toolkit
             if (root == null) return;
             Vector2 rootSize = new Vector2(root.resolvedStyle.width, root.resolvedStyle.height);
             if (rootSize.x <= 0f || rootSize.y <= 0f) return;
-            // [Figma 정합 v3 / 화면 앵커 복귀(사용자 확정)] 위치는 예전 축 분율 앵커, 크기만 등배수 k.
+            // [계획 v2 Phase 2] X만 기존 축 분율 앵커 유지, Y는 화면 하단 고정 앵커로 일원화. 크기는 등배수 k.
+            // top = rootSize.y - FigmaHeight * k - HotbarBottomMarginPx:
+            //   transformOrigin(0,0)+scale=k라서 스케일 후 시각 높이 = FigmaHeight*k → 시각 하단이 화면 하단에서 12px 위에 고정.
+            //   anchorY는 등배수 k 산출에만 사용(핫바 Y 배치에는 미사용).
+            // 하단 고정 앵커는 사용자 요구(캡처 간 세로 편차 제거) — Figma 캔버스 y=861.6 좌표 규약과 의도적 차이(계획 v2 Phase 2 기록).
             float anchorX = rootSize.x / FigmaCanvasLayout.CanvasWidth;
             float anchorY = rootSize.y / FigmaCanvasLayout.CanvasHeight;
             float k = Mathf.Min(anchorX, anchorY);
             style.position = Position.Absolute;
             style.left = FigmaLeft * anchorX;
-            style.top = FigmaTop * anchorY;
+            style.top = rootSize.y - FigmaHeight * k - HotbarBottomMarginPx;
             style.width = FigmaWidth;
             style.height = FigmaHeight;
             style.transformOrigin = new TransformOrigin(0f, 0f, 0f);

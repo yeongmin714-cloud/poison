@@ -46,10 +46,14 @@ namespace ProjectName.UI.Toolkit
         private const int   PollMs     = 250;
         private const float Bottom     = 14f;   // 하단 정렬 (핫바와 같은 기준)
 
-        // [Figma 23:6] 캔버스 내 게이지 bounds와 아이콘 중심 크기
-        private const float GaugeSize     = 137.6f; // Figma 23:6 gauge bounds
-        private const float GaugeGap      = 24f;    // Figma gauge-to-gauge gap
-        private const float GaugeIconSize = 68.8f;  // Figma center icon bounds
+        // [Figma 23:6] 캔버스 내 게이지 bounds와 아이콘 중심 크기 — 계약 단정용 public const(계획 v2 Phase 2 승격).
+        public  const float GaugeSize     = 137.6f; // Figma 23:6 gauge bounds
+        public  const float GaugeGap      = 24f;    // Figma gauge-to-gauge gap (게이지 간격 24 raw 유지)
+        public  const float GaugeIconSize = 68.8f;  // Figma center icon bounds
+
+        // [계획 v2 Phase 2] 화면 하단 고정 앵커 여백 — 스케일 후 게이지 시각 하단이 화면 하단에서 24px 위에 고정.
+        // 하단 고정 앵커는 사용자 요구(캡처 간 세로 편차 제거) — Figma 캔버스 y=855.2 좌표 규약과 의도적 차이(계획 v2 Phase 2 기록).
+        public  const float GaugeBottomMarginPx = 24f;
 
         // [Figma GitHub-dark + 사용자 설계] 링 색
         private readonly Color _hpColor = new Color(1f, 0.30f, 0.30f, 1f);       // 체력 링 — 레드빛 (하트)
@@ -142,8 +146,8 @@ namespace ProjectName.UI.Toolkit
         private void PositionHost()
         {
             if (panel == null) return;
-            // [Figma 정합 v3 / 화면 앵커 복귀(사용자 확정)] 루트=화면 스트레치 유지(예전 앵커),
-            // 게이지 위치는 X/Y 축 분율 앵커(예전과 동일 배치) — 크기만 등배수 k로 통일(종횡비 왜곡 제거).
+            // [계획 v2 Phase 2] 루트=화면 스트레치 유지. 게이지 Y는 화면 하단 고정 앵커로 일원화,
+            // X만 기존 축 분율 앵커 유지 — 크기는 등배수 k로 통일(종횡비 왜곡 제거).
             var uiRoot = UIToolkitBootstrap.UIRoot;
             Vector2 rootSize = uiRoot != null
                 ? new Vector2(uiRoot.resolvedStyle.width, uiRoot.resolvedStyle.height)
@@ -154,9 +158,13 @@ namespace ProjectName.UI.Toolkit
             float k = Mathf.Min(anchorX, anchorY);
             if (k <= 0f) return;
 
-            // 게이지 호스트 = 예전 화면 앵커(축 분율) + raw 크기 + 등비 scale
+            // 게이지 호스트 = X 분율 앵커 + Y 하단 고정 앵커 + raw 크기 + 등비 scale.
+            // [계획 v2 Phase 2] top = rootSize.y - GaugeSize * k - GaugeBottomMarginPx:
+            //   transformOrigin(0,0)+scale=k라서 스케일 후 시각 높이 = GaugeSize*k → 시각 하단이 화면 하단에서 24px 위에 고정.
+            //   anchorY는 등배수 k 산출에만 사용(게이지 Y 배치에는 미사용).
+            // 하단 고정 앵커는 사용자 요구(캡처 간 세로 편차 제거) — Figma 캔버스 y=855.2 좌표 규약과 의도적 차이(계획 v2 Phase 2 기록).
             _gaugeHost.style.left = 306.4f * anchorX;
-            _gaugeHost.style.top = 855.2f * anchorY;
+            _gaugeHost.style.top = rootSize.y - GaugeSize * k - GaugeBottomMarginPx;
             _gaugeHost.style.width = GaugeSize * 2f + GaugeGap;
             _gaugeHost.style.height = GaugeSize;
             _gaugeHost.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
