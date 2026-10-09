@@ -314,18 +314,6 @@ namespace ProjectName.Systems
             // 키보드 단축키: G = 가스 분사 시작/중단 토글
             if (Keyboard.current != null)
             {
-                if (Keyboard.current.gKey.wasPressedThisFrame)
-                {
-                    var controller = FindAnyObjectByType<GasSprayerController>();
-                    if (controller != null)
-                    {
-                        if (controller.IsSpraying)
-                            controller.StopSpray();
-                        else
-                            controller.StartSpray();
-                    }
-                }
-
                 // H = 모든 더미 HP 출력
                 if (Keyboard.current.hKey.wasPressedThisFrame)
                 {

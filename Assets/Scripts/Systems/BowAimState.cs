@@ -23,11 +23,51 @@ namespace ProjectName.Systems
         /// <summary>릴리즈 파워 0~1.</summary>
         public static float ReleasePower;
 
+        // Two distinct pixels are maintained: the last 16ms-scheduled display point (A), and
+        // the synchronous input-frame release snapshot (B). B mitigates a stale scheduler
+        // sample at release; live Play validation is still required for actual device timing.
+        // The display point remains independent so the release path cannot accidentally use A.
+        private static Vector2 _aimScreenPoint;
+        private static bool _hasAimScreenPoint;
+        private static int _aimSampleVersion;
+        private static int _drawStartAimSampleVersion;
+        private static Vector2 _releaseAimScreenPoint;
+        private static bool _hasReleaseAimScreenPoint;
+
+        /// <summary>Freeze the exact cursor pixel read on the input release frame.</summary>
+        public static void CaptureReleaseAimScreenPoint(Vector2 screenPoint)
+        {
+            _releaseAimScreenPoint = screenPoint;
+            _hasReleaseAimScreenPoint = true;
+        }
+
+        /// <summary>Returns the immutable pixel shared by shot solving and the release-fade placement.</summary>
+        public static bool TryGetReleaseAimScreenPoint(out Vector2 screenPoint)
+        {
+            screenPoint = _releaseAimScreenPoint;
+            return _hasReleaseAimScreenPoint;
+        }
+
+        public static void SetAimScreenPoint(Vector2 screenPoint)
+        {
+            _aimScreenPoint = screenPoint;
+            _hasAimScreenPoint = true;
+            unchecked { _aimSampleVersion++; }
+        }
+
+        public static bool TryGetAimScreenPoint(out Vector2 screenPoint)
+        {
+            screenPoint = _aimScreenPoint;
+            return _hasAimScreenPoint && _aimSampleVersion != _drawStartAimSampleVersion;
+        }
+
         public static void Begin()
         {
             Drawing = true;
             Power = 0f;
             ReleasePending = false;
+            _hasReleaseAimScreenPoint = false;
+            _drawStartAimSampleVersion = _aimSampleVersion;
         }
 
         public static void UpdatePower(float p)
@@ -49,6 +89,7 @@ namespace ProjectName.Systems
             ReleasePending = false;
             ReleaseFired = false;
             ReleasePower = 0f;
+            _hasReleaseAimScreenPoint = false;
         }
     }
 }

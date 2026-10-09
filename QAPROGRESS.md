@@ -1,3 +1,15 @@
+## 2026-10-09 메인씬 영지 + 병사 + 몬스터 복귀 — 두 임시 중단 스위치 기본값 false 전환 (미커밋)
+
+- **사용자 요청:** "메인씬에 영지와 병사 몬스터 모두 복귀".
+- **원인(근본 2건, 메인씬 게이트):**
+  - ①`TerritoryBuilder.BuildPaused = true` — 영지 82개 + 문지기/수비 병사 배치를 통째로 차단. GameSetup은 `EnsureTerritoryBuilder`(컴포넌트 추가만)를 수행하지만 **`BuildPaused`는 해제하지 않아** 메인씬에서 영지/병사가 아예 안 생겼음(aaab6801 커밋이 true로 고정).
+  - ②`MonsterSpawner.SpawningPaused = true` — GameSetup.Start가 `SetPaused(false)`로 풀어주긴 하나 기본값이 계속 true로 남음(44e8e388).
+- **수리:** 두 스위치 기본값 `true → false` 로 전환(주석에 지형검증 완료 후 복귀 근거 기재). `_autoBuildOnStart=true`라 `BuildPaused=false`면 영지 82개 자동 빌드, `SpawningPaused=false`면 몬스터 자동 스폰 재개. TerrainOnly 분기(메인에서 조기 return)와 테스트 셋업(두 스위치 미참조)은 영향 없음.
+- **검증:** fresh batchmode compile `error CS` **0** — `TestOutput/restore_territory_compile.log`. (Play 화면 캡처/영지·병사·몬스터 렌더 시각 확인은 사용자 재실행 게이트 대기)
+- **다음:** 메인씬 Play → ①영지 82개(성 GLB+문지기) ②병사(FBX/애니) ③몬스터 렌더 확인. stage/commit/push는 명시 요청 시에만.
+
+---
+
 ## 2026-10-09 계획 v3(A/B/C/D) 완료 — 3창 헤더 통일 + HUD 7층 게이지 + 키 재배선 + 벽 하프팀버 개편 (커밋 a5eea29b·d06aa117·dbe1798e·c57b9500)
 
 - **A(3창 헤더 통일, a5eea29b):** 인벤/상세 크롬 제목 **38→24**(Figma 15:4 진실치), 부제 14.4/400 교정. 창고는 이미 진실치(캡처의 작은 제목은 이전 상태) — 검산 주석 추가. 크롬 타이틀바 공유 구조상 절대(24,29.2) 배치는 주석 판단 기록(USS 불변 제약).

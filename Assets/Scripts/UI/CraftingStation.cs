@@ -110,6 +110,7 @@ namespace ProjectName.UI
         // ── OnGUI 상호작용 프롬프트 ──
         private void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.AnyWindowOpen) return;
             if (!_isPlayerNearby) return;
             if (_player == null) return;
 

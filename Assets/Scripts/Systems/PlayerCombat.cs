@@ -188,6 +188,20 @@ namespace ProjectName.Systems
             _clipDriver = GetComponentInChildren<HumanoidClipDriver>();
         }
 
+        private Camera ResolveBowAimCamera()
+        {
+            // Camera.main is the authoritative current producer. Refresh every release so a valid-but-old
+            // cached camera cannot solve against a different view after a camera/scene handoff.
+            Camera currentMainCamera = Camera.main;
+            if (currentMainCamera == null || !currentMainCamera.isActiveAndEnabled
+                || !currentMainCamera.gameObject.activeInHierarchy || !currentMainCamera.CompareTag("MainCamera"))
+                return null;
+
+            if (_mainCamera != currentMainCamera)
+                _mainCamera = currentMainCamera;
+            return _mainCamera;
+        }
+
         private void Update()
         {
             if (PlayerHealth.Instance != null && PlayerHealth.Instance.IsDead) return;
@@ -237,15 +251,18 @@ namespace ProjectName.Systems
                     _bowDrawHeldTime += Time.deltaTime;
                     BowAimState.UpdatePower(Mathf.Clamp01(_bowDrawHeldTime / BowDrawMaxHold));
                 }
-                if (Mouse.current.leftButton.wasReleasedThisFrame && _bowDrawing)
+                if (Mouse.current.leftButton.wasReleasedThisFrame && _bowDrawing && isBowEquipped)
                 {
                     bool wasDrawing = _bowDrawing;
                     _bowDrawing = false;
                     if (wasDrawing)
                     {
+                        // Freeze the current input pixel on this release frame; the UTK reticle's
+                        // 16ms scheduler may not have published cursor movement since its last tick.
+                        BowAimState.CaptureReleaseAimScreenPoint(Mouse.current.position.ReadValue());
                         float relPower = Mathf.Clamp01(_bowDrawHeldTime / BowDrawMaxHold);
                         BowAimState.Release(relPower >= BowMinFire, relPower);   // [P25-C1] 릴리즈(탭 캔슬/발사 페이드)
-                        ReleaseBow(relPower);
+                        ReleaseBow(relPower, true);
                     }
                 }
             }
@@ -373,7 +390,7 @@ namespace ProjectName.Systems
 
         /// <summary>[활 드로→릴리즈] 좌클릭 해제 — 파워 기반 화살 발사. 화살 소모/발사체 생성은 ArrowManager 담당.</summary>
         /// 파워가 최소(BowMinFire) 미만이면 탭으로 간주해 드로 캔슬(발사 안 함). 근접 ReleaseCharge와 별개 경로.
-        private void ReleaseBow(float power)
+        private void ReleaseBow(float power, bool currentDrawRelease = false)
         {
             if (power < BowMinFire)
             {
@@ -381,7 +398,7 @@ namespace ProjectName.Systems
                 return;
             }
             _bowDrawHeldTime = 0f;
-            TryBowShot(power);
+            TryBowShot(power, currentDrawRelease);
         }
 
         /// <summary>
@@ -484,8 +501,7 @@ namespace ProjectName.Systems
                 _queuedBowAction = false;
                 if (_queuedBowReleased)
                 {
-                    BowAimState.Release(_queuedBowHeldTime >= BowMinFire, _queuedBowHeldTime / BowDrawMaxHold);
-                    ReleaseBow(_queuedBowHeldTime / BowDrawMaxHold);
+                    CancelBowShotWithoutFreshDraw("queued parry release", _queuedBowHeldTime / BowDrawMaxHold);
                 }
                 else
                 {
@@ -634,28 +650,45 @@ namespace ProjectName.Systems
 
         private bool TryAttack()
         {
+            // Driver creation can be deferred until after PlayerCombat.Start (for example by boot/test setup).
+            // Refresh only a missing/destroyed cache here, immediately before melee ownership is decided.
+            if (_clipDriver == null)
+            {
+                HumanoidClipDriver discovered = GetComponentInChildren<HumanoidClipDriver>(true);
+                _clipDriver = ResolveMeleeComboDriver(_clipDriver, discovered);
+                if (_clipDriver != null)
+                    Debug.Log($"[CombatInput] discovered delayed HumanoidClipDriver on '{_clipDriver.gameObject.name}'");
+            }
+
             bool fistOrSword = _currentWeapon != null
                 && (_currentWeapon.weaponType == WeaponType.Fist || _currentWeapon.weaponType == WeaponType.Sword);
-            bool comboActive = fistOrSword && _clipDriver != null && _clipDriver.IsPlayerMeleeComboActive;
-            bool comboFollowup = fistOrSword && _clipDriver != null && _clipDriver.CanAcceptBufferedMeleeFollowup;
-            bool expiredComboRestart = fistOrSword && _clipDriver != null && _clipDriver.CanRestartExpiredMeleeCombo;
+            bool spear = _currentWeapon != null && _currentWeapon.weaponType == WeaponType.Spear;
+            bool comboReady = _clipDriver != null && _clipDriver.CanPlayPlayerMeleeCombo;
+            bool useMeleeCombo = ShouldUseMeleeCombo(fistOrSword, comboReady);
+            bool useSpearDriver = ShouldUseSpearAttackDriver(spear, comboReady);
+            bool comboActive = useMeleeCombo && _clipDriver.IsPlayerMeleeComboActive;
+            bool comboFollowup = useMeleeCombo && _clipDriver.CanAcceptBufferedMeleeFollowup;
+            bool expiredComboRestart = useMeleeCombo && _clipDriver.CanRestartExpiredMeleeCombo;
+            bool spearFollowup = useSpearDriver && _clipDriver.CanAcceptSpearFollowup;
+            bool spearRestart = useSpearDriver && _clipDriver.CanRestartExpiredSpearSequence;
             bool canAttack = CanAttack;
+            if (fistOrSword)
+                Debug.Log($"[CombatInput] melee route={(useMeleeCombo ? "HumanoidClipDriver combo" : "legacy fallback")} driverReady={comboReady}");
 
-            // A ready melee driver can reserve a follow-up while its accepted opener is still
-            // waiting for the next Update; only the bounded combo path bypasses weapon cooldown.
-            if (ShouldRejectMeleeAttack(comboActive, comboFollowup, expiredComboRestart, canAttack))
+            if (ShouldRejectMeleeAttack(comboActive, comboFollowup, expiredComboRestart, canAttack)
+                || (useSpearDriver && !canAttack && !spearFollowup && !spearRestart))
             {
                 Debug.Log($"[CombatInput] attack rejected type={_currentWeapon?.weaponType.ToString() ?? "none"} "
                     + $"comboActive={comboActive} followup={comboFollowup} expiredRestart={expiredComboRestart} cooldownReady={canAttack} "
-                    + $"sequence={_acceptedAttackSequence}");
+                    + $"spearFollowup={spearFollowup} sequence={_acceptedAttackSequence}");
                 return false;
             }
 
-            if (fistOrSword && _clipDriver != null && _clipDriver.CanPlayPlayerMeleeCombo)
+            if (useMeleeCombo || useSpearDriver)
                 Debug.Log($"[CombatInput] melee accepted followup={comboFollowup} active={comboActive} "
                     + $"sequence={_acceptedAttackSequence + 1} cooldownReady={canAttack}");
-            else if (fistOrSword && _clipDriver == null)
-                Debug.LogWarning("[CombatInput] melee accepted with no HumanoidClipDriver; using legacy fallback path");
+            else if (fistOrSword)
+                Debug.LogWarning($"[CombatInput] melee accepted via legacy fallback; driverReady={comboReady}");
 
             _attackStreak = (Time.time - _lastAttackTime <= AttackStreakWindow)
                 ? Mathf.Min(_attackStreak + 1, AttackStreakMax)
@@ -668,18 +701,17 @@ namespace ProjectName.Systems
             //      AttackTarget/자동조준/근접 스윕을 호출하지 않는다(발사 성공/실패 모두 return).
             //      accepted sequence 갱신(위)으로 HumanoidClipDriver가 Bow 분기에서
             //      ArcheryShot을 자동 트리거 + TryBowShot 내부에서 TriggerBowShot()으로 명시 보강.
-            // Spear/Fist/Sword: 기존 근접 공격 경로 유지(자동조준→AttackTarget 등).
+            // Spear uses delayed driver-owned opener/follow-up hits when its Animator is ready.
+            // Without a ready driver it retains the ordinary immediate fallback below.
             //      Spear는 사거리 4m < _autoAimRange 15m라 기존 조준 범위로 충분 — 별도 조정 없음.
             //      Fist/Sword는 기존 WeaponCombo B안이 드라이버에서 그대로 처리됨(정밀튜닝 보존).
             if (_currentWeapon != null && _currentWeapon.weaponType == ProjectName.Core.WeaponType.Bow)
             {
-                TryBowShot(1f);   // 드로→릴리즈 외 즉발 회귀용 — 파워 풀(1f)
+                CancelBowShotWithoutFreshDraw("direct TryAttack fallback", 1f);
                 return true;
             }
-
-            // Fist/Sword hit checks are resolved by HumanoidClipDriver once per Weapon_Combo_2 swing.
-            // AcceptedAttackSequence above reports every accepted click so the driver can queue follow-ups.
-            if (_clipDriver != null && _clipDriver.CanPlayPlayerMeleeCombo && fistOrSword)
+            // Fist/Sword and ready Spear routes resolve hits only at their driver-owned normalized-time markers.
+            if (useMeleeCombo || useSpearDriver)
                 return true;
 
             // Phase B: 무기별 스윙 사운드 레이어링
@@ -737,11 +769,32 @@ namespace ProjectName.Systems
             return true;
         }
 
+        private static HumanoidClipDriver ResolveMeleeComboDriver(
+            HumanoidClipDriver cachedDriver, HumanoidClipDriver discoveredDriver)
+        {
+            return cachedDriver != null ? cachedDriver : discoveredDriver;
+        }
+
+        private static bool ShouldUseMeleeCombo(bool fistOrSword, bool driverReady)
+        {
+            return fistOrSword && driverReady;
+        }
+
+        private static bool ShouldUseSpearAttackDriver(bool spear, bool driverReady)
+        {
+            return spear && driverReady;
+        }
+
         private static bool ShouldRejectMeleeAttack(bool comboActive, bool comboFollowup,
             bool expiredComboRestart, bool canAttack)
         {
             return (comboActive && !comboFollowup && !expiredComboRestart)
                 || (!canAttack && !comboFollowup && !expiredComboRestart);
+        }
+
+        private static bool ShouldApplyAttackMovementEffects(bool comboOwnedImpact)
+        {
+            return !comboOwnedImpact;
         }
 
         /// <summary>Resolve one hit attempt and its damage/effects for a Weapon_Combo_2 swing segment.</summary>
@@ -757,10 +810,10 @@ namespace ProjectName.Systems
             {
                 _currentTarget = autoAimTarget;
                 StartFaceTarget(autoAimTarget);
-                AttackTarget(_currentTarget);
+                AttackTarget(_currentTarget, true);
                 hitAny = true;
             }
-            else if (AttackCenterScreen())
+            else if (AttackCenterScreen(true))
             {
                 hitAny = true;
             }
@@ -771,7 +824,7 @@ namespace ProjectName.Systems
                 {
                     _currentTarget = sweep;
                     StartFaceTarget(sweep);
-                    AttackTarget(sweep);
+                    AttackTarget(sweep, true);
                     hitAny = true;
                 }
             }
@@ -781,7 +834,8 @@ namespace ProjectName.Systems
                 LastHitValid = false;
                 TriggerCameraEffects();
             }
-            StartCoroutine(AttackLungeCoroutine());
+            if (ShouldApplyAttackMovementEffects(true))
+                StartCoroutine(AttackLungeCoroutine());
         }
 
         /// <summary>
@@ -790,8 +844,14 @@ namespace ProjectName.Systems
         /// 화살 부족 시 미스 처리(LastHitValid=false) 후 종료(근접 공격으로 폴백하지 않음 — 활은 근접 무기가 아님).
         /// 카메라 이펙트/런지는 발사 성공 시에만 적용.
         /// </summary>
-        private void TryBowShot(float power)
+        private void TryBowShot(float power, bool currentDrawRelease = false)
         {
+            if (!currentDrawRelease)
+            {
+                CancelBowShotWithoutFreshDraw("unauthorized shot dispatch", power);
+                return;
+            }
+
             // ① 발사 사운드 — 무기별 레이어링
             PlayWeaponSwingSound();
 
@@ -802,16 +862,37 @@ namespace ProjectName.Systems
                 if (Application.isPlaying) { var go = new GameObject("ArrowManager"); go.AddComponent<ArrowManager>(); }
             }
 
-            // Reticle screen point -> one world point -> direction from the actual muzzle to that point.
-            Vector2 aimScreenPoint = ArrowManager.GetAimScreenPoint();
+            // Consume the pixel synchronously frozen by the input release frame. The UI's
+            // scheduled display sample can be up to 16ms old and is never used for solving.
+            if (!BowAimState.TryGetReleaseAimScreenPoint(out Vector2 aimScreenPoint))
+            {
+                LastHitValid = false;
+                BowAimState.Release(false, power);
+                Debug.LogWarning("[PlayerCombat] 활 조준 취소 — 표시된 UTK 리티클 샘플이 없습니다.");
+                return;
+            }
+
             Vector3 fallbackOrigin = transform.position + transform.forward * 0.6f + Vector3.up * 1.4f;
             Vector3 origin = ArrowManager.Instance != null
                 ? ArrowManager.Instance.GetArrowSpawnOrigin(fallbackOrigin)
                 : fallbackOrigin;
-            Vector3 aimPoint = origin + transform.forward * 100f;
-            Vector3 dir = transform.forward.sqrMagnitude > 0.0001f ? transform.forward.normalized : Vector3.forward;
-            if (_mainCamera != null)
-                ArrowManager.TrySolveAim(_mainCamera, aimScreenPoint, origin, transform, out aimPoint, out dir);
+            Camera aimCamera = ResolveBowAimCamera();
+            if (aimCamera == null)
+            {
+                LastHitValid = false;
+                BowAimState.Release(false, power);
+                Debug.LogWarning("[PlayerCombat] 활 조준 취소 — 활성 MainCamera를 찾을 수 없습니다.");
+                return;
+            }
+
+            if (!ArrowManager.TrySolveAim(aimCamera, aimScreenPoint, origin, transform,
+                    out Vector3 aimPoint, out Vector3 dir))
+            {
+                LastHitValid = false;
+                BowAimState.Release(false, power);
+                Debug.LogWarning("[PlayerCombat] 활 조준 취소 — 조준점을 계산하지 못했습니다.");
+                return;
+            }
 
             // Turn the actor toward the resolved point horizontally; keep the full muzzle direction for launch.
             Vector3 launchForward = dir;
@@ -824,17 +905,22 @@ namespace ProjectName.Systems
             if (launchForward.sqrMagnitude <= 0.0001f) launchForward = Vector3.forward;
 
             // Existing base damage and draw power flow through unchanged to ArrowManager.
-            // Spawn before rotating the shooter so a configured child muzzle stays at the solved origin.
+            // Capture the projectile itself so the diagnostic checks its actual initial velocity.
+            ArrowProjectile projectile = null;
             bool fired = ArrowManager.Instance != null
-                && ArrowManager.Instance.TryShootArrow(origin, dir, WeaponData.Bow.damage, power);
+                && ArrowManager.Instance.TryShootArrow(origin, dir, WeaponData.Bow.damage, power,
+                    out projectile);
             if (!fired)
             {
                 // 화살 부족 — 발사 실패. TryShootArrow 내부에서 차단 메시지 표시됨.
                 LastHitValid = false;
+                BowAimState.Release(false, power);
                 Debug.Log("[PlayerCombat] 🏹 활 발사 실패 — 화살 부족 or ArrowManager 미생성");
                 return;
             }
             transform.rotation = Quaternion.LookRotation(launchForward.normalized, Vector3.up);
+            Debug.LogWarning($"[BowAim] fired projectile={projectile.name} muzzle={origin} aim={aimPoint} "
+                + $"dir={dir} velocity={projectile.GetComponent<Rigidbody>().linearVelocity}");
             // [70차 후속19/C1·C6] 발사 성공 — 소형 카메라 킥(활 전용) + 파워 기억(명중 시 크리틱 연출용)
             CombatCameraEffects.PlayFireKick();
             LastBowPower = power;
@@ -853,6 +939,13 @@ namespace ProjectName.Systems
             // ④ 발사 성공 시에만 연출 — 카메라 반동 + 발사 전진(런지)
             TriggerCameraEffects();
             StartCoroutine(AttackLungeCoroutine());
+        }
+
+        private void CancelBowShotWithoutFreshDraw(string route, float power)
+        {
+            LastHitValid = false;
+            BowAimState.Release(false, power);
+            Debug.LogWarning($"[PlayerCombat] 활 발사 취소 — 현재 드로/릴리즈에 묶인 조준 샘플 없음 (route={route})");
         }
 
         /// <summary>
@@ -938,7 +1031,7 @@ namespace ProjectName.Systems
         /// <summary>
         /// C4-08: 특정 타겟을 공격합니다.
         /// </summary>
-        private void AttackTarget(IDamageable target)
+        private void AttackTarget(IDamageable target, bool comboOwnedImpact = false)
         {
             if (target == null || !target.IsAlive) return;
             if (IsOwnSoldier(target)) return;   // [69차 후속10] 아군 오인 피해 차단 — 내 소속 병사는 플레이어 공격으로 피해를 입지 않는다(합세 통보도 없음)
@@ -1014,8 +1107,11 @@ namespace ProjectName.Systems
             // 공격자 리코일(2026-09-14): 타격 성공 직후 타격 방향 반대(-hitDirection)로 밀려나는 짧은 반동.
             // 백어택/치명타면 반동 증폭(0.15m → 0.25m). HitStopManager는 기존 규약대로 마지막에 호출(호출 순서 변경 없음).
             // #48차 후속 FIX(2026-09-14): 리코일 시작 전 플래그 ON — 러닝 중 런지가 이 플래그 해제를 대기(순차 인계).
-            _recoilActive = true;
-            StartCoroutine(RecoilCoroutine(-hitDirection, isBackAttack ? RecoilDistanceCrit : RecoilDistanceNormal));
+            if (ShouldApplyAttackMovementEffects(comboOwnedImpact))
+            {
+                _recoilActive = true;
+                StartCoroutine(RecoilCoroutine(-hitDirection, isBackAttack ? RecoilDistanceCrit : RecoilDistanceNormal));
+            }
 
             // Phase B: 무기별 적중 사운드 레이어링
             PlayWeaponHitSound(isBackAttack);
@@ -1062,7 +1158,7 @@ namespace ProjectName.Systems
         /// <summary>
         /// 자동 조준 실패 시 화면 중앙 방향으로 SphereCast 공격
         /// </summary>
-        private bool AttackCenterScreen()
+        private bool AttackCenterScreen(bool comboOwnedImpact = false)
         {
             if (_mainCamera == null)
             {
@@ -1078,7 +1174,7 @@ namespace ProjectName.Systems
                 IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
                 if (target != null && target.IsAlive)
                 {
-                    AttackTarget(target);
+                    AttackTarget(target, comboOwnedImpact);
                     return true;
                 }
             }

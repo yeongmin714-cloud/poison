@@ -159,7 +159,7 @@ namespace ProjectName.UI
             // ===== 조명 설정 (C11-05) =====
             // 따뜻한 앰비언트 + 천장 중앙 Point Light + 깜빡임
             Color ambientWarm = new Color(0.15f, 0.10f, 0.05f);
-            ProjectName.Systems.IndoorLighting.SetupIndoorLighting(room, ambientWarm, 1f, true);
+            ProjectName.Systems.IndoorLighting.SetupIndoorLighting(room, ambientWarm, 0.3f, true);
 
             // 추가 포인트 라이트 (카운터 위)
             ProjectName.Systems.IndoorLighting.AddPointLight(room,

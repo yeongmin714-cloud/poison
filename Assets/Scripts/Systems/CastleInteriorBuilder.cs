@@ -96,18 +96,13 @@ namespace ProjectName.Systems
             CreateLineWall(room, "Lobby_West_Upper", new Vector3(-7f, 0f, 3f), new Vector3(-7f, 0f, -3f), height, wallMat, 0f);
             CreateLineWall(room, "Lobby_East_Upper", new Vector3(7f, 0f, 3f), new Vector3(7f, 0f, -3f), height, wallMat, 0f);
 
-            // Room dividers extend from lobby vertices to the outer boundary. They define four
-            // separate side rooms; none of the side-room walls blocks another room's lobby doorway.
-            CreateLineWall(room, "Bedroom_WestBoundary", new Vector3(-3f, 0f, 7f), new Vector3(-14f, 0f, 18f), height, wallMat, 0f);
-            CreateLineWall(room, "Bedroom_EastBoundary", new Vector3(3f, 0f, 7f), new Vector3(14f, 0f, 18f), height, wallMat, 0f);
-            CreateLineWall(room, "Craft_OuterBoundary", new Vector3(-7f, 0f, 3f), new Vector3(-24f, 0f, 0f), height, wallMat, 0f);
-            CreateLineWall(room, "Storage_OuterBoundary", new Vector3(7f, 0f, 3f), new Vector3(24f, 0f, 0f), height, wallMat, 0f);
-            CreateLineWall(room, "Craft_BedroomSeparator", new Vector3(-24f, 0f, 0f), new Vector3(-14f, 0f, 18f), height, wallMat, 0f);
-            CreateLineWall(room, "Bedroom_StorageSeparator", new Vector3(14f, 0f, 18f), new Vector3(24f, 0f, 0f), height, wallMat, 0f);
-            CreateLineWall(room, "Barracks_OuterBoundary", new Vector3(-7f, 0f, -3f), new Vector3(-24f, 0f, 0f), height, wallMat, 0f);
-            CreateLineWall(room, "Alchemy_OuterBoundary", new Vector3(7f, 0f, -3f), new Vector3(24f, 0f, 0f), height, wallMat, 0f);
-            CreateLineWall(room, "Barracks_SouthBoundary", new Vector3(-3f, 0f, -7f), new Vector3(-14f, 0f, -18f), height, wallMat, 0f);
-            CreateLineWall(room, "Alchemy_SouthBoundary", new Vector3(3f, 0f, -7f), new Vector3(14f, 0f, -18f), height, wallMat, 0f);
+            // Room dividers extend from the lobby to the outer boundary. The north bedroom
+            // occupies the narrow central bay; its straight walls replace the crossing diagonals.
+            CreateLineWall(room, "Bedroom_WestBoundary", new Vector3(-3f, 0f, 7f), new Vector3(-3f, 0f, 18f), height, wallMat, 0f);
+            CreateLineWall(room, "Bedroom_EastBoundary", new Vector3(3f, 0f, 7f), new Vector3(3f, 0f, 18f), height, wallMat, 0f);
+            CreateLineWall(room, "WestRoomSeparator", new Vector3(-7f, 0f, 0f), new Vector3(-24f, 0f, 0f), height, wallMat, 0f);
+            CreateLineWall(room, "EastRoomSeparator", new Vector3(7f, 0f, 0f), new Vector3(24f, 0f, 0f), height, wallMat, 0f);
+            // South vestibule sidewalls also form the inner boundaries of the south rooms.
 
             // Ancillary locked pockets. Each partition and door is wholly inside its room, away
             // from the open lobby links. The four historical lock contracts are unchanged.
@@ -117,16 +112,12 @@ namespace ProjectName.Systems
                 LockpickingSystem.LockDifficulty.VeryHard, new Vector3(-5f, 1.25f, 13f), 0f, woodMat);
             CreateLineWall(room, "OfficePocketReturn_West", new Vector3(-7f, 0f, 13f),
                 new Vector3(-7f, 0f, 17f), height, wallMat, 0f);
-            CreateLineWall(room, "OfficePocketReturn_East", new Vector3(-3f, 0f, 13f),
-                new Vector3(-3f, 0f, 17f), height, wallMat, 0f);
             CreateLineWall(room, "OfficePocketBack", new Vector3(-7f, 0f, 17f),
                 new Vector3(-3f, 0f, 17f), height, wallMat, 0f);
             CreatePartition(room, "VaultPocketWall", 4f, height, 0.3f,
                 new Vector3(5f, 0f, 13f), 0f, 0f, 1.2f, wallMat);
             CreateDoor(room, "VaultDoor_Locked", "💰 금고실 (전설 잠김)", "castle_vault",
                 LockpickingSystem.LockDifficulty.Legendary, new Vector3(5f, 1.25f, 13f), 0f, stoneMat);
-            CreateLineWall(room, "VaultPocketReturn_West", new Vector3(3f, 0f, 13f),
-                new Vector3(3f, 0f, 17f), height, wallMat, 0f);
             CreateLineWall(room, "VaultPocketReturn_East", new Vector3(7f, 0f, 13f),
                 new Vector3(7f, 0f, 17f), height, wallMat, 0f);
             CreateLineWall(room, "VaultPocketBack", new Vector3(3f, 0f, 17f),
@@ -154,8 +145,8 @@ namespace ProjectName.Systems
 
             // Sparse catalog furnishings stay within their named rooms and away from the lobby.
             PlaceFurniture(IndoorFurnitureCatalog.CreateBed(1.2f, 2.0f, woodMat), room, "BedroomBed", new Vector3(0f, 0f, 12f));
-            PlaceFurniture(IndoorFurnitureCatalog.CreateTable(1.4f, 1.0f, 0.8f, woodMat), room, "BedroomTable", new Vector3(5f, 0f, 10f));
-            PlaceFurniture(IndoorFurnitureCatalog.CreateChair(0.9f, woodMat), room, "BedroomChair", new Vector3(5f, 0f, 11.5f));
+            PlaceFurniture(IndoorFurnitureCatalog.CreateTable(1.4f, 1.0f, 0.8f, woodMat), room, "BedroomTable", new Vector3(-1.8f, 0f, 10f));
+            PlaceFurniture(IndoorFurnitureCatalog.CreateChair(0.9f, woodMat), room, "BedroomChair", new Vector3(1.8f, 0f, 10f));
             PlaceFurniture(IndoorFurnitureCatalog.CreateShelf(1.5f, 2.0f, 0.5f, woodMat, 3), room, "BedroomShelf", new Vector3(0f, 0f, 16f));
 
             PlaceFurniture(IndoorFurnitureCatalog.CreateTable(1.8f, 1.2f, 0.9f, woodMat), room, "CraftTable", new Vector3(-21.5f, 0f, 8f));
@@ -209,7 +200,8 @@ namespace ProjectName.Systems
                 room.transform.Find("BedroomTable")?.Rotate(0f, 90f, 0f, Space.Self);
 
             Color ambient = new Color(0.08f, 0.07f, 0.06f);
-            IndoorLighting.SetupIndoorLighting(room, ambient, 0.7f, false);
+            // 주변광 대폭 축소 — 불빛(포인트라이트) 중심의 은은한 실내 무드.
+            IndoorLighting.SetupIndoorLighting(room, ambient, 0.22f, false);
             IndoorLighting.AddPointLight(room, new Vector3((layoutVariant - 3.5f) * 0.2f, height - 0.5f, 0f),
                 new Color(1f, 0.9f, 0.7f), 12f, 1.0f);
             IndoorLighting.AddPointLight(room, new Vector3(0f, height - 0.5f, 11f),
@@ -265,7 +257,9 @@ namespace ProjectName.Systems
             lockedDoor.Difficulty = difficulty;
             // LockedDoor handles the lock interaction/state only; it has no collider or
             // physical open behavior. Block passage while locked, then clear it on unlock.
-            door.AddComponent<BoxCollider>();
+            BoxCollider doorCollider = door.AddComponent<BoxCollider>();
+            doorCollider.size = new Vector3(1f, 2.4f, 1f);
+            doorCollider.center = new Vector3(0f, 0.7f, 0f);
             door.AddComponent<LockedDoorCollision>();
             NameplateDisplay nameplate = door.AddComponent<NameplateDisplay>();
             nameplate.DisplayName = label;

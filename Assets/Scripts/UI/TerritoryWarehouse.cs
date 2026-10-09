@@ -311,6 +311,8 @@ namespace ProjectName.UI
 
         private void OnGUI()
         {
+            // World-space interaction hints belong to the unobstructed play view, not over a Figma window.
+            if (ProjectName.Core.UITransitionState.AnyWindowOpen) return;
             if (!_isPlayerNearby) return;
 
             if (_guiDirty)

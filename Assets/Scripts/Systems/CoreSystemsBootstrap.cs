@@ -19,8 +19,7 @@ public class CoreSystemsBootstrap : MonoBehaviour
     {
         if (!_initializeOnAwake) return;
 
-        RevengeMainQuestDefinitions.RegisterAll();
-        RevengeQuestChainDefinitions.RegisterAll();
+        // Story quest registration is deferred until the rewritten story/quest wiring is ready.
 
         // 1. TerritoryDatabase 강제 초기화 (Lazy<T> 인스턴스 생성)
         ForceInitializeTerritoryDatabase();
@@ -147,12 +146,12 @@ public class CoreSystemsBootstrap : MonoBehaviour
     /// GuardSelectionManager 싱글톤 보장 — 좌클릭 드래그(10px 이상)로 자기 소속 병사만 선택
     /// 단순 좌클릭(10px 미만)은 무시되므로 PlayerCombat 좌클릭 공격과 자연 분리
     /// </summary>
-    private void EnsureGuardSelectionManager()
+    public static void EnsureGuardSelectionManager()
     {
         try
         {
             // 중복 가드 — 씬에 이미 배치(비활성 포함)된 경우 생성하지 않음
-            var existing = FindAnyObjectByType<GuardSelectionManager>(FindObjectsInactive.Include);
+            var existing = Object.FindAnyObjectByType<GuardSelectionManager>(FindObjectsInactive.Include);
             if (existing != null)
             {
                 Debug.Log("[CoreSystemsBootstrap] GuardSelectionManager 이미 존재");

@@ -33,7 +33,7 @@ namespace ProjectName.UI
         private const float EXIT_Z_OFFSET = 0.5f;
         private const float LIGHT_RANGE = 6f;
         private const float LIGHT_INTENSITY = 0.6f;
-        private const float AMBIENT_INTENSITY = 0.5f;
+        private const float AMBIENT_INTENSITY = 0.16f;
         private static readonly Color AMBIENT_DARK = new Color(0.04f, 0.04f, 0.06f);
         private static readonly Color ALTAR_MAT_COLOR = new Color(0.80f, 0.75f, 0.65f);
         private static readonly Color BENCH_MAT_COLOR = new Color(0.55f, 0.40f, 0.25f);

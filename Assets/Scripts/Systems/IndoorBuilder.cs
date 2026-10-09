@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 #pragma warning disable 0414
 
@@ -90,6 +91,96 @@ namespace ProjectName.Systems
             AddWallSegment(wall, rightFrom, rightTo, height, thickness * 0.5f, 0, material);
             AddWallSegment(wall, leftFrom, leftTo, height, -thickness * 0.5f, 180, material);
             AddWallSegment(wall, rightFrom, rightTo, height, -thickness * 0.5f, 180, material);
+        }
+
+        /// <summary>
+        /// Builds a solid double-sided masonry divider with an open, full-height portal. Endpoints
+        /// are floor-level XZ positions. The generated mesh includes thickness, top, ends and reveals.
+        /// </summary>
+        public static GameObject CreateSolidInteriorWall(GameObject parent, string name,
+            Vector2 start, Vector2 end, float height, float thickness, float doorwayOffset,
+            float doorwayWidth, float doorwayHeight, Material material)
+        {
+            if (parent == null || height <= 0f || thickness <= 0f) return null;
+            float dx = end.x - start.x;
+            float dz = end.y - start.y;
+            float length = Mathf.Sqrt(dx * dx + dz * dz);
+            if (length <= 0.01f) return null;
+
+            bool hasDoorway = doorwayWidth > 0f;
+            doorwayWidth = Mathf.Clamp(doorwayWidth, 0f, length);
+            doorwayHeight = Mathf.Clamp(doorwayHeight, 0f, height);
+            if (hasDoorway)
+                doorwayOffset = Mathf.Clamp(doorwayOffset, -length * 0.5f + doorwayWidth * 0.5f,
+                    length * 0.5f - doorwayWidth * 0.5f);
+            else
+                doorwayWidth = 0f;
+
+            var wall = new GameObject(name);
+            wall.transform.SetParent(parent.transform, false);
+            wall.transform.localPosition = new Vector3((start.x + end.x) * 0.5f, 0f,
+                (start.y + end.y) * 0.5f);
+            wall.transform.localRotation = Quaternion.Euler(0f, Mathf.Atan2(-dz, dx) * Mathf.Rad2Deg, 0f);
+
+            var vertices = new List<Vector3>();
+            var uvs = new List<Vector2>();
+            var triangles = new List<int>();
+            float leftEnd = hasDoorway ? doorwayOffset - doorwayWidth * 0.5f : length * 0.5f;
+            float rightStart = hasDoorway ? doorwayOffset + doorwayWidth * 0.5f : length * 0.5f;
+            AddSolidBox(vertices, uvs, triangles, -length * 0.5f, leftEnd, 0f, height, thickness);
+            if (hasDoorway)
+            {
+                AddSolidBox(vertices, uvs, triangles, rightStart, length * 0.5f, 0f, height, thickness);
+                AddSolidBox(vertices, uvs, triangles, leftEnd, rightStart, doorwayHeight, height, thickness);
+            }
+
+            var mesh = new Mesh { name = name + "_ClosedMasonryMesh" };
+            mesh.SetVertices(vertices);
+            mesh.SetUVs(0, uvs);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            wall.AddComponent<MeshFilter>().sharedMesh = mesh;
+            wall.AddComponent<MeshRenderer>().sharedMaterial = material;
+            wall.AddComponent<MeshCollider>().sharedMesh = mesh;
+            return wall;
+        }
+
+        private static void AddSolidBox(List<Vector3> vertices, List<Vector2> uvs, List<int> triangles,
+            float minX, float maxX, float minY, float maxY, float thickness)
+        {
+            if (maxX - minX <= 0.001f || maxY - minY <= 0.001f) return;
+            float z0 = -thickness * 0.5f;
+            float z1 = thickness * 0.5f;
+            // Each face's vertices are ordered for outward-facing normals, as required by MeshCollider.
+            AddSolidFace(vertices, uvs, triangles, new Vector3(minX, minY, z0), new Vector3(minX, maxY, z0),
+                new Vector3(maxX, minY, z0), new Vector3(maxX, maxY, z0), maxX - minX, maxY - minY);
+            AddSolidFace(vertices, uvs, triangles, new Vector3(maxX, minY, z1), new Vector3(maxX, maxY, z1),
+                new Vector3(minX, minY, z1), new Vector3(minX, maxY, z1), maxX - minX, maxY - minY);
+            AddSolidFace(vertices, uvs, triangles, new Vector3(minX, minY, z1), new Vector3(minX, maxY, z1),
+                new Vector3(minX, minY, z0), new Vector3(minX, maxY, z0), thickness, maxY - minY);
+            AddSolidFace(vertices, uvs, triangles, new Vector3(maxX, minY, z0), new Vector3(maxX, maxY, z0),
+                new Vector3(maxX, minY, z1), new Vector3(maxX, maxY, z1), thickness, maxY - minY);
+            AddSolidFace(vertices, uvs, triangles, new Vector3(minX, maxY, z0), new Vector3(minX, maxY, z1),
+                new Vector3(maxX, maxY, z0), new Vector3(maxX, maxY, z1), maxX - minX, thickness);
+            AddSolidFace(vertices, uvs, triangles, new Vector3(minX, minY, z1), new Vector3(minX, minY, z0),
+                new Vector3(maxX, minY, z1), new Vector3(maxX, minY, z0), maxX - minX, thickness);
+        }
+
+        private static void AddSolidFace(List<Vector3> vertices, List<Vector2> uvs, List<int> triangles,
+            Vector3 a, Vector3 b, Vector3 c, Vector3 d, float uvWidth, float uvHeight)
+        {
+            int first = vertices.Count;
+            vertices.Add(a); vertices.Add(b); vertices.Add(c); vertices.Add(d);
+            float tileWidth = Mathf.Max(uvWidth, 0.05f) / 2.2f;
+            float tileHeight = Mathf.Max(uvHeight, 0.05f) / 1.1f;
+            uvs.Add(new Vector2(0f, 0f));
+            uvs.Add(new Vector2(tileWidth, 0f));
+            uvs.Add(new Vector2(0f, tileHeight));
+            uvs.Add(new Vector2(tileWidth, tileHeight));
+            // The supplied face vertices are ordered so this winding yields the outward normal.
+            triangles.Add(first); triangles.Add(first + 1); triangles.Add(first + 2);
+            triangles.Add(first + 2); triangles.Add(first + 1); triangles.Add(first + 3);
         }
 
         private static void AddWallSegment(GameObject wall, float fromX, float toX, float height,

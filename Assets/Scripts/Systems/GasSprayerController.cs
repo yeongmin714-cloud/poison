@@ -63,12 +63,166 @@ namespace ProjectName.Systems
         /// <summary>재장전 남은 시간 (초)</summary>
         public float ReloadTimeRemaining { get; private set; }
 
-        // 삽입된 물약 정보
+        // 삽입된 물약 정보. Count는 직접 장전한/CloudLauncher 경로의 미사용 투여량도 보존한다.
         public string LoadedPotionId { get; internal set; }  // 빈 문자열 = 없음
         public int LoadedPotionCount { get; internal set; }
 
-        // ===== C8-33: 물약 장전 설정 =====
-        [SerializeField] private float _potionConsumptionMultiplier = 2.0f;  // 물약 장전 시 추가 소모율
+        // Phase 4A: each active potion dose is timed independently of canister gas.
+        [SerializeField, Min(0.01f)] private float _potionDoseDuration = 10f;
+        public float PotionDoseDuration => Mathf.Max(0.01f, _potionDoseDuration);
+        public float PotionDoseTimeRemaining { get; private set; }
+        [SerializeField] private float _potionConsumptionMultiplier = 2.0f;  // Preserve legacy canister fuel cost while spraying a dose
+
+        private bool HasPotionDose => !string.IsNullOrEmpty(LoadedPotionId) && LoadedPotionCount > 0;
+        private bool _isAdvancingSprayTime;
+        private bool _gInputHeld;
+        private bool _gInputStartedSpray;
+
+        /// <summary>Executed when the input owner presses G; lets the HUD follow state without owning input.</summary>
+        public event Action<bool> OnSprayingChanged;
+        public event Action<float, float> OnPotionDoseTimeChanged;
+        public event Action OnPotionDoseDepleted;
+        public event Action OnGPressRequested;
+
+        /// <summary>Single physical G input hook. A hold sprays; releasing pauses it.</summary>
+        public void SetGInputHeld(bool held)
+        {
+            SetGInputHeld(held, UITransitionState.IndoorActive, true);
+        }
+
+        // Deterministic EditMode seam avoids constructing scene-only effects.
+        internal void SetGInputHeld(bool held, bool triggerExternalEffects)
+        {
+            SetGInputHeld(held, UITransitionState.IndoorActive, triggerExternalEffects);
+        }
+
+        // State-injected seam lets EditMode tests exercise indoor transitions without scene setup.
+        internal void SetGInputHeld(bool held, bool indoorActive, bool triggerExternalEffects)
+        {
+            if (!held)
+            {
+                _gInputHeld = false;
+                if (_gInputStartedSpray && IsSpraying)
+                    StopSpray();
+                _gInputStartedSpray = false;
+                return;
+            }
+
+            if (indoorActive)
+            {
+                _gInputHeld = true;
+                if (_gInputStartedSpray && IsSpraying)
+                    StopSpray();
+                _gInputStartedSpray = false;
+                return;
+            }
+
+            if (_gInputHeld) return;
+            _gInputHeld = true;
+            if (!IsEquipped || IsReloading || IsSpraying) return;
+
+            OnGPressRequested?.Invoke();
+
+            StartSpray(false);
+            _gInputStartedSpray = IsSpraying;
+        }
+
+        /// <summary>Time-driven spray accounting, public to permit deterministic EditMode coverage.</summary>
+        public void AdvanceSprayTime(float elapsedSeconds)
+        {
+            if (elapsedSeconds <= 0f || !IsEquipped || !_isSpraying || _isAdvancingSprayTime) return;
+            _isAdvancingSprayTime = true;
+            try
+            {
+                float remainingElapsed = elapsedSeconds;
+                while (remainingElapsed > 0f && _isSpraying)
+                {
+                    float step = remainingElapsed;
+                    if (HasPotionDose && PotionDoseTimeRemaining > 0f)
+                        step = Mathf.Min(step, PotionDoseTimeRemaining);
+
+                    var data = GasSprayerManager.GetGradeData(CurrentGrade);
+                    if (!data.isUnlimited)
+                    {
+                        float fuelRate = HasPotionDose ? _potionConsumptionMultiplier : 1f;
+                        float untilEmpty = CurrentSprayTimeRemaining / Mathf.Max(0.01f, fuelRate);
+                        step = Mathf.Min(step, untilEmpty);
+                    }
+
+                    if (step <= 0f) step = remainingElapsed;
+                    if (!data.isUnlimited)
+                    {
+                        float fuelRate = HasPotionDose ? _potionConsumptionMultiplier : 1f;
+                        CurrentSprayTimeRemaining = Mathf.Max(0f, CurrentSprayTimeRemaining - step * fuelRate);
+                    }
+                    if (HasPotionDose)
+                    {
+                        PotionDoseTimeRemaining = Mathf.Max(0f, PotionDoseTimeRemaining - step);
+                        OnPotionDoseTimeChanged?.Invoke(PotionDoseTimeRemaining, PotionDoseDuration);
+                    }
+                    remainingElapsed -= step;
+
+                    bool fuelDepleted = !data.isUnlimited && CurrentSprayTimeRemaining <= 0f;
+                    bool doseDepleted = HasPotionDose && PotionDoseTimeRemaining <= 0f;
+
+                    // Resolve the dose boundary first so a simultaneous fuel boundary cannot
+                    // strand an exhausted dose in the HUD/controller state.
+                    if (doseDepleted)
+                        ConsumeCompletedPotionDose();
+
+                    if (fuelDepleted)
+                    {
+                        if (_isSpraying)
+                        {
+                            _isSpraying = false;
+                            OnSprayingChanged?.Invoke(false);
+                        }
+                        StartReload();
+                        break;
+                    }
+
+                    if (doseDepleted && !_isSpraying) break;
+                }
+            }
+            finally { _isAdvancingSprayTime = false; }
+        }
+
+        private void ConsumeCompletedPotionDose()
+        {
+            string doseId = LoadedPotionId;
+            LoadedPotionCount = Mathf.Max(0, LoadedPotionCount - 1);
+            PotionDoseTimeRemaining = 0f;
+
+            if (LoadedPotionCount > 0)
+            {
+                PotionDoseTimeRemaining = PotionDoseDuration;
+            }
+            else if (GasPotionLoader.TryLoadNextDose(this, doseId))
+            {
+                // Loader atomically removes one inventory item and initializes the next dose.
+            }
+            else
+            {
+                LoadedPotionId = string.Empty;
+                LoadedPotionCount = 0;
+                _isSpraying = false;
+                OnSprayingChanged?.Invoke(false);
+                Debug.Log("[GasSprayerController] 물약 재고 소진 — 분사를 중단합니다.");
+            }
+
+            OnPotionDoseDepleted?.Invoke();
+            NotifyPotionChanged();
+            OnPotionDoseTimeChanged?.Invoke(PotionDoseTimeRemaining, PotionDoseDuration);
+        }
+
+        internal void SetLoadedPotionDose(string potionId, int count)
+        {
+            LoadedPotionId = potionId;
+            LoadedPotionCount = count;
+            PotionDoseTimeRemaining = count > 0 ? PotionDoseDuration : 0f;
+            NotifyPotionChanged();
+            OnPotionDoseTimeChanged?.Invoke(PotionDoseTimeRemaining, PotionDoseDuration);
+        }
 
         // ===== C8-34: 재장전 이벤트 =====
         /// <summary>재장전 상태 변경 시 알림</summary>
@@ -102,31 +256,9 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 분사 중일 때 가스 소모
-            if (_isSpraying && IsEquipped && CurrentSprayTimeRemaining > 0f)
-            {
-                var data = GasSprayerManager.GetGradeData(CurrentGrade);
-                if (!data.isUnlimited)
-                {
-                    float consumption = Time.deltaTime;
-
-                    // C8-33: 물약 장전 시 가스 소모율 증가
-                    if (!string.IsNullOrEmpty(LoadedPotionId) && LoadedPotionCount > 0)
-                    {
-                        consumption *= _potionConsumptionMultiplier;
-                    }
-
-                    CurrentSprayTimeRemaining -= consumption;
-                    if (CurrentSprayTimeRemaining <= 0f)
-                    {
-                        CurrentSprayTimeRemaining = 0f;
-                        _isSpraying = false;
-                        // C8-34: 가스 소진 시 자동 재장전
-                        StartReload();
-                    }
-                }
-                // Unlimited (SpecialAlloy) — 소모 없음
-            }
+            // Fuel and active potion dose advance together; pauses preserve the current dose timer.
+            if (_isSpraying && IsEquipped)
+                AdvanceSprayTime(Time.deltaTime);
         }
 
         // ===== C8-32: Equip / Unequip (grade 기반) =====
@@ -185,10 +317,15 @@ namespace ProjectName.Systems
             IsEquipped = false;
             CurrentGrade = default;
             EquippedSprayerName = null;
+            bool wasSpraying = _isSpraying;
             _isSpraying = false;
+            _gInputStartedSpray = false;
+            if (wasSpraying) OnSprayingChanged?.Invoke(false);
             CurrentSprayTimeRemaining = 0f;
             LoadedPotionId = "";
             LoadedPotionCount = 0;
+            PotionDoseTimeRemaining = 0f;
+            OnPotionDoseTimeChanged?.Invoke(0f, PotionDoseDuration);
 
             Debug.Log("[GasSprayerController] 분사기 해제 완료! (Unequip)");
 
@@ -231,7 +368,9 @@ namespace ProjectName.Systems
             }
 
             LoadedPotionId = potionItemId;
+            bool wasEmpty = LoadedPotionCount <= 0;
             LoadedPotionCount += count;
+            if (wasEmpty) PotionDoseTimeRemaining = PotionDoseDuration;
 
             Debug.Log($"[GasSprayerController] 물약 장전 완료: {potionItemId} x{count} (총 {LoadedPotionCount})");
 
@@ -259,6 +398,8 @@ namespace ProjectName.Systems
 
             LoadedPotionId = "";
             LoadedPotionCount = 0;
+            PotionDoseTimeRemaining = 0f;
+            OnPotionDoseTimeChanged?.Invoke(0f, PotionDoseDuration);
 
             NotifyPotionChanged();
         }
@@ -282,6 +423,12 @@ namespace ProjectName.Systems
         /// 분사 시작. 장착 상태이고 가스가 남아있어야 함.
         /// </summary>
         public void StartSpray()
+        {
+            StartSpray(true);
+        }
+
+        // Deterministic EditMode seam that avoids constructing scene-only effects.
+        internal void StartSpray(bool triggerExternalEffects)
         {
             if (!IsEquipped)
             {
@@ -308,14 +455,18 @@ namespace ProjectName.Systems
                 return;
             }
 
+            if (HasPotionDose && PotionDoseTimeRemaining <= 0f)
+                PotionDoseTimeRemaining = PotionDoseDuration;
+
             _isSpraying = true;
+            OnSprayingChanged?.Invoke(true);
             Debug.Log("[GasSprayerController] 분사 시작!");
 
             // 🔊 컨트롤러 진동: 가스 분사 (Heavy)
             HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Heavy);
 
             // Phase 41-2: SpecialEffectsController를 통해 독안개 생성
-            if (SpecialEffectsController.Instance != null)
+            if (triggerExternalEffects && SpecialEffectsController.Instance != null)
             {
                 SpecialEffectsController.Instance.OnGasSprayStart();
             }
@@ -330,6 +481,7 @@ namespace ProjectName.Systems
                 return;
 
             _isSpraying = false;
+            OnSprayingChanged?.Invoke(false);
             Debug.Log("[GasSprayerController] 분사 중단!");
         }
 

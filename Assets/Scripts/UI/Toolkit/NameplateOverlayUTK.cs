@@ -59,8 +59,8 @@ namespace ProjectName.UI.Toolkit
         private const float  SlotW             = 120f;  // 슬롯 컨테이너 폭(중앙정렬 기준)
         private const float  NameH             = 18f;   // 이름 라벨 높이
         private const float  LvH               = 16f;   // 몬스터 Lv 라벨 높이
-        private const float  BarW              = 72f;   // 입체 HP바 폭
-        private const float  BarH              = 10f;   // 입체 HP바 높이
+        private const float  BarW              = 78f;   // Figma 101:5 gauge-container bounds
+        private const float  BarH              = 9.6f;
         private const float  NpcH              = 26f;   // NPC 이름표 높이
 
         // 라벨 배경 (다크 갈색 아크릴 반투명) — 요구 rgba(30,24,18,0.82)
@@ -697,7 +697,7 @@ namespace ProjectName.UI.Toolkit
             slot.ratioLabel.style.position = Position.Absolute;
             slot.ratioLabel.style.right = 2f;
             slot.ratioLabel.style.top = 0f; slot.ratioLabel.style.bottom = 0f;
-            slot.ratioLabel.style.fontSize = 8f;
+            slot.ratioLabel.style.fontSize = 9.6f;
             slot.ratioLabel.style.unityTextAlign = TextAnchor.MiddleRight;
             slot.ratioLabel.style.color = new StyleColor(Color.white);
             slot.ratioLabel.pickingMode = PickingMode.Ignore;
@@ -742,14 +742,14 @@ namespace ProjectName.UI.Toolkit
             parent.Add(row);
 
             var icon = new Label(iconChar);
-            icon.style.fontSize = 10f;
+            icon.style.fontSize = 12f;
             icon.style.color = new StyleColor(new Color(1f, 1f, 1f, 0.9f));
             icon.style.marginRight = 2f;
             icon.pickingMode = PickingMode.Ignore;
             row.Add(icon);
 
             var val = new Label("—");
-            val.style.fontSize = 11f;
+            val.style.fontSize = 12f;
             val.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
             val.style.color = new StyleColor(valColor);
             val.pickingMode = PickingMode.Ignore;

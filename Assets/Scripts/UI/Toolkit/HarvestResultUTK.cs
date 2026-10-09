@@ -14,15 +14,15 @@ namespace ProjectName.UI.Toolkit
     /// UI Toolkit — 낚시/채집/광질 결과 공용 팝업.
     /// Figma `fishing/gathering/mining-result-ui` 공용 템플릿(HUDHeader + ResultPanel + SystemTip)을 GitHub-dark로 재현.
     /// 단일 채널 공용 — HarvestResultBridge.Latest* 를 16ms 폴링해 새 결과(LatestToken 변화) 감지 시 표시.
-    /// 표시 후 Bridge가 이미 아이템 인벤에 들어가 있으므로 '인벤토리에 놓기'는 닫기(보관됨 안내), '버리기'는 닫기.
+    /// 생산 시스템이 publish 전에 이미 아이템을 적립한다. 확인은 닫기만 한다. 안전한 획득 건 단위 제거 API가 없어 두 번째 액션도 닫기로 표시한다.
     /// </summary>
     public class HarvestResultUTK : UTKWindowBase
     {
         private static HarvestResultUTK _instance;
         private static Updater _updater;
 
-        private const float WinW = 480f;   // [Figma 72:17] ResultPanel 480×716/718/746 (낚시 기준 공용)
-        private const float WinH = 718f;
+        private const float WinW = 576f;   // Archived 72:* ResultPanel width
+        private const float WinH = 859.8f; // Fishing variant; variant bounds applied per kind
         private const long TickMs = 16L;
 
         // ===== GitHub-dark 팔레트 (F-UI 표준, 이 창 한정) =====
@@ -63,15 +63,23 @@ namespace ProjectName.UI.Toolkit
         private readonly Label _descHeader;    // "물고기 특징"
         private readonly Label _descBody;      // 설명
         private readonly Label _tipLabel;      // SystemTip
+        private readonly VisualElement _resultPanel;
+        private readonly VisualElement _header;
+        private readonly VisualElement _actions;
+        private readonly VisualElement _tip;
         private IVisualElementScheduledItem _tickTask;
+        private IVisualElementScheduledItem _closeTask;
         private int _lastToken = -1;
+        private int _closeGeneration;
 
         private HarvestResultUTK() : base("🎣 채집·광질 결과", new Vector2(WinW, WinH))
         {
+            SetChrome(UTKWindowChrome.Frameless);
             ApplyGitHubDarkStyle();
 
             // ── HUDHeader ──
             var header = new VisualElement();
+            _header = header;
             header.style.flexDirection = FlexDirection.Row;
             header.style.alignItems = Align.Center;
             header.style.paddingTop = 4f; header.style.paddingBottom = 4f;
@@ -80,18 +88,19 @@ namespace ProjectName.UI.Toolkit
             Content.Add(header);
 
             _locLabel = new Label("—");
-            _locLabel.style.fontSize = 13f;
+            _locLabel.style.fontSize = 13.2f;
             _locLabel.style.color = Dark.TextSub;
             _locLabel.style.flexGrow = 1f;
             header.Add(_locLabel);
 
             _staminaLabel = new Label("");
-            _staminaLabel.style.fontSize = 13f;
+            _staminaLabel.style.fontSize = 13.2f;
             _staminaLabel.style.color = Hex(0xFF7300);   // STA 주황
             header.Add(_staminaLabel);
 
             // ── ResultPanel ──
             var panel = new VisualElement();
+            _resultPanel = panel;
             panel.style.backgroundColor = Dark.Panel;
             panel.style.borderTopWidth = panel.style.borderBottomWidth = panel.style.borderLeftWidth = panel.style.borderRightWidth = 1f;
             panel.style.borderTopColor = panel.style.borderBottomColor = panel.style.borderLeftColor = panel.style.borderRightColor = new StyleColor(Dark.Stroke);
@@ -109,13 +118,13 @@ namespace ProjectName.UI.Toolkit
             panel.Add(head);
 
             _subtitle = new Label("FISHING RESULT");
-            _subtitle.style.fontSize = 14f;
+            _subtitle.style.fontSize = 14.4f;
             _subtitle.style.color = Dark.TextSub;
             _subtitle.style.flexGrow = 1f;
             head.Add(_subtitle);
 
             _badge = new Label("SUCCESS");
-            _badge.style.fontSize = 13f;
+            _badge.style.fontSize = 13.2f;
             _badge.style.color = Dark.Accent;
             _badge.style.backgroundColor = Dark.Accent;
             _badge.style.borderTopLeftRadius = 4f; _badge.style.borderTopRightRadius = 4f;
@@ -128,14 +137,14 @@ namespace ProjectName.UI.Toolkit
 
             // NotificationTitle
             _verb = new Label("");
-            _verb.style.fontSize = 18f;
+            _verb.style.fontSize = 16.8f;
             _verb.style.color = Dark.Accent;
             _verb.style.marginTop = 20f;   // [Figma] gap20
             _verb.style.whiteSpace = WhiteSpace.Normal;
             panel.Add(_verb);
 
             _itemName = new Label("");
-            _itemName.style.fontSize = 15f;
+            _itemName.style.fontSize = 15.6f;
             _itemName.style.color = Dark.Gold;
             _itemName.style.whiteSpace = WhiteSpace.Normal;
             _itemName.style.marginBottom = 20f;   // [Figma] gap20
@@ -164,7 +173,7 @@ namespace ProjectName.UI.Toolkit
             imageSec.Add(imageRow);
 
             _tierClass = new Label("LEGENDARY CLASS");
-            _tierClass.style.fontSize = 14f;
+            _tierClass.style.fontSize = 14.4f;
             _tierClass.style.color = Dark.Gold;
             _tierClass.style.flexGrow = 1f;
             imageRow.Add(_tierClass);
@@ -197,36 +206,40 @@ namespace ProjectName.UI.Toolkit
             panel.Add(descSec);
 
             _descHeader = new Label("물고기 특징");
-            _descHeader.style.fontSize = 14f;
+            _descHeader.style.fontSize = 14.4f;
             _descHeader.style.color = Dark.Accent;
             _descHeader.style.marginBottom = 4f;
             descSec.Add(_descHeader);
 
             _descBody = new Label("");
-            _descBody.style.fontSize = 13f;
+            _descBody.style.fontSize = 13.2f;
             _descBody.style.color = Dark.TextMain;
             _descBody.style.whiteSpace = WhiteSpace.Normal;
             descSec.Add(_descBody);
 
-            // ActionButtons — 하단 밖(패널 밖) Keep/Discard
+            // ActionButtons — already-acquired item confirmation and honest close-only alternative
             var actions = new VisualElement();
+            _actions = actions;
             actions.style.flexDirection = FlexDirection.Row;
             actions.style.marginTop = 4f;
-            Content.Add(actions);
+            panel.Add(actions);
 
-            var keepBtn = UTKButton.Create("인벤토리에 놓기", () => Close(), UTKButton.Variant.Primary);
+            var keepBtn = UTKButton.Create("확인 · 이미 획득됨", () => Close(), UTKButton.Variant.Primary);
             keepBtn.style.flexGrow = 1f;
             keepBtn.style.marginRight = 6f;
             StyleKeepButton(keepBtn);
             actions.Add(keepBtn);
 
-            var discardBtn = UTKButton.Create("버리기", () => Close(), UTKButton.Variant.Secondary);
+            // Available inventory removal is aggregate item-ID/count only, not acquisition scoped.
+            // Keep the second action honest: close without claiming that the acquired item is discarded.
+            var discardBtn = UTKButton.Create("닫기 · 인벤토리 유지", () => Close(), UTKButton.Variant.Secondary);
             discardBtn.style.flexGrow = 1f;
-            StyleDiscardButton(discardBtn);
+            StyleCloseButton(discardBtn);
             actions.Add(discardBtn);
 
             // SystemTip
             var tip = new VisualElement();
+            _tip = tip;
             tip.style.flexDirection = FlexDirection.Row;
             tip.style.alignItems = Align.Center;
             tip.style.marginTop = 8f;
@@ -239,8 +252,55 @@ namespace ProjectName.UI.Toolkit
             tip.Add(_tipLabel);
 
             style.display = DisplayStyle.None;
-            style.left = Length.Percent(62f);
-            style.top = 10f;
+            style.width = 1920f; style.height = 1080f;
+            Content.style.position = Position.Absolute;
+            Content.style.left = 0f; Content.style.top = 0f;
+            Content.style.right = 0f; Content.style.bottom = 0f;
+            _header.style.position = Position.Absolute;
+            _header.style.left = 0f; _header.style.top = 0f;
+            _header.style.width = 1920f; _header.style.height = 76.8f;
+            _resultPanel.style.position = Position.Absolute;
+            _resultPanel.style.left = 672f; _resultPanel.style.top = 111.2f;
+            _resultPanel.style.width = WinW; _resultPanel.style.height = WinH;
+            _actions.style.position = Position.Absolute;
+            _actions.style.left = 24f; _actions.style.right = 24f;
+            _actions.style.bottom = 24f;
+            _tip.style.position = Position.Absolute;
+            _tip.style.left = 675.3f; _tip.style.top = 1028.6f;
+            _tip.style.width = 569.4f; _tip.style.height = 17f;
+        }
+
+        private void ApplyCanvasBounds()
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root == null) return;
+            FigmaCanvasLayout.Apply(this, new Rect(0f, 0f, 1920f, 1080f), root);
+            float sx = root.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth;
+            float sy = root.resolvedStyle.height / FigmaCanvasLayout.CanvasHeight;
+            _header.style.width = 1920f * sx; _header.style.height = 76.8f * sy;
+            _header.style.left = 0f; _header.style.top = 0f;
+            float resultHeight = HarvestResultBridge.LatestKind switch
+            {
+                HarvestResultBridge.HarvestKind.Gathering => 862.8f,
+                HarvestResultBridge.HarvestKind.Mining => 896.8f,
+                _ => 859.8f,
+            };
+            float resultTop = HarvestResultBridge.LatestKind switch
+            {
+                HarvestResultBridge.HarvestKind.Gathering => 109.7f,
+                HarvestResultBridge.HarvestKind.Mining => 92.7f,
+                _ => 111.2f,
+            };
+            float tipTop = HarvestResultBridge.LatestKind switch
+            {
+                HarvestResultBridge.HarvestKind.Gathering => 1030.1f,
+                HarvestResultBridge.HarvestKind.Mining => 1047.1f,
+                _ => 1028.6f,
+            };
+            _resultPanel.style.left = 672f * sx; _resultPanel.style.top = resultTop * sy;
+            _resultPanel.style.width = WinW * sx; _resultPanel.style.height = resultHeight * sy;
+            _tip.style.left = 675.3f * sx; _tip.style.top = tipTop * sy;
+            _tip.style.width = 569.4f * sx; _tip.style.height = 17f * sy;
         }
 
         private void BuildSpecBox(VisualElement parent, out Label lbl, out Label val)
@@ -261,7 +321,7 @@ namespace ProjectName.UI.Toolkit
             box.Add(lbl);
 
             val = new Label("—");
-            val.style.fontSize = 14f;
+            val.style.fontSize = 14.4f;
             val.style.color = Dark.TextMain;
             val.style.unityTextAlign = TextAnchor.MiddleCenter;
             box.Add(val);
@@ -294,10 +354,12 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
+            ApplyCanvasBounds();
         }
 
         public override void Hide()
         {
+            CancelAutoClose();
             base.Hide();
         }
 
@@ -325,10 +387,39 @@ namespace ProjectName.UI.Toolkit
             if (HarvestResultBridge.LatestToken == _lastToken) return;
             _lastToken = HarvestResultBridge.LatestToken;
 
-            // 표시 + 3초 후 자동 닫기
+            // 새 결과가 표시되면 이전 만료 타이머를 대체한다.
             ApplyLatest();
+            ApplyCanvasBounds();
             Show();
-            schedule.Execute(() => { if (IsOpen) Close(); }).ExecuteLater(3000L);
+            RestartAutoClose();
+        }
+
+        private void RestartAutoClose()
+        {
+            CancelAutoClose();
+            int generation = _closeGeneration;
+            _closeTask = schedule.Execute(() =>
+            {
+                if (generation != _closeGeneration) return;
+                // A token may have arrived just before this callback but not yet reached the next
+                // 16ms poll. Consume it first rather than letting the previous timer close it.
+                if (HarvestResultBridge.LatestToken != _lastToken)
+                {
+                    PollBridge();
+                    return;
+                }
+                _closeTask = null;
+                if (IsOpen) Close();
+            });
+            _closeTask.ExecuteLater(3000L);
+        }
+
+        private void CancelAutoClose()
+        {
+            _closeGeneration++;
+            if (_closeTask == null) return;
+            _closeTask.Pause();
+            _closeTask = null;
         }
 
         private void ApplyLatest()
@@ -426,7 +517,7 @@ namespace ProjectName.UI.Toolkit
             btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = Dark.Accent);
         }
 
-        private static void StyleDiscardButton(Button btn)
+        private static void StyleCloseButton(Button btn)
         {
             if (btn == null) return;
             btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
@@ -457,6 +548,7 @@ namespace ProjectName.UI.Toolkit
                 if (window != null)
                 {
                     window.StopTick();
+                    window.CancelAutoClose();
                     window.RemoveFromHierarchy();
                 }
             }

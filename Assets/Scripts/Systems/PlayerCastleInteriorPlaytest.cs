@@ -9,9 +9,9 @@ namespace ProjectName.Systems
     public sealed class PlayerCastleInteriorPlaytest : MonoBehaviour
     {
         public const string TestSceneName = "Test_PlayerCastleInterior";
-        private const float RoomWidth = 22f;
-        private const float RoomHeight = 6f;
-        private const float RoomDepth = 16f;
+        private const float RoomWidth = PlayerCastleInteriorBuilder.RoomWidth;
+        private const float RoomHeight = PlayerCastleInteriorBuilder.RoomHeight;
+        private const float RoomDepth = PlayerCastleInteriorBuilder.RoomDepth;
 
         private void Awake()
         {
@@ -21,8 +21,18 @@ namespace ProjectName.Systems
             BuildPlayableTestInterior();
         }
 
+        private static void EnsureWarehouseSystem()
+        {
+            if (WarehouseSystem.Instance != null) return;
+
+            var warehouseObject = new GameObject("PlayerCastlePlaytestWarehouseSystem");
+            warehouseObject.AddComponent<WarehouseSystem>();
+        }
+
         private static void BuildPlayableTestInterior()
         {
+            EnsureWarehouseSystem();
+            EnsureTestPlayer();
             GameObject room = PlayerCastleInteriorBuilder.BuildPlayerCastleInterior("Empire", 0);
             if (room == null)
             {
@@ -55,7 +65,6 @@ namespace ProjectName.Systems
                           $"UV tiling={(floorMaterial != null ? floorMaterial.mainTextureScale.ToString() : "n/a")}");
             }
 
-            EnsureTestPlayer();
             EnsureCamera();
             Debug.Log("[PlayerCastleInteriorPlaytest] Empire player-castle interior ready. WASD/arrow keys move.");
         }
@@ -69,6 +78,8 @@ namespace ProjectName.Systems
                     ConfigureController(player.AddComponent<CharacterController>());
                 if (player.GetComponent<PlayerCastleInteriorTestMovement>() == null)
                     player.AddComponent<PlayerCastleInteriorTestMovement>();
+                if (PlayerInventory.Instance == null && player.GetComponent<PlayerInventory>() == null)
+                    player.AddComponent<PlayerInventory>();
                 return player;
             }
 
@@ -86,6 +97,8 @@ namespace ProjectName.Systems
                 Destroy(visualCollider);
 
             player.AddComponent<PlayerCastleInteriorTestMovement>();
+            if (PlayerInventory.Instance == null)
+                player.AddComponent<PlayerInventory>();
             return player;
         }
 

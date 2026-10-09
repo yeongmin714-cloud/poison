@@ -77,29 +77,22 @@ namespace ProjectName.UI.Toolkit
             _content.style.paddingRight = 12f;
             _content.style.paddingTop = 8f;
             _content.style.paddingBottom = 8f;
-            _content.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
-
-            var titleBar = this.Q<VisualElement>("TitleBar");
-            if (titleBar != null)
-            {
-                titleBar.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
-                titleBar.style.borderBottomWidth = 1f;
-                titleBar.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            }
+            _content.style.backgroundColor = new StyleColor(UTKTheme.BgBase);
+            UTKTheme.ApplyWindowChrome(this, this.Q<VisualElement>("TitleBar"), _content);
 
             // 친밀도/레벨 핵심 정보를 골드 악센트가 있는 헤더 카드에 모은다.
-            var favorCard = MakeCard("FavorHeaderCard", UTKColor.BgPanel);
+            var favorCard = MakeCard("FavorHeaderCard");
             favorCard.style.borderLeftWidth = 3f;
-            favorCard.style.borderLeftColor = new StyleColor(UTKColor.AccentRare);
+            favorCard.style.borderLeftColor = new StyleColor(UTKTheme.Gold);
             _titleLabel = new Label("⛪ 성당 — 기부 메뉴");
-            _titleLabel.style.fontSize = 15f;
-            _titleLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _titleLabel.style.fontSize = 15.6f;
+            _titleLabel.style.color = new StyleColor(UTKTheme.TextSub);
             favorCard.Add(_titleLabel);
 
             _favorLabel = new Label("친밀도: 0/100");
-            _favorLabel.style.fontSize = 18f;
+            _favorLabel.style.fontSize = 16.8f;
             _favorLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _favorLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            _favorLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _favorLabel.style.marginTop = 5f;
             favorCard.Add(_favorLabel);
 
@@ -108,7 +101,7 @@ namespace ProjectName.UI.Toolkit
             _favorBarBg.style.height = 12f;
             _favorBarBg.style.marginTop = 8f;
             _favorBarBg.style.marginBottom = 5f;
-            _favorBarBg.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            _favorBarBg.style.backgroundColor = new StyleColor(UTKTheme.BgBase);
             _favorBarBg.style.borderTopLeftRadius = 6f;
             _favorBarBg.style.borderTopRightRadius = 6f;
             _favorBarBg.style.borderBottomLeftRadius = 6f;
@@ -118,7 +111,7 @@ namespace ProjectName.UI.Toolkit
             _favorBarFill = new VisualElement();
             _favorBarFill.name = "FavorBarFill";
             _favorBarFill.style.height = 12f;
-            _favorBarFill.style.backgroundColor = new StyleColor(UTKColor.AccentRare);
+            _favorBarFill.style.backgroundColor = new StyleColor(UTKTheme.Gold);
             _favorBarFill.style.borderTopLeftRadius = 6f;
             _favorBarFill.style.borderTopRightRadius = 6f;
             _favorBarFill.style.borderBottomLeftRadius = 6f;
@@ -126,35 +119,35 @@ namespace ProjectName.UI.Toolkit
             _favorBarBg.Add(_favorBarFill);
 
             _levelLabel = new Label("");
-            _levelLabel.style.fontSize = 14f;
-            _levelLabel.style.color = new StyleColor(UTKColor.AccentRare);
+            _levelLabel.style.fontSize = 14.4f;
+            _levelLabel.style.color = new StyleColor(UTKTheme.Gold);
             _levelLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             favorCard.Add(_levelLabel);
             _content.Add(favorCard);
 
             // 혜택은 보조 카드로 분리해 정보 위계를 명확히 한다.
-            var benefitsCard = MakeCard("BenefitsCard", new Color32(33, 38, 45, 255));
+            var benefitsCard = MakeCard("BenefitsCard", secondary: true);
             var benefitsTitle = new Label("현재 친밀도 혜택");
-            benefitsTitle.style.fontSize = 13f;
+            benefitsTitle.style.fontSize = 13.2f;
             benefitsTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            benefitsTitle.style.color = new StyleColor(UTKColor.TextPrimary);
+            benefitsTitle.style.color = new StyleColor(UTKTheme.TextMain);
             benefitsCard.Add(benefitsTitle);
 
             _benefitsLabel = new Label("");
             _benefitsLabel.style.fontSize = 12f;
-            _benefitsLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _benefitsLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _benefitsLabel.style.whiteSpace = WhiteSpace.Normal;
             _benefitsLabel.style.marginTop = 5f;
             benefitsCard.Add(_benefitsLabel);
             _content.Add(benefitsCard);
 
             // 하단 액션 띠: 헌금 버튼과 영주 대면 요청을 함께 배치한다.
-            var actionStrip = MakeCard("ChurchActionStrip", UTKColor.BgPanel);
+            var actionStrip = MakeCard("ChurchActionStrip");
             actionStrip.style.marginTop = 2f;
             var donateTitle = new Label("금화 헌금");
-            donateTitle.style.fontSize = 13f;
+            donateTitle.style.fontSize = 13.2f;
             donateTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            donateTitle.style.color = new StyleColor(UTKColor.TextPrimary);
+            donateTitle.style.color = new StyleColor(UTKTheme.TextMain);
             actionStrip.Add(donateTitle);
 
             var donateRow = new VisualElement();
@@ -167,7 +160,7 @@ namespace ProjectName.UI.Toolkit
 
             _goldLabel = new Label("");
             _goldLabel.style.fontSize = 12f;
-            _goldLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _goldLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _goldLabel.style.marginTop = 4f;
             actionStrip.Add(_goldLabel);
 
@@ -177,7 +170,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(actionStrip);
 
             _statusLabel = new Label("");
-            _statusLabel.style.fontSize = 13f;
+            _statusLabel.style.fontSize = 13.2f;
             _statusLabel.style.whiteSpace = WhiteSpace.Normal;
             _statusLabel.style.marginTop = 6f;
             _statusLabel.style.display = DisplayStyle.None;
@@ -255,7 +248,7 @@ namespace ProjectName.UI.Toolkit
             float pct = maxFavor > 0f ? Mathf.Clamp01(favor / (float)maxFavor) : 0f;
             if (_favorBarBg.resolvedStyle.width > 0f)
                 _favorBarFill.style.width = _favorBarBg.resolvedStyle.width * pct;
-            _favorBarFill.style.backgroundColor = new StyleColor(UTKColor.AccentRare);
+            _favorBarFill.style.backgroundColor = new StyleColor(UTKTheme.Gold);
 
             _levelLabel.text = system.GetFavorLevelText();
             _benefitsLabel.text = system.GetFavorBenefitsText();
@@ -276,19 +269,19 @@ namespace ProjectName.UI.Toolkit
             var system = ChurchSystem.Instance;
             if (system == null)
             {
-                SetStatus("❌ ChurchSystem이 없습니다.", new Color(1f, 0.6f, 0.4f));
+                SetStatus("❌ ChurchSystem이 없습니다.", UTKTheme.Danger);
                 return;
             }
 
             int spent = system.DonateGold(amount);
             if (spent > 0)
             {
-                SetStatus("✅ " + spent + "골드 기부 완료! 친밀도 +" + (spent / 10), new Color(0.6f, 1f, 0.6f));
+                SetStatus("✅ " + spent + "골드 기부 완료! 친밀도 +" + (spent / 10), UTKTheme.Success);
                 UnityEngine.Debug.Log("[ChurchUTK] 기부 완료 — " + spent + "G, 친밀도 " + system.GetFavor() + " (NPC: " + _npcName + ")");
             }
             else
             {
-                SetStatus("❌ 골드가 부족합니다.", new Color(1f, 0.6f, 0.4f));
+                SetStatus("❌ 골드가 부족합니다.", UTKTheme.Danger);
                 UnityEngine.Debug.LogWarning("[ChurchUTK] 기부 실패 — 골드 부족 (" + amount + "G 요청, 보유 " + GetPlayerGold() + "G)");
             }
             Refresh();
@@ -299,10 +292,10 @@ namespace ProjectName.UI.Toolkit
             var system = ChurchSystem.Instance;
             if (system == null || !system.CanRequestAudience())
             {
-                SetStatus("❌ 영주 대면은 친밀도 80 이상 필요합니다.", new Color(1f, 0.6f, 0.4f));
+                SetStatus("❌ 영주 대면은 친밀도 80 이상 필요합니다.", UTKTheme.Danger);
                 return;
             }
-            SetStatus("✅ 영주 대면 요청 접수! (Phase 5.7.5 대면 UI 대기)", new Color(1f, 0.95f, 0.5f));
+            SetStatus("✅ 영주 대면 요청 접수! (Phase 5.7.5 대면 UI 대기)", UTKTheme.Warn);
             UnityEngine.Debug.Log("[ChurchUTK] 영주 대면 요청 (친밀도 " + system.GetFavor() + ")");
         }
 
@@ -317,23 +310,10 @@ namespace ProjectName.UI.Toolkit
 
         // =================== 헬퍼 ===================
 
-        private static VisualElement MakeCard(string elementName, Color background)
+        private static VisualElement MakeCard(string elementName, bool secondary = false)
         {
-            var card = new VisualElement { name = elementName };
+            var card = UTKTheme.CreatePanel(elementName, secondary);
             card.style.flexDirection = FlexDirection.Column;
-            card.style.backgroundColor = new StyleColor(background);
-            card.style.borderLeftWidth = 1f;
-            card.style.borderRightWidth = 1f;
-            card.style.borderTopWidth = 1f;
-            card.style.borderBottomWidth = 1f;
-            card.style.borderLeftColor = new StyleColor(UTKColor.BorderBronze);
-            card.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
-            card.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
-            card.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            card.style.borderTopLeftRadius = 8f;
-            card.style.borderTopRightRadius = 8f;
-            card.style.borderBottomLeftRadius = 8f;
-            card.style.borderBottomRightRadius = 8f;
             card.style.paddingLeft = 10f;
             card.style.paddingRight = 10f;
             card.style.paddingTop = 8f;

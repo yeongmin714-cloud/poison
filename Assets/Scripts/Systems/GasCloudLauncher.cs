@@ -50,17 +50,10 @@ namespace ProjectName.Systems
             GasCloudFieldEffect effects = cloudObject.AddComponent<GasCloudFieldEffect>();
             effects.Initialize(field, radius, CloudDuration);
 
-            ctrl.LoadedPotionCount--;
-            if (ctrl.LoadedPotionCount <= 0)
-            {
-                ctrl.LoadedPotionCount = 0;
-                ctrl.LoadedPotionId = string.Empty;
-                ctrl.NotifyPotionChanged();
-            }
-            else
-            {
-                ctrl.NotifyPotionChanged();
-            }
+            // Keep the legacy one-cloud-per-loaded-item contract, but synchronize the new active-dose timer.
+            // Older saved/runtime states can contain multiple loaded items; each cloud consumes exactly one.
+            int remainingPotionCount = Mathf.Max(0, ctrl.LoadedPotionCount - 1);
+            ctrl.SetLoadedPotionDose(remainingPotionCount > 0 ? ctrl.LoadedPotionId : string.Empty, remainingPotionCount);
 
             if (!sprayerData.isUnlimited)
                 ctrl.CurrentSprayTimeRemaining = Mathf.Max(0f, ctrl.CurrentSprayTimeRemaining - 3f);

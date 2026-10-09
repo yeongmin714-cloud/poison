@@ -42,7 +42,7 @@ namespace ProjectName.Systems
             }
 
             // Dark ambient lighting
-            IndoorLighting.SetupIndoorLighting(room, new Color(0.02f, 0.02f, 0.06f), 0.3f, true);
+            IndoorLighting.SetupIndoorLighting(room, new Color(0.02f, 0.02f, 0.06f), 0.10f, true);
             CreateAmbientLight(room, width, depth);
 
             // C22-08: Flickering torch lights on walls

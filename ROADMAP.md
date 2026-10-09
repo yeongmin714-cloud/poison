@@ -1,5 +1,20 @@
 # 🗺️ 포이즌 (Poison) — ROADMAP
 
+## 🎨 2026-10-05: Figma 1920 UI 전면 정합 계획 진행 기록
+
+대상 계획: `.hermes/plans/2026-10-04-figma-1920-ui-complete-rebuild-plan.md` (계획 본문·기존 이력은 유지).
+
+| Phase | 체크리스트 / 수락 상태 |
+|:--|:--|
+| Phase 0 — 기준선 artifact 캡처 | [x] Figma node JSON·index·renders 저장: `.hermes/plans/figma-1920-baseline-2026-10-04/` (기준선 캡처 완료; 계획의 전체 프레임/owner 인벤토리 나머지 작업을 완료로 간주하지 않음) |
+| Phase 1 — 좌표 helper 기반 | [x] `FigmaCanvasLayout` 좌표 mapper + 전용 EditMode 테스트 구현; 집중 Unity EditMode **8/8 통과, 0 실패** (보고된 XML: `/mnt/c/tmp/figma-layout-tests.EvHv76/results.xml`). **수락은 부분 완료:** PanelSettings는 1440×900 그대로, legacy window manager/layout helpers 변경 없음. production window 미이관; lifecycle composition 및 1600×900·2560×1440 등 다중 해상도 Play 캡처는 미완료/대기. 전체 통합 컴파일·Play 검증도 미실시. |
+| Phase 2 — inventory/detail/storage + Phase 3 — loot/shop | [ ] 코드·focused tests 부분 완료; visual Play 승인 및 full integration 아직 대기 |
+| Phase 4–8 — crafting/status/quest/HUD/remaining UI | [ ] 대기 — 미완료 |
+
+Phase 1의 체크 표시는 coordinate helper/test 범위에 한정되며, Phase 전체 통과 기준을 만족했다는 뜻이 아니다. 후속 Phase는 체크하지 않는다.
+
+> **2026-10-05 Phase 2 내부 정합 진전:** 15:4 inventory/detail/storage 외곽·내부 bounds 연결. 인벤 bag는 5행 visible viewport + 동적 스크롤, 장비 5×2; 상세 header/name/image/description 영역; 창고 5열×6행 storage viewport, expansion overflow scroll, 모두 보관/모두 꺼내기 버튼을 기존 WarehouseSystem/PlayerInventory API로 연결. 창고 드롭 타깃은 실제 보이는 warehouse column만 입고 수신, 다른 영지 페이로드의 잘못된 출고를 차단. Compile exit 0, targeted layout+transfer EditMode 23/23 통과 (`warehouse-phase2-final.xml`, `warehouse-figma-transfer-tdd-green-20261005.xml`). Full suite/Play 캡처는 미실시; Figma 시각 parity 미승인. Inventory bag/footer의 세부 시각 구현·status/settings 전체 QA 및 남은 화면 Phase 3–9 미완료.
+
 > **2026-10-04 플레이어 성 내부 벽 시각 Phase 2 완료 (Play 승인 대기)**: 벽이 "징그럽고 평면적"인 근본 원인 확정(vision+코드) — 제공 벽 텍스처가 과노이즈/이음새 미일치 + 117.6m 벽에 2.2m 타일 50회 반복 + 6면 박스로 문틀/상단 마감 부재. `IndoorMaterialFactory`에 새 결정론적 calm ashlar 타일(512×256 2코스, 큰 석재 블록·엇갈린 줄눈·절제 색조, 이음새 맞음, 노이즈 노멀맵 제외, Smoothness 0.12, 이중타일링 방지)을 플레이어 성 토폴로지 벽 전용 적용(제공 텍스처 `wall_stone_lower`·노멀맵은 불변). `PlayerCastleInteriorBuilder`에 문설주·린텔을 **렌더러 전용(무충돌)**으로 추가해 입체감 확보 — 벽 형상·문 통과성·방/앵커·결정론(form variant) 유지. 컴파일 error CS 0, PlayerCastleInteriorTopologyTests **7/7**, 전체 EditMode **449/444/5(신규 회귀 0, baseline만)**. 커밋 `02d84897`(Phase1 `b927e00f`). **화면 캡처 없이 구현·EditMode까지만 검증 — 벽 시각 실제 승인은 Test_PlayerCastleInterior Play 대기이며 완료 처리하지 않는다.**
 
 > **2026-10-04 플레이어 성 내부 벽 충돌 Phase 1 완료**: `PlayerCastleInteriorBuilder` 레거시 벽 제거 시 `Object.Destroy`→`DestroyImmediate` 수정으로 edit mode 오류 제거. `PlayerCastleInteriorTopologyTests` **4건 실패 → 전부 통과 (7/7)**: ①BuiltInterior + ②RuntimePortalOpenings는 Destroy 버그로 죽던 것, ③Footprint는 치수 의도(면적 6배·실제 2.45²)에 맞춰 단언 6.0→6.0025 조정, ④PortalGraph는 "Entrance_South만 Exterior 연결" 불변식으로 테스트 로직 교체. 컴파일 error CS 0, 전체 EditMode **449/444 통과/5 실패(신규 회귀 0, 기존 baseline만)**, PlayerCastleInterior 계열 깨끗. **문 개구부가 자체 collider로 막히던 버그(RuntimePortalOpenings) EditMode 레벨 해결 확인.** 벽 시각(Phase 2)·실제 진입 경로(Phase 3)는 에디터 Play 검증 대기이며 완료 처리하지 않는다.

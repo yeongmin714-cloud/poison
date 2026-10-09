@@ -1,0 +1,15 @@
+{
+  "name": "ProjectName.Rendering.Tests",
+  "rootNamespace": "ProjectName.Tests.Rendering",
+  "references": [
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "ProjectName.Core",
+    "ProjectName.Rendering"
+  ],
+  "includePlatforms": ["Editor"],
+  "precompiledReferences": ["nunit.framework.dll"],
+  "overrideReferences": true,
+  "autoReferenced": false,
+  "noEngineReferences": false
+}

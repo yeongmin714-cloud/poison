@@ -39,6 +39,11 @@ namespace ProjectName.UI.Toolkit
                 Debug.LogWarning("[QuestChoiceUTK] Show: chainId가 null");
                 return;
             }
+            if (UIToolkitBootstrap.UIRoot == null)
+            {
+                Debug.LogWarning("[QuestChoiceUTK] Show: UIRoot is unavailable; initialize UIToolkitBootstrap before opening quest choices.");
+                return;
+            }
             Ensure();
             _instance.BeginShow(chainId, node);
         }
@@ -46,6 +51,11 @@ namespace ProjectName.UI.Toolkit
         /// <summary>결과 텍스트 전용 표시 (선택 후 결과 화면).</summary>
         public static void ShowResult(string text)
         {
+            if (UIToolkitBootstrap.UIRoot == null)
+            {
+                Debug.LogWarning("[QuestChoiceUTK] ShowResult: UIRoot is unavailable; initialize UIToolkitBootstrap before opening quest results.");
+                return;
+            }
             Ensure();
             _instance.BeginResult(text);
         }
@@ -59,8 +69,13 @@ namespace ProjectName.UI.Toolkit
 
         public static void Toggle()
         {
-            if (_instance != null && _instance.IsOpen) { _instance.Close(); return; }
-            Ensure();
+            if (_instance != null && _instance.IsOpen)
+            {
+                _instance.Close();
+                return;
+            }
+
+            Debug.LogWarning("[QuestChoiceUTK] Toggle cannot open choices without context; use Show(chainId, node).");
         }
 
         // ===== 설정 =====
@@ -113,7 +128,7 @@ namespace ProjectName.UI.Toolkit
 
             _summaryLabel = new Label("❓ 선택지");
             _summaryLabel.AddToClassList("utk-title-label");
-            _summaryLabel.style.fontSize = 18f;
+            _summaryLabel.style.fontSize = 16.8f;
             _summaryLabel.style.color = new StyleColor(UTKColor.AccentRare);
             _headerCard.Add(_summaryLabel);
 
@@ -139,10 +154,22 @@ namespace ProjectName.UI.Toolkit
 
         public override void Show()
         {
-            base.Show();
             var root = UIToolkitBootstrap.UIRoot;
-            if (root != null && parent == null)
+            if (root == null)
+            {
+                Debug.LogWarning("[QuestChoiceUTK] Cannot open: UIRoot is unavailable; initialize UIToolkitBootstrap first.");
+                return;
+            }
+
+            // Keep this window as a direct UIRoot child, independent of other windows.
+            if (parent != root)
+            {
+                if (parent != null)
+                    RemoveFromHierarchy();
                 root.Add(this);
+            }
+
+            base.Show();
             style.left = 700f;
             style.top = 260f;
             StartRefreshLoop();
@@ -235,6 +262,10 @@ namespace ProjectName.UI.Toolkit
             _summaryLabel.text = _node.title;
             _descriptionLabel.text = _node.description ?? "";
 
+            var manager = QuestChainManager.Instance;
+            if (manager == null)
+                _list.Add(MakeLabel("퀘스트 선택을 사용할 수 없습니다: QuestChainManager가 초기화되지 않았습니다.", UTKColor.TextSecondary, true));
+
             if (_choices == null || _choices.Length == 0)
                 return;
 
@@ -242,21 +273,20 @@ namespace ProjectName.UI.Toolkit
             foreach (var choice in _choices)
             {
                 int choiceIndex = index;
-                bool available = QuestChainManager.Instance != null
-                    ? QuestChainManager.Instance.IsChoiceAvailable(choice)
-                    : true;
+                bool available = manager != null && manager.IsChoiceAvailable(choice);
 
                 string prefix = (choiceIndex + 1) + ". " + choice.text;
-                if (available)
+                if (manager == null)
                 {
                     var choiceButton = UTKButton.Create(prefix, () =>
                     {
                         OnChoiceSelected(choiceIndex);
                     }, UTKButton.Variant.Secondary);
+                    choiceButton.SetEnabled(false);
                     ApplyChoiceCardStyle(choiceButton);
                     _list.Add(choiceButton);
                 }
-                else
+                else if (!available)
                 {
                     string disabledText = prefix;
                     if (!string.IsNullOrEmpty(choice.condition.failMessage))
@@ -265,6 +295,15 @@ namespace ProjectName.UI.Toolkit
                     disabled.style.opacity = 0.55f;
                     ApplyChoiceCardStyle(disabled);
                     _list.Add(disabled);
+                }
+                else
+                {
+                    var choiceButton = UTKButton.Create(prefix, () =>
+                    {
+                        OnChoiceSelected(choiceIndex);
+                    }, UTKButton.Variant.Secondary);
+                    ApplyChoiceCardStyle(choiceButton);
+                    _list.Add(choiceButton);
                 }
 
                 index++;
@@ -287,23 +326,34 @@ namespace ProjectName.UI.Toolkit
 
         private void OnChoiceSelected(int choiceIndex)
         {
-            if (string.IsNullOrEmpty(_chainId))
+            if (string.IsNullOrEmpty(_chainId) || _choices == null || choiceIndex < 0 || choiceIndex >= _choices.Length)
             {
-                HideNow();
+                Debug.LogWarning("[QuestChoiceUTK] 선택할 수 없는 선택지 인덱스: " + choiceIndex);
+                return;
+            }
+
+            var manager = QuestChainManager.Instance;
+            if (manager == null)
+            {
+                Debug.LogWarning("[QuestChoiceUTK] 선택 처리 불가: QuestChainManager가 초기화되지 않았습니다.");
+                Refresh();
+                return;
+            }
+
+            var selectedChoice = _choices[choiceIndex];
+            if (!manager.IsChoiceAvailable(selectedChoice))
+            {
+                Debug.LogWarning("[QuestChoiceUTK] 선택 조건을 충족하지 않아 선택할 수 없습니다: " + choiceIndex);
+                Refresh();
                 return;
             }
 
             string resultText = null;
-            if (_choices != null && choiceIndex >= 0 && choiceIndex < _choices.Length)
-            {
-                string candidate = _choices[choiceIndex].result.resultText;
-                if (!string.IsNullOrEmpty(candidate))
-                    resultText = candidate;
-            }
+            string candidate = selectedChoice.result.resultText;
+            if (!string.IsNullOrEmpty(candidate))
+                resultText = candidate;
 
-            bool success = QuestChainManager.Instance != null
-                ? QuestChainManager.Instance.CompleteCurrentNode(_chainId, choiceIndex)
-                : false;
+            bool success = manager.CompleteCurrentNode(_chainId, choiceIndex);
             if (!success)
             {
                 Debug.LogWarning("[QuestChoiceUTK] 노드 완료 실패: " + _chainId + ", 선택지 " + choiceIndex);
@@ -333,7 +383,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color, bool wrap)
         {
             var l = new Label(text);
-            l.style.fontSize = 13f;
+            l.style.fontSize = 13.2f;
             l.style.color = new StyleColor(color);
             if (wrap)
                 l.style.whiteSpace = WhiteSpace.Normal;

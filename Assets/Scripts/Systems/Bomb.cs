@@ -108,6 +108,9 @@ namespace ProjectName.Systems
                 IDamageable damageable = hit.GetComponent<IDamageable>();
                 if (damageable != null)
                 {
+                    // [2026-10-08] 플레이어는 방독면 착용 중이면 독가스 효과를 받지 않는다.
+                    if (hit.CompareTag("Player") && GasMaskSystem.IsActive) continue;
+
                     Vector3 hitDir = (hit.transform.position - transform.position).normalized;
                     damageable.TakeDamage(5f, hitDir, "Poison");
                 }

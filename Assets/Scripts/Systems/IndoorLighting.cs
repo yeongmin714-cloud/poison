@@ -27,7 +27,7 @@ namespace ProjectName.Systems
         /// <param name="ambientColor">앰비언트 색상</param>
         /// <param name="ambientIntensity">앰비언트 강도 (0~1)</param>
         /// <param name="flicker">깜빡임 효과 활성화 여부</param>
-        public static void SetupIndoorLighting(GameObject room, Color ambientColor, float ambientIntensity, bool flicker = false)
+        public static void SetupIndoorLighting(GameObject room, Color ambientColor, float ambientIntensity, bool flicker = false, float centralLightIntensity = DEFAULT_LIGHT_INTENSITY, float centralLightRange = -1f)
         {
             if (room == null)
             {
@@ -60,11 +60,11 @@ namespace ProjectName.Systems
 
             // 방 크기에 따라 Point Light range 조정
             float roomDiagonal = worldBounds.size.magnitude;
-            float lightRange = Mathf.Max(DEFAULT_LIGHT_RANGE, roomDiagonal * 0.7f);
+            float lightRange = centralLightRange > 0f ? centralLightRange : Mathf.Max(DEFAULT_LIGHT_RANGE, roomDiagonal * 0.7f);
 
             // Point Light 생성 (월드 좌표 → 로컬 좌표로 변환)
             Vector3 lightLocalPos = room.transform.InverseTransformPoint(lightWorldPos);
-            Light pointLight = AddPointLight(room, lightLocalPos, DEFAULT_LIGHT_COLOR, lightRange, DEFAULT_LIGHT_INTENSITY);
+            Light pointLight = AddPointLight(room, lightLocalPos, DEFAULT_LIGHT_COLOR, lightRange, Mathf.Max(0f, centralLightIntensity));
 
             // 선택적 깜빡임 효과
             if (flicker && pointLight != null)

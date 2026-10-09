@@ -12,121 +12,73 @@ namespace ProjectName.Systems
         [Tooltip("팀/국가 색 — SetColor로 주입")]
         public Color color = new Color(0.2f, 0.5f, 1f);
 
-        private static Shader _shader;
-        private static Shader _shaderStatic;   // [P22-4] 팩토리 캐시
         private Material _mat;
         private Renderer _rend;
+        private float _elapsed;
+        private Vector3 _startScale;
+        private Vector3 _visualScale;
 
-        /// <summary>[P22-4] 공용 링 머티리얼 팩토리 — 셰이더 우선, 실패 시 절차 링 텍스처 폴백.
-        ///   PlayerRangeRing(무기 사거리 표시)도 동일 팩토리 사용(품질 통일). fallback: 텍스처 링 반지름 0.92.</summary>
-        public static Material CreateRingMaterial(Color color)
-        {
-            var shader = Shader.Find("Custom/SelectionRing") ?? _shaderStatic;
-            if (shader == null)
-                shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) return null;
+        /// <summary>Legacy public helper retained for callers outside the active command-ring path.</summary>
+        public static Material CreateRingMaterial(Color color) => CommandRingPresentation.CreateMaterial(color);
 
-            bool isCustom = shader.name == "Custom/SelectionRing";
-            var m = new Material(shader) { name = "SelectionRing" + (isCustom ? "_Shader" : "_Fallback") };
-            if (isCustom)
-            {
-                m.SetColor("_TeamColor", color);
-            }
-            else
-            {
-                m.mainTexture = BuildRingTexture(256);
-                m.color = color;
-                m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-                m.renderQueue = 3000;
-            }
-            return m;
-        }
-
-        /// <summary>폴백 텍스처 링 여부 — 링 월드 반경 계산용(텍스처 링 반지름 = 쿼드 반의 0.92).</summary>
+        /// <summary>Legacy fallback test retained for existing callers.</summary>
         public static bool IsFallback(Material m) => m != null && m.name.Contains("Fallback");
 
         private void Awake()
         {
-            if (_shader == null)
-                _shader = Shader.Find("Custom/SelectionRing");
-            _shaderStatic = _shader;
-
-            // 발밑 지면 링 — Quad를 XZ 평면(위쪽 노멀)으로 눕힌다.
-            var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            quad.name = "SelectionRingQuad";
+            // Collider-free ground quad shared by every active command ring.
+            var quad = new GameObject("CommandRingQuad");
+            quad.AddComponent<MeshFilter>().sharedMesh = GetRingQuadMesh();
+            quad.AddComponent<MeshRenderer>();
             quad.transform.SetParent(transform, false);
             quad.transform.localPosition = Vector3.zero;
             quad.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-            quad.transform.localScale = Vector3.one;
-
-            // 콜라이더 제거 — 커서 분류/명령 레이캐스트 오염 방지
-            var col = quad.GetComponent<Collider>();
-            if (col != null) Destroy(col);
-
+            float figmaAspect = CommandRingPresentation.FigmaCoreRingAspect;
+            float width = Mathf.Sqrt(figmaAspect);
+            float depth = 1f / width;
+            // The quad's mesh lies in local XY; after the 90-degree X rotation, local Y becomes ground-plane depth.
+            _visualScale = new Vector3(width, depth, 1f);
+            quad.transform.localScale = _visualScale;
             _rend = quad.GetComponent<Renderer>();
-            _mat = CreateRingMaterial(color);   // [P22-4] 공용 팩토리(셰이더/절차 폴백 통일)
-            // Keep the shared factory for range indicators, but tune this per-instance
-            // material as a restrained Fluent selection ring.
-            if (_mat != null && _mat.HasProperty("_RingThickness"))
-            {
-                _mat.SetFloat("_RingThickness", 0.035f);
-                _mat.SetFloat("_GlowWidth", 0.06f);
-                _mat.SetFloat("_Intensity", 1.0f);
-                _mat.SetFloat("_PulseSpeed", 0.9f);
-                _mat.SetFloat("_ArcSpeed", 0f);
-            }
-            if (_rend != null && _mat != null) _rend.sharedMaterial = _mat;
+            ApplyColor();
+            // Keep the object's authored parent scale intact; its pulse remains independent of the child oval ratio.
+            _startScale = transform.localScale;
         }
 
-        /// <summary>[P20-3] 절차 링 머티리얼 — 흰색 완전 원 텍스처(알파) + Unlit 틴트. SetColor로 색 변경.</summary>
-        private Material CreateFallbackRingMaterial()
+        private static Mesh _quadMesh;
+        private static Mesh GetRingQuadMesh()
         {
-            var shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) return null;
-            var m = new Material(shader) { name = "SelectionRing_Fallback" };
-            m.mainTexture = BuildRingTexture(256);
-            m.color = color;
-            m.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            m.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            m.renderQueue = 3000;
-            return m;
-        }
-
-        private static Texture2D BuildRingTexture(int size)
-        {
-            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = "SelectionRingTex" };
-            float c = size * 0.5f;
-            float rOuter = c * 0.92f, rInner = c * 0.72f;
-            var px = new Color[size * size];
-            for (int y = 0; y < size; y++)
+            if (_quadMesh != null) return _quadMesh;
+            _quadMesh = new Mesh { name = "CommandRingQuadMesh" };
+            _quadMesh.vertices = new[]
             {
-                for (int x = 0; x < size; x++)
-                {
-                    float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(c, c));
-                    float a = 0f;
-                    if (d <= rOuter && d >= rInner) a = 1f;
-                    else if (d > rOuter && d < rOuter + 3f) a = 1f - (d - rOuter) / 3f;      // 외측 소프트
-                    else if (d < rInner && d > rInner - 3f) a = 1f - (rInner - d) / 3f;     // 내측 소프트
-                    px[y * size + x] = new Color(1f, 1f, 1f, a);
-                }
-            }
-            tex.SetPixels(px);
-            tex.Apply();
-            return tex;
+                new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, -0.5f, 0f),
+                new Vector3(-0.5f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0f)
+            };
+            _quadMesh.uv = new[] { Vector2.zero, Vector2.right, Vector2.up, Vector2.one };
+            _quadMesh.triangles = new[] { 0, 2, 1, 2, 3, 1 };
+            _quadMesh.RecalculateNormals();
+            _quadMesh.RecalculateBounds();
+            return _quadMesh;
         }
 
-        /// <summary>팀/국가 색 주입 (생성 직후 GuardSelectionManager가 호출).</summary>
+        private void Update()
+        {
+            _elapsed += Time.deltaTime;
+            transform.localScale = CommandRingPresentation.GetPulseScale(_startScale, _elapsed);
+        }
+
+        private void ApplyColor()
+        {
+            if (_mat != null) Destroy(_mat);
+            _mat = CommandRingPresentation.Apply(_rend, color);
+        }
+
+        /// <summary>Existing public tint API retained.</summary>
         public void SetColor(Color c)
         {
             color = c;
-            if (_mat != null)
-            {
-                if (_mat.HasProperty("_TeamColor")) _mat.SetColor("_TeamColor", c);
-                else _mat.color = c;   // [P20-3] 폴백(Unlit) 경로 — 틴트로 색 반영
-            }
+            ApplyColor();
             if (_rend != null) _rend.enabled = true;
         }
 

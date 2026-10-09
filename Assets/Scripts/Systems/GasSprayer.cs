@@ -20,7 +20,6 @@ namespace ProjectName.Systems
         [Header("Effect Settings")]
         [SerializeField] private LayerMask _targetLayers = -1; // Default: Everything
         [SerializeField] private float _effectInterval = 0.5f;  // 효과 체크 간격 (초)
-        [SerializeField] private float _fogLifetime = 1.5f;    // 안개 오브젝트 지속 시간
 
         [Header("Poison (공격성/독)")]
         [SerializeField] private float _minPoisonDamage = 5f;
@@ -39,27 +38,70 @@ namespace ProjectName.Systems
         [SerializeField] private float _allyAttackBuff = 5f;
 
         [Header("Spray Fog Colors")]
-        [SerializeField] private Color _poisonFogColor = new Color(1f, 0.15f, 0.15f, 0.45f);  // 붉은 안개
+        [SerializeField] private Color _poisonFogColor = new Color(0.2f, 0.65f, 0.08f, 0.5f);  // 독성 짙은 초록 안개
         [SerializeField] private Color _mentalFogColor = new Color(0.6f, 0.15f, 0.85f, 0.45f); // 보라색 안개
         [SerializeField] private Color _healFogColor = new Color(0.15f, 0.85f, 0.15f, 0.45f);  // 초록색 안개
         [SerializeField] private Color _buffFogColor = new Color(0.15f, 0.35f, 0.95f, 0.45f);  // 파란색 안개
 
         // ── Internal state ───────────────────────────────────────────────
         private GasSprayerController _controller;
-        private Transform _cameraTransform;
         private float _effectTimer;
         private bool _lastFrameSpraying;
-        private UnityEngine.InputSystem.Keyboard _keyboard;
 
-        // 활성화된 안개 VFX 리스트 (메모리 풀링 없이 간단 구현)
-        private readonly List<SprayFog> _activeFogs = new List<SprayFog>();
+        // Persistent, bounded ParticleSystems form the visual pool. Their world-space
+        // particles retain the travelled path while the nozzles follow the player.
+        private readonly List<ParticleSystem> _plumeSystems = new List<ParticleSystem>(3);
+        private readonly List<ParticleSystemRenderer> _plumeRenderers = new List<ParticleSystemRenderer>(3);
+        private readonly List<Material> _plumeMaterials = new List<Material>(3);
+        private readonly List<Texture2D> _plumeTextures = new List<Texture2D>(3);
+        private static readonly Dictionary<Texture2D, Material> SharedGasMaterials =
+            new Dictionary<Texture2D, Material>();
+        private static readonly Dictionary<Texture2D, int> SharedGasMaterialUsers =
+            new Dictionary<Texture2D, int>();
 
-        // 안개 시각적 표현용 구조체
-        private struct SprayFog
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void CleanupUnusedGasMaterials()
         {
-            public GameObject go;
-            public float startTime;
-            public float lifetime;
+            if (SharedGasMaterials.Count == 0) return;
+
+            var unusedTextures = new List<Texture2D>();
+            foreach (var entry in SharedGasMaterials)
+            {
+                if (!SharedGasMaterialUsers.TryGetValue(entry.Key, out int users) || users <= 0)
+                    unusedTextures.Add(entry.Key);
+            }
+
+            for (int i = 0; i < unusedTextures.Count; i++)
+                RemoveGasMaterial(unusedTextures[i]);
+        }
+
+        private static void RemoveGasMaterial(Texture2D texture)
+        {
+            if (ReferenceEquals(texture, null) || !SharedGasMaterials.TryGetValue(texture, out Material material))
+                return;
+
+            SharedGasMaterials.Remove(texture);
+            SharedGasMaterialUsers.Remove(texture);
+            if (material == null) return;
+            if (Application.isPlaying) Destroy(material);
+            else DestroyImmediate(material);
+        }
+
+        private static void RetainGasMaterial(Texture2D texture)
+        {
+            if (texture == null) return;
+            SharedGasMaterialUsers.TryGetValue(texture, out int users);
+            SharedGasMaterialUsers[texture] = users + 1;
+        }
+
+        private static void ReleaseGasMaterial(Texture2D texture)
+        {
+            if (texture == null || !SharedGasMaterialUsers.TryGetValue(texture, out int users))
+                return;
+
+            users--;
+            if (users <= 0) RemoveGasMaterial(texture);
+            else SharedGasMaterialUsers[texture] = users;
         }
 
         // ── Lifecycle ────────────────────────────────────────────────────
@@ -74,10 +116,49 @@ namespace ProjectName.Systems
                 return;
             }
 
-            if (Camera.main != null)
-                _cameraTransform = Camera.main.transform;
+            CreatePlumePool();
 
-            _keyboard = UnityEngine.InputSystem.Keyboard.current;
+            _controller.OnSprayingChanged += HandleSprayingChanged;
+            _controller.OnPotionDoseDepleted += HandlePotionDoseDepleted;
+            _controller.OnGPressRequested += HandleGPressRequested;
+        }
+
+        private void HandleSprayingChanged(bool spraying)
+        {
+            InvokeGasSprayUIMethod(spraying ? "ShowSprayStatus" : "HideSprayStatus", spraying);
+        }
+
+        private void HandlePotionDoseDepleted()
+        {
+            if (_controller != null && !_controller.IsSpraying && _controller.LoadedPotionCount <= 0)
+                InvokeGasSprayUIAction("ShowDoseExhaustedStatus");
+        }
+
+        private void HandleGPressRequested()
+        {
+            // A deliberate G press always wins over a pending exhausted-dose notice.
+            InvokeGasSprayUIAction("HideSprayStatus");
+        }
+
+        private static void InvokeGasSprayUIAction(string methodName)
+        {
+            InvokeGasSprayUIMethod(methodName, false);
+        }
+
+        // Reflection keeps Systems independent of the ProjectName.UI assembly.
+        private static void InvokeGasSprayUIMethod(string methodName, bool ensure)
+        {
+            var uiType = System.Type.GetType("ProjectName.UI.Toolkit.GasSprayUTK, ProjectName.UI");
+            if (uiType == null) return;
+
+            const System.Reflection.BindingFlags staticFlags =
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static;
+            if (ensure)
+                uiType.GetMethod("Ensure", staticFlags)?.Invoke(null, null);
+
+            var instance = uiType.GetProperty("Instance", staticFlags)?.GetValue(null);
+            if (instance == null) return;
+            instance.GetType().GetMethod(methodName)?.Invoke(instance, null);
         }
 
         private void Start()
@@ -90,24 +171,15 @@ namespace ProjectName.Systems
         {
             if (_controller == null) return;
 
-            // G 키 입력 감지 (Input System) — 분사 토글
-            if (_keyboard != null && _keyboard.gKey.wasPressedThisFrame)
-            {
-                if (_controller.IsEquipped)
-                {
-                    if (_controller.IsSpraying)
-                    {
-                        _controller.StopSpray();
-                    }
-                    else
-                    {
-                        _controller.StartSpray();
-                    }
-                }
-            }
+            // G is read only here. isPressed makes spray last exactly as long as the hold;
+            // focus/device loss resets the control and is treated as a release.
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            bool gHeld = keyboard != null && keyboard.gKey.isPressed;
+            _controller.SetGInputHeld(gHeld);
 
+            bool gameplaySpraying = _controller.IsSpraying && _controller.IsEquipped && !_controller.IsReloading;
             // 분사 중 효과 처리
-            if (_controller.IsSpraying && _controller.IsEquipped && !_controller.IsReloading)
+            if (gameplaySpraying)
             {
                 if (!_lastFrameSpraying)
                 {
@@ -124,11 +196,11 @@ namespace ProjectName.Systems
                     ApplySprayEffects();
                 }
 
-                // 안개 VFX 생성 (매 프레임 작은 안개 생성)
-                SpawnFogEffect();
+                EmitPlume();
             }
             else
             {
+                StopPlumeEmission();
                 if (_lastFrameSpraying)
                 {
                     _lastFrameSpraying = false;
@@ -136,8 +208,6 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 만료된 안개 제거
-            UpdateFogLifetimes();
         }
 
         // ── Effect Application ───────────────────────────────────────────
@@ -185,13 +255,16 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 공격성(독) 효과: 붉은 안개, 적에게 지속 데미지 5~15
+        /// 공격성(독) 효과: 짙은 초록 안개, 적에게 지속 데미지 5~15
         /// </summary>
         private void ApplyPoisonEffect(Collider target)
         {
             // 적 여부 확인: IDamageable 구현체인지 (적/몬스터)
             var damageable = target.GetComponent<IDamageable>();
             if (damageable == null) return;
+
+            // [2026-10-08] 플레이어는 방독면 착용 중이면 독가스 효과를 받지 않는다.
+            if (target.CompareTag("Player") && GasMaskSystem.IsActive) return;
 
             float damage = Random.Range(_minPoisonDamage, _maxPoisonDamage);
             Vector3 hitDir = (target.transform.position - transform.position).normalized;
@@ -249,93 +322,214 @@ namespace ProjectName.Systems
 
         // ── Spray Visual Effect ──────────────────────────────────────────
 
-        /// <summary>
-        /// 분사 안개 시각 효과 생성 (간단한 사각형 텍스처 기반)
-        /// </summary>
-        private void SpawnFogEffect()
+        private void CreatePlumePool()
         {
-            if (_cameraTransform == null) return;
-
-            GasSprayerData data = _controller.GetCurrentSprayerData();
-            float range = data.sprayRange;
-            string potionId = _controller.LoadedPotionId;
-            PotionType potionType = ClassifyPotion(potionId);
-
-            // 안개 색상 선택
-            Color fogColor = GetFogColor(potionType);
-            if (fogColor.a <= 0f) return; // 물약 없음
-
-            // 플레이어 정면 방향으로 랜덤 오프셋
-            Vector3 forward = transform.forward;
-            Vector3 offset = forward * Random.Range(1f, range * 0.8f)
-                           + transform.right * Random.Range(-range * 0.4f, range * 0.4f)
-                           + Vector3.up * Random.Range(-0.5f, 1f);
-
-            Vector3 spawnPos = transform.position + Vector3.up * 0.3f + offset;
-
-            // 안개 GameObject 생성
-            GameObject fog = new GameObject("GasSprayer_Fog");
-            fog.transform.position = spawnPos;
-            fog.transform.localScale = Vector3.one * Random.Range(0.5f, 1.2f);
-
-            // MeshFilter + MeshRenderer로 평면 사각형 표시
-            var mf = fog.AddComponent<MeshFilter>();
-            mf.mesh = CreateQuadMesh();
-
-            var mr = fog.AddComponent<MeshRenderer>();
-            mr.material = new Material(Shader.Find("Universal Render Pipeline/Unlit"))
-            {
-                color = fogColor
-            };
-
-            // 바라보는 방향 (카메라 향함 - 빌보드 효과)
-            fog.transform.LookAt(_cameraTransform);
-            fog.transform.Rotate(0, 180, 0);
-
-            // 풀 대신 간단 리스트 추적
-            _activeFogs.Add(new SprayFog
-            {
-                go = fog,
-                startTime = Time.time,
-                lifetime = _fogLifetime
-            });
-
-            // 너무 많은 안개가 쌓이면 가장 오래된 것 제거
-            while (_activeFogs.Count > 30)
-            {
-                var oldest = _activeFogs[0];
-                if (oldest.go != null) Destroy(oldest.go);
-                _activeFogs.RemoveAt(0);
-            }
+            CreatePlumeLayer("GasSprayer_Soft", "UI/GasPlumeSoft", 48f, 3f, 0.78f, 0.4f, 0.9f, 0.24f);
+            CreatePlumeLayer("GasSprayer_Puff", "UI/GasPlumeLobe", 24f, 3f, 0.62f, 0.75f, 1.2f, 0.42f);
+            CreatePlumeLayer("GasSprayer_Wisp", "UI/GasPlumeWisp", 18f, 3f, 0.34f, 0.3f, 0.75f, 0.55f);
         }
 
-        /// <summary>
-        /// 활성 안개의 수명 업데이트 — 만료된 안개 제거
-        /// </summary>
-        private void UpdateFogLifetimes()
+        private void CreatePlumeLayer(string layerName, string textureResource, float rate,
+            float lifetime, float size, float speedMin, float speedMax, float noiseStrength)
         {
-            float now = Time.time;
-            for (int i = _activeFogs.Count - 1; i >= 0; i--)
+            Texture2D texture = Resources.Load<Texture2D>(textureResource);
+            if (texture == null)
             {
-                if (now - _activeFogs[i].startTime >= _activeFogs[i].lifetime)
+                Debug.LogWarning("[GasSprayer] Missing baked plume texture: " + textureResource);
+                return;
+            }
+
+            Material material = GetOrCreateGasMaterial(texture);
+            if (material == null)
+            {
+                Debug.LogWarning("[GasSprayer] No compatible particle shader for plume texture: " + textureResource);
+                return;
+            }
+
+            var layerObject = new GameObject(layerName);
+            layerObject.transform.SetParent(transform, false);
+            layerObject.transform.localPosition = new Vector3(0f, 0.3f, 0.25f);
+            layerObject.transform.localRotation = Quaternion.identity;
+
+            ParticleSystem particles = layerObject.AddComponent<ParticleSystem>();
+            // AddComponent creates/starts the default particle system before our configuration.
+            // Fully stop and clear it before changing duration to avoid Unity's runtime warning.
+            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            ParticleSystem.MainModule main = particles.main;
+            main.duration = 1f;
+            main.loop = true;
+            main.playOnAwake = false;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.maxParticles = layerName.Contains("Puff") ? 96 : layerName.Contains("Soft") ? 192 : 72;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(lifetime, lifetime + 0.5f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(speedMin, speedMax);
+            main.startSize = new ParticleSystem.MinMaxCurve(size * 0.72f, size * 1.28f);
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            main.startColor = Color.white;
+            main.gravityModifier = layerName.Contains("Wisp") ? -0.035f : 0.025f;
+
+            ParticleSystem.EmissionModule emission = particles.emission;
+            emission.enabled = true;
+            emission.rateOverTime = rate;
+
+            ParticleSystem.ShapeModule shape = particles.shape;
+            shape.enabled = true;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = layerName.Contains("Wisp") ? 17f : 23f;
+            shape.radius = layerName.Contains("Wisp") ? 0.055f : 0.09f;
+            shape.radiusThickness = 0.15f;
+
+            // startSpeed is sampled along the cone at birth. World simulation keeps
+            // that initial direction; a velocity-over-lifetime module here would either
+            // rotate with the emitter (Local) or drift along a fixed global axis (World).
+            ParticleSystem.VelocityOverLifetimeModule velocity = particles.velocityOverLifetime;
+            velocity.enabled = false;
+
+            ParticleSystem.NoiseModule noise = particles.noise;
+            noise.enabled = true;
+            noise.strength = noiseStrength;
+            noise.frequency = 0.42f;
+            noise.octaveCount = 2;
+            noise.damping = true;
+
+            ParticleSystem.ColorOverLifetimeModule color = particles.colorOverLifetime;
+            color.enabled = true;
+            Gradient fade = new Gradient();
+            fade.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[]
                 {
-                    if (_activeFogs[i].go != null)
-                        Destroy(_activeFogs[i].go);
-                    _activeFogs.RemoveAt(i);
-                }
+                    new GradientAlphaKey(0f, 0f),
+                    new GradientAlphaKey(0.42f, 0.12f),
+                    new GradientAlphaKey(0.27f, 0.58f),
+                    new GradientAlphaKey(0f, 1f)
+                });
+            color.color = new ParticleSystem.MinMaxGradient(fade);
+
+            ParticleSystem.SizeOverLifetimeModule sizeOverLifetime = particles.sizeOverLifetime;
+            sizeOverLifetime.enabled = true;
+            sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f,
+                new AnimationCurve(new Keyframe(0f, 0.58f), new Keyframe(0.35f, 1f), new Keyframe(1f, 1.5f)));
+
+            ParticleSystemRenderer renderer = layerObject.GetComponent<ParticleSystemRenderer>();
+            renderer.renderMode = ParticleSystemRenderMode.Billboard;
+            renderer.alignment = ParticleSystemRenderSpace.View;
+            renderer.minParticleSize = 0f;
+            renderer.maxParticleSize = 0.55f;
+            renderer.sharedMaterial = material;
+
+            _plumeSystems.Add(particles);
+            _plumeRenderers.Add(renderer);
+            _plumeMaterials.Add(material);
+            _plumeTextures.Add(texture);
+            RetainGasMaterial(texture);
+            particles.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+
+        private static Material GetOrCreateGasMaterial(Texture2D texture)
+        {
+            if (texture == null)
+                return null;
+            if (SharedGasMaterials.TryGetValue(texture, out Material cached) && cached != null)
+                return cached;
+            if (SharedGasMaterials.ContainsKey(texture))
+                RemoveGasMaterial(texture);
+
+            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit")
+                ?? Shader.Find("Universal Render Pipeline/Particles/Simple Lit")
+                ?? Shader.Find("Particles/Standard Unlit")
+                ?? Shader.Find("Sprites/Default");
+            if (shader == null)
+                return null;
+
+            var material = new Material(shader) { name = "GasSprayer_Pooled_" + texture.name };
+            if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", texture);
+            if (material.HasProperty("_MainTex")) material.SetTexture("_MainTex", texture);
+
+            // URP Particles Unlit defaults to opaque even though these plume masks
+            // rely on texture and particle alpha. Set the complete transparent state
+            // on the runtime material so it renders correctly outside the Editor.
+            if (material.HasProperty("_Surface")) material.SetFloat("_Surface", 1f);
+            if (material.HasProperty("_Blend")) material.SetFloat("_Blend", 0f);
+            if (material.HasProperty("_SrcBlend"))
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (material.HasProperty("_DstBlend"))
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            if (material.HasProperty("_SrcBlendAlpha"))
+                material.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+            if (material.HasProperty("_DstBlendAlpha"))
+                material.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            if (material.HasProperty("_ZWrite")) material.SetFloat("_ZWrite", 0f);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.SetOverrideTag("RenderType", "Transparent");
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+            SharedGasMaterials[texture] = material;
+            return material;
+        }
+
+        private void EmitPlume()
+        {
+            PotionType type = ClassifyPotion(_controller.LoadedPotionId);
+            Color tint = GetFogColor(type);
+            if (tint.a <= 0f)
+            {
+                StopPlumeEmission();
+                return;
+            }
+
+            float radius = Mathf.Clamp(_controller.GetCurrentSprayerData().sprayRange, 0.1f, 8f);
+            float height = Mathf.Clamp(radius * 0.75f, 0.1f, 6f);
+            const float density = 0.78f;
+            AeroGasSprayBridge.Publish(new AeroGasSprayPayload(transform, radius, height, density, tint));
+
+            if (_plumeSystems.Count == 0)
+                return;
+
+            for (int i = 0; i < _plumeSystems.Count; i++)
+            {
+                ParticleSystem particles = _plumeSystems[i];
+                if (particles == null) continue;
+                ParticleSystem.MainModule main = particles.main;
+                main.startColor = tint;
+                if (!particles.isPlaying)
+                    particles.Play(false);
             }
         }
 
-        /// <summary>
-        /// 분사 중단 시 남은 모든 안개 제거
-        /// </summary>
+        private void StopPlumeEmission()
+        {
+            AeroGasSprayBridge.Stop();
+            for (int i = 0; i < _plumeSystems.Count; i++)
+            {
+                if (_plumeSystems[i] != null && _plumeSystems[i].isEmitting)
+                    _plumeSystems[i].Stop(false, ParticleSystemStopBehavior.StopEmitting);
+            }
+        }
+
         private void StopSprayEffect()
         {
-            foreach (var fog in _activeFogs)
+            StopPlumeEmission();
+        }
+
+        private void OnDestroy()
+        {
+            AeroGasSprayBridge.Stop();
+            if (_controller != null)
             {
-                if (fog.go != null) Destroy(fog.go);
+                _controller.OnSprayingChanged -= HandleSprayingChanged;
+                _controller.OnPotionDoseDepleted -= HandlePotionDoseDepleted;
+                _controller.OnGPressRequested -= HandleGPressRequested;
             }
-            _activeFogs.Clear();
+            StopSprayEffect();
+            for (int i = 0; i < _plumeSystems.Count; i++)
+                if (_plumeSystems[i] != null) Destroy(_plumeSystems[i].gameObject);
+            _plumeSystems.Clear();
+            _plumeRenderers.Clear();
+            for (int i = 0; i < _plumeTextures.Count; i++)
+                ReleaseGasMaterial(_plumeTextures[i]);
+            _plumeTextures.Clear();
+            _plumeMaterials.Clear();
         }
 
         // ── Helpers ──────────────────────────────────────────────────────
@@ -381,48 +575,23 @@ namespace ProjectName.Systems
             };
         }
 
-        /// <summary>
-        /// 간단한 Quad 메시 생성 (절차적)
-        /// </summary>
-        private static Mesh _cachedQuadMesh;
-        private static Mesh CreateQuadMesh()
-        {
-            if (_cachedQuadMesh != null) return _cachedQuadMesh;
-
-            _cachedQuadMesh = new Mesh
-            {
-                vertices = new[]
-                {
-                    new Vector3(-0.5f, -0.5f, 0),
-                    new Vector3( 0.5f, -0.5f, 0),
-                    new Vector3(-0.5f,  0.5f, 0),
-                    new Vector3( 0.5f,  0.5f, 0)
-                },
-                triangles = new[] { 0, 2, 1, 2, 3, 1 },
-                uv = new[]
-                {
-                    new Vector2(0, 0),
-                    new Vector2(1, 0),
-                    new Vector2(0, 1),
-                    new Vector2(1, 1)
-                }
-            };
-            _cachedQuadMesh.RecalculateNormals();
-            return _cachedQuadMesh;
-        }
 
         /// <summary>
         /// 분사 중 효과 처리 비활성화/재시작 시 호출
         /// </summary>
         private void OnDisable()
         {
+            if (_controller != null) _controller.SetGInputHeld(false);
+            AeroGasSprayBridge.Stop();
             StopSprayEffect();
         }
 
-        private void OnDestroy()
+        private void OnApplicationFocus(bool hasFocus)
         {
-            StopSprayEffect();
+            if (!hasFocus && _controller != null)
+                _controller.SetGInputHeld(false);
         }
+
     }
 
     /// <summary>

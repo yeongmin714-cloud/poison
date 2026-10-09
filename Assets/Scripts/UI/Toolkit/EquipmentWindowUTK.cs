@@ -48,7 +48,7 @@ namespace ProjectName.UI.Toolkit
         public static void Toggle()
         {
             if (_instance != null && _instance.IsOpen) { _instance.Close(); return; }
-            Ensure();
+            Open();
         }
 
         // ===== 설정 =====
@@ -99,7 +99,7 @@ namespace ProjectName.UI.Toolkit
 
             var title = new Label("장비 목록 (우클릭/버튼 → 해제)");
             title.AddToClassList("utk-title-label");
-            title.style.fontSize = 18f;
+            title.style.fontSize = 16.8f;
             _content.Add(title);
 
             _grid = new VisualElement();
@@ -109,7 +109,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(_grid);
 
             _statusLabel = new Label("");
-            _statusLabel.style.fontSize = 13f;
+            _statusLabel.style.fontSize = 13.2f;
             _statusLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _statusLabel.style.whiteSpace = WhiteSpace.Normal;
             _content.Add(_statusLabel);
@@ -140,7 +140,7 @@ namespace ProjectName.UI.Toolkit
 
             var slotLabel = new Label(def.label);
             slotLabel.style.width = 46f;
-            slotLabel.style.fontSize = 15f;
+            slotLabel.style.fontSize = 15.6f;
             slotLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             row.Add(slotLabel);
 
@@ -158,7 +158,7 @@ namespace ProjectName.UI.Toolkit
 
             var nameLabel = new Label("");
             nameLabel.name = "Name_" + index;
-            nameLabel.style.fontSize = 15f;
+            nameLabel.style.fontSize = 15.6f;
             nameLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             nameLabel.style.whiteSpace = WhiteSpace.Normal;
             textCol.Add(nameLabel);

@@ -394,16 +394,13 @@ namespace ProjectName.Systems
         /// <summary>허브 노드: HerbPickup + 5종 HerbType 결정론 순환(Red/Purple/Yellow/Silver/Green).</summary>
         static System.Action<GameObject> CreateHerbNode(int index, DetRng rng)
         {
-            HerbPickup.HerbType[] types =
-            {
-                HerbPickup.HerbType.Red, HerbPickup.HerbType.Purple, HerbPickup.HerbType.Yellow,
-                HerbPickup.HerbType.Silver, HerbPickup.HerbType.Green,
-            };
-            HerbPickup.HerbType type = types[index % types.Length];
+            IReadOnlyList<HerbInfo> herbs = HerbDatabase.AllHerbs;
+            if (herbs == null || herbs.Count == 0) return null;
+            string herbId = herbs[index % herbs.Count].id;
             return go =>
             {
                 var herb = go.AddComponent<HerbPickup>();
-                SetPrivateField(herb, "_herbType", type);
+                SetPrivateField(herb, "_herbDatabaseId", herbId);
             };
         }
 

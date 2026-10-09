@@ -143,7 +143,7 @@ namespace ProjectName.Systems
             // ===== 조명 설정 =====
             // 따뜻한 앰비언트 + 깜빡임(난로 불빛 연출)
             Color ambientWarm = new Color(0.12f, 0.08f, 0.04f);
-            IndoorLighting.SetupIndoorLighting(room, ambientWarm, 0.9f, true);
+            IndoorLighting.SetupIndoorLighting(room, ambientWarm, 0.28f, true);
 
             Debug.Log("[HouseInteriorBuilder] NPC 주택 실내 생성 완료!");
 

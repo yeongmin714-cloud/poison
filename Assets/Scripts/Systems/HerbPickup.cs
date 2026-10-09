@@ -37,6 +37,7 @@ namespace ProjectName.Systems
         [Header("설정")]
         [SerializeField] private HerbType _herbType = HerbType.Red;
         [SerializeField] private string _cropKey = "";   // CropCatalog 키 — 설정 시 HerbType보다 우선(작물 100종)
+        [SerializeField] private string _herbDatabaseId = ""; // GAME_DATA A1/M1/H1/P1 ingredient ID
         [SerializeField] private float _interactRange = 2.5f;
         [SerializeField] private float _respawnTime = 30f;   // 채집 후 재생성 시간
         [SerializeField] private int _minYield = 1;
@@ -89,6 +90,20 @@ namespace ProjectName.Systems
 
         private PlayerInventory.ItemData GetItemData()
         {
+            if (!string.IsNullOrEmpty(_herbDatabaseId))
+            {
+                HerbInfo herb = HerbDatabase.GetHerbInfo(_herbDatabaseId);
+                if (!string.IsNullOrEmpty(herb.id))
+                    return new PlayerInventory.ItemData
+                    {
+                        id = herb.id,
+                        displayName = herb.displayName,
+                        description = herb.description,
+                        category = PlayerInventory.ItemCategory.Herb,
+                        maxStack = 20
+                    };
+            }
+
             // 작물 100종 경로 — _cropKey 지정 시 HerbType 매핑보다 우선(CropCatalog)
             if (!string.IsNullOrEmpty(_cropKey))
                 return CropCatalog.GetItemByKey(_cropKey);
@@ -151,6 +166,13 @@ namespace ProjectName.Systems
         /// <summary>_cropKey 우선 씨앗 드랍 판정(인스턴스) — 미지정 시 기존 HerbType 경로 폴백.</summary>
         private bool TryRollSeedDropForNode(out PlayerInventory.ItemData seed, out float chance)
         {
+            if (!string.IsNullOrEmpty(_herbDatabaseId))
+            {
+                // GAME_DATA herb IDs have no corresponding seed catalog yet; never award a misleading Red seed.
+                seed = null;
+                chance = 0f;
+                return false;
+            }
             if (!string.IsNullOrEmpty(_cropKey))
             {
                 seed = CropCatalog.GetSeedByKey(_cropKey);

@@ -16,7 +16,7 @@ namespace ProjectName.UI.Toolkit
     /// 기능: Show/Hide/Toggle/Close, IsOpen, ESC 시 UTKWindowManager 경유 자동 등록/해제,
     ///       타이틀바 PointerManipulator 드래그, UIFont 공용 폰트 헬퍼.
     /// </summary>
-    public class UTKWindowBase : VisualElement
+    public class UTKWindowBase : VisualElement, IUTKCompositionPanel
     {
         /// <summary>닫기 버튼 클릭 시 호출 (기본: Close() 재정의용 훅).</summary>
         public System.Action OnCloseRequested;
@@ -202,6 +202,9 @@ namespace ProjectName.UI.Toolkit
         {
             if (_isOpen) Hide(); else Show();
         }
+
+        /// <summary>Composition compatibility entry; preserves derived Show/Hide lifecycle overrides.</summary>
+        void IUTKCompositionPanel.Open() => Show();
 
         /// <summary>Hide()와 동일 — ESC 처리 경유 (스택 최상단 제거).</summary>
         public virtual void Close() => Hide();

@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using ProjectName.Core;        // PlayerInventory 불필요
-using ProjectName.Core.Data;   // TerritoryDatabase/TerritoryDefinition
 using ProjectName.Systems;     // TemperatureSystem, SoundSystem, TimeWeatherSystem, QuestMarkerSystem, TerrainSplatBaker
 using WeatherType = ProjectName.Systems.TimeWeatherSystem.WeatherType;
 
@@ -53,12 +52,20 @@ namespace ProjectName.UI.Toolkit
         private const float Diameter   = 220f;
         private const float MarginLeft = 20f;
         private const float MarginTop  = 20f;
+        private const float FigmaBezelDiameter = 264f;
+        private const float FigmaBezelRight = 24f;
+        private const float FigmaBezelTop = 24f;
         private const float PlayerMarkerSize = 12f;
+        private const float LocalRadius = 120f;
+        private float _bezelScaleX = 1f;
+        private float _bezelScaleY = 1f;
 
         private VisualElement _mapCanvas;      // 배경 이미지 (월드 스플랫)
         private VisualElement _mapFrame;       // 원형 마스킹용 오버레이 프레임
         private VisualElement _markerHost;     // 영지/퀘스트 마커 (절대배치)
-        private VisualElement _playerMarker;   // 플레이어 삼각/사각 마커
+        private VisualElement _playerMarker;   // 플레이어 방향 마커
+        private VisualElement _tempFill;
+        private VisualElement _soundFill;
         private VisualElement _bezel;          // [Figma] MinimapBezel.png 베젤 오버레이
         private Label _tempText;               // 온도 수치
         private Label _soundText;              // 소음 수치
@@ -131,9 +138,9 @@ namespace ProjectName.UI.Toolkit
             _mapCanvas.style.position = Position.Absolute;
             _mapCanvas.style.left = 0f;
             _mapCanvas.style.top = 0f;
-            _mapCanvas.style.right = 0f;
-            _mapCanvas.style.bottom = 0f;
-            _mapCanvas.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Contain);
+            _mapCanvas.style.width = Diameter;
+            _mapCanvas.style.height = Diameter;
+            _mapCanvas.style.unityBackgroundScaleMode = ScaleMode.StretchToFill;
             _mapCanvas.style.opacity = 0.9f;
             _mapFrame.Add(_mapCanvas);
 
@@ -163,6 +170,20 @@ namespace ProjectName.UI.Toolkit
             _playerMarker.style.borderRightColor = new StyleColor(Color.white);
             _playerMarker.style.borderBottomColor = new StyleColor(Color.white);
             _playerMarker.style.borderLeftColor = new StyleColor(Color.white);
+            _playerMarker.style.borderTopLeftRadius = PlayerMarkerSize * 0.5f;
+            _playerMarker.style.borderTopRightRadius = PlayerMarkerSize * 0.5f;
+            _playerMarker.style.borderBottomLeftRadius = PlayerMarkerSize * 0.5f;
+            _playerMarker.style.borderBottomRightRadius = PlayerMarkerSize * 0.5f;
+            // Legacy DrawPlayerMarker renders a center-to-forward line (13.2px at 12px marker size).
+            var heading = new VisualElement { name = "PlayerHeading" };
+            heading.style.position = Position.Absolute;
+            heading.style.left = 4.5f;
+            heading.style.top = -7.2f;
+            heading.style.width = 3f;
+            heading.style.height = 13.2f;
+            heading.style.backgroundColor = new StyleColor(Color.white);
+            heading.pickingMode = PickingMode.Ignore;
+            _playerMarker.Add(heading);
             _mapFrame.Add(_playerMarker);
 
             // 시간/날씨 (미니맵 위)
@@ -181,7 +202,7 @@ namespace ProjectName.UI.Toolkit
 
             _weatherText = new Label(string.Empty);
             _weatherText.name = "WeatherIcon";
-            _weatherText.style.fontSize = 20f;
+            _weatherText.style.fontSize = 21.6f;
             topRow.Add(_weatherText);
             // [P27] 시간은 좌상단 글래스 시계(TimeClockGlassUTK)로 이관 — 미니맵의 중복 HH:MM 제거.
 
@@ -196,6 +217,15 @@ namespace ProjectName.UI.Toolkit
             tempGauge.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.6f));
             Add(tempGauge);
 
+            _tempFill = new VisualElement { name = "TempFill" };
+            _tempFill.style.position = Position.Absolute;
+            _tempFill.style.left = 1f;
+            _tempFill.style.width = 14f;
+            _tempFill.style.top = 78f;
+            _tempFill.style.height = 4f;
+            _tempFill.style.backgroundColor = new StyleColor(new Color(0.5f, 0.8f, 0.3f, 1f));
+            tempGauge.Add(_tempFill);
+
             _tempText = new Label("0°");
             _tempText.name = "TempText";
             _tempText.style.position = Position.Absolute;
@@ -203,7 +233,7 @@ namespace ProjectName.UI.Toolkit
             _tempText.style.top = (Diameter * 0.5f) - 8f;
             _tempText.style.width = 60f;
             _tempText.style.height = 18f;
-            _tempText.style.fontSize = 13f;
+            _tempText.style.fontSize = 13.2f;
             _tempText.style.color = new StyleColor(new Color(0.5f, 0.8f, 0.3f, 1f));
             _tempText.style.unityTextAlign = TextAnchor.MiddleCenter;
             Add(_tempText);
@@ -219,6 +249,15 @@ namespace ProjectName.UI.Toolkit
             soundGauge.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.6f));
             Add(soundGauge);
 
+            _soundFill = new VisualElement { name = "SoundFill" };
+            _soundFill.style.position = Position.Absolute;
+            _soundFill.style.left = 1f;
+            _soundFill.style.width = 14f;
+            _soundFill.style.top = 159f;
+            _soundFill.style.height = 0f;
+            _soundFill.style.backgroundColor = new StyleColor(new Color(0.3f, 0.8f, 1f, 1f));
+            soundGauge.Add(_soundFill);
+
             _soundText = new Label("0");
             _soundText.name = "SoundText";
             _soundText.style.position = Position.Absolute;
@@ -226,7 +265,7 @@ namespace ProjectName.UI.Toolkit
             _soundText.style.top = (Diameter * 0.5f) - 8f;
             _soundText.style.width = 60f;
             _soundText.style.height = 18f;
-            _soundText.style.fontSize = 13f;
+            _soundText.style.fontSize = 13.2f;
             _soundText.style.color = new StyleColor(new Color(0.3f, 0.8f, 1f, 1f));
             _soundText.style.unityTextAlign = TextAnchor.MiddleCenter;
             Add(_soundText);
@@ -257,6 +296,43 @@ namespace ProjectName.UI.Toolkit
             Debug.Log("[MinimapUTK] 지형 텍스처 주입 완료: " + splat.name);
         }
 
+        private void UpdateMapCrop()
+        {
+            if (_mapCanvas == null) return;
+
+            float side = _mapFrame != null && _mapFrame.contentRect.width > 0f
+                ? _mapFrame.contentRect.width
+                : Diameter - 4f;
+            if (_playerTransform == null || _mapTexture == null)
+            {
+                // No player: retain the legacy full-map view.
+                _mapCanvas.style.left = 0f;
+                _mapCanvas.style.top = 0f;
+                _mapCanvas.style.width = side;
+                _mapCanvas.style.height = side;
+                return;
+            }
+
+            // Match MinimapUI's UVRect math and TerrainSplatBaker's world mapping:
+            // u=0.5+x/W and v=0.5+z/W, with a 2*LocalRadius world-space window.
+            float span = Mathf.Clamp01((LocalRadius * 2f) / TerrainSplatBaker.WORLD_SIZE);
+            Vector3 p = _playerTransform.position;
+            float u = Mathf.Clamp01(0.5f + p.x / TerrainSplatBaker.WORLD_SIZE);
+            float v = Mathf.Clamp01(0.5f + p.z / TerrainSplatBaker.WORLD_SIZE);
+            float u0 = Mathf.Clamp(u - span * 0.5f, 0f, 1f - span);
+            float v0 = Mathf.Clamp(v - span * 0.5f, 0f, 1f - span);
+            float imageSide = side / span;
+
+            // A single oversized child, clipped by MapFrame, performs the UV crop without
+            // allocating/copying textures. In the old UVRect convention v=0 is the bottom
+            // (negative z) and v grows north. UI Toolkit paints textures with row 0 at the
+            // top, so the matching northward crop begins at the complementary top offset.
+            _mapCanvas.style.left = -u0 * imageSide;
+            _mapCanvas.style.top = -(1f - (v0 + span)) * imageSide;
+            _mapCanvas.style.width = imageSide;
+            _mapCanvas.style.height = imageSide;
+        }
+
         // =====================================================================
         //  폴링 갱신 (0.4초 — 원본 Update 프레임 루프 대체)
         // =====================================================================
@@ -283,6 +359,8 @@ namespace ProjectName.UI.Toolkit
             if (_playerTransform == null)
                 _playerTransform = FindPlayer();
 
+            UpdateMapCrop();
+
             // 시간/날씨 — [P27] 시간은 글래스 시계로 이관, 미니맵은 날씨 아이콘만
             switch (_weather)
             {
@@ -305,20 +383,50 @@ namespace ProjectName.UI.Toolkit
                 : $"{_temperature * 50f:F0}°";
 
             // 소음 색상 + 수치
+            Color soundLow = new Color(0.3f, 0.8f, 1f, 1f);
+            Color soundMid = new Color(1f, 0.8f, 0.2f, 1f);
+            Color soundHigh = new Color(1f, 0.2f, 0.2f, 1f);
             Color soundColor = _soundLevel < 0.3f
-                ? new Color(0.3f, 0.8f, 1f, 1f)
+                ? soundLow
                 : _soundLevel < 0.7f
-                    ? new Color(1f, 0.8f, 0.2f, 1f)
-                    : new Color(1f, 0.2f, 0.2f, 1f);
+                    ? Color.Lerp(soundLow, soundMid, (_soundLevel - 0.3f) / 0.4f)
+                    : Color.Lerp(soundMid, soundHigh, (_soundLevel - 0.7f) / 0.3f);
             _soundText.style.color = new StyleColor(soundColor);
             _soundText.text = Mathf.RoundToInt(_soundLevel * 100f).ToString();
 
-            // 플레이어 마커 — 중앙 고정 (로컬뷰). 지형 준비 전엔 숨김.
-            _playerMarker.style.display = _mapTexture != null ? DisplayStyle.Flex : DisplayStyle.None;
-            _playerMarker.style.left = (Diameter - PlayerMarkerSize) * 0.5f;
-            _playerMarker.style.top = (Diameter - PlayerMarkerSize) * 0.5f;
+            // Restore legacy fill geometry: signed temperature around midpoint; sound rises from bottom.
+            float tempMagnitude = Mathf.Abs(_temperature);
+            if (_temperature < -0.1f)
+            {
+                _tempFill.style.top = 80f - (78f * tempMagnitude);
+                _tempFill.style.height = 78f * tempMagnitude;
+                _tempFill.style.backgroundColor = new StyleColor(Color.Lerp(
+                    new Color(0.5f, 0.8f, 0.3f, 1f), new Color(0.2f, 0.5f, 1f, 1f), tempMagnitude));
+            }
+            else if (_temperature > 0.1f)
+            {
+                _tempFill.style.top = 80f;
+                _tempFill.style.height = 78f * tempMagnitude;
+                _tempFill.style.backgroundColor = new StyleColor(Color.Lerp(
+                    new Color(0.5f, 0.8f, 0.3f, 1f), new Color(1f, 0.3f, 0.2f, 1f), _temperature));
+            }
+            else
+            {
+                _tempFill.style.top = 78f;
+                _tempFill.style.height = 4f;
+                _tempFill.style.backgroundColor = new StyleColor(new Color(0.5f, 0.8f, 0.3f, 1f));
+            }
 
-            // 영지/퀘스트 마커 (지형+플레이어 준비 시에만)
+            float soundFillHeight = (160f - 4f) * _soundLevel;
+            _soundFill.style.top = 160f - soundFillHeight - 1f;
+            _soundFill.style.height = soundFillHeight;
+            _soundFill.style.backgroundColor = new StyleColor(soundColor);
+
+            // Keep all spatial overlays hidden until UI Toolkit's vertical texture orientation
+            // is source-proven against the legacy GUI UVRect path (north/south must not invert).
+            _playerMarker.style.display = DisplayStyle.None;
+
+            // 영지/퀘스트 마커 (matching terrain crop이 확보되기 전까지 숨김)
             RefreshMarkers();
         }
 
@@ -326,71 +434,14 @@ namespace ProjectName.UI.Toolkit
         //  영지/퀘스트 마커 — 원본 DrawMarkerOverlay 실제 데이터 실측
         //  로컬뷰: +x=우, +z=북(위), 플레이어 중앙. radius 밖 마커는 스킵.
         // =====================================================================
-        private const float LocalRadius = 120f;
-
         private void RefreshMarkers()
         {
             if (_markerHost == null) return;
             ClearMarkers();
 
-            if (_mapTexture == null || _playerTransform == null) return;
-
-            float radius = Diameter * 0.5f;
-            float pxPerWorld = Diameter / (LocalRadius * 2f);
-            Vector3 pp = _playerTransform.position;
-            float mSize = 4f;
-
-            // ① 영지 마커 (검은 점) — 추후 겹침 최소화
-            var db = TerritoryDatabase.Instance;
-            if (db != null)
-            {
-                foreach (var def in db.GetAllDefinitions())
-                {
-                    Vector3 wp = GetTerritoryWorldPosition(def);
-                    if (wp == Vector3.zero) continue;
-                    Vector3? pos = TryLocalPos(wp, pp, pxPerWorld, radius - mSize);
-                    if (!pos.HasValue) continue;
-                    AddMarker(pos.Value, mSize, new Color(0f, 0f, 0f, 0.85f));
-                }
-            }
-
-            // ② 활성 퀘스트 마커 (퀘스트색 점, 더 큼)
-            var qms = QuestMarkerSystem.Instance;
-            if (qms != null)
-            {
-                float qSize = 7f;
-                foreach (var qm in qms.GetActiveQuestMarkers())
-                {
-                    Vector3? pos = TryLocalPos(qm.worldPos, pp, pxPerWorld, radius - 2f);
-                    if (!pos.HasValue) continue;
-                    AddMarker(pos.Value, qSize, qm.markerColor);
-                }
-            }
-        }
-
-        /// <summary>월드 좌표 → 로컬뷰 마커 위치 (캔버스 좌상단 기준). 반경 밖이면 null.</summary>
-        private Vector3? TryLocalPos(Vector3 wp, Vector3 pp, float pxPerWorld, float maxDist)
-        {
-            float dx = (wp.x - pp.x) * pxPerWorld;
-            float dy = -(wp.z - pp.z) * pxPerWorld;   // +z=북=위 (UI Toolkit y 하향 보정)
-            float distSq = dx * dx + dy * dy;
-            if (distSq > maxDist * maxDist) return null;
-            float cx = Diameter * 0.5f;
-            float cy = Diameter * 0.5f;
-            return new Vector3(cx + dx, cy + dy, 0f);
-        }
-
-        private void AddMarker(Vector3 center, float size, Color color)
-        {
-            var dot = new VisualElement();
-            dot.name = "MapMarker";
-            dot.style.position = Position.Absolute;
-            dot.style.width = size;
-            dot.style.height = size;
-            dot.style.left = center.x - size * 0.5f;
-            dot.style.top = center.y - size * 0.5f;
-            dot.style.backgroundColor = new StyleColor(color);
-            _markerHost.Add(dot);
+            // Keep terrain-dependent markers off: the legacy UVRect uses bottom-origin UVs,
+            // while UI Toolkit backgroundImage's vertical mapping is not source-proven here.
+            // Local crop is rendered, but dots wait until north/south alignment can be guaranteed.
         }
 
         private void ClearMarkers()
@@ -399,32 +450,6 @@ namespace ProjectName.UI.Toolkit
                 _markerHost[i].RemoveFromHierarchy();
         }
 
-        /// <summary>영지 정의 → 미니맵용 월드 위치 (원본 GetTerritoryWorldPosition 동일 규칙).</summary>
-        private static Vector3 GetTerritoryWorldPosition(TerritoryDefinition def)
-        {
-            Vector3 dir;
-            switch (def.nation)
-            {
-                case NationType.North: dir = new Vector3(0f, 0f, 1f); break;
-                case NationType.East:  dir = new Vector3(1f, 0f, 0f); break;
-                case NationType.South: dir = new Vector3(0f, 0f, -1f); break;
-                case NationType.West:  dir = new Vector3(-1f, 0f, 0f); break;
-                default: return Vector3.zero;   // Empire(중앙) — 플레이어 마커와 겹치므로 스킵
-            }
-            float distance;
-            switch (def.difficulty)
-            {
-                case TerritoryDifficulty.Ring1: distance = 15f; break;
-                case TerritoryDifficulty.Ring2: distance = 30f; break;
-                case TerritoryDifficulty.Ring3: distance = 45f; break;
-                case TerritoryDifficulty.Ring4: distance = 60f; break;
-                default: distance = 20f; break;
-            }
-            float spreadAngle = (def.id.index % 5) * 18f;
-            Vector3 spread = Quaternion.Euler(0f, spreadAngle, 0f) * dir;
-            if (spread.sqrMagnitude < 0.01f) spread = dir;
-            return spread.normalized * distance;
-        }
 
         // =====================================================================
         //  Updater — UIRoot 부착 + 0.4초 폴링

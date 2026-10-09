@@ -33,38 +33,50 @@ namespace ProjectName.Systems
         public static event System.Action<IReadOnlyList<GuardPlaceholder>, int> SelectionChanged;
         public static event System.Action<Rect, bool, Color, Color> SelectionBoxChanged;
 
-        // [69차 후속17] 선택 오라 VFX — Hovl Studio Character auras/Buff(Resources 복사본)를
-        //   선택 병사 발밑에 월드 스페이스로 렌더(IMGUI 원 위 추가 — 기존 화면표시 유지).
         private readonly Dictionary<GuardPlaceholder, GameObject> _selectionAuras =
             new Dictionary<GuardPlaceholder, GameObject>();
-        private GameObject _auraPrefab;
 
         private void LateUpdate()
         {
+            CleanupStaleSelectedGuards();
             SyncSelectionAuras();
+            SyncAttackTargetRingManager();
         }
 
-        /// <summary>[2026-09-20] 선택 집합 ↔ 하이라이트 링/오라 동기화.
-        /// Fluent blue SelectionRing 셰이더 링 우선, 셰이더 없으면 절차 링 폴백.
-        /// 선택 해제/사망 시 파괴, 이동 추종.</summary>
-        private static Shader _ringShader;
-        private static bool _ringShaderChecked;
-        private bool _usingRing;
+        // Death marks a guard dead before its death animation/deactivation completes. Also
+        // prune externally deactivated/destroyed guards so selection consumers and UI do not
+        // retain stale entries. Aura cleanup runs immediately afterward in SyncSelectionAuras.
+        private void CleanupStaleSelectedGuards()
+        {
+            bool changed = false;
+            for (int i = _selectedGuards.Count - 1; i >= 0; i--)
+            {
+                var guard = _selectedGuards[i];
+                if (guard != null && guard.IsAlive && guard.gameObject.activeInHierarchy) continue;
 
+                if (guard != null) guard.SetSelected(false);
+                _selectedGuards.RemoveAt(i);
+                changed = true;
+            }
+
+            if (changed) NotifySelectionChanged();
+        }
+
+        // Keep the red designated-target visual alongside the selection system so no scene
+        // registration or GameSetup edits are needed. It reads only SelectedGuards/commands.
+        private AttackTargetRingManager _attackTargetRingManager;
+
+        private void SyncAttackTargetRingManager()
+        {
+            if (_attackTargetRingManager != null) return;
+            _attackTargetRingManager = GetComponent<AttackTargetRingManager>();
+            if (_attackTargetRingManager == null)
+                _attackTargetRingManager = gameObject.AddComponent<AttackTargetRingManager>();
+        }
+
+        /// <summary>SelectionChanged set ↔ shared blue ground rings; removed on deselection/death and followed while moving.</summary>
         private void SyncSelectionAuras()
         {
-            if (!_ringShaderChecked)
-            {
-                _ringShaderChecked = true;
-                _ringShader = Shader.Find("Custom/SelectionRing");
-            }
-            // [P20-3 수리] 링 경로 강제 — SelectionRingController가 셰이더/절차 텍스처 폴백으로
-            //   완전한 원을 보장하므로 EarthTrail(TrailRenderer 반원 호) 폴백은 제거한다.
-            _usingRing = true;
-            _auraPrefab = null;
-            if (_ringShader == null)
-                Debug.Log("[GuardSelectionManager][P20-3] SelectionRing 셰이더 미발견 — 절차 텍스처 폴백 링 사용");
-
             var toRemove = new List<GuardPlaceholder>();
             foreach (var kv in _selectionAuras)
             {
@@ -80,14 +92,13 @@ namespace ProjectName.Systems
             foreach (var g in _selectedGuards)
             {
                 if (g == null) continue;
-                // GuardPlaceholder.SetSelected creates a legacy solid cylinder via
-                // SpecialEffectsController. Keep selection state unified, but ensure this
-                // thin, colliderless ring is the only world-space selection visual.
+                // Defend against direct SetSelected(true) users outside AddToSelection: the
+                // legacy SpecialEffectsController cylinder is never allowed to duplicate our blue ring.
                 if (SpecialEffectsController.Instance != null)
                     SpecialEffectsController.Instance.RemoveSelectionOutline(g);
                 if (_selectionAuras.TryGetValue(g, out var aura) && aura != null)
                 {
-                    aura.transform.position = g.transform.position;   // 이동 추종
+                    aura.transform.position = g.transform.position + Vector3.up * 0.035f;   // 이동 추종
                     continue;
                 }
 
@@ -97,41 +108,23 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>선택 병사 표시 생성 — SelectionRing 셰이더 링 우선, 폴백 EarthTrail/프리팹.</summary>
+        /// <summary>Create one blue command-style ring for each selected guard.</summary>
         private GameObject CreateSelectionIndicator(GuardPlaceholder g)
         {
-            if (_usingRing)
-            {
-                var go = new GameObject("SelectionRing");
-                go.transform.SetParent(g.transform, false);
-                go.transform.localPosition = Vector3.up * 0.035f;
-                go.transform.localRotation = Quaternion.identity;
-                var ring = go.AddComponent<ProjectName.Systems.SelectionRingController>();
-                float unit = g.transform.localScale.x;
-                go.transform.localScale = Vector3.one * Mathf.Max(1f, unit * 1.3f);
-                ring.SetColor(GetNationSelectionColor(g.Nation));
-                return go;
-            }
-
-            if (_auraPrefab == null)
-            {
-                Debug.LogWarning("[RTS] 선택 오라 프리팹 미로드 — Resources/FX/Selection/Buff 확인");
-                return null;
-            }
-            var inst = Instantiate(_auraPrefab);
-            inst.transform.SetParent(g.transform, false);
-            inst.transform.localPosition = Vector3.zero;
-            inst.transform.localRotation = Quaternion.identity;
-            inst.transform.localScale = Vector3.one;
-            foreach (var src in inst.GetComponentsInChildren<AudioSource>())
-                src.enabled = false;
-            return inst;
+            var go = new GameObject("SelectionRing");
+            // Keep root scale so the shared visual size does not inherit guard scale.
+            go.transform.position = g.transform.position + Vector3.up * 0.035f;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one * CommandRingPresentation.BaseScale;
+            var ring = go.AddComponent<SelectionRingController>();
+            ring.SetColor(GetNationSelectionColor(g.Nation));
+            return go;
         }
 
         /// <summary>선택 강조는 국가와 무관하게 Fluent blue로 통일.</summary>
         private static Color GetNationSelectionColor(string nation)
         {
-            return new Color(0.345f, 0.651f, 1f, 1f); // #58A6FF
+            return CommandRingPresentation.SelectedGuardColor;
         }
 
         private void OnDestroy()

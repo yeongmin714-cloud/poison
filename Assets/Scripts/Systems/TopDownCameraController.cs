@@ -68,6 +68,11 @@ namespace ProjectName.Systems
             CachePlayerAndExcludeLayer();
         }
 
+        internal static bool ShouldFreezeCameraForBowAim(bool drawing, bool releasePending, bool leftReleased)
+        {
+            return drawing || (releasePending && leftReleased);
+        }
+
         void LateUpdate()
         {
             if (_player == null)
@@ -76,6 +81,10 @@ namespace ProjectName.Systems
                 if (go != null) _player = go.transform;
                 else return;
             }
+
+            bool leftReleased = Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame;
+            if (ShouldFreezeCameraForBowAim(BowAimState.Drawing, BowAimState.ReleasePending, leftReleased))
+                return;
 
             _screenSize = new Vector2(Screen.width, Screen.height);
 

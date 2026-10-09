@@ -1,0 +1,16 @@
+{
+  "name": "ProjectName.Rendering",
+  "rootNamespace": "ProjectName.Rendering",
+  "references": [
+    "ProjectName.Core",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "Unity.RenderPipelines.Core.Runtime"
+  ],
+  "autoReferenced": true,
+  "overrideReferences": false,
+  "allowUnsafeCode": false,
+  "precompiledReferences": [],
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

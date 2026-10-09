@@ -88,16 +88,7 @@ namespace ProjectName.UI.Toolkit
 
             _content.style.flexDirection = FlexDirection.Column;
             _content.style.flexGrow = 1f;
-            _content.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
-
-            // GitHub-dark 상단 헤더 — 설정창에서만 베이스 윈도우의 헤더를 스타일링한다.
-            var titleBar = this.Q<VisualElement>("TitleBar");
-            if (titleBar != null)
-            {
-                titleBar.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
-                titleBar.style.borderBottomWidth = 1f;
-                titleBar.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            }
+            _content.style.backgroundColor = new StyleColor(UTKTheme.BgBase);
 
             BuildTabBar();
             _graphicsRoot = new VisualElement { name = "GraphicsTab" };
@@ -116,6 +107,7 @@ namespace ProjectName.UI.Toolkit
 
             RefreshResolutionList();
 
+            UTKTheme.ApplyWindowChrome(this, this.Q<VisualElement>("TitleBar"), _content);
             ApplyUIToolkitFont(this);
             SelectTab(Tab.Graphics);
             style.display = DisplayStyle.None;
@@ -163,9 +155,7 @@ namespace ProjectName.UI.Toolkit
             bar.style.paddingBottom = 6f;
             bar.style.paddingLeft = 8f;
             bar.style.paddingRight = 8f;
-            bar.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
-            bar.style.borderBottomWidth = 1f;
-            bar.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            UTKTheme.ApplyPanelStyle(bar, secondary: true);
             _content.Add(bar);
 
             BarBtn(bar, "그래픽", Tab.Graphics);
@@ -245,7 +235,7 @@ namespace ProjectName.UI.Toolkit
             AddVolumeSlider(root, "UI (UI 사운드)", _uiVolume, v => _uiVolume = v);
             AddVolumeSlider(root, "Ambient (환경음)", _ambientVolume, v => _ambientVolume = v);
 
-            root.Add(MkDesc("  ※ 변경사항은 자동 저장됩니다.", 12, UTKColor.TextSecondary));
+            root.Add(MkDesc("  ※ 변경사항은 자동 저장됩니다.", 12, UTKTheme.TextSub));
         }
 
         private void AddVolumeSlider(VisualElement root, string label, float init,
@@ -258,11 +248,11 @@ namespace ProjectName.UI.Toolkit
             var head = new VisualElement();
             head.style.flexDirection = FlexDirection.Row;
             head.style.alignItems = Align.Center;
-            var nameLbl = MkLabel(label, 15, UTKColor.TextPrimary);
+            var nameLbl = MkLabel(label, 15.6f, UTKTheme.TextMain);
             nameLbl.style.flexGrow = 1f;
             head.Add(nameLbl);
 
-            var valueLabel = MkLabel($"{(int)(init * 100f)}%", 15, UTKColor.GuildGreen);
+            var valueLabel = MkLabel($"{(int)(init * 100f)}%", 15.6f, UTKTheme.Success);
             valueLabel.style.width = 70f;
             valueLabel.style.unityTextAlign = TextAnchor.MiddleRight;
             head.Add(valueLabel);
@@ -292,7 +282,7 @@ namespace ProjectName.UI.Toolkit
         private void BuildKeyBindingsTab(VisualElement root)
         {
             StyleSettingsRoot(root);
-            root.Add(MkDesc("키 설정 (읽기 전용 — 게임 내 옵션에서도 동일)", 13, UTKColor.TextSecondary));
+            root.Add(MkDesc("키 설정 (읽기 전용 — 게임 내 옵션에서도 동일)", 13.2f, UTKTheme.TextSub));
 
             var list = new ScrollView();
             list.style.flexGrow = 1f;
@@ -305,16 +295,16 @@ namespace ProjectName.UI.Toolkit
                 StyleSettingCard(line);
                 line.style.flexDirection = FlexDirection.Row;
                 line.style.alignItems = Align.Center;
-                var action = MkLabel(kb.name, 15, UTKColor.TextPrimary);
+                var action = MkLabel(kb.name, 15.6f, UTKTheme.TextMain);
                 action.style.flexGrow = 1f;
-                var key = MkLabel(kb.key, 14, UTKColor.AccentMagic);
+                var key = MkLabel(kb.key, 14.4f, UTKTheme.Accent);
                 key.style.unityTextAlign = TextAnchor.MiddleCenter;
                 key.style.minWidth = 64f;
                 key.style.paddingTop = 4f;
                 key.style.paddingBottom = 4f;
                 key.style.paddingLeft = 8f;
                 key.style.paddingRight = 8f;
-                key.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+                key.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
                 key.style.borderTopLeftRadius = key.style.borderTopRightRadius = 4f;
                 key.style.borderBottomLeftRadius = key.style.borderBottomRightRadius = 4f;
                 line.Add(action);
@@ -322,7 +312,7 @@ namespace ProjectName.UI.Toolkit
                 list.Add(line);
             }
 
-            root.Add(MkDesc("  ※ 키 변경은 전용 키 설정 메뉴에서 가능합니다.", 12, UTKColor.TextSecondary));
+            root.Add(MkDesc("  ※ 키 변경은 전용 키 설정 메뉴에서 가능합니다.", 12, UTKTheme.TextSub));
         }
 
         // ─────────────────────────── 접근성 탭 (AccessibilityManager 실측 연동) ───────────────────────────
@@ -333,11 +323,11 @@ namespace ProjectName.UI.Toolkit
             // ── 툴팁 지연 시간 (원본: 0~1.5s, 기본 0.3) ──
             var tooltipCard = CreateSettingCard();
             tooltipCard.style.flexDirection = FlexDirection.Column;
-            tooltipCard.Add(MkLabel("툴팁 지연 시간", 15, UTKColor.TextPrimary));
+            tooltipCard.Add(MkLabel("툴팁 지연 시간", 15.6f, UTKTheme.TextMain));
             var tooltipHead = new VisualElement();
             tooltipHead.style.flexDirection = FlexDirection.Row;
             tooltipHead.style.alignItems = Align.Center;
-            var tooltipVal = MkLabel($"{AccessibilityManager.TooltipDelay:F1}초", 15, UTKColor.GuildGreen);
+            var tooltipVal = MkLabel($"{AccessibilityManager.TooltipDelay:F1}초", 15.6f, UTKTheme.Success);
             tooltipVal.style.width = 80f;
             tooltipVal.style.unityTextAlign = TextAnchor.MiddleRight;
             tooltipHead.Add(tooltipVal);
@@ -350,18 +340,18 @@ namespace ProjectName.UI.Toolkit
             });
             tooltipCard.Add(tooltipHead);
             tooltipCard.Add(_tooltipSlider);
-            tooltipCard.Add(MkDesc("※ 변경 즉시 저장", 12, UTKColor.TextSecondary));
+            tooltipCard.Add(MkDesc("※ 변경 즉시 저장", 12, UTKTheme.TextSub));
             root.Add(tooltipCard);
 
             // ── 색맹 모드 (원본: 켜짐/꺼짐 토글) ──
             var colorBlindCard = CreateSettingCard();
             colorBlindCard.style.flexDirection = FlexDirection.Column;
-            colorBlindCard.Add(MkLabel("색맹 모드", 15, UTKColor.TextPrimary));
+            colorBlindCard.Add(MkLabel("색맹 모드", 15.6f, UTKTheme.TextMain));
             _colorBlindToggle = new Toggle("색맹 모드") { value = AccessibilityManager.ColorBlindMode };
             _colorBlindToggle.name = "ColorBlindToggle";
             _colorBlindDescLabel = MkDesc(_colorBlindToggle.value
                 ? "✓ 빨간색/초록색 대신 패턴/아이콘으로 표시" : "  (꺼짐)", 12,
-                _colorBlindToggle.value ? UTKColor.GuildGreen : UTKColor.TextSecondary);
+                _colorBlindToggle.value ? UTKTheme.Success : UTKTheme.TextSub);
             _colorBlindDescLabel.style.whiteSpace = WhiteSpace.Normal;
             _colorBlindToggle.RegisterValueChangedCallback(evt =>
             {
@@ -370,7 +360,7 @@ namespace ProjectName.UI.Toolkit
                     ? "✓ 빨간색/초록색 대신 패턴/아이콘으로 표시\n✓ 등급 색상에 텍스트 라벨 추가"
                     : "  (꺼짐)";
                 _colorBlindDescLabel.style.color = new StyleColor(
-                    evt.newValue ? UTKColor.GuildGreen : UTKColor.TextSecondary);
+                    evt.newValue ? UTKTheme.Success : UTKTheme.TextSub);
                 string prefixTest = AccessibilityManager.GetRarityPrefix("전설");
                 Debug.Log("[SettingsUTK] 색맹 모드 → " + AccessibilityManager.ColorBlindMode + " (GetRarityPrefix 시험): " + prefixTest);
             });
@@ -381,11 +371,11 @@ namespace ProjectName.UI.Toolkit
             // ── 자막 크기 (원본: 0.8~2.0x, 기본 1.0) ──
             var subtitleCard = CreateSettingCard();
             subtitleCard.style.flexDirection = FlexDirection.Column;
-            subtitleCard.Add(MkLabel("자막 크기", 15, UTKColor.TextPrimary));
+            subtitleCard.Add(MkLabel("자막 크기", 15.6f, UTKTheme.TextMain));
             var subtitleHead = new VisualElement();
             subtitleHead.style.flexDirection = FlexDirection.Row;
             subtitleHead.style.alignItems = Align.Center;
-            var subtitleVal = MkLabel($"{AccessibilityManager.SubtitleScale:F1}x", 15, UTKColor.GuildGreen);
+            var subtitleVal = MkLabel($"{AccessibilityManager.SubtitleScale:F1}x", 15.6f, UTKTheme.Success);
             subtitleVal.style.width = 60f;
             subtitleVal.style.unityTextAlign = TextAnchor.MiddleRight;
             subtitleHead.Add(subtitleVal);
@@ -398,7 +388,7 @@ namespace ProjectName.UI.Toolkit
             });
             subtitleCard.Add(subtitleHead);
             subtitleCard.Add(_subtitleSlider);
-            subtitleCard.Add(MkDesc("※ 변경 즉시 저장", 12, UTKColor.TextSecondary));
+            subtitleCard.Add(MkDesc("※ 변경 즉시 저장", 12, UTKTheme.TextSub));
             root.Add(subtitleCard);
         }
 
@@ -513,13 +503,11 @@ namespace ProjectName.UI.Toolkit
             card.style.paddingBottom = 10f;
             card.style.paddingLeft = 12f;
             card.style.paddingRight = 12f;
-            card.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
-            card.style.borderTopWidth = card.style.borderBottomWidth = 1f;
-            card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
-            card.style.borderTopColor = card.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
-            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = 8f;
-            card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 8f;
+            UTKTheme.ApplyPanelStyle(card, secondary: true);
+            card.style.paddingTop = 10f;
+            card.style.paddingBottom = 10f;
+            card.style.paddingLeft = 12f;
+            card.style.paddingRight = 12f;
         }
 
         private static Label MkLabel(string text, float size, Color color)

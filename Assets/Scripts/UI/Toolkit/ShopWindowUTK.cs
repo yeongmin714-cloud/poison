@@ -32,6 +32,13 @@ namespace ProjectName.UI.Toolkit
         // [Figma 정합] Store 카테고리 필터 탭 — 6탭(전체/무기/방어구/소모품/재료/레시피)
         private enum StoreCat { All, Weapon, Armor, Consumable, Material, Recipe }
 
+        public static readonly Rect StoreBounds = new Rect(144f, 84f, 504f, 912f);
+        public static readonly Rect DetailBounds = new Rect(672f, 84f, 576f, 912f);
+        public static readonly Rect InventoryBounds = new Rect(1272f, 84f, 504f, 912f);
+        public const float StoreGridCellSize = 81.6f;
+        public const int StoreTabCount = 6;
+        public const string ShopVariantDifference = "Action label only: 74:4 shows Buy; 76:7 shows Sell. The saved trees share the same store tabs, grid, details, inventory, and geometry; their sample content is not a faction mapping.";
+
         // ===== 상점 아이템 데이터 (원본 ShopWindow.ShopItem 구조 대응) =====
         [System.Serializable]
         public class ShopItem
@@ -174,26 +181,53 @@ namespace ProjectName.UI.Toolkit
         // ───────────────────────────────────────────────
         // 생성자 — Figma 3열 레이아웃 (Store | Detail | Sell/인벤)
         // ───────────────────────────────────────────────
-        public ShopWindowUTK() : base("🏪 상점", new Vector2(1340f, 780f))
+        public ShopWindowUTK() : base("🏪 상점", new Vector2(1632f, 912f))
         {
+            _titleLabel.text = "";
+            this.Q("TitleBar").style.display = DisplayStyle.None;
+            style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 0f;
+            style.width = Length.Percent(100f);
+            style.height = Length.Percent(100f);
+            style.left = 0f;
+            style.top = 0f;
+            _content.style.position = Position.Absolute;
+            _content.style.left = _content.style.top = 0f;
+            _content.style.width = Length.Percent(100f);
+            _content.style.height = Length.Percent(100f);
+            _content.style.flexDirection = FlexDirection.Row;
+            _content.style.flexGrow = 1f;
+            _content.style.paddingLeft = _content.style.paddingRight = 0f;
+            _content.style.paddingTop = _content.style.paddingBottom = 0f;
+
             // ── 공용 상단 바 (골드 + 탭) ──
-            var topBar = new VisualElement();
+            var topBar = new VisualElement { name = "ShopHeader" };
+            topBar.style.position = Position.Absolute;
+            topBar.style.left = StoreBounds.x + 24f;
+            topBar.style.top = StoreBounds.y + 24f;
+            topBar.style.width = StoreBounds.width;
+            topBar.style.height = 52.8f;
             topBar.style.flexDirection = FlexDirection.Row;
             topBar.style.alignItems = Align.Center;
             topBar.style.marginBottom = 8f;
-            Content.Add(topBar);
+            _content.Add(topBar);
 
             _goldLabel = new Label("골드: 0");
-            _goldLabel.style.fontSize = 20f;
+            _goldLabel.style.fontSize = 21.6f;
             _goldLabel.style.color = UTKTheme.Gold;
             _goldLabel.style.flexGrow = 1f;
             _goldLabel.AddToClassList("utk-title-label");
             topBar.Add(_goldLabel);
 
-            var tabRow = new VisualElement();
+            var tabRow = new VisualElement { name = "ShopModeTabs" };
+            tabRow.style.position = Position.Absolute;
+            tabRow.style.left = DetailBounds.x + 24f;
+            tabRow.style.top = DetailBounds.y + 24f;
+            tabRow.style.width = DetailBounds.width;
+            tabRow.style.height = 52.8f;
             tabRow.style.flexDirection = FlexDirection.Row;
             tabRow.style.marginBottom = 6f;
-            topBar.Add(tabRow);
+            _content.Add(tabRow);
 
             _tabBuy = UTKButton.Create("구매", () => SwitchTab(ShopTab.Buy), UTKButton.Variant.Primary);
             _tabSell = UTKButton.Create("판매", () => SwitchTab(ShopTab.Sell), UTKButton.Variant.Secondary);
@@ -204,18 +238,26 @@ namespace ProjectName.UI.Toolkit
 
             // ── 3열 본체 (Figma Store | Detail | Sell) ──
             var columns = new VisualElement();
-            columns.style.flexDirection = FlexDirection.Row;
-            columns.style.flexGrow = 1f;
-            Content.Add(columns);
+            columns.style.position = Position.Absolute;
+            columns.style.left = 0f;
+            columns.style.top = 0f;
+            columns.style.width = Length.Percent(100f);
+            columns.style.height = Length.Percent(100f);
+            _content.Add(columns);
 
             // [좌] Store 패널 — 구매 목록
             var storeCol = new VisualElement();
-            storeCol.style.flexGrow = 1f;
-            storeCol.style.width = Length.Percent(31f);   // Figma Store 420 / 총1320
-            storeCol.style.marginRight = 8f;
+            storeCol.name = "StorePanel";
+            storeCol.style.position = Position.Absolute;
+            storeCol.style.left = StoreBounds.x;
+            storeCol.style.top = StoreBounds.y;
+            storeCol.style.width = StoreBounds.width;
+            storeCol.style.height = StoreBounds.height;
+            storeCol.style.paddingLeft = storeCol.style.paddingRight = 24f;
+            storeCol.style.paddingTop = 91.2f;
             columns.Add(storeCol);
             var storeTitle = new Label("── 상점 재고 ──");
-            storeTitle.style.fontSize = 14f;
+            storeTitle.style.fontSize = 14.4f;
             storeTitle.style.color = UTKTheme.TextSub;
             storeCol.Add(storeTitle);
 
@@ -254,19 +296,30 @@ namespace ProjectName.UI.Toolkit
 
             // [중앙] Detail 패널 — 선택 아이템 상세 + 액션
             var detailCol = new VisualElement();
-            detailCol.style.flexGrow = 1f;
-            detailCol.style.width = Length.Percent(36f);   // Figma Detail 480 / 총1320
-            detailCol.style.marginRight = 8f;
+            detailCol.name = "DetailPanel";
+            detailCol.style.position = Position.Absolute;
+            detailCol.style.left = DetailBounds.x;
+            detailCol.style.top = DetailBounds.y;
+            detailCol.style.width = DetailBounds.width;
+            detailCol.style.height = DetailBounds.height;
+            detailCol.style.paddingLeft = detailCol.style.paddingRight = 24f;
+            detailCol.style.paddingTop = 91.2f;
             columns.Add(detailCol);
             BuildDetailPanel(detailCol);
 
             // [우] Sell/인벤토리 패널 + 밀매 패널 (탭으로 전환)
             var sellCol = new VisualElement();
-            sellCol.style.flexGrow = 1f;
-            sellCol.style.width = Length.Percent(31f);   // Figma Storage 420 / 총1320
+            sellCol.name = "InventoryPanel";
+            sellCol.style.position = Position.Absolute;
+            sellCol.style.left = InventoryBounds.x;
+            sellCol.style.top = InventoryBounds.y;
+            sellCol.style.width = InventoryBounds.width;
+            sellCol.style.height = InventoryBounds.height;
+            sellCol.style.paddingLeft = sellCol.style.paddingRight = 24f;
+            sellCol.style.paddingTop = 91.2f;
             columns.Add(sellCol);
             var sellTitle = new Label("── 내 인벤토리 ──");
-            sellTitle.style.fontSize = 14f;
+            sellTitle.style.fontSize = 14.4f;
             sellTitle.style.color = UTKTheme.TextSub;
             sellCol.Add(sellTitle);
 
@@ -282,12 +335,16 @@ namespace ProjectName.UI.Toolkit
             sellCol.Add(_sellPanel);
 
             // ── 상태 라벨 ──
-            _statusLabel = new Label("");
-            _statusLabel.style.fontSize = 14f;
+            _statusLabel = new Label("") { name = "ShopStatus" };
+            _statusLabel.style.fontSize = 14.4f;
             _statusLabel.style.color = UTKTheme.TextSub;
             _statusLabel.style.minHeight = 20f;
             _statusLabel.style.marginTop = 6f;
-            Content.Add(_statusLabel);
+            _statusLabel.style.position = Position.Absolute;
+            _statusLabel.style.left = StoreBounds.x + 24f;
+            _statusLabel.style.top = StoreBounds.y + 730f;
+            _statusLabel.style.width = StoreBounds.width - 48f;
+            _content.Add(_statusLabel);
 
             SwitchTab(ShopTab.Buy);
             ShowDetail(null, true);
@@ -295,6 +352,37 @@ namespace ProjectName.UI.Toolkit
             UTKTheme.ApplyWindowChrome(this, titleBar, _content);
             // 상점은 의도된 다크 패널이며 Theme의 우드 베이크 창 이미지를 사용하지 않는다.
             style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            // The full-screen host must not paint over the canvas or intercept clicks;
+            // its independently styled descendants remain pickable and visible.
+            style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 0f;
+            pickingMode = PickingMode.Ignore;
+            _content.RegisterCallback<GeometryChangedEvent>(_ => ApplyResponsivePanelLayout());
+        }
+
+        private void ApplyResponsivePanelLayout()
+        {
+            VisualElement root = parent;
+            if (root == null) return;
+            FigmaCanvasLayout.Apply(this, new Rect(0f, 3f, FigmaCanvasLayout.CanvasWidth, FigmaCanvasLayout.CanvasHeight), root);
+            float sx = root.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth;
+            float sy = root.resolvedStyle.height / FigmaCanvasLayout.CanvasHeight;
+            ApplyPanelRect(this.Q("StorePanel"), StoreBounds, sx, sy);
+            ApplyPanelRect(this.Q("DetailPanel"), DetailBounds, sx, sy);
+            ApplyPanelRect(this.Q("InventoryPanel"), InventoryBounds, sx, sy);
+            ApplyPanelRect(this.Q("ShopHeader"), new Rect(StoreBounds.x + 24f, StoreBounds.y + 24f, 456f, 52.8f), sx, sy);
+            ApplyPanelRect(this.Q("ShopModeTabs"), new Rect(DetailBounds.x + 24f, DetailBounds.y + 24f, 528f, 52.8f), sx, sy);
+            ApplyPanelRect(this.Q("ShopStatus"), new Rect(StoreBounds.x + 24f, StoreBounds.y + 730f, 456f, 20f), sx, sy);
+        }
+
+        private static void ApplyPanelRect(VisualElement element, Rect rect, float sx, float sy)
+        {
+            if (element == null) return;
+            element.style.position = Position.Absolute;
+            element.style.left = rect.x * sx;
+            element.style.top = rect.y * sy;
+            element.style.width = rect.width * sx;
+            element.style.height = rect.height * sy;
         }
 
         /// <summary>[Figma Detail 패널] 중앙 컬럼 — 선택 아이템 상세 + 구매/판매 버튼.</summary>
@@ -309,7 +397,7 @@ namespace ProjectName.UI.Toolkit
         private void BuildDetailPanel(VisualElement parent)
         {
             var title = new Label("── 아이템 정보 ──");
-            title.style.fontSize = 14f;
+            title.style.fontSize = 14.4f;
             title.style.color = UTKTheme.TextSub;
             parent.Add(title);
 
@@ -325,28 +413,28 @@ namespace ProjectName.UI.Toolkit
             parent.Add(card);
 
             _detailSlot = new UTKSlot();
-            _detailSlot.style.width = 96f;
-            _detailSlot.style.height = 96f;
+            _detailSlot.style.width = 288f;
+            _detailSlot.style.height = 288f;
             _detailSlot.style.alignSelf = Align.Center;
             _detailSlot.style.marginBottom = 8f;
             card.Add(_detailSlot);
 
             _detailName = new Label("아이템을 선택하세요");
-            _detailName.style.fontSize = 18f;
+            _detailName.style.fontSize = 16.8f;
             _detailName.style.color = UTKTheme.TextMain;
             _detailName.style.unityTextAlign = TextAnchor.MiddleCenter;
             _detailName.style.whiteSpace = WhiteSpace.Normal;
             card.Add(_detailName);
 
             _detailDesc = new Label("");
-            _detailDesc.style.fontSize = 13f;
+            _detailDesc.style.fontSize = 13.2f;
             _detailDesc.style.color = UTKTheme.TextSub;
             _detailDesc.style.whiteSpace = WhiteSpace.Normal;
             _detailDesc.style.marginTop = 6f;
             card.Add(_detailDesc);
 
             _detailPrice = new Label("");
-            _detailPrice.style.fontSize = 15f;
+            _detailPrice.style.fontSize = 15.6f;
             _detailPrice.style.color = UTKTheme.Accent;
             _detailPrice.style.marginTop = 8f;
             card.Add(_detailPrice);
@@ -452,9 +540,9 @@ namespace ProjectName.UI.Toolkit
             {
                 var window = new ShopWindowUTK();
                 Instance = window;
-                // 우측 3분할 영역 근사 (InventoryWindow.GetContextX 선례) — 화면 폭 대비 60% 지점
-                window.style.left = Length.Percent(60f);
-                window.style.top = 10f;
+                // The shop is a full-canvas transparent host for the independently positioned panels.
+                window.style.left = 0f;
+                window.style.top = 0f;
                 root.Add(window);
                 window.Show();
             }
@@ -711,7 +799,7 @@ namespace ProjectName.UI.Toolkit
             if (SecretShopSystem.Active)
             {
                 var head = new Label("🔮 비밀상점 — 은밀한 상인");
-                head.style.fontSize = 18f;
+                head.style.fontSize = 16.8f;
                 head.style.color = UTKTheme.Gold;   // [GitHub-dark] 비밀/희귀=금색
                 head.style.marginBottom = 6f;
                 head.style.marginTop = 4f;
@@ -801,21 +889,21 @@ namespace ProjectName.UI.Toolkit
             info.style.flexGrow = 1f;
 
             var nameLabel = new Label(item.displayName);
-            nameLabel.style.fontSize = 18f;
+            nameLabel.style.fontSize = 16.8f;
             nameLabel.style.color = UTKTheme.Gold;   // [GitHub-dark] 비밀 아이템명=금색
             info.Add(nameLabel);
 
             if (!string.IsNullOrEmpty(item.description))
             {
                 var desc = new Label(item.description);
-                desc.style.fontSize = 13f;
+                desc.style.fontSize = 13.2f;
                 desc.style.color = UTKTheme.TextSub;
                 desc.style.whiteSpace = WhiteSpace.Normal;
                 info.Add(desc);
             }
 
             var priceLabel = new Label($"가격: {price}G");
-            priceLabel.style.fontSize = 14f;
+            priceLabel.style.fontSize = 14.4f;
             priceLabel.style.color = UTKTheme.Accent;   // [GitHub-dark] 가격=액센트
             info.Add(priceLabel);
 
@@ -841,10 +929,10 @@ namespace ProjectName.UI.Toolkit
         private VisualElement BuildBuyRow(ShopItem shopItem, int index)
         {
             var slotBox = new VisualElement();
-            slotBox.style.width = 68f;   // [Figma 74:43] Store ItemSlot 68×68
-            slotBox.style.height = 92f;
-            slotBox.style.marginRight = 8f;   // [Figma] 그리드 gap8 (68+8=76 → 380폭 5열)
-            slotBox.style.marginBottom = 8f;
+            slotBox.style.width = StoreGridCellSize;   // Figma ItemSlot 81.6px
+            slotBox.style.height = StoreGridCellSize;
+            slotBox.style.marginRight = 9.6f;
+            slotBox.style.marginBottom = 9.6f;
             slotBox.style.flexDirection = FlexDirection.Column;
             slotBox.style.alignItems = Align.Center;
             slotBox.style.justifyContent = Justify.Center;
@@ -859,8 +947,8 @@ namespace ProjectName.UI.Toolkit
 
             // 아이콘 (UTKSlot — 등급 테두리)
             var slot = new UTKSlot();
-            slot.style.width = 68f;
-            slot.style.height = 68f;
+            slot.style.width = 38.4f;
+            slot.style.height = 38.4f;
             slot.SetIcon(ItemIconDatabase.GetOrCreateIcon(shopItem.item));
             slot.SetRank(shopItem.isRare ? "unique" : "common");
             StyleShopSlot(slot, ring);   // [GitHub-dark] 레어도 링
@@ -882,7 +970,7 @@ namespace ProjectName.UI.Toolkit
             priceBar.style.color = UTKTheme.Gold;
             priceBar.style.fontSize = 12f;
             priceBar.style.unityTextAlign = TextAnchor.MiddleCenter;
-            priceBar.style.width = 68f;   // [Figma 74:48] PriceTag 68×14 (슬롯 폭과 동일)
+            priceBar.style.width = StoreGridCellSize;   // Figma PriceTag matches 81.6px item width
             priceBar.style.alignSelf = Align.Center;
             priceBar.style.marginTop = 4f;
             priceBar.style.borderTopLeftRadius = 4f;
@@ -926,10 +1014,10 @@ namespace ProjectName.UI.Toolkit
         private VisualElement BuildSellRow(PlayerInventory.ItemSlot slot)
         {
             var slotBox = new VisualElement();
-            slotBox.style.width = 68f;   // [Figma 74:200] Storage ItemSlot 68×68
-            slotBox.style.height = 84f;
-            slotBox.style.marginRight = 8f;   // [Figma] 그리드 gap8
-            slotBox.style.marginBottom = 8f;
+            slotBox.style.width = StoreGridCellSize;   // Figma ItemSlot 81.6px
+            slotBox.style.height = StoreGridCellSize;
+            slotBox.style.marginRight = 9.6f;
+            slotBox.style.marginBottom = 9.6f;
             slotBox.style.flexDirection = FlexDirection.Column;
             slotBox.style.alignItems = Align.Center;
             slotBox.style.justifyContent = Justify.Center;
@@ -941,8 +1029,8 @@ namespace ProjectName.UI.Toolkit
             slotBox.RegisterCallback<PointerDownEvent>(_ => { _detailSellSlot = slot; ShowDetail(null, false); });
 
             var itemSlot = new UTKSlot();
-            itemSlot.style.width = 68f;
-            itemSlot.style.height = 68f;
+            itemSlot.style.width = 38.4f;
+            itemSlot.style.height = 38.4f;
             itemSlot.SetIcon(ItemIconDatabase.GetOrCreateIcon(slot.item));
             itemSlot.SetRank(slot.item.rarity.ToString());
             itemSlot.SetCount(slot.count);
@@ -954,7 +1042,7 @@ namespace ProjectName.UI.Toolkit
             var priceBar = new Label(sellPrice > 0 ? $"{sellPrice}G" : "판매불가");
             priceBar.style.backgroundColor = UTKTheme.PanelSub;
             priceBar.style.color = sellPrice > 0 ? UTKTheme.Gold : UTKTheme.Danger;
-            priceBar.style.fontSize = 11f;
+            priceBar.style.fontSize = 12f;
             priceBar.style.unityTextAlign = TextAnchor.MiddleCenter;
             priceBar.style.width = 68f;   // [Figma 74:48] PriceTag 68×14
             priceBar.style.alignSelf = Align.Center;

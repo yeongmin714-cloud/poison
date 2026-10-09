@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
 #pragma warning disable 0414
@@ -70,6 +69,14 @@ namespace ProjectName.Systems
         {
             _rb = GetComponent<Rigidbody>();
             _collider = GetComponent<Collider>();
+            EnsureTrailRenderer();
+        }
+
+        private void EnsureTrailRenderer()
+        {
+            // Awake may not run for objects created by EditMode tooling; keep Spawn visuals complete too.
+            if (_trail != null) return;
+
             // 아주 짧은 순백색 애더티브 네온 잔상. 70~84m/s 기준 약 1.5~1.85m 길이.
             _trail = GetComponent<TrailRenderer>();
             if (_trail == null) _trail = gameObject.AddComponent<TrailRenderer>();
@@ -101,20 +108,17 @@ namespace ProjectName.Systems
         /// <summary>화살 발사</summary>
         public static ArrowProjectile Spawn(Vector3 position, Vector3 direction, float speed, float damage, Color trailColor)
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            go.name = "Arrow(Clone)";
+            var go = new GameObject("Arrow(Clone)");
             go.transform.position = position;
             Vector3 launchDirection = direction.sqrMagnitude > 0.0001f
                 ? direction.normalized
                 : Vector3.forward;
-            // [TEST27-68차] 축 정렬 수리 — Cylinder 길이축은 Y인데 LookRotation은 +Z를 진행방향으로 정렬해
-            //   화살이 옆으로 누운 채 날아갔다(엣지온 = 안 보임, 사용자 실측 "화살이 날아가지도 않음").
-            //   X축 +90° 회전을 곱해 길이축(Y)을 진행방향으로 세운다.
+            // The capsule's long local +Y axis follows the initial camera-ray velocity.
             go.transform.rotation = Quaternion.LookRotation(launchDirection) * Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = new Vector3(0.12f, 0.9f, 0.12f); // 콜라이더 판정 형태 유지(렌더러는 비표시)
+            go.transform.localScale = new Vector3(0.12f, 0.9f, 0.12f);
 
-            // Collider 설정
-            var collider = go.GetComponent<CapsuleCollider>();
+            // Retain the former cylinder's capsule physics shape without its procedural mesh.
+            var collider = go.AddComponent<CapsuleCollider>();
             if (collider != null)
             {
                 collider.isTrigger = true;
@@ -129,218 +133,17 @@ namespace ProjectName.Systems
 
             var arrow = go.AddComponent<ArrowProjectile>();
             arrow._damage = damage;
-
+            arrow.EnsureTrailRenderer();
 
             // [P20-4 진단] 스폰 회전 vs 조준 방향 정합 1회 실측 — "세워서 나감/방향 다름" 즉별
             float dot = Vector3.Dot(go.transform.up, launchDirection);
             Debug.Log($"[Arrow][P20-4] 스폰 정합 — up·dir={dot:F3}(±1이 정상), dir={launchDirection}");
 
-            // 화살 3D 형상은 표시하지 않음. 루트 콜라이더/리짓바디는 명중 판정용으로 그대로 유지.
+            // Keep the primitive's capsule collider and rigidbody, but use only the white neon trail as a visual.
             var renderer = go.GetComponent<MeshRenderer>();
             if (renderer != null) renderer.enabled = false;
 
             return arrow;
-        }
-
-        /// <summary>
-        /// 화살 모델 조립 — 샤프트(실린더)에 촉(콘) + 플레처(사각조각 3개)를 자식으로 부착.
-        /// 피벗은 샤프트 중심 유지. 자식은 Rigidbody 없이 부모에 종속되며 콜라이더를 제거해
-        /// 명중 시 2차 충돌을 만들지 않는다. 실패 시 호출부 try-catch가 샤프트만 보존한다.
-        /// </summary>
-        private static void AssembleArrow(GameObject shaft, Color trailColor)
-        {
-            // 촉과 플레처는 **별도 Material 인스턴스**를 사용해야 한다. 같은 Material 객체를 여러
-            // 렌더러에 할당한 뒤 각자 .color를 세팅하면 마지막 설정이 전부에 덮어써진다.
-            var headMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            var featherMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            var metalColor = new Color(0.85f, 0.82f, 0.75f);  // 금속 회백색 (촉)
-            var featherColor = new Color(0.7f, 0.15f, 0.1f); // 진한 적갈색 (깃털)
-
-            // ---- 촉(헤드) — Cone +Y가 뾰족한 방향. 샤프트 앞쪽(+Y)에 배치 ----
-            var head = new GameObject("ArrowHead");
-            head.transform.SetParent(shaft.transform, false);
-            head.transform.localPosition = new Vector3(0f, 0.32f, 0f);  // [P20-4] 샤프트 반길이(0.45→0.45)에 맞춰 앞단 배치
-            head.transform.localScale = new Vector3(0.09f, 0.22f, 0.09f); // [P20-4] 촉 축소
-            {
-                var mf = head.AddComponent<MeshFilter>();
-                mf.mesh = BuildArrowHeadCone();   // PrimitiveType.Cone 없음 → 절차 메시(양면 와인딩)
-                var mr = head.AddComponent<MeshRenderer>();
-                mr.material = new Material(headMat);
-                mr.material.color = metalColor;
-            }
-
-            // ---- 플레처(깃털) 3개 — 샤프트 후미(-Y), 길이축(Y) 기준 120° 방사 배치 ----
-            for (int i = 0; i < 3; i++)
-            {
-                var fin = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                fin.name = "ArrowFletching" + i;
-                fin.transform.SetParent(shaft.transform, false);
-                fin.transform.localScale = new Vector3(0.045f, 0.2f, 0.08f); // [P20-4] 깃 축소
-                // X축으로 샤프트 표면에 살짝 오프셋 → 길이축(Y) 회전으로 120° 방사 팬.
-                fin.transform.localPosition = new Vector3(0.032f, -0.34f, 0f);
-                fin.transform.localRotation = Quaternion.Euler(0f, 120f * i, 0f);
-                {
-                    var c = fin.GetComponent<Collider>();
-                    if (c != null) Destroy(c);
-                    var mr = fin.GetComponent<MeshRenderer>();
-                    if (mr != null)
-                    {
-                        mr.material = new Material(featherMat);
-                        mr.material.color = featherColor;
-                    }
-                }
-            }
-        }
-
-        // ─────────────────────────────────────────────────────────────
-        // [요구] 실제 화살 GLB 장착 — arrow.glb → arrow2 → arrow3 폴백.
-        //
-        // [GLB 실측] (GLB JSON/바이너리 직접 파싱 — 3모델 공통):
-        //   - 메시 장축 = X(길이 1.0), 촉 = -X 쪽(+X단 평균반경 0.50 = 깃털, -X단 0.12 = 촉),
-        //   - 노드 회전 Rx(90) — 장축 방향은 불변.
-        //   → 촉(-X)을 루트 진행축(로컬 +Y)으로 세우려면 Q_fix = Rz(90)×Ry(180).
-        //
-        // [전단(스큐) 방지 설계] 루트 스케일이 비균일(0.25, 1.8, 0.25)이라 회전된 자식을
-        //   직접 넣으면 찌그러진다. → 래퍼를 "무회전"으로 두고 localScale을 루트 스케일의
-        //   역수 비율로 보간해 래퍼 lossyScale을 균일(s)로 만든 뒤, 그 안에서만 모델을 회전.
-        //   (균일 스케일 × 회전은 전단이 발생하지 않음 — 수학적 보장)
-        //
-        // [피팅] 스탠드얼론으로 인스턴스 후 renderer.bounds 실측 → 최장축을 기존 실린더
-        //   시각 길이(단위 2 × localScale.y 1.8 = 3.6m)에 자동 스케일. 피벗 = bounds 중심.
-        // ─────────────────────────────────────────────────────────────
-        private const float ArrowModelTargetLength = 1.8f;   // [P20-4] 2.6→1.8 — 실린더 Y 0.9와 일치(2×0.9), 2차 축소
-
-        private static bool MountArrowModel(GameObject root)
-        {
-            // ① 프리팹 로드 폴백 체인
-            string[] paths = { "Models/UserProvided/arrow", "Models/UserProvided/arrow2", "Models/UserProvided/arrow3" };
-            GameObject prefab = null;
-            string used = null;
-            foreach (var p in paths)
-            {
-                prefab = Resources.Load<GameObject>(p);
-                if (prefab != null) { used = p; break; }
-            }
-            if (prefab == null)
-            {
-                Debug.Log("[Arrow] GLB 로드 실패(arrow/arrow2/arrow3 전부) — 절차 화살 회귀");
-                return false;
-            }
-
-            // ② 스탠드얼론 인스턴스 → 원본 스케일 1 상태에서 bounds 실측(노드 회전 포함 월드=모델 공간)
-            GameObject inst = Object.Instantiate(prefab);
-            Bounds total = new Bounds(Vector3.zero, Vector3.zero);
-            bool hasRenderer = false;
-            foreach (var r in inst.GetComponentsInChildren<Renderer>(true))
-            {
-                if (!hasRenderer) { total = r.bounds; hasRenderer = true; }
-                else total.Encapsulate(r.bounds);
-            }
-            if (!hasRenderer || total.size.x <= 0f && total.size.y <= 0f && total.size.z <= 0f)
-            {
-                Debug.Log("[Arrow] GLB 렌더러 없음 — 절차 화살 회귀");
-                Object.Destroy(inst);
-                return false;
-            }
-            float maxDim = Mathf.Max(total.size.x, total.size.y, total.size.z);
-            float s = ArrowModelTargetLength / Mathf.Max(0.0001f, maxDim);
-            Vector3 center = total.center;   // 모델 공간 중심(피벗 보정용)
-
-            // ③ 콜라이더 제거 — 2차 충돌 방지(충돌은 루트 캡슐이 담당)
-            foreach (var c in inst.GetComponentsInChildren<Collider>(true))
-                Object.Destroy(c);
-
-            // ④ 균일 스케일 래퍼 — 루트 비균일 스케일 역보간으로 lossyScale=(s,s,s) 달성
-            var lossy = root.transform.lossyScale;
-            var wrapper = new GameObject("ArrowModelWrap");
-            wrapper.transform.SetParent(root.transform, false);
-            wrapper.transform.localPosition = Vector3.zero;
-            wrapper.transform.localRotation = Quaternion.identity;
-            wrapper.transform.localScale = new Vector3(
-                s / Mathf.Max(0.0001f, Mathf.Abs(lossy.x)),
-                s / Mathf.Max(0.0001f, Mathf.Abs(lossy.y)),
-                s / Mathf.Max(0.0001f, Mathf.Abs(lossy.z)));
-
-            // ⑤ 재부모화 + 정렬: [P22-1 수리] 촉(-X) → 진행축(+Y).
-            //   기존 Rz(90): (x,y)→(-y,x) — (-1,0)=촉(-X)가 (0,-1)=**-Y 후방**으로 매핑돼
-            //   화살이 촉이 뒤로 향한 채 날아갔다(테스트38 "뒤집혀서 나감"). 부호 실수.
-            //   Rz(-90): (x,y)→(y,-x) — (-1,0)→(0,1)=+Y 전방. 롤 방향은 Ry(180) 유지(깃털 배치 무해).
-            inst.transform.SetParent(wrapper.transform, false);
-            inst.transform.localRotation = Quaternion.Euler(0f, 0f, -90f) * Quaternion.Euler(0f, 180f, 0f);
-            inst.transform.localScale = Vector3.one;
-            inst.transform.localPosition = -(inst.transform.localRotation * center);   // 피벗 = 모델 중심
-
-            // [P22-1 셀프플립 검증] 촉(가는 끝)이 +Y(전방)에 있는지 정밀 판별 — 아니면 자동 180° 플립.
-            //   루트/래퍼/메시 로컬 변환을 모두 반영해 Y 상단/하단 반경 평균 비교: 가는 쪽 = 촉.
-            float radiusTop = 0f, radiusBottom = 0f;
-            int samplesTop = 0, samplesBottom = 0;
-            foreach (var mf in inst.GetComponentsInChildren<MeshFilter>(true))
-            {
-                var mesh = mf.sharedMesh;
-                if (mesh == null) continue;
-                foreach (var v in mesh.vertices)
-                {
-                    var wp = mf.transform.TransformPoint(v);
-                    var local = wrapper.transform.InverseTransformPoint(wp);  // 래퍼 공간 기준(균일 스케일)
-                    float r = Mathf.Sqrt(local.x * local.x + local.z * local.z);
-                    if (local.y > 0.05f) { radiusTop += r; samplesTop++; }
-                    else if (local.y < -0.05f) { radiusBottom += r; samplesBottom++; }
-                }
-            }
-            if (samplesTop > 0 && samplesBottom > 0)
-            {
-                float avgTop = radiusTop / samplesTop, avgBottom = radiusBottom / samplesBottom;
-                bool tipAtTop = avgTop < avgBottom;   // 가는 쪽(반경 작음) = 촉
-                if (!tipAtTop)
-                {
-                    inst.transform.localRotation *= Quaternion.Euler(180f, 0f, 0f);
-                    inst.transform.localPosition = -(inst.transform.localRotation * center);
-                    Debug.Log("[Arrow][P22-1] 촉이 -Y 감지 — 자동 180° 플립 적용");
-                }
-                Debug.Log($"[Arrow][P22-1] 촉 방향 검증 — avgR top={avgTop:F3} bottom={avgBottom:F3} → 촉={(tipAtTop ? "+Y(정상)" : "-Y(플립)")}");
-            }
-
-            Debug.Log($"[Arrow] GLB 장착: {used} 목표길이={ArrowModelTargetLength:0.0}m (모델 maxDim={maxDim:0.00}, scale={s:0.00})");
-            return true;
-        }
-
-        /// <summary>
-        /// 절차 생성 콘(촉) 메시 — PrimitiveType.Cone이 없으므로 직접 생성.
-        /// 단위(반지름1·높이1)로 만들어 localScale로 크기 조절. +Y가 뾰족한 방향.
-        /// 양면 와인딩을 넣어 컬링/와인딩 오류로 안 보이는 문제를 원천 차단한다.
-        /// </summary>
-        private static Mesh BuildArrowHeadCone()
-        {
-            int seg = 10;
-            float radius = 1f, height = 1f;
-            int baseCenter = 1 + seg;
-            var verts = new Vector3[seg + 2];
-            verts[0] = new Vector3(0f, height * 0.5f, 0f);          // 첨점(+Y)
-            for (int i = 0; i < seg; i++)
-            {
-                float a = (float)i / seg * Mathf.PI * 2f;
-                verts[1 + i] = new Vector3(Mathf.Cos(a) * radius, -height * 0.5f, Mathf.Sin(a) * radius);
-            }
-            verts[baseCenter] = new Vector3(0f, -height * 0.5f, 0f); // 밑면 중심
-
-            var tris = new List<int>(seg * 6);
-            for (int i = 0; i < seg; i++)
-            {
-                int a = 1 + i, b = 1 + ((i + 1) % seg);
-                // 옆면 (양면)
-                tris.Add(0); tris.Add(b); tris.Add(a);
-                tris.Add(0); tris.Add(a); tris.Add(b);
-                // 밑면 캡 (양면)
-                tris.Add(baseCenter); tris.Add(a); tris.Add(b);
-                tris.Add(baseCenter); tris.Add(b); tris.Add(a);
-            }
-
-            var mesh = new Mesh { name = "ArrowHeadCone" };
-            mesh.vertices = verts;
-            mesh.triangles = tris.ToArray();
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            return mesh;
         }
 
         private void Update()

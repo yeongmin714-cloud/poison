@@ -25,6 +25,7 @@ namespace ProjectName.UI.Toolkit
         private readonly VisualElement _bracketTL, _bracketTR, _bracketBL, _bracketBR;
         private readonly UTKCircularGauge _ring;
         private readonly Label _countLabel;
+        private readonly Label _emptyLabel;
 
         private bool _visible;          // 현재 리티클 표시 중 여부
         private float _fadeStart = -1f; // 페이드아웃 시작(ms) — -1 = 페이드 아님
@@ -72,7 +73,7 @@ namespace ProjectName.UI.Toolkit
             _ring.style.height = 56f;
             _ring.style.left = CenterX - 28f;
             _ring.style.top = CenterY - 28f;
-            _ring.FillColor = new Color(0.345f, 0.651f, 1f, 0.92f);   // [테스트45 P1] Fluent 액센트 #58A6FF 파워 링
+            _ring.FillColor = new Color(UTKTheme.Accent.r, UTKTheme.Accent.g, UTKTheme.Accent.b, 0.92f);
             Add(_ring);
 
             // 꺾쇠 브래킷 4개
@@ -88,10 +89,61 @@ namespace ProjectName.UI.Toolkit
             _countLabel.style.position = Position.Absolute;
             _countLabel.style.left = CenterX + 46f;
             _countLabel.style.top = CenterY - 82f;
-            _countLabel.style.fontSize = 18f;
-            _countLabel.style.color = new StyleColor(new Color(1f, 1f, 1f, 0.95f));
+            _countLabel.style.fontSize = 14.4f;
+            _countLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _countLabel.style.color = new StyleColor(UTKTheme.TextMain);
+            _countLabel.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _countLabel.style.borderTopLeftRadius = UTKTheme.RadiusBadge;
+            _countLabel.style.borderTopRightRadius = UTKTheme.RadiusBadge;
+            _countLabel.style.borderBottomLeftRadius = UTKTheme.RadiusBadge;
+            _countLabel.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+            _countLabel.style.paddingLeft = 7f;
+            _countLabel.style.paddingRight = 7f;
+            _countLabel.style.paddingTop = 3f;
+            _countLabel.style.paddingBottom = 3f;
+            _countLabel.style.borderTopWidth = 1f;
+            _countLabel.style.borderBottomWidth = 1f;
+            _countLabel.style.borderLeftWidth = 1f;
+            _countLabel.style.borderRightWidth = 1f;
+            _countLabel.style.borderTopColor = new StyleColor(UTKTheme.Stroke);
+            _countLabel.style.borderBottomColor = new StyleColor(UTKTheme.Stroke);
+            _countLabel.style.borderLeftWidth = 2f;
+            _countLabel.style.borderLeftColor = new StyleColor(UTKTheme.Accent);
+            _countLabel.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            _countLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             _countLabel.text = "×0";
             Add(_countLabel);
+
+            // Empty-ammunition state is separate from the numeric badge so zero is unambiguous.
+            _emptyLabel = new Label("NO ARROWS");
+            _emptyLabel.name = "BowAimEmptyState";
+            _emptyLabel.pickingMode = PickingMode.Ignore;
+            _emptyLabel.style.position = Position.Absolute;
+            _emptyLabel.style.left = CenterX - 40f;
+            _emptyLabel.style.top = CenterY + 48f;
+            _emptyLabel.style.fontSize = 12f;
+            _emptyLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _emptyLabel.style.color = new StyleColor(UTKTheme.Danger);
+            _emptyLabel.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
+            _emptyLabel.style.borderTopLeftRadius = UTKTheme.RadiusBadge;
+            _emptyLabel.style.borderTopRightRadius = UTKTheme.RadiusBadge;
+            _emptyLabel.style.borderBottomLeftRadius = UTKTheme.RadiusBadge;
+            _emptyLabel.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+            _emptyLabel.style.borderTopWidth = 1f;
+            _emptyLabel.style.borderBottomWidth = 1f;
+            _emptyLabel.style.borderLeftWidth = 1f;
+            _emptyLabel.style.borderRightWidth = 1f;
+            _emptyLabel.style.borderTopColor = new StyleColor(UTKTheme.Danger);
+            _emptyLabel.style.borderBottomColor = new StyleColor(UTKTheme.Stroke);
+            _emptyLabel.style.borderLeftColor = new StyleColor(UTKTheme.Stroke);
+            _emptyLabel.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
+            _emptyLabel.style.paddingLeft = 8f;
+            _emptyLabel.style.paddingRight = 8f;
+            _emptyLabel.style.paddingTop = 4f;
+            _emptyLabel.style.paddingBottom = 4f;
+            _emptyLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _emptyLabel.style.display = DisplayStyle.None;
+            Add(_emptyLabel);
 
             UpdateBrackets(0f);
             schedule.Execute(UpdateTick).Every(16);
@@ -103,15 +155,19 @@ namespace ProjectName.UI.Toolkit
             if (BowAimState.ReleasePending && _visible)
             {
                 bool fired = BowAimState.ReleaseFired;
-                BowAimState.ResetRelease();
                 if (fired)
                 {
+                    // Pin the fade at the same release-frame pixel used by the solver before
+                    // consuming the one-shot event; later 16ms display samples cannot move it.
+                    if (BowAimState.TryGetReleaseAimScreenPoint(out Vector2 releasePoint))
+                        UpdateReleasePosition();
                     _fadeStart = Time.time * 1000f;   // 발사 후 0.4s 유지감
                 }
                 else
                 {
                     HideNow();                              // 탭 캔슬 — 즉시 숨김
                 }
+                BowAimState.ResetRelease();
             }
 
             // ② 페이드아웃 진행
@@ -120,6 +176,11 @@ namespace ProjectName.UI.Toolkit
                 float elapsed = Time.time * 1000f - _fadeStart;
                 if (elapsed >= FadeMs) HideNow();
                 else style.opacity = 1f - elapsed / FadeMs;
+
+                // A quick new draw may begin before the prior shot's visual fade ends.
+                // Keep its raw aim sample fresh even while preserving the existing fade.
+                if (BowAimState.Drawing)
+                    UpdatePosition();
                 return;
             }
 
@@ -137,27 +198,28 @@ namespace ProjectName.UI.Toolkit
             _ring.Fraction = BowAimState.Power;
             _ring.CommitIfDirty();
             UpdateBrackets(BowAimState.Power);
-            if (ArrowManager.Instance != null)
+            int count = ArrowManager.Instance != null ? ArrowManager.Instance.GetTotalArrowCount() : 0;
+            _emptyLabel.style.display = count <= 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            _countLabel.style.display = count > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+            if (count <= 0) return;
+
+            // [F 고품질] 지금 발사될 화살 종류 표기 — 마법/강화/일반 + 개수. 색상도 티어별.
+            var type = ArrowManager.Instance.GetNextArrowType();
+            _countLabel.text = "×" + count;
+            _countLabel.style.color = new StyleColor(UTKTheme.TextMain);
+            _countLabel.style.borderLeftColor = new StyleColor(UTKTheme.Stroke);
+            switch (type)
             {
-                int count = ArrowManager.Instance.GetTotalArrowCount();
-                // [F 고품질] 지금 발사될 화살 종류 표기 — 마법/강화/일반 + 개수. 색상도 티어별.
-                var type = ArrowManager.Instance.GetNextArrowType();
-                _countLabel.text = "×" + count;
-                switch (type)
-                {
-                    case ProjectName.Core.ArrowData.ArrowType.Magic:
-                        _countLabel.text = "◆×" + count;
-                        _countLabel.style.color = new StyleColor(new Color(0.95f, 0.4f, 1f, 0.95f)); // 보라
-                        break;
-                    case ProjectName.Core.ArrowData.ArrowType.Reinforced:
-                        _countLabel.text = "●×" + count;
-                        _countLabel.style.color = new StyleColor(new Color(0.95f, 0.95f, 1f, 0.95f)); // 은백
-                        break;
-                    default:
-                        _countLabel.text = "×" + count;
-                        _countLabel.style.color = new StyleColor(new Color(1f, 1f, 1f, 0.95f)); // 흰
-                        break;
-                }
+                case ProjectName.Core.ArrowData.ArrowType.Magic:
+                    _countLabel.text = "◆×" + count;
+                    _countLabel.style.color = new StyleColor(UTKTheme.Gold);
+                    _countLabel.style.borderLeftColor = new StyleColor(UTKTheme.Gold);
+                    break;
+                case ProjectName.Core.ArrowData.ArrowType.Reinforced:
+                    _countLabel.text = "●×" + count;
+                    _countLabel.style.color = new StyleColor(UTKTheme.Accent);
+                    _countLabel.style.borderLeftColor = new StyleColor(UTKTheme.Accent);
+                    break;
             }
         }
 
@@ -171,15 +233,33 @@ namespace ProjectName.UI.Toolkit
         private void UpdatePosition()
         {
             var root = UIToolkitBootstrap.UIRoot;
-            var mouse = UnityEngine.InputSystem.Mouse.current;
-            if (root == null || mouse == null) return;
-            var screen = mouse.position.ReadValue();
-            float scale = root.worldBound.width / (float)Screen.width;
-            if (scale <= 0f) scale = 1f;
-            float px = screen.x * scale;
-            float py = root.worldBound.height - screen.y * scale;
-            style.left = px - RootSize * 0.5f;   // 리티클 중심 = 마우스(조준점)
-            style.top = py - RootSize * 0.5f;
+            if (root == null || root.panel == null) return;
+            // Ordinary draw ticks publish the displayed reticle sample. Once release is
+            // pending, keep the reticle pinned to the immutable release pixel instead.
+            var screen = ArrowManager.GetAimScreenPoint();
+            if (BowAimState.ReleasePending
+                && BowAimState.TryGetReleaseAimScreenPoint(out Vector2 releasePoint))
+                screen = releasePoint;
+            else
+                BowAimState.SetAimScreenPoint(screen);
+            PositionAtScreenPoint(root, screen);
+        }
+
+        private void UpdateReleasePosition()
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root == null || root.panel == null
+                || !BowAimState.TryGetReleaseAimScreenPoint(out Vector2 releasePoint)) return;
+            PositionAtScreenPoint(root, releasePoint);
+        }
+
+        private void PositionAtScreenPoint(VisualElement root, Vector2 screen)
+        {
+            var panelPoint = RuntimePanelUtils.ScreenToPanel(root.panel, screen);
+            // Absolute offsets are relative to this root, which may itself be transformed/scaled.
+            var rootPoint = root.WorldToLocal(panelPoint);
+            style.left = rootPoint.x - RootSize * 0.5f;   // 리티클 중심 = 마우스(조준점)
+            style.top = rootPoint.y - RootSize * 0.5f;
             BringToFront();
         }
 

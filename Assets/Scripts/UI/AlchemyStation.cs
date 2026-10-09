@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Game.UI.Core;
 using ProjectName.Systems;
 using ProjectName.Core;
@@ -18,6 +19,21 @@ namespace ProjectName.UI
 
         private Transform _player;
         private bool _isPlayerNearby = false;
+
+        private static bool WasInteractPressed()
+        {
+            bool inputSystemPressed = Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame;
+            bool legacyPressed = false;
+            try
+            {
+                legacyPressed = Input.GetKeyDown(KeyCode.E);
+            }
+            catch (System.InvalidOperationException)
+            {
+                // The legacy API throws when Active Input Handling is Input System only.
+            }
+            return inputSystemPressed || legacyPressed;
+        }
 
         private void Start()
         {
@@ -60,7 +76,7 @@ namespace ProjectName.UI
             float distSq = (transform.position - _player.position).sqrMagnitude;
             _isPlayerNearby = distSq <= _interactRange * _interactRange;
 
-            if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))
+            if (_isPlayerNearby && WasInteractPressed())
             {
                 OpenAlchemyUI();
             }
@@ -69,6 +85,9 @@ namespace ProjectName.UI
         private void OpenAlchemyUI()
         {
             Debug.Log($"[AlchemyStation] {_stationName} 열림");
+
+            // IndoorScene is loaded additively and may run before UI bootstrap on some scene paths.
+            ProjectName.UI.Toolkit.UIToolkitBootstrap.Ensure();
 
             // [P18-C3] UTK 연금술 대 우선 — UIRoot 미준비 시 구 IMGUI 폴백
             if (ProjectName.UI.Toolkit.UIToolkitBootstrap.UIRoot != null)
@@ -89,6 +108,7 @@ namespace ProjectName.UI
         // ── OnGUI 상호작용 프롬프트 ──
         private void OnGUI()
         {
+            if (ProjectName.Core.UITransitionState.AnyWindowOpen) return;
             if (!_isPlayerNearby) return;
             if (_player == null) return;
 

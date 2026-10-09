@@ -12,16 +12,31 @@ namespace ProjectName.UI.Toolkit
     /// </summary>
     public class InteractionPanelUTK : UTKWindowBase
     {
+        // The source-supported four-action frames (81:91, 81:134 and 82:2) share
+        // 288x98.4 Figma geometry. At the 1.2x canonical scale, the logical panel is
+        // 240x82 and ActionGrid is (8,8,224,66), enclosing a 2x2 set of buttons.
         private const float PanelWidth = 240f;
-        private const float PanelHeight = 82f;
+        private const float StandardPanelHeight = 82f;
+        private const float GridLeft = 8f;
+        private const float GridTop = 8f;
         private const float GridWidth = 224f;
         private const float GridHeight = 66f;
+        // The four Figma buttons are 130.8x36 with a 7.2px column gap;
+        // at 1.2x canonical scale their logical bounds are 109x30 with a 6px gap.
+        // Two columns at x=0/115 and rows at y=0/36 fit the 224x66 grid exactly.
+        // Existing UTKButton padding/radius stays inside those fixed outer bounds.
+        private const float ActionWidth = 109f;
+        private const float ActionHeight = 30f;
+        private const float ColumnGap = 6f;
+        private const float SecondRowTop = 36f;
 
         private static InteractionPanelUTK _instance;
 
         private VisualElement _actionGrid;
         private HoverTargetClassifier.TargetKind _targetKind;
         private object _target;
+        private float _uiScaleX = 1f;
+        private float _uiScaleY = 1f;
 
         /// <summary>Raised when a panel action is clicked. TargetKind and target match the current panel.</summary>
         public static event Action<HoverTargetClassifier.TargetKind, string, object> ActionRequested;
@@ -44,30 +59,33 @@ namespace ProjectName.UI.Toolkit
             _instance.OpenForTarget(kind, target);
         }
 
-        private InteractionPanelUTK() : base("상호작용", new Vector2(PanelWidth, PanelHeight))
+        private InteractionPanelUTK() : base("상호작용", new Vector2(PanelWidth, StandardPanelHeight))
         {
             SetChrome(UTKWindowChrome.Frameless);
             style.width = PanelWidth;
-            style.height = PanelHeight;
+            style.height = StandardPanelHeight;
             style.overflow = Overflow.Visible;
 
             _content.style.width = PanelWidth;
-            _content.style.height = PanelHeight;
-            _content.style.paddingLeft = 8f;
-            _content.style.paddingRight = 8f;
-            _content.style.paddingTop = 8f;
-            _content.style.paddingBottom = 8f;
+            _content.style.height = StandardPanelHeight;
+            _content.style.paddingLeft = 0f;
+            _content.style.paddingRight = 0f;
+            _content.style.paddingTop = 0f;
+            _content.style.paddingBottom = 0f;
             _content.style.flexGrow = 0f;
             _content.style.flexShrink = 0f;
 
             _actionGrid = new VisualElement { name = "ActionGrid" };
+            _actionGrid.style.position = Position.Absolute;
+            _actionGrid.style.left = GridLeft;
+            _actionGrid.style.top = GridTop;
             _actionGrid.style.width = GridWidth;
             _actionGrid.style.height = GridHeight;
             _actionGrid.style.flexGrow = 0f;
             _actionGrid.style.flexShrink = 0f;
             _actionGrid.style.flexDirection = FlexDirection.Row;
-            _actionGrid.style.flexWrap = Wrap.Wrap;
-            _actionGrid.style.alignItems = Align.Stretch;
+            _actionGrid.style.flexWrap = Wrap.NoWrap;
+            _actionGrid.style.alignItems = Align.FlexStart;
             _actionGrid.style.justifyContent = Justify.FlexStart;
             _actionGrid.style.overflow = Overflow.Visible;
             _content.Add(_actionGrid);
@@ -89,13 +107,73 @@ namespace ProjectName.UI.Toolkit
         {
             _targetKind = kind;
             _target = target;
-            RebuildActions();
 
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
 
+            ApplyRootScale(root);
+            RebuildActions();
             Show();
+        }
+
+        private void ApplyRootScale(VisualElement root)
+        {
+            if (root == null)
+                return;
+
+            float rootWidth = root.resolvedStyle.width;
+            float rootHeight = root.resolvedStyle.height;
+            if (rootWidth <= 0f || rootHeight <= 0f)
+                return;
+
+            // Panel/root coordinates and screen input share the canonical 1920x1080
+            // canvas. Scale the logical 240x82 panel directly against that root.
+            float uiScaleX = rootWidth / FigmaCanvasLayout.CanvasWidth;
+            float uiScaleY = rootHeight / FigmaCanvasLayout.CanvasHeight;
+            _uiScaleX = uiScaleX;
+            _uiScaleY = uiScaleY;
+            Vector2 size = GetLayoutSize(_targetKind);
+            style.width = size.x * uiScaleX;
+            style.height = size.y * uiScaleY;
+            _content.style.width = size.x * uiScaleX;
+            _content.style.height = size.y * uiScaleY;
+            _actionGrid.style.left = GridLeft * uiScaleX;
+            _actionGrid.style.top = GridTop * uiScaleY;
+            _actionGrid.style.width = GridWidth * uiScaleX;
+            _actionGrid.style.height = GridHeight * uiScaleY;
+
+            // The click dispatcher supplies screen-space input. Normalize it to the
+            // canonical canvas and use the shared canvas scaler before positioning.
+            if (Screen.width <= 0 || Screen.height <= 0)
+                return;
+            Vector3 mouse = Input.mousePosition;
+            float canvasX = mouse.x * FigmaCanvasLayout.CanvasWidth / Screen.width;
+            float canvasY = (Screen.height - mouse.y) * FigmaCanvasLayout.CanvasHeight / Screen.height;
+            Rect scaledInput = FigmaCanvasLayout.ScaleRect(
+                new Rect(canvasX, canvasY, 0f, 0f), new Vector2(rootWidth, rootHeight));
+            Rect panelBounds = FigmaCanvasLayout.ScaleRect(
+                new Rect(0f, 0f, size.x, size.y), new Vector2(rootWidth, rootHeight));
+            style.position = Position.Absolute;
+            style.left = Mathf.Clamp(scaledInput.x, 0f, Mathf.Max(0f, rootWidth - panelBounds.width));
+            style.top = Mathf.Clamp(scaledInput.y, 0f, Mathf.Max(0f, rootHeight - panelBounds.height));
+        }
+
+        private static Vector2 GetLayoutSize(HoverTargetClassifier.TargetKind kind)
+        {
+            // The current Systems dispatcher routes five kinds to these four-action
+            // frames; variants without a proven caller are not exposed here.
+            switch (kind)
+            {
+                case HoverTargetClassifier.TargetKind.EnemyGuard: // 81:4
+                case HoverTargetClassifier.TargetKind.Ally:       // 81:51
+                case HoverTargetClassifier.TargetKind.NPC:        // 81:91
+                case HoverTargetClassifier.TargetKind.ShopNPC:    // 81:134
+                case HoverTargetClassifier.TargetKind.Lord:       // 82:2
+                    return new Vector2(PanelWidth, StandardPanelHeight);
+                default:
+                    return new Vector2(PanelWidth, StandardPanelHeight);
+            }
         }
 
         private void RebuildActions()
@@ -107,51 +185,78 @@ namespace ProjectName.UI.Toolkit
             switch (_targetKind)
             {
                 case HoverTargetClassifier.TargetKind.EnemyGuard:
-                    AddAction("상태보기");
-                    AddAction("대화하기");
-                    AddAction("뇌물주기");
-                    AddAction("포섭하기");
+                    AddAction("상태보기", 0);
+                    AddAction("대화하기", 1);
+                    AddAction("뇌물주기", 2);
+                    AddAction("포섭하기", 3);
                     break;
                 case HoverTargetClassifier.TargetKind.Ally:
-                    AddAction("상태보기");
-                    AddAction("대화하기");
-                    AddAction("물약주기");
-                    AddAction("음식주기");
+                    AddAction("상태보기", 0);
+                    AddAction("대화하기", 1);
+                    AddAction("물약주기", 2);
+                    AddAction("음식주기", 3);
                     break;
                 case HoverTargetClassifier.TargetKind.NPC:
-                    AddAction("상태보기");
-                    AddAction("대화하기");
-                    AddAction("선물주기");
-                    AddAction("퀘스트");
+                    AddAction("상태보기", 0);
+                    AddAction("대화하기", 1);
+                    AddAction("선물주기", 2);
+                    AddAction("퀘스트", 3);
                     break;
                 case HoverTargetClassifier.TargetKind.ShopNPC:
-                    AddAction("상태보기");
-                    AddAction("대화하기");
-                    AddAction("상점");
-                    AddAction("밀매제안");
+                    AddAction("상태보기", 0);
+                    AddAction("대화하기", 1);
+                    AddAction("상점", 2);
+                    AddAction("밀매제안", 3);
                     break;
                 case HoverTargetClassifier.TargetKind.Lord:
-                    AddAction("대화하기");
-                    AddAction("음식주기");
-                    AddAction("선물주기");
-                    AddAction("동맹제안");
+                    AddAction("대화하기", 0);
+                    AddAction("음식주기", 1);
+                    AddAction("선물주기", 2);
+                    AddAction("동맹제안", 3);
                     break;
             }
         }
 
-        private void AddAction(string label)
+        private void AddAction(string label, int index)
         {
+            int row = index / 2;
+            int column = index % 2;
             var button = UTKButton.Create(label, () => ActionRequested?.Invoke(_targetKind, label, _target), UTKButton.Variant.Secondary);
             button.name = "Action_" + label;
-            button.style.width = new Length(50f, LengthUnit.Percent);
-            button.style.height = 48f;
+            button.style.position = Position.Absolute;
+            button.style.left = column * (ActionWidth + ColumnGap) * _uiScaleX;
+            button.style.top = (row == 0 ? 0f : SecondRowTop) * _uiScaleY;
+            button.style.width = ActionWidth * _uiScaleX;
+            button.style.height = ActionHeight * _uiScaleY;
             button.style.marginTop = 0f;
-            button.style.marginBottom = 6f;
+            button.style.marginBottom = 0f;
             button.style.marginLeft = 0f;
             button.style.marginRight = 0f;
             button.style.flexShrink = 0f;
-            button.style.fontSize = 13f;
+            button.style.fontSize = 13.2f * Mathf.Min(_uiScaleX, _uiScaleY);
+            button.style.paddingLeft = 0f;
+            button.style.paddingRight = 0f;
+            button.style.whiteSpace = WhiteSpace.NoWrap;
+            button.SetEnabled(IsActionSupported(_targetKind, label, _target));
             _actionGrid.Add(button);
+        }
+
+        private static bool IsActionSupported(HoverTargetClassifier.TargetKind kind, string label, object target)
+        {
+            switch (label)
+            {
+                case "상태보기":
+                    return (kind == HoverTargetClassifier.TargetKind.EnemyGuard
+                            || kind == HoverTargetClassifier.TargetKind.Ally)
+                           && target is GuardPlaceholder;
+                case "대화하기":
+                    return target is TerritoryNPCBehaviour npc
+                           && !string.IsNullOrEmpty(npc.NPCData.NpcId);
+                case "상점":
+                    return kind == HoverTargetClassifier.TargetKind.ShopNPC;
+                default:
+                    return false;
+            }
         }
 
         public override void Show()

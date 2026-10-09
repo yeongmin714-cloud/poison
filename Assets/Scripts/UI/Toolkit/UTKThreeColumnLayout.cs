@@ -23,11 +23,20 @@ namespace ProjectName.UI.Toolkit
         private sealed class RequestedWidth
         {
             public readonly float Value;
+            public readonly StyleLength OriginalStyleWidth;
+            public readonly bool HasOriginalStyleWidth;
             public bool IsClamped;
 
             public RequestedWidth(float value)
             {
                 Value = value;
+            }
+
+            public RequestedWidth(float value, StyleLength originalStyleWidth)
+            {
+                Value = value;
+                OriginalStyleWidth = originalStyleWidth;
+                HasOriginalStyleWidth = true;
             }
         }
 
@@ -71,7 +80,7 @@ namespace ProjectName.UI.Toolkit
             if (!RequestedWidths.TryGetValue(win, out RequestedWidth requestedWidth))
             {
                 float initialWidth;
-                if (win.style.width != null && win.style.width.value.unit == Length.Unit.Pixel)
+                if (win.style.width != null && win.style.width.value.unit == UnityEngine.UIElements.LengthUnit.Pixel)
                 {
                     initialWidth = win.style.width.value.value;
                 }
@@ -81,11 +90,17 @@ namespace ProjectName.UI.Toolkit
                 }
                 else
                 {
+                    StyleLength originalStyleWidth = win.style.width.value;
                     float currentWidth = win.resolvedStyle.width;
                     if (currentWidth <= 0f)
-                        currentWidth = win.style.width.value.value;
+                        currentWidth = originalStyleWidth.value.value;
                     if (currentWidth > columnWidth && columnWidth > 0f)
+                    {
+                        requestedWidth = new RequestedWidth(currentWidth, originalStyleWidth);
+                        RequestedWidths.Add(win, requestedWidth);
                         win.style.width = columnWidth;
+                        requestedWidth.IsClamped = true;
+                    }
                     return;
                 }
 
@@ -103,7 +118,9 @@ namespace ProjectName.UI.Toolkit
             }
             else if (requestedWidth.IsClamped)
             {
-                win.style.width = requestedWidth.Value;
+                win.style.width = requestedWidth.HasOriginalStyleWidth
+                    ? requestedWidth.OriginalStyleWidth
+                    : new StyleLength(requestedWidth.Value);
                 requestedWidth.IsClamped = false;
             }
         }

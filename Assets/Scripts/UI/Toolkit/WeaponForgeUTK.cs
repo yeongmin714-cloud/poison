@@ -20,11 +20,36 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root == null) { Debug.LogWarning("[WeaponForgeUTK] UIRoot 없음"); return; }
             if (_instance.parent == null) root.Add(_instance);
-            UTKThreeColumnLayout.Place(_instance, 1);
             _instance.Show();
         }
 
+        public static void Toggle()
+        {
+            if (_instance != null && _instance.IsOpen) { _instance.Close(); return; }
+            Open();
+        }
+
         private WeaponForgeUTK() : base("⚒️ 무기 제작대", 3, new Vector2(520f, 560f)) { }
+
+        protected override string BenchSubtitle => "CRAFTING";
+        protected override string RecipeHeading => "제작 가능한 레시피 목록";
+        protected override string DetailDescriptionHeading => "제작 및 아이템 정보";
+        protected override string CraftActionText => "아이템 제작하기 (CRAFT)";
+        protected override IReadOnlyList<string> RecipeFilters => new[] { "전체", "무기", "장비", "도구" };
+
+        protected override bool MatchesFilter(BenchRecipe recipe, string filter)
+        {
+            if (filter == "전체") return true;
+            var item = PlayerInventory.GetItemById(recipe.ResultId);
+            if (item == null) return false;
+            switch (filter)
+            {
+                case "무기": return item.category == PlayerInventory.ItemCategory.Weapon;
+                case "장비": return item.category == PlayerInventory.ItemCategory.Armor || item.category == PlayerInventory.ItemCategory.Accessory;
+                case "도구": return item.category == PlayerInventory.ItemCategory.Tool;
+                default: return false;
+            }
+        }
 
         protected override IReadOnlyList<BenchRecipe> Recipes
         {

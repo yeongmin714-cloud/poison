@@ -76,22 +76,32 @@ namespace ProjectName.Systems
         {
             try
             {
-                var anim = target.GetComponentInChildren<Animator>();
-                if (anim == null || anim.runtimeAnimatorController == null) return;
-                var ps = anim.parameters;
-                for (int i = 0; i < ps.Length; i++)
-                {
-                    if (ps[i].type == AnimatorControllerParameterType.Trigger && ps[i].name == trigger)
-                    {
-                        anim.SetTrigger(trigger);
-                        return;
-                    }
-                }
+                // [2026-10-08] 병사/몬스터 컨트롤러는 "HitLight"가 없어 일반(치명 아님) 피격 트리거가
+                // 조용히 무시되던 문제 — 요청 트리거가 없으면 "Hit"로 폴백해 피격 애니가 나도록 한다.
+                // (플레이어 Player_AC는 "HitLight"를 보유해 원래대로 동작, "Hit"는 치명/폴백 둘 다 대응.)
+                if (!TrySetIfExists(target, trigger))
+                    TrySetIfExists(target, "Hit");
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning($"[HitReaction] Animator 트리거 스킵: {e.GetType().Name}");
             }
+        }
+
+        private static bool TrySetIfExists(GameObject target, string trigger)
+        {
+            var anim = target.GetComponentInChildren<Animator>();
+            if (anim == null || anim.runtimeAnimatorController == null) return false;
+            var ps = anim.parameters;
+            for (int i = 0; i < ps.Length; i++)
+            {
+                if (ps[i].type == AnimatorControllerParameterType.Trigger && ps[i].name == trigger)
+                {
+                    anim.SetTrigger(trigger);
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static void ApplyKnockback(HitReactionRunner runner, GameObject target, Vector3 dir, float magnitude)

@@ -52,6 +52,10 @@ namespace ProjectName.Systems
         [Header("포섭 (C9-15)")]
         [SerializeField] private bool _isRecruited = false;
 
+        // 가스 반응 — 방독면 부착 여부. 미착용(false)이면 가스에 노출 시 경직 반응.
+        [Header("방독면 (가스 반응)")]
+        [SerializeField] private bool _isGasMaskEquipped = false;
+
         [Header("역할 (C9-16)")]
         [SerializeField] private GuardRole _role = GuardRole.Soldier; // 플레이어에게 포섭되었는가
 
@@ -506,6 +510,10 @@ namespace ProjectName.Systems
             CombatFXGate.PlayHitFX(gameObject, hitDirection, CombatHitType.Organic, false, amount, Color.white);
             Debug.Log($"[GuardPlaceholder] HitFX played (dmg={amount}, hp={_currentHP})");
 
+            // [2026-10-08] 가스 반응 — 방독면 미착용이면 경직(플린치) 반응.
+            // (몬스터는 자체 HitReaction 경로로 이미 가스에도 반응하므로 병사만 보정.)
+            GasHitHelper.TryApplyGuardGasStun(this, hitDirection, weaponType);
+
             if (_currentHP <= 0) Die();
         }
 
@@ -902,11 +910,30 @@ namespace ProjectName.Systems
             }
         }
         public bool IsSelected => _isSelected;
-        public void SetCommandTarget(Vector3 t, bool a) { _commandTargetPos = t; _isAttackCommand = a; _hasCommand = true; }
-        public void ClearCommand() { _hasCommand = false; _isAttackCommand = false; }
+        public void SetCommandTarget(Vector3 t, bool a)
+        {
+            _commandTargetPos = t;
+            _isAttackCommand = a;
+            _hasCommand = true;
+            // A new order designates a new target. Do not briefly display an old resolved
+            // combat target while this order waits for its first execution update.
+            _attackTarget = null;
+            _attackTargetOffset = Vector3.zero;
+            _hasResolvedAttackTarget = false;
+        }
+        public void ClearCommand()
+        {
+            _hasCommand = false;
+            _isAttackCommand = false;
+            _attackTarget = null;
+            _attackTargetOffset = Vector3.zero;
+            _hasResolvedAttackTarget = false;
+        }
         public bool HasCommand => _hasCommand;
         public Vector3 CommandTarget => _commandTargetPos;
         public bool IsAttackCommand => _isAttackCommand;
+        /// <summary>Resolved execution target for the current attack command; null until target resolution succeeds.</summary>
+        public Component CurrentAttackTarget => _hasCommand && _isAttackCommand ? _attackTarget : null;
 
         // ===== C9-20/C9-21: 명령 실행 루프 =====
         private const float MOVE_CLEAR_RADIUS = 1.0f;       // 이동 명령 해제 반경(m)
@@ -918,6 +945,8 @@ namespace ProjectName.Systems
         private const float TARGET_SEARCH_RADIUS = 2.5f;    // 명령 지점 주변 적 탐색 반경(m)
 
         private Component _attackTarget;                    // 공격 명령 대상 (IDamageable 구현 컴포넌트 캐시)
+        private Vector3 _attackTargetOffset;                 // 이동 타겟의 현재 위치 기준 공격 접근점 오프셋
+        private bool _hasResolvedAttackTarget;               // 명령 중 실제 타겟을 한 번이라도 확보했는지
         private float _attackCooldown = 0f;                 // 공격 쿨다운 잔여 시간(초)
         private HumanoidClipDriver _clipDriver;             // 공격 모션 드라이버 (지연 캐싱)
         private Rigidbody _rb;                              // Rigidbody (없으면 transform 직접 이동)
@@ -927,7 +956,7 @@ namespace ProjectName.Systems
         /// GuardPlaceholder는 Rigidbody 없는 단순 생성 프리팹(cube)이므로 transform 이동을 허용하되,
         /// Rigidbody가 존재하면 MovePosition으로 우회한다. 사망 시 어떤 행동도 하지 않는다.
         /// </summary>
-        private void ExecuteMovement()
+        public void ExecuteMovement()
         {
             if (_isDead || !_hasCommand) return;
             // [P14] 실내 활성 시 이동 명령 정지 — 병사가 실내 좌표로 걸어 들어오는 것 차단
@@ -950,15 +979,35 @@ namespace ProjectName.Systems
                 // ----- 공격 명령: 목표지점 도달(1.5m) 시 공격 모션 + 근접 데미지 -----
                 if (!ValidateAttackTarget())
                 {
-                    // 대상 재탐색 (명령 지점 주변 유효 적)
-                    ResolveAttackTarget();
-                    if (_attackTarget == null)
+                    if (_hasResolvedAttackTarget)
                     {
-                        // 대상이 죽었거나 유효한 적이 없으면 명령 해제
-                        Debug.Log($"[GuardPlaceholder] {guardName} 공격 대상 상실 → 명령 해제");
+                        // 이미 지정된 타겟이 사망/무효화된 경우에만 명령을 끝낸다.
+                        Debug.Log($"[GuardPlaceholder] {guardName} 공격 대상 사망/상실 → 명령 해제");
                         ClearCommand();
                         return;
                     }
+
+                    // 타겟이 아직 검색되지 않은 명시적 공격 명령은 버리지 않는다.
+                    // 명령 지점으로 계속 이동하고, 다음 프레임에 주변 타겟을 재탐색한다.
+                    ResolveAttackTarget();
+                    if (_attackTarget != null)
+                    {
+                        _commandTargetPos = _attackTarget.transform.position + _attackTargetOffset;
+                        target = _commandTargetPos;
+                        toTarget = target - current;
+                        toTarget.y = 0f;
+                        distXZ = toTarget.magnitude;
+                    }
+                }
+
+                // 이미 유효한 타겟이 이동한 경우에도 같은 접근 오프셋을 유지하며 추적한다.
+                if (_attackTarget != null)
+                {
+                    _commandTargetPos = _attackTarget.transform.position + _attackTargetOffset;
+                    target = _commandTargetPos;
+                    toTarget = target - current;
+                    toTarget.y = 0f;
+                    distXZ = toTarget.magnitude;
                 }
 
                 if (distXZ > ATTACK_ARRIVE_RADIUS)
@@ -966,7 +1015,7 @@ namespace ProjectName.Systems
                     // 미도달 → 목표지점으로 이동
                     StepToward(current, target, distXZ, delta);
                 }
-                else
+                else if (_attackTarget != null)
                 {
                     // 도달 → 대상 방향 회전 후 쿨다운 게이트 공격
                     FaceToward(_attackTarget.transform.position - current, delta);
@@ -975,6 +1024,7 @@ namespace ProjectName.Systems
                     if (_attackCooldown <= 0f && dirToTarget.magnitude <= ATTACK_MELEE_RANGE)
                         PerformAttack((IDamageable)_attackTarget);
                 }
+                // 아직 타겟이 없는 공격 명령은 도착 지점에서 대기하며 다음 프레임에 다시 탐색한다.
             }
             else
             {
@@ -1134,7 +1184,7 @@ namespace ProjectName.Systems
             if (_attackTarget == null) return false;
 
             var dmg = _attackTarget as IDamageable;
-            if (dmg == null || !dmg.IsAlive)
+            if (dmg == null || !dmg.IsAlive || !_attackTarget.gameObject.activeInHierarchy)
             {
                 _attackTarget = null;
                 return false;
@@ -1208,6 +1258,11 @@ namespace ProjectName.Systems
             }
 
             _attackTarget = bestComp;
+            if (_attackTarget != null)
+            {
+                _attackTargetOffset = _commandTargetPos - _attackTarget.transform.position;
+                _hasResolvedAttackTarget = true;
+            }
         }
 
         /// <summary>
@@ -1230,6 +1285,8 @@ namespace ProjectName.Systems
         public void UpdateCombatTimer(float delta) { if (_isInCombat) _combatTimer += delta; }
         public void ResetCombatTimer() { _combatTimer = 0f; }
         public bool IsRecruited => _isRecruited;
+        /// <summary>방독면 착용 여부 — 착용 시 가스 경직 반응을 받지 않는다.</summary>
+        public bool IsGasMaskEquipped => _isGasMaskEquipped;
         public GuardRole Role { get => _role; set => _role = value; }
         public string StatusSummary => GuardStatusSystem.GetStatusSummary(this);
 

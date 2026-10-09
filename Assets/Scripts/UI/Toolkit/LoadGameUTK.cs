@@ -60,29 +60,23 @@ namespace ProjectName.UI.Toolkit
             style.alignItems = Align.Center;
             style.justifyContent = Justify.Center;
 
-            var panel = new VisualElement();
-            panel.name = "LoadGamePanel";
+            var panel = UTKTheme.CreatePanel("LoadGamePanel");
             panel.style.width = WinW;
-            panel.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
-            panel.style.borderTopWidth = panel.style.borderBottomWidth = 1f;
-            panel.style.borderLeftWidth = panel.style.borderRightWidth = 1f;
-            panel.style.borderTopColor = panel.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            panel.style.borderLeftColor = panel.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
-            panel.style.borderTopLeftRadius = panel.style.borderTopRightRadius = 8f;
-            panel.style.borderBottomLeftRadius = panel.style.borderBottomRightRadius = 8f;
+            panel.style.paddingTop = panel.style.paddingBottom = 0f;
+            panel.style.paddingLeft = panel.style.paddingRight = 0f;
             panel.style.overflow = Overflow.Hidden;
             Add(panel);
 
             var title = new Label("저장 파일 불러오기");
             title.name = "LoadGameHeader";
-            title.style.fontSize = 20f;
+            title.style.fontSize = 21.6f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.color = new StyleColor(UTKColor.TextPrimary);
-            title.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            title.style.color = new StyleColor(UTKTheme.TextMain);
+            title.style.backgroundColor = new StyleColor(UTKTheme.Panel);
             title.style.paddingTop = title.style.paddingBottom = 14f;
             title.style.paddingLeft = title.style.paddingRight = 16f;
             title.style.borderBottomWidth = 1f;
-            title.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            title.style.borderBottomColor = new StyleColor(UTKTheme.Stroke);
             panel.Add(title);
 
             var slotScroll = new ScrollView();
@@ -105,9 +99,9 @@ namespace ProjectName.UI.Toolkit
             footer.style.paddingBottom = 10f;
             footer.style.paddingLeft = 14f;
             footer.style.paddingRight = 14f;
-            footer.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            footer.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
             footer.style.borderTopWidth = 1f;
-            footer.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            footer.style.borderTopColor = new StyleColor(UTKTheme.Stroke);
             panel.Add(footer);
             footer.Add(UTKButton.Create("← 뒤로", OnBackClicked, UTKButton.Variant.Secondary));
 
@@ -124,26 +118,19 @@ namespace ProjectName.UI.Toolkit
             _deleteOverlay.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.68f));
             Add(_deleteOverlay);
 
-            var confirmPanel = new VisualElement();
+            var confirmPanel = UTKTheme.CreatePanel("DeleteConfirmPanel");
             confirmPanel.style.width = 320f;
             confirmPanel.style.paddingTop = confirmPanel.style.paddingBottom = 16f;
             confirmPanel.style.paddingLeft = confirmPanel.style.paddingRight = 16f;
-            confirmPanel.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
-            confirmPanel.style.borderTopWidth = confirmPanel.style.borderBottomWidth = 1f;
-            confirmPanel.style.borderLeftWidth = confirmPanel.style.borderRightWidth = 1f;
-            confirmPanel.style.borderTopColor = confirmPanel.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            confirmPanel.style.borderLeftColor = confirmPanel.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
-            confirmPanel.style.borderTopLeftRadius = confirmPanel.style.borderTopRightRadius = 8f;
-            confirmPanel.style.borderBottomLeftRadius = confirmPanel.style.borderBottomRightRadius = 8f;
             _deleteOverlay.Add(confirmPanel);
 
             var confirmTitle = new Label("저장 파일 삭제");
-            confirmTitle.style.fontSize = 18f;
+            confirmTitle.style.fontSize = 16.8f;
             confirmTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
-            confirmTitle.style.color = new StyleColor(UTKColor.TextPrimary);
+            confirmTitle.style.color = new StyleColor(UTKTheme.TextMain);
             confirmPanel.Add(confirmTitle);
             _deletePrompt = new Label();
-            _deletePrompt.style.color = new StyleColor(UTKColor.TextSecondary);
+            _deletePrompt.style.color = new StyleColor(UTKTheme.TextSub);
             _deletePrompt.style.marginTop = 8f;
             _deletePrompt.style.marginBottom = 14f;
             confirmPanel.Add(_deletePrompt);
@@ -184,24 +171,15 @@ namespace ProjectName.UI.Toolkit
 
         private VisualElement BuildSlot(int index)
         {
-            var cell = new VisualElement();
-            cell.name = "Slot_" + index;
+            var cell = UTKTheme.CreatePanel("Slot_" + index, secondary: true);
             cell.style.width = Length.Percent(100f);
             cell.style.minHeight = SlotH;
             cell.style.flexDirection = FlexDirection.Row;
             cell.style.alignItems = Align.Center;
             cell.style.paddingLeft = 12f;
             cell.style.paddingRight = 10f;
-            cell.style.paddingTop = 9f;
-            cell.style.paddingBottom = 9f;
+            cell.style.paddingTop = cell.style.paddingBottom = 9f;
             cell.style.marginBottom = 8f;
-            cell.style.backgroundColor = new StyleColor(new Color(0x21 / 255f, 0x26 / 255f, 0x2D / 255f, 1f));
-            cell.style.borderTopWidth = cell.style.borderBottomWidth = 1f;
-            cell.style.borderLeftWidth = cell.style.borderRightWidth = 1f;
-            cell.style.borderTopColor = cell.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            cell.style.borderLeftColor = cell.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
-            cell.style.borderTopLeftRadius = cell.style.borderTopRightRadius = 8f;
-            cell.style.borderBottomLeftRadius = cell.style.borderBottomRightRadius = 8f;
             cell.pickingMode = PickingMode.Position;
 
             SaveData info = (_slotInfos != null && index < _slotInfos.Length) ? _slotInfos[index] : null;
@@ -214,22 +192,22 @@ namespace ProjectName.UI.Toolkit
             cell.Add(details);
 
             var slotLabel = new Label($"슬롯 {index + 1}");
-            slotLabel.style.color = new StyleColor(UTKColor.TextPrimary);
-            slotLabel.style.fontSize = 14f;
+            slotLabel.style.color = new StyleColor(UTKTheme.TextMain);
+            slotLabel.style.fontSize = 14.4f;
             slotLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             details.Add(slotLabel);
 
             string date = hasSave ? (info.timestamp ?? "날짜 없음") : "저장된 게임 없음";
             var dateLabel = new Label(date);
-            dateLabel.style.color = new StyleColor(UTKColor.TextSecondary);
-            dateLabel.style.fontSize = 11f;
+            dateLabel.style.color = new StyleColor(UTKTheme.TextSub);
+            dateLabel.style.fontSize = 12f;
             dateLabel.style.marginTop = 2f;
             details.Add(dateLabel);
 
             string dayStr = hasSave && info.time != null ? $"Day {info.time.day}" : (hasSave ? "Day ?" : "—");
             string levelStr = hasSave && info.player != null ? $"Lv.{info.player.level}" : (hasSave ? "Lv.?" : "—");
             var summary = new Label(hasSave ? $"{dayStr}  ·  {levelStr}" : "비어있음");
-            summary.style.color = new StyleColor(hasSave ? UTKColor.TextPrimary : UTKColor.TextSecondary);
+            summary.style.color = new StyleColor(hasSave ? UTKTheme.TextMain : UTKTheme.TextSub);
             summary.style.fontSize = 12f;
             summary.style.marginTop = 2f;
             details.Add(summary);

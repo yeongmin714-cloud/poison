@@ -62,8 +62,8 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float WinW = 780f;
-        private const float WinH = 660f;
+        private const float WinW = 1920f;
+        private const float WinH = 1080f;
 
         /// <summary>정규화 분모 = 2×extent. u = 0.5 + x/WORLD_SPAN (원본 실측: 3200f, extent 1600m).</summary>
         private static readonly float WORLD_SPAN = 3200f;
@@ -125,13 +125,15 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         private WorldMapWindowUTK() : base("🗺️ 포이즌 월드맵", new Vector2(WinW, WinH))
         {
-            _content.style.flexGrow = 1f;
-            _content.style.flexDirection = FlexDirection.Column;
+            SetChrome(UTKWindowChrome.Frameless);
+            _content.style.position = Position.Relative;
+            _content.style.width = WinW;
+            _content.style.height = WinH;
 
             // 제목 + 범례 힌트
             var legend = new Label("● 영지   ★ 내 영지   붉은 테두리: 전쟁 중   👑 황제국   🧛 드라큘라");
             legend.AddToClassList("utk-title-label");
-            legend.style.fontSize = 13f;
+            legend.style.fontSize = 13.2f;
             legend.style.color = new StyleColor(GitHubDark.TextSub);
             legend.style.whiteSpace = WhiteSpace.Normal;
             // 헤더 범례 스트립 — 보조 패널 바탕 + 1px 스트로크 + r6 (GitHub-dark 서브 헤더)
@@ -163,14 +165,14 @@ namespace ProjectName.UI.Toolkit
             _content.Add(hudRow);
 
             _locLabel = new Label("현재 위치: —");
-            _locLabel.style.fontSize = 13f;
+            _locLabel.style.fontSize = 13.2f;
             _locLabel.style.color = new StyleColor(GitHubDark.TextSub);
             _locLabel.style.flexGrow = 1f;
             _locLabel.style.whiteSpace = WhiteSpace.NoWrap;
             hudRow.Add(_locLabel);
 
             _coordLabel = new Label("좌표: —");
-            _coordLabel.style.fontSize = 13f;
+            _coordLabel.style.fontSize = 13.2f;
             _coordLabel.style.color = new StyleColor(GitHubDark.TextSub);
             _coordLabel.style.whiteSpace = WhiteSpace.NoWrap;
             hudRow.Add(_coordLabel);
@@ -182,7 +184,7 @@ namespace ProjectName.UI.Toolkit
             _mapCanvas.style.flexGrow = 1f;
             _mapCanvas.style.marginTop = 6f;
             _mapCanvas.style.position = Position.Relative;
-            _mapCanvas.style.aspectRatio = 1f;                       // 양피지(정사각) 비율 유지
+            _mapCanvas.style.flexBasis = 0f;
             _mapCanvas.style.backgroundImage = UTKTextureSafe.ToBackground(GetParchment());
             _mapCanvas.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Contain);
             _mapCanvas.style.borderLeftWidth = 2f;
@@ -200,10 +202,11 @@ namespace ProjectName.UI.Toolkit
             _compass = new VisualElement();
             _compass.name = "TacticalCompass";
             _compass.style.position = Position.Absolute;
-            _compass.style.width = 64f;
-            _compass.style.height = 64f;
-            _compass.style.right = 12f;
-            _compass.style.top = 12f;
+            _compass.style.width = 192f;
+            _compass.style.height = 192f;
+            _compass.style.left = 696f;
+            _compass.style.top = 168f;
+            _compass.style.right = StyleKeyword.Auto;
             _compass.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
             _compass.style.borderTopWidth = 1f; _compass.style.borderBottomWidth = 1f;
             _compass.style.borderLeftWidth = 1f; _compass.style.borderRightWidth = 1f;
@@ -214,7 +217,8 @@ namespace ProjectName.UI.Toolkit
             _compass.style.borderTopLeftRadius = 32f; _compass.style.borderTopRightRadius = 32f;
             _compass.style.borderBottomLeftRadius = 32f; _compass.style.borderBottomRightRadius = 32f;
             _compass.pickingMode = PickingMode.Ignore;
-            _mapCanvas.Add(_compass);
+            // The archived compass coordinates are local to the fullscreen frame, not MapCanvas.
+            Add(_compass);
 
             _compassRose = new VisualElement();
             _compassRose.style.flexGrow = 1f;
@@ -227,7 +231,7 @@ namespace ProjectName.UI.Toolkit
             _compassN.style.position = Position.Absolute;
             _compassN.style.left = 0f; _compassN.style.right = 0f;
             _compassN.style.top = 4f;
-            _compassN.style.fontSize = 14f;
+            _compassN.style.fontSize = 14.4f;
             _compassN.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
             _compassN.style.unityTextAlign = TextAnchor.MiddleCenter;
             _compassN.style.color = new StyleColor(GitHubDark.TextMain);
@@ -268,9 +272,20 @@ namespace ProjectName.UI.Toolkit
 
             // 기본 숨김 + 중앙 배치 (드래그 전까지)
             style.display = DisplayStyle.None;
-            style.left = Length.Percent(50f);
-            style.top = Length.Percent(50f);
-            style.translate = new Translate(Length.Percent(-50f), Length.Percent(-50f));
+            ApplyCanvasBounds();
+        }
+
+        private void ApplyCanvasBounds()
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root == null) return;
+            FigmaCanvasLayout.Apply(this, new Rect(0f, 0f, 1920f, 1080f), root);
+            float sx = root.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth;
+            float sy = root.resolvedStyle.height / FigmaCanvasLayout.CanvasHeight;
+            _compass.style.left = 696f * sx;
+            _compass.style.top = 168f * sy;
+            _compass.style.width = 192f * sx;
+            _compass.style.height = 192f * sy;
         }
 
         /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 이 창 한정 인라인 오버라이드(생성 시 1회).</summary>
@@ -324,11 +339,12 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         public override void Show()
         {
-            base.Show();   // Register + 표시 + OnWindowOpen
+            // Attach before base.Show invokes OnWindowOpen, so canvas-local bounds are applied
+            // against an attached window and each actual closed→open transition refreshes once.
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
-            RebuildMarkers();
+            base.Show();   // Register + 표시 + OnWindowOpen
             UnityEngine.Debug.Log("[WorldMapUTK] 월드맵 열림");
         }
 
@@ -348,7 +364,9 @@ namespace ProjectName.UI.Toolkit
 
         protected override void OnWindowOpen()
         {
-        // [폐기 완료] 원본 WorldMapWindow는 아카이브됨 — UTK가 유일 맵 (억제 코드 제거)
+            ApplyCanvasBounds();
+            RebuildMarkers();
+            // [폐기 완료] 원본 WorldMapWindow는 아카이브됨 — UTK가 유일 맵 (억제 코드 제거)
         }
 
         // =====================================================================
@@ -404,12 +422,13 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         //  마커 구성
         // =====================================================================
-        /// <summary>영지 마커 재구성 — OnShow 1회 (원본 RefreshDefinitions: 바깥 링 큰 순 정렬).</summary>
+        /// <summary>영지 마커 재구성 — 창이 열릴 때마다 1회 (원본 RefreshDefinitions: 바깥 링 큰 순 정렬).</summary>
         private void RebuildMarkers()
         {
+            // Rebuild only map contents: player and territory markers remain MapCanvas descendants.
+            // TacticalCompass is a window-root sibling, so Clear() cannot remove or reparent it.
             _mapCanvas.Clear();
-            _mapCanvas.Add(_playerMarker);   // 플레이어 마커는 최상위 유지
-            if (_compass != null) _mapCanvas.Add(_compass);   // [F5] 나침반 재추가 (Clear로 소실 방지)
+            _mapCanvas.Add(_playerMarker);
 
             _territoryMarkers.Clear();
             var db = TerritoryDatabase.Instance;
@@ -750,7 +769,7 @@ namespace ProjectName.UI.Toolkit
 
                 // ★ 내 영지 표식 (소유 시에만 표시) — 강조 골드 #E3B341 + 다크 칩(양피지 위 가독성)
                 _star = new Label("★");
-                _star.style.fontSize = 13f;
+                _star.style.fontSize = 13.2f;
                 _star.style.color = new StyleColor(GitHubDark.Gold);
                 _star.style.backgroundColor = new StyleColor(MarkerChipBg());
                 _star.style.paddingLeft = 3f;
@@ -775,7 +794,7 @@ namespace ProjectName.UI.Toolkit
                 string prefix = def.nation == NationType.Empire ? "👑 " :
                                 def.nation == NationType.Dracula ? "🧛 " : "";
                 _name = new Label(prefix + def.territoryName);
-                _name.style.fontSize = 11f;
+                _name.style.fontSize = 12f;
                 // 이름 칩 — 다크 패널 바탕 + 1px 스트로크 + r4 (양피지 위 가독성 확보, GitHub-dark 서브 배지)
                 _name.style.color = new StyleColor(GitHubDark.TextMain);
                 _name.style.backgroundColor = new StyleColor(MarkerChipBg());

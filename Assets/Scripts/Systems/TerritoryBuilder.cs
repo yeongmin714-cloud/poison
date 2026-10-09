@@ -31,10 +31,11 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 영지/병사 배치 일시중단 스위치.
-        /// 지형 Play 검증 중 렉 원인(성 GLB 로드 + 문지기 병사 FBX/애니 부착 82개 영지)을 차단한다 — 2026-09-04 사용자 지시.
-        /// 검증이 끝나면 false로 변경하거나 SetPaused(false)를 호출해 재개한다.
+        /// 지형 Play 검증 중 렉 원인(성 GLB 로드 + 문지기 병사 FBX/애니 부착 82개 영지)을 차단하기 위해
+        /// 2026-09-04 일시 true로 설정했던 것. 지형 고도화·검증 완료(계획 v3 벽/회반죽) 후 메인씬 복귀를 위해
+        /// false로 되돌림 — SetPaused(false) 호출로 런타임 재개도 가능.
         /// </summary>
-        public static bool BuildPaused = true;
+        public static bool BuildPaused = false;
 
         /// <summary>
         /// 영지/병사 배치 일시중단 여부를 토글합니다. 값이 실제로 바뀔 때만 로그를 남깁니다.
@@ -384,6 +385,70 @@ namespace ProjectName.Systems
             catch (System.Exception e)
             {
                 Debug.LogError($"[TerritoryBuilder] 실내 수비 병사 배치 실패: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// [2026-10-07] 플레이어 소유 성(PlayerCastleInteriorBuilder)의 막사에 아군 병사를 배치.
+        /// room의 자식 "BarracksMapTable"(병사 관리 테이블) 주변으로 3명을 놓아 실제 플레이어 성 실내에
+        /// 아군 수비병이 보이도록 한다. CreateGuard가 월드 지형 높이로 보정하므로 실내 바닥 y로 재고정한다.
+        /// 적 실내 수비병(SpawnInteriorDefenseGuards)과 달리 SetRecruited(true) 아군 + 플레이어 비적대.
+        /// </summary>
+        /// <param name="room">플레이어 성 방 루트(PlayerCastleInteriorBuilder 반환값)</param>
+        /// <param name="nationStyle">국가 스타일 (로그용)</param>
+        /// <param name="count">배치할 아군 병사 수 (기본 3)</param>
+        public static void SpawnInteriorAlliedGuards(GameObject room, string nationStyle, int count = 3)
+        {
+            try
+            {
+                if (room == null || count <= 0) return;
+
+                // 배럭 지휘탁자(병사 관리 테이블) 위치: authored localPosition(-12.25,0,-14.3)이
+                // 2.45 배 스케일 패스 후 room 기준 final local(-30,0,-35)로 확정됨. room.transform.position은
+                // 실내 바닥 원점이므로 거기에 상대 오프셋을 더한다(Transform.gameObject 체이닝 불가 회피).
+                Vector3 roomBase = room.transform.position;
+                Vector3 barrackPos = new Vector3(roomBase.x - 30f, roomBase.y, roomBase.z - 35f);
+                float floorY = roomBase.y; // 실내 바닥 기준
+
+                NationType nation = NationTypeForStyle(nationStyle);
+                int baseLevel = 8;
+                for (int i = 0; i < count; i++)
+                {
+                    Vector3 pos = new Vector3(barrackPos.x - (count - 1) * 0.6f + i * 1.2f, floorY, barrackPos.z + 2f);
+                    var go = CreateGuard($"BarracksAlly_{i + 1}", pos, "막사 수비병",
+                        baseLevel + (i % 3), nation, null, default, TerritoryDifficulty.Ring1);
+                    if (go == null) continue;
+
+                    // 실내 바닥 y 고정 (월드 지형 높이 오염 방지)
+                    go.transform.position = new Vector3(pos.x, floorY + 0.05f, pos.z);
+
+                    var ph = go.GetComponent<GuardPlaceholder>();
+                    if (ph != null)
+                    {
+                        ph.SetRecruited(true);          // 아군 — 플레이어와 동맹
+                        ph.HostileToPlayerFaction = false;
+                    }
+                    Debug.Log($"[TerritoryBuilder] 🪖 아군 막사 병사 배치: {go.name} (Lv.{baseLevel + (i % 3)}) @ {pos}");
+                }
+                Debug.Log($"[TerritoryBuilder] 아군 막사 병사 {count}명 배치 완료 (style: {nationStyle})");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[TerritoryBuilder] 아군 막사 병사 배치 실패: {e.Message}");
+            }
+        }
+
+        /// <summary>국가 스타일 문자열 → NationType 매핑 (PlayerCastleInteriorBuilder와 동일 키).</summary>
+        private static NationType NationTypeForStyle(string nationStyle)
+        {
+            switch (nationStyle?.ToLower())
+            {
+                case "eastern": return NationType.East;
+                case "western": return NationType.West;
+                case "southern": return NationType.South;
+                case "northern": return NationType.North;
+                case "empire": return NationType.Empire;
+                default: return NationType.Empire;
             }
         }
 

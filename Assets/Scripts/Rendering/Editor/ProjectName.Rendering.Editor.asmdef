@@ -1,0 +1,16 @@
+{
+  "name": "ProjectName.Rendering.Editor",
+  "rootNamespace": "ProjectName.Rendering.Editor",
+  "references": [
+    "ProjectName.Rendering",
+    "Unity.RenderPipelines.Universal.Runtime"
+  ],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true,
+  "overrideReferences": false,
+  "allowUnsafeCode": false,
+  "precompiledReferences": [],
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

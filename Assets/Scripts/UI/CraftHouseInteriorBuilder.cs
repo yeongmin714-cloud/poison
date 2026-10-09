@@ -158,7 +158,7 @@ namespace ProjectName.UI
             // ===== 조명 설정 =====
             // 중간 밝기, 깜빡임 없음
             Color ambientMid = new Color(0.12f, 0.12f, 0.12f);
-            IndoorLighting.SetupIndoorLighting(room, ambientMid, 0.8f, false);
+            IndoorLighting.SetupIndoorLighting(room, ambientMid, 0.25f, false);
 
             Debug.Log("[CraftHouseInteriorBuilder] 크래프트하우스 실내 생성 완료!");
 

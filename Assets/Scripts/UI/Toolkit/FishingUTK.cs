@@ -20,8 +20,8 @@ namespace ProjectName.UI.Toolkit
         private static FishingUTK _instance;
         private static Updater _updater;
 
-        private const float WinW = 280f;   // [Figma 160:11] fishing-hud-panel
-        private const float WinH = 289f;
+        private const float WinW = 336f;   // Archived 160:11 fishing-hud-panel
+        private const float WinH = 345.6f;
         private const long TickMs = 50L;
 
         // 바 (Figma 240×8 두께)
@@ -39,10 +39,11 @@ namespace ProjectName.UI.Toolkit
 
         private FishingUTK() : base("🎣 낚시", new Vector2(WinW, WinH))
         {
+            SetChrome(UTKWindowChrome.Frameless);
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
-            _content.style.paddingLeft = 20f; _content.style.paddingRight = 20f;   // [Figma] pad20
-            _content.style.paddingTop = 20f; _content.style.paddingBottom = 20f;
+            _content.style.paddingLeft = 24f; _content.style.paddingRight = 24f;
+            _content.style.paddingTop = 24f; _content.style.paddingBottom = 24f;
 
             _popupHost = new VisualElement();
             _popupHost.style.position = Position.Absolute;
@@ -54,7 +55,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(_popupHost);
 
             _popupLabel = new Label("");
-            _popupLabel.style.fontSize = 16f;
+            _popupLabel.style.fontSize = 16.8f;
             _popupLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _popupLabel.style.color = new StyleColor(GitHubDark.Accent);
             _popupLabel.style.whiteSpace = WhiteSpace.Normal;
@@ -66,16 +67,16 @@ namespace ProjectName.UI.Toolkit
             titleRow.style.flexDirection = FlexDirection.Row;
             titleRow.style.alignItems = Align.Center;
             var titleIcon = new Label("🎣");
-            titleIcon.style.fontSize = 14f;
+            titleIcon.style.fontSize = 14.4f;
             titleRow.Add(titleIcon);
             var titleLbl = new Label("낚시하기");
             titleLbl.style.marginLeft = 4f;
-            titleLbl.style.fontSize = 14f;
+            titleLbl.style.fontSize = 14.4f;
             titleLbl.style.color = new StyleColor(GitHubDark.TextMain);
             titleLbl.style.flexGrow = 1f;
             titleRow.Add(titleLbl);
             _tensionState = new Label("ACTIVE");   // 원래 장력 상태 배지 자리(상단) — 대기 시에도 상태 표시
-            _tensionState.style.fontSize = 11f;
+            _tensionState.style.fontSize = 12f;
             _tensionState.style.color = new StyleColor(GitHubDark.Accent);
             titleRow.Add(_tensionState);
             _content.Add(titleRow);
@@ -97,12 +98,12 @@ namespace ProjectName.UI.Toolkit
             tensionLabel.style.alignItems = Align.Center;
             _content.Add(tensionLabel);
             var tLabel = new Label("라인 장력 (Tension)");
-            tLabel.style.fontSize = 13f;
+            tLabel.style.fontSize = 13.2f;
             tLabel.style.color = new StyleColor(GitHubDark.TextSub);
             tLabel.style.flexGrow = 1f;
             tensionLabel.Add(tLabel);
             var tDanger = new Label("위험!");
-            tDanger.style.fontSize = 13f;
+            tDanger.style.fontSize = 13.2f;
             tDanger.style.color = new StyleColor(GitHubDark.Danger);
             tDanger.visible = false;
             tensionLabel.Add(tDanger);
@@ -140,8 +141,33 @@ namespace ProjectName.UI.Toolkit
 
             ApplyUIToolkitFont(this);
             style.display = DisplayStyle.None;
-            style.left = 60f;
-            style.top = 90f;
+            ApplyCanvasBounds();
+        }
+
+        private void ApplyCanvasBounds()
+        {
+            var root = UIToolkitBootstrap.UIRoot;
+            if (root == null) return;
+            var frameBounds = new Rect(792f, 367.2f, 336f, 345.6f);
+            FigmaCanvasLayout.Apply(this, frameBounds, root);
+
+            Vector2 rootSize = new Vector2(root.resolvedStyle.width, root.resolvedStyle.height);
+            float sx = rootSize.x / FigmaCanvasLayout.CanvasWidth;
+            float sy = rootSize.y / FigmaCanvasLayout.CanvasHeight;
+            _content.style.position = Position.Absolute;
+            _content.style.left = 0f;
+            _content.style.top = 0f;
+            // Keep the content tree in canonical Figma units and scale it as one visual subtree.
+            // This scales typography, bars, spacing and keycaps consistently on both axes while
+            // preserving the outer frame bounds and leaving the 1920×1080 layout unchanged.
+            _content.style.width = frameBounds.width;
+            _content.style.height = frameBounds.height;
+            _content.style.paddingLeft = 20f;
+            _content.style.paddingRight = 20f;
+            _content.style.paddingTop = 20f;
+            _content.style.paddingBottom = 20f;
+            _content.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
+            _content.style.scale = new StyleScale(new Scale(new Vector2(sx, sy)));
         }
 
         /// <summary>[Figma] 섹션 라벨 행(라벨 + 우측 % ). </summary>
@@ -151,12 +177,12 @@ namespace ProjectName.UI.Toolkit
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
             var label = new Label(labelText);
-            label.style.fontSize = 13f;
+            label.style.fontSize = 13.2f;
             label.style.color = new StyleColor(GitHubDark.TextSub);
             label.style.flexGrow = 1f;
             row.Add(label);
             pctLabel = new Label("0%");
-            pctLabel.style.fontSize = 13f;
+            pctLabel.style.fontSize = 13.2f;
             pctLabel.style.color = new StyleColor(GitHubDark.TextMain);
             row.Add(pctLabel);
             _content.Add(row);
@@ -238,6 +264,7 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root != null && parent == null)
                 root.Add(this);
+            ApplyCanvasBounds();
             StartTick();
             Refresh();
         }

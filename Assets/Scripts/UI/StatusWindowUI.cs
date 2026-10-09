@@ -35,6 +35,10 @@ namespace ProjectName.UI
         private static void Bootstrap()
         {
             if (_instance != null) return;
+            // StatusWindowUTK is the active P/ESC route whenever the Toolkit root exists.
+            // Do not auto-create an IMGUI duplicate in that route; retain this legacy
+            // bootstrap only for scenes where the Toolkit root is unavailable.
+            if (ProjectName.UI.Toolkit.UIToolkitBootstrap.IsReady) return;
             var existing = Object.FindAnyObjectByType<StatusWindowUI>();
             if (existing != null) { _instance = existing; return; }
 

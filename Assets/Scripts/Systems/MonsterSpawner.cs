@@ -112,8 +112,8 @@ namespace ProjectName.Systems
 
         // ===== 스폰 일시중지 스위치 (2026-09-03) =====
         // 사용자 지시: "지형을 고칠 때까지 몬스터 스폰 잠시 중단" — 렉 원인 차단을 위해 완전 차단.
-        // 지형 고도화 완료 후 false로 변경 (또는 SetPaused(false) 호출).
-        public static bool SpawningPaused = true;
+        // 지형 고도화 완료 후 false로 변경 (또는 SetPaused(false) 호출). 메인씬 복귀를 위해 false로 되돌림.
+        public static bool SpawningPaused = false;
 
         /// <summary>런타임에서 스폰 일시중지/재개를 토글한다. 값이 실제 변경될 때만 로그를 남긴다.</summary>
         public static void SetPaused(bool paused)

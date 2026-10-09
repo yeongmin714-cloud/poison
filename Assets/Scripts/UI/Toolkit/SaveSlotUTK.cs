@@ -60,28 +60,22 @@ namespace ProjectName.UI.Toolkit
             style.justifyContent = Justify.Center;
 
             // GitHub-dark 카드: 헤더/슬롯 카드/하단 액션 띠를 하나의 스트로크 패널로 묶는다.
-            var card = new VisualElement();
-            card.name = "SaveSlotCard";
+            var card = UTKTheme.CreatePanel("SaveSlotCard");
             card.style.width = WinW;
-            card.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
-            card.style.borderTopWidth = card.style.borderBottomWidth = 1f;
-            card.style.borderLeftWidth = card.style.borderRightWidth = 1f;
-            card.style.borderTopColor = card.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            card.style.borderLeftColor = card.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
-            card.style.borderTopLeftRadius = card.style.borderTopRightRadius = 8f;
-            card.style.borderBottomLeftRadius = card.style.borderBottomRightRadius = 8f;
+            card.style.paddingTop = card.style.paddingBottom = 0f;
+            card.style.paddingLeft = card.style.paddingRight = 0f;
             card.style.overflow = Overflow.Hidden;
             Add(card);
 
             var header = new Label("저장 슬롯 선택");
-            header.style.fontSize = 18f;
+            header.style.fontSize = 16.8f;
             header.style.unityFontStyleAndWeight = FontStyle.Bold;
-            header.style.color = new StyleColor(UTKColor.TextPrimary);
-            header.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            header.style.color = new StyleColor(UTKTheme.TextMain);
+            header.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
             header.style.paddingTop = header.style.paddingBottom = 14f;
             header.style.paddingLeft = header.style.paddingRight = 16f;
             header.style.borderBottomWidth = 1f;
-            header.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
+            header.style.borderBottomColor = new StyleColor(UTKTheme.Stroke);
             card.Add(header);
 
             _slotList = new VisualElement();
@@ -100,9 +94,9 @@ namespace ProjectName.UI.Toolkit
             btnRow.style.paddingBottom = 10f;
             btnRow.style.paddingLeft = 14f;
             btnRow.style.paddingRight = 14f;
-            btnRow.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
+            btnRow.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
             btnRow.style.borderTopWidth = 1f;
-            btnRow.style.borderTopColor = new StyleColor(UTKColor.BorderBronze);
+            btnRow.style.borderTopColor = new StyleColor(UTKTheme.Stroke);
             card.Add(btnRow);
 
             _confirmBtn = UTKButton.Create("확인", OnConfirm, UTKButton.Variant.Primary);
@@ -139,29 +133,19 @@ namespace ProjectName.UI.Toolkit
 
         private VisualElement BuildSlotButton(int index, SaveData info)
         {
-            var cell = new VisualElement();
-            cell.name = "Slot_" + index;
+            var cell = UTKTheme.CreatePanel("Slot_" + index, secondary: true);
             cell.style.width = Length.Percent(100f);
             cell.style.minHeight = SlotH;
             cell.style.flexDirection = FlexDirection.Column;
             cell.style.justifyContent = Justify.Center;
-            cell.style.paddingLeft = 12f;
-            cell.style.paddingRight = 12f;
-            cell.style.paddingTop = 9f;
-            cell.style.paddingBottom = 9f;
+            cell.style.paddingLeft = cell.style.paddingRight = 12f;
+            cell.style.paddingTop = cell.style.paddingBottom = 9f;
             cell.style.marginBottom = 6f;
-            cell.style.backgroundColor = new StyleColor(UTKColor.BgPanelDark);
-            cell.style.borderTopWidth = cell.style.borderBottomWidth = 1f;
-            cell.style.borderLeftWidth = cell.style.borderRightWidth = 1f;
-            cell.style.borderTopColor = cell.style.borderBottomColor = new StyleColor(UTKColor.BorderBronze);
-            cell.style.borderLeftColor = cell.style.borderRightColor = new StyleColor(UTKColor.BorderBronze);
-            cell.style.borderTopLeftRadius = cell.style.borderTopRightRadius = 8f;
-            cell.style.borderBottomLeftRadius = cell.style.borderBottomRightRadius = 8f;
             cell.pickingMode = PickingMode.Position;
 
             var slotName = new Label($"슬롯 {index + 1}");
-            slotName.style.color = new StyleColor(UTKColor.TextPrimary);
-            slotName.style.fontSize = 14f;
+            slotName.style.color = new StyleColor(UTKTheme.TextMain);
+            slotName.style.fontSize = 14.4f;
             slotName.style.unityFontStyleAndWeight = FontStyle.Bold;
             cell.Add(slotName);
 
@@ -170,7 +154,7 @@ namespace ProjectName.UI.Toolkit
             string summary = info == null ? "비어있음" : $"Day {day} · Lv.{lv}";
             string date = info == null ? "" : info.timestamp;
             var details = new Label(string.IsNullOrEmpty(date) ? summary : $"{date}  ·  {summary}");
-            details.style.color = new StyleColor(UTKColor.TextSecondary);
+            details.style.color = new StyleColor(UTKTheme.TextSub);
             details.style.fontSize = 12f;
             details.style.marginTop = 3f;
             cell.Add(details);

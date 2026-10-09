@@ -56,7 +56,13 @@ namespace ProjectName.UI.Toolkit
         private readonly Label _typeLabel;
         private readonly VisualElement _barBg;
         private readonly VisualElement _barFill;
+        private readonly Label _doseLabel;
+        private readonly VisualElement _doseBarBg;
+        private readonly VisualElement _doseBarFill;
         private readonly IVisualElementScheduledItem _refreshTask;
+        private bool _sprayStatusMode;
+        private bool _doseExhaustedStatusMode;
+        private long _doseExhaustedGeneration;
 
         private static readonly Color EmptyColor = new Color(0.4f, 0.4f, 0.4f);
         private static readonly Color PoisonColor = new Color(1f, 0.2f, 0.2f);
@@ -90,7 +96,7 @@ namespace ProjectName.UI.Toolkit
             equipmentCard.style.borderLeftColor = new StyleColor(new Color32(88, 166, 255, 255)); // #58A6FF
 
             _equipLabel = MakeLabel(new Color32(240, 246, 252, 255), true);
-            _equipLabel.style.fontSize = 15f;
+            _equipLabel.style.fontSize = 15.6f;
             _equipLabel.style.color = new StyleColor(new Color32(88, 166, 255, 255));
             equipmentCard.Add(_equipLabel);
             _content.Add(equipmentCard);
@@ -110,11 +116,11 @@ namespace ProjectName.UI.Toolkit
             statusCard.style.borderBottomRightRadius = 7f;
 
             _potionLabel = MakeLabel(new Color(0.8f, 0.7f, 0.3f), true);
-            _potionLabel.style.fontSize = 13f;
+            _potionLabel.style.fontSize = 13.2f;
             statusCard.Add(_potionLabel);
 
             _timerLabel = MakeLabel(new Color32(240, 246, 252, 255), true);
-            _timerLabel.style.fontSize = 13f;
+            _timerLabel.style.fontSize = 13.2f;
             statusCard.Add(_timerLabel);
 
             // ── 진행바 ──
@@ -141,9 +147,33 @@ namespace ProjectName.UI.Toolkit
             _barBg.Add(_barFill);
 
             _typeLabel = MakeLabel(new Color32(139, 148, 158, 255), false);
-            _typeLabel.style.fontSize = 11f;
+            _typeLabel.style.fontSize = 12f;
             _typeLabel.style.whiteSpace = WhiteSpace.Normal;
             statusCard.Add(_typeLabel);
+
+            // Continuous active-dose status, separate from canister fuel/reload bar.
+            _doseLabel = MakeLabel(new Color32(240, 246, 252, 255), true);
+            _doseLabel.name = "PotionDoseStatus";
+            _doseLabel.style.fontSize = 12f;
+            statusCard.Add(_doseLabel);
+            _doseBarBg = new VisualElement { name = "PotionDoseTrack" };
+            _doseBarBg.style.height = 7f;
+            _doseBarBg.style.marginTop = 3f;
+            _doseBarBg.style.backgroundColor = new StyleColor(new Color32(11, 14, 20, 255));
+            _doseBarBg.style.borderTopLeftRadius = 4f;
+            _doseBarBg.style.borderTopRightRadius = 4f;
+            _doseBarBg.style.borderBottomLeftRadius = 4f;
+            _doseBarBg.style.borderBottomRightRadius = 4f;
+            _doseBarFill = new VisualElement { name = "PotionDoseFill" };
+            _doseBarFill.style.height = 7f;
+            _doseBarFill.style.width = 0f;
+            _doseBarFill.style.backgroundColor = new StyleColor(new Color32(88, 166, 255, 255));
+            _doseBarFill.style.borderTopLeftRadius = 4f;
+            _doseBarFill.style.borderTopRightRadius = 4f;
+            _doseBarFill.style.borderBottomLeftRadius = 4f;
+            _doseBarFill.style.borderBottomRightRadius = 4f;
+            _doseBarBg.Add(_doseBarFill);
+            statusCard.Add(_doseBarBg);
             _content.Add(statusCard);
 
             ApplyUIToolkitFont(this);
@@ -153,11 +183,65 @@ namespace ProjectName.UI.Toolkit
 
             _refreshTask = schedule.Execute(() =>
             {
-                if (IsOpen) Refresh();
+                var controller = GasSprayerController.Instance;
+                if (controller != null && controller.IsSpraying)
+                {
+                    if (!_sprayStatusMode) ShowSprayStatus();
+                    Refresh();
+                }
+                else if (_sprayStatusMode)
+                {
+                    HideSprayStatus();
+                }
+                else if (IsOpen && !_doseExhaustedStatusMode) Refresh();
             }).Every(RefreshMs);
         }
 
         // =================== 생명주기 ===================
+
+        /// <summary>Enable spray-status mode: it owns visibility and disappears on stop.</summary>
+        public void ShowSprayStatus()
+        {
+            Ensure();
+            _instance._doseExhaustedStatusMode = false;
+            _instance._doseExhaustedGeneration++;
+            _instance._sprayStatusMode = true;
+            if (!_instance.IsOpen) _instance.Show();
+            _instance.Refresh();
+        }
+
+        /// <summary>Show an accessible, short-lived notice only when the active dose is exhausted.</summary>
+        public void ShowDoseExhaustedStatus()
+        {
+            Ensure();
+            var instance = _instance;
+            instance._sprayStatusMode = false;
+            instance._doseExhaustedStatusMode = true;
+            long generation = ++instance._doseExhaustedGeneration;
+            if (!instance.IsOpen) instance.Show();
+            instance.Refresh();
+            instance._doseLabel.text = "🧪 Dose exhausted — reload a dose to continue";
+            instance._doseLabel.tooltip = "The loaded dose and matching inventory stock are empty.";
+            instance._doseLabel.name = "PotionDoseStatus";
+            instance._doseLabel.EnableInClassList("gas-dose-exhausted", true);
+            instance.schedule.Execute(() =>
+            {
+                if (instance == null || instance._doseExhaustedGeneration != generation) return;
+                instance._doseExhaustedStatusMode = false;
+                instance._doseLabel.EnableInClassList("gas-dose-exhausted", false);
+                if (!instance._sprayStatusMode && instance.IsOpen) instance.Hide();
+            }).StartingIn(1800);
+        }
+
+        public void HideSprayStatus()
+        {
+            if (_instance == null) return;
+            _instance._sprayStatusMode = false;
+            _instance._doseExhaustedStatusMode = false;
+            _instance._doseExhaustedGeneration++;
+            _instance._doseLabel.EnableInClassList("gas-dose-exhausted", false);
+            if (_instance.IsOpen) _instance.Hide();
+        }
 
         public override void Show()
         {
@@ -187,6 +271,8 @@ namespace ProjectName.UI.Toolkit
                 _timerLabel.text = "";
                 _typeLabel.text = "";
                 _barFill.style.width = 0f;
+                _doseLabel.text = "";
+                _doseBarFill.style.width = 0f;
                 return;
             }
 
@@ -197,6 +283,8 @@ namespace ProjectName.UI.Toolkit
                 _timerLabel.text = "💨 준비됨";
                 _typeLabel.text = "";
                 _barFill.style.width = 0f;
+                _doseLabel.text = "";
+                _doseBarFill.style.width = 0f;
                 UnityEngine.Debug.Log("[GasUTK] 미장착 상태 — 화면 표시 생략");
                 return;
             }
@@ -259,6 +347,16 @@ namespace ProjectName.UI.Toolkit
             _barFill.style.width = (_barBg.resolvedStyle.width > 0f)
                 ? _barBg.resolvedStyle.width * ratio
                 : 0f;
+
+            float doseDuration = ctrl.PotionDoseDuration;
+            float doseRemaining = Mathf.Clamp(ctrl.PotionDoseTimeRemaining, 0f, doseDuration);
+            float doseRatio = hasPotion && doseDuration > 0f ? Mathf.Clamp01(doseRemaining / doseDuration) : 0f;
+            _doseLabel.text = hasPotion
+                ? "🧪 현재 1회분 " + doseRemaining.ToString("F1") + "s / " + doseDuration.ToString("F1") + "s"
+                : "🧪 활성 1회분 없음";
+            _doseBarFill.style.width = (_doseBarBg.resolvedStyle.width > 0f)
+                ? _doseBarBg.resolvedStyle.width * doseRatio
+                : 0f;
         }
 
         // =================== 헬퍼 ===================
@@ -266,7 +364,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(Color color, bool bold)
         {
             var l = new Label("");
-            l.style.fontSize = 14f;
+            l.style.fontSize = 14.4f;
             l.style.color = new StyleColor(color);
             l.style.marginTop = 2f;
             l.style.marginBottom = 2f;

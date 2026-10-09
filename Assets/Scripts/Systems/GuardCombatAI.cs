@@ -79,21 +79,15 @@ namespace ProjectName.Systems
                 }
                 else
                 {
-                    // 명령 지점에 도착했으면 명령 해제 → 타이머 시작
+                    // 이 분기는 HasCommand && IsAttackCommand인 경우만 진입한다.
+                    // 일반 이동 명령의 도착 정리는 GuardPlaceholder.ExecuteMovement가 담당한다.
                     float distToTarget = Vector3.Distance(guard.transform.position, guard.CommandTarget);
-                    if (distToTarget <= 1.5f)
+                    guard.ResetCombatTimer();
+                    // 공격 명령 + 타겟 근접 → 공격 모션 트리거 (HumanoidClipDriver)
+                    if (distToTarget <= 2.5f)
                     {
-                        guard.ClearCommand();
-                    }
-                    else
-                    {
-                        guard.ResetCombatTimer();
-                        // 공격 명령 + 타겟 근접 → 공격 모션 트리거 (HumanoidClipDriver)
-                        if (guard.IsAttackCommand && distToTarget <= 2.5f)
-                        {
-                            var driver = guard.GetComponent<HumanoidClipDriver>();
-                            if (driver != null) driver.TriggerAttack();
-                        }
+                        var driver = guard.GetComponent<HumanoidClipDriver>();
+                        if (driver != null) driver.TriggerAttack();
                     }
                 }
                 return;

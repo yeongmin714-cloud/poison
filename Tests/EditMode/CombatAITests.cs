@@ -124,6 +124,94 @@ namespace ProjectName.Tests.EditMode
             Object.DestroyImmediate(playerGo);
         }
 
+        [TestCase(0f)]
+        [TestCase(1.25f)]
+        public void ExecuteMovement_AttackCommandPersistsAtAndInsideArrivalRadius(float distanceToWaypoint)
+        {
+            var guardGo = new GameObject("AttackCommandGuard");
+            var guard = guardGo.AddComponent<GuardPlaceholder>();
+            guard.SetCommandTarget(new Vector3(distanceToWaypoint, 0f, 0f), true);
+
+            // No target is visible yet. The explicit attack order must wait at its point
+            // rather than being discarded merely because it reached the waypoint.
+            guard.ExecuteMovement();
+
+            Assert.IsTrue(guard.HasCommand, "공격 지점 도착은 명령 완료가 아니다. 공격 대상 탐색을 계속할 수 있도록 명령을 유지해야 한다.");
+            Assert.IsTrue(guard.IsAttackCommand, "도착 후에도 명령 종류는 공격이어야 한다.");
+            Assert.IsNull(guard.CurrentAttackTarget, "타겟이 탐색되지 않은 상태에서는 공격 대상을 임의로 지정하면 안 된다.");
+            Assert.AreEqual(new Vector3(distanceToWaypoint, 0f, 0f), guard.CommandTarget,
+                "대상을 찾지 못한 상태에서 원래 공격 지점을 보존해야 한다.");
+
+            guard.ClearCommand();
+            Assert.IsFalse(guard.HasCommand, "명시적 ClearCommand는 공격 명령을 해제해야 한다.");
+            Object.DestroyImmediate(guardGo);
+        }
+
+        [Test]
+        public void ExecuteMovement_AttackCommandTracksResolvedMovingTarget()
+        {
+            var guardGo = new GameObject("AttackCommandGuard");
+            var guard = guardGo.AddComponent<GuardPlaceholder>();
+            var targetGo = new GameObject("AttackTarget");
+            targetGo.transform.position = new Vector3(4f, 0f, 0f);
+            targetGo.AddComponent<SphereCollider>();
+            targetGo.AddComponent<AnimalAI>();
+            Physics.SyncTransforms();
+            guard.SetCommandTarget(new Vector3(2f, 0f, 0f), true);
+
+            guard.ExecuteMovement();
+            Assert.IsTrue(guard.HasCommand, "유효한 공격 명령은 ExecuteMovement 이후 유지되어야 한다.");
+            Assert.AreSame(targetGo.GetComponent<AnimalAI>(), guard.CurrentAttackTarget);
+
+            targetGo.transform.position = new Vector3(5f, 0f, 0f);
+            Physics.SyncTransforms();
+            guard.ExecuteMovement();
+
+            Assert.IsTrue(guard.HasCommand, "이동 중인 대상을 따라가도 공격 명령이 유지되어야 한다.");
+            Assert.AreEqual(new Vector3(3f, 0f, 0f), guard.CommandTarget,
+                "최초 공격 지점의 타겟 상대 오프셋을 보존하며 접근점을 갱신해야 한다.");
+            Assert.AreSame(targetGo.GetComponent<AnimalAI>(), guard.CurrentAttackTarget);
+
+            Object.DestroyImmediate(guardGo);
+            Object.DestroyImmediate(targetGo);
+        }
+
+        [Test]
+        public void ExecuteMovement_AttackCommandClearsAfterResolvedTargetDies()
+        {
+            var guardGo = new GameObject("AttackCommandGuard");
+            var guard = guardGo.AddComponent<GuardPlaceholder>();
+            var targetGo = new GameObject("AttackTarget");
+            targetGo.transform.position = new Vector3(2f, 0f, 0f);
+            targetGo.AddComponent<SphereCollider>();
+            var target = targetGo.AddComponent<AnimalAI>();
+            Physics.SyncTransforms();
+            guard.SetCommandTarget(Vector3.zero, true);
+
+            guard.ExecuteMovement();
+            Assert.AreSame(target, guard.CurrentAttackTarget);
+            target.TakeDamage(10000f, Vector3.zero);
+            guard.ExecuteMovement();
+
+            Assert.IsFalse(guard.HasCommand, "실제 지정 대상이 사망하면 공격 명령이 종료되어야 한다.");
+            Assert.IsNull(guard.CurrentAttackTarget);
+            Object.DestroyImmediate(guardGo);
+            Object.DestroyImmediate(targetGo);
+        }
+
+        [Test]
+        public void ExecuteMovement_NonAttackMoveStillClearsAtWaypoint()
+        {
+            var guardGo = new GameObject("MoveCommandGuard");
+            var guard = guardGo.AddComponent<GuardPlaceholder>();
+            guard.SetCommandTarget(Vector3.zero, false);
+
+            guard.ExecuteMovement();
+
+            Assert.IsFalse(guard.HasCommand, "일반 이동 명령은 목적지 도착 시 기존처럼 해제되어야 한다.");
+            Object.DestroyImmediate(guardGo);
+        }
+
         // ===================== 상수 확인 =====================
 
         [Test]

@@ -67,7 +67,7 @@ namespace ProjectName.Systems
             CreateStage(room, width, depth);
 
             // 어두운 조명 — 노란빛 PointLight, 낮은 강도
-            IndoorLighting.SetupIndoorLighting(room, new Color(0.08f, 0.06f, 0.04f), 0.4f, false);
+            IndoorLighting.SetupIndoorLighting(room, new Color(0.08f, 0.06f, 0.04f), 0.13f, false);
 
             // 추가 노란빛 포인트 라이트 (무대 위)
             CreateStageLight(room, width, depth);

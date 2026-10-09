@@ -71,10 +71,11 @@ namespace ProjectName.UI
         {
             Debug.Log($"[CookingStation] {_stationName} 열림");
 
-            // [P18-C3] UTK 요리 화덕 우선 — UIRoot 미준비 시 구 IMGUI 폴백
+            // Category-based cooking uses RecipeCatalog and the dedicated kitchen pantry.
+            // Keep the legacy CookingUI fallback for scenes without the Toolkit root.
             if (ProjectName.UI.Toolkit.UIToolkitBootstrap.UIRoot != null)
             {
-                ProjectName.UI.Toolkit.CookingBenchUTK.Open();
+                ProjectName.UI.Toolkit.CookingWindowUTK.Open();
                 return;
             }
 
@@ -91,6 +92,8 @@ namespace ProjectName.UI
         // ── OnGUI 상호작용 프롬프트 ──
         private void OnGUI()
         {
+            // The E hint is redundant and overlaps the cooking canvas while any Toolkit window is open.
+            if (ProjectName.Core.UITransitionState.AnyWindowOpen) return;
             if (!_isPlayerNearby) return;
             if (_player == null) return;
 

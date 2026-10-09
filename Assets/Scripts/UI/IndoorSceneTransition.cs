@@ -233,9 +233,12 @@ namespace ProjectName.UI
                             : CastleInteriorBuilder.BuildCastleInterior(nation, layoutVariant);
                         if (hqRoom != null)
                         {
-                            // [Phase F] 플레이어 소유 성: 상점/크래프트 기능 배치 / 영주 성: 성향 배분 실내 수비 병사 스폰+적대
+                            // [Phase F] 플레이어 소유 성: 상점/크래프트 기능 배치 + 아군 막사 병사 / 영주 성: 성향 배분 실내 수비 병사 스폰+적대
                             if (_pendingIsPlayerOwned)
+                            {
                                 TerritoryBuilder.SpawnInteriorFixtures(hqRoom.transform.position, nation);
+                                TerritoryBuilder.SpawnInteriorAlliedGuards(hqRoom, nation); // 배럭 지휘탁자 주변 아군 3명
+                            }
                             else
                                 TerritoryBuilder.SpawnInteriorDefenseGuards(hqRoom.transform.position, nation, _pendingTerritoryKey);
                         }
@@ -314,7 +317,8 @@ namespace ProjectName.UI
             // 2026-09-09(3차 FIX): 까만 화면 방지 — 실내 앰비언트를 따뜻한 플랫톤으로
             // (활성 씬이 IndoorScene이므로 RenderSettings는 실내 것만 적용, 복귀 시 자동 원복)
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.45f, 0.38f, 0.30f);
+            // 주변광 대폭 축소 — 횃불/불빛(포인트라이트)만 남는 은은한 실내 무드.
+            RenderSettings.ambientLight = new Color(0.13f, 0.11f, 0.09f);
 
             _pendingBuildingType = null;
             _pendingNationStyle = null;
@@ -526,7 +530,7 @@ namespace ProjectName.UI
 
             // 조명 강화 — 예시 분위기(촛불 웜톤 2000K + 어두운 앰비언트)
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.22f, 0.17f, 0.13f);   // 기존 0.45 → 어둡게, 조명이 입힌다
+            RenderSettings.ambientLight = new Color(0.06f, 0.05f, 0.04f);   // 주변광 대폭 축소, 조명이 입힌다
             ProjectName.Systems.IndoorLighting.AddPointLight(room, new Vector3(w * 0.3f, 2.6f, d * 0.25f),
                 new Color(1.00f, 0.66f, 0.36f), Mathf.Max(w, d) * 0.9f, 1.2f);
             ProjectName.Systems.IndoorLighting.AddPointLight(room, new Vector3(-w * 0.3f, 2.6f, -d * 0.25f),

@@ -28,6 +28,7 @@ public class GameSetup : MonoBehaviour
         
             // CRITICAL: Purge any leftover DontDestroyOnLoad singletons from previous Play sessions
             PurgeRuntimeSingletons();
+
         }
 
     private void Start()
@@ -51,6 +52,14 @@ public class GameSetup : MonoBehaviour
         }
 
         // ── 메인 씬 모드 ────────────────────────
+        // Territory storage must exist before gameplay starts; do not create this singleton from
+        // an interior builder, where its Awake/DontDestroyOnLoad would hijack scene ownership.
+        EnsureWarehouseSystem();
+
+        // MainScene은 CoreSystemsBootstrap을 실행하지 않으므로 여기서 병사 선택 매니저를 보장한다.
+        // 중복 가드가 있어 다른 부트 경로 또는 기존 인스턴스와 공존해도 안전하다.
+        CoreSystemsBootstrap.EnsureGuardSelectionManager();
+
         // MonsterSpawner.Start 전에 전역 스폰 일시중지를 해제한다. TerrainOnly 분기는 위에서 return하므로 적용되지 않는다.
         try
         {
@@ -912,6 +921,7 @@ public class GameSetup : MonoBehaviour
                 player.AddComponent<GasSprayer>();
             if (player.GetComponent<SprayInputHandler>() == null)
                 player.AddComponent<SprayInputHandler>();
+            GasSprayUTK.Ensure();
             GasCloudLauncher.RegisterHook();
             // 방독면: 인벤 Mask 슬롯 장착 ↔ GasMaskSystem 면역 연동 + 매 프레임 Update
             GasMaskEquipmentLink.Register();
@@ -923,6 +933,17 @@ public class GameSetup : MonoBehaviour
         {
             Debug.LogError($"[GameSetup] ⚠️ 가스 시스템 배선 실패 — 나머지 부트 계속: {gasEx.Message}");
         }
+    }
+
+    /// <summary>Persistent territory storage singleton bootstrap (idempotent).</summary>
+    private void EnsureWarehouseSystem()
+    {
+        if (WarehouseSystem.Instance != null) return;
+        if (FindAnyObjectByType<WarehouseSystem>() != null) return;
+
+        var warehouseObject = new GameObject("WarehouseSystem");
+        warehouseObject.AddComponent<WarehouseSystem>();
+        Debug.Log("[GameSetup] ✅ WarehouseSystem 생성 (영지 창고/요리 재료 저장소)");
     }
 
     /// <summary>

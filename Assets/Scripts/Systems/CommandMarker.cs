@@ -15,7 +15,7 @@ namespace ProjectName.Systems
         private float _elapsed;
         private Vector3 _startScale;
         private Renderer _rend;
-        private Color _baseColor = new Color(1f, 0.82f, 0.35f);   // 골드 (팀색)
+        private Color _baseColor = CommandRingPresentation.MoveTargetColor;   // 골드 (팀색)
         private bool _persistent;        // 이동 명령 지속형 여부
         /// <summary>지속형 마커의 소유 병사 — 도착/취소/사망 시 마커 소멸.</summary>
         public GuardPlaceholder owner;
@@ -32,7 +32,7 @@ namespace ProjectName.Systems
             if (col != null) Destroy(col);
             go.transform.position = new Vector3(position.x, position.y + 0.03f, position.z);
             go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = Vector3.one * (owner != null ? 1.9f : 1.6f);
+            go.transform.localScale = Vector3.one * CommandRingPresentation.BaseScale;
             var marker = go.AddComponent<CommandMarker>();
             if (color.HasValue) marker._baseColor = color.Value;
             marker._persistent = owner != null;
@@ -51,16 +51,8 @@ namespace ProjectName.Systems
         /// <summary>지속형 — 베이크 고품질 지면 링 텍스처(MoveTargetRing) + 팀색. 셰이더가 없어도 렌더.</summary>
         private void SetupPersistent()
         {
-            var tex = Resources.Load<Texture2D>("UI/MoveTargetRing");
-            var unlit = Shader.Find("Universal Render Pipeline/Unlit");
-            var mat = new Material(unlit != null ? unlit : Shader.Find("Sprites/Default"));
-            if (tex != null) mat.mainTexture = tex;
-            mat.color = _baseColor;
-            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            mat.renderQueue = 3000;
-            if (_rend != null) _rend.sharedMaterial = mat;
+            _rend = GetComponent<Renderer>();
+            CommandRingPresentation.Apply(_rend, _baseColor);
         }
 
         /// <summary>페이드형 — SelectionRing 셰이더 우선, 없으면 절차 링 텍스처(공격 명령).</summary>
@@ -103,8 +95,7 @@ namespace ProjectName.Systems
                     Destroy(gameObject);
                     return;
                 }
-                float pulse = 1f + 0.06f * Mathf.Sin(_elapsed * 2.6f);
-                transform.localScale = _startScale * pulse;
+                transform.localScale = CommandRingPresentation.GetPulseScale(_startScale, _elapsed);
                 return;
             }
 

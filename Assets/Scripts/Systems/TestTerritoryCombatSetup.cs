@@ -3,6 +3,7 @@
 using UnityEngine;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Core.Utils;
 
 namespace ProjectName.Systems
 {
@@ -71,6 +72,384 @@ namespace ProjectName.Systems
 
             bool isShopScene = gameObject.scene.name != null && gameObject.scene.name.Contains("Shop");
             if (isShopScene) SetupShopTestScene();
+
+            // [2026-10-07] Test_14_LordsWarVillage 전용 — 영주 간 AI 전쟁(점령)·내 영지 문→실내·마을 상점/주민 NPC 검증 씬.
+            // 씬 이름에 "LordsWar" 가 들어가면 배치. base Awake(플레이어/지형/시스템/UTK)는 이미 실행됨.
+            bool isLordsWarScene = gameObject.scene.name != null && gameObject.scene.name.Contains("LordsWar");
+            if (isLordsWarScene) SetupLordsWarVillageTestScene();
+
+            // [2026-10-07] Test_15_Livelihood 전용 — 낚시/채광/채집/농경 4활동 검증 씬.
+            // 씬 이름에 "Livelihood" 가 들어가면 배치. base Awake(플레이어/지형/시스템/UTK)는 이미 실행됨.
+            bool isLivelihoodScene = gameObject.scene.name != null && gameObject.scene.name.Contains("Livelihood");
+            if (isLivelihoodScene) SetupLivelihoodTestScene();
+        }
+
+        /// <summary>
+        /// Test_15_Livelihood 전용 런타임 배치 — 채집/채광/농경/낚시 4종 생활기술이 실제로 동작하는지 검증.
+        ///  1) 낚시: Water 태그 원판(콜라이더) + FishingSystem 보장 + 스타터 낚시대(fishing_rod) 지급.
+        ///  2) 채광: ResourceNode(Wood/Stone/IronOre) 프리미티브 큐브 3종 (SetupMiningNodes 재사용).
+        ///  3) 채집: HerbPickup(Red/Purple/Green) 약초 3종 (SetupHerbs 재사용).
+        ///  4) 농경: FarmingManager.SpawnPlots 2x2 밭 (SetupFarm 재사용).
+        /// </summary>
+        private void SetupLivelihoodTestScene()
+        {
+            SetupFishingArea();
+            SetupMiningNodes();
+            SetupHerbs();
+            SetupFarm();
+            Debug.Log("[Test15Livelihood] 🧪 4활동 배치 완료 — 확인 포인트: ①물가 E키 낚시 ②광물 좌클릭/접근 ③허브 채집 ④밭 파종→성장→수확");
+        }
+
+        /// <summary>낚시 인프라: Water 태그 원판 + FishingSystem + fishing_rod 스타터 지급.</summary>
+        private void SetupFishingArea()
+        {
+            try
+            {
+                // FishingSystem 싱글턴 보장 (MainScene GameSetup.EnsureFishingSystem와 동일 — 별도 GO에 부착)
+                if (FishingSystem.Instance == null)
+                {
+                    var fishGO = new GameObject("FishingSystem");
+                    fishGO.tag = "Untagged";
+                    fishGO.AddComponent<FishingSystem>();
+                    Debug.Log("[Test15Livelihood] ✅ FishingSystem 생성 (물가 E키 낚시 활성화)");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test15Livelihood] FishingSystem 생성 실패: {ex.Message}");
+            }
+
+            // PlayerInventory에 스타터 낚시대 지급 (FishingSystem.IsNearWater → HasItem("fishing_rod") 체크 아이디)
+            try
+            {
+                var inv = PlayerInventory.Instance;
+                if (inv == null)
+                {
+                    Debug.LogWarning("[Test15Livelihood] PlayerInventory.Instance 없음 — 낚시대 스타터 지급 보류");
+                }
+                else if (inv.HasItem("fishing_rod"))
+                {
+                    Debug.Log("[Test15Livelihood] ✅ 낚시대(fishing_rod) 이미 보유");
+                }
+                else if (inv.AddItem(PlayerInventory.FishingRodItem, 1))
+                {
+                    Debug.Log("[Test15Livelihood] ✅ 스타터 낚시대(FishingRodItem) 1개 지급");
+                }
+                else
+                {
+                    Debug.LogWarning("[Test15Livelihood] ⚠️ 낚시대 지급 실패 (인벤 가득 참)");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test15Livelihood] 낚시대 스타터 지급 실패: {ex.Message}");
+            }
+
+            // Water 태그 원판 — FishingSystem.IsNearWater가 플레이어 아래 "Water" 태그 콜라이더를 Raycast로 감지.
+            // LakeGenerator와 동일하게 try-catch로 태그 설정(미정의 시 침묵 경고 후 프리미티브 유지).
+            try
+            {
+                float wx = 0f, wz = -22f; // 플레이어(원점) 남쪽 접근 용이한 위치
+                float wy = SurfaceY(wx, wz);
+                GameObject waterDisc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                waterDisc.name = "Livelihood_Pond";
+                waterDisc.transform.position = new Vector3(wx, wy + 0.05f, wz);
+                waterDisc.transform.localScale = new Vector3(10f, 0.06f, 10f);
+                waterDisc.tag = "Untagged";
+                var wr = waterDisc.GetComponent<MeshRenderer>();
+                if (wr != null)
+                    wr.material = MaterialHelper.CreateLitMaterial(new Color(0.18f, 0.4f, 0.55f), "Test15Pond_Mat");
+                try { waterDisc.tag = "Water"; }
+                catch (UnityException) { Debug.LogWarning("[Test15Livelihood] 'Water' 태그 미정의 — Untagged 유지"); }
+                Debug.Log($"[Test15Livelihood] 🌊 낚시 연못(Water) 배치 @ ({wx},{wy:F2},{wz})");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test15Livelihood] 낚시 연못 배치 실패: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Test_14_LordsWarVillage 전용 런타임 배치:
+        ///  1) 내 영지(East_01 = PlayerOwned) + 문(건물 트리거) → E키로 실내 진입.
+        ///  2) 타 소속 영주 2명(West_01·South_01 = LordOwned) — West(Cruel, 공격성 높음)가 South를 침공.
+        ///  3) 각 영지 병사 스폰(내 병사=아군, 타 영주 병사=적군) + 물리 행진(WarMarchSimulation)으로 영주 공격 시연.
+        ///  4) 작은 마을: 상점 NPC(클릭→상점) + 일반 주민 NPC(클릭→대화 상호작용).
+        /// </summary>
+        private void SetupLordsWarVillageTestScene()
+        {
+            EnsureLordsWarDbOwnership();
+            PlacePlayerTerritoryWithDoor();
+            PlaceEnemyLordsAndWar();
+            PlaceVillageWithNpcs();
+            LogLordsWarSummary();
+        }
+
+        private void EnsureLordsWarDbOwnership()
+        {
+            try
+            {
+                var db = ProjectName.Core.Data.TerritoryDatabase.Instance;
+                // 내 영지 — 동부(Ring1, 낮은 난이도)
+                db.SetOwnership(new TerritoryId(NationType.East, 1), TerritoryOwnership.PlayerOwned);
+                // 타 소속 영주 2명 — 서부(공격자, Cruel) / 남부(방어자)
+                db.SetOwnership(new TerritoryId(NationType.West, 1), TerritoryOwnership.LordOwned);
+                db.SetOwnership(new TerritoryId(NationType.South, 1), TerritoryOwnership.LordOwned);
+                // 공격자(서부) 성향을 Cruel(aggression 0.90)로 — 리플렉션으로 private _definitions 교체 (공개 setter 없음)
+                SetLordPersonality(new TerritoryId(NationType.West, 1), LordPersonality.Cruel);
+                Debug.Log("[Test14LordsWar] ✅ 영지 소유 설정 완료 — 내:East_01(PlayerOwned) / 적:West_01·South_01(LordOwned), 서부=공격성 높음");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test14LordsWar] 영지 DB 설정 실패: {ex.Message}");
+            }
+        }
+
+        /// <summary>런타임 영주 성격 교체 — TerritoryDatabase에 공개 setter가 없어 리플렉션 사용. 실패는 치명 아님.</summary>
+        private void SetLordPersonality(TerritoryId id, LordPersonality personality)
+        {
+            try
+            {
+                var db = ProjectName.Core.Data.TerritoryDatabase.Instance;
+                var dictField = typeof(ProjectName.Core.Data.TerritoryDatabase).GetField("_definitions",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (dictField == null) { Debug.LogWarning("[Test14LordsWar] _definitions 필드 미발견 — 성격 기본 유지"); return; }
+                var dict = (System.Collections.Generic.Dictionary<string, ProjectName.Core.Data.TerritoryDefinition>)dictField.GetValue(db);
+                string key = id.ToString();
+                if (!dict.TryGetValue(key, out var def))
+                { Debug.LogWarning($"[Test14LordsWar] 영지 {key} 정의 미발견 — 성격 변경 생략"); return; }
+                // TerritoryDefinition 및 LordInfo 모두 struct(값 타입) — LordInfo 사본을 고친 뒤
+                // lord setter → TerritoryDefinition 재대입 순서로 반영해야 컴파일(C# struct getter 수정 금지)도 안전.
+                var lordInfo = def.lord;
+                lordInfo.personality = personality;
+                def.lord = lordInfo;
+                dict[key] = def;
+                Debug.Log($"[Test14LordsWar] 영주 {key} 성격 → {personality} 설정");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[Test14LordsWar] 영주 성격 교체 실패(계속): {ex.Message}");
+            }
+        }
+
+        /// <summary>내 영지(East_01) 문 배치 — E키(4m)로 플레이어 성 실내 진입. + 아군 병사 2명 스폰.</summary>
+        private void PlacePlayerTerritoryWithDoor()
+        {
+            try
+            {
+                // 내 성(문) 전면 좌표 — 플레이어(원점 근처)가 접근해 E키.
+                Vector3 doorPos = new Vector3(18f, 0f, 40f);
+                float doorY = SurfaceY(doorPos.x, doorPos.z);
+                doorPos.y = doorY + 0.5f;
+
+                // 내 성 건물 표현 (키오스크 큐브)
+                var keep = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                keep.name = "LordsWarPlayerKeep";
+                keep.transform.position = doorPos;
+                keep.transform.localScale = new Vector3(5f, 5f, 5f);
+                var keepR = keep.GetComponent<MeshRenderer>();
+                if (keepR != null)
+                    keepR.material = MaterialHelper.CreateLitMaterial(new Color(0.55f, 0.72f, 0.45f), "LordsWarPlayerKeep_Mat");
+
+                // 문 BuildingTrigger (Castle + territoryKey=East_01) → 플레이어 소유라 PlayerCastleInteriorBuilder로 진입
+                ProjectName.Systems.IndoorTransitionSetup.CreateBuildingTrigger(
+                    doorPos, ProjectName.Systems.IndoorTransitionSetup.TYPE_CASTLE,
+                    ProjectName.Systems.IndoorTransitionSetup.CASTLE_INTERACT_RANGE, keep.transform,
+                    "Eastern", "East_01");
+                Debug.Log($"[Test14LordsWar] 내 영지 성 문 배치 @ {doorPos} (E키 → 실내)");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test14LordsWar] 내 영지 문 배치 실패: {ex.Message}");
+            }
+
+            // 아군 병사 2명 (내 영지 수비)
+            SpawnSoldier("LordsWarPlayerGuard1", new Vector3(20f, 0f, 44f), "내 수비병", 5, NationType.East, true,
+                new Color(0.35f, 0.75f, 0.45f));
+            SpawnSoldier("LordsWarPlayerGuard2", new Vector3(16f, 0f, 44f), "내 수비병", 5, NationType.East, true,
+                new Color(0.35f, 0.75f, 0.45f));
+        }
+
+        /// <summary>타 소속 영주 2명 배치 + 영주 간 전쟁(점령) 트리거. West(Cruel)가 South를 물리로 침공.</summary>
+        private void PlaceEnemyLordsAndWar()
+        {
+            // 서부 영주(공격자) 위치
+            Vector3 westPos = new Vector3(-22f, 0f, -18f);
+            Vector3 southPos = new Vector3(30f, 0f, -34f);
+            float westY = SurfaceY(westPos.x, westPos.z);
+            float southY = SurfaceY(southPos.x, southPos.z);
+
+            // 영주 성 표현
+            try
+            {
+                var westCastle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                westCastle.name = "LordsWarWestKeep";
+                westCastle.transform.position = new Vector3(westPos.x, westY + 3f, westPos.z);
+                westCastle.transform.localScale = new Vector3(5f, 6f, 5f);
+                var wc = westCastle.GetComponent<MeshRenderer>();
+                if (wc != null) wc.material = MaterialHelper.CreateLitMaterial(new Color(0.6f, 0.35f, 0.2f), "LordsWarWestKeep_Mat");
+
+                var southCastle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                southCastle.name = "LordsWarSouthKeep";
+                southCastle.transform.position = new Vector3(southPos.x, southY + 3f, southPos.z);
+                southCastle.transform.localScale = new Vector3(5f, 6f, 5f);
+                var sc = southCastle.GetComponent<MeshRenderer>();
+                if (sc != null) sc.material = MaterialHelper.CreateLitMaterial(new Color(0.4f, 0.2f, 0.55f), "LordsWarSouthKeep_Mat");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test14LordsWar] 영주 성 표현 실패: {ex.Message}");
+            }
+
+            // 타 영주 병사 스폰 — 서부(공격자) 5명 / 남부(방어자) 4명. 서부 침공군은 남부로 공격 행진 명령.
+            var westGuards = new System.Collections.Generic.List<GameObject>();
+            var westGuardColor = new Color(0.75f, 0.5f, 0.2f);
+            for (int i = 0; i < 5; i++)
+            {
+                float gx = westPos.x - 3f + i * 1.5f;
+                westGuards.Add(SpawnSoldier($"LordsWarWestGuard{i + 1}", new Vector3(gx, 0f, westPos.z + 2f),
+                    "서부 침공군", 8, NationType.West, false, westGuardColor));
+            }
+            var southGuards = new System.Collections.Generic.List<GameObject>();
+            var southGuardColor = new Color(0.45f, 0.25f, 0.6f);
+            for (int i = 0; i < 4; i++)
+            {
+                float gx = southPos.x - 2.25f + i * 1.5f;
+                southGuards.Add(SpawnSoldier($"LordsWarSouthGuard{i + 1}", new Vector3(gx, 0f, southPos.z + 2f),
+                    "남부 방어군", 8, NationType.South, false, southGuardColor));
+            }
+
+            // 영주 간 전쟁(점령) — 서부(공격자, Cruel)가 남부(방어자)로 공격 행진.
+            // 하드 SpawnGarrison으로 영지 전체 주둔군(70~80명)이 중복 스폰되는 WarMarchSimulation 대신,
+            // 이미 배치한 서부 침공군 5명에게 직접 SetCommandTarget(남부, attack=true) 부여 → Play에서 실제 물리 이동·도달 시 교전.
+            try
+            {
+                Vector3 southCastleTarget = new Vector3(southPos.x, southY, southPos.z);
+                int ordered = 0;
+                foreach (var g in westGuards)
+                {
+                    if (g == null) continue;
+                    CommandMarchToSouth(g, southCastleTarget);
+                    ordered++;
+                }
+                Debug.Log($"[Test14LordsWar] ⚔️ 서부 영주 공격 명령: 침공군 {ordered}명 → 남부 행진");
+
+                // 영주 결정 체계 연동 로그 — AIWarSystem 사전조건(LordOwned · 국가 상이)도 함께 확인
+                var db = ProjectName.Core.Data.TerritoryDatabase.Instance;
+                var westDef = db.GetDefinition(new TerritoryId(NationType.West, 1));
+                var southDef = db.GetDefinition(new TerritoryId(NationType.South, 1));
+                float aggression = LordPersonalitySystem.GetAggression(new TerritoryId(NationType.West, 1));
+                int attackPlan = LordPersonalitySystem.GetDeploymentPlan(new TerritoryId(NationType.West, 1)).attackSoldiers;
+                Debug.Log($"[Test14LordsWar] 🔎 어질 판정 — 서부 공격성 {aggression:0.00} / 파견계획 {attackPlan}명 / 남부는 다른 국가 {westDef.nation != southDef.nation}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test14LordsWar] 영주 전쟁 행진 트리거 실패: {ex.Message}");
+            }
+        }
+
+        /// <summary>작은 마을: 광장 표현 + 상점 NPC(클릭→상점) + 일반 주민 NPC(클릭→대화).</summary>
+        private void PlaceVillageWithNpcs()
+        {
+            Vector3 villagePos = new Vector3(-40f, 0f, 34f);
+            float vY = SurfaceY(villagePos.x, villagePos.z);
+
+            // 광장 원판
+            try
+            {
+                var plaza = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                plaza.name = "LordsWarVillagePlaza";
+                plaza.transform.position = new Vector3(villagePos.x, vY + 0.06f, villagePos.z);
+                plaza.transform.localScale = new Vector3(12f, 0.06f, 12f);
+                plaza.tag = "Untagged";
+                var pr = plaza.GetComponent<MeshRenderer>();
+                if (pr != null) pr.material = MaterialHelper.CreateLitMaterial(new Color(0.52f, 0.5f, 0.47f), "LordsWarVillagePlaza_Mat");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test14LordsWar] 마을 광장 배치 실패: {ex.Message}");
+            }
+
+            // 상점 NPC — 좌클릭 → InteractionPanel "상점" → ShopWindowUTK
+            SpawnVillageNpc("lords_war_shop", "잡화점 상인", true, "어서 오세요, 뭐 필요한가?",
+                new Vector3(villagePos.x - 3f, vY, villagePos.z - 2f));
+            // 일반 주민 NPC — 좌클릭 → InteractionPanel "대화하기" → NPCDialoguePanelUTK
+            SpawnVillageNpc("lords_war_villager", "마을 주민 한백", false, "안녕하세요, 여행자님. 최근 서부 영주가 저지르는 일이 걱정돼요.",
+                new Vector3(villagePos.x + 3f, vY, villagePos.z + 2f));
+        }
+
+        /// <summary>캡슐 + 콜라이더로 클릭 가능한 TerritoryNPCBehaviour(NPCInstance) 스폰 (Test_13 패턴 + 상점/일반 구분).</summary>
+        private void SpawnVillageNpc(string id, string name, bool isShop, string greeting, Vector3 pos)
+        {
+            try
+            {
+                float y = SurfaceY(pos.x, pos.z);
+                GameObject npc = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                npc.name = name;
+                npc.transform.position = new Vector3(pos.x, y + 1f, pos.z);
+                npc.GetComponent<Renderer>().sharedMaterial.color = isShop ? new Color(0.85f, 0.66f, 0.25f) : new Color(0.6f, 0.5f, 0.4f);
+
+                System.Type npcBehaviourType = System.Type.GetType("ProjectName.UI.TerritoryNPCBehaviour, ProjectName.UI");
+                System.Type npcDataType = System.Type.GetType("ProjectName.UI.NPCInstance, ProjectName.UI");
+                if (npcBehaviourType == null || npcDataType == null)
+                {
+                    Debug.LogError("[Test14LordsWar] NPC 타입 미발견 — TerritoryNPCBehaviour/NPCInstance");
+                    return;
+                }
+                object npcData = System.Activator.CreateInstance(npcDataType);
+                npcDataType.GetField("NpcId")?.SetValue(npcData, id);
+                npcDataType.GetField("NpcName")?.SetValue(npcData, name);
+                npcDataType.GetField("IsShopNPC")?.SetValue(npcData, isShop);
+                npcDataType.GetField("Greeting")?.SetValue(npcData, greeting);
+
+                Component behaviour = npc.AddComponent(npcBehaviourType);
+                npcBehaviourType.GetMethod("Initialize").Invoke(behaviour, new object[] { npcData });
+                Debug.Log($"[Test14LordsWar] NPC 배치: {name} (IsShopNPC={isShop}) @ {pos}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test14LordsWar] NPC 배치 실패({name}): {ex.Message}");
+            }
+        }
+
+        /// <summary>CreateGuard 헬퍼 재사용 — 병사 1명 스폰 (recruited=true=아군, false=적군). 생성된 병사 GameObject 반환(명령 부여용).</summary>
+        private GameObject SpawnSoldier(string goName, Vector3 pos, string guardName, int level, NationType nation, bool recruited, Color color)
+        {
+            try
+            {
+                return CreateGuard(goName, pos, guardName, level, nation, recruited, color);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test14LordsWar] 병사 배치 실패({goName}): {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>병사의 GuardPlaceholder에 남부 영성 목표로 공격 명령 부여 → Play에서 실제 물리 행진(공격 이동).</summary>
+        private void CommandMarchToSouth(GameObject guardGo, Vector3 southTarget)
+        {
+            if (guardGo == null) return;
+            try
+            {
+                var ph = guardGo.GetComponent<GuardPlaceholder>();
+                if (ph == null)
+                {
+                    Debug.LogWarning("[Test14LordsWar] 명령 대상 병사에 GuardPlaceholder 없음 — 행진 생략");
+                    return;
+                }
+                ph.SetCommandTarget(southTarget, true); // IsAttackCommand=true → 목표로 걷고 도달 시 공격
+                Debug.Log($"[Test14LordsWar] 🚩 서부 침공군 명령 → 남부 공격 목표 {southTarget}");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[Test14LordsWar] 병사 공격 명령 부여 실패(계속): {ex.Message}");
+            }
+        }
+
+        private void LogLordsWarSummary()
+        {
+            Debug.Log("[Test14LordsWar] 🧪 씬 구성 완료 — 확인 포인트: ①내 성 문(E)→실내 ②서부 영주가 남부 공격 행진 ③마을 상점/주민 NPC 클릭 상호작용");
         }
 
         /// <summary>Test_13_Shop 전용 런타임 배치 — E키 상점, 클릭 상점 NPC, 테스트 골드.</summary>
@@ -1385,7 +1764,10 @@ namespace ProjectName.Systems
             // ① 가스 시스템 컴포넌트 배선 (GameSetup.EnsureGasSystem 미러, 멱등)
             if (player.GetComponent<GasSprayerController>() == null) player.AddComponent<GasSprayerController>();
             if (player.GetComponent<GasSprayer>() == null) player.AddComponent<GasSprayer>();
+            // GasSprayer owns direct G-held input here; omit the legacy Mouse1 handler so right-click remains RTS input.
             if (player.GetComponent<GasMaskController>() == null) player.AddComponent<GasMaskController>();
+            var uiAsm = System.Reflection.Assembly.Load("ProjectName.UI");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.GasSprayUTK", "Ensure");
             GasCloudLauncher.RegisterHook();
             GasMaskEquipmentLink.Register();
 
@@ -1404,6 +1786,7 @@ namespace ProjectName.Systems
                     description = "가스 분사기에 장전하면 주변으로 독성 안개를 확산한다.",
                     category = PlayerInventory.ItemCategory.Potion, maxStack = 10
                 }, 10);
+                if (ctrl != null) GasPotionLoader.LoadPotion(ctrl, "Poison_TestPotion");
                 inv.AddItem(new PlayerInventory.ItemData
                 {
                     id = "Heal_TestPotion", displayName = "치료 시험 물약",

@@ -44,9 +44,9 @@ namespace ProjectName.Systems
             }
 
             // 이미 다른 물약이 장전되어 있으면 해제 불가 (먼저 언로드 필요)
-            if (!string.IsNullOrEmpty(controller.LoadedPotionId) && controller.LoadedPotionId != potionItemId)
+            if (!string.IsNullOrEmpty(controller.LoadedPotionId) && controller.LoadedPotionCount > 0)
             {
-                Debug.LogWarning($"[GasPotionLoader] 이미 {controller.LoadedPotionId}이(가) 장전되어 있습니다. 먼저 해제하세요.");
+                Debug.LogWarning($"[GasPotionLoader] 이미 {controller.LoadedPotionId} 1회분이 장전되어 있습니다. 먼저 소진하거나 해제하세요.");
                 return 0;
             }
 
@@ -84,8 +84,8 @@ namespace ProjectName.Systems
                 return 0;
             }
 
-            // 인벤토리에서 모든 해당 아이템 제거
-            bool removed = PlayerInventory.Instance.RemoveItem(potionItemId, inventoryCount);
+            // One potion is one dose; leave the rest in inventory for automatic per-dose reload.
+            bool removed = PlayerInventory.Instance.RemoveItem(potionItemId, 1);
             if (!removed)
             {
                 Debug.LogWarning($"[GasPotionLoader] {potionItemId} 제거 실패");
@@ -93,15 +93,27 @@ namespace ProjectName.Systems
             }
 
             // 분사기에 설정
-            controller.LoadedPotionId = potionItemId;
-            controller.LoadedPotionCount += inventoryCount;
+            controller.SetLoadedPotionDose(potionItemId, 1);
 
-            Debug.Log($"{itemData.displayName} x{inventoryCount} 장전 완료! (총 {controller.LoadedPotionCount}개)");
+            Debug.Log($"{itemData.displayName} 1회분 장전 완료! (잔여 인벤토리 {PlayerInventory.Instance.GetItemCount(potionItemId)}개)");
 
             // 장전 완료 이벤트 발생
             controller.NotifyPotionChanged();
 
-            return inventoryCount;
+            return 1;
+        }
+
+        /// <summary>Consume one same-type inventory potion into the next dose. No other item type is considered.</summary>
+        internal static bool TryLoadNextDose(GasSprayerController controller, string potionItemId)
+        {
+            if (controller == null || PlayerInventory.Instance == null || string.IsNullOrEmpty(potionItemId))
+                return false;
+            if (PlayerInventory.Instance.GetItemCount(potionItemId) <= 0)
+                return false;
+            if (!PlayerInventory.Instance.RemoveItem(potionItemId, 1))
+                return false;
+            controller.SetLoadedPotionDose(potionItemId, 1);
+            return true;
         }
 
         /// <summary>
@@ -157,6 +169,7 @@ namespace ProjectName.Systems
             // 분사기 상태 초기화
             controller.LoadedPotionId = "";
             controller.LoadedPotionCount = 0;
+            controller.SetLoadedPotionDose(string.Empty, 0);
 
             Debug.Log($"[GasPotionLoader] 물약 x{count} 인벤토리로 반환 완료!");
 
@@ -179,8 +192,8 @@ namespace ProjectName.Systems
             if (string.IsNullOrEmpty(potionItemId))
                 return false;
 
-            // 이미 다른 물약 장전됨
-            if (!string.IsNullOrEmpty(controller.LoadedPotionId) && controller.LoadedPotionId != potionItemId)
+            // Match LoadPotion: any active dose occupies the sprayer, including the same item type.
+            if (!string.IsNullOrEmpty(controller.LoadedPotionId) && controller.LoadedPotionCount > 0)
                 return false;
 
             // 인벤토리에 있는지 확인

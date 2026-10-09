@@ -5,7 +5,8 @@
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
     "ProjectName.Core",
-    "ProjectName.Systems"
+    "ProjectName.Systems",
+    "ProjectName.UI"
   ],
   "includePlatforms": [
     "Editor"

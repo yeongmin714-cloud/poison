@@ -24,6 +24,12 @@ namespace ProjectName.UI.Toolkit
         private static ReadDocumentUTK _instance;
         public static ReadDocumentUTK Instance => _instance;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap()
+        {
+            Ensure();
+        }
+
         public static void Ensure()
         {
             if (_instance != null) return;
@@ -34,8 +40,10 @@ namespace ProjectName.UI.Toolkit
         /// <summary>문서 창 열기 (원본 ReadDocumentWindow.ShowDocument 대응).</summary>
         public static void Open(ReadableDocument document)
         {
+            if (document == null) return;
             Ensure();
-            _instance.ShowDocument(document);
+            if (_instance != null)
+                _instance.ShowDocument(document);
         }
 
         /// <summary>문서 창 닫기 (원본 CloseDocument 대응).</summary>
@@ -47,8 +55,11 @@ namespace ProjectName.UI.Toolkit
 
         public static void Toggle()
         {
-            if (_instance != null && _instance.IsOpen) { _instance.Close(); return; }
-            Ensure();
+            if (_instance == null || _instance._currentDocument == null) return;
+            if (_instance.IsOpen)
+                _instance.Close();
+            else
+                _instance.Show();
         }
 
         // ===== 설정 =====
@@ -70,78 +81,72 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexGrow = 1f;
             _content.style.flexDirection = FlexDirection.Column;
 
-            // 상단 메타데이터 카드
-            _headerCard = new VisualElement { name = "DocumentHeaderCard" };
+            // 상단 메타데이터 패널
+            _headerCard = UTKTheme.CreatePanel("DocumentHeaderCard");
             _headerCard.style.flexDirection = FlexDirection.Column;
-            _headerCard.style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xFF));
             _headerCard.style.paddingLeft = 16f;
             _headerCard.style.paddingRight = 16f;
             _headerCard.style.paddingTop = 14f;
             _headerCard.style.paddingBottom = 12f;
             _headerCard.style.marginBottom = 12f;
-            _headerCard.style.borderBottomWidth = 1f;
-            _headerCard.style.borderBottomColor = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
-            _headerCard.style.borderTopLeftRadius = 8f;
-            _headerCard.style.borderTopRightRadius = 8f;
-            _headerCard.style.borderBottomLeftRadius = 8f;
-            _headerCard.style.borderBottomRightRadius = 8f;
             _content.Add(_headerCard);
 
             // 제목
             _titleLabel = new Label("📜 문서");
             _titleLabel.AddToClassList("utk-title-label");
-            _titleLabel.style.fontSize = 22f;
-            _titleLabel.style.color = new StyleColor(UTKColor.TextPrimary);
+            _titleLabel.style.fontSize = 21.6f;
+            _titleLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _titleLabel.style.marginBottom = 6f;
             _headerCard.Add(_titleLabel);
 
             // 분류 + 중요도
             _categoryLabel = new Label("");
-            _categoryLabel.style.fontSize = 14f;
+            _categoryLabel.style.fontSize = 14.4f;
             _categoryLabel.style.unityFontStyleAndWeight = FontStyle.Italic;
-            _categoryLabel.style.color = new StyleColor(UTKColor.AccentRare);
+            _categoryLabel.style.color = new StyleColor(UTKTheme.Gold);
             _headerCard.Add(_categoryLabel);
 
             // 발견 위치
             _locationLabel = new Label("");
             _locationLabel.style.fontSize = 12f;
-            _locationLabel.style.color = new StyleColor(UTKColor.TextSecondary);
+            _locationLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _locationLabel.style.marginTop = 4f;
             _headerCard.Add(_locationLabel);
 
             // 본문 스크롤 카드
-            var bodyCard = new VisualElement { name = "DocumentBodyCard" };
+            var bodyCard = UTKTheme.CreatePanel("DocumentBodyCard", secondary: true);
             bodyCard.style.flexDirection = FlexDirection.Column;
             bodyCard.style.flexGrow = 1f;
             bodyCard.style.minHeight = 0f;
-            bodyCard.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
             bodyCard.style.paddingLeft = 16f;
             bodyCard.style.paddingRight = 16f;
             bodyCard.style.paddingTop = 14f;
             bodyCard.style.paddingBottom = 14f;
-            bodyCard.style.borderTopWidth = 1f;
-            bodyCard.style.borderBottomWidth = 1f;
-            bodyCard.style.borderLeftWidth = 1f;
-            bodyCard.style.borderRightWidth = 1f;
-            var cardBorder = new StyleColor(new Color32(0x2E, 0x34, 0x3D, 0xFF));
-            bodyCard.style.borderTopColor = cardBorder;
-            bodyCard.style.borderBottomColor = cardBorder;
-            bodyCard.style.borderLeftColor = cardBorder;
-            bodyCard.style.borderRightColor = cardBorder;
-            bodyCard.style.borderTopLeftRadius = 8f;
-            bodyCard.style.borderTopRightRadius = 8f;
-            bodyCard.style.borderBottomLeftRadius = 8f;
-            bodyCard.style.borderBottomRightRadius = 8f;
             _content.Add(bodyCard);
 
             _scrollView = new ScrollView();
             _scrollView.name = "DocumentScroll";
             _scrollView.style.flexGrow = 1f;
             _scrollView.style.minHeight = 0f;
-            _scrollView.style.backgroundColor = new StyleColor(new Color32(0x21, 0x26, 0x2D, 0xFF));
+            _scrollView.style.backgroundColor = new StyleColor(UTKTheme.PanelSub);
             bodyCard.Add(_scrollView);
 
+            // 하단 닫기 버튼
+            var footer = new VisualElement { name = "DocumentFooter" };
+            footer.style.flexDirection = FlexDirection.Row;
+            footer.style.marginTop = 8f;
+            footer.style.paddingTop = 6f;
+            footer.style.borderTopWidth = UTKTheme.PanelBorderWidth;
+            footer.style.borderTopColor = new StyleColor(UTKTheme.Stroke);
+            _content.Add(footer);
+
+            var footerCloseButton = UTKButton.Create("닫기 ✕", HideNow, UTKButton.Variant.Secondary);
+            footerCloseButton.style.flexGrow = 1f;
+            footerCloseButton.style.height = 32f;
+            footer.Add(footerCloseButton);
+
             ApplyUIToolkitFont(this);
+            UTKTheme.ApplyWindowChrome(this, this.Q("TitleBar"), _content);
 
             style.display = DisplayStyle.None;
             style.left = 640f;
@@ -152,10 +157,17 @@ namespace ProjectName.UI.Toolkit
 
         public override void Show()
         {
-            base.Show();
+            if (_currentDocument == null || IsOpen) return;
+
             var root = UIToolkitBootstrap.UIRoot;
-            if (root != null && parent == null)
+            if (parent == null)
+            {
+                if (root == null) return;
                 root.Add(this);
+            }
+
+            _scrollView.scrollOffset = Vector2.zero;
+            base.Show();
             style.left = 640f;
             style.top = 120f;
         }
@@ -163,12 +175,12 @@ namespace ProjectName.UI.Toolkit
         public override void Hide()
         {
             base.Hide();
+            _currentDocument = null;
             Debug.Log("[ReadDocUTK] 문서 창 닫힘");
         }
 
         private void HideNow()
         {
-            _currentDocument = null;
             Close();
         }
 
@@ -192,10 +204,11 @@ namespace ProjectName.UI.Toolkit
                 ? DisplayStyle.None
                 : DisplayStyle.Flex;
 
+            _scrollView.scrollOffset = Vector2.zero;
             _scrollView.Clear();
             var body = new Label(document.Content);
             body.AddToClassList("utk-content-label");
-            body.style.fontSize = 16f;
+            body.style.fontSize = 16.8f;
             body.style.color = new StyleColor(UTKColor.TextPrimary);
             body.style.whiteSpace = WhiteSpace.Normal;
             _scrollView.Add(body);

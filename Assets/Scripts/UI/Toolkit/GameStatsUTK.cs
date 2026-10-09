@@ -74,6 +74,7 @@ namespace ProjectName.UI.Toolkit
             _list.style.marginTop = 6f;
             _content.Add(_list);
 
+            UTKTheme.ApplyWindowChrome(this, this.Q("TitleBar"), _content);
             ApplyUIToolkitFont(this);
             style.display = DisplayStyle.None;
             style.left = 60f;
@@ -181,16 +182,14 @@ namespace ProjectName.UI.Toolkit
             var card = new VisualElement { name = "StatsTitleCard" };
             card.style.flexDirection = FlexDirection.Row;
             card.style.alignItems = Align.Center;
-            card.style.backgroundColor = new StyleColor(UTKColor.BgPanel);
+            UTKTheme.ApplyPanelStyle(card);
             card.style.paddingLeft = 14f;
             card.style.paddingRight = 14f;
             card.style.paddingTop = 12f;
             card.style.paddingBottom = 12f;
             card.style.marginBottom = 10f;
-            SetCardBorder(card, 8f);
-
             var title = new Label("📊 게임 통계");
-            title.style.fontSize = 18f;
+            title.style.fontSize = 16.8f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.color = new StyleColor(UTKColor.TextPrimary);
             card.Add(title);
@@ -200,9 +199,9 @@ namespace ProjectName.UI.Toolkit
         private static VisualElement SectionHeader(string iconTitle, string _ignored)
         {
             var h = new Label(iconTitle);
-            h.style.fontSize = 13f;
+            h.style.fontSize = 13.2f;
             h.style.unityFontStyleAndWeight = FontStyle.Bold;
-            h.style.color = new StyleColor(UTKColor.AccentRare);
+            h.style.color = new StyleColor(UTKTheme.Gold);
             h.style.marginTop = 10f;
             h.style.marginBottom = 5f;
             return h;
@@ -213,24 +212,23 @@ namespace ProjectName.UI.Toolkit
             var row = new VisualElement { name = "StatCardRow" };
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
-            row.style.backgroundColor = new StyleColor(new Color(33f / 255f, 38f / 255f, 45f / 255f));
+            UTKTheme.ApplyPanelStyle(row, secondary: true);
             row.style.paddingLeft = 12f;
             row.style.paddingRight = 12f;
             row.style.paddingTop = 10f;
             row.style.paddingBottom = 10f;
             row.style.marginBottom = 6f;
-            SetCardBorder(row, 8f);
 
             var l = new Label(label);
-            l.style.fontSize = 14f;
+            l.style.fontSize = 14.4f;
             l.style.color = new StyleColor(UTKColor.TextSecondary);
             l.style.flexGrow = 1f;
             row.Add(l);
 
             var v = new Label(value);
-            v.style.fontSize = 14f;
+            v.style.fontSize = 14.4f;
             v.style.unityFontStyleAndWeight = FontStyle.Bold;
-            v.style.color = new StyleColor(UTKColor.AccentRare);
+            v.style.color = new StyleColor(UTKTheme.Gold);
             v.style.unityTextAlign = TextAnchor.MiddleRight;
             v.style.width = 150f;
             row.Add(v);
@@ -238,22 +236,6 @@ namespace ProjectName.UI.Toolkit
             return row;
         }
 
-        private static void SetCardBorder(VisualElement element, float radius)
-        {
-            var stroke = new StyleColor(UTKColor.BorderBronze);
-            element.style.borderTopWidth = 1f;
-            element.style.borderBottomWidth = 1f;
-            element.style.borderLeftWidth = 1f;
-            element.style.borderRightWidth = 1f;
-            element.style.borderTopColor = stroke;
-            element.style.borderBottomColor = stroke;
-            element.style.borderLeftColor = stroke;
-            element.style.borderRightColor = stroke;
-            element.style.borderTopLeftRadius = radius;
-            element.style.borderTopRightRadius = radius;
-            element.style.borderBottomLeftRadius = radius;
-            element.style.borderBottomRightRadius = radius;
-        }
 
         // ===== 키 토글 / ESC용 Updater =====
 

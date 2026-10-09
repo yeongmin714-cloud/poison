@@ -205,18 +205,30 @@ namespace ProjectName.Core
             // 공통 피해 처리 (방어력/무적 처리 포함), 패링은 위에서만 판정한다.
             ApplyDamage(amount);
 
-            // hitDirection 기반 간단한 넉백 효과
+            // hitDirection 기반 넉백 효과 (무기 타입별 강도)
             if (_playerTransform != null && hitDirection != Vector3.zero)
             {
                 // CharacterController가 있다면 넉백 적용
                 var controller = _playerTransform.GetComponent<CharacterController>();
                 if (controller != null)
                 {
-                    Vector3 knockback = hitDirection.normalized * 2f;
+                    // [2026-10-08] 폭탄(Explosion)은 강한 넉백, 가스류(Poison/Gas*)는 중간 넉백, 기타는 기존.
+                    float force = GetKnockbackForce(weaponType);
+                    Vector3 knockback = hitDirection.normalized * force;
                     controller.Move(knockback);
                 }
                 Debug.Log($"[PlayerHealth] 넉백 방향: {hitDirection}, 무기 타입: {weaponType}");
             }
+        }
+
+        // 폭발/가스 넉백 강도 — "폭탄은 넉백" 요구(2026-10-08). 몬스터/병사 모두 대상.
+        private static float GetKnockbackForce(string weaponType)
+        {
+            if (string.IsNullOrEmpty(weaponType)) return 2f;
+            string t = weaponType.Trim().ToLowerInvariant();
+            if (t.StartsWith("explosion")) return 6f;      // 폭발 폭탄 — 강한 넉백
+            if (t.StartsWith("gas") || t.StartsWith("poison")) return 3f; // 독가스 — 중간 넉백
+            return 2f;                                      // 근접 등 기존
         }
 
         /// <summary>
