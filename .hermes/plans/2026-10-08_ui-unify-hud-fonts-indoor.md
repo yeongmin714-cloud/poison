@@ -40,10 +40,11 @@
 - 게이트: 컴파일 error CS 0 + focused Figma 배치 **95/95** (`TestOutput/p3_fonts_focused.xml`) — 테스트 기대값 교정 0건(이미 패밀리 단정).
 - 진행 노트: 서브에이전트 600s 타임아웃 → 부모가 스크립트로 직접 치환(기본인자 이중 `ff` 버그 2건 즉시 수리). 전체 EditMode 회귀는 별도 실행 결과로 판정.
 
-### Phase 4 — 실내 최종 튜닝 (Phase 0 로그 확정 후)
-1. 새 코드 실행 확인 후에도 밝으면: FlameLight 0.55→0.85 + 사거리 재조정(화면에 화광 보이게), 직사광 그림자 날카로움 → 0.05로 추가 축소 또는 그림자 소프트 확인(URP 섀도우 설정).
-2. 고품질 체감: 캡처 기반 판단 — 머티리얼/텍스처 추가 작업은 별도 항목화.
-3. 영주 성 경로도 씬 Flat 앰비언트 적용 확인.
+### Phase 4 — 실내 최종 튜닝 — ✅ 코드 게이트 완료(2026-10-09, 커밋 3b77bf3b) / 시각 캡처 승인 대기
+- **사용자 확정:** 메인 실행은 별도 데스크톱 — GPU 제약 해제, AERO 에셋 사용 승인(09-29 보류 판정 대체).
+- ✅ AERO 볼류메트릭 포그 실내 게이트: UniversalRendererData에 "AERO Volumetric Fog" FullScreenPass feature(injectionPoint 550·AERO 데모 동일) + Resources/AeroIndoorFog.mat(_Density 기본 0 — 야외 새지 않음, 웜 헤이즈 튜닝) + IndoorAeroFogController(활성 씬==IndoorScene 게이트, _Density 0.35 페이드, _FrameCount%60·조명 스캔 스로틀). 가스 격리 파이프라인 미건드림.
+- ✅ 화광 상향: IndoorScene FlameLight 3×0.55→0.85(포그 속 빛기둥), 직사광 0.12 유지. 영주 성 경로 동일 씬 공유 자동 적용(원 3번 항목 충족).
+- 게이트: 컴파일 0 + focused 23/24(유일 실패 기존 baseline — 가스 격리 세션 테스트) + 신규 계약 테스트 5/5. **시각 승인(포그 가시성·밝기·빛기둥)은 사용자 Play 캡처 대기** — 밀도 0.35 튜닝은 캡처 피드백 후.
 
 ### Phase 5 — 게이트/커밋/캡처 루프
 - Phase 단위 컴파일 0 → focused 테스트 → 커밋 → 캡처 → 피드백. 완료 후 push(지시 시).

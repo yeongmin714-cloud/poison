@@ -1,4 +1,20 @@
-## 2026-10-09 계획 v2 Phase 2+3 완료 — HUD/핫바 하단 고정 앵커 + 전 창 폰트 패밀리 통일 (커밋 ec09971b·db82f9d7·b4d7bdb1)
+## 2026-10-09 계획 v2 Phase 4 완료(코드 게이트) — AERO 볼류메트릭 포그 실내 게이트 + 화광 상향 (커밋 3b77bf3b)
+
+- **사용자 확정(제약 해제):** "전체 메인씬은 다른 데스크톱에서 실행" — GPU(Intel HD 530/VRAM 1GB) 렉 우려의 09-29 보류 판정을 대체, AERO 에셋 사용 승인. 요구: 실내씬 고품질(AERO 포그 또는 더 나은 방법).
+- **선택:** AERO 볼류메트릭 포그(에셋 README 권장 경로 — URP FullScreenPassRendererFeature + 포그 머티리얼) + 화광 상향 조합. 가스 전용 격리 파이프라인(Rendering/AeroLocalizedGas*)과 완전 분리.
+- **구현(6파일):**
+- `Assets/URP/UniversalRendererData.asset`: "AERO Volumetric Fog" FullScreenPassRendererFeature 추가 — injectionPoint 550·fetchColorBuffer 1(AERO 데모 PC_Renderer 동일 구성), passMaterial=신규 머티리얼. LFS 에셋. m_RendererFeatureMap은 URP 셀프 리맵(ValidateRendererFeatures "Map missing, will attempt to re-map") — 리스트 편집만으로 안전 확인.
+- `Assets/Resources/AeroIndoorFog.mat`(+meta): AERO "Volumetric Fog PC" 복제 튜닝 — **_Density 기본 0(야외·테스트씬 새지 않음)**, 웜 헤이즈 _Colour(0.58/0.44/0.30)·_Shadow_Colour(0.10/0.06/0.03), 바닥 저층 헤이즈 _Height 2.2/Falloff 1.4, _Max_Distance 60, _Steps 8.
+- `Assets/Scripts/Systems/IndoorAeroFogController.cs`(신규): 활성 씬==IndoorScene 게이트 → _Density 0.35 MoveTowards 페이드(진입/퇴출·애디티브 전환 자동), AERO 계약 준수(_FrameCount=renderedFrameCount%60 매 프레임 — 에셋 명시 IGN 지터 안정화, _AdditionalLightCount 캡 8·0.5s 스로틀 스캔, _AmbientLighting), 부팅 안전 리셋 0.
+- `Assets/Scenes/IndoorScene.unity`(LFS): FlameLight 3× **0.55→0.85**(사거리 9.5·웜색 유지) — 포그 속 화광 빛기둥 가시화(포그 머티리얼 additional-light self-shadow 활성). 직사광 0.12 유지. 영주 성 경로는 동일 IndoorScene 공유라 자동 적용.
+- `Assets/Scripts/Tests/EditMode/IndoorAeroFogTests.cs`(신규, 5종): 머티리얼 기본값/웜톤, renderer feature 부착 계약(injectionPoint 550·SSAO 항목 유지), 컨트롤러 게이트+_FrameCount 계약, 씬 화광 0.85×3·0.55 잔여 0, Resources 경로+전환 씬 이름 정합.
+- **함정 교정 2건:** ①컨트롤러 격리 주석의 리터럴이 자체 단정("AeroLocalizedGas 미포함") 위반 → 문구 변경 ②머티리얼 내부 m_Name을 파일명과 일치(AeroIndoorFog) — NativeFormatImporter "does not match filename" 경고 제거.
+- **검증:** fresh compile `error CS` **0**. focused EditMode(IndoorAeroFog+PlayerCastleInterior 2클래스+가스 격리 baseline) **23/24** — 유일 실패는 기존 baseline(AeroLocalizedGasPhase4BTests.IsolatedSession…, Phase 4 변경 전 full-regression과 동일 상태) → **신규 회귀 0**. XML `TestOutput/p4_aero_fog2.xml`/`p4_castle_fog.xml`.
+- **다음(사용자 캡처 게이트):** 실내 진입 캡처 → ①AERO 실내 웜 헤이즈 가시성(_Density 0.35 — 너무 진하면 0.2~0.25로 캡처 피드백 튜닝) ②화광 빛기둥/밝기 체감(기존 Phase 4 1번 "밝으면 0.85" 조건 소진) ③배럭 침대 20개·상세창·HUD 하단 앵커 확인과 동시. push 대기.
+
+---
+
+1|## 2026-10-09 계획 v2 Phase 2+3 완료 — HUD/핫바 하단 고정 앵커 + 전 창 폰트 패밀리 통일 (커밋 ec09971b·db82f9d7·b4d7bdb1)
 
 - **진행 승인 범위:** 계획 v2(.hermes/plans/2026-10-08_ui-unify-hud-fonts-indoor.md) Phase 2(HUD 폼+하단 정렬) → Phase 3(폰트 통일). Phase 4(실내 튜닝)는 캡처 기반 판단 항목이라 사용자 피드백 대기로 유지.
 - **Phase 2 — 하단 고정 앵커 일원화 (커밋 ec09971b):**
