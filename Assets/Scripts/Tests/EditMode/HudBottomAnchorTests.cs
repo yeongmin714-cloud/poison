@@ -70,5 +70,23 @@ namespace ProjectName.Tests.EditMode
             Assert.That(HUDUTK.GaugeSize, Is.EqualTo(137.6f).Within(0.001f),
                 "게이지 크기는 Figma 23:6 bounds 137.6을 유지해야 한다.");
         }
+
+        [Test]
+        public void HUDUTK_BuildsFigma236SevenLayerGaugeStack_WithSemanticColors()
+        {
+            // [2026-10-09 Phase B] 3층 → Figma 7층 스택 확장 계약.
+            string source = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/HUDUTK.cs");
+            Assert.That(source, Does.Contain("BgGlow"), "층1 — 게이지색 저알파 뒤광(bg-radial-glow 대체).");
+            Assert.That(source, Does.Contain("OuterTrack"), "층2 — outer-track 백색 저알파 링.");
+            Assert.That(source, Does.Contain("new UTKCircularGauge()"), "층3 — 진행 arc(UTKCircularGauge) 잔존.");
+            Assert.That(source, Does.Contain("InnerPlate"), "층5 — inner-plate 흰 원판.");
+            Assert.That(source, Does.Contain("RimHighlight"), "층6 — inner-plate-rim-highlight.");
+            Assert.That(source, Does.Contain("_hpColor = new Color(1f, 0.30f, 0.30f, 1f)"),
+                "시맨틱 색 계약 — HP 레드 유지(Figma 목업 오렌지 미채택 근거: 09-24 사용자 설계).");
+            Assert.That(source, Does.Contain("_stColor = new Color(1f, 0.83f, 0.30f, 1f)"),
+                "시맨틱 색 계약 — 스태미나 옐로 유지.");
+            Assert.That(source, Does.Contain("rootSize.y - GaugeSize * k - GaugeBottomMarginPx"),
+                "하단 고정 앵커 계약(Phase 2)은 Phase B 확장 후에도 잔존해야 한다.");
+        }
     }
 }

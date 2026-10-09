@@ -60,8 +60,10 @@ namespace ProjectName.UI.Toolkit
         private readonly Color _stColor = new Color(1f, 0.83f, 0.30f, 1f);       // 스태미나 링 — 노란빛 (번개)
 
         private VisualElement    _gaugeHost;      // 핫바 옆 호스트
-        private UTKCircularGauge _hpGauge;        // 하트 (체력)
-        private UTKCircularGauge _staminaGauge;   // 번개 (스태미나)
+        private VisualElement    _hpRoot;         // 하트 게이지 루트 (7층 스택)
+        private VisualElement    _stRoot;         // 번개 게이지 루트
+        private UTKCircularGauge _hpGauge;        // 하트 arc 레이어 (체력)
+        private UTKCircularGauge _staminaGauge;   // 번개 arc 레이어 (스태미나)
         private Texture2D        _ringTex;        // UI/HudGaugeRing
         private Texture2D        _heartTex;       // UI/GaugeHeart
         private Texture2D        _boltTex;        // UI/GaugeBolt
@@ -98,23 +100,27 @@ namespace ProjectName.UI.Toolkit
 
             // The archive node labels both gauges "stamina-gauge" and its child labels do not settle the runtime meter identity.
             // Preserve the existing user-approved game mapping (red heart=HP, yellow bolt=stamina), positioned explicitly at Figma bounds.
-            _hpGauge      = BuildOneGauge("HpGauge",      _heartTex, _hpColor);
-            _staminaGauge = BuildOneGauge("StaminaGauge", _boltTex, _stColor);
+            _hpRoot      = BuildOneGauge("HpGauge",      _heartTex, _hpColor,      out _hpGauge);
+            _stRoot      = BuildOneGauge("StaminaGauge", _boltTex,  _stColor,      out _staminaGauge);
 
             // 폴링 첫 틱 전 기본값 (가득 찬 오표시 방지)
             if (_hpGauge != null)      _hpGauge.Fraction = 0f;
             if (_staminaGauge != null) _staminaGauge.Fraction = 0f;
         }
 
-        /// <summary>단일 원형 게이지 빌드 — 링 배경 + UTKCircularGauge 벡터 아크 + 중앙 아이콘.</summary>
-        private UTKCircularGauge BuildOneGauge(string gaugeName, Texture2D iconTex, Color fill)
+        /// <summary>단일 원형 게이지 빌드 — [계획 2026-10-09 Phase B] Figma 23:6 7층 스택:
+        /// ①bg-glow(게이지색 저알파 뒤광) ②outer-track(백색 저알파 링) ③UTKCircularGauge 진행 arc
+        /// ④progress-tip은 값 연동 위치 갱신이 필요해 생략(판단 기록 — arc 자체로 진행 구분 충분)
+        /// ⑤inner-plate(96.8 흰 원판) ⑥rim-highlight(88.9 스트로크) ⑦중앙 아이콘(68.8).
+        /// 시맨틱 색은 게임 매핑 유지(HP 레드/스타미나 옐로 — 09-24 사용자 설계 계약). Figma 목업의
+        /// 오렌지 그라데이션은 미채택. 호스트 transform scale=k가 등비 확대 담당 → 각 층 raw 고정 크기.</summary>
+        private VisualElement BuildOneGauge(string gaugeName, Texture2D iconTex, Color fill, out UTKCircularGauge arcGauge)
         {
-            var gauge = new UTKCircularGauge();
+            var gauge = new VisualElement();
             gauge.name = gaugeName;
             gauge.style.width = GaugeSize;
             gauge.style.height = GaugeSize;
             gauge.style.marginRight = GaugeGap;
-            gauge.FillColor = fill;
             gauge.pickingMode = PickingMode.Ignore;
             if (_ringTex != null)
             {
@@ -123,6 +129,91 @@ namespace ProjectName.UI.Toolkit
             }
             _gaugeHost.Add(gauge);
 
+            // ① bg-radial-glow — radial 그라데이션 미지원 → 게이지색 저알파 단색 원(판단 기록)
+            var glow = new VisualElement();
+            glow.name = gaugeName + "BgGlow";
+            glow.style.position = Position.Absolute;
+            float glowSize = 264f;
+            glow.style.left = (GaugeSize - glowSize) * 0.5f;
+            glow.style.top = (GaugeSize - glowSize) * 0.5f;
+            glow.style.width = glowSize;
+            glow.style.height = glowSize;
+            var glowColor = fill; glowColor.a = 0.10f;
+            glow.style.backgroundColor = new StyleColor(glowColor);
+            SetCircleRadius(glow);
+            glow.pickingMode = PickingMode.Ignore;
+            gauge.Add(glow);
+
+            // ② outer-track — 백색 저알파 fill + 스트로크(Figma 1.32)
+            var track = new VisualElement();
+            track.name = gaugeName + "OuterTrack";
+            track.style.position = Position.Absolute;
+            track.style.left = 0f;
+            track.style.top = 0f;
+            track.style.width = GaugeSize;
+            track.style.height = GaugeSize;
+            track.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.08f));
+            track.style.borderTopWidth = track.style.borderBottomWidth = 1.32f;
+            track.style.borderLeftWidth = track.style.borderRightWidth = 1.32f;
+            var trackStroke = new StyleColor(new Color(1f, 1f, 1f, 0.10f));
+            track.style.borderTopColor = track.style.borderBottomColor = trackStroke;
+            track.style.borderLeftColor = track.style.borderRightColor = trackStroke;
+            SetCircleRadius(track);
+            track.pickingMode = PickingMode.Ignore;
+            gauge.Add(track);
+
+            // ③ 진행 arc — 기존 UTKCircularGauge 벡터 호(시맨틱 색 계약 유지)
+            arcGauge = new UTKCircularGauge();
+            arcGauge.name = gaugeName + "Arc";
+            arcGauge.style.position = Position.Absolute;
+            arcGauge.style.left = 0f;
+            arcGauge.style.top = 0f;
+            arcGauge.style.width = GaugeSize;
+            arcGauge.style.height = GaugeSize;
+            arcGauge.FillColor = fill;
+            arcGauge.pickingMode = PickingMode.Ignore;
+            gauge.Add(arcGauge);
+
+            // ⑤ inner-plate — 흰 원판(아이콘 뒤 배경판, Figma 96.8@20.4 + stroke 1.32)
+            var plate = new VisualElement();
+            plate.name = gaugeName + "InnerPlate";
+            plate.style.position = Position.Absolute;
+            float plateSize = 96.8f;
+            float plateOff = (GaugeSize - plateSize) * 0.5f;
+            plate.style.left = plateOff;
+            plate.style.top = plateOff;
+            plate.style.width = plateSize;
+            plate.style.height = plateSize;
+            plate.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.85f));
+            plate.style.borderTopWidth = plate.style.borderBottomWidth = 1.32f;
+            plate.style.borderLeftWidth = plate.style.borderRightWidth = 1.32f;
+            var plateStroke = new StyleColor(new Color(1f, 1f, 1f, 0.20f));
+            plate.style.borderTopColor = plate.style.borderBottomColor = plateStroke;
+            plate.style.borderLeftColor = plate.style.borderRightColor = plateStroke;
+            SetCircleRadius(plate);
+            plate.pickingMode = PickingMode.Ignore;
+            gauge.Add(plate);
+
+            // ⑥ inner-plate-rim-highlight — 88.9 스트로크 링
+            var rim = new VisualElement();
+            rim.name = gaugeName + "RimHighlight";
+            rim.style.position = Position.Absolute;
+            float rimSize = 88.9f;
+            float rimOff = (GaugeSize - rimSize) * 0.5f;
+            rim.style.left = rimOff;
+            rim.style.top = rimOff;
+            rim.style.width = rimSize;
+            rim.style.height = rimSize;
+            rim.style.borderTopWidth = rim.style.borderBottomWidth = 1.98f;
+            rim.style.borderLeftWidth = rim.style.borderRightWidth = 1.98f;
+            var rimStroke = new StyleColor(new Color(1f, 1f, 1f, 0.35f));
+            rim.style.borderTopColor = rim.style.borderBottomColor = rimStroke;
+            rim.style.borderLeftColor = rim.style.borderRightColor = rimStroke;
+            SetCircleRadius(rim);
+            rim.pickingMode = PickingMode.Ignore;
+            gauge.Add(rim);
+
+            // ⑦ 중앙 아이콘 — 기존 68.8@34.4 계약 유지
             if (iconTex != null)
             {
                 var icon = new VisualElement();
@@ -139,6 +230,15 @@ namespace ProjectName.UI.Toolkit
                 gauge.Add(icon);
             }
             return gauge;
+        }
+
+        /// <summary>원형 클리핑 — border-radius 전원 큰 값(클램프로 반지름 처리).</summary>
+        private static void SetCircleRadius(VisualElement element)
+        {
+            element.style.borderTopLeftRadius = 9999f;
+            element.style.borderTopRightRadius = 9999f;
+            element.style.borderBottomLeftRadius = 9999f;
+            element.style.borderBottomRightRadius = 9999f;
         }
 
         /// <summary>핫바 왼쪽 옆에 배치 — 폴링 첫 틱에 panel width 실측으로 핫바(중앙) 좌측 여백 확보.
@@ -169,8 +269,8 @@ namespace ProjectName.UI.Toolkit
             _gaugeHost.style.height = GaugeSize;
             _gaugeHost.style.transformOrigin = new TransformOrigin(0f, 0f, 0f);
             _gaugeHost.style.scale = new StyleScale(new Scale(new Vector2(k, k)));
-            ApplyGaugeScale(_hpGauge, 0f, 1f, 1f);
-            ApplyGaugeScale(_staminaGauge, GaugeSize + GaugeGap, 1f, 1f);
+            ApplyGaugeScale(_hpRoot, 0f, 1f, 1f);
+            ApplyGaugeScale(_stRoot, GaugeSize + GaugeGap, 1f, 1f);
             // [FigmaV3 진단] 값 변화 시에만 로그 — 스테일/겹침 판정용.
             if (Mathf.Abs(k - _lastLoggedK) > 0.001f)
             {
@@ -189,7 +289,7 @@ namespace ProjectName.UI.Toolkit
             gauge.style.top = 0f;
             gauge.style.width = GaugeSize * sx;
             gauge.style.height = GaugeSize * sy;
-            var icon = gauge.Q<VisualElement>();
+            var icon = gauge.Q<VisualElement>(gauge.name + "Icon");
             if (icon != null)
             {
                 float iconInsetX = (GaugeSize - GaugeIconSize) * 0.5f;
