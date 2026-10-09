@@ -1,4 +1,22 @@
-## 2026-10-09 배럭 침대 남벽 밖 버그 수리(TDD RED→GREEN) + AERO 포그 "실행완료" 판정(미실현 확정)
+## 2026-10-09 계획 v2 Phase 2+3 완료 — HUD/핫바 하단 고정 앵커 + 전 창 폰트 패밀리 통일 (커밋 ec09971b·db82f9d7·b4d7bdb1)
+
+- **진행 승인 범위:** 계획 v2(.hermes/plans/2026-10-08_ui-unify-hud-fonts-indoor.md) Phase 2(HUD 폼+하단 정렬) → Phase 3(폰트 통일). Phase 4(실내 튜닝)는 캡처 기반 판단 항목이라 사용자 피드백 대기로 유지.
+- **Phase 2 — 하단 고정 앵커 일원화 (커밋 ec09971b):**
+- `HUDUTK.GaugeBottomMarginPx=24` / `HotbarUIUTK.HotbarBottomMarginPx=12`(screen px) 신설. Y=top=rootH − 시각높이×k − 여백으로 일원화(스케일 후 시각 하단이 화면 하단에서 각 24/12px 위 고정 — 캡처 간 세로 편차 제거). X만 기존 Figma 분율 앵커(306.4/629.6 × anchorX) 유지, raw 크기+scale=k+transformOrigin(0,0) 계약 불변.
+- 규약 차이 코드 주석 기록: 하단 고정 앵커는 Figma 캔버스 y=855.2/861.6 좌표와 **의도적 차이**(사용자 요구 우선).
+- 원형 링 3층(링 텍스처 UI/HudGaugeRing + UTKCircularGauge 벡터 arc + 중앙 아이콘 68.8@34.4)과 간격 24 raw는 기존 구현 그대로 계약 유지 — 재설계 없음. 게이지 상수 public 승격(GaugeSize 137.6/GaugeGap 24/GaugeIconSize 68.8).
+- 게이트: 컴파일 error CS 0, 신규 `HudBottomAnchorTests` **5/5** (`TestOutput/phase2_hud_anchor.xml`).
+- **Phase 3 — 전 창 fontSize Figma 1.2× 패밀리 통일 (커밋 db82f9d7 A~L 27파일 + b4d7bdb1 M~Z 27파일):**
+- 매핑: 8/9→9.6, 10/11→12, 13→13.2, 14→14.4, 15→15.6, 16/17/18→16.8, 19~22→21.6(단 19.2는 패밀리라 스킵), 23/25→24, 26/27→26.4, 28~34→31.2, 36→38.4. 주석 수치·UTKTheme 상수·Theme.uss 불변. makeIcon(아이콘 크기=폰트 아님) 제외.
+- **치환 363건(77파일)**: fontSize 직접 배정 311 + 헬퍼(MkLabel/MkTextLabel/MkDesc/MakeLabel/Lbl) 호출점 리터럴 80 + 기본인자 2 + 스케일식(13f×uiScale)·new Length(17f)·삼항 케이스. 헬퍼는 파일별 size 파라미터 인덱스 상이(ArenaMenu=3번째, CraftBench 등=2번째)라 파일별 계산.
+- **오염 방지 분할 커밋:** 이전 계획 미커밋 변경 보유 26파일(활/가스/컴포지션/InteractionPanel 개편 등) + 신규 미커밋 PotionStatusUTK는 커밋에서 제외하고 **폰트 치환을 워크트리에 보존** — 해당 파일 자체 계획 커밋 시 동반 예정. 커밋된 54파일은 diff 정밀 검증으로 폰트 리터럴 치환만 포함 확인.
+- 게이트: 컴파일 error CS 0, focused Figma 배치(14클래스) **95/95 passed** (`TestOutput/p3_fonts_focused.xml`) — 테스트 기대값 교정 0건(이미 패밀리 단정). 전체 EditMode 회귀 **554 total / 547 passed / 7 failed** — 실패 7건 전부 기존 baseline군(AERO isolated-log, AttackTargetRing, CookingDatabase 수치, RecipeCatalog unknown combo, ThemeUSS baked-PNG + 미커밋 PlayerCombat 소유 attack-streak 확률형 2건) → **폰트/Figma/UI 신규 회귀 0**. XML `TestOutput/editmode-results.xml`.
+- 진행 노트: Phase 3 코드 서브에이전트 600s 타임아웃(치환 실행 전) → 부모가 스크립트로 직접 치환. 치환 초안의 기본인자 이중 `13.2ff` 버그 2건 발견 즉시 수리 후 게이트 통과.
+- **잔여:** Phase 4 실내 튜닝(FlameLight 강도/직사광 그림자)은 사용자 재실행 캡처의 밝기 판단 후. 배럭 침대 20개·상세창 크기·HUD 하단 고정 앵커의 시각 확인도 사용자 재실행 게이트. push 대기.
+
+---
+
+1|## 2026-10-09 배럭 침대 남벽 밖 버그 수리(TDD RED→GREEN) + AERO 포그 "실행완료" 판정(미실현 확정)
 
 - **사용자 보고 2건:** ①병사 관리창이 있는 곳이 배럭인데 침대 20개가 그보다 더 밑(남쪽)에 배치됨 ②실내 고품질화+aero asset 포그가 "실행됐다"고 했는데 전혀 안 됨 — 환각인지 실현인지 확인 요청.
 - **침대 근본원인(코드+테스트 실증):** 침대는 authored(소형 공간) 좌표로 세워지고 빌드 말미 `TopologyFurnitureScale=2.45` 스케일 패스(806행)를 통과하는데, 이전 값 z=-18~-26.8은 **×2.45 후 최종 -44.1~-65.7** — 방 절반 깊이가 44.1이라 0행이 남벽선(z=-44.1)에 붙고 1~4행은 **성 남벽 밖 외부**에 세워짐(사용자 보고 "더 밑에"와 정확히 일치). RED 실측: BarrackBed_1 collider min.z=-45.54로 이미 벽 밖.
