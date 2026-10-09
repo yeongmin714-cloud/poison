@@ -381,7 +381,7 @@ namespace ProjectName.UI.Toolkit
                 var kb = UnityEngine.InputSystem.Keyboard.current;
                 if (kb != null)
                 {
-                    if (kb.lKey.wasPressedThisFrame && window != null) if (window.IsOpen) window.Close(); else Toggle();;
+                    if (kb.jKey.wasPressedThisFrame && window != null) if (window.IsOpen) window.Close(); else Toggle();;
                     if (kb.escapeKey.wasPressedThisFrame && window != null && window.IsOpen) window.Close();
                 }
             }

@@ -556,7 +556,8 @@ namespace ProjectName.UI.Toolkit
                 var kb = UnityEngine.InputSystem.Keyboard.current;
                 if (kb != null)
                 {
-                    if (kb.jKey.wasPressedThisFrame && window != null) if (window.IsOpen) window.Close(); else Toggle();;
+                    // [2026-10-09 키 재배선] J = 도감(EncyclopediaWindowUTK)으로 재배정 — 저널 토글 제거
+                    //   (퀘스트는 Q 창에 통합, 사용자 확정). ESC 닫기만 유지.
                     if (kb.escapeKey.wasPressedThisFrame && window != null && window.IsOpen) window.Close();
                 }
             }

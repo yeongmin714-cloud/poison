@@ -95,7 +95,9 @@ namespace ProjectName.UI
         {
             // L 키 입력 처리 (UIManager에도 등록 가능)
             if (ProjectName.UI.Toolkit.UIToolkitBootstrap.IsReady) return; // [U8 은퇴] UTK 담당 — 키 경합 방지
-            if (Input.GetKeyDown(_toggleKey))
+            // [2026-10-09 키 재배선] 도감은 UTK 창(EncyclopediaWindowUTK)이 J키 담당 —
+            //   레거시 L 토글은 UTK 존재 시 은퇴(키 경합 방지, QuestJournalUI 은퇴 선례).
+            if (Input.GetKeyDown(_toggleKey) && ProjectName.UI.Toolkit.EncyclopediaWindowUTK.Instance == null)
             {
                 Toggle();
             }
