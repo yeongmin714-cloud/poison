@@ -78,7 +78,11 @@ namespace ProjectName.UI.Toolkit
             _headerSection.style.alignItems = Align.Center;
             Content.Add(_headerSection);
             var subtitle = new Label("SPECIFICATIONS");
-            subtitle.style.fontSize = 13.2f;
+            // [Figma 15:4 헤더 진실치] 영문 부제 14.4/400, #8B949E(=Dark.TextSub), 제목 우측 +12px.
+            //   fontSize 13.2 → 14.4 교정. 색(#8B949E)/웨이트(400 기본)는 기존값이 진실치와 동일.
+            //   위치: 제목은 크롬 TitleBar('상세 정보'), 부제는 DetailHeader 리전(패널-로컬 (24,24) 기점) 소속이라
+            //   서로 다른 트리 가지 — 절대좌표 +12px 배치 산출 불가 → 리전 기준 배치 유지(수치 교정만 원칙).
+            subtitle.style.fontSize = 14.4f;
             subtitle.style.color = Dark.TextSub;
             subtitle.style.flexGrow = 1f;
             _headerSection.Add(subtitle);
@@ -323,7 +327,14 @@ namespace ProjectName.UI.Toolkit
                 titleBar.style.borderBottomWidth = 1f;
                 titleBar.style.borderBottomColor = Dark.Stroke;
             }
-            if (_titleLabel != null) _titleLabel.style.color = Dark.TextMain;
+            if (_titleLabel != null)
+            {
+                // [Figma 15:4 헤더 진실치] 제목 24/700, #F0F6FC(=Dark.TextMain), 패널-로컬 (24, 29.2).
+                //   before: fontSize = USS var(--fs-lg) 38 → 진실치 24 교정. Bold(700)는 USS 유지(이미 진실치).
+                //   크롬 TitleBar flex 구조상 (24, 29.2) 절대배치 불가(공유 크롬 불변 제약) → fontSize/색만 교정.
+                _titleLabel.style.fontSize = 24f;
+                _titleLabel.style.color = Dark.TextMain;
+            }
 
             var closeBtn = this.Q<Button>("CloseButton");
             if (closeBtn != null)

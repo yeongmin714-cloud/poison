@@ -196,6 +196,8 @@ namespace ProjectName.UI.Toolkit
             _headerTitleGroup.style.flexDirection = FlexDirection.Row;
             _headerTitleGroup.style.alignItems = Align.Center;
             var title = new Label("창고") { name = "storage-title" };
+            // [Figma 15:4 헤더 진실치 확인] 제목 24/700, #F0F6FC(=PanelText), 패널-로컬 x=24/y=29.2 =
+            //   StorageHeaderBody(24,24) + 그룹(0,0) + 타이틀(0,5.2) — 현 수치 이미 진실치(숫자 변경 없음).
             title.style.position = Position.Absolute;
             title.style.left = 0f;
             title.style.top = 5.2f;
@@ -212,7 +214,7 @@ namespace ProjectName.UI.Toolkit
             subtitle.style.width = 97f;
             subtitle.style.height = 17f;
             subtitle.style.fontSize = 14.4f;
-            subtitle.style.unityFontStyleAndWeight = FontStyle.Normal;   // [Figma] 14.4/500
+            subtitle.style.unityFontStyleAndWeight = FontStyle.Normal;   // [Figma] 14.4/400 — left 57 = 제목 45 + 12px, 패널-로컬 (81, 38.2)
             subtitle.style.color = new StyleColor(PanelMuted);
             _headerTitleGroup.Add(subtitle);
             _headerTitleGroup.style.width = 456f;

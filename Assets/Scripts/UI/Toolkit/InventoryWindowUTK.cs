@@ -246,7 +246,14 @@ namespace ProjectName.UI.Toolkit
             }
 
             if (_titleLabel != null)
+            {
+                // [Figma 15:4 헤더 진실치] 제목 24/700, #F0F6FC(=UTKTheme.TextMain), 패널-로컬 (24, 29.2).
+                //   표준 크롬 TitleBar(.utk-title-bar flex, padding 6/8) 구조상 절대좌표 (24, 29.2)는
+                //   공유 크롬(USS/UTKWindowBase) 불변 제약으로 산출 불가 → 주석 판단기록, 수치(글자/색)만 교정.
+                //   before: fontSize = USS var(--fs-lg) 38 → 진실치 24 교정. Bold(700)는 USS -unity-font-style 유지(이미 진실치).
+                _titleLabel.style.fontSize = 24f;
                 _titleLabel.style.color = new StyleColor(UTKTheme.TextMain);
+            }
 
             // 닫기 버튼: 보조 패널 바탕 + r4. 기본 ✕ 텍스트 유지.
             var closeBtn = this.Q<Button>("CloseButton");
