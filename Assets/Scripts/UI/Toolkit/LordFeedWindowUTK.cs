@@ -80,7 +80,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(_lordInfoCard);
 
             _summaryLabel = new Label("🍗 영주 음식주기");
-            _summaryLabel.style.fontSize = 17f;
+            _summaryLabel.style.fontSize = 16.8f;
             _summaryLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _summaryLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _summaryLabel.style.marginBottom = 4f;
@@ -97,7 +97,7 @@ namespace ProjectName.UI.Toolkit
 
             // ── 지급 결과 상태 카드 ──
             _statusCard = new Label("");
-            _statusCard.style.fontSize = 13f;
+            _statusCard.style.fontSize = 13.2f;
             _statusCard.style.color = new StyleColor(UTKTheme.Accent);
             _statusCard.style.whiteSpace = WhiteSpace.Normal;
             _statusCard.style.marginTop = 6f;
@@ -225,7 +225,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color)
         {
             var label = new Label(text);
-            label.style.fontSize = 13f;
+            label.style.fontSize = 13.2f;
             label.style.color = new StyleColor(color);
             label.style.whiteSpace = WhiteSpace.Normal;
             return label;

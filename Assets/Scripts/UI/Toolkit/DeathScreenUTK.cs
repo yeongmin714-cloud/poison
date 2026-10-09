@@ -66,7 +66,7 @@ namespace ProjectName.UI.Toolkit
             _fadeRoot.Add(card);
 
             _title = new Label("☠ 사망");
-            _title.style.fontSize = 36;
+            _title.style.fontSize = 38.4f;
             _title.style.color = new StyleColor(UTKColor.HealthRed);
             _title.style.unityFontStyleAndWeight = FontStyle.Bold;
             _title.style.unityTextAlign = TextAnchor.MiddleCenter;
@@ -74,14 +74,14 @@ namespace ProjectName.UI.Toolkit
             card.Add(_title);
 
             var message = new Label("모험이 여기서 끝났습니다.");
-            message.style.fontSize = 15;
+            message.style.fontSize = 15.6f;
             message.style.color = new StyleColor(UTKColor.TextPrimary);
             message.style.unityTextAlign = TextAnchor.MiddleCenter;
             message.style.marginBottom = 4;
             card.Add(message);
 
             var hint = new Label("부활하거나 저장된 게임을 불러오세요.");
-            hint.style.fontSize = 13;
+            hint.style.fontSize = 13.2f;
             hint.style.color = new StyleColor(UTKColor.TextSecondary);
             hint.style.unityTextAlign = TextAnchor.MiddleCenter;
             card.Add(hint);

@@ -79,16 +79,16 @@ namespace ProjectName.UI.Toolkit
             _content.Add(infoCard);
 
             _infoLabel = MakeText("🔒 난이도 —", UTKColor.TextPrimary);
-            _infoLabel.style.fontSize = 14f;
+            _infoLabel.style.fontSize = 14.4f;
             infoCard.Add(_infoLabel);
 
             _durLabel = MakeText("❤️ 내구도: -/-", UTKColor.GuildGreen);
-            _durLabel.style.fontSize = 14f;
+            _durLabel.style.fontSize = 14.4f;
             _durLabel.style.marginTop = 4f;
             infoCard.Add(_durLabel);
 
             _timeLabel = MakeText("⏱️ 남은 시간: -초", UTKColor.TextSecondary);
-            _timeLabel.style.fontSize = 14f;
+            _timeLabel.style.fontSize = 14.4f;
             _timeLabel.style.marginTop = 2f;
             infoCard.Add(_timeLabel);
 
@@ -132,7 +132,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             var ctrl = MakeText("W/S: 핀 조절 | Space: 고정 | ESC: 취소 | ✕: 닫기", UTKColor.TextSecondary);
-            ctrl.style.fontSize = 13f;
+            ctrl.style.fontSize = 13.2f;
             ctrl.style.marginTop = 10f;
             _content.Add(ctrl);
 
@@ -349,7 +349,7 @@ namespace ProjectName.UI.Toolkit
                 _num.style.position = Position.Absolute;
                 _num.style.left = 0; _num.style.right = 0; _num.style.bottom = -16;
                 _num.style.unityTextAlign = TextAnchor.MiddleCenter;
-                _num.style.fontSize = 11;
+                _num.style.fontSize = 12;
                 _num.style.color = new StyleColor(UTKColor.TextSecondary);
                 Add(_num);
             }

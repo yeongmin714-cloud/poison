@@ -94,7 +94,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(selectCard);
 
             var hint = new Label("약초를 선택하고 제조 버튼을 누르세요.");
-            hint.style.fontSize = 13f;
+            hint.style.fontSize = 13.2f;
             hint.style.color = new StyleColor(UTKTheme.TextSub);
             selectCard.Add(hint);
 
@@ -102,7 +102,7 @@ namespace ProjectName.UI.Toolkit
             _herb2Name = BuildHerbRow(selectCard, "약초 2", 2);
 
             _countLabel = new Label("");
-            _countLabel.style.fontSize = 13f;
+            _countLabel.style.fontSize = 13.2f;
             _countLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _countLabel.style.whiteSpace = WhiteSpace.Normal;
             _countLabel.style.marginTop = 6f;
@@ -125,7 +125,7 @@ namespace ProjectName.UI.Toolkit
 
             // ── 결과 패널 카드 ──
             _resultLabel = new Label("");
-            _resultLabel.style.fontSize = 15f;
+            _resultLabel.style.fontSize = 15.6f;
             _resultLabel.style.color = new StyleColor(UTKTheme.Gold);
             _resultLabel.style.whiteSpace = WhiteSpace.Normal;
             _resultLabel.style.marginTop = 10f;
@@ -156,7 +156,7 @@ namespace ProjectName.UI.Toolkit
             parent.Add(row);
 
             var titleLabel = new Label(title + "  ");
-            titleLabel.style.fontSize = 15f;
+            titleLabel.style.fontSize = 15.6f;
             titleLabel.style.color = new StyleColor(UTKTheme.TextMain);
             titleLabel.style.width = 62f;
             titleLabel.style.flexShrink = 0f;
@@ -169,7 +169,7 @@ namespace ProjectName.UI.Toolkit
             row.Add(prev);
 
             var nameLabel = new Label("");
-            nameLabel.style.fontSize = 15f;
+            nameLabel.style.fontSize = 15.6f;
             nameLabel.style.color = new StyleColor(UTKTheme.Gold);
             nameLabel.style.flexGrow = 1f;
             nameLabel.style.whiteSpace = WhiteSpace.Normal;

@@ -187,7 +187,7 @@ namespace ProjectName.UI.Toolkit
             headerCard.style.paddingTop = 10f;
             headerCard.style.paddingBottom = 10f;
             var title = MakeLabel(WorldEventManager.GetEventEmoji(evt.type) + "  " + WorldEventManager.GetEventDisplayName(evt.type), UTKColor.TextPrimary, true);
-            title.style.fontSize = 18f;
+            title.style.fontSize = 16.8f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             headerCard.Add(title);
             _body.Add(headerCard);
@@ -304,7 +304,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color, bool wrap)
         {
             var l = new Label(text);
-            l.style.fontSize = 13f;
+            l.style.fontSize = 13.2f;
             l.style.color = new StyleColor(color);
             if (wrap)
                 l.style.whiteSpace = WhiteSpace.Normal;

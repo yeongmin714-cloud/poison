@@ -89,7 +89,7 @@ namespace ProjectName.UI.Toolkit
             pickingMode = PickingMode.Ignore;
 
             var title = new Label("🌿 약초 상태");
-            title.style.fontSize = 13f;
+            title.style.fontSize = 13.2f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.color = new StyleColor(UTKColor.TextPrimary);
             title.style.paddingTop = 2f;

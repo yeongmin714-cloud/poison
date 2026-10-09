@@ -105,7 +105,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(_lordCard);
 
             _headlineLabel = new Label("👑 영주 알현");
-            _headlineLabel.style.fontSize = 20f;
+            _headlineLabel.style.fontSize = 21.6f;
             _headlineLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _headlineLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _lordCard.Add(_headlineLabel);
@@ -131,7 +131,7 @@ namespace ProjectName.UI.Toolkit
 
             // ── 대화/결과 본문 패널 ──
             _dialogueLabel = new Label("");
-            _dialogueLabel.style.fontSize = 16f;
+            _dialogueLabel.style.fontSize = 16.8f;
             _dialogueLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _dialogueLabel.style.whiteSpace = WhiteSpace.Normal;
             _dialogueLabel.style.marginTop = 8f;

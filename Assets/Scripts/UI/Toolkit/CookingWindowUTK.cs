@@ -252,7 +252,7 @@ namespace ProjectName.UI.Toolkit
                 emptyMark.style.height = 38.4f;
                 emptyMark.style.color = new StyleColor(UTKColor.TextSecondary);
                 emptyMark.style.unityTextAlign = TextAnchor.MiddleCenter;
-                emptyMark.style.fontSize = 20f;
+                emptyMark.style.fontSize = 21.6f;
                 placeholder.Add(emptyMark);
                 grid.Add(placeholder);
                 _storageCells[i] = placeholder;
@@ -485,7 +485,7 @@ namespace ProjectName.UI.Toolkit
                 lbl.style.top = SlotSize - 17f;
                 lbl.style.width = SlotSize;
                 lbl.style.height = 17f;
-                lbl.style.fontSize = 11f;
+                lbl.style.fontSize = 12f;
                 lbl.style.color = new StyleColor(UTKColor.TextSecondary);
                 lbl.style.unityTextAlign = TextAnchor.MiddleCenter;
                 holder.Add(lbl);
@@ -503,7 +503,7 @@ namespace ProjectName.UI.Toolkit
             arrow.style.position = Position.Absolute;
             arrow.style.left = 278.4f;
             arrow.style.top = 70f;
-            arrow.style.fontSize = 22f;
+            arrow.style.fontSize = 21.6f;
             arrow.style.color = new StyleColor(UTKColor.AccentRare);
             section.Add(arrow);
 
@@ -524,7 +524,7 @@ namespace ProjectName.UI.Toolkit
             _resultNameLabel.style.left = 91.2f;
             _resultNameLabel.style.top = 33f;
             _resultNameLabel.style.width = 96f;
-            _resultNameLabel.style.fontSize = 11f;
+            _resultNameLabel.style.fontSize = 12f;
             _resultNameLabel.style.color = new StyleColor(UTKColor.AccentRare);
             _resultNameLabel.style.whiteSpace = WhiteSpace.Normal;
             resultHolder.Add(_resultNameLabel);
@@ -660,7 +660,7 @@ namespace ProjectName.UI.Toolkit
             _detailIngredients.style.color = new StyleColor(UTKColor.TextSecondary);
             description.Add(_detailIngredients);
             _detailEffectsLabel = new Label("") { name = "cooking-detail-effect-label" };
-            _detailEffectsLabel.style.fontSize = 13f;
+            _detailEffectsLabel.style.fontSize = 13.2f;
             _detailEffectsLabel.style.color = new StyleColor(UTKColor.AccentRare);
             _detailEffectsLabel.style.marginTop = 10f;
             description.Add(_detailEffectsLabel);
@@ -671,7 +671,7 @@ namespace ProjectName.UI.Toolkit
             description.Add(descriptionDivider);
             _detailDescriptionLabel = new Label("") { name = "cooking-detail-description" };
             _detailDescriptionLabel.style.whiteSpace = WhiteSpace.Normal;
-            _detailDescriptionLabel.style.fontSize = 13f;
+            _detailDescriptionLabel.style.fontSize = 13.2f;
             _detailDescriptionLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _detailDescriptionLabel.style.marginTop = 12f;
             description.Add(_detailDescriptionLabel);
@@ -948,7 +948,7 @@ namespace ProjectName.UI.Toolkit
             if (shown == 0)
             {
                 var empty = new Label("(해당 탭 레시피 없음)");
-                empty.style.fontSize = 13f;
+                empty.style.fontSize = 13.2f;
                 empty.style.color = new StyleColor(UTKColor.TextSecondary);
                 _recipeListHost.Add(empty);
             }
@@ -1026,7 +1026,7 @@ namespace ProjectName.UI.Toolkit
             if (items.Count == 0)
             {
                 var empty = new Label("(요리 재료 없음)");
-                empty.style.fontSize = 13f;
+                empty.style.fontSize = 13.2f;
                 empty.style.color = new StyleColor(UTKColor.TextSecondary);
                 _ingGridHost.Add(empty);
                 return;

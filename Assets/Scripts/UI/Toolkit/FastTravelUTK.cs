@@ -78,12 +78,12 @@ namespace ProjectName.UI.Toolkit
 
             _summaryLabel = new Label("⚡ 빠른 이동");
             _summaryLabel.AddToClassList("utk-title-label");
-            _summaryLabel.style.fontSize = 18f;
+            _summaryLabel.style.fontSize = 16.8f;
             _summaryLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             headerCard.Add(_summaryLabel);
 
             _goldLabel = new Label("💰 보유 골드: 0G");
-            _goldLabel.style.fontSize = 14f;
+            _goldLabel.style.fontSize = 14.4f;
             _goldLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _goldLabel.style.marginTop = 4f;
             headerCard.Add(_goldLabel);
@@ -193,7 +193,7 @@ namespace ProjectName.UI.Toolkit
                 info.style.justifyContent = Justify.Center;
 
                 var name = MakeLabel(def.territoryName, UTKColor.TextPrimary);
-                name.style.fontSize = 15f;
+                name.style.fontSize = 15.6f;
                 name.style.unityFontStyleAndWeight = FontStyle.Bold;
                 info.Add(name);
 
@@ -336,7 +336,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color)
         {
             var l = new Label(text);
-            l.style.fontSize = 13f;
+            l.style.fontSize = 13.2f;
             l.style.color = new StyleColor(color);
             l.style.whiteSpace = WhiteSpace.Normal;
             return l;

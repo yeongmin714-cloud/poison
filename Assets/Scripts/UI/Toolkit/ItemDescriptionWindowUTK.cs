@@ -78,7 +78,7 @@ namespace ProjectName.UI.Toolkit
             _headerSection.style.alignItems = Align.Center;
             Content.Add(_headerSection);
             var subtitle = new Label("SPECIFICATIONS");
-            subtitle.style.fontSize = 13f;
+            subtitle.style.fontSize = 13.2f;
             subtitle.style.color = Dark.TextSub;
             subtitle.style.flexGrow = 1f;
             _headerSection.Add(subtitle);
@@ -98,7 +98,7 @@ namespace ProjectName.UI.Toolkit
             _nameSection.Add(_itemName);
 
             _tierClass = new Label("");
-            _tierClass.style.fontSize = 13f;
+            _tierClass.style.fontSize = 13.2f;
             _tierClass.style.color = Dark.Gold;
             _tierClass.style.backgroundColor = Dark.Sub;
             _tierClass.style.borderTopLeftRadius = 4f; _tierClass.style.borderTopRightRadius = 4f;
@@ -154,13 +154,13 @@ namespace ProjectName.UI.Toolkit
             _descriptionSection.Add(_specsSection);
 
             var descHead = new Label("아이템 설명");
-            descHead.style.fontSize = 14f;
+            descHead.style.fontSize = 14.4f;
             descHead.style.color = Dark.Accent;
             descHead.style.marginBottom = 4f;
             _descriptionSection.Add(descHead);
 
             _itemDesc = new Label("");
-            _itemDesc.style.fontSize = 14f;
+            _itemDesc.style.fontSize = 14.4f;
             _itemDesc.style.color = Dark.TextMain;
             _itemDesc.style.whiteSpace = WhiteSpace.Normal;
             _descriptionSection.Add(_itemDesc);
@@ -296,7 +296,7 @@ namespace ProjectName.UI.Toolkit
             box.Add(lbl);
 
             val = new Label("—");
-            val.style.fontSize = 14f;
+            val.style.fontSize = 14.4f;
             val.style.color = Dark.TextMain;
             val.style.unityTextAlign = TextAnchor.MiddleCenter;
             box.Add(val);

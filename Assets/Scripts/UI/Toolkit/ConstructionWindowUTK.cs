@@ -89,7 +89,7 @@ namespace ProjectName.UI.Toolkit
             headerCard.style.marginBottom = 6f;
             _summaryLabel = new Label("🏗️ 영지 건설");
             _summaryLabel.AddToClassList("utk-title-label");
-            _summaryLabel.style.fontSize = 18f;
+            _summaryLabel.style.fontSize = 16.8f;
             headerCard.Add(_summaryLabel);
 
             _statusLabel = MakeLabel("", UTKColor.TextSecondary, 12f);
@@ -202,11 +202,11 @@ namespace ProjectName.UI.Toolkit
                 var info = new VisualElement();
                 info.style.flexGrow = 1f;
                 info.style.flexShrink = 1f;
-                info.Add(MakeLabel(def.displayName, UTKColor.TextPrimary, 14f));
+                info.Add(MakeLabel(def.displayName, UTKColor.TextPrimary, 14.4f));
                 info.Add(MakeLabel(def.description, UTKColor.TextSecondary, 12f));
                 info.Add(MakeLabel(
                     $"💰 {def.goldCost}G · ⏱️ {def.buildTimeSeconds}초 · 반경 {def.footprintRadius:F1}m",
-                    UTKColor.TextSecondary, 11f));
+                    UTKColor.TextSecondary, 12f));
                 card.Add(info);
 
                 card.Add(UTKButton.Create("배치", () => OnPlaceBlueprint(def.id), UTKButton.Variant.Primary));
@@ -243,8 +243,8 @@ namespace ProjectName.UI.Toolkit
                 var info = new VisualElement();
                 info.style.flexGrow = 1f;
                 info.style.flexShrink = 1f;
-                info.Add(MakeLabel($"{DescribeBlueprint(s.blueprintId)}  {state}", UTKColor.TextPrimary, 13f));
-                info.Add(MakeLabel($"#{s.structureId} @ {s.territoryId}", UTKColor.TextSecondary, 11f));
+                info.Add(MakeLabel($"{DescribeBlueprint(s.blueprintId)}  {state}", UTKColor.TextPrimary, 13.2f));
+                info.Add(MakeLabel($"#{s.structureId} @ {s.territoryId}", UTKColor.TextSecondary, 12f));
                 card.Add(info);
 
                 string id = s.structureId;   // 클로저 캡처용 지역 복사
@@ -384,7 +384,7 @@ namespace ProjectName.UI.Toolkit
         {
             var l = new Label(text);
             l.AddToClassList("utk-title-label");
-            l.style.fontSize = 14f;
+            l.style.fontSize = 14.4f;
             l.style.marginTop = 8f;
             return l;
         }

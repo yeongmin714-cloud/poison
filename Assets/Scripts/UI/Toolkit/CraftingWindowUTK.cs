@@ -274,7 +274,7 @@ namespace ProjectName.UI.Toolkit
 
             var leftTitle = new Label("레시피 북");
             leftTitle.AddToClassList("utk-title-label");
-            leftTitle.style.fontSize = 18f;
+            leftTitle.style.fontSize = 16.8f;
             leftTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 섹션 제목 기본 텍스트
             left.Add(leftTitle);
 
@@ -296,26 +296,26 @@ namespace ProjectName.UI.Toolkit
 
             var rightTitle = new Label("레시피 상세");
             rightTitle.AddToClassList("utk-title-label");
-            rightTitle.style.fontSize = 18f;
+            rightTitle.style.fontSize = 16.8f;
             rightTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 섹션 제목 기본 텍스트
             right.Add(rightTitle);
 
             _detailName = MkLabel("—", 24, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [GitHub-dark] 레시피명 액센트
             right.Add(_detailName);
 
-            _detailEffect = MkLabel("", 14, GitHubDark.TextSub, TextAnchor.UpperLeft);
+            _detailEffect = MkLabel("", 14.4f, GitHubDark.TextSub, TextAnchor.UpperLeft);
             _detailEffect.style.whiteSpace = WhiteSpace.Normal;
             right.Add(_detailEffect);
 
             AddSeparator(right);
 
-            var ingTitle = MkLabel("재료 요구 / 보유", 15, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            var ingTitle = MkLabel("재료 요구 / 보유", 15.6f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             ingTitle.style.marginTop = 4f;
             right.Add(ingTitle);
 
-            _ingA = MkLabel("—", 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            _ingA = MkLabel("—", 16.8f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             right.Add(_ingA);
-            _ingB = MkLabel("—", 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            _ingB = MkLabel("—", 16.8f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             right.Add(_ingB);
 
             _craftBtn = UTKButton.Create("⚒ 제작하기", ExecuteCraftForSelected, UTKButton.Variant.Primary);
@@ -329,7 +329,7 @@ namespace ProjectName.UI.Toolkit
             presetRow.style.marginTop = 8f;
             right.Add(presetRow);
 
-            var presetInfo = MkLabel("선택 레시피를 프리셋으로 저장합니다.", 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var presetInfo = MkLabel("선택 레시피를 프리셋으로 저장합니다.", 13.2f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             presetRow.Add(presetInfo);
 
             var saveBtn = UTKButton.Create("💾 프리셋 저장", OpenNameModal, UTKButton.Variant.Secondary);
@@ -340,7 +340,7 @@ namespace ProjectName.UI.Toolkit
 
         private void BuildFooter()
         {
-            _footerLabel = MkLabel("", 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            _footerLabel = MkLabel("", 13.2f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             _footerLabel.style.marginTop = 6f;
             _content.Add(_footerLabel);
         }
@@ -486,7 +486,7 @@ namespace ProjectName.UI.Toolkit
                 string msg = _favoritesOnly
                     ? "즐겨찾기한 레시피가 없습니다. ★을 눌러 추가하세요."
                     : "아직 발견한 레시피가 없습니다.";
-                var empty = MkLabel(msg, 14, GitHubDark.TextSub, TextAnchor.UpperLeft);
+                var empty = MkLabel(msg, 14.4f, GitHubDark.TextSub, TextAnchor.UpperLeft);
                 empty.style.whiteSpace = WhiteSpace.Normal;
                 _recipeList.Add(empty);
                 return;
@@ -814,7 +814,7 @@ namespace ProjectName.UI.Toolkit
 
             var title = new Label("프리셋 이름 입력");
             title.AddToClassList("utk-title-label");
-            title.style.fontSize = 18f;
+            title.style.fontSize = 16.8f;
             title.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 모달 제목 기본 텍스트
             _nameModal.Add(title);
 

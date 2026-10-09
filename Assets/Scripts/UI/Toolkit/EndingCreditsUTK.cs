@@ -169,13 +169,13 @@ namespace ProjectName.UI.Toolkit
             {
                 string line = CreditsLines[i];
                 Label l = new Label(line);
-                l.style.fontSize = 18f;
+                l.style.fontSize = 16.8f;
                 l.style.unityTextAlign = TextAnchor.MiddleCenter;
                 l.style.marginBottom = string.IsNullOrEmpty(line) ? 8f : 12f;
                 l.style.color = new StyleColor(string.IsNullOrEmpty(line) ? UTKColor.TextSecondary : UTKColor.TextPrimary);
                 if (line.StartsWith("—") || line == "KOREA 1420" || line == "감사합니다!")
                 {
-                    l.style.fontSize = line == "KOREA 1420" ? 26f : 20f;
+                    l.style.fontSize = line == "KOREA 1420" ? 26.4f : 21.6f;
                     l.style.unityFontStyleAndWeight = FontStyle.Bold;
                     l.style.color = new StyleColor(UTKColor.AccentRare);
                     l.style.marginTop = 8f;
@@ -183,7 +183,7 @@ namespace ProjectName.UI.Toolkit
                 else if (line == "Nous Research Team" || line == "Hermes Agent AI" || line == "Project Hermes" || line == "AI Generative Design")
                 {
                     l.style.color = new StyleColor(UTKColor.TextSecondary);
-                    l.style.fontSize = 16f;
+                    l.style.fontSize = 16.8f;
                 }
                 _creditsHost.Add(l);
             }

@@ -401,7 +401,7 @@ namespace ProjectName.UI.Toolkit
             // Existing selection feedback occupies the Figma footer region.
             _selectedLabel = new Label("");
             _selectedLabel.style.position = Position.Absolute;
-            _selectedLabel.style.fontSize = 13f;
+            _selectedLabel.style.fontSize = 13.2f;
             _selectedLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _selectedLabel.style.whiteSpace = WhiteSpace.Normal;
             Add(_selectedLabel);

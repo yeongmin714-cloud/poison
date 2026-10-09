@@ -115,9 +115,9 @@ namespace ProjectName.UI.Toolkit
             headerCard.style.marginBottom = 6f;
             _content.Add(headerCard);
 
-            _overallLabel = MkLabel("📊 전체 수집률: 0/0 (0.0%)", 14, UTKTheme.TextMain, TextAnchor.MiddleLeft);
+            _overallLabel = MkLabel("📊 전체 수집률: 0/0 (0.0%)", 14.4f, UTKTheme.TextMain, TextAnchor.MiddleLeft);
             headerCard.Add(_overallLabel);
-            _catLabel = MkLabel("🏷️ 수집률: -", 13, UTKTheme.Gold, TextAnchor.MiddleLeft);
+            _catLabel = MkLabel("🏷️ 수집률: -", 13.2f, UTKTheme.Gold, TextAnchor.MiddleLeft);
             headerCard.Add(_catLabel);
 
             // ── 카테고리 탭 ──
@@ -154,7 +154,7 @@ namespace ProjectName.UI.Toolkit
             _detail.style.width = new Length(42f, LengthUnit.Percent);
             body.Add(_detail);
 
-            _detailBody = MkLabel("항목을 선택하세요.", 14, UTKTheme.TextSub, TextAnchor.UpperLeft);
+            _detailBody = MkLabel("항목을 선택하세요.", 14.4f, UTKTheme.TextSub, TextAnchor.UpperLeft);
             _detailBody.style.whiteSpace = WhiteSpace.Normal;
             _detail.Add(_detailBody);
 
@@ -286,7 +286,7 @@ namespace ProjectName.UI.Toolkit
 
             if (all.Count == 0)
             {
-                var empty = MkLabel("이 카테고리에 항목이 없습니다.", 13, UTKTheme.TextSub, TextAnchor.UpperLeft);
+                var empty = MkLabel("이 카테고리에 항목이 없습니다.", 13.2f, UTKTheme.TextSub, TextAnchor.UpperLeft);
                 empty.style.flexGrow = 1f;
                 _grid.Add(empty);
             }

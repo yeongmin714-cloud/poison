@@ -135,7 +135,7 @@ namespace ProjectName.UI.Toolkit
 
             var combination = CreateRegion("craft-bench-combination-section", new Rect(24f, 152.4f, 456f, 194.4f));
             CraftPanelRoot.Add(combination);
-            var comboTitle = MakeLabel(CombinationHeading, 14f, UTKColor.TextSecondary);
+            var comboTitle = MakeLabel(CombinationHeading, 14.4f, UTKColor.TextSecondary);
             comboTitle.name = "craft-bench-combination-heading";
             comboTitle.style.position = Position.Absolute;
             comboTitle.style.left = 19.2f;
@@ -179,7 +179,7 @@ namespace ProjectName.UI.Toolkit
                 placeholder.tooltip = "추가 재료 슬롯 (시각 전용)";
                 flow.Add(placeholder);
             }
-            var arrow = MakeLabel("→", 22f, UTKColor.BorderBronze);
+            var arrow = MakeLabel("→", 21.6f, UTKColor.BorderBronze);
             arrow.name = "craft-bench-flow-arrow";
             arrow.style.marginLeft = 4f;
             arrow.style.marginRight = 8f;
@@ -203,7 +203,7 @@ namespace ProjectName.UI.Toolkit
             _status.style.width = 280f;
             _status.style.whiteSpace = WhiteSpace.Normal;
             combination.Add(_status);
-            _rate = MakeLabel("", 13f, UTKColor.GuildGreen);
+            _rate = MakeLabel("", 13.2f, UTKColor.GuildGreen);
             _rate.name = "craft-bench-success-rate";
             _rate.style.position = Position.Absolute;
             _rate.style.right = 19.2f;
@@ -212,7 +212,7 @@ namespace ProjectName.UI.Toolkit
 
             var recipeRegion = CreateRegion("craft-bench-recipe-list-section", new Rect(24f, 386.4f, 456f, 419.2f));
             CraftPanelRoot.Add(recipeRegion);
-            var recipeHeading = MakeLabel(RecipeHeading, 14f, UTKColor.TextPrimary);
+            var recipeHeading = MakeLabel(RecipeHeading, 14.4f, UTKColor.TextPrimary);
             recipeHeading.name = "craft-bench-recipe-heading";
             recipeRegion.Add(recipeHeading);
             _book = new ScrollView(ScrollViewMode.Vertical) { name = "craft-bench-recipe-list" };
@@ -234,7 +234,7 @@ namespace ProjectName.UI.Toolkit
             footer.Add(_craftButton);
 
             BuildDetailPanel();
-            _storageStats = MakeLabel("사용 슬롯: 0 / 0", 13f, UTKColor.TextSecondary);
+            _storageStats = MakeLabel("사용 슬롯: 0 / 0", 13.2f, UTKColor.TextSecondary);
             _storageStats.name = "craft-bench-storage-capacity";
             _storageStats.style.position = Position.Absolute;
             _storageStats.style.left = 24f;
@@ -327,10 +327,10 @@ namespace ProjectName.UI.Toolkit
             var group = new VisualElement();
             group.style.flexDirection = FlexDirection.Row;
             group.style.alignItems = Align.Center;
-            var label = MakeLabel(title, 20f, UTKColor.TextPrimary);
+            var label = MakeLabel(title, 21.6f, UTKColor.TextPrimary);
             label.name = elementName + "-title";
             group.Add(label);
-            var sub = MakeLabel(subtitle, 11f, UTKColor.TextSecondary);
+            var sub = MakeLabel(subtitle, 12f, UTKColor.TextSecondary);
             sub.style.marginLeft = 10f;
             group.Add(sub);
             header.Add(group);
@@ -351,7 +351,7 @@ namespace ProjectName.UI.Toolkit
             nameSection.style.alignItems = Align.Center;
             nameSection.style.justifyContent = Justify.SpaceBetween;
             DetailPanelRoot.Add(nameSection);
-            _detailName = MakeLabel("레시피를 선택하세요.", 19f, UTKColor.TextPrimary);
+            _detailName = MakeLabel("레시피를 선택하세요.", 21.6f, UTKColor.TextPrimary);
             _detailName.name = "craft-bench-detail-name";
             _detailName.style.whiteSpace = WhiteSpace.Normal;
             nameSection.Add(_detailName);
@@ -376,10 +376,10 @@ namespace ProjectName.UI.Toolkit
             description.style.paddingLeft = description.style.paddingRight = 19.2f;
             description.style.paddingTop = 19.2f;
             DetailPanelRoot.Add(description);
-            var heading = MakeLabel(DetailDescriptionHeading, 15f, UTKColor.TextPrimary);
+            var heading = MakeLabel(DetailDescriptionHeading, 15.6f, UTKColor.TextPrimary);
             heading.name = "craft-bench-detail-description-heading";
             description.Add(heading);
-            _detailDescription = MakeLabel("", 13f, UTKColor.TextSecondary);
+            _detailDescription = MakeLabel("", 13.2f, UTKColor.TextSecondary);
             _detailDescription.name = "craft-bench-detail-description";
             _detailDescription.style.marginTop = 12f;
             _detailDescription.style.whiteSpace = WhiteSpace.Normal;
@@ -471,9 +471,9 @@ namespace ProjectName.UI.Toolkit
                 text.style.flexDirection = FlexDirection.Column;
                 text.style.justifyContent = Justify.Center;
                 var discovered = IsDiscovered(recipe);
-                var name = MakeLabel(discovered ? recipe.ResultName : "?", 14f, UTKColor.TextPrimary);
+                var name = MakeLabel(discovered ? recipe.ResultName : "?", 14.4f, UTKColor.TextPrimary);
                 text.Add(name);
-                var mats = MakeLabel(DescribeMats(recipe), 11f, UTKColor.TextSecondary);
+                var mats = MakeLabel(DescribeMats(recipe), 12f, UTKColor.TextSecondary);
                 text.Add(mats);
                 row.Add(text);
                 var captured = recipe;

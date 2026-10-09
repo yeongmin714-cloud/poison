@@ -189,7 +189,7 @@ namespace ProjectName.UI.Toolkit
             int roundNum = _currentLog != null && _currentLog.rounds != null ? _currentLog.rounds.Count : 0;
             string roundStr = roundNum > 0 ? $"— {roundNum}라운드 진행 중 —" : "— 전투 준비 —";
             _roundLabel = new Label(roundStr);
-            _roundLabel.style.fontSize = 15f;
+            _roundLabel.style.fontSize = 15.6f;
             _roundLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _roundLabel.style.color = new StyleColor(UTKTheme.Accent);
             _roundLabel.style.alignSelf = Align.Center;
@@ -265,7 +265,7 @@ namespace ProjectName.UI.Toolkit
 
             string resultMsg = _currentLog.isVictory ? "🏆 승리!" : "💀 패배...";
             _resultMsg = new Label(resultMsg);
-            _resultMsg.style.fontSize = 26f;
+            _resultMsg.style.fontSize = 26.4f;
             _resultMsg.style.unityFontStyleAndWeight = FontStyle.Bold;
             _resultMsg.style.color = new StyleColor(_currentLog.isVictory ? UTKTheme.Gold : UTKTheme.Danger);
             _resultMsg.style.alignSelf = Align.Center;
@@ -283,7 +283,7 @@ namespace ProjectName.UI.Toolkit
             if (!string.IsNullOrEmpty(reward))
             {
                 _rewardMsg = new Label(reward);
-                _rewardMsg.style.fontSize = 15f;
+                _rewardMsg.style.fontSize = 15.6f;
                 _rewardMsg.style.color = new StyleColor(UTKTheme.TextMain);
                 _rewardMsg.style.whiteSpace = WhiteSpace.Normal;
                 _rewardMsg.style.alignSelf = Align.Center;
@@ -292,7 +292,7 @@ namespace ProjectName.UI.Toolkit
 
             float remain = Mathf.Max(0f, 5f - _resultTimer);
             _closeHint = new Label($"자동으로 닫힙니다... ({remain:F1}초)");
-            _closeHint.style.fontSize = 11f;
+            _closeHint.style.fontSize = 12f;
             _closeHint.style.color = new StyleColor(UTKTheme.TextSub);
             _closeHint.style.alignSelf = Align.Center;
             _closeHint.style.marginTop = 4f;
@@ -309,7 +309,7 @@ namespace ProjectName.UI.Toolkit
             var text = new Label("");
             text.style.alignSelf = Align.FlexStart;
             text.style.paddingLeft = 4f;
-            text.style.fontSize = 11f;
+            text.style.fontSize = 12f;
             text.style.color = new StyleColor(UTKTheme.TextMain);
             bar.Add(text);
             return text;
@@ -334,7 +334,7 @@ namespace ProjectName.UI.Toolkit
             return bar;
         }
 
-        private static Label Lbl(string text, Color? color = null, float size = 13f)
+        private static Label Lbl(string text, Color? color = null, float size = 13.2f)
         {
             var l = new Label(text ?? "");
             l.style.fontSize = size;

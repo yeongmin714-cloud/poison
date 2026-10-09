@@ -168,7 +168,7 @@ namespace ProjectName.UI.Toolkit
             var lootTitle = MkTextLabel("전리품", UTKTheme.FontTitle, UTKTheme.TextMain);   // [Figma] 21.6/700
             lootTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             panelHeader.Add(lootTitle);
-            var lootSub = MkTextLabel("LOOT SECURED", 11f, UTKTheme.TextSub);
+            var lootSub = MkTextLabel("LOOT SECURED", 12f, UTKTheme.TextSub);
             lootSub.style.marginLeft = 12f;
             lootSub.style.marginTop = 5f;
             lootSub.style.flexGrow = 1f;
@@ -231,7 +231,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(_gridScroll);
 
             _emptyLabel = new Label("(전리품이 없습니다)");
-            _emptyLabel.style.fontSize = 14f;
+            _emptyLabel.style.fontSize = 14.4f;
             _emptyLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _emptyLabel.style.marginTop = 12f;
             _content.Add(_emptyLabel);
@@ -502,7 +502,7 @@ namespace ProjectName.UI.Toolkit
             countLabel.style.position = Position.Absolute;
             countLabel.style.right = 4f;
             countLabel.style.bottom = 2f;
-            countLabel.style.fontSize = 14f;   // Figma 카운트 14px
+            countLabel.style.fontSize = 14.4f;   // Figma 카운트 14px
             countLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             countLabel.style.color = new StyleColor(UTKTheme.Gold);   // 카운트 — 골드 의미색
             slot.Add(countLabel);

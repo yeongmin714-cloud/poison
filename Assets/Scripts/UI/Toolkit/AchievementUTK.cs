@@ -79,7 +79,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(headerCard);
 
             _statLabel = new Label("");
-            _statLabel.style.fontSize = 14f;
+            _statLabel.style.fontSize = 14.4f;
             _statLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _statLabel.style.color = new StyleColor(UTKColor.AccentRare);
             headerCard.Add(_statLabel);
@@ -184,12 +184,12 @@ namespace ProjectName.UI.Toolkit
             row1.style.alignItems = Align.Center;
 
             var icon = new Label(unlocked ? def.icon : "🔒");
-            icon.style.fontSize = 22f;
+            icon.style.fontSize = 21.6f;
             icon.style.width = 34f;
             row1.Add(icon);
 
             var title = new Label(string.IsNullOrEmpty(def.title) ? def.id : def.title);
-            title.style.fontSize = 15f;
+            title.style.fontSize = 15.6f;
             title.style.flexGrow = 1f;
             title.style.color = new StyleColor(UTKColor.TextPrimary);
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -206,7 +206,7 @@ namespace ProjectName.UI.Toolkit
 
             // 설명
             var desc = new Label(string.IsNullOrEmpty(def.description) ? "" : def.description);
-            desc.style.fontSize = 13f;
+            desc.style.fontSize = 13.2f;
             desc.style.color = new StyleColor(UTKColor.TextSecondary);
             desc.style.whiteSpace = WhiteSpace.Normal;
             desc.style.marginLeft = 34f;

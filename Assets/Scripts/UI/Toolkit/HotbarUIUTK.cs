@@ -163,7 +163,7 @@ namespace ProjectName.UI.Toolkit
             rotateHint.style.top = 24f;
             rotateHint.style.width = 19.2f;
             rotateHint.style.height = 19.2f;
-            rotateHint.style.fontSize = 15f;
+            rotateHint.style.fontSize = 15.6f;
             rotateHint.style.color = new StyleColor(UTKColor.TextSecondary);
             rotateHint.style.unityTextAlign = TextAnchor.MiddleCenter;
             tabHint.Add(rotateHint);

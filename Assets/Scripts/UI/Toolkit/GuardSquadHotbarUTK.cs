@@ -188,7 +188,7 @@ namespace ProjectName.UI.Toolkit
                 // Lv (슬롯 하단)
                 var level = new Label(string.Empty);
                 level.name = "SquadLevel_" + i;
-                level.style.fontSize = 13f;
+                level.style.fontSize = 13.2f;
                 level.style.color = new StyleColor(ColorTextDim);
                 level.style.position = Position.Absolute;
                 level.style.left = 4f;
@@ -201,7 +201,7 @@ namespace ProjectName.UI.Toolkit
                 // 인원 수 (우상단)
                 var count = new Label(string.Empty);
                 count.name = "SquadCount_" + i;
-                count.style.fontSize = 16f;
+                count.style.fontSize = 16.8f;
                 count.style.color = new StyleColor(ColorCount);
                 count.style.position = Position.Absolute;
                 count.style.top = 2f;
@@ -226,7 +226,7 @@ namespace ProjectName.UI.Toolkit
 
                 var keyLabel = new Label((i + 1).ToString());
                 keyLabel.name = "SquadKey_" + i;
-                keyLabel.style.fontSize = 15f;
+                keyLabel.style.fontSize = 15.6f;
                 keyLabel.style.color = new StyleColor(ColorTextDim);
                 keyBox.Add(keyLabel);
 

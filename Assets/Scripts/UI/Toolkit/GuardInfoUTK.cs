@@ -159,25 +159,25 @@ namespace ProjectName.UI.Toolkit
             ApplyDarkSlotStyle(face);   // [GitHub-dark] 우드 배경 제거 → 다크 인셋 패널
             face.style.height = 120f;
             face.style.justifyContent = Justify.Center;
-            var faceLabel = MkLabel("🧍 병사 외형", 16, GitHubDark.TextMain, TextAnchor.MiddleCenter);
+            var faceLabel = MkLabel("🧍 병사 외형", 16.8f, GitHubDark.TextMain, TextAnchor.MiddleCenter);
             face.Add(faceLabel);
             left.Add(face);
 
-            _nameLabel = MkLabel("", 20, GitHubDark.Accent, TextAnchor.MiddleLeft);
+            _nameLabel = MkLabel("", 21.6f, GitHubDark.Accent, TextAnchor.MiddleLeft);
             _nameLabel.style.marginTop = 10f;
             left.Add(_nameLabel);
 
-            _levelNationLabel = MkLabel("", 14, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            _levelNationLabel = MkLabel("", 14.4f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             _levelNationLabel.style.whiteSpace = WhiteSpace.Normal;
             left.Add(_levelNationLabel);
 
             // [P30-B] 중독도 라인 — 레벨 라인 아래 1줄 추가(화면 넘침 방지: 라벨 1개 추가분뿐)
-            _addictionLabel = MkLabel("", 13, GitHubDark.RankEpic, TextAnchor.MiddleLeft);
+            _addictionLabel = MkLabel("", 13.2f, GitHubDark.RankEpic, TextAnchor.MiddleLeft);
             _addictionLabel.style.whiteSpace = WhiteSpace.Normal;
             left.Add(_addictionLabel);
 
             // ── 장착 장비 6슬롯 ──
-            var gearHeader = MkLabel("📦 장착 장비", 16, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            var gearHeader = MkLabel("📦 장착 장비", 16.8f, GitHubDark.Gold, TextAnchor.MiddleLeft);
             gearHeader.style.marginTop = 14f;
             gearHeader.style.marginBottom = 6f;
             left.Add(gearHeader);
@@ -207,7 +207,7 @@ namespace ProjectName.UI.Toolkit
 
                 var nameLabel = new Label("—");
                 nameLabel.name = "GearName_" + GearDefs[i].label;
-                nameLabel.style.fontSize = 11f;
+                nameLabel.style.fontSize = 12f;
                 nameLabel.style.color = new StyleColor(GitHubDark.TextSub);
                 nameLabel.style.whiteSpace = WhiteSpace.Normal;
                 nameLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
@@ -298,7 +298,7 @@ namespace ProjectName.UI.Toolkit
             row.style.borderBottomRightRadius = 4f;            // 작은 배지 r4
 
             var name = new Label($"{item.displayName} x{count}");
-            name.style.fontSize = 13f;
+            name.style.fontSize = 13.2f;
             name.style.color = new StyleColor(GitHubDark.TextMain);
             name.style.whiteSpace = WhiteSpace.Normal;
             name.style.flexGrow = 1f;
@@ -333,7 +333,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(right);
 
             // ── HP 바 ──
-            var header = MkLabel("📊 능력치", 16, GitHubDark.Accent, TextAnchor.MiddleLeft);
+            var header = MkLabel("📊 능력치", 16.8f, GitHubDark.Accent, TextAnchor.MiddleLeft);
             right.Add(header);
 
             var gauge = BuildGaugeRow("❤️ HP:");
@@ -343,7 +343,7 @@ namespace ProjectName.UI.Toolkit
             right.Add(AddSep(8f, 2f));
 
             // ── 전투력 ──
-            _combatLabel = MkLabel("⚡ 전투력:", 16, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            _combatLabel = MkLabel("⚡ 전투력:", 16.8f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             _combatLabel.style.marginTop = 4f;
             right.Add(_combatLabel);
             right.Add(AddSep(10f, 2f));
@@ -357,11 +357,11 @@ namespace ProjectName.UI.Toolkit
                 row.style.alignItems = Align.Center;
                 row.style.marginTop = 4f;
 
-                var name = MkLabel(statNames[i], 15, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+                var name = MkLabel(statNames[i], 15.6f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
                 name.style.width = 100f;
                 row.Add(name);
 
-                _statValueLabels[i] = MkLabel("-", 16, GitHubDark.TextMain, TextAnchor.MiddleRight);
+                _statValueLabels[i] = MkLabel("-", 16.8f, GitHubDark.TextMain, TextAnchor.MiddleRight);
                 _statValueLabels[i].style.width = 90f;
                 row.Add(_statValueLabels[i]);
 
@@ -376,7 +376,7 @@ namespace ProjectName.UI.Toolkit
             right.Add(AddSep(10f, 2f));
 
             // ── 물약 버프 표 ──
-            var buffHeader = MkLabel("💊 물약 버프", 16, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            var buffHeader = MkLabel("💊 물약 버프", 16.8f, GitHubDark.Gold, TextAnchor.MiddleLeft);
             buffHeader.style.marginTop = 6f;
             right.Add(buffHeader);
 
@@ -397,11 +397,11 @@ namespace ProjectName.UI.Toolkit
             root.style.marginRight = 8f;
             parts.root = root;
 
-            var name = MkLabel(labelName, 15, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var name = MkLabel(labelName, 15.6f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             name.style.width = 90f;
             root.Add(name);
 
-            parts.value = MkLabel("-", 14, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            parts.value = MkLabel("-", 14.4f, GitHubDark.TextMain, TextAnchor.MiddleRight);
             parts.value.style.width = 130f;
             root.Add(parts.value);
 

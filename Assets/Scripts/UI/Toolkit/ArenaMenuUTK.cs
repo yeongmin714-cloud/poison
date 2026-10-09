@@ -359,7 +359,7 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 헬퍼 (UI) =====
 
-        private static Label MakeLabel(string text, Color color, float size = 13f)
+        private static Label MakeLabel(string text, Color color, float size = 13.2f)
         {
             var l = new Label(text);
             l.style.fontSize = size;
@@ -371,7 +371,7 @@ namespace ProjectName.UI.Toolkit
         private static Label SectionLabel(string text, Color? color = null)
         {
             var l = new Label(text);
-            l.style.fontSize = 17f;
+            l.style.fontSize = 16.8f;
             l.style.unityFontStyleAndWeight = FontStyle.Bold;
             l.style.color = new StyleColor(color ?? UTKTheme.Accent);
             l.style.marginTop = 6f;
@@ -388,7 +388,7 @@ namespace ProjectName.UI.Toolkit
 
         private static VisualElement ValueRow(string text)
         {
-            return MakeLabel(text, UTKTheme.Gold, 14f);
+            return MakeLabel(text, UTKTheme.Gold, 14.4f);
         }
 
         // ===== 키/ESC + 코루틴 실행용 Updater =====

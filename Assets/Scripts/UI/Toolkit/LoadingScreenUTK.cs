@@ -97,14 +97,14 @@ namespace ProjectName.UI.Toolkit
             Add(card);
 
             var logo = new Label("Crusader Kingdom");
-            logo.style.fontSize = 28f;
+            logo.style.fontSize = 31.2f;
             logo.style.unityFontStyleAndWeight = FontStyle.Bold;
             logo.style.color = new StyleColor(TextMainColor);
             card.Add(logo);
 
             var sub = new Label("⚔️ 크루세이더 킹덤");
             sub.style.color = new StyleColor(TextSubColor);
-            sub.style.fontSize = 13f;
+            sub.style.fontSize = 13.2f;
             sub.style.marginTop = 4f;
             sub.style.marginBottom = 26f;
             card.Add(sub);
@@ -120,12 +120,12 @@ namespace ProjectName.UI.Toolkit
 
             var loadingLabel = new Label("게임을 불러오는 중…");
             loadingLabel.style.color = new StyleColor(TextMainColor);
-            loadingLabel.style.fontSize = 14f;
+            loadingLabel.style.fontSize = 14.4f;
             progressRow.Add(loadingLabel);
 
             _pctLabel = new Label("0%");
             _pctLabel.style.color = new StyleColor(AccentColor);
-            _pctLabel.style.fontSize = 14f;
+            _pctLabel.style.fontSize = 14.4f;
             _pctLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             progressRow.Add(_pctLabel);
 

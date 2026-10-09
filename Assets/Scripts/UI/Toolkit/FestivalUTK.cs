@@ -110,7 +110,7 @@ namespace ProjectName.UI.Toolkit
             // 시작 알림 배너
             _notifyLabel = new Label("");
             _notifyLabel.AddToClassList("utk-slot--hover");
-            _notifyLabel.style.fontSize = 14f;
+            _notifyLabel.style.fontSize = 14.4f;
             _notifyLabel.style.color = new StyleColor(UTKColor.BorderGold);
             _notifyLabel.style.display = DisplayStyle.None;
             _content.Add(_notifyLabel);
@@ -221,7 +221,7 @@ namespace ProjectName.UI.Toolkit
             headerCard.style.paddingTop = 8f;
             headerCard.style.paddingBottom = 8f;
             var title = MakeLabel("🎪 진행 중인 축제", UTKColor.BorderGold, false);
-            title.style.fontSize = 15f;
+            title.style.fontSize = 15.6f;
             headerCard.Add(title);
             _list.Add(headerCard);
 
@@ -247,7 +247,7 @@ namespace ProjectName.UI.Toolkit
                 details.style.flexShrink = 1f;
 
                 var name = MakeLabel(festival.emoji + " " + festival.festivalName, UTKColor.TextPrimary, true);
-                name.style.fontSize = 14f;
+                name.style.fontSize = 14.4f;
                 name.style.unityFontStyleAndWeight = FontStyle.Bold;
                 details.Add(name);
                 details.Add(MakeLabel("📍 영지: " + festival.territoryId, UTKColor.TextSecondary, false));
@@ -293,7 +293,7 @@ namespace ProjectName.UI.Toolkit
 
             var f = _selected;
             var title = MakeLabel(f.emoji + " " + f.festivalName, UTKColor.TextPrimary, false);
-            title.style.fontSize = 17f;
+            title.style.fontSize = 16.8f;
             _detail.Add(title);
 
             _detail.Add(MakeLabel("📍 영지: " + f.territoryId, UTKColor.TextSecondary, false));
@@ -316,7 +316,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color, bool wrap)
         {
             var l = new Label(text);
-            l.style.fontSize = 13f;
+            l.style.fontSize = 13.2f;
             l.style.color = new StyleColor(color);
             if (wrap)
                 l.style.whiteSpace = WhiteSpace.Normal;

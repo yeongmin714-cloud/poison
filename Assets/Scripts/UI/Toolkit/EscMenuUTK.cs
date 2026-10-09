@@ -88,14 +88,14 @@ namespace ProjectName.UI.Toolkit
             _menuView.style.borderBottomRightRadius = 8f;
 
             var title = new Label("일시정지");
-            title.style.fontSize = 34f;
+            title.style.fontSize = 31.2f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.color = new StyleColor(UTKColor.AccentRare);
             title.style.marginBottom = 8f;
             _menuView.Add(title);
 
             var subtitle = new Label("게임을 잠시 멈췄습니다");
-            subtitle.style.fontSize = 14f;
+            subtitle.style.fontSize = 14.4f;
             subtitle.style.color = new StyleColor(UTKColor.TextSecondary);
             subtitle.style.marginBottom = 22f;
             _menuView.Add(subtitle);
