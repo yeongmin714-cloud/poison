@@ -321,8 +321,9 @@ namespace ProjectName.Systems
             Material bannerMat = new Material(shader) { name = "PlayerCastle_BannerMat" };
             bannerMat.color = new Color(0.20f, 0.45f, 0.75f); // 플레이어 환영 (청색)
 
-            Material trimMat = new Material(shader) { name = "PlayerCastle_TrimMat" };
-            trimMat.color = new Color(0.85f, 0.70f, 0.25f); // 금장 트림
+            // [2026-10-09 Phase D] 벽 트림/틀 → 목재(실내씬 예시 하프팀버 스타일) — 금장 트림에서 wood_frame 전환.
+            Material trimMat = IndoorMaterialFactory.CreateWoodFrame();
+            trimMat.name = "PlayerCastle_TrimMat";
 
             Material paperMat = new Material(shader) { name = "PlayerCastle_PaperMat" };
             paperMat.color = new Color(0.92f, 0.90f, 0.82f); // 문서 용지
@@ -1079,8 +1080,9 @@ namespace ProjectName.Systems
             float wallHeight, float wallThickness, Shader shader)
         {
             if (room == null || walls == null || shader == null) return;
-            var trimMaterial = new Material(shader) { name = "PlayerCastle_PortalStoneTrim" };
-            trimMaterial.color = new Color(0.72f, 0.69f, 0.63f);
+            // [2026-10-09 Phase D] 문틀(Jamb/Lintel) → 목재 틀(하프팀버 스타일) — 석재 회색에서 wood_frame 전환.
+            var trimMaterial = IndoorMaterialFactory.CreateWoodFrame();
+            trimMaterial.name = "PlayerCastle_PortalWoodTrim";
             if (trimMaterial.HasProperty("_Smoothness")) trimMaterial.SetFloat("_Smoothness", 0.12f);
             Mesh cubeMesh = CreateUnitCubeMesh();
 

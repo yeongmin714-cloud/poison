@@ -55,21 +55,49 @@ namespace ProjectName.Systems
             return m;
         }
 
+        /// <summary>[2026-10-09 Phase D] 벽 틀/기둥/문틀 공용 목재 머티리얼 — 제공 wood_frame.png(세로 나뭇결).
+        /// 프레임별 UV는 큐브 UV 그대로(2.2×1.1 벽 유닛과 별도). 파일 부재 시 다크 브라운 컬러 폴백.</summary>
+        public static Material CreateWoodFrame()
+        {
+            var m = new Material(UrpLit) { name = "IndoorHQ_WoodFrame" };
+            if (IndoorTextureLoader.HasFiles && IndoorTextureLoader.Wood != null)
+            {
+                var tex = IndoorTextureLoader.Wood;
+                IndoorTextureLoader.Configure(tex, linear: false);
+                m.mainTexture = tex;
+                m.mainTextureScale = Vector2.one;
+                m.color = new Color(0.92f, 0.88f, 0.82f);
+            }
+            else
+            {
+                m.color = new Color(0.35f, 0.24f, 0.15f);
+            }
+            if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.18f);
+            return m;
+        }
+
         /// <summary>제공 텍스처 기반 벽 머티리얼 — 하부 석재/상부 회반죽 분리판 반환 (없으면 null).</summary>
         public static bool TryCreateWall(float roomWidth, float roomHeight, out Material lower, out Material upper)
         {
             lower = null; upper = null;
             if (!IndoorTextureLoader.HasFiles || UrpLit == null) return false;
-            // 하부 석재 (높이 0~2m 밴드 가정 — 벽 쿼드의 하단 절반)
-            var stone = new Material(UrpLit) { name = "IndoorHQ_CalmTopologyMasonry" };
-            // The supplied lower-wall image has high-frequency contrast and visible seams when
-            // repeated over the 117 m shell. Use a deterministic, tileable two-course ashlar
-            // texture for topology walls only; the original provider textures remain untouched.
-            stone.mainTexture = CreateCalmTopologyMasonryTexture();
-            stone.color = new Color(0.94f, 0.93f, 0.90f);
-            // Topology wall UVs are expressed in 2.2 x 1.1 m cover units per meter.
-            // Keep material scale at one to avoid double tiling.
-            stone.mainTextureScale = Vector2.one;
+            // [2026-10-09 Phase D] 벽 전면 회반죽(사용자 제안 — 실내씬 예시.png 하프팀버 스타일 확정):
+            //   하부 석재 밴드 폐지, 제공 wall_plaster_upper.png를 벽 전체에 적용.
+            //   절차 ashlar(CreateCalmTopologyMasonryTexture)는 파일 부재 폴백으로만 잔존.
+            var stone = new Material(UrpLit) { name = "IndoorHQ_WallPlasterFull" };
+            if (IndoorTextureLoader.WallPlaster != null)
+            {
+                var plasterTex = IndoorTextureLoader.WallPlaster;
+                IndoorTextureLoader.Configure(plasterTex, linear: false);
+                stone.mainTexture = plasterTex;
+                stone.mainTextureScale = Vector2.one;
+                stone.color = new Color(0.94f, 0.93f, 0.90f);
+            }
+            else
+            {
+                stone.mainTexture = CreateCalmTopologyMasonryTexture();
+                stone.color = new Color(0.94f, 0.93f, 0.90f);
+            }
             stone.SetFloat("_Smoothness", 0.12f);
             // Intentionally omit the supplied noisy normal map. The mortar and broad block
             // boundaries in the albedo provide restrained stone structure without pore noise.

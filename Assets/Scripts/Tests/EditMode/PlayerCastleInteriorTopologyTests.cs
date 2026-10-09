@@ -182,7 +182,7 @@ namespace ProjectName.Tests.EditMode
                         Is.Not.SameAs(ProjectName.Core.IndoorTextureLoader.WallStone),
                         "Topology masonry must use the dedicated calm, seam-free ashlar tile.");
                     Assert.That(wallRenderer.sharedMaterial.mainTexture.name,
-                        Is.EqualTo("PlayerCastle_CalmAshlar_2Course"));
+                        Is.EqualTo("wall_plaster_upper"));   // [2026-10-09 Phase D] 벽 전면 회반죽(사용자 제안 확정) — 절차 ashlar에서 제공 텍스처로 전환
                     Assert.That(wallRenderer.sharedMaterial.mainTextureScale, Is.EqualTo(Vector2.one),
                         "Topology UVs encode physical wall tiling; the material must not tile a second time.");
                     Assert.That(wallRenderer.sharedMaterial.IsKeywordEnabled("_NORMALMAP"), Is.False,
