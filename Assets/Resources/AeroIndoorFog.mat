@@ -242,7 +242,7 @@ Material:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Bottom_Colour: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Colour: {r: 0.58, g: 0.44, b: 0.30, a: 1}
+    - _Colour: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Height_Gradient_Bottom_Colour_Tint: {r: 1, g: 1, b: 1, a: 1}
     - _Height_Gradient_Colour_Bottom: {r: 1, g: 1, b: 1, a: 1}
@@ -253,7 +253,7 @@ Material:
     - _Height_Mask_Texture_Offset: {r: 0, g: 0, b: 0, a: 0}
     - _Height_Mask_Texture_Tiling: {r: 1, g: 1, b: 0, a: 0}
     - _Self_Shadow_Colour: {r: 0, g: 0, b: 0, a: 1}
-    - _Shadow_Colour: {r: 0.10, g: 0.06, b: 0.03, a: 1}
+    - _Shadow_Colour: {r: 0.12, g: 0.12, b: 0.12, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _Top_Colour: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

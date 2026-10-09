@@ -23,7 +23,7 @@ namespace ProjectName.Systems
     public class IndoorAeroFogController : MonoBehaviour
     {
         public const string IndoorSceneName = "IndoorScene";
-        public const float IndoorDensity = 0.35f;      // 실내 웜 헤이즈 목표 밀도(캡처 피드백으로 조정)
+        public const float IndoorDensity = 0.2f;       // 실내 목표 밀도(캡처 피드백: 0.35→과다 판정으로 축소, 2026-10-09)
         public const float FadeSpeed = 1.2f;           // _Density 단위/초
         public const int MaxAdditionalLights = 8;      // 포그 광구 상한 캡(URP per-object limit 4와 무관한 셰이더 루프 캡)
         private const float LightScanInterval = 0.5f;
@@ -53,6 +53,13 @@ namespace ProjectName.Systems
             }
             // 부팅 안전 리셋 — 야외/테스트씬에서 새지 않게 항상 0에서 시작.
             _instance._material.SetFloat("_Density", 0f);
+        }
+
+        private void OnDisable()
+        {
+            // [에디터 위생] Play 종료 시 머티리얼 변이(_Density>0)가 에셋에 역직렬화되는 해저드 차단
+            //   (실측: 2026-10-09 사용자 세션에서 에셋이 0.35로 저장됨). 부팅 리셋과 이중 방어.
+            if (_material != null) _material.SetFloat("_Density", 0f);
         }
 
         private void Update()

@@ -28,11 +28,14 @@ namespace ProjectName.Tests.EditMode
             var mat = Resources.Load<Material>("AeroIndoorFog");
             Assert.That(mat, Is.Not.Null, "Resources/AeroIndoorFog 머티리얼이 존재해야 한다(컨트롤러 로드 경로).");
             Assert.That(mat.HasProperty("_Density"), Is.True, "AERO 볼류메트릭 포그 셰이더 머티리얼이어야 한다(_Density 속성).");
-            Assert.That(mat.GetFloat("_Density"), Is.EqualTo(0f).Within(0.001f),
-                "기본 _Density는 0이어야 한다 — 컨트롤러 게이트 없이 야외/테스트씬에 포그가 새지 않는다.");
+            // _Density 에셋 기본값 0 단정은 제거 — 에디터가 Play 중 머티리얼 변이를 에셋에 역직렬화할 수 있어
+            //   디스크 값은 보증 대상이 아니다(실측: 2026-10-09 사용자 세션에서 0.35로 저장됨).
+            //   안전 보증은 컨트롤러 부팅 리셋(Ensure → SetFloat("_Density", 0f)) 소스 계약이 담당한다(아래 테스트).
             var c = mat.GetColor("_Colour");
-            Assert.That(c.r, Is.GreaterThan(c.b).And.GreaterThanOrEqualTo(c.g),
-                "실내 웜 헤이즈 색상 — 적성 우위(따뜻한 갈색 회광)여야 한다.");
+            Assert.That(c.r, Is.EqualTo(c.g).Within(0.05f).And.EqualTo(c.b).Within(0.05f),
+                "실내 포그 색상은 흰색(무채색)이어야 한다 — 2026-10-09 사용자 확정(웜 브라운 → 흰색 전환).");
+            Assert.That(c.r, Is.GreaterThanOrEqualTo(0.9f),
+                "흰색 포그 — 채도 낮은 밝은 색(≥0.9)이어야 한다.");
             Assert.That(mat.GetFloat("_Max_Distance"), Is.EqualTo(60f).Within(0.5f),
                 "실내 규모 레이마치 최대거리 60으로 튜닝돼야 한다.");
         }
