@@ -1,4 +1,17 @@
-## 2026-10-09 계획 v2 Phase 4 완료(코드 게이트) — AERO 볼류메트릭 포그 실내 게이트 + 화광 상향 (커밋 3b77bf3b)
+## 2026-10-09 사용자 보고 2건 진단+수리 — 인벤 탭/푸터 구현(3d1ab9d0) + AERO 포그 테스트 씬 게이트 수리(61664b2b)
+
+- **사용자 보고:** ①창고 상호작용 시 인벤/상세창 변화 전혀 없음 → "이것만 피그마 정합 다시 시도" ②실내씬 변화 크게 느껴지지 않음 → 원인 확인 요청.
+- **진단(Editor.log 실측 — /mnt/c/Users/korea/AppData/Local/Unity/Editor/Editor.log 09:41 세션):**
+- ① 변화 없음은 **정상**: 인벤(144,84,504,912)·상세(672,175.2,576,729.6=b61e1120 수리치 입력)·창고 [FigmaV3] ok k=0.750 전부 존재 — v3 기하는 이전 실행부터 적용 중이고 이번 세션의 3창 변화는 폰트 미세 치환뿐. HUD gaugeHost top=775.1 = 하단 앵커 식(902.29−137.6×0.75−24) 정확 일치(Phase 2 실동작 확인).
+- ② 원인 확정: 이번 세션은 **Test_PlayerCastleInterior 테스트 씬**이고 IndoorScene 로드 0건 — AERO 포그 게이트(활성 씬==IndoorScene) 미발동 + 화광 0.85는 IndoorScene.unity 소속이라 테스트 씬(빌더 자체 조명)엔 부재 → 두 변경 모두 테스트 씬에 존재하지 않았던 것. 렌더러 체인은 정상 확인(QualitySettings Very High 티어만 우리 URPAsset(→UniversalRendererData=AERO feature); 나머지 티어는 구 템플릿 URP guid 0a4a2fce).
+- **수리 1 — 인벤 Figma 15:4 잔여 격차(커밋 3d1ab9d0):** 카테고리 탭 5종(전체/무기/방어구/소모품/재료 — Figma 기하 24,84,456,36.2·stride 92.2·활성 #58A6FF/#0B0E14·비활성 #8B949E·14.4/700, 클릭 필터 — 무기=Weapon/방어구=Armor+Accessory/소모품=Food+Potion+Drug/재료=Herb+Meat+Material, Quest/Tool은 전체만) + 적재량 푸터(WeightRow 라벨 "적재량" 15.6/400 #8B949E + 값 15.6/700 #58A6FF 우측정렬 — **kg 목업 vs 무게 데이터 부재 → 위조 금지 규약으로 "사용 N/40 슬롯"**, 요리 푸터 선례). 기존 footer의 _selectedLabel(선택 피드백) 제거 — 상세창(클러스터 v3)이 담당. **InventoryClusterPanelRegions.cs 편입(HEAD 4파일이 참조했던 untracked 의존성 — 잠재 불완전 커밋 해소)** + FigmaCanvasLayout/InventoryClusterFigmaLayout 누락 meta 2건.
+- 게이트: 컴파일 0 + focused **54/54**(FigmaCanvas+InventoryFigmaTabsFooter+CompositionLifecycle+Warehouse 계열) — `TestOutput/p5_inv_tabs.xml`. 신규 InventoryFigmaTabsFooterTests 5종.
+- **수리 2 — 포그 게이트(커밋 61664b2b):** 게이트를 `IndoorScene || 씬명 "Interior" 포함`으로 확장(성 내부 테스트 씬 포함) + **게이트 전환 진단 로그** 신설([IndoorAeroFog] 게이트 전환 — 씬/실내/목표밀도, 상태 변화 시만 — 다음 재실행 Editor.log로 활성 판별 가능). 테스트 기대값 교정 1건(확장 게이트 계약 — 근거: 수리 본체). 게이트: 컴파일 0 + IndoorAeroFogTests **5/5** — `TestOutput/p5_gate_tabs2.xml`.
+- **다음(사용자 확인 게이트):** ①창고 상호작용 재확인 — 인벤에 **탭 5종+적재량 푸터**가 실제 보이는지(이번엔 명백한 시각 변화) ②실내는 **성 문 E키 흐름(IndoorScene) 또는 Test_PlayerCastleInterior** 어느 쪽이든 [IndoorAeroFog] 게이트 로그 확인 + 포그 가시성/밀도 피드백(0.35 튜닝) ③품질 티어가 Very High인지 확인(다른 티어면 AERO feature 렌더러 자체가 비활성). push 대기.
+
+---
+
+1|## 2026-10-09 계획 v2 Phase 4 완료(코드 게이트) — AERO 볼류메트릭 포그 실내 게이트 + 화광 상향 (커밋 3b77bf3b)
 
 - **사용자 확정(제약 해제):** "전체 메인씬은 다른 데스크톱에서 실행" — GPU(Intel HD 530/VRAM 1GB) 렉 우려의 09-29 보류 판정을 대체, AERO 에셋 사용 승인. 요구: 실내씬 고품질(AERO 포그 또는 더 나은 방법).
 - **선택:** AERO 볼류메트릭 포그(에셋 README 권장 경로 — URP FullScreenPassRendererFeature + 포그 머티리얼) + 화광 상향 조합. 가스 전용 격리 파이프라인(Rendering/AeroLocalizedGas*)과 완전 분리.
