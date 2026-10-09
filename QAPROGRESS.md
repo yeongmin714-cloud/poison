@@ -1,4 +1,15 @@
-## 2026-10-09 포그 튜닝 — 밀도 0.35→0.2 축소 + 흰색 전환 (커밋 dcaf83e9)
+## 2026-10-09 계획 v3(A/B/C/D) 완료 — 3창 헤더 통일 + HUD 7층 게이지 + 키 재배선 + 벽 하프팀버 개편 (커밋 a5eea29b·d06aa117·dbe1798e·c57b9500)
+
+- **A(3창 헤더 통일, a5eea29b):** 인벤/상세 크롬 제목 **38→24**(Figma 15:4 진실치), 부제 14.4/400 교정. 창고는 이미 진실치(캡처의 작은 제목은 이전 상태) — 검산 주석 추가. 크롬 타이틀바 공유 구조상 절대(24,29.2) 배치는 주석 판단 기록(USS 불변 제약).
+- **B(HUD 7층, d06aa117):** BuildOneGauge 확장 — ①bg-glow(게이지색 저알파 264 뒤광 — radial 그라데이션 미지원 단색 원 판단 기록) ②outer-track(백색 0.08+stroke 1.32) ③UTKCircularGauge arc ④tip 생략(값 연동 위치 필요 — 판단 기록) ⑤inner-plate 96.8 흰 원판 ⑥rim-highlight 88.9 ⑦아이콘 68.8. **시맨틱 색 계약 유지**(HP 레드/스타미나 옐로 — 09-24 사용자 설계; Figma 목업 오렌지 미채택). 하단 고정 앵커 계약 불변. ApplyGaugeScale 아이콘 조회를 이름 기반으로 교정. HudBottomAnchorTests에 7층 계약 신설.
+- **C(키 재배선, dbe1798e):** **J=도감**(EncyclopediaWindowUTK lKey→jKey), **J 저널 토글 제거**(QuestJournalUTK — 퀘스트 Q 통합, 사용자 확정), L=전투로그 단독(CombatLogUTK 무변경), 레거시 도감 L 게이트(EncyclopediaWindow — IsReady 게이트 + UTK Instance 게이트 이중). QuestJournalUI는 기존 IsReady 은퇴 게이트로 무변경.
+- **D(벽 하프팀버, c57b9500):** TryCreateWall 벽 전면 = 제공 `wall_plaster_upper.png`(하부 석재 밴드 폐지 — 절차 ashlar는 파일 부재 폴백으로만 잔존) + `CreateWoodFrame()` 신설(제공 wood_frame.png, 다크 폴백) — 문틀 Jamb/Lintel(PlayerCastle_PortalWoodTrim)과 벽 트림(PlayerCastle_TrimMat, 구 금장 0.85/0.70/0.25)을 목재로 전환. PlayerCastleInteriorTopologyTests 계약 교정(CalmAshlar→wall_plaster_upper, 근거: 사용자 스타일 확정).
+- **검증:** fresh compile `error CS` **0**(단위마다 — D의 Configure 미한정 CS0103 즉시 수리 포함). focused **58/58→토폴로지 교정 후 7/7** 전부 통과. XML `TestOutput/plan_abcd_focused.xml`/`plan_d_topology.xml`. 서브에이전트 2회 타임아웃(조사만 수행) → B/C/D 부모 직접 구현, A는 3차 위임 성공.
+- **다음(사용자 캡처 게이트):** ①창고 클러스터 헤더 3창 동일 크기(24) 확인 ②HUD 원형 게이지 Figma 폼(흰 원판+링) 체감 ③J=도감/L=전투로그/J 저널 제거 동작 ④실내 벽 회반죽 전면+목재 틀 체감(새 텍스처 교체 시 사양: 회반죽/나무 1024×512·512×1024). D3(벽 중간 팀버 포스트 신규 지오메트리)는 별도 승인 대기. push 대기.
+
+---
+
+1|## 2026-10-09 포그 튜닝 — 밀도 0.35→0.2 축소 + 흰색 전환 (커밋 dcaf83e9)
 
 - **사용자 피드백:** ①포그양 너무 많음 ②포그를 흰색으로. (부수 실측 확정: 사용자가 포그를 본 것 = AERO 포그가 게이트 수리 후 실제 발동 중 — 61664b2b 이후 흐름 정상)
 - **튜닝:** IndoorDensity 0.35→**0.2**(컨트롤러 상수), 머티리얼 `_Colour` 웜 브라운(0.58/0.44/0.30)→**순백(1,1,1)**, `_Shadow_Colour` 중립 다크(0.12,0.12,0.12). 테스트 색상 계약 교정(무채색·≥0.9 — 근거: 사용자 확정 흰색 전환).
