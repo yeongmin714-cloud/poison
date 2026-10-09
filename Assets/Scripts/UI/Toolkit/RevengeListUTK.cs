@@ -80,7 +80,7 @@ namespace ProjectName.UI.Toolkit
             headerCard.style.marginBottom = 8f;
 
             _warningLabel = new Label("⚠️ 복수 대상이 남아 있습니다");
-            _warningLabel.style.fontSize = 15f;
+            _warningLabel.style.fontSize = 15.6f;
             _warningLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _warningLabel.style.color = new StyleColor(UTKColor.HealthRed);
             _warningLabel.style.marginBottom = 4f;
@@ -107,7 +107,7 @@ namespace ProjectName.UI.Toolkit
             StyleCard(detailCard, new Color32(0x21, 0x26, 0x2D, 0xFF), 8f);
             detailCard.style.marginTop = 8f;
             _detailLabel = new Label("영주를 선택하세요.");
-            _detailLabel.style.fontSize = 13f;
+            _detailLabel.style.fontSize = 13.2f;
             _detailLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             _detailLabel.style.whiteSpace = WhiteSpace.Normal;
             detailCard.Add(_detailLabel);
@@ -262,7 +262,7 @@ namespace ProjectName.UI.Toolkit
             heading.style.flexDirection = FlexDirection.Row;
             heading.style.alignItems = Align.Center;
             var name = MakeLabel("🗡️ " + label, color);
-            name.style.fontSize = 14f;
+            name.style.fontSize = 14.4f;
             name.style.unityFontStyleAndWeight = FontStyle.Bold;
             name.style.flexGrow = 1f;
             heading.Add(name);

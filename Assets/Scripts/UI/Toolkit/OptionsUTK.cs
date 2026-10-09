@@ -183,7 +183,7 @@ namespace ProjectName.UI.Toolkit
             header.style.marginBottom = 4f;
             header.style.backgroundColor = UTKColor.BgPanel;
             SetCardBorder(header);
-            var label = MkLabel(title, 16, UTKColor.AccentRare);
+            var label = MkLabel(title, 16.8f, UTKColor.AccentRare);
             header.Add(label);
             root.Add(header);
             return header;
@@ -323,11 +323,11 @@ namespace ProjectName.UI.Toolkit
             var head = new VisualElement();
             head.style.flexDirection = FlexDirection.Row;
             head.style.alignItems = Align.Center;
-            var nameLbl = MkLabel(label, 15, UTKColor.TextPrimary);
+            var nameLbl = MkLabel(label, 15.6f, UTKColor.TextPrimary);
             nameLbl.style.flexGrow = 1f;
             head.Add(nameLbl);
 
-            var valueLabel = MkLabel($"{(int)(init * 100f)}%", 15, UTKColor.GuildGreen);
+            var valueLabel = MkLabel($"{(int)(init * 100f)}%", 15.6f, UTKColor.GuildGreen);
             valueLabel.style.width = 70f;
             valueLabel.style.unityTextAlign = TextAnchor.MiddleRight;
             head.Add(valueLabel);
@@ -364,7 +364,7 @@ namespace ProjectName.UI.Toolkit
             MakeSectionHeader(root, "키 설정");
             var keyCard = MakeOptionCard(root, "KeyBindings");
             keyCard.style.flexGrow = 1f;
-            var intro = MkDesc("읽기 전용 — 변경은 게임 외 설정 메뉴", 13, UTKColor.TextSecondary);
+            var intro = MkDesc("읽기 전용 — 변경은 게임 외 설정 메뉴", 13.2f, UTKColor.TextSecondary);
             intro.style.marginBottom = 6f;
             keyCard.Add(intro);
 
@@ -374,7 +374,7 @@ namespace ProjectName.UI.Toolkit
 
             foreach (var kb in KeyBindings)
             {
-                var line = MkLabel($"{kb.name}:  [{kb.key}]", 15, UTKColor.TextPrimary);
+                var line = MkLabel($"{kb.name}:  [{kb.key}]", 15.6f, UTKColor.TextPrimary);
                 line.style.marginBottom = 4f;
                 list.Add(line);
             }

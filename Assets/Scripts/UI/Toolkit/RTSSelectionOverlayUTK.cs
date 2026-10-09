@@ -155,7 +155,7 @@ namespace ProjectName.UI.Toolkit
 
             _countLabel = new Label { name = "RTSSelectedCount" };
             _countLabel.style.color = GithubText;
-            _countLabel.style.fontSize = 13f;
+            _countLabel.style.fontSize = 13.2f;
             _countLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _countLabel.pickingMode = PickingMode.Ignore;
             _countChip.Add(_countLabel);

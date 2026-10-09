@@ -122,7 +122,7 @@ namespace ProjectName.UI.Toolkit
             header.style.borderBottomRightRadius = 8f;
 
             var title = new Label("Korea 1420");
-            title.style.fontSize = 34f;
+            title.style.fontSize = 31.2f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.color = new StyleColor(UTKColor.AccentRare);
             header.Add(title);
@@ -195,7 +195,7 @@ namespace ProjectName.UI.Toolkit
             _difficultyView.style.justifyContent = Justify.Center;
 
             var title = new Label("🎯 난이도 선택");
-            title.style.fontSize = 26f;
+            title.style.fontSize = 26.4f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.color = new StyleColor(new Color(0.9f, 0.7f, 0.3f, 1f));
             _difficultyView.Add(title);
@@ -230,7 +230,7 @@ namespace ProjectName.UI.Toolkit
                 float hard = GetMultiplier(rowName, DifficultyMode.Hard);
                 var row = new Label($"{rowName}   ×{easy:F1}   ×{normal:F1}   ×{hard:F1}");
                 row.style.color = new StyleColor(UTKColor.TextSecondary);
-                row.style.fontSize = 13f;
+                row.style.fontSize = 13.2f;
                 row.style.unityTextAlign = TextAnchor.MiddleCenter;
                 _difficultyView.Add(row);
             }
@@ -256,7 +256,7 @@ namespace ProjectName.UI.Toolkit
             btn.name = "DiffBtn_" + index;
             btn.style.width = 160f;
             btn.style.height = 44f;
-            btn.style.fontSize = 17f;
+            btn.style.fontSize = 16.8f;
             btn.style.unityTextAlign = TextAnchor.MiddleCenter;
             btn.style.backgroundColor = new StyleColor(new Color(baseColor.r * 0.5f, baseColor.g * 0.5f, baseColor.b * 0.5f, 0.9f));
             btn.style.marginBottom = 6f;

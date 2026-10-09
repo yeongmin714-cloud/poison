@@ -162,7 +162,7 @@ namespace ProjectName.UI.Toolkit
 
             var l = new Label(text);
             l.AddToClassList("utk-title-label");
-            l.style.fontSize = 18f;
+            l.style.fontSize = 16.8f;
             l.style.unityFontStyleAndWeight = FontStyle.Bold;
             l.style.color = new StyleColor(UTKColor.AccentRare);
             l.style.whiteSpace = WhiteSpace.Normal;
@@ -183,12 +183,12 @@ namespace ProjectName.UI.Toolkit
 
             var lab = new Label(label);
             lab.style.width = 70f;
-            lab.style.fontSize = 13f;
+            lab.style.fontSize = 13.2f;
             lab.style.color = new StyleColor(UTKColor.TextSecondary);
 
             var val = new Label(value ?? "");
             val.style.flexGrow = 1f;
-            val.style.fontSize = 13f;
+            val.style.fontSize = 13.2f;
             val.style.color = new StyleColor(UTKColor.TextPrimary);
             val.style.whiteSpace = WhiteSpace.Normal;
 

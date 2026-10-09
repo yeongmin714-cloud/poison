@@ -210,7 +210,7 @@ namespace ProjectName.UI.Toolkit
             var jTitle = MkLabel("퀘스트 창", UTKTheme.FontTitle, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 21.6/700
             jTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             panelHeader.Add(jTitle);
-            var headerSub = MkLabel("QUEST DECK", 11, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var headerSub = MkLabel("QUEST DECK", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             headerSub.style.marginLeft = 12f;
             headerSub.style.marginTop = 5f;
             headerSub.style.flexGrow = 1f;
@@ -264,7 +264,7 @@ namespace ProjectName.UI.Toolkit
             var footerLeft = MkLabel("퀘스트 현황", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             footerLeft.style.flexGrow = 1f;
             footer.Add(footerLeft);
-            _statLabel = MkLabel("진행 0개 · 완료 0개", 13, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            _statLabel = MkLabel("진행 0개 · 완료 0개", 13.2f, GitHubDark.TextMain, TextAnchor.MiddleRight);
             footer.Add(_statLabel);
             _content.Add(footer);
 
@@ -401,7 +401,7 @@ namespace ProjectName.UI.Toolkit
                 string emptyMsg = _activeTab == TabActive
                     ? "진행 중인 퀘스트가 없습니다.\nNPC를 찾아 퀘스트를 수락하세요."
                     : "완료된 퀘스트가 없습니다.\n퀘스트를 완료하면 여기에 표시됩니다.";
-                var empty = MkLabel(emptyMsg, 14, GitHubDark.TextSub, TextAnchor.UpperLeft);   // [GitHub-dark] 보조 텍스트
+                var empty = MkLabel(emptyMsg, 14.4f, GitHubDark.TextSub, TextAnchor.UpperLeft);   // [GitHub-dark] 보조 텍스트
                 empty.style.flexGrow = 1f;
                 empty.style.whiteSpace = WhiteSpace.Normal;
                 _list.Add(empty);
@@ -517,7 +517,7 @@ namespace ProjectName.UI.Toolkit
             fill.style.borderTopLeftRadius = fill.style.borderTopRightRadius = fill.style.borderBottomLeftRadius = fill.style.borderBottomRightRadius = 2.4f;
             track.Add(fill);
             progress.Add(track);
-            var pctLabel = MkLabel($"{pct:F0}%", 13, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            var pctLabel = MkLabel($"{pct:F0}%", 13.2f, GitHubDark.TextMain, TextAnchor.MiddleRight);
             pctLabel.style.marginLeft = 9.6f;
             pctLabel.style.width = 40f;
             progress.Add(pctLabel);

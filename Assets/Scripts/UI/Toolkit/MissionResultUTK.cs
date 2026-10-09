@@ -109,7 +109,7 @@ namespace ProjectName.UI.Toolkit
             header.Add(title);
 
             _countLabel = new Label("0");
-            _countLabel.style.fontSize = 17;
+            _countLabel.style.fontSize = 16.8f;
             _countLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 보조 텍스트
             header.Add(_countLabel);
 
@@ -188,7 +188,7 @@ namespace ProjectName.UI.Toolkit
             {
                 var e = items[idx];
                 var row = new Label("• " + e.text);
-                row.style.fontSize = 17;
+                row.style.fontSize = 16.8f;
                 row.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 항목 기본 텍스트
                 row.style.marginBottom = 4;
                 row.style.whiteSpace = WhiteSpace.Normal;

@@ -233,7 +233,7 @@ namespace ProjectName.UI.Toolkit
             _closeButton.style.height = 31.2f;
             _closeButton.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.05882353f));
             _closeButton.style.color = new StyleColor(PanelMuted);
-            _closeButton.style.fontSize = 21f;
+            _closeButton.style.fontSize = 21.6f;
             _closeButton.style.borderTopWidth = _closeButton.style.borderBottomWidth = _closeButton.style.borderLeftWidth = _closeButton.style.borderRightWidth = 1f;
             _closeButton.style.borderTopColor = _closeButton.style.borderBottomColor = _closeButton.style.borderLeftColor = _closeButton.style.borderRightColor = new StyleColor(Stroke);
             headerRow.Add(_closeButton);
@@ -309,7 +309,7 @@ namespace ProjectName.UI.Toolkit
             _invColumn.style.borderRightColor = new StyleColor(UTKTheme.GlassPanelStroke);
 
             var invHeading = new Label("🧺 인벤토리 (드래그 → 우측 창고 = 입고)");
-            invHeading.style.fontSize = 14f;
+            invHeading.style.fontSize = 14.4f;
             invHeading.style.color = new StyleColor(UTKColor.TextSecondary);
             _invColumn.Add(invHeading);
 
@@ -365,7 +365,7 @@ namespace ProjectName.UI.Toolkit
 
             // ── 상태 라벨 ──
             _statusLabel = new Label("");
-            _statusLabel.style.fontSize = 13f;
+            _statusLabel.style.fontSize = 13.2f;
             _statusLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _statusLabel.style.whiteSpace = WhiteSpace.Normal;
             _content.Add(_statusLabel);
@@ -1269,7 +1269,7 @@ namespace ProjectName.UI.Toolkit
             foreach (var opt in options)
             {
                 var item = new Label(opt);
-                item.style.fontSize = 13f;
+                item.style.fontSize = 13.2f;
                 item.style.color = new StyleColor(UTKColor.TextPrimary);
                 item.style.paddingLeft = 6f;
                 item.style.paddingRight = 6f;

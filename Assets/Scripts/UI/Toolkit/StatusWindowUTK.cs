@@ -280,8 +280,8 @@ namespace ProjectName.UI.Toolkit
                 figHeader.style.flexDirection = FlexDirection.Row;
                 figHeader.style.alignItems = Align.Center;
                 figHeader.style.height = 17f;
-                figHeader.Add(MkLabel("특수 상태 게이지", 14, GitHubDark.TextMain, TextAnchor.MiddleLeft));
-                var sv = MkLabel("SPECIAL VITALS", 11, GitHubDark.TextSub, TextAnchor.MiddleRight);
+                figHeader.Add(MkLabel("특수 상태 게이지", 14.4f, GitHubDark.TextMain, TextAnchor.MiddleLeft));
+                var sv = MkLabel("SPECIAL VITALS", 12, GitHubDark.TextSub, TextAnchor.MiddleRight);
                 sv.style.flexGrow = 1f;
                 figHeader.Add(sv);
                 _figSpecialSection.Insert(0, figHeader);
@@ -406,11 +406,11 @@ namespace ProjectName.UI.Toolkit
             hpOverlay.style.paddingRight = 14.4f;
             viewport.Add(hpOverlay);
 
-            var portraitHint = MkLabel("3D 미리보기", 11, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var portraitHint = MkLabel("3D 미리보기", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             portraitHint.style.flexGrow = 1f;
             hpOverlay.Add(portraitHint);
 
-            _portraitHpLabel = MkLabel("-", 11, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            _portraitHpLabel = MkLabel("-", 12, GitHubDark.TextMain, TextAnchor.MiddleRight);
             hpOverlay.Add(_portraitHpLabel);
 
             var portraitHpTrack = new VisualElement();
@@ -560,7 +560,7 @@ namespace ProjectName.UI.Toolkit
             title.style.height = 52.8f;
             title.style.flexDirection = FlexDirection.Row;
             title.style.alignItems = Align.Center;
-            var titleText = MkLabel("상태 정보", 20f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            var titleText = MkLabel("상태 정보", 21.6f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             title.Add(titleText);
             var subtitle = MkLabel("CHARACTER STATUS", 12f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             subtitle.style.marginLeft = 12f;
@@ -575,7 +575,7 @@ namespace ProjectName.UI.Toolkit
             title.Add(close);
             _statusPanel.Add(title);
 
-            var vitalsHeading = MkLabel("특수 상태 게이지   SPECIAL VITALS", 13f, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            var vitalsHeading = MkLabel("특수 상태 게이지   SPECIAL VITALS", 13.2f, GitHubDark.Gold, TextAnchor.MiddleLeft);
             vitalsHeading.name = "SpecialVitalsHeading";
             vitalsHeading.style.marginTop = 8f;
             var special = _statusContent.Q<VisualElement>(className: "special-gauge-root");
@@ -834,11 +834,11 @@ namespace ProjectName.UI.Toolkit
             ApplyDarkSlotStyle(slotBox);   // [GitHub-dark] 우드 배경 제거 → 다크 인셋 패널
             slotBox.style.width = 92f;
             slotBox.style.height = 92f;
-            var slotName = MkLabel(label, 13, GitHubDark.TextSub, TextAnchor.MiddleCenter);
+            var slotName = MkLabel(label, 13.2f, GitHubDark.TextSub, TextAnchor.MiddleCenter);
             slotBox.Add(slotName);
             wrap.Add(slotBox);
 
-            _equipSlotLabels[(int)slot] = MkLabel("—", 13, GitHubDark.TextMain, TextAnchor.MiddleCenter);
+            _equipSlotLabels[(int)slot] = MkLabel("—", 13.2f, GitHubDark.TextMain, TextAnchor.MiddleCenter);
             wrap.Add(_equipSlotLabels[(int)slot]);
             return wrap;
         }
@@ -853,11 +853,11 @@ namespace ProjectName.UI.Toolkit
             right.style.marginTop = 18f;
             right.style.paddingTop = 12f;
             AddSep(right, 0f, 10f);
-            right.Add(MkLabel("상세 정보 · 스탯 배분", 14, GitHubDark.Gold, TextAnchor.MiddleLeft));
+            right.Add(MkLabel("상세 정보 · 스탯 배분", 14.4f, GitHubDark.Gold, TextAnchor.MiddleLeft));
             _statusContent.Add(right);
 
             // ── 남은 포인트 ──
-            _pendingLabel = MkLabel("남은 포인트: 0", 18, GitHubDark.TextSub, TextAnchor.MiddleRight);
+            _pendingLabel = MkLabel("남은 포인트: 0", 16.8f, GitHubDark.TextSub, TextAnchor.MiddleRight);
             right.Add(_pendingLabel);
 
             // ── 주스탯 4행 (이름 / 할당치 / 효과 / [+] 버튼) ──
@@ -868,11 +868,11 @@ namespace ProjectName.UI.Toolkit
                 row.style.alignItems = Align.Center;
                 row.style.marginTop = 6f;
 
-                var name = MkLabel(_statKindNames[i], 19, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+                var name = MkLabel(_statKindNames[i], 21.6f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
                 name.style.width = 64f;
                 row.Add(name);
 
-                _allocValueLabels[i] = MkLabel("5", 21, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+                _allocValueLabels[i] = MkLabel("5", 21.6f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
                 _allocValueLabels[i].style.width = 70f;
                 row.Add(_allocValueLabels[i]);
 
@@ -907,11 +907,11 @@ namespace ProjectName.UI.Toolkit
                 row.style.alignItems = Align.Center;
                 row.style.marginTop = 2f;
 
-                var name = MkLabel(_rowNames[i], 16, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+                var name = MkLabel(_rowNames[i], 16.8f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
                 name.style.width = 110f;
                 row.Add(name);
 
-                _statValueLabels[i] = MkLabel("-", 16, GitHubDark.TextMain, TextAnchor.MiddleRight);
+                _statValueLabels[i] = MkLabel("-", 16.8f, GitHubDark.TextMain, TextAnchor.MiddleRight);
                 _statValueLabels[i].style.width = 120f;
                 row.Add(_statValueLabels[i]);
 
@@ -943,17 +943,17 @@ namespace ProjectName.UI.Toolkit
             right.Add(hungerGauge.root);
 
             // ── 중독 ──
-            _addictionLabel = MkLabel("중독: 0%", 14, GitHubDark.RankEpic, TextAnchor.MiddleLeft);
+            _addictionLabel = MkLabel("중독: 0%", 14.4f, GitHubDark.RankEpic, TextAnchor.MiddleLeft);
             _addictionLabel.style.marginTop = 6f;
             right.Add(_addictionLabel);
 
             // ── 칭호 [Phase O6 C-O6-03] — 해금 순환 장착 ──
             AddSep(right, 10f, 6f);
-            var titleHeader = MkLabel("칭호", 16, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            var titleHeader = MkLabel("칭호", 16.8f, GitHubDark.Gold, TextAnchor.MiddleLeft);
             titleHeader.style.marginTop = 4f;
             right.Add(titleHeader);
 
-            _titleValueLabel = MkLabel(GetTitleDisplay(), 14, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            _titleValueLabel = MkLabel(GetTitleDisplay(), 14.4f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             _titleValueLabel.style.whiteSpace = WhiteSpace.Normal;
             right.Add(_titleValueLabel);
 
@@ -1054,11 +1054,11 @@ namespace ProjectName.UI.Toolkit
             root.style.marginTop = 6f;
             parts.root = root;
 
-            var name = MkLabel(labelName, 16, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var name = MkLabel(labelName, 16.8f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             name.style.width = 110f;
             root.Add(name);
 
-            parts.value = MkLabel("-", 15, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            parts.value = MkLabel("-", 15.6f, GitHubDark.TextMain, TextAnchor.MiddleRight);
             parts.value.style.width = 200f;
             root.Add(parts.value);
 

@@ -47,14 +47,14 @@ namespace ProjectName.UI.Toolkit
             Add(panel);
 
             var title = new Label("🛏 수면");
-            title.style.fontSize = 28f;
+            title.style.fontSize = 31.2f;
             title.style.color = new StyleColor(UTKColor.TextPrimary);
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.marginBottom = 6f;
             panel.Add(title);
 
             var guidance = new Label("잠들 시간을 선택하세요. ‘일어나기’를 누르면 수면 없이 창을 닫습니다.");
-            guidance.style.fontSize = 13f;
+            guidance.style.fontSize = 13.2f;
             guidance.style.color = new StyleColor(UTKColor.TextSecondary);
             guidance.style.whiteSpace = WhiteSpace.Normal;
             guidance.style.marginBottom = 14f;

@@ -74,7 +74,7 @@ namespace ProjectName.UI.Toolkit
 
             _goldLabel = new Label("💰 보유 골드: 0G");
             _goldLabel.AddToClassList("utk-title-label");
-            _goldLabel.style.fontSize = 18f;
+            _goldLabel.style.fontSize = 16.8f;
             _content.Add(_goldLabel);
 
             // 상태는 장비 목록과 구분되는 GitHub-dark 헤더 카드로 표시한다.
@@ -102,12 +102,12 @@ namespace ProjectName.UI.Toolkit
             _statusCard.style.marginBottom = 6f;
 
             var header = new Label("파손된 장비 목록");
-            header.style.fontSize = 15f;
+            header.style.fontSize = 15.6f;
             header.style.color = new StyleColor(UTKColor.TextPrimary);
             _statusCard.Add(header);
 
             _statusLabel = new Label("파손된 장비를 선택하여 수리하세요.");
-            _statusLabel.style.fontSize = 14f;
+            _statusLabel.style.fontSize = 14.4f;
             _statusLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             _statusLabel.style.whiteSpace = WhiteSpace.Normal;
             _statusLabel.style.marginTop = 4f;
@@ -222,7 +222,7 @@ namespace ProjectName.UI.Toolkit
             if (damaged.Count == 0)
             {
                 var empty = new Label("  수리할 장비가 없습니다.");
-                empty.style.fontSize = 14f;
+                empty.style.fontSize = 14.4f;
                 empty.style.color = new StyleColor(UTKColor.TextSecondary);
                 _list.Add(empty);
                 return;
@@ -264,7 +264,7 @@ namespace ProjectName.UI.Toolkit
 
             var info = new Label($"{colorMark} {entry.itemData.displayName}  |  내구도: {entry.currentDurability}/{entry.maxDurability}");
             info.style.flexGrow = 1f;
-            info.style.fontSize = 14f;
+            info.style.fontSize = 14.4f;
             info.style.color = new StyleColor(UTKColor.TextPrimary);
             info.style.whiteSpace = WhiteSpace.Normal;
             row.Add(info);
@@ -272,7 +272,7 @@ namespace ProjectName.UI.Toolkit
             var costLabel = new Label($"💰 {entry.repairCost}G");
             costLabel.style.width = 84f;
             costLabel.style.marginLeft = 6f;
-            costLabel.style.fontSize = 14f;
+            costLabel.style.fontSize = 14.4f;
             costLabel.style.color = new StyleColor(UTKColor.AccentRare);
             row.Add(costLabel);
 

@@ -73,7 +73,7 @@ namespace ProjectName.UI.Toolkit
             periodCard.style.flexDirection = FlexDirection.Column;
 
             _periodLabel = new Label("");
-            _periodLabel.style.fontSize = 17f;
+            _periodLabel.style.fontSize = 16.8f;
             _periodLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             periodCard.Add(_periodLabel);
 
@@ -162,7 +162,7 @@ namespace ProjectName.UI.Toolkit
 
             _list.Clear();
             var header = MakeLabel("NPC 일상 상태", UTKColor.TextSecondary, false);
-            header.style.fontSize = 15f;
+            header.style.fontSize = 15.6f;
             header.style.marginBottom = 6f;
             _list.Add(header);
 
@@ -233,7 +233,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color, bool wrap)
         {
             var l = new Label(text);
-            l.style.fontSize = 13f;
+            l.style.fontSize = 13.2f;
             l.style.color = new StyleColor(color);
             if (wrap)
                 l.style.whiteSpace = WhiteSpace.Normal;

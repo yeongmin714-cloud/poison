@@ -179,14 +179,14 @@ namespace ProjectName.UI.Toolkit
             Content.Add(topBar);
 
             _goldLabel = new Label("골드: 0");
-            _goldLabel.style.fontSize = 20f;
+            _goldLabel.style.fontSize = 21.6f;
             _goldLabel.style.color = GitHubDark.Gold;
             _goldLabel.style.flexGrow = 1f;
             _goldLabel.AddToClassList("utk-title-label");
             topBar.Add(_goldLabel);
 
             var warning = new Label("🕵️ 적 영지 비밀거래 — 마약성 약물을 고가에 밀매합니다");
-            warning.style.fontSize = 13f;
+            warning.style.fontSize = 13.2f;
             warning.style.color = GitHubDark.Danger;
             warning.style.whiteSpace = WhiteSpace.Normal;
             Content.Add(warning);
@@ -196,7 +196,7 @@ namespace ProjectName.UI.Toolkit
             Content.Add(_smuggleScroll);
 
             _statusLabel = new Label("");
-            _statusLabel.style.fontSize = 14f;
+            _statusLabel.style.fontSize = 14.4f;
             _statusLabel.style.color = GitHubDark.TextSub;
             _statusLabel.style.minHeight = 20f;
             _statusLabel.style.marginTop = 6f;
@@ -397,13 +397,13 @@ namespace ProjectName.UI.Toolkit
             info.style.flexGrow = 1f;
 
             var nameLabel = new Label(slot.item.displayName);
-            nameLabel.style.fontSize = 18f;
+            nameLabel.style.fontSize = 16.8f;
             nameLabel.style.color = GitHubDark.TextMain;
             info.Add(nameLabel);
 
             int price = CalculateSmugglePrice(slot.item);
             var priceLabel = new Label($"{slot.item.rarity.ToString()} · 밀매가 {price}G");
-            priceLabel.style.fontSize = 14f;
+            priceLabel.style.fontSize = 14.4f;
             priceLabel.style.color = GitHubDark.Gold;
             info.Add(priceLabel);
 

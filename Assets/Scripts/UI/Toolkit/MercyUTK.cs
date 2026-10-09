@@ -78,20 +78,20 @@ namespace ProjectName.UI.Toolkit
             _content.Add(targetCard);
 
             _lordLabel = new Label("");
-            _lordLabel.style.fontSize = 20f;
+            _lordLabel.style.fontSize = 21.6f;
             _lordLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _lordLabel.style.color = new StyleColor(GitHubDark.TextMain);
             targetCard.Add(_lordLabel);
 
             _personalityLabel = new Label("");
             _personalityLabel.name = "MercyInfo";
-            _personalityLabel.style.fontSize = 13f;
+            _personalityLabel.style.fontSize = 13.2f;
             _personalityLabel.style.color = new StyleColor(GitHubDark.TextSub);
             _personalityLabel.style.marginTop = 4f;
             targetCard.Add(_personalityLabel);
 
             _msgLabel = new Label("영주가 항복했습니다. 처형하시겠습니까? 살려주시겠습니까?");
-            _msgLabel.style.fontSize = 14f;
+            _msgLabel.style.fontSize = 14.4f;
             _msgLabel.style.color = new StyleColor(GitHubDark.TextMain);
             _msgLabel.style.whiteSpace = WhiteSpace.Normal;
             _msgLabel.style.marginTop = 8f;
@@ -154,7 +154,7 @@ namespace ProjectName.UI.Toolkit
             _rewardHost.Add(rewardBox);
 
             _rewardLabel = new Label("");
-            _rewardLabel.style.fontSize = 15f;
+            _rewardLabel.style.fontSize = 15.6f;
             _rewardLabel.style.color = new StyleColor(GitHubDark.TextMain);
             _rewardLabel.style.whiteSpace = WhiteSpace.Normal;
             _rewardLabel.style.marginTop = 16f;

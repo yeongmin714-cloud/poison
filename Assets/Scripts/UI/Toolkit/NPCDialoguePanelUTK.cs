@@ -104,7 +104,7 @@ namespace ProjectName.UI.Toolkit
             _actionHint.style.height = 12f;
             _actionHint.style.minHeight = 12f;
             _actionHint.style.marginTop = 6f;
-            _actionHint.style.fontSize = 10f;
+            _actionHint.style.fontSize = 12f;
             _actionHint.style.color = new StyleColor(new Color32(0x8B, 0x94, 0x9E, 0xFF));
             _actionHint.style.unityTextAlign = TextAnchor.MiddleRight;
             _content.Add(_actionHint);
@@ -229,7 +229,7 @@ namespace ProjectName.UI.Toolkit
             title.style.minHeight = 12f;
             title.style.color = new StyleColor(new Color32(0x8B, 0x94, 0x9E, 0xFF));
             var body = new Label(text);
-            body.style.fontSize = 13f;
+            body.style.fontSize = 13.2f;
             body.style.height = 13f;
             body.style.minHeight = 13f;
             body.style.color = new StyleColor(new Color32(0xF0, 0xF6, 0xFC, 0xFF));

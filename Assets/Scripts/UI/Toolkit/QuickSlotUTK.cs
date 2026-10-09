@@ -99,14 +99,14 @@ namespace ProjectName.UI.Toolkit
             surface.Add(heading);
 
             var title = new Label("QUICK SLOTS");
-            title.style.fontSize = 11f;
+            title.style.fontSize = 12f;
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.color = new StyleColor(UTKColor.TextPrimary);
             heading.Add(title);
 
             var hint = new Label("우클릭: 등록 / 해제");
             hint.style.flexGrow = 1f;
-            hint.style.fontSize = 10f;
+            hint.style.fontSize = 12f;
             hint.style.color = new StyleColor(UTKColor.TextSecondary);
             hint.style.unityTextAlign = TextAnchor.MiddleRight;
             heading.Add(hint);
@@ -158,7 +158,7 @@ namespace ProjectName.UI.Toolkit
                 keyLabel.style.width = 18f;
                 keyLabel.style.height = 18f;
                 keyLabel.style.marginBottom = 3f;
-                keyLabel.style.fontSize = 10f;
+                keyLabel.style.fontSize = 12f;
                 keyLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
                 keyLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
                 keyLabel.style.color = new StyleColor(UTKColor.TextSecondary);

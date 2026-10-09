@@ -154,7 +154,7 @@ namespace ProjectName.UI.Toolkit
             badge.style.borderBottomRightRadius = 6f;
 
             var icon = new Label(BannerPrefix(entry.type));
-            icon.style.fontSize = 16f;
+            icon.style.fontSize = 16.8f;
             icon.style.color = new StyleColor(typeColor);
             badge.Add(icon);
             banner.Add(badge);
@@ -165,7 +165,7 @@ namespace ProjectName.UI.Toolkit
             content.style.justifyContent = Justify.Center;
 
             var typeLabel = new Label(BannerTypeLabel(entry.type));
-            typeLabel.style.fontSize = 11f;
+            typeLabel.style.fontSize = 12f;
             typeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             typeLabel.style.color = new StyleColor(typeColor);
             typeLabel.style.marginBottom = 2f;
@@ -175,7 +175,7 @@ namespace ProjectName.UI.Toolkit
 
             var message = new Label(entry.message ?? string.Empty);
             message.style.flexShrink = 1f;
-            message.style.fontSize = 13f;
+            message.style.fontSize = 13.2f;
             message.style.color = new StyleColor(UTKTheme.TextMain);
             message.style.textOverflow = TextOverflow.Ellipsis;
             message.style.whiteSpace = WhiteSpace.NoWrap;

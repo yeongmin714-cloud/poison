@@ -171,7 +171,7 @@ namespace ProjectName.UI.Toolkit
 
             _summaryLabel = new Label("⚔️ 영지 병사 배치");
             _summaryLabel.AddToClassList("utk-title-label");
-            _summaryLabel.style.fontSize = 18f;
+            _summaryLabel.style.fontSize = 16.8f;
             _summaryLabel.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 요약 제목 — 기본 텍스트
             _content.Add(_summaryLabel);
 
@@ -383,7 +383,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color)
         {
             var l = new Label(text);
-            l.style.fontSize = 13f;
+            l.style.fontSize = 13.2f;
             l.style.color = new StyleColor(color);
             l.style.whiteSpace = WhiteSpace.Normal;
             return l;

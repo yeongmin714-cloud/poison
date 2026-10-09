@@ -82,7 +82,7 @@ namespace ProjectName.UI.Toolkit
 
             _summaryLabel = new Label("🕵️ 정보원 파견");
             _summaryLabel.AddToClassList("utk-title-label");
-            _summaryLabel.style.fontSize = 18f;
+            _summaryLabel.style.fontSize = 16.8f;
             _content.Add(_summaryLabel);
 
             _list = new VisualElement();
@@ -293,7 +293,7 @@ namespace ProjectName.UI.Toolkit
 
                 string lockStr = canDo ? "" : $" (Lv.{reqLv} 필요)";
                 var nameLabel = MakeLabel($"{name}{lockStr}", canDo ? UTKColor.TextPrimary : UTKColor.HealthRed);
-                nameLabel.style.fontSize = 14f;
+                nameLabel.style.fontSize = 14.4f;
                 box.Add(nameLabel);
                 box.Add(MakeLabel(desc, UTKColor.TextSecondary));
                 box.Add(MakeLabel($"⏱ {timeStr}  |  발각 위험: {detectText}{detectChance * 100:F0}%", UTKColor.TextSecondary));
@@ -526,7 +526,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color)
         {
             var l = new Label(text);
-            l.style.fontSize = 13f;
+            l.style.fontSize = 13.2f;
             l.style.color = new StyleColor(color);
             l.style.whiteSpace = WhiteSpace.Normal;
             return l;

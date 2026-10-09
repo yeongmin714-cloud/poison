@@ -320,7 +320,7 @@ namespace ProjectName.UI.Toolkit
             image.style.borderTopLeftRadius = image.style.borderTopRightRadius = image.style.borderBottomLeftRadius = image.style.borderBottomRightRadius = 9.6f;
             image.style.justifyContent = Justify.Center;
             image.style.alignItems = Align.Center;
-            _dImageHint = MkLabel("3D 미리보기", 15f, GitHubDark.TextSub);
+            _dImageHint = MkLabel("3D 미리보기", 15.6f, GitHubDark.TextSub);
             image.Add(_dImageHint);
             parent.Add(image);
 
@@ -719,7 +719,7 @@ namespace ProjectName.UI.Toolkit
             avatar.style.color = GitHubDark.BgBase;
             avatar.style.unityFontStyleAndWeight = FontStyle.Bold;
             avatar.style.unityTextAlign = TextAnchor.MiddleCenter;
-            avatar.style.fontSize = 22f;
+            avatar.style.fontSize = 21.6f;
             avatar.style.borderTopLeftRadius = avatar.style.borderTopRightRadius = avatar.style.borderBottomLeftRadius = avatar.style.borderBottomRightRadius = 26.4f;
             avatar.style.marginRight = 14.4f;
             avatar.style.flexShrink = 0f;

@@ -321,7 +321,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             _messageLabel = new Label(message ?? "");
-            _messageLabel.style.fontSize = new Length(17f, LengthUnit.Pixel);
+            _messageLabel.style.fontSize = new Length(16.8f, LengthUnit.Pixel);
             _messageLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             box.Add(_messageLabel);
 

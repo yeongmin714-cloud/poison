@@ -385,10 +385,10 @@ namespace ProjectName.UI.Toolkit
             storySection.style.paddingLeft = 14.4f;
             storySection.style.paddingRight = 14.4f;
             storySection.style.paddingTop = 14.4f;
-            var storyH = MkLabel("작전 브리핑", 14, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            var storyH = MkLabel("작전 브리핑", 14.4f, GitHubDark.Gold, TextAnchor.MiddleLeft);
             storyH.style.height = 18f;
             storySection.Add(storyH);
-            _detailStory = MkLabel("—", 13, GitHubDark.TextSub, TextAnchor.UpperLeft);
+            _detailStory = MkLabel("—", 13.2f, GitHubDark.TextSub, TextAnchor.UpperLeft);
             _detailStory.style.whiteSpace = WhiteSpace.Normal;
             _detailStory.style.height = 87f;
             _detailStory.style.marginTop = 7.2f;
@@ -400,7 +400,7 @@ namespace ProjectName.UI.Toolkit
             objectivesSection.style.flexGrow = 1f;
             objectivesSection.style.minHeight = 0f;
             objectivesSection.style.marginTop = 19.2f;
-            var objH = MkLabel("달성 조건", 14, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            var objH = MkLabel("달성 조건", 14.4f, GitHubDark.Gold, TextAnchor.MiddleLeft);
             objH.style.height = 18f;
             objectivesSection.Add(objH);
 
@@ -500,7 +500,7 @@ namespace ProjectName.UI.Toolkit
         {
             var l = new Label(text ?? "");
             l.style.width = 185f;
-            l.style.fontSize = 14f;
+            l.style.fontSize = 14.4f;
             l.style.color = new StyleColor(GitHubDark.TextMain);
             return l;
         }
@@ -636,7 +636,7 @@ namespace ProjectName.UI.Toolkit
 
             if (!any)
             {
-                var empty = MkLabel("표시할 퀘스트가 없습니다.", 15, GitHubDark.TextSub, TextAnchor.UpperLeft);
+                var empty = MkLabel("표시할 퀘스트가 없습니다.", 15.6f, GitHubDark.TextSub, TextAnchor.UpperLeft);
                 empty.style.flexGrow = 1f;
                 _list.Add(empty);
             }
@@ -701,7 +701,7 @@ namespace ProjectName.UI.Toolkit
 
         private VisualElement BuildChainHeader()
         {
-            var h = MkLabel("🔗 활성 퀘스트 체인", 17, GitHubDark.Accent, TextAnchor.MiddleLeft);
+            var h = MkLabel("🔗 활성 퀘스트 체인", 16.8f, GitHubDark.Accent, TextAnchor.MiddleLeft);
             h.style.marginTop = 6f;
             h.style.marginBottom = 2f;
             return h;
@@ -725,7 +725,7 @@ namespace ProjectName.UI.Toolkit
             string progressStr = chainData.nodes != null
                 ? $"{progress.completedNodeIds.Count}/{chainData.nodes.Length}"
                 : "0/0";
-            var title = MkLabel($"{chainData.chainTitle}  [{progressStr}]", 15, GitHubDark.Accent, TextAnchor.MiddleLeft);
+            var title = MkLabel($"{chainData.chainTitle}  [{progressStr}]", 15.6f, GitHubDark.Accent, TextAnchor.MiddleLeft);
             box.Add(title);
 
             string nodeTitle = "알 수 없음";
@@ -739,7 +739,7 @@ namespace ProjectName.UI.Toolkit
                 hasChoices = node.choices != null && node.choices.Length > 0;
             }
 
-            var desc = MkLabel($"▸ 현재: {nodeTitle}  {nodeDesc}", 13, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var desc = MkLabel($"▸ 현재: {nodeTitle}  {nodeDesc}", 13.2f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             desc.style.whiteSpace = WhiteSpace.Normal;
             box.Add(desc);
 
@@ -980,7 +980,7 @@ namespace ProjectName.UI.Toolkit
                     _objectivesList.Clear();
                     if (!string.IsNullOrEmpty(node.id))
                     {
-                        var nodeTitle = MkLabel("현재 노드: " + (string.IsNullOrEmpty(node.title) ? node.id : node.title), 13, GitHubDark.Accent, TextAnchor.MiddleLeft);
+                        var nodeTitle = MkLabel("현재 노드: " + (string.IsNullOrEmpty(node.title) ? node.id : node.title), 13.2f, GitHubDark.Accent, TextAnchor.MiddleLeft);
                         nodeTitle.style.whiteSpace = WhiteSpace.Normal;
                         _objectivesList.Add(nodeTitle);
                         if (!string.IsNullOrEmpty(node.description))
@@ -1045,11 +1045,11 @@ namespace ProjectName.UI.Toolkit
             contentRow.style.height = 20f;
             row.Add(contentRow);
 
-            var mark = MkLabel(obj.IsMet ? "✓" : "○", 15, c, TextAnchor.MiddleCenter);
+            var mark = MkLabel(obj.IsMet ? "✓" : "○", 15.6f, c, TextAnchor.MiddleCenter);
             mark.style.width = 26.4f;
             contentRow.Add(mark);
 
-            var desc = MkLabel(obj.description ?? "목표", 13, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            var desc = MkLabel(obj.description ?? "목표", 13.2f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             desc.style.flexGrow = 1f;
             desc.style.minWidth = 0f;
             desc.style.whiteSpace = WhiteSpace.Normal;
@@ -1085,7 +1085,7 @@ namespace ProjectName.UI.Toolkit
             _rewardsList.Clear();
             if (string.IsNullOrEmpty(quest.questId))
             {
-                _rewardsList.Add(MkLabel("—", 13, GitHubDark.TextSub, TextAnchor.MiddleLeft));
+                _rewardsList.Add(MkLabel("—", 13.2f, GitHubDark.TextSub, TextAnchor.MiddleLeft));
                 return;
             }
 
@@ -1116,7 +1116,7 @@ namespace ProjectName.UI.Toolkit
             }
 
             if (empty)
-                _rewardsList.Add(MkLabel("보상 없음", 13, GitHubDark.TextSub, TextAnchor.MiddleLeft));
+                _rewardsList.Add(MkLabel("보상 없음", 13.2f, GitHubDark.TextSub, TextAnchor.MiddleLeft));
         }
 
         private VisualElement BuildRewardRow(string name, string value, Color accent)
@@ -1155,13 +1155,13 @@ namespace ProjectName.UI.Toolkit
             icon.style.borderBottomRightRadius = 4f;
             row.Add(icon);
 
-            var nameLbl = MkLabel(name, 14, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            var nameLbl = MkLabel(name, 14.4f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
             nameLbl.style.flexGrow = 1f;
             nameLbl.style.minWidth = 0f;
             nameLbl.style.marginLeft = 14.4f;
             row.Add(nameLbl);
 
-            var val = MkLabel(value, 13, accent, TextAnchor.MiddleRight);
+            var val = MkLabel(value, 13.2f, accent, TextAnchor.MiddleRight);
             val.style.width = 57f;
             row.Add(val);
 

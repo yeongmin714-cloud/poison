@@ -101,7 +101,7 @@ namespace ProjectName.UI.Toolkit
             _content.Add(_npcCard);
 
             _summaryLabel = new Label("💬 NPC 대화");
-            _summaryLabel.style.fontSize = 18f;
+            _summaryLabel.style.fontSize = 16.8f;
             _summaryLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _summaryLabel.style.color = new StyleColor(UTKTheme.TextMain);
             _summaryLabel.style.flexGrow = 1f;
@@ -507,7 +507,7 @@ namespace ProjectName.UI.Toolkit
 
             string stateIcon = StateIcon(state);
             var info = MakeLabel(stateIcon + " " + quest.questName + " (Lv." + quest.requiredLevel + ")", UTKTheme.TextMain);
-            info.style.fontSize = 14f;
+            info.style.fontSize = 14.4f;
             info.style.unityFontStyleAndWeight = FontStyle.Bold;
             card.Add(info);
 
@@ -615,7 +615,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeLabel(string text, Color color)
         {
             var l = new Label(text);
-            l.style.fontSize = 13f;
+            l.style.fontSize = 13.2f;
             l.style.color = new StyleColor(color);
             l.style.whiteSpace = WhiteSpace.Normal;
             return l;

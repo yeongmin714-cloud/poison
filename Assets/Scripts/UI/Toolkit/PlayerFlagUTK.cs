@@ -107,7 +107,7 @@ namespace ProjectName.UI.Toolkit
             headerCard.Add(headerCopy);
 
             var headerTitle = new Label("🏳️ 나만의 국기 만들기");
-            headerTitle.style.fontSize = 17f;
+            headerTitle.style.fontSize = 16.8f;
             headerTitle.style.color = new StyleColor(UTKColor.TextPrimary);
             headerTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             headerCopy.Add(headerTitle);
@@ -130,12 +130,12 @@ namespace ProjectName.UI.Toolkit
             headerCard.Add(_previewBox);
 
             _previewSymbol = new Label("🛡️");
-            _previewSymbol.style.fontSize = 30f;
+            _previewSymbol.style.fontSize = 31.2f;
             _previewSymbol.style.color = new StyleColor(UTKColor.TextPrimary);
             _previewBox.Add(_previewSymbol);
 
             _previewName = new Label("이름 없음");
-            _previewName.style.fontSize = 13f;
+            _previewName.style.fontSize = 13.2f;
             _previewName.style.color = new StyleColor(UTKColor.TextPrimary);
             _previewName.style.unityFontStyleAndWeight = FontStyle.Bold;
             _previewBox.Add(_previewName);
@@ -178,7 +178,7 @@ namespace ProjectName.UI.Toolkit
             // ── 비용 정보 ──
             _costLabel = new Label("");
             _costLabel.style.color = new StyleColor(UTKColor.TextSecondary);
-            _costLabel.style.fontSize = 14f;
+            _costLabel.style.fontSize = 14.4f;
             _costLabel.style.marginTop = 8f;
             _costLabel.style.marginBottom = 4f;
             infoCard.Add(_costLabel);
@@ -186,7 +186,7 @@ namespace ProjectName.UI.Toolkit
             // ── 메시지 ──
             _messageLabel = new Label("");
             _messageLabel.style.color = new StyleColor(new Color(0.6f, 1f, 0.6f));
-            _messageLabel.style.fontSize = 13f;
+            _messageLabel.style.fontSize = 13.2f;
             _messageLabel.style.whiteSpace = WhiteSpace.Normal;
             _messageLabel.style.marginTop = 4f;
             _messageLabel.style.marginBottom = 4f;
@@ -349,7 +349,7 @@ namespace ProjectName.UI.Toolkit
         private static Label MakeSectionLabel(string text)
         {
             var l = new Label(text);
-            l.style.fontSize = 14f;
+            l.style.fontSize = 14.4f;
             l.style.color = new StyleColor(UTKColor.TextPrimary);
             l.style.unityFontStyleAndWeight = FontStyle.Bold;
             l.style.marginTop = 6f;

@@ -226,7 +226,7 @@ namespace ProjectName.UI.Toolkit
         {
             _headerLabel = new Label("");
             _headerLabel.name = "GuardHeader";
-            _headerLabel.style.fontSize = 17f;
+            _headerLabel.style.fontSize = 16.8f;
             _headerLabel.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 기본 텍스트
             _headerLabel.style.marginLeft = 10f;
             _headerLabel.style.marginTop = 4f;
@@ -235,7 +235,7 @@ namespace ProjectName.UI.Toolkit
 
             _statusLabel = new Label("");
             _statusLabel.name = "GuardStatus";
-            _statusLabel.style.fontSize = 13f;
+            _statusLabel.style.fontSize = 13.2f;
             _statusLabel.style.color = new StyleColor(GitHubDark.Accent);   // [GitHub-dark] 상태 메시지 — 액센트
             _statusLabel.style.marginLeft = 10f;
             _statusLabel.style.marginTop = 2f;
@@ -302,7 +302,7 @@ namespace ProjectName.UI.Toolkit
             btn.style.marginBottom = 2f;
             btn.style.marginLeft = 3f;
             btn.style.marginRight = 3f;
-            btn.style.fontSize = 15f;
+            btn.style.fontSize = 15.6f;
             _menuSection.Add(btn);
         }
 
@@ -316,7 +316,7 @@ namespace ProjectName.UI.Toolkit
 
             _itemTitleLabel = new Label("🥩 음식 선택");
             _itemTitleLabel.name = "ItemTitle";
-            _itemTitleLabel.style.fontSize = 17f;
+            _itemTitleLabel.style.fontSize = 16.8f;
             _itemTitleLabel.style.color = new StyleColor(GitHubDark.Gold);   // [GitHub-dark] 섹션 제목 — 골드
             _itemTitleLabel.style.marginLeft = 10f;
             _itemTitleLabel.style.marginTop = 4f;
@@ -333,7 +333,7 @@ namespace ProjectName.UI.Toolkit
 
             _itemEmptyLabel = new Label("보유한 아이템이 없습니다.");
             _itemEmptyLabel.name = "ItemEmpty";
-            _itemEmptyLabel.style.fontSize = 13f;
+            _itemEmptyLabel.style.fontSize = 13.2f;
             _itemEmptyLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 보조 텍스트
             _itemEmptyLabel.style.marginLeft = 10f;
             _itemEmptyLabel.style.marginTop = 10f;
@@ -552,14 +552,14 @@ namespace ProjectName.UI.Toolkit
             row.Add(slot);
 
             var name = new Label(!string.IsNullOrEmpty(item.displayName) ? item.displayName : item.id);
-            name.style.fontSize = 14f;
+            name.style.fontSize = 14.4f;
             name.style.color = new StyleColor(GitHubDark.TextMain);   // [GitHub-dark] 기본 텍스트
             name.style.marginLeft = 8f;
             name.style.flexGrow = 1f;
             row.Add(name);
 
             var countLabel = new Label("x" + count);
-            countLabel.style.fontSize = 13f;
+            countLabel.style.fontSize = 13.2f;
             countLabel.style.color = new StyleColor(GitHubDark.TextSub);   // [GitHub-dark] 보조 텍스트
             countLabel.style.marginRight = 8f;
             row.Add(countLabel);

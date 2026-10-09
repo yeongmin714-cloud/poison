@@ -91,13 +91,13 @@ namespace ProjectName.UI.Toolkit
             Add(infoRow);
 
             _timeLabel = new Label("--:--");
-            _timeLabel.style.fontSize = 22f;
+            _timeLabel.style.fontSize = 21.6f;
             _timeLabel.style.color = new StyleColor(UTKColor.TextPrimary);
             _timeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             infoRow.Add(_timeLabel);
 
             _dayLabel = new Label("Day 1");
-            _dayLabel.style.fontSize = 11f;
+            _dayLabel.style.fontSize = 12f;
             _dayLabel.style.color = new StyleColor(UTKColor.TextSecondary);
             infoRow.Add(_dayLabel);
 

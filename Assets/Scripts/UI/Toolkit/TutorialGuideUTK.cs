@@ -102,7 +102,7 @@ namespace ProjectName.UI.Toolkit
             summaryCard.style.borderBottomRightRadius = 8f;
 
             _statLabel = new Label("");
-            _statLabel.style.fontSize = 14f;
+            _statLabel.style.fontSize = 14.4f;
             _statLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _statLabel.style.color = new StyleColor(UTKColor.GuildGreen);
             summaryCard.Add(_statLabel);
@@ -233,12 +233,12 @@ namespace ProjectName.UI.Toolkit
             row1.style.alignItems = Align.Center;
 
             var step = new Label(done ? "✅" : "⬜");
-            step.style.fontSize = 16f;
+            step.style.fontSize = 16.8f;
             step.style.width = 26f;
             row1.Add(step);
 
             var titleLabel = new Label(title);
-            titleLabel.style.fontSize = 15f;
+            titleLabel.style.fontSize = 15.6f;
             titleLabel.style.flexGrow = 1f;
             titleLabel.style.color = new StyleColor(done ? UTKColor.TextPrimary : UTKColor.TextSecondary);
             row1.Add(titleLabel);
@@ -255,7 +255,7 @@ namespace ProjectName.UI.Toolkit
             if (!string.IsNullOrEmpty(desc))
             {
                 var descLabel = new Label(desc);
-                descLabel.style.fontSize = 13f;
+                descLabel.style.fontSize = 13.2f;
                 descLabel.style.color = new StyleColor(UTKColor.TextSecondary);
                 descLabel.style.whiteSpace = WhiteSpace.Normal;
                 descLabel.style.marginLeft = 26f;
@@ -270,7 +270,7 @@ namespace ProjectName.UI.Toolkit
         private static VisualElement GroupHeader(string text)
         {
             var h = new Label(text);
-            h.style.fontSize = 16f;
+            h.style.fontSize = 16.8f;
             h.style.unityFontStyleAndWeight = FontStyle.Bold;
             h.style.color = new StyleColor(UTKColor.TextSecondary);
             h.style.marginTop = 12f;
