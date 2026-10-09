@@ -33,6 +33,7 @@ namespace ProjectName.Systems
         private float _lightScanTimer;
         private int _additionalLightCount;
         private Color _ambient;
+        private bool _gateIndoor;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap() => Ensure();
@@ -58,9 +59,18 @@ namespace ProjectName.Systems
         {
             if (_material == null) return;
 
-            // [게이트] 활성 씬이 IndoorScene일 때만 밀도 > 0. 애디티브 실내 진입(IndoorSceneTransition)과
+            // [게이트] 활성 씬이 실내일 때만 밀도 > 0. 애디티브 실내 진입(IndoorSceneTransition)과
             //   언로드 복귀 양쪽에서 activeScene 기준으로 자동 전환된다.
-            bool indoor = SceneManager.GetActiveScene().name == IndoorSceneName;
+            //   성 내부 테스트 씬(Test_PlayerCastleInterior)도 "Interior" 포함으로 실내 취급 —
+            //   2026-10-09 사용자 재실행 판정: 테스트 씬에서 포그 미발동 원인이었음.
+            string activeScene = SceneManager.GetActiveScene().name;
+            bool indoor = activeScene == IndoorSceneName || activeScene.Contains("Interior");
+            if (indoor != _gateIndoor)
+            {
+                _gateIndoor = indoor;
+                // 진단용 게이트 전환 로그 — [FigmaV3] 패턴과 동일한 관측 가능화(상태 변화 시만).
+                Debug.Log($"[IndoorAeroFog] 게이트 전환 — 씬='{activeScene}' 실내={indoor} 목표밀도={(indoor ? IndoorDensity : 0f)}");
+            }
             float target = indoor ? IndoorDensity : 0f;
             float current = _material.HasProperty("_Density") ? _material.GetFloat("_Density") : 0f;
             if (!Mathf.Approximately(current, target))

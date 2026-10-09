@@ -61,8 +61,9 @@ namespace ProjectName.Tests.EditMode
         public void Controller_GatesByIndoorActiveScene_AndFollowsAeroFrameCountContract()
         {
             string src = System.IO.File.ReadAllText("Assets/Scripts/Systems/IndoorAeroFogController.cs");
-            Assert.That(src, Does.Contain("SceneManager.GetActiveScene().name == IndoorSceneName"),
-                "포그 밀도 게이트는 활성 씬==IndoorScene이어야 한다(애디티브 실내 전환/복귀 양쪽 자동 처리).");
+            Assert.That(src, Does.Contain("activeScene == IndoorSceneName || activeScene.Contains(\"Interior\")"),
+                "포그 밀도 게이트는 활성 씬==IndoorScene 또는 성 내부 테스트 씬(씬명 Interior 포함)이어야 한다" +
+                "(애디티브 실내 전환/복귀 자동 처리 — 2026-10-09 테스트 씬 미발동 수리).");
             Assert.That(src, Does.Contain("Time.renderedFrameCount % 60"),
                 "AERO 계약 — _FrameCount=renderedFrameCount%60 매 프레임(IGN 지터 안정화).");
             Assert.That(src, Does.Contain("Mathf.MoveTowards"),
