@@ -34,7 +34,8 @@ namespace ProjectName.UI.Toolkit
         private void ApplyInventoryBodyLayout(bool requireAttachedPanel = true)
         {
             var root = UIToolkitBootstrap.UIRoot;
-            if (root == null || _equipPanel == null || _bagViewport == null || _selectedLabel == null)
+            if (root == null || _equipPanel == null || _bagViewport == null
+                || _tabBar == null || _footer == null || _weightLabel == null || _weightValue == null)
                 return;
             if (requireAttachedPanel && (panel == null || _content.panel == null || panel != _content.panel || panel != root.panel))
                 return;
@@ -61,7 +62,17 @@ namespace ProjectName.UI.Toolkit
                     : Vector2.zero;
                 SetLocalRect(_equipPanel, equipBody.x - contentOrigin.x, equipBody.y - contentOrigin.y, equipBody.width, equipBody.height);
                 SetLocalRect(_bagViewport, bagBody.x - contentOrigin.x, bagBody.y - contentOrigin.y, bagBody.width, bagBody.height);
-                SetLocalRect(_selectedLabel, footerBody.x - contentOrigin.x, footerBody.y - contentOrigin.y, footerBody.width, footerBody.height);
+
+                // [Figma 15:4] 탭 바(윈도우-로컬 24,84,456,36.2) + 적재량 푸터(윈도우-로컬 24,827,456,56).
+                Rect tabsBody = InventoryClusterPanelRegions.InventoryTabsBody;
+                SetLocalRect(_tabBar, tabsBody.x - contentOrigin.x, tabsBody.y - contentOrigin.y, tabsBody.width, tabsBody.height);
+                SetLocalRect(_footer, footerBody.x - contentOrigin.x, footerBody.y - contentOrigin.y, footerBody.width, footerBody.height);
+
+                // WeightRow 라벨/값은 푸터-로컬 좌표(윈도우-로컬 − 푸터 원점)로 배치한다.
+                Rect weightLabel = InventoryClusterPanelRegions.InventoryWeightLabel;
+                Rect weightValue = InventoryClusterPanelRegions.InventoryWeightValue;
+                SetLocalRect(_weightLabel, weightLabel.x - footerBody.x, weightLabel.y - footerBody.y, weightLabel.width, weightLabel.height);
+                SetLocalRect(_weightValue, weightValue.x - footerBody.x, weightValue.y - footerBody.y, weightValue.width, weightValue.height);
 
                 // Both Figma positions are window-local, so subtraction yields _equipPanel-local.
                 Rect equipGrid = new Rect(
@@ -212,6 +223,9 @@ namespace ProjectName.UI.Toolkit
         private const int EquipRows = 2;    // Figma 장비 2행
         private const int Columns = 5;   // Figma 가방 그리드 행당 5칸
 
+        // [Figma 15:4 카테고리 탭] 탭 5종 라벨 — 전체/무기/방어구/소모품/재료.
+        private static readonly string[] TabLabels = { "전체", "무기", "방어구", "소모품", "재료" };
+
         private const long RefreshMs = 250L;
 
         // Epic은 공유 테마의 토큰이 아닌 의미론적 등급색으로 유지한다.
@@ -332,7 +346,12 @@ namespace ProjectName.UI.Toolkit
         private readonly Label _warehouseEmptyHint;
         private Label _descName;                            // [3분할] 중앙 설명창
         private Label _descText;
-        private Label _selectedLabel;
+        private readonly VisualElement _tabBar;             // [Figma 15:4] 카테고리 탭 바(5종)
+        private readonly List<Button> _tabButtons = new List<Button>();
+        private int _activeTabIndex;                        // 활성 탭(0=전체)
+        private readonly VisualElement _footer;             // [Figma 15:4] 적재량 푸터(WeightRow)
+        private readonly Label _weightLabel;
+        private readonly Label _weightValue;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
         private EquipmentManager _subscribedEquip;
         private VisualElement _geometryRoot;
@@ -398,13 +417,53 @@ namespace ProjectName.UI.Toolkit
             _grid = _bagViewport.contentContainer;
             _grid.name = "InvGrid";
 
-            // Existing selection feedback occupies the Figma footer region.
-            _selectedLabel = new Label("");
-            _selectedLabel.style.position = Position.Absolute;
-            _selectedLabel.style.fontSize = 13.2f;
-            _selectedLabel.style.color = new StyleColor(UTKTheme.TextSub);
-            _selectedLabel.style.whiteSpace = WhiteSpace.Normal;
-            Add(_selectedLabel);
+            // ── [Figma 15:4 카테고리 탭 바] 탭 5종(전체/무기/방어구/소모품/재료) — 클릭 시 가방 그리드 필터 재렌더.
+            // 기하: TabContainer 윈도우-로컬 (24,84,456,36.2), 탭 각 87.4×36.2, x stride 92.2(갭 4.8).
+            // 탭별 필터 매핑(RefreshGrid/MatchesActiveTab 참조): 전체=전부, 무기=Weapon, 방어구=Armor+Accessory,
+            // 소모품=Food+Potion+Drug, 재료=Herb+Meat+Material. Quest/Tool/Arrow/Bomb는 Figma 탭 미분류 —
+            // "전체" 탭에서만 노출한다(탭 필터에서 제외).
+            _tabBar = new VisualElement { name = "InventoryTabs" };
+            for (int i = 0; i < InventoryClusterPanelRegions.InventoryTabCount; i++)
+            {
+                int tabIndex = i;   // 클로저 캡처 고정
+                var tab = new Button(() => SetActiveTab(tabIndex))
+                {
+                    name = "InvTab_" + TabLabels[i],
+                    text = TabLabels[i]
+                };
+                tab.style.position = Position.Absolute;
+                tab.style.left = InventoryClusterPanelRegions.InventoryTabStride * i;
+                tab.style.width = InventoryClusterPanelRegions.InventoryTabWidth;
+                tab.style.height = InventoryClusterPanelRegions.InventoryTabHeight;
+                tab.style.borderTopWidth = tab.style.borderBottomWidth = tab.style.borderLeftWidth = tab.style.borderRightWidth = 0f;
+                // 코너 radius는 기존 창 톤(UTKTheme.RadiusBadge 토큰) 사용.
+                tab.style.borderTopLeftRadius = UTKTheme.RadiusBadge;
+                tab.style.borderTopRightRadius = UTKTheme.RadiusBadge;
+                tab.style.borderBottomLeftRadius = UTKTheme.RadiusBadge;
+                tab.style.borderBottomRightRadius = UTKTheme.RadiusBadge;
+                // [Figma 15:4] 탭 라벨 14.4/700 공통 — Button은 TextElement라 자체 color로 라벨색 제어.
+                tab.style.fontSize = UTKTheme.FontTab;
+                tab.style.unityFontStyleAndWeight = FontStyle.Bold;
+                _tabBar.Add(tab);
+                _tabButtons.Add(tab);
+            }
+            _content.Add(_tabBar);
+            ApplyTabVisuals();
+
+            // ── [Figma 15:4 적재량 푸터] footer region(24,827,456,56) = WeightRow.
+            // Figma는 kg(34.8/120.0) 목업이나 런타임 무게 데이터 부재 — 위조 금지 규약(요리 푸터 선례:
+            // "사용 N/40" 슬롯 기반)에 따라 무게 kg 대신 사용 슬롯 수로 표기한다. 값은 RefreshGrid에서 갱신.
+            _footer = new VisualElement { name = "InventoryFooter" };
+            _weightLabel = new Label("적재량");
+            _weightLabel.pickingMode = PickingMode.Ignore;
+            UTKTheme.StyleFigmaText(_weightLabel, UTKTheme.FontRowLabel, 400, UTKTheme.TextSub, TextAnchor.MiddleLeft);
+            _footer.Add(_weightLabel);
+            _weightValue = new Label("");
+            _weightValue.pickingMode = PickingMode.Ignore;
+            UTKTheme.StyleFigmaText(_weightValue, UTKTheme.FontRowLabel, 700, UTKTheme.Accent, TextAnchor.MiddleRight);
+            _footer.Add(_weightValue);
+            _content.Add(_footer);
+            UpdateWeightFooter(0, InventoryClusterPanelRegions.InventoryMaxSlots);
             ApplyInventoryBodyLayout(requireAttachedPanel: false);
             RegisterCallback<AttachToPanelEvent>(OnInventoryAttached);
             RegisterCallback<DetachFromPanelEvent>(OnInventoryDetached);
@@ -441,7 +500,7 @@ namespace ProjectName.UI.Toolkit
             ApplyInventoryBodyLayout();
             EnsureEquipSubscription();
             StartRefreshLoop();
-            RefreshGrid();
+            RefreshGrid(force: true);   // [Figma 15:4 탭 필터] 열림 시 활성 탭 필터 강제 적용(포인터가 UI 위여도 무시)
             RefreshEquipPanel();   // [U8 확장] 장비 임베드 갱신
             Debug.Log("[InventoryUTK] 인벤토리 창 열림");
         }
@@ -643,19 +702,87 @@ namespace ProjectName.UI.Toolkit
         //  ① 통합 그리드 — 매 갱신 재조회
         // =====================================================================
 
-        private void RefreshGrid()
+        /// <summary>[Figma 15:4 탭 필터 매핑] 전체=전부, 무기=Weapon, 방어구=Armor+Accessory,
+        /// 소모품=Food+Potion+Drug, 재료=Herb+Meat+Material.
+        /// Quest/Tool/Arrow/Bomb는 Figma 탭 미분류 — "전체" 탭에서만 노출한다(탭 필터에서 제외).</summary>
+        internal static bool MatchesActiveTab(int tabIndex, PlayerInventory.ItemCategory category)
+        {
+            switch (tabIndex)
+            {
+                case 0: return true;   // 전체 = 전부
+                case 1: return category == PlayerInventory.ItemCategory.Weapon;                       // 무기
+                case 2: return category == PlayerInventory.ItemCategory.Armor                          // 방어구
+                            || category == PlayerInventory.ItemCategory.Accessory;
+                case 3: return category == PlayerInventory.ItemCategory.Food                           // 소모품
+                            || category == PlayerInventory.ItemCategory.Potion
+                            || category == PlayerInventory.ItemCategory.Drug;
+                case 4: return category == PlayerInventory.ItemCategory.Herb                           // 재료
+                            || category == PlayerInventory.ItemCategory.Meat
+                            || category == PlayerInventory.ItemCategory.Material;
+                default: return true;
+            }
+        }
+
+        /// <summary>[Figma 15:4] 활성 탭 시각 — 활성: accent fill #58A6FF + 라벨 #0B0E14 / 비활성: 투명 배경 + 라벨 #8B949E.</summary>
+        private void ApplyTabVisuals()
+        {
+            for (int i = 0; i < _tabButtons.Count; i++)
+            {
+                var tab = _tabButtons[i];
+                if (tab == null) continue;
+                bool active = i == _activeTabIndex;
+                tab.style.backgroundColor = new StyleColor(active ? UTKTheme.Accent : new Color(0f, 0f, 0f, 0f));
+                // Button은 TextElement — 자체 color가 라벨색이다.
+                tab.style.color = new StyleColor(active ? UTKTheme.BgBase : UTKTheme.TextSub);
+            }
+        }
+
+        /// <summary>[Figma 15:4] 탭 클릭 — 활성 탭 전환 + 가방 그리드 필터 재렌더(강제).</summary>
+        public void SetActiveTab(int index)
+        {
+            if (index < 0 || index >= _tabButtons.Count || index == _activeTabIndex)
+                return;
+            _activeTabIndex = index;
+            ApplyTabVisuals();
+            // 탭 클릭은 포인터가 UI 위에서 일어나므로 PointerOverUI 가드를 우회한다(force).
+            RefreshGrid(force: true);
+            Debug.Log($"[InventoryUTK] 카테고리 탭 전환: {TabLabels[index]}");
+        }
+
+        /// <summary>[Figma 15:4 적재량 푸터] 값 갱신 — 무게 데이터 부재로 "사용 N/40" 슬롯 기반 표기(위조 금지 규약).</summary>
+        private void UpdateWeightFooter(int usedSlots, int capacity)
+        {
+            if (_weightValue == null) return;
+            _weightValue.text = $"사용 {usedSlots}/{capacity}";
+        }
+
+        private void RefreshGrid(bool force = false)
         {
             // [U8 수리] 드래그 중 셀 재생성 금지 — 캡처 상실로 드래그 도중 취소되는 뿌리 차단
-            if (UTKDragDrop.Active) return;
-
+            // (탭 클릭 등 명시 경로는 force로 가드를 우회한다.)
+            if (!force && UTKDragDrop.Active) return;
             // [P16-3 수리] 커서가 UI 위면 재생성 스킵 — 250ms 폴링마다 셀이 새로 만들어져
             //   hover 중인 슬롯(특히 등급 테두리 아이템)이 찰나 리셋 = "반반 짤려 반짝" 뿌리.
             //   포인터가 떠나면 다음 폴링에 정상 재생성. 클릭/드래그/우클릭 경로는 즉시 갱신 유지.
-            if (ProjectName.Core.UITransitionState.PointerOverUI) return;
+            if (!force && ProjectName.Core.UITransitionState.PointerOverUI) return;
 
             var inv = PlayerInventory.Instance;
             var slots = inv != null ? inv.GetAllSlots() : null;
             int total = slots != null ? slots.Length : 0;
+
+            // [Figma 15:4 탭 필터] 활성 탭 카테고리에 해당하는 "사용 중" 슬롯의 원본 인덱스만 그린다.
+            // 저장소 계약 불변 — PlayerInventory 데이터 구조는 건드리지 않고 표시 단계에서만 필터링한다.
+            var visibleIndices = new List<int>(total);
+            int usedSlots = 0;
+            for (int i = 0; i < total; i++)
+            {
+                var item = slots[i]?.item;
+                if (item == null || slots[i].count <= 0) continue;
+                usedSlots++;
+                if (MatchesActiveTab(_activeTabIndex, item.category))
+                    visibleIndices.Add(i);
+            }
+            int viewCount = visibleIndices.Count;
 
             // 이전 슬롯 드롭 타겟 해제
             for (int i = 0; i < _slotTargets.Count; i++)
@@ -668,15 +795,19 @@ namespace ProjectName.UI.Toolkit
             _slotTargets.Clear();
             _grid.Clear();
 
-            int rows = Mathf.Max(BagRows, total > 0 ? (total + Columns - 1) / Columns : 0);
+            int rows = Mathf.Max(BagRows, viewCount > 0 ? (viewCount + Columns - 1) / Columns : 0);
             for (int r = 0; r < rows; r++)
             {
                 for (int c = 0; c < Columns; c++)
                 {
-                    int idx = r * Columns + c;
+                    // 필터된 뷰 위치(pos) → 원본 슬롯 인덱스 매핑(뷰 밖 = 빈 셀 가이드 -1).
+                    int pos = r * Columns + c;
+                    int idx = pos < viewCount ? visibleIndices[pos] : -1;
                     _grid.Add(BuildSlotCell(slots, idx, total));
                 }
             }
+            // [Figma 15:4 WeightRow] 사용 슬롯 수 갱신 — capacity는 인벤 배열 크기(_maxSlots=40).
+            UpdateWeightFooter(usedSlots, slots != null ? total : InventoryClusterPanelRegions.InventoryMaxSlots);
             ApplyInventoryBodyLayout();
         }
 
@@ -696,7 +827,7 @@ namespace ProjectName.UI.Toolkit
             cell.style.marginRight = cellGap;
             ApplyDarkSlotBase(cell);   // [GitHub-dark] 모든 그리드 셀 다크 인셋 + 호버 액센트 틴트 (인벤 창 한정)
 
-            if (idx < total && slots[idx] != null && slots[idx].item != null && slots[idx].count > 0)
+            if (idx >= 0 && idx < total && slots[idx] != null && slots[idx].item != null && slots[idx].count > 0)
             {
                 var slotData = slots[idx];
                 cell.SetIcon(ItemIconDatabase.GetOrCreateIcon(slotData.item));
@@ -745,13 +876,12 @@ namespace ProjectName.UI.Toolkit
             var slotData = slots[slotIndex];
             if (slotData == null || slotData.item == null)
             {
-                _selectedLabel.text = "";
                 _selectedItemData = null;
                 ItemDescriptionWindowUTK.Clear();
                 return;
             }
-            _selectedLabel.text = $"{slotData.item.displayName}  x{slotData.count}  —  {slotData.item.description}";
             _selectedItemData = slotData.item;
+            // [Figma 15:4] 푸터는 WeightRow 전용 — 선택 피드백은 상세창(ItemDescriptionWindowUTK, 클러스터 v3)이 담당한다.
             ItemDescriptionWindowUTK.ShowItem(slotData.item, slotData.count);   // [독립 창] 중앙 설명창 갱신
             Debug.Log($"[InventoryUTK] 슬롯 선택(클릭): {slotData.item.displayName} (슬롯 {slotIndex})");
         }
