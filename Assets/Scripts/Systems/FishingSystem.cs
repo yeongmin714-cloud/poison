@@ -114,12 +114,23 @@ namespace ProjectName.Systems
 
             if (!_isFishing)
             {
+                bool nearWater = IsNearWater();
+                Transform anchor = _player != null ? _player : transform;
+                // 물가에서 낚시 가능 → 공용 E 프롬프트 표시(등록), 아니면 해제.
+                if (nearWater)
+                    EInteractionPromptBridge.RaiseRegister(anchor, "E키를 눌러 상호작용", _waterCheckRange);
+                else
+                    EInteractionPromptBridge.RaiseUnregister(anchor);
+
                 // 물가에서 E키 → 낚시 시작
-                if (Input.GetKeyDown(KeyCode.E) && IsNearWater())
+                if (Input.GetKeyDown(KeyCode.E) && nearWater)
                     TryStartFishing();
 
                 return;
             }
+
+            // 낚시 중 → 프롬프트 해제 (FishingUTK 창이 대신 표시)
+            EInteractionPromptBridge.RaiseUnregister(_player != null ? _player : transform);
 
             // 낚시 중: 미니게임 핀 업데이트
             if (_isMinigameActive)

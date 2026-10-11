@@ -254,9 +254,33 @@ namespace ProjectName.Systems
             else if (!_playerNearby && _promptInstance != null)
                 HidePrompt();
 
-            // E 키 입력
-            if (_playerNearby && Input.GetKeyDown(KeyCode.E))
-                Harvest();
+            // E 키 입력 — 즉시 습득 대신 채널링(파랑 진행바) 후 완료 시 Harvest로 전환.
+            //  수집 채널링 시스템(사용자 확정): E 누르면 자동 진행, 이동 시 취소.
+            if (_playerNearby && !IsHarvestingChannel()
+                && Input.GetKeyDown(KeyCode.E) && IsAvailable)
+            {
+                BeginHarvestChannel();
+            }
+
+            // 채널 진행 틱 — 이동 취소/완료 판정 (플레이어가 떠나도 본 객체 Update는 계속 돔).
+            if (IsHarvestingChannel())
+                GatherChannelSystem.Instance.Tick();
+        }
+
+        /// <summary>현재 이 약초를 대상으로 수집 채널이 진행 중인지.</summary>
+        private static bool IsHarvestingChannel()
+        {
+            return GatherChannelSystem.Instance.IsActive;
+        }
+
+        /// <summary>채널 시작 — 완료 시 Harvest() 호출. 이동 시 시스템이 취소해 습득 안 됨.</summary>
+        private void BeginHarvestChannel()
+        {
+            if (_isHarvested) return;
+            GatherChannelSystem.Instance.Begin(
+                transform,
+                Harvest,
+                GatherChannelSystem.DefaultChannelSeconds);
         }
 
         private void Harvest()

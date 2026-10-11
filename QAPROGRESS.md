@@ -1,3 +1,365 @@
+## 2026-10-11 (22차) 나무 벌목 200그루 + 과일나무 실제 과일 수확 + 도끼 커서 (미커밋)
+
+- **사용자 요구:** ①새 nature GLB 중 과일나무에서 실제 과일의 GLB을 수확 ②일반 나무(idyllic 포함) 벌목 ③도끼 커서 ④나무 크기 idyllic 조형 나무와 일치. **나무 200그루 배치 확정 → 무중단 실행.**
+- **확인(선행 read-only):** 일반 나무(birch/pine/broadleaf)는 이전에 전혀 배치 안 됨(파일명 리터럴 0건, 랜덤 배치 미구현). 과일나무는 NaturalResourceSpawner 배선됨(GameSetup.cs:376) 그러나 placeholder(치유초) 수확. 크기: 새 GLB native scale=1(작음)로 idyllic(8.6m) 미달.
+- **P2 — 벌목 나무 200그루 (`NaturalResourceSpawner`):**
+  - `WOOD_TARGET=200`·`WOOD_ATTEMPTS=3500`·`WOOD_MIN_DIST=14`. `WoodTreeGlbPaths`(일반 나무 birch/broadleaf/pine mature·young — 파일명으로 과일나무와 구분). `WoodAcceptance`=동서남북 전 국가 균등(1.0) → 지역당 ~50.
+  - `CreateWoodNode`: `ResourceNode(Wood)` 부착 → **기존 E 채널(파랑바)로 통나무(mat_wood)+LootBasket+리스폰** 자동. `NormalizeTreeSize(8.6m)`로 idyllic 정합.
+  - **ResourceNode 확장**: 벌목/채광 시 자식 `Visual` 렌더러까지 숨김(`SetChildRenderersVisible`) → 나무가 베인 것처럼 사라짐, 리스폰 시 복원. (기존 돌 노드에도 적용).
+- **P1 — 과일나무 실제 과일 수확:** `CreateFruitNode` `_herbType=Red(치유초 placeholder)` → **`Fruit_Apple`(사과)** 교체 + `NormalizeTreeSize(8.6m)`. nature 과일나무 GLB(mature-fruiting)가 사과 수확.
+- **P3 — 도끼 커서:** `HoverTargetClassifier`에 `TargetKind.Wood` 신설(`ResourceNode.NodeType==Wood`→Wood, 그 외→Mine). `ContextCursorSystem.BuildAxe()`(도끼 절차 아이콘) + `_icons[Wood]=axe`. `ContextCommandRouter` Wood→`GuardTask.Mine`(병사 자동 벌목 = 채굴 역할 경유).
+- **검증:** 신규 컴파일 `error CS` **0**(compile.log). 전체 EditMode **624/617/7 — baseline과 동일, 신규 회귀 0**(`/mnt/c/tmp/r23_editmode.xml`). stage/commit/push 미수행.
+- **다음(Play 게이트):** ①지역별 벌목 나무 ~50그루(로그 `[NaturalResourceSpawner] 🌳 벌목 나무(Wood) N/200`) ②접근 시 "E키를 눌러 상호작용"+**도끼 커서** ③E→파랑 진행바+**통나무** 드랍+나무 사라짐→리스폰 ④과일나무→**사과** 수확 ⑤나무 크기 idyllic(8.6m) 정합 확인.
+
+---
+
+## 2026-10-11 (21-2) 공용 E 프롬프트 브리지 추가 + 낚시 배선 (미커밋)
+
+- **`EInteractionPromptBridge.cs`(신규, Systems):** Systems→UI 순환참조 회피 브리지(SoldierInteractBridge 정신). `RaiseRegister(Transform,label,range)`/`RaiseUnregister(Transform)` — 임의 E 상호작용(낚시/잠자기/영주실 등)을 공용 프롬프트에 등록/해제.
+- **`EInteractionPromptUTK.Bootstrap`** 에 브리지 구독 추가(→ 등록/해제 라우팅).
+- **낚시 배선(`FishingSystem`)**: 물가·미낚시 시 `RaiseRegister(플레이어,"E키를 눌러 상호작용",_waterCheckRange)`, 낚시 중/비물가 시 해제. 낚시 시작 후 FishingUTK 창이 대신 표시(AnyWindowOpen으로 프롬프트 숨김).
+- **잠자기/영주실**: 동일 브리지의 등록 지점 확보 — 전용 E 트리거 시스템(침대/영주실) 식별 전까지 대입 보류(미추적 시스템 무단 수정 회피).
+- **검증:** 신규 컴파일 `error CS` **0**(compile.log). 전체 EditMode **624/617/7 — baseline과 동일, 신규 회귀 0**(`/mnt/c/tmp/r22_editmode.xml`). stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (21차) 수집 채널링 파랑 진행바 + 공용 E 상호작용 프롬프트 (미커밋)
+
+- **사용자 요구:** 농경/채집/채광/벌목 E 즉시 습득 → 자동 채널링(대상 머리 위 진행바). 바 색은 **초록→파랑(#58A6FF)**. Figma interaction-panel(82:45 "E키를 눌러 상호작용")을 **모든 E 상호작용**에 표시. **전 계획 무중단 실행 후 일괄 검증** 요청.
+- **P0 — InteractionPanelUTK 정합/배선 확인:** 배선 확정 — `ContextCommandRouter`(클릭)→`SoldierInteractBridge.RaiseTargetInteraction`→`InteractionPanelUTK.Bootstrap`→`Open`, `ActionRequested`→대화/상태보기/상점 라우팅. Figma 82:2(288×98.4 ÷1.2)와 상수 일치(패널 240×82·그리드 224×66·2×2버튼 109×30, GitHub-dark) → 정상 부착·배선 확인.
+- **P1 — `GatherChannelSystem.cs`(신규, Systems):** 채널 상태머신. `Begin(targetAnchor, onComplete, baseDuration)`, **이동(CancelMoveThreshold 0.45m XZ) 취소**, 완료 시 onComplete. 파랑 진행바=`WorkProgressBar.Show(…,#58A6FF)`. 도구등급 스켈레톤 훅 `SpeedFactorProvider`(기본 1.0 — 나중에 농작기구 등급 대입), `DefaultChannelSeconds=2f`.
+- **P2 — `EInteractionPromptUTK.cs`(신규, UI.Toolkit):** Figma 82:45(288×52.8→논리 240×44, keycap-E + 라벨 13.2 #58A6FF, GitHub-dark, 월드앵커 HUD NameplateOverlayUTK 패턴). 기본 감지: HerbPickup/ResourceNode/FarmPlot(소유·성장중 제외)/LockedDoor(잠김→"E키를 눌러 자물쇠 따기"). `Register/Unregister` 커스텀 확장(낚시/잠자기/영주실용). 창 열림·채널 진행 시 숨김. `RuntimeInitializeOnLoadMethod(AfterSceneLoad)` 자동 배선.
+- **P3 — `HerbPickup.cs`:** E 즉시 `Harvest()` → `BeginHarvestChannel`→채널 완료 시 `Harvest()`. 병사 `TryAutoGather` 미변경. **Ready 밭은 HerbPickup이 자동 부착**이라 농경 수확도 채널 자동 적용(별도 조작 불필요 확인).
+- **P4 — `ResourceNode.cs`:** 플레이어 직접 채광 E 경로 신설(Update + `HarvestForPlayer`: LootBasket+yield+희귀보너스+EXP+리스폰). 병사 `TryAutoMine` 미변경.
+- **낚시/잠자기/영주실:** `Register` 확장점 준비. FishingSystem은 E 직접 처리+Systems→UI 참조 불가(asmdef 단방향)라 **브리지 배선 필요**(후속). 이번엔 수집+자물쇠 우선.
+- **검증:** 신규 컴파일 `error CS` **0**(compile.log). 전체 EditMode **624/617/7 — baseline과 정확히 동일, 신규 회귀 0**(7건 전부 기존: AERO·DDOL(MonsterAggro)·요리DB·공격 스트릭·테마베이크). `TestOutput: /mnt/c/tmp/r21_editmode.xml`.
+- **다음(Play 게이트 — 사용자 확인):** ①수집 대상 접근 시 "E키를 눌러 상호작용" 표시 ②E→프롬프트 숨김+머리 위 **파랑 진행바** 채우며 습득 ③이동 시 취소 ④채광/채집/벌목/농경 동일 ⑤자물쇠 문 "E키를 눌러 자물쇠 따기" ⑥낚시·병사 자동·InteractionPanelUTK 기존 동작 불변. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (20차) 게이지 미표시 근본 원인 확정·수리 — PositionHost() 호출 소실 복원 (미커밋)
+
+- **판정 재료:** 사용자 Play 진단 로그 `[HUDUTK] 진단 — hpFraction=1.00 stFraction=1.00 ph=False hpRatio=-1 attached=True` + Editor.log 전수 + git 역추적.
+- **근본 원인 3단 확정:**
+  1. 데이터 정상(1.00=만원)·attached=True → 렌더/데이터가 아니라 **위치** 문제.
+  2. `search_files PositionHost()` → 코드 전체에 **정의만 존재, 호출부 0개** + Editor.log에 `[FigmaV3] HUD gaugeHost` 로그 0건 → 배치 계산이 한 번도 실행 안 됨.
+  3. `git diff HEAD` → **미커밋 편집(18·19차 RefreshAll 재구성)이 `PositionHost();` 호출을 통째로 삭제**(HEAD c10ad649~에는 RefreshAll 첫 줄에 존재). 19차 코멘트는 "데이터 갱신을 PositionHost보다 먼저"인데 재구성 중 호출 자체가 유실.
+  - 결과: `_gaugeHost`가 Figma raw `top=855.2` 고정 — PanelSettings 1440×900(match width) 패널 높이 **810**(16:9)보다 아래 → **게이지 항상 화면 밖**. 17차 폴링·18차 폴백·19차 초기값/진단이 전부 데이터 측을 고쳤으나 실체는 좌표 문제였던 것.
+  - 부가: `ph=False` = 이번 Play 씬에 PlayerHealth/PlayerMovement 부재(실내 등) — 폴백 만원 경로라 표시와 무관.
+- **수리:** HUDUTK.cs RefreshAll 끝에 `PositionHost();` 복원 — 본래 코멘트 의도대로 데이터 갱신 "뒤"에 배치 실행. 250ms 폴링마다 재앵커(리사이즈 대응 포함) + 하단 고정 앵커/등비 k 계산은 기존 계획 v2 Phase 2 구현 그대로 활용.
+- **검증:** 신규 컴파일 `error CS` **0** + UI.dll 재생성 확인(`/tmp: r20_compile.log`). 전체 EditMode **624/617/7 — baseline과 완전 동일, 신규 회귀 0**. `TestOutput: /mnt/c/tmp/r20_editmode.xml`.
+- **다음 Play 확인 포인트:** ①핫바 왼쪽 하단에 하트(빨강 만원)+번개(노랑) 게이지 표시 ②콘솔에 `[FigmaV3] HUD gaugeHost left=… top=… scale=…` 첫 로그(호출 복원 증거) ③피격 시 시계방향 소모(DrainClockwise) ④플레이 씬(플레이어 존재)에서 실 HP 반영. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (19차) 게이지 재판정 진단 배선 + 실내 더더 밝게(3.0) + 패링 이펙트 계획 수립 (미커밋)
+
+- **사용자 요구:** ①게이지 여전히 미표시(만원=빨강 풀, 피격 시계방향 소모가 보여야 함) ②실내 더더 밝게 ③V키 패링 이펙트 발전 계획(계획만).
+- **①게이지 — 이중 수리 + 재판정 도구:**
+  - `UTKCircularGauge.CommitIfDirty`에 `generateVisualContent.MarkDirty()` 시도 → **CS1061(델리게이트에 MarkDirty 없음)** 즉시 원복 — `MarkDirtyRepaint()`(repaint마다 generateVisualContent 재실행 경로)이 정석. 재판정 계속.
+  - **초기값 0→1(만원)**: 폴링 실패/시스템 부재와 무관하게 "빈 링=고장"으로 읽히지 않게(빌드 직후부터 만원 표시).
+  - **PollTick 진단 강화**: 2s마다 `[HUDUTK] 진단 — hpFraction/stFraction/ph/hpRatio/attached` 로그 — 다음 Play에서 ①fraction=0(데이터/폴링 문제) ②fraction=1인데 미표시(렌더 문제) 즉시 판별.
+  - PlayerHealth 폴백(Instance ?? FindAnyObjectByType)+부재 시 만원 기본+1회 경고는 18차 유지.
+- **②실내 더더 밝게(19차):** IndoorScene.unity — 화광 2.2→**3**×3, 앰비언트 삼분광 0.16/0.11/0.075→**0.22/0.15/0.1**(Equator 0.14/0.1/0.075, Ground 0.07/0.055/0.04). 성내부 빌더 — 앰비언트 ×0.65→**×1.0**(base 색 전값), 중앙 0.65→**0.9**, 천장 랜턴 0.85→**1.2**, 작업풀 0.8→**1.15**/0.85→**1.2**, 기둥 바운스 0.8→**1.15**, 입구 웜 0.7→**1.0**, 사인 보조 0.65/0.62→**0.9/0.85**. 직사광 0(소등)·포그 0.12 유지.
+- **③패링 이펙트 계획 수립(계획 전용)**: `.hermes/plans/2026-10-11_parry-effect-upgrade-plan.md` — V키 패링 현황 실측(ParryWindow 0.45s·BulletTime 슬로모만, 시각/청각 FX 전무) 기반 4 Phase: P1 성공 임팩트(ShockwaveRingFX+StarFlare+스파크 — 화살 방패 막기 8999ff49 선례 자산 재사용), P2 창 아우라/실패 피드백(SelectionRing 셰이더 arc 스윕 재판정), P3 절차 청음+카메라, P4 패링 전용 슬로모 프리셋(선택).
+- **계약 갱신:** IndoorAeroFogTests(3×3·stale 2.2 금지·앰비언트 문자열 0.22/0.15/0.1), TimberFrameTests(상한 0.90→**1.30** — 신규 최대 1.2), WarehouseStorageFigmaParityTests(상한 0.9→**1.3**), CollisionAndKitchenTests(입구측 z<-35 웜 광원 강도 상한 0.85→**1.25**).
+- **검증:** fresh compile `error CS` **0** — `/tmp/r19_compile2.log`(중간 CS1061 즉시 원복). 전체 EditMode **624/617/7** — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/r19_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①콘솔 `[HUDUTK] 진단` 로그 2초 간격 값을 알려주면 게이지 공백 원인(데이터 vs 렌더) 즉시 확정·수리 ②실내 밝기 체감(예시 도달 여부) ③패링 이펙트 계획 승인 시 P1부터. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (18차) HUD 폴링 폴백 수리(첫 폴링 로그 실측 반영) + 실내 훨씬 밝게 2단 (미커밋)
+
+- **사용자 보고(Play 실측):** ①콘솔 `[HUDUTK] 첫 폴링 — PlayerHealth=False, hpRatio=-1` — 게이지 데이터 원천 자체가 부재 ②실내밝기도 현재보다 훨씬 밝게.
+- **①HUD 폴백 수리:** 첫 폴링 로그가 `PlayerHealth.Instance=null`(씬에 컴포넌트 부재/해제)을 실증 — 확립 패턴(Instance ?? FindAnyObjectByType)으로 **컴포넌트 직접 폴백** 추가. 그래도 부재한 씬(플레이어 셋업 미보증)을 위해 **시스템 부재 시 만원 기본 표시**(빈 링은 고장처럼 읽히므로) + 1회 경고 로그(`PlayerHealth 부재 — 만원 기본 표시(씬 플레이어 셋업 확인 요망)`/`PlayerMovement 부재…`). GameSetup은 원래 PlayerHealth를 보증하지만(Assets/GameSetup.cs:730) 이 씬 경로에서 미실행이 실측됨.
+- **②실내 훨씬 밝게(18차 점프):** IndoorScene.unity — 화광 1.3→**2.2**×3, 앰비언트 삼분광 0.09/0.06/0.04→**0.16/0.11/0.075**(Equator 0.1/0.075/0.052, Ground 0.05/0.04/0.028). 성내부 빌더 — 앰비언트 ×0.35→**×0.65**(≈0.065/0.049/0.036), 중앙 0.4→**0.65**, 천장 랜턴 0.55→**0.85**, 작업풀 0.5→**0.8**/0.55→**0.85**, 기둥 바운스 0.5→**0.8**, 입구 웜 0.45→**0.7**, 사인 보조 0.42/0.4→**0.65/0.62**. 직사광 0(소등)·포그 0.12 유지.
+- **계약 갱신:** IndoorAeroFogTests(2.2×3·stale 1.3 금지·앰비언트 문자열), TimberFrameTests(상한 0.60→**0.90**), WarehouseStorageFigmaParityTests(상한 0.6→**0.9**), CollisionAndKitchenTests(입구측 z<-35 웜 광원 = 남벽 인접 작업풀 2개로 판명 — 강도 상한 0.5→0.75→**0.85** 2단 갱신 + 주석 교정. 1차 실행에서 0.75로 부족해 재갱신).
+- **검증:** fresh compile `error CS` **0** — `/tmp/r18_compile.log`. 전체 EditMode **624/617/7** — 중간 CollisionAndKitchen 1건 신규 실패(작업풀 0.8 > 구 상한 0.75) 즉시 갱신 후 재검증 → **실패 7건 전부 기존 baseline, 신규 회귀 0**. `TestOutput/r18_editmode2.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①게이지: PlayerHealth 있는 씬=실측값 반영/없는 씬=만원 기본(경고 로그 확인) + 피격 시계방향 소모 ②실내 밝기 체감(예시 무드 도달했는지 — 과하면 화광 2.2→1.8·앰비언트 ×0.65→0.5 1줄 튜닝) ③앞 세션(12~16차) 게이트 일괄. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (17차) HUD 게이지 공백 수리(폴링 뿌리) + 실내 예시 무드 결정적 상향 (미커밋)
+
+- **사용자 요구:** ①실내씬이 실내씬 예시 사진 정도의 밝기가 되어야 함(여전히 어두움) ②HUD 체력바/스태미너바에 게이지가 아예 표시 안 됨 — 만원이면 빨강이 꽉 차 있고 피격 시 시계방향으로 빠지는 게 보여야 함.
+- **①HUD 게이지 공백 — 근본원인(rts 2.mp4 크롭 실측 + 소스 확정):**
+  - 실측: 두 게이지 모두 **채움 0%** — 트랙(배경 링)·흰 원판·아이콘만 렌더(배경 링은 WriteRing(…, 1f, …) 고정이라 표시됨 → arc 지오메트리 경로는 생존, `_fraction≈0`이 원임).
+  - 뿌리: `HUDUTK.StartPolling()`이 **private 생성자(패널 부착 전)**에서 `schedule.Execute().Every(250ms)`을 생성 — 부착 전 생성 스케줄 아이템은 실행 보장이 없어 **RefreshAll(→Fraction)이 수행되지 않음** → 빌드 시 0으로 세팅된 `_fraction`에 고정.
+  - 수리: `HUDUTK.PollTick()`(panel != null 가드 + **첫 폴링 1회 진단 로그**: PlayerHealth 존재/hpRatio 출력) 신설 + `MonoKeeper.Update`에 **0.25s 직접 틱 배선**(스케줄러 무관 확실히 실행). 기존 스케줄러는 잔존(이중 보험).
+- **②실내 예시 무드 결정적 상향:** 예시 이미지 실측(`내부씬 예시.PNG` — **mean 37/255, median 34, p75 50, p90 75** = 어두운 무드이지만 중간톤 존재. 우리 쪽은 그보다 훨씬 어두움이 판정).
+  - IndoorScene.unity: 화광 0.75→**1.3**×3, 앰비언트 삼분광 0.05/0.032/0.02→**0.09/0.06/0.04**(Equator 0.055/0.04/0.028, Ground 0.028/0.022/0.016).
+  - 성내부 빌더: 앰비언트 배율 ×0.08→**×0.35**(ambientLight ≈0.035/0.026/0.019 — 바닥 톤 가시), 중앙 0.22→**0.4**, 천장 랜턴 0.32→**0.55**, 작업풀 0.28→**0.5**/0.32→**0.55**, 기둥 바운스 0.28→**0.5**, 입구 웜 0.28→**0.45**(≤0.5 계약 유지), 사인 보조 0.25/0.24→**0.42/0.4**. 직사광 0(소등)·포그 0.12 유지.
+- **계약 갱신:** IndoorAeroFogTests(1.3×3·stale 0.75/0.55 금지·앰비언트 문자열), TimberFrameTests(상한 0.40→**0.60**), WarehouseStorageFigmaParityTests.PlayerCastleLighting(강도 상한 0.4→**0.6** — 동일 근거 주석), HudGaugeDrainTests(PollTick/MonoKeeper 틱/첫 폴링 로그 배선 계약 신설).
+- **검증:** fresh compile `error CS` **0** — `/tmp/r17_compile.log`. 전체 EditMode **624/617/7** — 1차에서 Warehouse 조명 상한 1건 신규 실패(구값 단정) 즉시 갱신 후 재검증 → **실패 7건 전부 기존 baseline, 신규 회귀 0**(+1 신규 통과). `TestOutput/r17_editmode2.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①게이지: 만원 시 빨강/노랑 풀링 표시 + 피격 시 시계방향 소모(콘솔에 `[HUDUTK] 첫 폴링 — PlayerHealth=True, hpRatio=1` 로그 확인) ②실내 밝기가 예시 무드에 근접했는지(과하면 화광 1.3→1.1·앰비언트 ×0.35→0.28 등 1줄 튜닝). stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (16차) rtx 2 피드백 — 경로 점/커서/드롭섀도 제거 + 실내 더더 밝게 (미커밋)
+
+- **사용자 요구(rts 2.mp4 — ffmpeg 2fps 프레임 추출+vision 실측):** ①이동 중 경로의 작은 링(점) 다수 제거 — 최종 지점 링만 ②푸른 문양 커서 잔존 제거(상호작용 시에만 커서) ③파란 링 아래 미세한 검은 그림자 제거 ④실내씬 여전히 어두움 → 더더 밝게.
+- **①경로 점 제거:** `IssueMoveCommandCore`의 `SpawnPathDots` 호출+메서드 삭제 — 15차 B3 폐기(사용자 판정: 최종 지점 링만). 테스트를 부재 단정으로 전환.
+- **②커서 제거:** `RTSCommandSystem`의 `UpdateCursorFeedback` 메서드+호출+`_lastCursorTexture` 삭제, `RTSCursorFeedback.cs`(+meta) 파일 삭제 — 15차 A3 폐기(기본 커서 유지, 상호작용 프롬프트만 표시). 테스트를 파일/배선 부재 단정으로 전환.
+- **③드롭섀도 제거:** `CommandRingPresentation.RingDropColor` 알파 0.28→**0**(셰이더 로직 유지 — 링 아래 검정 확산 소멸). rim 하이라이트는 유지(사용자 미지적).
+- **④실내 더더 밝게:** IndoorScene.unity — 화광 0.55→**0.75**×3, 앰비언트 삼분광 0.032/0.02/0.013→**0.05/0.032/0.02**(Equator 0.03/0.022/0.016, Ground 0.016/0.013/0.01). 성내부 빌더 — 앰비언트 ×0.05→**×0.08**, 중앙 0.14→**0.22**, 천장 랜턴 0.22→**0.32**, 작업풀 0.18→**0.28**/0.22→**0.32**, 기둥 바운스 0.18→**0.28**, 입구 웜 0.18→**0.28**(≤0.5 계약 유지), 사인 보조 0.17/0.16→**0.25/0.24**. 직사광 0(소등)·AERO 포그 0.12 유지.
+- **계약 갱신:** IndoorAeroFogTests(0.75×3·stale 0.55 금지·앰비언트 문자열), TimberFrameTests(광원 상한 0.25→**0.40** — 신규 최대 0.32), RTSCommandFeelTests(SpawnPathDots/RTSCursorFeedback 부재 단정으로 전환).
+- **검증:** fresh compile `error CS` **0** — `/tmp/r16_compile.log`. 전체 EditMode **623/616/7** — 실패 7건 전부 기존 baseline(AERO isolated, AttackTargetRing, Cooking, Melee streak 2건, RecipeCatalog, ThemeUSS) → **신규 회귀 0**. `TestOutput/r16_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①이동 시 최종 지점 링만(경로 점 소멸) ②기본 커서(푸른 문양 소멸) ③링 아래 검정 그림자 소멸(rim 입체감은 유지) ④실내 밝기 체감(여전히 어두우면 화광 0.75→0.9·앰비언트 ×0.08→0.1 등 1줄 튜닝). 12~15차 게이트와 함께 일괄 확인. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (15차) 이동 링 크기/품질·입체감 + RTS 게임느낌 확장 — 파트1·2·3 전부 (미커밋)
+
+- **사용자 요구:** ①이동 표시 링 조금 더 크게 ②링 품질 향상 방안 + 더 플루언트하게 + 입체감 ③RTS 게임느낌 개발 추천 → 질문 답변 후 확정(H=홀드/X=스톱, 선택 시만) → "모든 파트가 끝나기까지 멈추지 말고 계속 진행, 끝나고 한꺼번에 검증".
+- **파트1+2 — 링(R1):**
+  - **이동 링 크기**: `MoveMarkerScale 0.475→0.6175`(BaseScale의 65% — 타원 ~1.13×0.34m).
+  - **fwidth AA(품질 핵심)**: 에지 폭을 화면 픽셀 파생(`fwidth(d)`) 기반으로 전환 — 근거리 계단/원거리 흐림 동시 제거(액센트 코어는 크리스프, 글로우/백킹/드롭은 거리 LOD 폭 확대).
+  - **다중 밴드 입체 구조**: 신설 **접지 드롭섀도 밴드**(백킹 바깥 소프트 어두운 확산 — 부유 제거) + 신설 **rim 하이라이트**(화면-상 방향 밴드 밝게 — 금속 베벨, `UpdateRimDirection`이 카메라 전방 XZ를 0.25s 스로틀로 `_RimDirection` 주입, UV+Y=월드+Z 정합).
+  - **명령 ack 확산 펄스**: 모든 명령 마커 스폰 순간 스케일 1.30→1.0 + 알파 0.45→1 램프인(0.35s 1회, 지속/페이드 공통).
+- **파트3 — RTS 게임느낌(R2, 전 항목):**
+  - **A2 지휘 핫키(사용자 확정)**: **H=홀드**(제자리 고정+근접 사거리 내 적 0.2s 스캔 자동 반격 — `GuardPlaceholder.SetHold/TryHoldEngage`, 새 명령이 홀드 해제), **X=스톱**(이동/공격/홀드 즉시 취소+유휼 — `StopNow`) — **지정된 병사가 있을 때만 소비**(GuardSelectionManager `SelectedCount > 0` 게이트). 실측: X는 소비처 0건 자유 키(제작 바인딩 미배선), H는 기존 스톱 배선을 홀드로 전환.
+  - **A1 명령 확인음**: `RTSCommandFeedback` — 절차 클립(AudioClip.Create+감쇠 포락선, 이동=하강 블립/공격=상승 2톤), 카메라 위치 재생, 실패 흡수.
+  - **A3 컨텍스트 커서**: `RTSCursorFeedback` — 절차 32² 텍스처(이동=파랑 화살촉/공격=빨강 조준원), 마우스 아래 레이캐스트로 상태 변화 시만 SetCursor, UI 위는 기본 복귀.
+  - **A4 미니맵**: `MinimapUTK` — 유닛 블립(아군 #58A6FF/적 #F85149, 크롭 수식과 동일 좌표계 — 북=상·동=우, 0.25s 고속 틱, 풀링 40개 캡) + **우클릭=월드 좌표 역산 이동 명령**(`IssueMoveCommandAtWorld` — 화면 레이캐스트 우행 경로 `IssueMoveCommandCore` 공유).
+  - **A5 선택 배지**: 액센트 도트 추가(Fluent 신호등).
+  - **B1 실루엣 하이라이트**: `GuardHighlightUtility` — 공유 머티리얼 `_EMISSION` 키워드 1회 활성(기본 검정=미선택 무변화) + 렌더러별 MPB 액센트 이미시션(공유 색 변이 금지 계약 준수), 오라 추가/제거/전체 해제 3경로 배선.
+  - **B3 경로 점**: 이동 명령 시 병사→분산 지점 직선에 페이드 점(최대 3개/명, 1.5s 수명 — CommandMarker 페이드형 재사용).
+  - **B4 공격 연결선**: `AttackLinkFX` — 병사↔공격 지점 LineRenderer 액센트 라인(0.9s 페이드, 그림자 미방출).
+- **테스트:** `RTSRingVisualTests` MoveMarkerScale 기대값 갱신(0.6175=BaseScale×0.65), 신규 `RTSCommandFeelTests` 5건(홀드/스톱+게이트/확인음/커서/경로·연결선/MPB 하이라이트/미니맵 블립+우클릭).
+- **검증:** fresh compile `error CS` **0** — `/tmp/r15_compile3.log`(중 CS0136 t 이름충돌/MinimapUTK 형식화 18건 즉시 수리). focused(UI/링/애니/RTS 8클래스) **43/44→수리 후 전체로 확인**. 전체 EditMode **623/616/7** — 실패 7건 전부 기존 baseline(AERO isolated, AttackTargetRing, Cooking, Melee streak 2건, RecipeCatalog, ThemeUSS) → **신규 회귀 0**(+5 신규 전부 통과). `TestOutput/r15_editmode.xml`.
+- **다음(사용자 일괄 검증 게이트):** Play 재실행 — ①이동 링 크기/크리스프 에지/rim 입체감/드롭섀도/ack 확산 ②H홀드(제자리 반격)/X스톱(선택 시만) ③명령 확인음·커서 전환 ④미니맵 블립+우클릭 명령 ⑤선택 실루엣·경로 점·연결선 ⑥앞 세션(12~14차) 게이트 일괄. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (14차) Fluent 링 + 게이지 시계방향 소모 + 이동 끊김 수리 (미커밋)
+
+- **사용자 요구:** ①링을 게임 UI 분위기(Fluent)에 맞게 ②이동 링 노랑→파랑 ③이동 포인트 링 = 현행의 절반 ④여전히 이동이 끊기는 문제 수리 ⑤HP/스태미나 게이지 = 만원 상태에서 소모 시 시계방향으로 색이 빠지는 방식. 계획 승인("진행") — 기본안(D3 opt-in/D4 #58A6FF/D5 백킹 0.5)으로 실행.
+- **근본원인(분석 확정):**
+  - 게이지: 배선 정상(250ms 폴링→Fraction) — 문제는 방향. `UTKCircularGauge.WriteRing`이 12시 고정+시계채움이라 소모 시 공백이 **반시계**로 확대(요구는 시계방향 소모).
+  - 이동 끊김: 위치는 teleport식(RB 없음, collider 무관) — 실체는 **애니 이중 구동 충돌** ①`RigAnimationController.SetState`가 전환 코루틴 진행 중 매 프레임 Stop/Start로 크로스페이드를 리셋(StepToward의 매 프레임 SetState(Walk) × IsTransitioning 가드 결함) ②`HumanoidClipDriver.UpdateSoldier`가 y 포함 raw 델타를 무평활로 Speed 직대입(Player 모드의 지수 평활 패턴 미적용) → 블렌드 스래싱.
+- **G1 — 게이지 시계방향 소모:** `UTKCircularGauge`에 `DrainClockwise` opt-in(기본 false — BowAimReticle 픽셀 무변경) + 순수 헬퍼 `ArcStartDegrees(fraction, drainClockwise)`(Drain: -90°+360°×(1-f) — 소모 경계가 시계방향 이동, 끝 12시 고정) + WriteRing/WriteTip/글로우 전패스 적용, tip은 소모 프론티어에 배치. `HUDUTK.BuildOneGauge`에서 true 배선(HP/스태미나 공통).
+- **G2 — 링 Fluent화:** `SelectionRing.shader`에 **다크 백킹 밴드** 추가(#161B22 @0.5 — 액센트 밴드 아래, 내측 패드 0.24/외측 0.05로 쿼드 가장자리 클립 회피) + 표준 over 합성. `ShaderGlowWidth 0.08→0.04`·`PulseAmplitude 0.06→0.04`(절제 톤). **이동 링 골드→#58A6FF**(`MoveTargetColor`), **이동 포인트 링 절반**(`MoveMarkerScale = 0.475` + `CommandMarker.Spawn(scaleOverride)` 오버로드 — TrackMoveMark 지속 마커만 적용, 공격 페이드 마커는 BaseScale 유지). 크기·두께 승인값(0.78/0.14/0.95) 불변.
+- **G3 — 이동 끊김 수리:** `RigAnimationController`에 `_transitionTargetState` 추추필드 — 동일 상태 재호출은 IsTransitioning 중에도 early-return(재시작 루프 소멸, 트리거 상태 재발화 경로 불변). `UpdateSoldier` — **XZ 전용 델타**(지형 y스냅 노이즈 제외) + Player 모드 동일 계수 지수 평활(k=1-exp(-10·dt)) + 0.25s 스톨 홀드 이식.
+- **테스트:** 신규 `HudGaugeDrainTests` 2건(ArcStartDegrees 각도 표/배선+리티클 보호), 신규 `MoveAnimationContinuityTests` 2건(SetState 멱등/UpdateSoldier XZ+평활), `RTSRingVisualTests` 갱신(이동=선택 동일 액센트·백킹 배선·글로우 0.04·MoveMarkerScale 0.475).
+- **검증:** fresh compile `error CS` **0** — `/tmp/g_compile.log`. focused(UI/링/애니/RTS 7클래스) **38/39** — 유일 실패는 기존 baseline. 전체 EditMode **618/611/7** — 실패 7건 전부 기존 baseline(AERO isolated, AttackTargetRing, Cooking, Melee streak 2건, RecipeCatalog, ThemeUSS) → **신규 회귀 0**(+4 신규 전부 통과). `TestOutput/g_focused.xml`/`g_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①HP/스태미나 소모 시 공백이 12시부터 시계방향으로 성장하는지 ②이동 링 파랑+현행 절반 크기 ③링의 다크 백킹(Fluent 톤) 체감 — 과하면 RingBackingColor 알파 1줄 튜닝 ④부대 이동 중 걷기 애니 연속성(끊김 소멸). stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (13차) RTS 링 수정 + 이동 정확도 — 검은 사각형 제거/지름 절반/증두/정지 반경 축소 (미커밋)
+
+- **사용자 요구(rts 1.PNG):** ①부대 지정 시 파란 링 외 검은 사각형 동시 렌더 → 제거(몬스터링·이동 표시링 동일) ②링 지름 절반 ③두께는 조금 더 두껍게 ④이동 명령 시 지정 포인트 부정확 도착 → 원인 분석+수정. 계획 승인("진행") — 기본안(D1 분산 유지+반경 축소 / D2 셰이더 단일화)으로 실행.
+- **근본원인(확정 3+가설 1):**
+  - ①**베이크 링 텍스처 결손(파일 실측)** — 세 링(선택/타겟/이동마커) 공급원 `Resources/UI/MoveTargetRing.png`가 불투명 픽셀 2%뿐인 깨진 에셋(환형 밴드 0.68~0.9r 부재 — 방사형 알파 프로파일 전 구간 0 실측).
+  - ②**이중 생산자** — `GuardPlaceholder.SetSelected(true)`가 레거시 `SpecialEffectsController.AddSelectionOutline`(평평한 Cylinder 파란 디스크, 반경 0.6)를 추가 스폰(09-30 계약 위반 잔존).
+  - ③**링 쿼드 실그림자** — SelectionRingController/CreatePrimitive(Quad) 렌더러가 그림자 방출 기본값 On → 태양 아래 지면에 쿼드형 사각 그림자(스크린샷의 날카로운 모서리 직사각형과 정합).
+  - ④(가설) `CreateMaterial`의 `_Surface=1`/RenderType 태그 누락으로 투명 경로 불안정 — 셰이더 전환으로 구경 자체 폐기.
+- **구현(Phase 1 — 링 비주얼 단일화):**
+  - `CommandRingPresentation` 재작성 — `Custom/SelectionRing.shader`(SDF 환형, ShaderLab Blend 확정) 단일 소스 전환, 깨진 텍스처 의존 폐기. `ShaderRingRadius=0.78/Thickness=0.14(코어 폭 0.28 — 구 베이크 0.22보다 두꺼움)/GlowWidth=0.08`, `_PulseSpeed/_ArcSpeed=0`(펄스는 GetPulseScale 단일 소유). 폴백=Sprites/Default+`CommandMarker.BuildRingTexture`(public 승격 재사용). 3색은 틴트만 다른 인스턴스(공유 변이 금지 유지).
+  - **지름 절반**: `BaseScale 1.9→0.95`(선택 링/지속 이동 마커/공격 페이드 마커 전체 동행 — 3.47×1.04m→1.74×0.52m 타원, Figma 400:120 종횡비 유지).
+  - **그림자 OFF**: `SelectionRingController`+`CommandMarker.Start` — `shadowCastingMode=Off`+`receiveShadows=false`.
+  - **레거시 duplicate 제거**: `SetSelected`의 Add/RemoveSelectionOutline 호출 블록 폐기(09-30 계약 이행). GuardSelectionManager의 방어적 Remove는 유지(외부 오용 가드).
+- **구현(Phase 2 — 이동 정확도):**
+  - `GuardPlaceholder`: `MOVE_CLEAR_RADIUS 1.0→0.25m`/`MOVE_STOP_RADIUS 0.6→0.15m`(지정점 0.6~1.0m 손전 정지 근원 제거 — 공격 접근도 동일 클램프 공유, 근접 사거리 2.2m 내 무영향).
+  - **진행 정체 해제 게이트 신설**: `_lastMoveDistXZ/_moveStuckTimer` — distXZ 무감소 0.6s 누적 시 ClearCommand( collider 막힘 영구 멈춤/잔존 마커 방지, ClearCommand에서 리셋).
+  - `FormationSpread`: 기본 `unitRadius 1.6→0.9`(링1 3.2→1.8m/링2 5.6→3.15m — 뭉침 방지 분산 유지+클릭점 근접) + **`OffsetFor` 기본값 동기**(정합 계약 — 1차 focused에서 이수리 1건 적발 즉시 수리).
+- **테스트:** `AttackTargetRingTests.SharedPresentation` 셰이더 계약 재작성(구 텍스처/키워드/1.9 단정 폐기), `FormationSpreadTests.DefaultUnitRadius 0.9`, 신규 `RTSRingVisualTests` 5건(레거시 아웃라인 부재/그림자 OFF 배선/셰이더+0.95+증두 상수/분산 반경 축소/정지 반경 상수).
+- **검증:** fresh compile `error CS` **0** — `/tmp/rts_compile.log`. focused(RTS 4클래스) **28/29** — 유일 실패 ExecuteMovement...는 기존 baseline. 전체 EditMode **614/607/7** — 실패 7건 전부 기존 baseline(AERO isolated, AttackTargetRing, Cooking, Melee streak 2건, RecipeCatalog, ThemeUSS) → **신규 회귀 0**(+5 신규 전부 통과). `TestOutput/rts_focused2.xml`/`rts_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①부대 지정: 파란 링 단일(검은 사각형/레거시 디스크 소멸) ②공격 몬스터 빨간 링·이동 지속 마커 골드 링 동일 확인 ③링 체감 크기(절반)/두께 ④단일 병사 우클릭 → 지정점 ±0.25m 도착 ⑤멀티 병사 분산 반경 축소 체감. 두께/크기 미세 조정은 ShaderRingRadius/Thickness·BaseScale 1줄 튜닝. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-11 (12차) 실내 조명 완화 — 조금 밝게 + 횃불 은은한 글로우 풀 (미커밋)
+
+- **사용자 요구:** "실내씬이 너무 어두워 지금보다 조금은 밝게 + 횃불 주위로 은은한 조명 — 실내씬 예시처럼". (P1 직사광 소등이 코드에 이미 반영돼 성내부가 앰비언트 ×0.03·광원 0.09~0.14의 극암 상태였음.)
+- **IndoorScene.unity 완화:** 화광 3개 0.38→**0.55**, 씬 앰비언트 삼분광 0.02/0.012/0.008→**0.032/0.02/0.013**(Equator 0.019/0.014/0.01, Ground 0.01/0.008/0.006). 직사광 0(소등)·AERO 포그 0.12 유지.
+- **성내부 완화(PlayerCastleInteriorBuilder):** 앰비언트 배율 0.03→**0.05**·중앙 0.09→**0.14**, 천장 랜턴 0.14→**0.22**, 작업풀 0.11→**0.18**/0.14→**0.22**, 기둥 바운스 0.11→**0.18**, 입구 웜 0.11→**0.18**(≤0.5 계약 유지), 사인 보조 0.11/0.10→**0.17/0.16**.
+- **횃불 은은한 글로우 풀 신설:** `IndoorMaterialFactory.GetFlameGlowTexture`(128² 방사형, 중심 알파 0.5→0 제곱 폴오프) + `CreateFlameGlowMat`(투명 Unlit + 가산 웜 블렌드 SrcAlpha/One, 큐 3000, 웜 틴트 1/0.55/0.28). `AddFlameGlowPool` 헬퍼 — 렌더러 전용(무콜라이더·그림자 미방출·receiveShadows off) CreateRendererOnlyStoneBox 슬래브 관례. 배치 5곳: 입구 화광 ×2(FlameGlow_EntranceL/R, authored 2.8m), 천장 랜턴 중앙(FlameGlow_Center, 2.6m), 캔들라브라 ×2(FlameGlow_Pool, 루트 자식 1.4m — 스케일 패스 동행, 최종 ~3.4m).
+- **계약 갱신:** IndoorAeroFogTests(0.55×3·stale 0.38 금지·앰비언트 문자열), TimberFrameTests(성내부 광원 상한 0.15→**0.25** — 근거: 사용자 완화, 신규 최대 0.22). 신규 TorchGlow 계약 2건(팩토리+배치 5곳 렌더러 전용·큐 3000).
+- **검증:** fresh compile `error CS` **0** — `/tmp/torch_compile2.log`(1차는 캔들라브라 호출 GameObject→Transform CS1503 즉시 수리). focused(fog+timber+quality+collision+topology) **43/43** — `TestOutput/torch_focused.xml`. 전체 EditMode **609/602/7** — 실패 7건 전부 기존 baseline(AERO isolated, AttackTargetRing, Cooking, Melee streak 2건, RecipeCatalog, ThemeUSS) → **신규 회귀 0**. `TestOutput/torch_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①성내부: 지금보다 한 단계 밝은지(완전 암전→은은한 불빛 풀) ②입구 화광/천장 랜턴/캔들라브라 아래 부드러운 웜 빛 풀 가시성 ③문 진입 흐름(IndoorScene)도 동일 완화 확인. 과하면 앰비언트 0.05→0.04·화광 0.55→0.5 등 1줄 튜닝. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (11차) 영지 실내 통일 — 모든 성 진입을 PlayerCastleInterior 표준으로 (미커밋)
+
+- **사용자 지시:** "다른 실내씬들은 문제점이 많아서 영지실내면 모두 playercastleinterior씬과 영지 배치와 모습 모두 동일하게".
+- **원인 컨텍스트(사전 진단 확정):** 사용자가 보는 씬은 `Test_PlayerCastleInterior.unity` — 그 씬에는 `PlaytestDirectionalLight`(강도 1.15+Soft 그림자, 천장 비활성화로 실내 직사)가 있어 7차의 IndoorScene.unity 쪽 암전(직사광 0/화광/앰비언트)이 전혀 반영되지 않았음. 즉 조명/분위기 변경의 절반은 문 진입 흐름(IndoorScene)에만 적용. 실내씬 7/8 디더링의 일부도 이 태양 Soft 그림자.
+- **J1 진입 분기 통일:** `IndoorSceneTransition` 성 케이스 — 소유 여부 무관 `PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, layoutVariant)` 단일 호출. 구 영주 성 셸(48×36, `CastleInteriorBuilder.BuildCastleInterior`) 호출부 폐기 — 모든 영지 실내가 플레이어 성 표준 배치/모습/품질 계층(H1~H5) 획득. 에디터 프리뷰 메뉴(`IndoorPreviewMenu.BuildLordCastle`)도 동일 통일.
+- **J2 잠긴 문 재정착(콘텐츠 보존):** 구 영주 성의 도끼질 콘텐츠(잠금 4종)를 통일 레이아웃 로비 포탈에 재정착 — `CastleInteriorBuilder`를 잠금 전용으로 재작성(301→신규 컴팩트): `AddLordLockedDoors(room)` — Lobby_North(침실향)=집무실 VeryHard/목재, Lobby_East(창고향)=금고 Legendary/석재, Lobby_SouthWest(막사향)=무기고 Hard/석재, Lobby_NorthWest(제작소향)=문서고 Easy/목재. 연금술실·남입구 포탈은 개방. 문 패널(3.4×2.8×0.3)이 포탈 전체 봉쇄 — 구판 1.2m 문의 측면 틈 결함 해소. `LockedDoor`/`LockedDoorCollision`/`NameplateDisplay` 계약 불변. 영주 성(비소유)에만 부착.
+- **폐기:** 구 영주 성 빌더(8각 로보+5방+잠금 포켓 48×36 버전) 전체 — 테스트/외부 참조 0 확인 후 삭제. 부수 효과: 구 파일의 `Object.Destroy` 버그(파티션 루트) 소멸.
+- **테스트:** `LordCastleUnificationTests.cs` 신설 3건 — ①전환 소스가 통일 빌더+AddLordLockedDoors 게이트(구 셸 호출 금지) ②구 빌드 메서드 완전 폐기 ③잠긴 문 4개가 포탈 중심(y=1.4)에 정확히 존재+잠금 ID/난이도 불변+포탈 전체 봉쇄 콜라이더+남입구/연금 개방.
+- **범위 외(명시):** 헛간/동굴/상점/교체/집 등 일반 건물 실내는 "영지 실내(성)"가 아니라 미포함 — 원하면 다음 단계에서 동일 표준 적용 가능.
+- **검증:** 컴파일 error CS **0**(1차는 IndoorPreviewMenu 미수정 CS0117 → 통일 빌더로 수리). focused **3/3** — `TestOutput/j_focused2.xml`. 전체 EditMode **605/598/7** — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/j_editmode.xml`.
+- **다음(사용자 게이트):** ①문 진입 흐름 Play — 타 영지 성(영주 성)이 플레이어 성과 동일 배치/모습+잠긴 문 4개(로비→방) 확인 ②잠금해제 후 방 통과 확인 ③수비 병사 배치 확인. **P1(플레이테스트 직사광 소등)은 여전히 대기 중** — 진행 주시면 즉시. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (10차) 계획 v4 — 아레나 실내 품질 계층 이식 (미커밋)
+
+- **사용자 승인:** 9차 H1~H5 "괜찮은 거 같아" + "다음 계획 진행" → 승인된 품질 언어를 아레나 실내 2종에 이식. 계획: `.hermes/plans/2026-10-10_223000-arena-quality-transplant-plan.md`(I1~I4).
+- **공용 헬퍼 신설:** `IndoorQualityLayers.cs` — `AddQuadWallCaps`(쿼드 벽 4면 상단 돌 박스 캡, 부재 벽 스킵), `AddBoxCap`(솔리드 벽 캡), `AddBlobAt`(타원 접지 블롭 — 룸 기준 배치로 부모 비균등 스케일 회피), `AddWearStamps`(범용 마모 스탬프). 전부 렌더러 전용·그림자 미방출·무콜라이더(성 내부 계약 동일).
+- **I1 벽 캡:** 로비(60×60×8) — 쿼드 벽 3면(전/좌/우, 후면은 입구 개구부)+입구 대체 벽 2개 캡. 투기장(56×56×8) — 4면. 머티리얼 `CreateWallStoneLower` 재용+마감 톤(성내부 H1 동일), mainTextureScale 틸링(length/2.2).
+- **I2 블롭:** 로비 — 베팅 데스크(7×2.6)+GLB 모델(2.5). 투기장 — 관중석 발판 12개(3링×4면) — "떠 있는 판"→"놓인 발판".
+- **I3 마모:** 로비 6장(입구 동선+개방부). 투기장 8장 — 무대 위 4(±3,±3, 반경 5m 내부 유지 — 1차 ±4는 지름 10m 무대 밖이었어서 수리)+바닥 4. 색 변화 없음.
+- **I4 씬 화광 섀도우:** IndoorScene.unity FlameLight 3개 m_Shadows m_Type 2(Soft)→**0(None)** — 성내부 H4와 정합, 실내씬 7/8 디더링의 남은 근원 제거(포그 라이트샤프트는 쿠키/포그 셰이더 기반이라 무영향).
+- **테스트:** `ArenaQualityLayersTests.cs` 신설 7건 — 로비 캡≥5/투기장 캡≥4, 데스크 블롭, 관중석 블롭 12, 마모 6+4+4(무대 반경 내부 단정 포함), FlameLight 3개 전부 None 계약.
+- **검증:** 컴파일 error CS **0**. focused **7/7** — `TestOutput/i_focused.xml`. 전체 EditMode **602/595/7**(신규 +7 전부 통과) — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/i_editmode.xml`.
+- **다음(사용자 게이트):** Play 캡처 — ①베팅 로비: 벽 돌 선+데스크 그림자 ②투기장: 관중석 발판 접지감+무대 모래 마모 ③디더링 소멸(로비/투기장/성내부 공통). stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (9차) 계획 v3 H1~H5 실행 — 벽 톱면 캡/블롭 섀도우/존 틴트/섀도우 OFF/마모 스탬프 (미커밋)
+
+- **사용자 승인:** 계획 v3 "진행" — H1부터 전 Phase 실행.
+- **H1 벽 톱면 돌 캡:** `AddWallTopCaps(room, GetTopologyWalls(), WallThickness)` — 모든 토폴로지 벽(축정렬 14+로비 사선 8+Exterior 포함) 위 얇은 석재 캡. 벽 로컬 XZ 쿼드, y=버텍스 로컬 6.01(벽 톱면 위 z-fight 회피), `CreateWallStoneLower` 재사용+마감 톤(0.78,0.76,0.73), UV u=length/2.2·v=0.45/1.1, 병합 메시·무콜라이더. 문 개구부 위 연속(포탈 컷은 2.8m — 상단 벽 존재).
+- **H2 접지 블롭 섀도우:** 팩토리 `GetBlobShadowTexture`(64², 중심 알파 0.38→0)+`CreateBlobShadowMat`(투명 Unlit) 신설. `IndoorFurnitureCatalog.AddBlobShadow(go, radius)` — **7개 Create*(Table/Chair/Shelf/Counter/Bed/Crate/Mirror) 전부** GLB/절차 폴백 양쪽에 부착(로컬 y=0.01, X90, ShadowCastingMode.Off, 무콜라이더). 반경: 테이블 1.6/의자 0.9/선반 1.7/카운터 1.6/침대 1.8/상자 1.1/거울 1.0 — 스케일 패스 ×2.45 동행.
+- **H3 존별 조명 색온도 틴트:** `TintForZone(warm, finalPos)` — 최종 좌표(authored×2.45)를 GetTopologyZoneAt 판정 → Alchemy/Craft=쿨 화백(0.35), Barracks=딥웜(0.35), Bedroom=캔들웜(0.40), Storage=중립 쿨(0.30), Lobby/EntryHall=원본. **강도 불변**. 배선 8곳: 작업풀 4+사인 2+기둥 바운스 2.
+- **H4 섀도우 디더링 제거:** `IndoorLighting.AddPointLight` — `LightShadows.Soft`→**None**(저해상도 큐브 섀도우 점무늬 노이즈 제거, 어두운 실내에서 그림자 기여 낮음 — 방향성은 쿠키 무늬+다광원 조합으로 대체).
+- **H5 바닥 마모 스탬프:** 팩토리 `GetFloorWearTexture`(256², 어두운 얼룩+균열, 알파 ≤0.22 — 색 변화 없음)+`CreateFloorWearMat`. `AddFloorWearStamps` — 개방부 12곳(로비 중심 6+동측 복도 4+남북 2), 1.6m, 회전 90° 사이클, 렌더러 전용. **[주의] 스케일 패스 '후' 호출 → 최종 좌표**(1차 작성 시 authored 좌표로 잘못 계산했다가 원복).
+- **테스트:** IndoorQualityUpgradeTests에 H계약 7건 신설(캡 배선 순서/y bounds/렌더러 전용, 블롭 7호출+20+개체, TintForZone≥7, Soft 잔존 금지, 마모 12장 y=0.03). 1차 focused 1건 실패 → 캡 y가 child.localPosition이 아닌 **버텍스 로컬 좌표**(CreateMergedMeshChild는 y=0 배치)임을 반영해 bounds.center.y 단정으로 수리.
+- **검증:** fresh compile `error CS` **0** — `TestOutput/h1_compile.log`. focused **25/25** — `TestOutput/h1_focused2.xml`. 전체 EditMode **595/588/7**(신규 +7 전부 통과) — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/h1_editmode.xml`.
+- **다음(사용자 게이트):** Play 캡처 확인 — ①벽이 짙은 돌 선으로 읽히는지(H1) ②가구 아래 그림자 뭉개(H2) ③존별 빛 색조 차이(H3) ④디더링 소멸(H4) ⑤마모 과하지 않은지(H5 — 과하면 spots/alpha 축소). stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (8차) 걸레받이 제거(탑다운 판정) + 팀버 기둥 0.60 강화 + 품질 계획 v3 작성 (미커밋)
+
+- **사용자 보고(실내씬 8):** "가운데 이상한 나무 줄" + 나무 두께 더 두껍게 + 탑다운 장점을 살리는 품질 계획 요청.
+- **진단:** 픽셀 실측(y418~424, 행당 ~700px) — 그 줄은 **걸레받이**. 근본 원인: 탑다운에서 벽 자체가 얇은 톱면+면 컬링으로 거의 안 보이는데, 걸레받이(0.06m 돌출)만 "열린 바닥에 떠 있는 나무 선"으로 읽힘. 문틀 프레임과 결합된 지점에서 끊기는 것도 확인(EntryHall 복도 개구부).
+- **수리:** ①걸레받이 제거 확정(호출부+메서드 삭제, 부재+재추가 금지 계약) ②팀버 기둥 0.40→**0.60**·깊이 0.20·상단 보 0.50(예시의 통통한 기둥 비율 — 사용자 요구 2차 강화) — 모서리 기둥 돌출 0.6로 bounds 공차 갱신(0.5→0.8).
+- **계획 v3 작성:** `.hermes/plans/2026-10-10_210000-indoor-quality-v3-topdown-advantage-plan.md` — 오늘 실험 3건 실패(존 매트/걸레받이/들보)의 교훈을 금지 원칙으로 명문화하고, 탑다운에서 실제 보이는 4요소(바닥/벽 톱면/오브제 윗면/빛-그림자) 집중: H1 **벽 톱면 돌 캡**(벽을 읽게 함 — 최우선) → H2 접지 블롭 섀도우(오브제가 바닥에 앉은 느낌) → H3 조명 색온도로 방 무드 구분(색 바닥 없이) → H4 그림자 디더링 튜닝 → H5 바닥 마모 스탬프(선택, 색 변화 없음).
+- **검증:** fresh compile `error CS` **0**. focused **27/27** — `TestOutput/s8_focused2.xml`(1차는 상단 보 bounds 공차 미반영 1건 수리). 전체 EditMode **588/581/7** — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/s8_editmode.xml`.
+- **다음:** 계획 v3 승인 시 H1부터 Phase별 진행. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (7차) 바닥 원본 복귀(존 매트/AO 제거) + 조명 훨씬 더 어둡게 (미커밋)
+
+- **사용자 판정:** G1 존 매트/벽 AO가 "너무 이상하다" → **바닥 원본 복귀** + "조명 훨씬 더 어둡게".
+- **바닥 복귀:** AddZoneFloorOverlays/AddZoneOverlayQuad/AddWallAOStrips 메서드+호출부 삭제, 팩토리 CreateZoneMat/GenerateZoneMatTexture/CreateWallAOMat/GetWallAOTexture 삭제. **걸레받이 목재 틀(벽 요소)만 유지** — 삭제 과정에서 실수로 같이 지워졌다가 즉시 복구. 테스트는 부재 계약(ZoneMat_*/_WallAO 재추가 금지)으로 전환.
+- **조명 훨씬 더 어둡게:**
+  - `IndoorScene.unity`: 화광 0.62→**0.38**×3, 직사광 0.02→**0**(소등), 앰비언트 삼분광 0.045/0.028/0.014→**0.02/0.012/0.006**.
+  - AERO 포그: `IndoorDensity` 0.2→**0.12**(흰 포그 밝기 축소 — 이전 캡처 "더 줄이려면 0.1~0.15" 안내선).
+  - 성 내부: 앰비언트 0.06→**0.03** + 전등 일괄 ~50% 축소(중앙 0.16→0.09, 랜턴 0.26→0.14, 작업풀 0.22→0.11×2, 기둥옆 0.26→0.14×2, 입구 0.22→0.11×2, 보조 0.22/0.20→0.11/0.10, 기둥 바운스 0.22→0.11×2 — 누락 발견은 계약 테스트(상한 0.15)가 적발).
+- **계약 갱신:** IndoorAeroFogTests(0.38×3+직사광 0+앰비언트 문자열+포그 0.12), TimberFrameTests(성내부 광원 상한 0.26→0.15), IndoorQualityUpgradeTests(G1 존 매트/AO 부재+걸레받이 유지).
+- **검증:** fresh compile `error CS` **0**(스커팅 복구 1건 — CS0103). focused **27/27** — `TestOutput/revert_dark_focused3.xml`. 전체 EditMode **588/581/7** — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/revert_dark_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①바닥 원본 복귀(존 매트/AO 소멸, 걸레받이만 남음) ②훨씬 어두운 조명(불빛 풀만). 여전히 밝으면 포그 0.12→0.08·화광 0.38→0.25 등 1줄 튜닝. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (6차) G1 실행 — 존별 바닥 오버레이 + 걸레받이 목재 틀 + 벽 걸침 AO (미커밋)
+
+- **사용자 확정:** G1 오버레이 방식(A) 승인 — 원본 바닥 텍스처 유지, 방별 재질 매트 얹기. 소품(G3)은 보류.
+- **구현(IndoorMaterialFactory + PlayerCastleInteriorBuilder):**
+  - **존 매트**: 절차 텍스처 생성기(512², 존 크기 기반 2.4m 셀 패턴 + 테두리 4% 알파 페이드 + 내부 0.92 반투명) — Bedroom=카펫(골드 줄눈)/Craft=목재판자/Storage=금속판+리벳/Barracks=짚/Alchemy=석타일 체커/Lobby=모자이크+골드 액센트. 로비는 8각 폴리곤 팬 삼각분할, 나머지는 직사각 쿼드(바닥 위 2cm). 존 좌표는 GetTopologyZoneAt 영역 기반(침실 ±18/14..44 등).
+  - **걸레받이 목재 틀**: 축정렬 벽 14개(로비 8각 사선 제외) 안쪽 둘레 0.35m×0.06 목재 밴드 — 문 개구부 스팬 분할, 외벽은 실내측만, 병합 메시·무콜라이더. (천장 대체 — 탑다운에서 벽 안쪽 라인 장식)
+  - **벽 걸침 AO 스트립**: 벽 안쪽 바닥 0.5m 어두운 그라데이션(8×64 절차 그라데이션, 벽측 알파 0.38→0) — 깊이감. 외벽 실내측만, 병합 메시.
+- **버그 수리:** 걸레받이 스팬 로직의 문 개구부 우측 누수(0..half에 개구부 포함) → 밴드 빌더와 동일 스팬 목록 방식으로 수리.
+- **검증:** fresh compile `error CS` **0** — `TestOutput/g1_focused.log`. focused **28/28**(2차 — 1차는 테스트 단정 오류 2건: 회전 쿼드 메시 로컬 축 bounds.y/z·걸레받이 수 임계 16→14 수리) — `TestOutput/g1_focused2.xml`. 전체 EditMode **589/582/7** — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/g1_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — 방별 바닥(카펫/판자/금속/짚/타일/모자이크)+벽 걸레받이+AO 확인. 색/패턴 피드백은 GenerateZoneMatTexture 상수 튜닝. 다음 단계: G2(벽 톱면 캡)·G4(그림자 튜닝) — 승인 시. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (5차) 천장 들보 제거(탑다운 방해 확정) + 실내 품질 계획 v2(탑다운 친화) 작성 (미커밋)
+
+- **사용자 보고(실내씬 7):** "천장이 왜 보이지?" + 더 나은 품질 방법 계획 요청.
+- **진단:** 천장 평면(Ceiling)은 위에서 볼 때 백페이스 컬링으로 숨겨져 실내가 보이는 구조인데, F3로 추가한 천장 들보는 **입체 박스라 위에서 그대로 렌더링** — 방을 격자로 가로막고 굵은 디더링 그림자를 드리움(탑다운 게임에서 명백한 결함). 캡처 분석으로 들보가 벽 상단 단면 위를 가로지르는 것도 확인.
+- **수리:** AddCeilingBeams 호출부+메서드 완전 삭제 — 테스트 계약을 "부재 단정+재추가 금지"로 전환(F1 호출부 계약도 갱신). 짚 데칼/캔들라브라/ember/배너 등 바닥·벽 요소는 유지(이 캡처는 미 포함 씬).
+- **계획 v2(탑다운 친화) 작성:** `.hermes/plans/2026-10-10_205000-indoor-quality-v2-topdown-plan.md` — G1 방별 바닥 오버레이+걸레받이 목재 틀(천장 대체)/벽 AO 데칼 → G2 벽 톱면 돌 캡 → G3 소품 GLB 규약 확장(props 풀) → G4 그림자 디더링 튜닝. 전부 바닥·벽·소품(탑다운에서 읽히는 요소) 집중, 천장 금지 원칙 명문화.
+- **검증:** fresh compile `error CS` **0** + focused(Quality+TimberFrame+Collision) **21/21** — `TestOutput/beam_removal_focused.xml`.
+- **다음:** 사용자 승인 시 G1부터 Phase별 진행. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (4차) 실내 고품질화 F1~F4 실행 + F5 확인(기존 카탈로그) + flaky 제작 테스트 수리 (미커밋)
+
+- **사용자 지시:** 고품질화 계획(20:09) 전체 실행 — F1 텍스처/F2 조명/F3 지오메트리/F4 포스트/F5 가구GLB. (바닥 floor_flagstone (2).png 교체는 선행 완료 — 1024², 코드 불변, 구본 백업 /tmp.)
+- **F1 텍스처 세트:** `IndoorTextureLoader` — wall_plaster_upper_n/wood_frame_n 선택 로드 경로 + `IncludeWallStoneLower`(기본 OFF) 옵션. `IndoorMaterialFactory` — 회반죽/목재 노멀맵 적용(_NORMALMAP, 파일 없으면 스킵) + 신규 팩토리 3종(CreateWallStoneLower/CreateEmberUnlit HDR/CreateStrawDecal 투명 Unlit). `PlayerCastleInteriorBuilder` — 하부 석재 밴드 빌더(옵션 게이트·문 개구부 분할·UV u=길이/2.2·병합 메시) + **짚 데칼 적용기 신설**(미사용 floor_straw_decal — 엔트리홀 2장+부엌 1장, 렌더러 전용 1.2m, 투명 큐 3000+).
+- **F2 조명:** `IndoorLighting` — **절차 불꽃 쿠키 큐브맵**(32²×6면, 웜 블롭+무늬 — 모든 실내 포인트라이트 부착) + **화재 플리커 고도화**(구 균등 PingPong → 3중 사인·러너별 위상차·기존 0.8~1.2 밴드 클램프 유지). 성 내부 입구 **ember 발광판 2장**(렌더러 전용·물리 브레이저 금지 계약 유지 — EmberGlow 명명, 라이트와 동행 스케일).
+- **F3 지오메트리:** **천장 목재 들보**(주보 Z방향 17본+직교 결구보 X방향 8본 — 대각 없음 원칙, 병합 메시 1개·무콜라이더) + **곡면 배너 천**(평면 박스→정적 S커브 9×7 세그먼트, 렌더러 전용) + **캔들라브라 2기**(로비 좌우, emissive 불꽃 — 신규 라이트 추가 없음, 가구 관례대로 스케일 패스 동행).
+- **F4 포스트 프로세싱:** `IndoorPostProcessController.cs` 신설 — 런타임 절차 VolumeProfile(Bloom 0.9/0.28 + Vignette 0.35 + WhiteBalance 15 + ColorAdjustments sat6/contrast8 — **톤 상한 계약**), IndoorAeroFogController 동일 게이트(IndoorScene/"Interior"), 카메라 renderPostProcessing 진입 전 값 기억→퇴장 복원(메인씬 무변경).
+- **F5 가구 GLB:** **기존 구현 확인** — IndoorFurnitureCatalog(2026-09-24)가 이미 GLB 우선+절차 폴백(`Assets/새로운 glb/furniture/` 64파일 실재). 코드 추가 불필요. 비고: 침대.glb가 폴더에 없어 침대는 현재 절차 폴백 — 사용자가 침대.glb 투입 시 자동 GLB 전환.
+- **flaky 수리(부수):** `CraftBenchTests.CraftingHelper_NotifyCraftSucceeded_FiresEvent` — 제작 성공률(base 90%) 랜덤 롤로 ~10% 확률 실패하는 본질적 flaky(이번 회귀에서 첫 발현, 단독 실행 통과 확인) → 재료 재보급+40회 재시도로 결정론화(실패 확률 ≈ 0.1^40).
+- **수리 중 실수 기록:** 대규모 패치 1회가 AppendTimberBox 시그니처/D3 주석을 훼손(중복 시그니처+고아 주석) → 즉시 발견·복구(1:1 복원). 이후 구조 검증(중괄호 균형/메서드 1회성) 게이트 추가.
+- **검증:** fresh compile `error CS` **0** — `TestOutput/quality_focused.log`(compile2 수리 2건: CreateRendererOnlyStoneBox 인자 Transform/테스트 using ProjectName.Core). focused(Quality+TimberFrame+Topology+Collision+AERO) **33/33** — `TestOutput/quality_focused.xml`. 전체 EditMode **587/580/7** — 실패 7건 전부 기존 baseline, flaky 수리 확인 → **신규 회귀 0**. `TestOutput/quality_editmode2.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①바닥 신규 텍스처+짚 데칼 ②천장 들보/곡면 배너/캔들라브라/ember ③화광 쿠키·플리커 무드 ④Bloom/비네트(실내 진입 시만) ⑤하부 석재 밴드 원하면 IncludeWallStoneLower=true 1줄. 침대 GLB 원하면 `Assets/새로운 glb/furniture/침대.glb` 투입. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (3차) 시계창 빈 패널 수리 + 실내 완전 암전(조명 주변만 불빛) (미커밋)
+
+- **사용자 요구 2건:** ①좌상단 시계창이 빈 패널 ②"실내씬 완전 어둡게 — 조명 있는 곳만 은은하게 불빛(실내씬 예시 무드)".
+- **①시계창 근본 원인+수리(TimeClockGlassUTK):** `TimeManager.Instance` 직접 참조 — 씬에 TimeManager 없으면 null로 영구 빈 패널(글리프 텍스처 GlassDig_*·GetFormattedTime은 전부 정상 확인). StarField/RegionBGM 선례대로 **`TimeManager.GetOrCreate()`** 지연 생성으로 전환 — 어떤 씬에서도 시계 동작. (기존 Updater의 UIRoot 지연 부착은 유지.)
+- **②실내 완전 암전:**
+  - `IndoorScene.unity`: 씬 앰비언트 삼분광 ~1/3 강하(Sky 0.16/0.12/0.09→**0.045/0.032/0.022**·Equator 0.1→**0.028**·Ground 0.05→**0.014**) + 직사광 0.09→**0.02**(사실상 소등) — 화광 3개 0.62 유지(불빛 소스). AERO 흰 포그 0.2 유지 — 앰비언트 소멸로 조명 밖에선 포그도 어둡게 응축, 화광 빛기둥만 남는 구조.
+  - 성 내부(`PlayerCastleInteriorBuilder`): 앰비언트 배율 0.20→**0.06**(거의 암흑) — 화광/랜턴/작업등 포인트라이트 강도 유지 → 광원 주변 은은한 불빛 풀만 잔존.
+- **검증:** fresh compile `error CS` **0** — `TestOutput/dark_clock_compile_focused.log`. focused(AERO+TimberFrame+Topology+Collision+HUD) **29/29** — `TestOutput/dark_clock_focused.xml`. 전체 EditMode **577/570/7** — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/dark_clock_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①시계창에 시각(HH:MM) 글리프 표시 ②실내: 전반 암흑 + 화광/랜턴 주변 은은한 불빛만(포그 속 빛기둥) ③완전 암전이 너무 어두우면 앰비언트 배율 1줄 튜닝(0.06→0.08~0.1). stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 (2차) HUD 세로줄 수리 + D3 스타일 확정(대각 제거·기둥 강화) + 부대 슬롯색 통일 (미커밋)
+
+- **사용자 피드백 3건(hud ui 7):** ①하트/번개 아이콘 위로 세로줄 ②D3 나무 틀 — 대각선 빼고 세로 기둥만, 더 두껍게 ③부대 슬롯 파란색 → 핫바 슬롯과 동일 색 통일.
+- **①세로줄 근본 원인+수리(HUDUTK):** inner-plate 그라데이션 텍스처를 4×64 램프로 만든 것이 원인 — `ScaleMode.ScaleToFit`이 종횡비를 유지해 96.8 원판 중앙에 **6px 폭 세로 스트립만** 렌더링(plate 나머지는 투명 → 링의 다크 디스크가 비쳐 아이콘 관통 세로줄로 보임 — 캡처 픽셀 실측: 중심선 y688~748 밝기 186~230 vs 옆 90~135). **64×64 정방 세로 그라데이션(0.8→0.4)** 으로 교체 — 원판 전체 채움 + Figma plate 유리질 복원(부수 효과: 흰 원판이 이번에야 제대로 보임).
+- **②D3 스타일 확정(PlayerCastleInteriorBuilder):** 대각 지지대 블록 삭제 — **세로 기둥+상단 보만**. 기둥 폭 0.26→**0.40**·깊이 0.14→0.16·상단 보 0.32→0.40(기둥과 동일 두께감 — 실내씬 예시의 통통한 기둥 비율). 무충돌·병합 메시·문 개구부 회피 계약 유지.
+- **③부대 슬롯색 통일(HotbarUIUTK.RefreshAllIcons):** 구 청록 틴트(0.10,0.22,0.30,0.92) 삭제 — 부대 모드도 아이템 모드와 동일 핫바 슬롯색(0.07,0.05,0.03,0.85). 모드 구분은 아바타/라벨이 담당.
+- **검증:** fresh compile `error CS` **0** — `TestOutput/hud7_fix_compile.log`. focused(TimberFrame+HUD+Topology+Collision) **24/24** — `TestOutput/hud7_fix_focused.xml`. 전체 EditMode **577/570/7** — 실패 7건 전부 기존 baseline → **신규 회귀 0**. `TestOutput/hud7_fix_editmode.xml`.
+- **다음(사용자 게이트):** Play 재실행 — ①게이지 세로줄 소멸+흰 원판 정상 ②벽: 세로 기둥(0.40)+상단 보, 대각 없음 ③부대 모드(Tab) 슬롯색=핫바와 동일. 비고: 캡처 좌상단 시계창(TimeClockGlass) 글리프 미표시(별개 이슈 — 미착수). stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-10 HUD Figma 폼 정합 + 실내 하향 + D3 팀버 골조 + wood UV 수리 (미커밋)
+
+- **사용자 요청 4건:** ①hud ui 6 캡처 기반 "체력/스태미너 창이 피그마 형태와 미세하게 다르다" 확인 ②하트/번개도 피그마 원본 그대로 가져오기 ③실내씬 더 어둡게 ④D3 진행(승인) + "벽은 바뀌었는데 나무 틀이 없다" 확인·수정.
+- **HUD 진단(Figma 원본 figma-file.json 실측 — 23:6 노드 59:4/35:22 등):** arc donut innerRadius=0.8(두께 0.2×r·외곽 밀착) vs 구현 0.28×r+2px 인셋 = 더 두껍고 내부 치우침(미세 차이의 핵심). arc DROP_SHADOW 2중 글로우·백색 progress-tip 구현 누락(10-09 생략 판단). inner-plate 세로 그라데이션 0.8→0.4 누락(평면). **center-light(68.8 백색 방사광) 노드 통째로 누락**. bg-radial-glow 단색 vs 방사형. 시맨틱 색(HP 레드/스타미나 옐로)은 09-24 계약 유지 — Figma 오렌지 미채택은 의도적 차이.
+- **구현:** `UTKCircularGauge.cs` Figma opt-in 속성 5종(ThicknessFactor/OuterInset/BackgroundRingColor/ProgressGlowEnabled/TipEnabled — 기본값 P22-5 원형 유지, BowAimReticleUTK 픽셀 무변경) + 글로우 2패스·tip 세그먼트 렌더. `HUDUTK.cs` BuildOneGauge 재작성(8요소): 절차 방사 텍스처 bg-glow(게이지색 틴트)·outer-track 스트로크 전용(도넛 채움은 gauge 배경링 백색 0.08 담당)·plate 세로 그라데이션+스트로크 백색 0.92·center-light 복원(0.62 백색)·arc opt-in 배선. `HudBottomAnchorTests` 계약 갱신(CenterLight/ThicknessFactor 0.20/Tip/ProgressGlow).
+- **아이콘 Figma 원본 교체 완료(토큰 제공받아 실행):** Figma API(/v1/images, 파일키 02vPXOGzFJUUYTaEPSVz3R)로 하트=59:4 @4x(자체 레드 섀도우 포함), 번개=35:13 icon-wrapper 컴포지트(zap-glow 블러+zap-main) 다운로드 → **본체(alpha≥240) bbox 크롭 + 마진**으로 정규화(256×256 RGBA, 첫 시도는 그림자까지 bbox에 포함돼 본체 체감 과소 — 본체 기준 재크롭으로 수리) → `Assets/Resources/UI/GaugeHeart.png`/`GaugeBolt.png` 교체(.meta 유지 — GUID 불변, HUDUTK 로드 경로 무변경). 기존 2D 평면판은 /tmp 백업. 시각 검증: 하트 Figma와 크기 비율 거의 동일, 번개 형태 완벽+글로우 재현(원판 입체감은 신규 plate 그라데이션/center-light가 담당). Figma 토큰은 ~/.figma_token(600) 저장 — 재사용.
+- **실내 하향(사용자 요구):** `IndoorScene.unity` 화광 3개 0.85→**0.62**·직사광 0.12→**0.09**. 성 내부(`PlayerCastleInteriorBuilder`) 앰비언트 0.26→0.20·천장 중앙 0.22→0.16·랜턴 0.35→0.26·작업구역 0.3→0.22·기둥옆 0.35→0.26·입구웜 0.3→0.22·보조 0.3/0.28→0.22/0.20(전부 ×~0.75, 입구 ≤0.5 계약 유지). `IndoorAeroFogTests` 계약 갱신(0.62×3·stale 0.85 금지·직사광 0.09).
+- **"나무 틀 없다" 근본 원인 3건 + 수리:**
+  - ①D3 팀버 포스트 자체가 미구현(별도 승인 대기 항목) → **사용자 승인으로 구현**: `AddTimberWallFrame` — 벽별 수직 기둥(0.26×5.68, 최대 간격 5.5m)·천장 연결 상단 보(0.32·벽 전체 길이)·대각 지지대(y 0.9→5.3, 양면 교차)·문 개구부 ±0.35 회피·렌더러 전용(무충돌)·스케일 패스 후 포탈 트림 선례 패턴. 병합 메시(벽당 1 draw call — 저사양 GPU 게이트 대응).
+  - ②D2 누락 수리: StonePillar가 회색 석재 잔존(c57b9500이 trim/문틀만 전환) → pillarMat = CreateWoodFrame(D2 범위 복원 — 기둥은 P17부터 기본 비활성).
+  - ③**UV 버그(가시화 뿌리):** CreateUnitCubeMesh에 UV 부재 → wood_frame 텍스처 (0,0) 한 텍셀만 샘플링, 목재 문틀이 단색 슬래브로 렌더링 → 면별 UV 0..1 부여(문틀/린텔에서 실제 나뭇결 가시).
+- **신규 테스트:** `PlayerCastleInteriorTimberFrameTests.cs` 6종(포탈 후 호출 순서/기둥 목재화/UV 계약/외벽+남입구 프레임 존재+벽 길이 커버/전 프레임 무콜라이더+≥20개/남입구 통로 열 보장/실내 광원 상한 0.26).
+- **검증:** fresh compile `error CS` **0** — `TestOutput/d3_dark_wood_compile.log`. focused(TimberFrame+Topology+Collision+HUD+AERO) **29/29** — `TestOutput/d3_dark_wood_focused.xml`. 전체 EditMode **577 total / 570 passed / 7 failed** — 실패 7건 전부 기존 baseline(AERO isolated, AttackTargetRing, Cooking, PlayerCombat streak 2건, RecipeCatalog, ThemeUSS) → **신규 회귀 0**. `TestOutput/d3_dark_wood_editmode.xml`.
+- **다음(사용자 게이트):** ①Play 재실행 — HUD 게이지(두께/글로우/tip/center-light)·실내 어둡기(0.62/0.09+성내부)·벽 나무 틀(기둥+보+대각) 체감 ②아이콘 원본 확보 방식 선택(토큰/수동 export) ③rim-highlight 각도 그라데이션은 UTK 한계로 단색 유지(판단 기록). stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-09 아레나 2종 분리 — 베팅 로비 실내 + 실제 투기장 실내 (미커밋)
+
+- **사용자 요청:** "실내씬 2가지 추가 — 아레나 베팅을 위한 실내 + 실제 투기가 일어나는 투기장 실내." (기존에는 아레나 입구 문 → 실내 1종이었음.)
+- **설계 (확장 유리 옵션 1 채택):** 아레나 입구 문(링1150m) → **베팅 로비**(`ArenaInteriorBuilder`) → 실내 내부 **투기장 출입문**(E키, `ArenaPit`) → **실제 투기장**(`ArenaPitInteriorBuilder`) 실내→실내 전환(`EnterBuilding`이 IndoorScene을 언로드→재로드해 자동 전환). 투기장 Exit는 월드(메인씬) 복귀.
+- **구현(4파일 + 테스트 갱신):**
+  - `IndoorTransitionSetup.cs`: `TYPE_ARENA_PIT="ArenaPit"` 상수 + `CreateArenaPitTrigger(pos,nationStyle)` 헬퍼.
+  - `ArenaInteriorBuilder.cs`(베팅 로비로 재구성): 셸 + 진입로(남벽 8m 개구부) + **베팅 데스크**(ArenaBettingDesk) + **ArenaNPCPlaceholder**(E키로 ArenaMenuUI: 직접 싸우기/병사 출전/베팅/전투로그 — 기존 시스템 재사용) + **투기장 출입문**(북벽 `ArenaPit_Trigger`).
+  - `ArenaPitInteriorBuilder.cs`(신규): 실내 셸 + **중앙 함몰 무대**(ArenaPit_Stage, r=10m·난간 4면) + **관중석 발판**(비충돌 4면 3열) + **Exit 문**(월드 복귀). GLB 규약 `arena_pit_<nation>.glb`.
+  - `IndoorSceneTransition.cs`: switch `case "arenapit"` → `ArenaPitInteriorBuilder.BuildArenaPitInterior`.
+  - `ArenaInteriorTests.cs`(갱신 5종): 로비 GLB 키 5, 투기장 GLB 키, TYPE 등록 2종, 로비 셸(데스크·NPC·투기장 트리거), 투기장 셸(무대·Exit+BuildingTrigger).
+- **GLB 규약 (사용자 제공):**`Assets/Resources/Models/UserProvided/arena_<nation>.glb`(베팅 로비 중앙) / `arena_pit_<nation>.glb`(투기장 무대) — 없으면 셸만.
+- **함정 교정:** ①`for(float d : offsets)` 배열 foreach가 커스텀 DSL에서 CS1002 → 인덱스 루프로 교체.
+- **검증:** fresh compile `error CS` **0** — `TestOutput/arena_pit_compile.log`. focused `ArenaInteriorTests` **5/5**. 전체 EditMode **570 total / 563 passed / 7 failed** — 실패 7건 전부 기존 baseline(AERO isolated, GuardCombat, Cooking 760vs2024, RecipeCatalog unknown, PlayerCombat streak 2건, ThemeUSS baked-PNG) → **신규 회귀 0**. `TestOutput/arena_pit_editmode.xml`.
+- **다음(사용자 게이트):** ①메인씬 링1150m 아레나 문 → 베팅 로비(데스크+NPC) ②로비 북벽 문 → 투기장(중앙 무대+관중석+Exit) ③`arena_<nation>.glb`/`arena_pit_<nation>.glb` 추가 시 자동 로드. stage/commit/push는 명시 요청 시에만.
+
+---
+
+## 2026-10-09 4방위국 아레나 설치 — 국별 아레나 4곳 + 문(E키) 실내 진입 (미커밋)
+
+- **사용자 요청:** "4방위국 마다 하나의 아레나 지역 설치, GLB는 내가 넣을 것, 메인씬에서 문 상호작용으로 실내 진입."
+- **설계:** 아레나 = 기존 성/상점과 동일한 문(BuildingTrigger) → E키 → `IndoorSceneTransition.EnterBuilding` 흐름 재사용. 새 `TYPE_ARENA="Arena"` 분기 추가. 아레나 4곳은 **영지가 아닌** 국가 방향 특정 지점(링1[1450]~링2[1000] 사이 중간 1150m, 각도 East0°/North90°/West180°/South270°)에 배치.
+- **구현(4파일 + 테스트):**
+  - `IndoorTransitionSetup.cs`: `TYPE_ARENA` 상수 + `CreateArenaTrigger(pos, nationStyle)` 헬퍼(CASTLE_INTERACT_RANGE=4f).
+  - `ArenaInteriorBuilder.cs`(신규): `BuildArenaInterior(nationStyle)` — `IndoorBuilder.CreateRoom(60×8×60)` 국별 텍스처 셸 + 남벽 중앙 8m 개구부(양쪽 24m 경간). **GLB 규약: `Assets/Resources/Models/UserProvided/arena_<nation>.glb`**(east/west/south/north) — `RuntimeModelLoader.TryGetModel`로 자동 로드, 없으면 국별 텍스처 셸만(이후 GLB 추가 시 자동 반영).
+  - `IndoorSceneTransition.cs`: switch `case "arena"` → `ArenaInteriorBuilder.BuildArenaInterior(_pendingNationStyle ?? "Empire")`.
+  - `TerritoryBuilder.cs`: `BuildArenaRegions()`(BuildAllCoroutine 종료 후 호출) — 4방위국 아레나 루트 + 지형높이 보정 + 문 트리거 배치. 중복 방지(루트 이름 `Arena_<Style>`).
+  - `Assets/Scripts/Tests/EditMode/ArenaInteriorTests.cs`(신규 3종): GLB 규약 키 4방위국+Empire, TYPE_ARENA 등록, Room 생성+남벽 개구부+경간.
+- **함정 교정:** ①`halfWidth` 미선언 CS0103 수리 ②`Object.Destroy`는 EditMode에서 즉시 파괴 안 됨 → `Object.DestroyImmediate`로 교체(성 빌더 선례).
+- **검증:** fresh compile `error CS` **0** — `TestOutput/arena_compile.log`. focused `ArenaInteriorTests` **3/3**. 전체 EditMode **568 total / 561 passed / 7 failed** — 실패 7건 전부 기존 baseline(AERO isolated, Cooking 760vs2024, RecipeCatalog unknown, PlayerCombat streak 2건, ThemeUSS baked-PNG) → **신규 회귀 0**. `TestOutput/arena_editmode2.xml`.
+- **다음(사용자 게이트):** ①메인씬 Play → 4방위국 링1150m 지점에 아레나 문 확인 ②문 E키 → 국별 아레나 실내(셸) 확인 ③`arena_<nation>.glb`를 `Assets/Resources/Models/UserProvided/`에 넣으면 중앙 자동 로드(바닥 보정). stage/commit/push는 명시 요청 시에만.
+
+---
+
 ## 2026-10-09 메인씬 영지 + 병사 + 몬스터 복귀 — 두 임시 중단 스위치 기본값 false 전환 (미커밋)
 
 - **사용자 요청:** "메인씬에 영지와 병사 몬스터 모두 복귀".

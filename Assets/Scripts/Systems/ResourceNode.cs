@@ -29,6 +29,12 @@ namespace ProjectName.Systems
 
         private bool _isDepleted;
 
+        // --- 플레이어 직접 채광(수집 채널링) ---
+        [SerializeField, Tooltip("플레이어 채광 상호작용 반경"), Min(0.5f)]
+        private float _playerInteractRange = 2.8f;
+        private Transform _player;
+        private float _playerNextRefresh;
+
         // --- 캐시된 컴포넌트 참조 ---
         private Renderer _renderer;
         private Collider _collider;
@@ -51,6 +57,61 @@ namespace ProjectName.Systems
                 Debug.LogWarning($"[ResourceNode] _minYield({_minYield}) > _maxYield({_maxYield}), 자동 교정합니다.");
                 _maxYield = _minYield;
             }
+        }
+
+        private void Update()
+        {
+            if (_isDepleted) return;
+
+            RefreshPlayer();
+            if (_player == null) return;
+
+            if (GatherChannelSystem.Instance.IsActive)
+            {
+                GatherChannelSystem.Instance.Tick();
+                return;
+            }
+
+            // E키 직접 채광 → 파랑 진행바 채널링 후 완료 시 채광.
+            if (Input.GetKeyDown(KeyCode.E)
+                && Vector3.Distance(transform.position, _player.position) <= _playerInteractRange)
+            {
+                GatherChannelSystem.Instance.Begin(
+                    transform,
+                    HarvestForPlayer,
+                    GatherChannelSystem.DefaultChannelSeconds);
+            }
+        }
+
+        private void RefreshPlayer()
+        {
+            if (_player != null && Time.unscaledTime < _playerNextRefresh) return;
+            var go = GameObject.FindGameObjectWithTag("Player");
+            _player = go != null ? go.transform : null;
+            _playerNextRefresh = Time.unscaledTime + 0.5f;
+        }
+
+        /// <summary>플레이어 채광 완료 — 아이템/yield/희귀보너스를 LootBasket으로, 시각 고갈 + 리스폰 예약.</summary>
+        public void HarvestForPlayer()
+        {
+            if (_isDepleted) return;
+            _isDepleted = true;
+
+            var item = GetItemData();
+            int yield = Random.Range(_minYield, _maxYield + 1);
+            LootBasket basket = LootBasket.Create(transform.position);
+            if (item != null) basket.AddItem(item, yield);
+
+            // 희귀 보너스 광물 (확률 0이면 안 뜸).
+            if (TryRollRareBonus(out var bonus, out int bonusYield))
+                basket.AddItem(bonus, bonusYield);
+
+            PlayerStats.Instance?.AddEXP(3);
+
+            if (_renderer) _renderer.enabled = false;
+            if (_collider) _collider.enabled = false;
+            SetChildRenderersVisible(false);
+            Invoke(nameof(Respawn), _respawnTime);
         }
 
         private void OnDisable()
@@ -84,6 +145,7 @@ namespace ProjectName.Systems
             // Hide visual
             if (_renderer) _renderer.enabled = false;
             if (_collider) _collider.enabled = false;
+            SetChildRenderersVisible(false);
 
             Invoke(nameof(Respawn), _respawnTime);
             return true;
@@ -123,6 +185,17 @@ namespace ProjectName.Systems
             _isDepleted = false;
             if (_renderer) _renderer.enabled = true;
             if (_collider) _collider.enabled = true;
+            SetChildRenderersVisible(true);
+        }
+
+        /// <summary>뿌리+자식 시각(Visual) 렌더러 표시/숨김 — 벌목/채광 시 나무 모델이 사라지게.</summary>
+        private void SetChildRenderersVisible(bool visible)
+        {
+            if (_renderer) _renderer.enabled = visible;
+            Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+            if (renderers == null) return;
+            foreach (var r in renderers)
+                if (r != null) r.enabled = visible;
         }
 
         private PlayerInventory.ItemData GetItemData()

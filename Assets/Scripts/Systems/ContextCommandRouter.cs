@@ -147,6 +147,7 @@ namespace ProjectName.Systems
                 case HoverTargetClassifier.TargetKind.Farm:
                 case HoverTargetClassifier.TargetKind.Gather:
                 case HoverTargetClassifier.TargetKind.Mine:
+                case HoverTargetClassifier.TargetKind.Wood:
                     AssignWorkTask(gsm, kind, mouse);
                     break;
             }
@@ -278,6 +279,7 @@ namespace ProjectName.Systems
                 case HoverTargetClassifier.TargetKind.Farm:   task = GuardTaskSystem.GuardTask.Farm;   break;
                 case HoverTargetClassifier.TargetKind.Gather: task = GuardTaskSystem.GuardTask.Gather; break;
                 case HoverTargetClassifier.TargetKind.Mine:   task = GuardTaskSystem.GuardTask.Mine;   break;
+                case HoverTargetClassifier.TargetKind.Wood:   task = GuardTaskSystem.GuardTask.Mine;   break;   // 벌목 = 채굴 역할 (GuardTaskSystem.Mine 경유)
                 default: return;
             }
 

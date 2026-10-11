@@ -57,6 +57,14 @@ namespace ProjectName.Systems
         const int CROP_ATTEMPTS = 700;
         const float CROP_MIN_DIST = 10f;           // 농작물 간격
 
+        // 벌목 나무 (사용자 확정 200그루) — 국가당 ~50, 전 국가 균등 배치
+        const int WOOD_TARGET = 200;
+        const int WOOD_ATTEMPTS = 3500;
+        const float WOOD_MIN_DIST = 14f;           // 나무 간 최소 간격 (수관 겹침 방지)
+
+        // idyllic 조형 나무 기준 높이(m) — 새 GLB(작음)를 이 크기로 정규화 (스킬 GNB Trees 실측)
+        const float TREES_TARGET_HEIGHT = 8.6f;
+
         const string GLB_DIR = "Assets/새로운 glb/nature/";
         const string GLB_DIR2 = "Assets/새로운 glb/crops-fish/";   // crops(과일·작물) GLB 폴더
 
@@ -76,6 +84,17 @@ namespace ProjectName.Systems
         {
             GLB_DIR + "angular-common-nature-broad-fern-clump-streamline-normal.glb",
             GLB_DIR + "angular-common-nature-bluebell-flower-cluster-streamline-normal.glb",
+        };
+
+        // 벌목 나무(일반 나무) — 파일명으로 과일나무(*fruit-tree*)와 구분. birch/broadleaf/pine 등.
+        // 크기는 NormalizeTreeSize(TREES_TARGET_HEIGHT)로 idyllic과 정합.
+        static readonly string[] WoodTreeGlbPaths =
+        {
+            GLB_DIR + "angular-common-nature-birch-tree-mature.glb",
+            GLB_DIR + "angular-common-nature-broadleaf-tree-mature.glb",
+            GLB_DIR + "angular-common-nature-pine-tree-mature.glb",
+            GLB_DIR + "angular-common-nature-birch-tree-young.glb",
+            GLB_DIR + "angular-common-nature-broadleaf-tree-young.glb",
         };
 
         /// <summary>
@@ -136,6 +155,12 @@ namespace ProjectName.Systems
                 FRUIT_TARGET, FRUIT_ATTEMPTS, FRUIT_MIN_DIST, FruitTreeAcceptance,
                 0.9f, 1.3f, "NaturalResource_FruitTree", CreateFruitNode);
 
+            // ── 벌목 나무(Wood) 200그루 — 일반 나무 GLB(birch/broadleaf/pine)를 전 국가 균등 배치 ──
+            int woods = PlaceCategory(container.transform, rng, hash,
+                LoadVisualPrefabs(WoodTreeGlbPaths, "IdyllicPrefabs/Trees", "WillowTree_"),
+                WOOD_TARGET, WOOD_ATTEMPTS, WOOD_MIN_DIST, WoodAcceptance,
+                0.9f, 1.15f, "NaturalResource_Wood", CreateWoodNode);
+
             int herbs = PlaceCategory(container.transform, rng, hash,
                 LoadVisualPrefabs(HerbGlbPaths, "IdyllicPrefabs/Flowers", "Flower_"),
                 HERB_TARGET, HERB_ATTEMPTS, HERB_MIN_DIST, HerbAcceptance,
@@ -152,6 +177,7 @@ namespace ProjectName.Systems
             marker.SetActive(false);
 
             Debug.Log($"[NaturalResourceSpawner] ✅ 자원 노드 배치 완료 — 돌(Stone) {rocks}/{ROCK_TARGET}, 과일나무(Gather) {fruits}/{FRUIT_TARGET}, 허브(Gather) {herbs}/{HERB_TARGET}, crops(Gather) {crops}/{CROP_TARGET}");
+            Debug.Log($"[NaturalResourceSpawner] 🌳 벌목 나무(Wood) {woods}/{WOOD_TARGET} 그루 배치 — 전 국가 균등, 크기 idyllic({TREES_TARGET_HEIGHT}m) 정합.");
         }
 
         // ================================================================
@@ -193,6 +219,21 @@ namespace ProjectName.Systems
                 case NationType.North: return 0.2f;
                 case NationType.West:  return 0.15f;
                 default:               return 0f;
+            }
+        }
+
+        // 벌목 나무: 전 국가 균등(동/서/남/북 모두) — 사용자 요구 "지역마다 부족하지 않게".
+        static float WoodAcceptance(NationType n)
+        {
+            switch (n)
+            {
+                case NationType.East:
+                case NationType.West:
+                case NationType.South:
+                case NationType.North:
+                    return 1.0f;
+                default:
+                    return 0f;
             }
         }
 
@@ -380,15 +421,45 @@ namespace ProjectName.Systems
             };
         }
 
-        /// <summary>과일나무 노드: HerbPickup 부착 → HoverTargetClassifier.Gather 분류.
-        /// 프로젝트에 과일 ItemData가 아직 없어 치유초(Red) 수확으로 연결 — 과일 아이템 추가 시 교체 지점.</summary>
+        /// <summary>과일나무 노드: HerbPickup(Fruit_Apple) — 실제 과일(사과) 수확.
+        /// 이전 placeholder(치유초/Red) → 실제 과일 아이템 교체. 크기는 idyllic 나무와 정합.</summary>
         static System.Action<GameObject> CreateFruitNode(int index, DetRng rng)
         {
             return go =>
             {
                 var herb = go.AddComponent<HerbPickup>();
-                SetPrivateField(herb, "_herbType", HerbPickup.HerbType.Red);
+                SetPrivateField(herb, "_herbType", HerbPickup.HerbType.Fruit_Apple);
+                NormalizeTreeSize(go, TREES_TARGET_HEIGHT);
             };
+        }
+
+        /// <summary>벌목 나무 노드: ResourceNode(Wood) → E 채널(파랑바)로 통나무(mat_wood) 수확. 크기 idyllic 정합.</summary>
+        static System.Action<GameObject> CreateWoodNode(int index, DetRng rng)
+        {
+            return go =>
+            {
+                var node = go.AddComponent<ResourceNode>();
+                SetPrivateField(node, "_resourceType", ResourceNode.ResourceType.Wood);
+                NormalizeTreeSize(go, TREES_TARGET_HEIGHT);
+            };
+        }
+
+        /// <summary>
+        /// 시각 모델(Visual 자식) 전체 높이를 대상 높이로 정규화 — 새 GLB(작음)를 idyllic 나무(8.6m)와 정합.
+        /// 월드 런타임 렌더러 bounds 기준 (batchmode 아님). 정규화 후 밑면 재정렬.
+        /// </summary>
+        static void NormalizeTreeSize(GameObject node, float targetHeight)
+        {
+            if (node == null) return;
+            var visual = FindDirectChild(node.transform, "Visual");
+            if (visual == null) return;
+            var renderers = visual.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0) return;
+            Bounds b = CollectBounds(renderers);
+            if (b.size.y < 0.01f) return;   // bounds 미계산(드물게) — 스킵
+            float s = targetHeight / b.size.y;
+            visual.transform.localScale *= s;
+            AlignBottomToGround(node.transform, visual);
         }
 
         /// <summary>허브 노드: HerbPickup + 5종 HerbType 결정론 순환(Red/Purple/Yellow/Silver/Green).</summary>

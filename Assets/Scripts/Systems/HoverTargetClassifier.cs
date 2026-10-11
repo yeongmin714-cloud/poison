@@ -25,6 +25,7 @@ namespace ProjectName.Systems
             Ally,        // 태그 Player|RecruitedSoldier 또는 GuardPlaceholder(IsRecruited)
             Terrain,     // 나머지 지형 (첫 지형 히트)
             Mine,        // ResourceNode(Wood/Stone/IronOre) 자원 노드 — 광질 대상
+            Wood,        // ResourceNode(NodeType==Wood) — 벌목 대상 (도끼 커서)
             Monster,     // AnimalAI(부모 체인 포함) 보유 몬스터 — 기본 공격(과녁) / Ctrl 정보(돋보기)
             EnemyGuard,  // 적 병사 — GuardPlaceholder(미영입) — 기본 공격(과녁) / Ctrl 대화(말풍선)
             NPC,         // 대화가능 NPC(NpcQuestGiver/NPCAmbientDialogue, 병사·몬스터 아닌 캐릭터) — 대화(말풍선)
@@ -94,8 +95,11 @@ namespace ProjectName.Systems
         /// <summary>단일 객체 분류 — 컴포넌트(부모 체인) → 태그 순. 이름 매칭 없음(테스트 40).</summary>
         private static TargetKind ClassifyOne(GameObject go)
         {
-            // 0) Mine — 자원 노드(Wood/Stone/IronOre) 최우선 판정 (적/밭 태그 충돌보다 먼저)
-            if (go.GetComponentInParent<ResourceNode>() != null) return TargetKind.Mine;
+            // 0) Mine / Wood — 자원 노드 최우선 판정 (적/밭 태그 충돌보다 먼저).
+            //    NodeType==Wood → Wood(벌목·도끼 커서), 그 외 → Mine(광질·곡괭이 커서).
+            var rn = go.GetComponentInParent<ResourceNode>();
+            if (rn != null)
+                return rn.NodeType == ResourceNode.ResourceType.Wood ? TargetKind.Wood : TargetKind.Mine;
 
             // 1) Monster — AnimalAI 보유. 부모 루트에 컴포넌트, 자식 콜라이더 히트 커버(GetComponentInParent 필수).
             //    적 태그(Monster/Enemy 등)라도 AnimalAI가 있으면 몬스터로 우선 분류 —

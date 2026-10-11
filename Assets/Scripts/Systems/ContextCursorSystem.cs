@@ -99,6 +99,7 @@ namespace ProjectName.Systems
             _icons[HoverTargetClassifier.TargetKind.Enemy]   = BuildSword();
             _icons[HoverTargetClassifier.TargetKind.Farm]    = BuildHoe();
             _icons[HoverTargetClassifier.TargetKind.Mine]    = BuildPickaxe();
+            _icons[HoverTargetClassifier.TargetKind.Wood]    = BuildAxe();
             _icons[HoverTargetClassifier.TargetKind.Gather]  = BuildShovel();
             _icons[HoverTargetClassifier.TargetKind.Ally]    = BuildArrow();
             _icons[HoverTargetClassifier.TargetKind.Terrain] = BuildArrow();
@@ -147,6 +148,18 @@ namespace ProjectName.Systems
                 new Vector3(0.10f, 0.10f, 0.10f), new Vector3(0f, 0f, 40f), new Color(0.5f, 0.5f, 0.55f));
             MakePrim(PrimitiveType.Cube, root, new Vector3(-0.30f, 0.15f, 0f),
                 new Vector3(0.10f, 0.10f, 0.10f), new Vector3(0f, 0f, -40f), new Color(0.5f, 0.5f, 0.55f));
+            return root;
+        }
+
+        private Transform BuildAxe()
+        {
+            var root = NewIconRoot("IconAxe");
+            // 도끼날 — 위쪽 납작한 사각날 (비대칭, 나무 베기 느낌)
+            MakePrim(PrimitiveType.Cube, root, new Vector3(0.14f, 0.24f, 0f),
+                new Vector3(0.26f, 0.16f, 0.08f), new Vector3(0f, 0f, -12f), new Color(0.62f, 0.56f, 0.5f));
+            // 손잡이 — 세로 막대
+            MakePrim(PrimitiveType.Cube, root, new Vector3(0f, -0.18f, 0f),
+                new Vector3(0.11f, 0.6f, 0.11f), Vector3.zero, new Color(0.62f, 0.40f, 0.18f));
             return root;
         }
 
