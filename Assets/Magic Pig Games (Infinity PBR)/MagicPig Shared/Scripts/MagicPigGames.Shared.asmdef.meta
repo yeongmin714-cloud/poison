@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 751d248b4b3724decb19eeab77117f9d
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 298494
+  packageName: 'Magic Time - Control Time per Object (Local Time Scale) [AI + MCP
+    Ready]'
+  packageVersion: 1.1.2
+  assetPath: Assets/Magic Pig Games (Infinity PBR)/MagicPig Shared/Scripts/MagicPigGames.Shared.asmdef
+  uploadId: 1000494

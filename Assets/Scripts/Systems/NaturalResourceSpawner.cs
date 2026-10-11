@@ -46,9 +46,9 @@ namespace ProjectName.Systems
         const float GROUND_BASE = 1f;              // Ground_Inner 월드 y 기저 (높이 계약)
         const int HEIGHT_SEED = 42;                // 지형 높이 계약 시드 (Plains, 42)
 
-        // 카테고리별 목표 수/시도 수/최소 간격 — 성능 보수적 총량(120 노드)
-        const int ROCK_TARGET = 40, FRUIT_TARGET = 30, HERB_TARGET = 50;
-        const int ROCK_ATTEMPTS = 800, FRUIT_ATTEMPTS = 900, HERB_ATTEMPTS = 700;
+        // 카테고리별 목표 수/시도 수/최소 간격 — 구조 조정: 돌을 나무 수준(200)으로 상향, 전 국가 균등
+        const int ROCK_TARGET = 200, FRUIT_TARGET = 30, HERB_TARGET = 50;
+        const int ROCK_ATTEMPTS = 3500, FRUIT_ATTEMPTS = 900, HERB_ATTEMPTS = 700;
         const float ROCK_MIN_DIST = 18f;           // 바위 군집 간격
         const float FRUIT_MIN_DIST = 24f;          // 수관 간섭 방지 간격
         const float HERB_MIN_DIST = 7f;            // 허브 밀집 허용(자연 군락)
@@ -183,18 +183,20 @@ namespace ProjectName.Systems
         // ================================================================
         // 카테고리 배치 룰 — 바이옴(방위)별 수락 확률
         // ================================================================
-        // 돌: 서(화산)/남(사막) 다수, 북(설산) 중간, 동(초원) 소량 — TerrainModelPlacer.RockAcceptance 선례
-        static float RockAcceptance(NationType n)
-        {
-            switch (n)
-            {
-                case NationType.East:  return 0.2f;
-                case NationType.North: return 0.5f;
-                case NationType.West:  return 1.0f;
-                case NationType.South: return 1.0f;
-                default:               return 0f;   // Empire 등 → 미배치
-            }
-        }
+        // 돌: 전 국가 균등(동/서/남/북) — 사용자 요구 "지역마다 부족하지 않게" (나무와 동일 원칙)
+                static float RockAcceptance(NationType n)
+                {
+                    switch (n)
+                    {
+                        case NationType.East:
+                        case NationType.North:
+                        case NationType.West:
+                        case NationType.South:
+                            return 1.0f;
+                        default:
+                            return 0f;
+                    }
+                }
 
         // 과일나무: 동(초원) 중심, 북 소량, 서/남 거의 없음
         static float FruitTreeAcceptance(NationType n)
@@ -242,7 +244,7 @@ namespace ProjectName.Systems
         /// index % CropCatalog.TotalCount 로 _cropKey 지정 → 수확/씨앗 모두 CropCatalog 아이템.
         /// FarmPlot(영지 농경) HerbType 경로는 그대로 유지(기존 5종 작물 호환).
         /// </summary>
-        static System.Action<GameObject> CreateCropNode(int index, DetRng rng)
+        static System.Action<GameObject> CreateCropNode(int index, DetRng rng, string visualName)
         {
             string cropKey = CropCatalog.Keys[index % CropCatalog.TotalCount];
             return go =>
@@ -268,7 +270,8 @@ namespace ProjectName.Systems
         // ================================================================
         // 배치 코어
         // ================================================================
-        delegate System.Action<GameObject> NodeConfigurer(int index, DetRng rng);
+        // [2026-10-11 28차] visualName 전달 — 벌목 나무의 종별 그루터기(birch/broadleaf/pine) 판정 소스.
+        delegate System.Action<GameObject> NodeConfigurer(int index, DetRng rng, string visualName);
 
         static int PlaceCategory(Transform parent, DetRng rng, SpatialHash hash,
             GameObject[] visualPrefabs, int target, int attempts, float minDist,
@@ -306,7 +309,7 @@ namespace ProjectName.Systems
                 float yaw = rng.Range(0f, 360f);
                 var go = SpawnNode(parent, $"{goNamePrefix}_{placed + 1:D2}", prefab, x, z, scale, yaw);
 
-                var setup = configure(placed, rng);
+                var setup = configure(placed, rng, prefab != null ? prefab.name : null);
                 if (setup != null) setup(go);
 
                 hash.Insert(new Vector2(x, z));
@@ -323,7 +326,13 @@ namespace ProjectName.Systems
             float x, float z, float scale, float yawDeg)
         {
             float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, HEIGHT_SEED);
+            return SpawnNodeAt(parent, goName, visualPrefab, x, y, z, scale, yawDeg);
+        }
 
+        /// <summary>노드 루트 생성 본체 — 높이를 명시 파라미터로 받는다(테스트 씬 SurfaceY 위임용, 2026-10-11).</summary>
+        static GameObject SpawnNodeAt(Transform parent, string goName, GameObject visualPrefab,
+            float x, float y, float z, float scale, float yawDeg)
+        {
             var go = new GameObject(goName);
             go.layer = 0;   // Default — 몬스터 스폰 raycast(Ground|Terrain 마스크) 무시 대상 아님(인터랙티브 노드)
             go.transform.SetParent(parent, false);
@@ -412,18 +421,18 @@ namespace ProjectName.Systems
         // --- 노드 컴포넌트 구성 (private SerializeField는 리플렉션 — 프로젝트 관례) ---
 
         /// <summary>돌 노드: ResourceNode(Stone) — 광질(Mine) 대상, 호버 Mine 커서.</summary>
-        static System.Action<GameObject> CreateRockNode(int index, DetRng rng)
+        static System.Action<GameObject> CreateRockNode(int index, DetRng rng, string visualName)
         {
             return go =>
             {
                 var node = go.AddComponent<ResourceNode>();
-                SetPrivateField(node, "_resourceType", ResourceNode.ResourceType.Stone);
+                node.ConfigureResourceType(ResourceNode.ResourceType.Stone);   // [34차] Awake 프리징 없이 타입+파생상태 동시 설정
             };
         }
 
         /// <summary>과일나무 노드: HerbPickup(Fruit_Apple) — 실제 과일(사과) 수확.
         /// 이전 placeholder(치유초/Red) → 실제 과일 아이템 교체. 크기는 idyllic 나무와 정합.</summary>
-        static System.Action<GameObject> CreateFruitNode(int index, DetRng rng)
+        static System.Action<GameObject> CreateFruitNode(int index, DetRng rng, string visualName)
         {
             return go =>
             {
@@ -433,15 +442,36 @@ namespace ProjectName.Systems
             };
         }
 
-        /// <summary>벌목 나무 노드: ResourceNode(Wood) → E 채널(파랑바)로 통나무(mat_wood) 수확. 크기 idyllic 정합.</summary>
-        static System.Action<GameObject> CreateWoodNode(int index, DetRng rng)
+        /// <summary>벌목 나무 노드: ResourceNode(Wood) → E 채널(파랑바)로 통나무(mat_wood) 수확. 크기 idyllic 정합.
+        /// [2026-10-11 28차] 시각 GLB 파일명에서 종별(birch/broadleaf/pine) 추출 → 벌목 후 그루터기(cut-stump) 전달.</summary>
+        static System.Action<GameObject> CreateWoodNode(int index, DetRng rng, string visualName)
         {
             return go =>
             {
                 var node = go.AddComponent<ResourceNode>();
-                SetPrivateField(node, "_resourceType", ResourceNode.ResourceType.Wood);
+                node.ConfigureResourceType(ResourceNode.ResourceType.Wood);   // [34차]
                 NormalizeTreeSize(go, TREES_TARGET_HEIGHT);
+                SetPrivateField(node, "_stumpType", StumpTypeFromName(visualName));
             };
+        }
+
+        /// <summary>기존 구성 후 그루터기 종류만 보강(테스트 씬 경로, 28차).</summary>
+        public static void ApplyStumpType(GameObject go, string visualSourceName)
+        {
+            if (go == null) return;
+            var node = go.GetComponent<ResourceNode>();
+            if (node == null) return;
+            SetPrivateField(node, "_stumpType", StumpTypeFromName(visualSourceName));
+        }
+
+        /// <summary>시각 GLB 파일명 → 그루터기 종류. 미상(null)이면 그루터기 없이 숨김만.</summary>
+        internal static string StumpTypeFromName(string n)
+        {
+            if (string.IsNullOrEmpty(n)) return null;
+            if (n.Contains("birch")) return "birch";
+            if (n.Contains("broadleaf")) return "broadleaf";
+            if (n.Contains("pine")) return "pine";
+            return null;
         }
 
         /// <summary>
@@ -463,7 +493,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>허브 노드: HerbPickup + 5종 HerbType 결정론 순환(Red/Purple/Yellow/Silver/Green).</summary>
-        static System.Action<GameObject> CreateHerbNode(int index, DetRng rng)
+        static System.Action<GameObject> CreateHerbNode(int index, DetRng rng, string visualName)
         {
             IReadOnlyList<HerbInfo> herbs = HerbDatabase.AllHerbs;
             if (herbs == null || herbs.Count == 0) return null;
@@ -473,6 +503,64 @@ namespace ProjectName.Systems
                 var herb = go.AddComponent<HerbPickup>();
                 SetPrivateField(herb, "_herbDatabaseId", herbId);
             };
+        }
+
+        // ================================================================
+        // 테스트 씬 배치 공개 API (Test_15_Livelihood — 2026-10-11)
+        // ================================================================
+        // 메인씬 ±1200m 산포 파이프라인은 국가 판정·제외존 전제라 테스트 미니지형(±60m)에 안 맞는다.
+        // 로더/스폰 코어/노드 구성기만 공개 위임해, 테스트 씬에서도 메인씬과 동일 코드 경로
+        // (ResourceNode/HerbPickup + E 채널 파랑 진행바 + 나무 스웨이 + 도끼 커서 + 소멸→리스폰)을 검증한다.
+
+        /// <summary>벌목 나무(일반 나무 GLB) 시각 프리팹 로드 — 실패 시 Resources 폴백(결정론 정렬 동일).</summary>
+        public static GameObject[] LoadWoodTreeVisuals() => LoadVisualPrefabs(WoodTreeGlbPaths, "IdyllicPrefabs/Trees", "WillowTree_");
+
+        /// <summary>돌 GLB 시각 프리팹 로드.</summary>
+        public static GameObject[] LoadRockVisuals() => LoadVisualPrefabs(RockGlbPaths, "IdyllicPrefabs/Rocks", "Rock_");
+
+        /// <summary>과일나무 GLB 시각 프리팹 로드.</summary>
+        public static GameObject[] LoadFruitTreeVisuals() => LoadVisualPrefabs(FruitGlbPaths, "IdyllicPrefabs/Trees", "BlossomTree_");
+
+        /// <summary>테스트 씬용 노드 스폰 — 높이만 외부(SurfaceY 계약)에서 받는 점이 메인 SpawnNode와 다르다.</summary>
+        public static GameObject SpawnTestNode(Transform parent, string goName, GameObject visualPrefab,
+            float x, float y, float z, float scale, float yawDeg, System.Action<GameObject> configure)
+        {
+            var go = SpawnNodeAt(parent, goName, visualPrefab, x, y, z, scale, yawDeg);
+            configure?.Invoke(go);
+            return go;
+        }
+
+        /// <summary>벌목 나무 노드 구성(공개 위임) — ResourceNode(Wood) + idyllic 8.6m 정규화.
+        /// [2026-10-11 28차] 시각 소스명에서 종별 그루터기 전달 오버로드.</summary>
+        public static void ConfigureWoodNode(GameObject go, string visualSourceName)
+        {
+            var node = go.AddComponent<ResourceNode>();
+            node.ConfigureResourceType(ResourceNode.ResourceType.Wood);   // [34차]
+            NormalizeTreeSize(go, TREES_TARGET_HEIGHT);
+            SetPrivateField(node, "_stumpType", StumpTypeFromName(visualSourceName));
+        }
+
+        /// <summary>벌목 나무 노드 구성(공개 위임) — ResourceNode(Wood) + idyllic 8.6m 정규화.</summary>
+        public static void ConfigureWoodNode(GameObject go)
+        {
+            var node = go.AddComponent<ResourceNode>();
+            node.ConfigureResourceType(ResourceNode.ResourceType.Wood);   // [34차]
+            NormalizeTreeSize(go, TREES_TARGET_HEIGHT);
+        }
+
+        /// <summary>돌 노드 구성(공개 위임) — ResourceNode(Stone) — 광질(E 채널) 대상.</summary>
+        public static void ConfigureRockNode(GameObject go)
+        {
+            var node = go.AddComponent<ResourceNode>();
+            node.ConfigureResourceType(ResourceNode.ResourceType.Stone);   // [34차] Awake 프리징 없이 타입+파생상태 동시 설정
+        }
+
+        /// <summary>과일나무 노드 구성(공개 위임) — HerbPickup(Fruit_Apple) + idyllic 정규화.</summary>
+        public static void ConfigureFruitNode(GameObject go)
+        {
+            var herb = go.AddComponent<HerbPickup>();
+            SetPrivateField(herb, "_herbType", HerbPickup.HerbType.Fruit_Apple);
+            NormalizeTreeSize(go, TREES_TARGET_HEIGHT);
         }
 
         /// <summary>private SerializeField 리플렉션 설정 — TestTerritoryCombatSetup.SetupMiningNode 선례.</summary>

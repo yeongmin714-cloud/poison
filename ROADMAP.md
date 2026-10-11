@@ -3736,3 +3736,114 @@ Figma(1440×900 캔버스) 기준 창/그리드 크기 100% 일치. PanelSetting
 | 3 | 카드 padding 12·진행게이지 4px | `5d829a27` |
 
 검증: 각 Phase compile CS=0, EditMode 신규회귀 0. ⚠️ Play 스냅샷 검증 대기(투명배경 3판넬 배치/타이틀바 닫기/카드 정합).
+
+## 🔧 2026-10-11: 시계 정지 근본 수리·Test_15 생활기술 통합·실내 ×2 점프·제작소 목재 공개 (25차 — 미커밋)
+
+> 사용자 보고 7건(실내 어두움→예시 정합/HUD 소모/나무 미표시/메인씬 확인불가→Test_15 통합/제작소 목재/Test_10 HUD/시간 정지). 계획: `.hermes/plans/2026-10-11_livelihood-testscene-indoor-hud-gather-plan.md`.
+
+| 항목 | 내용 | 상태 |
+|:--|:--|:--:|
+| 시간 UI 정지 | 근본 원인 확정·수리 — TimeClockGlassUTK.EnsureUpdater 가드가 `_instance != null`인데 Ensure() 후 호출되어 **Updater 영구 미생성**(300ms 폴링 부재 → 시계 고정). `FindAnyObjectByType<Updater>()` 판정으로 교체 | ✅ CS=0 · Play 판정 대기 |
+| 제작소 나무 조합 | DB엔 존재(24차) — 미표시 원인 = Milestone D "?" 블라인드. **A안 확정**: 목재 무기 4종+공구 3종+낚싯대 Initialize 시 기본 시드(석재/철/크리스탈·방어구는 발견 시스템 유지) | ✅ CS=0 · Play 판정 대기 |
+| Test_15 통합 씬 | 스포너 테스트 공개 API(로더/SpawnTestNode/Configure 3종) + 나무20·돌20·과일나무3 GLB 배치 + 호수 반경 12m 확대 + 병사/몬스터/불필요 장비 시딩 제외(크래프트 재료만 지급) | ✅ CS=0 · Play 판정 대기 |
+| 실내 조명 | "내부씬 예시(mean 37)" 정합 ×2 점프 — 화광 3→6×3·삼분광 ×2·성내부 빌더 전 광원 ×2. 계약 3파일 동기(To60·2.60·2.50·앰비언트 0.20/0.15/0.11). 다음 캡처 PIL 실측 1회 조정 예정 | ✅ CS=0 · Play 캡처 판정 대기 |
+| HUD(Test_10 미표시) | Editor.log 실측 — 부트·데이터(attached=True, hpFraction 실측)·온스크린 위치 전부 정상, 코드 결함 미발견. 진단 로그에 hostRect/onScreen 보강 — 다음 Play에서 직접 확정 | 진단 보강 완료 · Play 판정 대기 |
+| 메인씬 나무 미표시 | 코드·배선·GLB 정상(소스 실측). Test_15 통과 후 Editor.log 🌳 로그 대조로 배치/환경 분리 판정 | 대기 (Test_15 선행) |
+| Compile | QaValidator batch — error CS **0**, 심볼 착륙(Systems/Core/UI) | ✅ 통과 |
+| EditMode | 624/617/7 — baseline 동일, 신규 회귀 0 (`/mnt/c/tmp/r26_editmode.xml`) | ✅ baseline 동일 |
+| Play | Test_15 통합 8항목 + Test_10 HUD/시계 보조 + 실내 캡처 — 전부 대기 | ⬜ |
+
+## 🔧 2026-10-11: 테스트 15 영상 피드백 5종 수리 (26차 — 미커밋)
+
+> 영상(테스트 씬 15.mp4) 프레임+PIL 픽셀 실측으로 근본 원인 확정 후 수리. 시계=25차 수리 효과 확인(흐름 ✅). 돌=GLB 바위 클러스터 실배치 확인(프리미티브 아님).
+
+| 항목 | 근본 원인 → 수리 | 상태 |
+|:--|:--|:--:|
+| 호수 낚시 불가 | IsNearWater가 수직 하향만 검사(물 위에 서야만 true) → 발밑+**수평 근접 OverlapSphere** 병행 | ✅ CS=0 · Play 대기 |
+| 도끼 커서 없음 | 22차가 폐기된 ContextCursorSystem.BuildAxe에 배선 → UTKCursorOverlay에 Wood 케이스 신설(cursor_mine=만월날 도끼 재사용)+**대상 호버 시 Ctrl 없이 표시** | ✅ CS=0 · Play 대기 |
+| 진행바 이상 | 채움 쿼드 중앙 피벗(좌정렬 불가·배경 밖 삐져나감)+프레임 없음 → 다크 트랙+스트로크 프레임 4변+**좌단 고정 채움** | ✅ CS=0 · Play 대기 |
+| E프롬프트 커버 | 크래프트/창고 미커버 → CraftingStation·TerritoryWarehouse 스캔 추가(대상 위 월드 앵커)+감지 진단 로그 | ✅ CS=0 · Play 대기 |
+| HUD 게이지 미표시 | 호스트 transform.scale(0.75) 아래 벡터 메시(arc)가 좌표 미반영 → 링 일부만 렌더(픽셀 실측: 하단 짧은 호) → **호스트 레이아웃 등비 전환+arc 무스케일 서브트리 이동** | ✅ CS=0 · Play 대기 |
+| Compile | QaValidator batch — error CS **0** | ✅ |
+| EditMode | 624/617/7 — baseline 동일, 신규 회귀 0 (r27_editmode.xml) | ✅ |
+| Play | 낚시·커서·진행바·프롬프트·HUD 링 5종 재판정 | ⬜ |
+
+## 🔧 2026-10-11: 26차 Play 재보고 수리 (27차 — 미커밋)
+
+> 26차 실측: 낚시 프롬프트·물가 판정·HUD 위치/데이터는 작동 — 남은 것 = 낚시 창 미오픈·링 갱신 불안정·Fluent도. 베이크 PNG 규약으로 종결.
+
+| 항목 | 근본 원인 → 수리 | 상태 |
+|:--|:--|:--:|
+| 낚시(2차 수리) | **FishingUTK.Ensure 세션 0회**(로그 실측) — Updater(자동 오픈 폴링) 부재 → E는 시작되나 화면 변화 0 → `[RuntimeInitializeOnLoadMethod]` 자가부트 | ✅ CS=0 · Play 대기 |
+| HUD 링 소모(2차 수리) | 벡터 메시 갱신 재도장 불안정(26차 무스케일 이관 후에도) → **65프레임 베이크 스트립(UTKGaugeArcStrip)+UTKGaugeStripArc 슬라이싱**(스타일 변경=재도장 보장, 틴트 시맨틱색) | ✅ CS=0 · Play 대기 |
+| 진행바 Fluent | 정상화 확인 → 베이크 텍스처(라운드 트랙+그라데이션 채움)+팁 글로우 | ✅ CS=0 · Play 대기 |
+| E프롬프트 위치 | 대상 머리 위 중앙 → **대상 전면 가장자리(플레이어 방향 0.4~1.2m)+up** | ✅ CS=0 · Play 대기 |
+| 계약 갱신 | HudBottomAnchorTests 2건 → 스트립 현실(UTKGaugeStripArc/틴트/DrainClockwise) | ✅ 통과 복귀 |
+| Compile/EditMode | error CS **0** / **624/617/7** baseline 동일(r28b) | ✅ |
+| Play | 낚시 창 오픈·링 소모·Fluent 바·전면 프롬프트·도끼 커서 유지 | ⬜ |
+
+## 🔧 2026-10-11: 결과 창 통일·그루터기·진행바 마크 제거·프롬프트/HP 라벨 (28차 — 미커밋)
+
+> 27차 확정(낚시 창 ✅/HUD ✅/Fluent 감 ✅) + 사용자 신규 요구: 결과 창 통일(전리품→피그마 창)·물고기 GLB 사진·그루터기 잔존·마크 제거·HP 라벨(스타미나 제외 확정).
+
+| 항목 | 내용 | 상태 |
+|:--|:--|:--:|
+| 결과 창 통일 | 플레이어 채집/채광/벌목 = 직접 지급 + HarvestResultBridge.Publish(immediate) — 플레이어 경로 LootBasket 제거(병사는 유지) + Woodcutting 종 신설(창 variant 5곳) | ✅ CS=0 · Play 대기 |
+| 물고기 GLB 아이콘 | GblItemIconRenderer fish_glb_ 리졸버 + glbPath 직결(에디터 로드) — 334 GLB 실존·FishCatalog 50종 매핑 | ✅ CS=0 · Play 대기 |
+| 나무 그루터기 | 벌목 후 종별 cut-stump GLB 잔존(birch/broadleaf/pine) — 등비 스케일+지표 정렬, SetChildRenderersVisible 반전 토글 | ✅ CS=0 · Play 대기 |
+| 돌/채집 리젠 | 기존 숨김+리스폰 유지 + 과일나무 자식 렌더러까지 숨김 확장(HerbPickup) | ✅ CS=0 · Play 대기 |
+| 진행바 | 이동 마크(팁 글로우) 제거 — 순수 파랑 채움 | ✅ CS=0 · Play 대기 |
+| E프롬프트 | 최상단 드로우+전면 타이트(0.25~0.8m)+3D 범위 일원화+표시 진단 | ✅ CS=0 · Play 대기 |
+| HUD HP 라벨 | 하트 링 아래 "67 / 100"(하트만 — 스타미나 제외 확정) | ✅ CS=0 · Play 대기 |
+| Compile/EditMode | error CS **0** / **624/617/7** baseline 동일(r29) | ✅ |
+| Play | 위 7항목 재판정 | ⬜ |
+
+## 🔧 2026-10-11: 28차 Play 재보고 수리 (29차 — 미커밋)
+
+> 확정: 채광/채집 사라짐→리젠 ✅. 진단 로그(screen=(24,24)·HarvestResultUTK 인스턴스 생성 0건)로 두 뿌리 확정 후 수리.
+
+| 항목 | 근본 원인 → 수리 | 상태 |
+|:--|:--|:--:|
+| 그루터기 과대 | 나무 등비 복사 = GLB 원본 크기 차 → **bounds 높이 0.86m(나무의 1/10) 정규화** | ✅ CS=0 · Play 대기 |
+| 결과 창 미오표시 | publish 작동 확인(로그) vs **Ensure 무호출**(Updater 부재) → `[RuntimeInitializeOnLoadMethod]` 자가부트 | ✅ CS=0 · Play 대기 |
+| E프롬프트 코너 고정 | 월드 전면점 투영 시야 밖 → Clamp 좌상단 고정(진단 실측) → **화면공간 앵커**(대상 화면점 위·앞쪽 35% 블렌드)+raw vp 진단 | ✅ CS=0 · Play 대기 |
+| Compile/EditMode | error CS **0** / **624/617/7** baseline 동일(r30) | ✅ |
+| Play | 그루터기 0.86m·결과 창 4종·프롬프트 위치 | ⬜ |
+
+## 🔧 2026-10-11: 테스트 15씬 2 재보고 수리 (30차 — 미커밋)
+
+> 영상(21프레임)+29차 진단 로그(vp 실측)로 확정. Figma nodes API 실측 = 결과 창 치수 1:1 일치 확인(불일치 없음) — 실체는 이미지 슬롯 공백.
+
+| 항목 | 근본 원인 → 수리 | 상태 |
+|:--|:--|:--:|
+| 그루터기 과소 | 0.86m(1/10)는 원거리 카메라에서 발치 높이 → **1.5m(≈1/5.7)** | ✅ CS=0 · Play 대기 |
+| 프롬프트 코너/미표시 | 근접 광각 카메라에서 최근접 후보가 프러스텀 밖(vp 실측: 뒤 z≈0.3 포함) → **Collect 화면 가시성 필터**(7호출부) — 보이는 대상에만 | ✅ CS=0 · Play 대기 |
+| 결과 창 형태/사진/설명 | 치수는 Figma 1:1 일치 — 실체 = **GLB 아이콘 지연 베이크를 ApplyLatest 1회 렌더가 놓침** → PollBridge 지연 재적용(변화 시만 스타일 변경) | ✅ CS=0 · Play 대기 |
+| HP 라벨 크기 | fontSize 11×k → **22×k**(2배), 박스/호스트 높이 동행 | ✅ |
+| 시계 DAY | 카드 하단 "DAY n" 라벨 신설(CurrentDay+1, 액센트색, Column 재배치) | ✅ CS=0 · Play 대기 |
+| Compile/EditMode | error CS **0** / **624/617/7** baseline 동일(r31) | ✅ |
+| Play | 위 5항목 재판정 | ⬜ |
+
+- 2026-10-11 (31차): 창고 사용슬롯 fs14.4(Figma 15:4 실측) · 결과창 Figma 72:80 전수 정합(이미지 518×312·타이틀 28.8 Bold·SpecBox 166.4×70.6·설명 pad19.2/155) · E프롬프트 가장자리 폴백(필터 폐지) · 낚시 지명종 38종 전용 풀 · 낚시 중 점프 차단 · HP 숫자 흰색 Bold — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (32차): 결과창 Fluent 유리 패널(α0.88·풀스크린 폐지·헤더 스트립 제거) · 31차 이미지 요소 후근(276×276 중앙·클래스 충돌 해소) · SpecBox flexGrow(넘침 해소) · 캔버스 균일 k(sx/sy 왜곡 교정) · 프롬프트 카메라 선택 근원 수리(RT 카메라 배제) · 낚시 등급별 난이도(입질 시 등급 확정·일반/희귀/전설 3단) · 물고기 GLB 베이크 진단 로그 — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (33차): E프롬프트 월드 빌보드 전환(bounds 앵커 — 소형=위/대형=우측, 베이크 PNG+TextMesh, 투영 폐지) · 결과창 습득하기/버리기 실동작(RemoveItem) · 3초 자동닫힘 완전 제거 · .utk-window-shadow+2px 보더 플루언트 크롬 · 피그마 72:80/72:143 3차 정합 감사(1:1 확인) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (34차): ResourceNode.ConfigureResourceType(Awake _isWood 프리징 근원 수리 — 스포너 6곳 교체) · 물고기 GLB 동기 베이크(프레임 갭 제거) · 프롬프트 풀 빌보딩+확대(3.2×0.543/글자 0.22) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (35차): 프롬프트 기울임 빌보딩(수직 성분 0.55 — 세움+탑다운 가독) · Test_PlayerCastleInterior 부트에 아군 병사 3명 배치(SpawnInteriorAlliedGuards 실게임 경로 실증) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (36차): 실내 아군 병사 배럭 침대 누워 휴식(BarrackBed bounds 실측 배치·−90° 피치·P14 이동금지 이중) + CraftBench 성공률 테스트 시드 고정(플레이크 제거) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (37차): 병사배치 UI 실내 침대 개별 배치(번호 입력+눕히기 칩 — TryPlaceAllyOnBed 공개 헬퍼) + GuardPlaceholder.IndoorBedIndex 계약 + 목록 🛏️ 태그 — Figma69 단일 apply 계약 준수(칩+PointerDown) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (38차): 실내 병사 침대 누움 자동화 확대(AssignBedsToAllIndoorAllies — 모든 포섭 아군 빈 침대 순차 배치) + 침대 수동 UI 제거(사용자 확정) + 병사배치 UI 실내 작동(RegisterStandalone/GetAllPlayerGuards 병합+DB 부재 가드, 실내 진입 시 GuardManager/TaskSystem 보장) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (39차): 부대 명부 UI — 라디오 파란점 제거 · 사람 아이콘 아바타(SoldierAvatarIcon 베이크) · 상세 3D 미리보기 RT(선택 병사 FBX 동기 렌더) · BedRestEnforcer(침대 누움 LateUpdate 강제) · 역할 배치=기상+보행 명령(출동=로비/수비=막사 앞, IndoorMoveExempt P14 예외) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (40차): 공격대 배치 시스템(피그마 204:1963 구현) — AttackFormationSystem(5열×4행 20칸 편성 레지스트리+ApplyFormation 보행 명령) + AttackFormationUTK(명부/배치도/선택정보/적용) + AttackFormationBoard 전술 배치판(병사 관리 탁자 아래, E 스테이션) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (41차): 출동 배지 AttackSquadDeployment(실내 역할 병사 스냅샷→월드 문밖 재스폰+AssignTask 재부여=역할 루틴 실제 수행) + FinishExit 훅 + RoutineDefend 영지 안 수비(문 통과 복귀) — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)
+
+- 2026-10-11 (42차): GuardTaskSystem 실내 루틴 게이트(Attack 추종 실내 차단 — 침대 휴식 계약) + AssignTask 실내 즉시 보행 제거(출동 예약 모델) + 부대 명부 카드 행간 피그마 고정(겹침 수리)+아바타 32+미리보기 힌트 제거 — Compile 0 / EditMode 624/617/7 baseline 동일 (미커밋)

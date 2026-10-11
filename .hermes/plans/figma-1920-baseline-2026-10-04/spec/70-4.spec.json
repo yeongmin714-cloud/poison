@@ -1,0 +1,1186 @@
+{
+ "frame": "70:4",
+ "name": "loot-panel",
+ "origin": [
+  14944.6,
+  3.0
+ ],
+ "root": {
+  "fill": [
+   null,
+   "#0B0E14@0.75"
+  ]
+ },
+ "nodes": [
+  {
+   "id": "70:4",
+   "name": "loot-panel",
+   "type": "FRAME",
+   "depth": 0,
+   "x": 0.0,
+   "y": 0.0,
+   "w": 1920.0,
+   "h": 1080.0,
+   "layout": "VERTICAL",
+   "gap": 24.0,
+   "pad": [
+    38.4,
+    38.4,
+    38.4,
+    38.4
+   ],
+   "fill": [
+    null,
+    "#0B0E14@0.75"
+   ]
+  },
+  {
+   "id": "70:5",
+   "name": "LootPanel",
+   "type": "FRAME",
+   "depth": 1,
+   "x": 708.0,
+   "y": 324.0,
+   "w": 504.0,
+   "h": 432.0,
+   "layout": "VERTICAL",
+   "gap": 14.4,
+   "pad": [
+    24.0,
+    24.0,
+    24.0,
+    24.0
+   ],
+   "fill": [
+    "#161B22@0.7"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 14.4,
+   "effects": [
+    {
+     "type": "BACKGROUND_BLUR",
+     "radius": 36.0,
+     "y": 0,
+     "spread": 0,
+     "a": 0,
+     "color": null
+    },
+    {
+     "type": "DROP_SHADOW",
+     "radius": 38.4,
+     "y": 19.2,
+     "spread": 0,
+     "a": 0.25,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "70:6",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 708.0,
+   "y": 324.0,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "70:7",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 708.0,
+   "y": 324.0,
+   "w": 12.0,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "70:8",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 708.0,
+   "y": 324.0,
+   "w": 0.0,
+   "h": 12.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "70:9",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 1197.6,
+   "y": 324.0,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "70:10",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1197.6,
+   "y": 324.0,
+   "w": 12.0,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "70:11",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1197.6,
+   "y": 324.0,
+   "w": 0.0,
+   "h": 12.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "70:12",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 708.0,
+   "y": 741.6,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "70:13",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 708.0,
+   "y": 741.6,
+   "w": 12.0,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "70:14",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 708.0,
+   "y": 741.6,
+   "w": 0.0,
+   "h": 12.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "70:15",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 1197.6,
+   "y": 741.6,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "70:16",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1197.6,
+   "y": 741.6,
+   "w": 12.0,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "70:17",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1197.6,
+   "y": 741.6,
+   "w": 0.0,
+   "h": 12.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "70:18",
+   "name": "PanelHeader",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 732.0,
+   "y": 348.0,
+   "w": 456.0,
+   "h": 48.0,
+   "layout": "HORIZONTAL",
+   "pad": [
+    null,
+    null,
+    null,
+    9.6
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2
+  },
+  {
+   "id": "70:19",
+   "name": "TitleGroup",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 732.0,
+   "y": 353.2,
+   "w": 172.0,
+   "h": 28.0,
+   "layout": "HORIZONTAL",
+   "gap": 12.0
+  },
+  {
+   "id": "70:20",
+   "name": "Title",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 732.0,
+   "y": 353.2,
+   "w": 67.0,
+   "h": 28.0,
+   "text": "전리품",
+   "fontSize": 24.0,
+   "fontWeight": 700,
+   "lineHeight": 28.125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  },
+  {
+   "id": "70:21",
+   "name": "Subtitle",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 811.0,
+   "y": 363.2,
+   "w": 93.0,
+   "h": 15.0,
+   "text": "LOOT SECURED",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 700,
+   "lineHeight": 15.468750953674316,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:22",
+   "name": "CloseBtn",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1156.8,
+   "y": 351.6,
+   "w": 31.2,
+   "h": 31.2,
+   "layout": "HORIZONTAL",
+   "pad": [
+    7.2,
+    7.2,
+    7.2,
+    7.2
+   ],
+   "fill": [
+    "#FFFFFF@0.06"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 7.2
+  },
+  {
+   "id": "70:23",
+   "name": "x-circle",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1164.0,
+   "y": 358.8,
+   "w": 16.8,
+   "h": 16.8
+  },
+  {
+   "id": "70:24",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 5,
+   "x": 1164.0,
+   "y": 358.8,
+   "w": 16.8,
+   "h": 16.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:25",
+   "name": "LootStats",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 732.0,
+   "y": 410.4,
+   "w": 456.0,
+   "h": 26.6,
+   "layout": "HORIZONTAL"
+  },
+  {
+   "id": "70:26",
+   "name": "BadgeItem",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 732.0,
+   "y": 410.4,
+   "w": 76.2,
+   "h": 26.6,
+   "layout": "HORIZONTAL",
+   "pad": [
+    9.6,
+    4.8,
+    9.6,
+    4.8
+   ],
+   "fill": [
+    "#FFFFFF@0.04"
+   ],
+   "radius": 4.8
+  },
+  {
+   "id": "70:27",
+   "name": "BadgeText",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 741.6,
+   "y": 415.2,
+   "w": 57.0,
+   "h": 17.0,
+   "text": "습득 가능",
+   "fontSize": 14.40000057220459,
+   "fontWeight": 700,
+   "lineHeight": 16.875,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#58A6FF@1"
+   ]
+  },
+  {
+   "id": "70:28",
+   "name": "SlotCapacity",
+   "type": "TEXT",
+   "depth": 3,
+   "x": 1032.0,
+   "y": 413.7,
+   "w": 156.0,
+   "h": 20.0,
+   "text": "획득 아이템: 3 / 10",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 400,
+   "lineHeight": 20.280000686645508,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:29",
+   "name": "LootGridSection",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 732.0,
+   "y": 451.4,
+   "w": 456.0,
+   "h": 172.8,
+   "layout": "VERTICAL",
+   "gap": 9.6
+  },
+  {
+   "id": "70:30",
+   "name": "GridRow1",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 732.0,
+   "y": 451.4,
+   "w": 456.0,
+   "h": 81.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "70:31",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 732.0,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:32",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 732.0,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "70:33",
+   "name": "sword",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 753.6,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:34",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 753.6,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:35",
+   "name": "Count",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 798.0,
+   "y": 511.4,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "1",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:36",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 823.2,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:37",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 823.2,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#1F6FEB@1"
+   ]
+  },
+  {
+   "id": "70:38",
+   "name": "battery",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 844.8,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:39",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 844.8,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:40",
+   "name": "Count",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 889.2,
+   "y": 511.4,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "5",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:41",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 914.4,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:42",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 914.4,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:43",
+   "name": "microchip",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 936.0,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:44",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 936.0,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:45",
+   "name": "Count",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 972.0,
+   "y": 511.4,
+   "w": 16.0,
+   "h": 17.0,
+   "text": "12",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:46",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1005.6,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:47",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 1005.6,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:48",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1027.2,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:49",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 1027.2,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:50",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1096.8,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:51",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 1096.8,
+   "y": 451.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:52",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1118.4,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:53",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 1118.4,
+   "y": 473.0,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:54",
+   "name": "GridRow2",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 732.0,
+   "y": 542.6,
+   "w": 456.0,
+   "h": 81.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "70:55",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 732.0,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:56",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 732.0,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:57",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 753.6,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:58",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 753.6,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:59",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 823.2,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:60",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 823.2,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:61",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 844.8,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:62",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 844.8,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:63",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 914.4,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:64",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 914.4,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:65",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 936.0,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:66",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 936.0,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:67",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1005.6,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:68",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 1005.6,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:69",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1027.2,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:70",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 1027.2,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:71",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1096.8,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "70:72",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 1096.8,
+   "y": 542.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "70:73",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1118.4,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "70:74",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 6,
+   "x": 1118.4,
+   "y": 564.2,
+   "w": 38.4,
+   "h": 38.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "70:75",
+   "name": "LootFooter",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 732.0,
+   "y": 638.6,
+   "w": 456.0,
+   "h": 61.2,
+   "layout": "VERTICAL",
+   "gap": 14.4,
+   "pad": [
+    null,
+    14.4,
+    null,
+    null
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2
+  },
+  {
+   "id": "70:76",
+   "name": "ActionButtonGroup",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 732.0,
+   "y": 653.0,
+   "w": 456.0,
+   "h": 46.8,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "70:77",
+   "name": "AcquireAllButton",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 732.0,
+   "y": 653.0,
+   "w": 222.0,
+   "h": 46.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    14.4,
+    14.4,
+    14.4,
+    14.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 7.2
+  },
+  {
+   "id": "70:78",
+   "name": "AcquireAllText",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 798.0,
+   "y": 667.4,
+   "w": 90.0,
+   "h": 18.0,
+   "text": "전부 습득하기",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "70:79",
+   "name": "CloseButton",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 963.6,
+   "y": 653.0,
+   "w": 224.4,
+   "h": 46.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    14.4,
+    14.4,
+    14.4,
+    14.4
+   ],
+   "fill": [
+    "#FFFFFF@0.06"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 7.2
+  },
+  {
+   "id": "70:80",
+   "name": "CloseText",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1061.3,
+   "y": 667.4,
+   "w": 29.0,
+   "h": 18.0,
+   "text": "닫기",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  }
+ ]
+}

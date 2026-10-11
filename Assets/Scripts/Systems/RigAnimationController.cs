@@ -75,6 +75,9 @@ namespace ProjectName.Systems
 
         private Animator _animator;
         private Coroutine _transitionCoroutine;
+        // [2026-10-11 이동 끊김 수리] 진행 중 전환의 목표 상태 — 동일 상태 재호출 시
+        //   코루틴 재시작 루프(매 프레임 크로스페이드 리셋 → 애니 끊김)를 차단한다.
+        private AnimationState _transitionTargetState;
         private float _currentSpeed;
 
 #if UNITY_ANIMATION_RIGGING
@@ -200,12 +203,16 @@ namespace ProjectName.Systems
                 || newState == AnimationState.Throw
                 || newState == AnimationState.Kneel;
 
-            if (!isTriggerState && newState == _currentState && !IsTransitioning)
+            // [2026-10-11] 동일 상태 재호출 멱등 — 전환 중이라도 목표가 같으면 재시작하지 않는다.
+            //   (StepToward의 매 프레임 SetState(Walk)가 크로스페이드를 리셋하던 끊김의 근원)
+            if (!isTriggerState && newState == _currentState
+                && (!IsTransitioning || _transitionTargetState == newState))
                 return;
 
             if (_transitionCoroutine != null)
                 StopCoroutine(_transitionCoroutine);
 
+            _transitionTargetState = newState;
             _transitionCoroutine = StartCoroutine(TransitionToState(newState));
         }
 
@@ -224,6 +231,7 @@ namespace ProjectName.Systems
                 _transitionCoroutine = null;
             }
 
+            _transitionTargetState = state;
             IsTransitioning = false;
             ApplyStateImmediate(state);
         }

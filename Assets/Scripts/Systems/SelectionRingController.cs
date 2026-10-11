@@ -40,6 +40,10 @@ namespace ProjectName.Systems
             _visualScale = new Vector3(width, depth, 1f);
             quad.transform.localScale = _visualScale;
             _rend = quad.GetComponent<Renderer>();
+            // [2026-10-11 사용자 요구 — 검은 사각형 제거] 링 쿼드는 지면 데칼 — 실제 그림자 방출/수신 금지.
+            //   태양 광원 아래에서 쿼드 그림자가 지면에 사각형으로 찍히는 결함의 근원 차단.
+            _rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _rend.receiveShadows = false;
             ApplyColor();
             // Keep the object's authored parent scale intact; its pulse remains independent of the child oval ratio.
             _startScale = transform.localScale;
@@ -66,6 +70,8 @@ namespace ProjectName.Systems
         {
             _elapsed += Time.deltaTime;
             transform.localScale = CommandRingPresentation.GetPulseScale(_startScale, _elapsed);
+            // [15차 입체감] rim 하이라이트 방향 = 화면-상(카메라 전방 XZ).
+            CommandRingPresentation.UpdateRimDirection(_rend, _mat);
         }
 
         private void ApplyColor()

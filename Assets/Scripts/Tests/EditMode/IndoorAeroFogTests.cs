@@ -11,7 +11,7 @@ namespace ProjectName.Tests.EditMode
     ///  ①포그 머티리얼 기본 _Density=0(야외·테스트씬 새지 않음) + 웜톤 튜닝값
     ///  ②UniversalRendererData에 "AERO Volumetric Fog" FullScreenPass feature 부착(injectionPoint 550 — AERO 데모 동일)
     ///  ③컨트롤러는 활성 씬==IndoorScene 게이트 + AERO _FrameCount 계약(IGN 안정화)
-    ///  ④실내 화광 강도 0.55→0.85(IndoorScene 3개) — 포그 속 빛기둥 가시화
+    ///  ④실내 화광 강도 0.62×3(10-10 사용자 요구 하향 — 원 0.55→0.85 계획v2 이력 주석), 직사광 0.09
     ///  ⑤Rendering/AeroLocalizedGas*(가스 격리 파이프라인) 파일 미건드림(별도 경로 유지).
     ///
     /// 소스 계약 테스트 스타일 — HudBottomAnchorTests/FigmaCanvasLayoutTests 선례.
@@ -78,16 +78,33 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
-        public void IndoorScene_FlameLightsBoostedTo085_NoStale055()
+        public void IndoorScene_FlameLightsBrightenedTo60_NoStale30()
         {
+            // [2026-10-11 20차 사용자 확정 — "실내씬 예시 정도의 밝기"] 목표 = 내부씬 예시.PNG luminance
+            // (실측 mean 37/median 34/p75 50/p90 75). 19차 상향 후에도 어두움 재보고 → 값 사다리 교훈대로
+            // 배수 점프: 화광 3→6×3, 씬 앰비언트 삼분광 ×2(0.44/0.3/0.2). 다음 사용자 캡처 1장으로 1회 조정 예정.
+            // 3/2.2/1.3/0.85/0.75/0.55/0.62 잔여 금지(직사광 제외)·직사광 0(소등)·포그 0.12 유지.
             string src = System.IO.File.ReadAllText("Assets/Scenes/IndoorScene.unity");
-            int boosted = System.Text.RegularExpressions.Regex.Matches(src, @"m_Intensity: 0\.85\b").Count;
-            int stale = System.Text.RegularExpressions.Regex.Matches(src, @"m_Intensity: 0\.55\b").Count;
+            int boosted = System.Text.RegularExpressions.Regex.Matches(src, @"m_Intensity: 6\b").Count;
+            int stalePrev = System.Text.RegularExpressions.Regex.Matches(src, @"m_Intensity: 3\b").Count;
+            int stalePrev3 = System.Text.RegularExpressions.Regex.Matches(src, @"m_Intensity: 2\.2\b").Count;
+            int staleOld = System.Text.RegularExpressions.Regex.Matches(src, @"m_Intensity: 0\.85\b").Count;
+            int stalePrev2 = System.Text.RegularExpressions.Regex.Matches(src, @"m_Intensity: 0\.62\b").Count;
+            int staleDirect = System.Text.RegularExpressions.Regex.Matches(src, @"m_Intensity: 0\.02\b").Count;
             Assert.That(boosted, Is.EqualTo(3),
-                "IndoorScene FlameLight 3개가 계획 v2 Phase 4 강도 0.85로 상향돼야 한다(포그 속 화광 가시화).");
-            Assert.That(stale, Is.EqualTo(0), "구 강도 0.55 FlameLight 잔여가 없어야 한다.");
-            Assert.That(src, Does.Contain("m_Intensity: 0.12"),
-                "직사광 0.12(어두운 실내 계약)는 유지돼야 한다.");
+                "IndoorScene FlameLight 3개가 6(10-11 20차 예시 정합 ×2 점프)이어야 한다.");
+            Assert.That(stalePrev, Is.EqualTo(0), "이전 3 잔여 금지.");
+            Assert.That(stalePrev3, Is.EqualTo(0), "이전 2.2 잔여 금지.");
+            Assert.That(staleOld, Is.EqualTo(0), "구 강도 0.85 잔여 금지.");
+            Assert.That(stalePrev2, Is.EqualTo(0), "이전 0.62 잔여 금지.");
+            Assert.That(staleDirect, Is.EqualTo(0), "직사광 0.02 잔여 금지(0으로 소등).");
+            Assert.That(src, Does.Contain("m_Intensity: 0\n"),
+                "직사광은 완전 소등(0)이어야 한다.");
+            Assert.That(src, Does.Contain("m_AmbientSkyColor: {r: 0.44, g: 0.3, b: 0.2, a: 1}"),
+                "씬 앰비언트 삼분광은 10-11 20차 ×2 값이어야 한다.");
+            var fogCtrl = System.IO.File.ReadAllText("Assets/Scripts/Systems/IndoorAeroFogController.cs");
+            Assert.That(fogCtrl, Does.Contain("public const float IndoorDensity = 0.12f"),
+                "AERO 실내 포그 밀도는 0.12(흰 포그 밝기 축소)여야 한다.");
         }
 
         [Test]

@@ -1631,12 +1631,33 @@ namespace ProjectName.Systems
         }
 
         // ───────────────────── Soldier 모드 ─────────────────────
+        // [2026-10-11 이동 끊김 수리] Soldier 모드 Speed 평활 상태 — Player 모드의
+        // "지수 평활로 끊김 제거" 패턴과 동일 계수(k = 1-exp(-10·dt)) + 스톨 홀드.
+        private float _soldierSmoothedSpeed;
+        private float _soldierStallTime;
+        private float _soldierLastTarget;
+
         private void UpdateSoldier()
         {
             float dt = Time.deltaTime;
             Vector3 delta = transform.position - _lastPos;
-            float speed = dt > 0.0001f ? delta.magnitude / dt : 0f;
-            _anim.SetFloat("Speed", speed);
+            delta.y = 0f;   // 지형 y스냅 급변 제외 — XZ 수평 속도만 계산(속도 노이즈 원인 차단)
+            float raw = dt > 0.0001f ? delta.magnitude / dt : 0f;
+            float target;
+            if (raw > 0.05f)
+            {
+                _soldierStallTime = 0f;
+                target = raw;
+            }
+            else
+            {
+                _soldierStallTime += dt;
+                target = _soldierStallTime >= 0.25f ? 0f : _soldierLastTarget;   // 미세 정체 홀드
+            }
+            _soldierLastTarget = target;
+            float k = 1f - Mathf.Exp(-10f * dt);
+            _soldierSmoothedSpeed = Mathf.Lerp(_soldierSmoothedSpeed, target, k);
+            _anim.SetFloat("Speed", _soldierSmoothedSpeed);
             _lastPos = transform.position;
         }
 

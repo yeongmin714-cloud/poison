@@ -1,0 +1,2384 @@
+{
+  "file_key": "02vPXOGzFJUUYTaEPSVz3R",
+  "name": "제목 없음",
+  "lastModified": "2026-10-04T15:24:28Z",
+  "version": "2406507525007117770",
+  "page": "Page 1",
+  "root_frame_count": 38,
+  "frames": [
+    {
+      "id": "15:4",
+      "name": "fluent-game-inventory-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "fluent-game-inventory-ui"
+      ],
+      "bounds": {
+        "x": 1191.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "15:5",
+          "type": "FRAME",
+          "name": "InventoryPanel",
+          "bounds": {
+            "x": 1335.0,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "15:141",
+          "type": "FRAME",
+          "name": "DetailPanel",
+          "bounds": {
+            "x": 1863.0,
+            "y": 178.20001220703125,
+            "width": 576.0,
+            "height": 729.5999755859375
+          },
+          "text": null
+        },
+        {
+          "id": "15:197",
+          "type": "FRAME",
+          "name": "StoragePanel",
+          "bounds": {
+            "x": 2463.0,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "23:6",
+      "name": "HUD_Canvas",
+      "path": [
+        "Document",
+        "Page 1",
+        "HUD_Canvas"
+      ],
+      "bounds": {
+        "x": 3965.0,
+        "y": 208.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "23:7",
+          "type": "RECTANGLE",
+          "name": "Rectangle",
+          "bounds": {
+            "x": 3965.0,
+            "y": 208.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "text": null
+        },
+        {
+          "id": "39:2",
+          "type": "FRAME",
+          "name": "stamina-gauge",
+          "bounds": {
+            "x": 4271.39990234375,
+            "y": 1063.199951171875,
+            "width": 137.60000610351562,
+            "height": 137.60000610351562
+          },
+          "text": null
+        },
+        {
+          "id": "35:4",
+          "type": "FRAME",
+          "name": "stamina-gauge",
+          "bounds": {
+            "x": 4433.0,
+            "y": 1063.199951171875,
+            "width": 137.60000610351562,
+            "height": 137.60000610351562
+          },
+          "text": null
+        },
+        {
+          "id": "23:68",
+          "type": "FRAME",
+          "name": "QuickSlotsHUD",
+          "bounds": {
+            "x": 4594.60009765625,
+            "y": 1069.5999755859375,
+            "width": 902.4000244140625,
+            "height": 124.80000305175781
+          },
+          "text": null
+        },
+        {
+          "id": "39:30",
+          "type": "FRAME",
+          "name": "TabRotationHint",
+          "bounds": {
+            "x": 5521.0,
+            "y": 1098.4000244140625,
+            "width": 57.599998474121094,
+            "height": 67.19999694824219
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "40:44",
+      "name": "empty-circular-minimap",
+      "path": [
+        "Document",
+        "Page 1",
+        "empty-circular-minimap"
+      ],
+      "bounds": {
+        "x": 6292.60009765625,
+        "y": 338.0,
+        "width": 264.0,
+        "height": 264.0
+      },
+      "direct_children": [
+        {
+          "id": "40:45",
+          "type": "ELLIPSE",
+          "name": "bezel-shadow",
+          "bounds": {
+            "x": 6292.60009765625,
+            "y": 338.0,
+            "width": 264.0,
+            "height": 264.0
+          },
+          "text": null
+        },
+        {
+          "id": "40:46",
+          "type": "ELLIPSE",
+          "name": "bezel-outer-ring",
+          "bounds": {
+            "x": 6297.39990234375,
+            "y": 342.79998779296875,
+            "width": 254.39999389648438,
+            "height": 254.39999389648438
+          },
+          "text": null
+        },
+        {
+          "id": "40:47",
+          "type": "ELLIPSE",
+          "name": "bezel-inner-ring",
+          "bounds": {
+            "x": 6304.60009765625,
+            "y": 350.0,
+            "width": 240.0,
+            "height": 240.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "63:5",
+      "name": "crafting-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "crafting-panel"
+      ],
+      "bounds": {
+        "x": 6656.60009765625,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "63:6",
+          "type": "FRAME",
+          "name": "CraftingPanel",
+          "bounds": {
+            "x": 6800.60009765625,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "63:101",
+          "type": "FRAME",
+          "name": "DetailPanel",
+          "bounds": {
+            "x": 7328.60009765625,
+            "y": 87.0,
+            "width": 576.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "63:168",
+          "type": "FRAME",
+          "name": "StoragePanel",
+          "bounds": {
+            "x": 7928.60009765625,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "64:2",
+      "name": "crafting-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "crafting-panel"
+      ],
+      "bounds": {
+        "x": 8728.599609375,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "64:3",
+          "type": "FRAME",
+          "name": "CraftingPanel",
+          "bounds": {
+            "x": 8872.599609375,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "64:106",
+          "type": "FRAME",
+          "name": "DetailPanel",
+          "bounds": {
+            "x": 9400.599609375,
+            "y": 87.0,
+            "width": 576.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "64:173",
+          "type": "FRAME",
+          "name": "StoragePanel",
+          "bounds": {
+            "x": 10000.599609375,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "64:337",
+      "name": "crafting-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "crafting-panel"
+      ],
+      "bounds": {
+        "x": 10800.599609375,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "64:338",
+          "type": "FRAME",
+          "name": "CraftingPanel",
+          "bounds": {
+            "x": 10944.599609375,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "64:441",
+          "type": "FRAME",
+          "name": "DetailPanel",
+          "bounds": {
+            "x": 11472.599609375,
+            "y": 87.0,
+            "width": 576.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "64:508",
+          "type": "FRAME",
+          "name": "StoragePanel",
+          "bounds": {
+            "x": 12072.599609375,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "69:4",
+      "name": "soldier-management-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "soldier-management-ui"
+      ],
+      "bounds": {
+        "x": 12872.599609375,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "69:5",
+          "type": "FRAME",
+          "name": "SoldierListPanel",
+          "bounds": {
+            "x": 13040.599609375,
+            "y": 51.0,
+            "width": 480.0,
+            "height": 984.0
+          },
+          "text": null
+        },
+        {
+          "id": "69:118",
+          "type": "FRAME",
+          "name": "SoldierDetailPanel",
+          "bounds": {
+            "x": 13544.599609375,
+            "y": 51.0,
+            "width": 576.0,
+            "height": 984.0
+          },
+          "text": null
+        },
+        {
+          "id": "69:171",
+          "type": "FRAME",
+          "name": "DeploymentPanel",
+          "bounds": {
+            "x": 14144.599609375,
+            "y": 51.0,
+            "width": 480.0,
+            "height": 984.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "70:4",
+      "name": "loot-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "loot-panel"
+      ],
+      "bounds": {
+        "x": 14944.599609375,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "70:5",
+          "type": "FRAME",
+          "name": "LootPanel",
+          "bounds": {
+            "x": 15652.599609375,
+            "y": 327.0000305175781,
+            "width": 504.0,
+            "height": 432.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "72:4",
+      "name": "fishing-result-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "fishing-result-ui"
+      ],
+      "bounds": {
+        "x": 17016.599609375,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "72:5",
+          "type": "FRAME",
+          "name": "HUDHeader",
+          "bounds": {
+            "x": 17016.599609375,
+            "y": 3.0,
+            "width": 1920.0,
+            "height": 76.80000305175781
+          },
+          "text": null
+        },
+        {
+          "id": "72:17",
+          "type": "FRAME",
+          "name": "ResultPanel",
+          "bounds": {
+            "x": 17688.599609375,
+            "y": 114.20000457763672,
+            "width": 576.0,
+            "height": 859.7999877929688
+          },
+          "text": null
+        },
+        {
+          "id": "72:61",
+          "type": "FRAME",
+          "name": "SystemTip",
+          "bounds": {
+            "x": 17691.900390625,
+            "y": 1031.5999755859375,
+            "width": 569.4000244140625,
+            "height": 17.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "72:80",
+      "name": "gathering-result-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "gathering-result-ui"
+      ],
+      "bounds": {
+        "x": 17258.80078125,
+        "y": 1321.75,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "72:81",
+          "type": "FRAME",
+          "name": "HUDHeader",
+          "bounds": {
+            "x": 17258.80078125,
+            "y": 1321.75,
+            "width": 1920.0,
+            "height": 76.80000305175781
+          },
+          "text": null
+        },
+        {
+          "id": "72:95",
+          "type": "FRAME",
+          "name": "ResultPanel",
+          "bounds": {
+            "x": 17930.80078125,
+            "y": 1431.449951171875,
+            "width": 576.0,
+            "height": 862.7999877929688
+          },
+          "text": null
+        },
+        {
+          "id": "72:138",
+          "type": "FRAME",
+          "name": "SystemTip",
+          "bounds": {
+            "x": 17934.1015625,
+            "y": 2351.85009765625,
+            "width": 569.4000244140625,
+            "height": 17.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "72:143",
+      "name": "mining-result-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "mining-result-ui"
+      ],
+      "bounds": {
+        "x": 19370.0,
+        "y": -69.5,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "72:144",
+          "type": "FRAME",
+          "name": "HUDHeader",
+          "bounds": {
+            "x": 19370.0,
+            "y": -69.5,
+            "width": 1920.0,
+            "height": 76.80000305175781
+          },
+          "text": null
+        },
+        {
+          "id": "72:158",
+          "type": "FRAME",
+          "name": "ResultPanel",
+          "bounds": {
+            "x": 20042.0,
+            "y": 23.20000457763672,
+            "width": 576.0,
+            "height": 896.7999877929688
+          },
+          "text": null
+        },
+        {
+          "id": "72:201",
+          "type": "FRAME",
+          "name": "SystemTip",
+          "bounds": {
+            "x": 20045.30078125,
+            "y": 977.5999755859375,
+            "width": 569.4000244140625,
+            "height": 17.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "74:4",
+      "name": "game-shop-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "game-shop-ui"
+      ],
+      "bounds": {
+        "x": 21442.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "74:5",
+          "type": "FRAME",
+          "name": "StorePanel",
+          "bounds": {
+            "x": 21586.0,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "74:130",
+          "type": "FRAME",
+          "name": "DetailPanel",
+          "bounds": {
+            "x": 22114.0,
+            "y": 87.0,
+            "width": 576.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "74:174",
+          "type": "FRAME",
+          "name": "StoragePanel",
+          "bounds": {
+            "x": 22714.0,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "76:7",
+      "name": "game-shop-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "game-shop-ui"
+      ],
+      "bounds": {
+        "x": 23514.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "76:8",
+          "type": "FRAME",
+          "name": "StorePanel",
+          "bounds": {
+            "x": 23658.0,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "76:130",
+          "type": "FRAME",
+          "name": "DetailPanel",
+          "bounds": {
+            "x": 24186.0,
+            "y": 87.0,
+            "width": 576.0,
+            "height": 912.0
+          },
+          "text": null
+        },
+        {
+          "id": "76:172",
+          "type": "FRAME",
+          "name": "StoragePanel",
+          "bounds": {
+            "x": 24786.0,
+            "y": 87.0,
+            "width": 504.0,
+            "height": 912.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "81:4",
+      "name": "interaction-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel"
+      ],
+      "bounds": {
+        "x": 5995.7998046875,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 98.4000015258789
+      },
+      "direct_children": [
+        {
+          "id": "81:5",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 5995.7998046875,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:8",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 6274.19970703125,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:11",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 5995.7998046875,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:14",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 6274.19970703125,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:21",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 6005.39990234375,
+            "y": 12.600000381469727,
+            "width": 268.79998779296875,
+            "height": 79.19999694824219
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "81:51",
+      "name": "interaction-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel"
+      ],
+      "bounds": {
+        "x": 25586.0,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 98.4000015258789
+      },
+      "direct_children": [
+        {
+          "id": "81:52",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 25586.0,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:55",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 25864.400390625,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:58",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 25586.0,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:61",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 25864.400390625,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:64",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 25595.599609375,
+            "y": 12.600000381469727,
+            "width": 268.79998779296875,
+            "height": 79.19999694824219
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "81:91",
+      "name": "interaction-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel"
+      ],
+      "bounds": {
+        "x": 25978.0,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 98.4000015258789
+      },
+      "direct_children": [
+        {
+          "id": "81:92",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 25978.0,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:95",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 26256.400390625,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:98",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 25978.0,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:101",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 26256.400390625,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:104",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 25987.599609375,
+            "y": 12.600000381469727,
+            "width": 268.79998779296875,
+            "height": 79.19999694824219
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "81:134",
+      "name": "interaction-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel"
+      ],
+      "bounds": {
+        "x": 26370.0,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 98.4000015258789
+      },
+      "direct_children": [
+        {
+          "id": "81:135",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 26370.0,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:138",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 26648.400390625,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:141",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 26370.0,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:144",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 26648.400390625,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "81:147",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 26379.599609375,
+            "y": 12.600000381469727,
+            "width": 268.79998779296875,
+            "height": 79.19999694824219
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "82:2",
+      "name": "interaction-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel"
+      ],
+      "bounds": {
+        "x": 26762.0,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 98.4000015258789
+      },
+      "direct_children": [
+        {
+          "id": "82:3",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 26762.0,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "82:6",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 27040.400390625,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "82:9",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 26762.0,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "82:12",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 27040.400390625,
+            "y": 91.80000305175781,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "82:15",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 26771.599609375,
+            "y": 12.600000381469727,
+            "width": 268.79998779296875,
+            "height": 79.19999694824219
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "82:45",
+      "name": "interaction-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel"
+      ],
+      "bounds": {
+        "x": 27154.0,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 52.79999923706055
+      },
+      "direct_children": [
+        {
+          "id": "82:46",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 27154.0,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "82:49",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 27432.400390625,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "82:52",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 27154.0,
+            "y": 46.19999694824219,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "82:55",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 27432.400390625,
+            "y": 46.19999694824219,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "82:58",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 27163.599609375,
+            "y": 12.600000381469727,
+            "width": 268.79998779296875,
+            "height": 40.79999923706055
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "83:4",
+      "name": "character-status-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "character-status-panel"
+      ],
+      "bounds": {
+        "x": 27546.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "83:5",
+          "type": "FRAME",
+          "name": "TelemetryOverlay",
+          "bounds": {
+            "x": 27786.0,
+            "y": 51.0,
+            "width": 1440.0,
+            "height": 19.0
+          },
+          "text": null
+        },
+        {
+          "id": "83:8",
+          "type": "FRAME",
+          "name": "CharacterStatusPanel",
+          "bounds": {
+            "x": 28218.0,
+            "y": 75.0,
+            "width": 576.0,
+            "height": 936.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "84:4",
+      "name": "equipment-inventory-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "equipment-inventory-panel"
+      ],
+      "bounds": {
+        "x": 29618.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "84:5",
+          "type": "FRAME",
+          "name": "TelemetryOverlay",
+          "bounds": {
+            "x": 29858.0,
+            "y": 51.0,
+            "width": 1440.0,
+            "height": 19.0
+          },
+          "text": null
+        },
+        {
+          "id": "84:8",
+          "type": "FRAME",
+          "name": "CharacterStatusPanel",
+          "bounds": {
+            "x": 30009.80078125,
+            "y": 75.0,
+            "width": 576.0,
+            "height": 936.0
+          },
+          "text": null
+        },
+        {
+          "id": "84:55",
+          "type": "FRAME",
+          "name": "EquipmentPanel",
+          "bounds": {
+            "x": 30614.599609375,
+            "y": 75.0,
+            "width": 531.5999755859375,
+            "height": 936.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "93:185",
+      "name": "interaction-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel"
+      ],
+      "bounds": {
+        "x": 31690.0,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 64.80000305175781
+      },
+      "direct_children": [
+        {
+          "id": "93:186",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 31690.0,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "93:189",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 31968.400390625,
+            "y": 3.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "93:192",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 31690.0,
+            "y": 58.20000457763672,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "93:195",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 31968.400390625,
+            "y": 58.20000457763672,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "93:198",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 31699.599609375,
+            "y": 12.600000381469727,
+            "width": 268.79998779296875,
+            "height": 36.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "93:230",
+      "name": "quest-window-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "quest-window-ui"
+      ],
+      "bounds": {
+        "x": 32082.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "93:231",
+          "type": "FRAME",
+          "name": "QuestListPanel",
+          "bounds": {
+            "x": 32226.0,
+            "y": 51.0,
+            "width": 480.0,
+            "height": 984.0
+          },
+          "text": null
+        },
+        {
+          "id": "93:325",
+          "type": "FRAME",
+          "name": "QuestDetailPanel",
+          "bounds": {
+            "x": 32730.0,
+            "y": 255.0,
+            "width": 624.0,
+            "height": 576.0
+          },
+          "text": null
+        },
+        {
+          "id": "93:371",
+          "type": "FRAME",
+          "name": "DeploymentPanel",
+          "bounds": {
+            "x": 33378.0,
+            "y": 51.0,
+            "width": 480.0,
+            "height": 984.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "94:6",
+      "name": "daily-combat-log",
+      "path": [
+        "Document",
+        "Page 1",
+        "daily-combat-log"
+      ],
+      "bounds": {
+        "x": 34154.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "94:46",
+          "type": "FRAME",
+          "name": "BattleLogPanel",
+          "bounds": {
+            "x": 34742.0,
+            "y": 51.0,
+            "width": 744.0,
+            "height": 984.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "95:167",
+      "name": "medieval-world-map-ui",
+      "path": [
+        "Document",
+        "Page 1",
+        "medieval-world-map-ui"
+      ],
+      "bounds": {
+        "x": 36226.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "95:168",
+          "type": "RECTANGLE",
+          "name": "MedievalWorldMapBackground",
+          "bounds": {
+            "x": 36226.0,
+            "y": 3.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "text": null
+        },
+        {
+          "id": "97:5",
+          "type": "RECTANGLE",
+          "name": "ParchmentTextureBackground",
+          "bounds": {
+            "x": 36226.0,
+            "y": 3.0,
+            "width": 1920.0,
+            "height": 1080.0
+          },
+          "text": null
+        },
+        {
+          "id": "95:169",
+          "type": "LINE",
+          "name": "Line",
+          "bounds": {
+            "x": 36730.0,
+            "y": 482.6430344581604,
+            "width": 206.63818216323853,
+            "height": 96.3569655418396
+          },
+          "text": null
+        },
+        {
+          "id": "95:170",
+          "type": "LINE",
+          "name": "Line",
+          "bounds": {
+            "x": 36958.0,
+            "y": 483.0,
+            "width": 244.7765407562256,
+            "height": 98.89613699913025
+          },
+          "text": null
+        },
+        {
+          "id": "95:171",
+          "type": "FRAME",
+          "name": "TacticalCompass",
+          "bounds": {
+            "x": 36922.0,
+            "y": 171.0,
+            "width": 192.0,
+            "height": 192.0
+          },
+          "text": null
+        },
+        {
+          "id": "95:175",
+          "type": "FRAME",
+          "name": "HUDHeader",
+          "bounds": {
+            "x": 36226.0,
+            "y": 3.0,
+            "width": 1920.0,
+            "height": 76.80000305175781
+          },
+          "text": null
+        },
+        {
+          "id": "95:187",
+          "type": "FRAME",
+          "name": "HUDBody",
+          "bounds": {
+            "x": 36226.0,
+            "y": 79.80000305175781,
+            "width": 1920.0,
+            "height": 1003.2000122070312
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "101:5",
+      "name": "monster-health-bar",
+      "path": [
+        "Document",
+        "Page 1",
+        "monster-health-bar"
+      ],
+      "bounds": {
+        "x": 38298.0,
+        "y": 3.0,
+        "width": 80.4000015258789,
+        "height": 12.0
+      },
+      "direct_children": [
+        {
+          "id": "101:27",
+          "type": "FRAME",
+          "name": "gauge-container",
+          "bounds": {
+            "x": 38299.19921875,
+            "y": 4.199999809265137,
+            "width": 78.0,
+            "height": 9.600000381469727
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "110:14",
+      "name": "reference-monster-health-bar",
+      "path": [
+        "Document",
+        "Page 1",
+        "reference-monster-health-bar"
+      ],
+      "bounds": {
+        "x": 38487.0,
+        "y": 3.0,
+        "width": 150.0,
+        "height": 85.43999481201172
+      },
+      "direct_children": [
+        {
+          "id": "110:132",
+          "type": "FRAME",
+          "name": "hud-cluster",
+          "bounds": {
+            "x": 38501.3984375,
+            "y": 17.39999771118164,
+            "width": 121.19999694824219,
+            "height": 56.63999938964844
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "156:18",
+      "name": "selection-ring-system",
+      "path": [
+        "Document",
+        "Page 1",
+        "selection-ring-system"
+      ],
+      "bounds": {
+        "x": 14545.0,
+        "y": 3693.0,
+        "width": 500.0,
+        "height": 220.0
+      },
+      "direct_children": [
+        {
+          "id": "156:23",
+          "type": "ELLIPSE",
+          "name": "secondary-mid-ring",
+          "bounds": {
+            "x": 14594.0,
+            "y": 3742.0,
+            "width": 402.0,
+            "height": 122.0
+          },
+          "text": null
+        },
+        {
+          "id": "156:24",
+          "type": "ELLIPSE",
+          "name": "crisp-core-ring",
+          "bounds": {
+            "x": 14595.0,
+            "y": 3743.0,
+            "width": 400.0,
+            "height": 120.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "160:4",
+      "name": "fishing-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "fishing-panel"
+      ],
+      "bounds": {
+        "x": 40790.0,
+        "y": 3.0,
+        "width": 1920.0,
+        "height": 1080.0
+      },
+      "direct_children": [
+        {
+          "id": "160:5",
+          "type": "FRAME",
+          "name": "game-header-bar",
+          "bounds": {
+            "x": 40790.0,
+            "y": 3.0,
+            "width": 1920.0,
+            "height": 76.80000305175781
+          },
+          "text": null
+        },
+        {
+          "id": "160:11",
+          "type": "FRAME",
+          "name": "fishing-hud-panel",
+          "bounds": {
+            "x": 41582.0,
+            "y": 370.20001220703125,
+            "width": 336.0,
+            "height": 345.6000061035156
+          },
+          "text": null
+        },
+        {
+          "id": "160:52",
+          "type": "FRAME",
+          "name": "HUD-tip-bar",
+          "bounds": {
+            "x": 40790.0,
+            "y": 1008.5999755859375,
+            "width": 1920.0,
+            "height": 36.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "163:4",
+      "name": "interaction-panel-fishing",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel-fishing"
+      ],
+      "bounds": {
+        "x": 38718.0,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 60.0
+      },
+      "direct_children": [
+        {
+          "id": "163:5",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 38713.19921875,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:8",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 39001.19921875,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:11",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 38713.19921875,
+            "y": 58.20000076293945,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:14",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 39001.19921875,
+            "y": 53.400001525878906,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:17",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 38728.80078125,
+            "y": 13.800000190734863,
+            "width": 266.3999938964844,
+            "height": 38.400001525878906
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "163:23",
+      "name": "npc-dialogue-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "npc-dialogue-panel"
+      ],
+      "bounds": {
+        "x": 39104.3984375,
+        "y": 3.0,
+        "width": 528.0,
+        "height": 148.8000030517578
+      },
+      "direct_children": [
+        {
+          "id": "163:24",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 39099.59765625,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:27",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 39627.59765625,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:30",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 39099.59765625,
+            "y": 147.0,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:33",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 39627.59765625,
+            "y": 142.1999969482422,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:36",
+          "type": "FRAME",
+          "name": "NpcNameRow",
+          "bounds": {
+            "x": 39120.0,
+            "y": 18.600000381469727,
+            "width": 496.79998779296875,
+            "height": 15.0
+          },
+          "text": null
+        },
+        {
+          "id": "163:39",
+          "type": "FRAME",
+          "name": "Separator",
+          "bounds": {
+            "x": 39120.0,
+            "y": 43.20000076293945,
+            "width": 496.79998779296875,
+            "height": 1.2000000476837158
+          },
+          "text": null
+        },
+        {
+          "id": "163:40",
+          "type": "FRAME",
+          "name": "DialogueContent",
+          "bounds": {
+            "x": 39120.0,
+            "y": 54.0,
+            "width": 496.79998779296875,
+            "height": 43.20000076293945
+          },
+          "text": null
+        },
+        {
+          "id": "163:43",
+          "type": "FRAME",
+          "name": "ActionRow",
+          "bounds": {
+            "x": 39120.0,
+            "y": 106.80000305175781,
+            "width": 496.79998779296875,
+            "height": 14.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "163:45",
+      "name": "interaction-panel-sleep",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel-sleep"
+      ],
+      "bounds": {
+        "x": 39776.3984375,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 60.0
+      },
+      "direct_children": [
+        {
+          "id": "163:46",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 39771.59765625,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:49",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 40059.59765625,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:52",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 39771.59765625,
+            "y": 58.20000076293945,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:55",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 40059.59765625,
+            "y": 53.400001525878906,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:58",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 39787.19921875,
+            "y": 13.800000190734863,
+            "width": 266.3999938964844,
+            "height": 38.400001525878906
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "163:64",
+      "name": "interaction-panel-lordroom",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel-lordroom"
+      ],
+      "bounds": {
+        "x": 40168.3984375,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 64.80000305175781
+      },
+      "direct_children": [
+        {
+          "id": "163:65",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 40163.59765625,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:68",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 40451.59765625,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:71",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 40163.59765625,
+            "y": 63.000003814697266,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:74",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 40451.59765625,
+            "y": 58.20000457763672,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:77",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 40179.19921875,
+            "y": 13.800000190734863,
+            "width": 266.3999938964844,
+            "height": 43.20000076293945
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "163:83",
+      "name": "interaction-panel-lockpick",
+      "path": [
+        "Document",
+        "Page 1",
+        "interaction-panel-lockpick"
+      ],
+      "bounds": {
+        "x": 42862.0,
+        "y": 3.0,
+        "width": 288.0,
+        "height": 64.80000305175781
+      },
+      "direct_children": [
+        {
+          "id": "163:84",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 42857.19921875,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:87",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 43145.19921875,
+            "y": -1.8000001907348633,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:90",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 42857.19921875,
+            "y": 63.000003814697266,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:93",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 43145.19921875,
+            "y": 58.20000457763672,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "163:96",
+          "type": "FRAME",
+          "name": "ActionGrid",
+          "bounds": {
+            "x": 42872.80078125,
+            "y": 13.800000190734863,
+            "width": 266.3999938964844,
+            "height": 43.20000076293945
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "172:2",
+      "name": "selection-ring-red",
+      "path": [
+        "Document",
+        "Page 1",
+        "selection-ring-red"
+      ],
+      "bounds": {
+        "x": 13935.0,
+        "y": 3693.0,
+        "width": 500.0,
+        "height": 220.0
+      },
+      "direct_children": [
+        {
+          "id": "172:7",
+          "type": "ELLIPSE",
+          "name": "secondary-mid-ring",
+          "bounds": {
+            "x": 13984.0,
+            "y": 3742.0,
+            "width": 402.0,
+            "height": 122.0
+          },
+          "text": null
+        },
+        {
+          "id": "172:8",
+          "type": "ELLIPSE",
+          "name": "crisp-core-ring",
+          "bounds": {
+            "x": 13985.0,
+            "y": 3743.0,
+            "width": 400.0,
+            "height": 120.0
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "173:4",
+      "name": "potion-status-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "potion-status-panel"
+      ],
+      "bounds": {
+        "x": 19482.0,
+        "y": 1524.25,
+        "width": 288.0,
+        "height": 432.0
+      },
+      "direct_children": [
+        {
+          "id": "173:5",
+          "type": "FRAME",
+          "name": "Decal-TL",
+          "bounds": {
+            "x": 19482.0,
+            "y": 1524.25,
+            "width": 14.399999618530273,
+            "height": 14.399999618530273
+          },
+          "text": null
+        },
+        {
+          "id": "173:8",
+          "type": "FRAME",
+          "name": "Decal-TR",
+          "bounds": {
+            "x": 19755.599609375,
+            "y": 1524.25,
+            "width": 14.399999618530273,
+            "height": 14.399999618530273
+          },
+          "text": null
+        },
+        {
+          "id": "173:11",
+          "type": "FRAME",
+          "name": "Decal-BL",
+          "bounds": {
+            "x": 19482.0,
+            "y": 1941.8499755859375,
+            "width": 14.399999618530273,
+            "height": 14.399999618530273
+          },
+          "text": null
+        },
+        {
+          "id": "173:14",
+          "type": "FRAME",
+          "name": "Decal-BR",
+          "bounds": {
+            "x": 19755.599609375,
+            "y": 1941.8499755859375,
+            "width": 14.399999618530273,
+            "height": 14.399999618530273
+          },
+          "text": null
+        },
+        {
+          "id": "173:17",
+          "type": "FRAME",
+          "name": "panel-header",
+          "bounds": {
+            "x": 19501.19921875,
+            "y": 1543.449951171875,
+            "width": 249.60000610351562,
+            "height": 30.0
+          },
+          "text": null
+        },
+        {
+          "id": "173:23",
+          "type": "FRAME",
+          "name": "middle-content",
+          "bounds": {
+            "x": 19501.19921875,
+            "y": 1592.6500244140625,
+            "width": 249.60000610351562,
+            "height": 274.79998779296875
+          },
+          "text": null
+        },
+        {
+          "id": "173:32",
+          "type": "FRAME",
+          "name": "action-buttons-group",
+          "bounds": {
+            "x": 19501.19921875,
+            "y": 1886.6500244140625,
+            "width": 249.60000610351562,
+            "height": 50.400001525878906
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "175:65",
+      "name": "fluent-gauge-bar",
+      "path": [
+        "Document",
+        "Page 1",
+        "fluent-gauge-bar"
+      ],
+      "bounds": {
+        "x": 39054.0,
+        "y": 396.75,
+        "width": 268.79998779296875,
+        "height": 33.599998474121094
+      },
+      "direct_children": [
+        {
+          "id": "175:66",
+          "type": "RECTANGLE",
+          "name": "gauge-fill",
+          "bounds": {
+            "x": 39057.6015625,
+            "y": 400.3500061035156,
+            "width": 244.8000030517578,
+            "height": 26.399999618530273
+          },
+          "text": null
+        }
+      ]
+    },
+    {
+      "id": "187:14",
+      "name": "npc-dialogue-panel",
+      "path": [
+        "Document",
+        "Page 1",
+        "npc-dialogue-panel"
+      ],
+      "bounds": {
+        "x": 39423.6015625,
+        "y": 385.5,
+        "width": 528.0,
+        "height": 171.8000030517578
+      },
+      "direct_children": [
+        {
+          "id": "187:15",
+          "type": "FRAME",
+          "name": "DecalTL",
+          "bounds": {
+            "x": 39418.80078125,
+            "y": 380.70001220703125,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "187:18",
+          "type": "FRAME",
+          "name": "DecalTR",
+          "bounds": {
+            "x": 39946.80078125,
+            "y": 380.70001220703125,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "187:21",
+          "type": "FRAME",
+          "name": "DecalBL",
+          "bounds": {
+            "x": 39418.80078125,
+            "y": 552.5,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "187:24",
+          "type": "FRAME",
+          "name": "DecalBR",
+          "bounds": {
+            "x": 39946.80078125,
+            "y": 552.5,
+            "width": 9.600000381469727,
+            "height": 9.600000381469727
+          },
+          "text": null
+        },
+        {
+          "id": "187:37",
+          "type": "FRAME",
+          "name": "NpcNameRow",
+          "bounds": {
+            "x": 39439.203125,
+            "y": 401.1000061035156,
+            "width": 496.79998779296875,
+            "height": 15.0
+          },
+          "text": null
+        },
+        {
+          "id": "187:40",
+          "type": "FRAME",
+          "name": "Separator",
+          "bounds": {
+            "x": 39439.203125,
+            "y": 425.70001220703125,
+            "width": 496.79998779296875,
+            "height": 1.2000000476837158
+          },
+          "text": null
+        },
+        {
+          "id": "187:41",
+          "type": "FRAME",
+          "name": "DialogueContent",
+          "bounds": {
+            "x": 39439.203125,
+            "y": 436.5,
+            "width": 496.79998779296875,
+            "height": 43.20000076293945
+          },
+          "text": null
+        },
+        {
+          "id": "187:44",
+          "type": "FRAME",
+          "name": "ActionRow",
+          "bounds": {
+            "x": 39439.203125,
+            "y": 489.29998779296875,
+            "width": 496.79998779296875,
+            "height": 14.0
+          },
+          "text": null
+        },
+        {
+          "id": "187:27",
+          "type": "FRAME",
+          "name": "ChoiceGrid",
+          "bounds": {
+            "x": 39439.203125,
+            "y": 512.9000244140625,
+            "width": 496.79998779296875,
+            "height": 28.799999237060547
+          },
+          "text": null
+        }
+      ]
+    }
+  ]
+}

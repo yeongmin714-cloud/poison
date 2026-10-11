@@ -306,24 +306,36 @@ namespace ProjectName.Systems
             int yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);
             var item = GetItemData();
 
-            // LootBasket 생성: 약초가 바구니에 담겨서 떨어짐
-            LootBasket basket = LootBasket.Create(transform.position);
-            basket.AddItem(item, yield);
-
-            // 씨앗 드랍: 채집 시 희귀확률로 씨앗이 바구니에 함께 담김 (_cropKey 우선)
-            AddSeedDrop(basket);
+            // [2026-10-11 28차] 플레이어 직접 채집 = 아이템 직접 지급 + 피그마 결과 창(HarvestResultUTK).
+            //   기존 LootBasket(전리품 바구니)은 병사 자동 채집 경로에만 유지 — 사용자 요구:
+            //   "전리품 형태로 뜨는 게 아니라 피그마에 있는 창이 뜨면서".
+            PlayerInventory.Instance?.AddItem(item, yield);
+            bool seedDropped = TryRollSeedDropForNode(out var seed, out float seedChance);
+            if (seedDropped)
+            {
+                PlayerInventory.Instance?.AddItem(seed, 1);
+                Debug.Log($"[HerbPickup] 🌰 씨앗 드랍! {seed.displayName} (확률 {seedChance:P0})");
+            }
 
             // 경험치 획득
             PlayerStats.Instance.AddEXP(3);
-            Debug.Log($"[HerbPickup] 🧺 {item.displayName} x{yield} 바구니 생성!");
+
+            HarvestResultBridge.Publish(
+                HarvestResultBridge.HarvestKind.Gathering,
+                "채집 성공!",
+                item.displayName, item.description, item.rarity, yield,
+                seedDropped ? "씨앗 x1도 획득 — 농경(밭)에 파종할 수 있다." : "약초는 요리/연금 재료로 쓰인다.",
+                item, immediate: true);
+            Debug.Log($"[HerbPickup] 🧺 {item.displayName} x{yield} 획득 — 결과 창 표시");
 
             // Phase 8.3: 채집 사운드
             SoundManager.Instance?.PlaySFX("pickup");
 
-            // 잠시 안 보이게 (채집 연출)
+            // 잠시 안 보이게 (채집 연출) — [2026-10-11 28차] 과일나무 등 자식 시각 모델까지 숨김
+            //   (기존엔 루트 렌더러만 해제돼 나무 몸통이 남았다) → 사라짐→리스폰.
             var collider = GetComponent<Collider>();
             if (collider != null) collider.enabled = false;
-            if (_renderer != null) _renderer.enabled = false;
+            SetHarvestVisualsVisible(false);
 
             // Fire harvest event
             OnHarvestStarted?.Invoke();
@@ -332,12 +344,22 @@ namespace ProjectName.Systems
             Invoke(nameof(Respawn), _respawnTime);
         }
 
+        /// <summary>뿌리+자식 렌더러 표시/숨김 — 과일나무 GLB(자식 시각 모델)도 사라지게(28차).</summary>
+        private void SetHarvestVisualsVisible(bool visible)
+        {
+            if (_renderer != null) _renderer.enabled = visible;
+            var rs = GetComponentsInChildren<Renderer>(true);
+            if (rs == null) return;
+            foreach (var r in rs)
+                if (r != null) r.enabled = visible;
+        }
+
         private void Respawn()
         {
             _isHarvested = false;
             var collider = GetComponent<Collider>();
             if (collider != null) collider.enabled = true;
-            if (_renderer != null) _renderer.enabled = true;
+            SetHarvestVisualsVisible(true);
 
             // 약초 자체 Idle 애니메이션
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);

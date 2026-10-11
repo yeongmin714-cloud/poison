@@ -22,8 +22,14 @@ namespace ProjectName.Systems
         [SerializeField] private Vector3 _myTerritoryPos = new Vector3(0, 0, 32);
         [SerializeField] private Vector3 _enemyTerritoryPos = new Vector3(0, 0, -32);
 
+        // [2026-10-11] Test_15_Livelihood 전용 게이트 — Awake 최상단에서 판정해 더미/시딩 슬림화에 사용.
+        private bool _isLivelihoodScene;
+
         private void Awake()
         {
+            bool isLivelihoodEarly = gameObject.scene.name != null && gameObject.scene.name.Contains("Livelihood");
+            _isLivelihoodScene = isLivelihoodEarly;
+
             // Test_10_TerritoryCombat 전용: HighSpec 모드 강제 (메인 씬은 Balanced 기본값 유지)
             ActionFeel.SetMode(ActionFeelMode.HighSpec);
 
@@ -56,7 +62,9 @@ namespace ProjectName.Systems
             //   IndoorScene을 에디터에서 직접 연다. 테스트10에는 병사 1명 + 몬스터 1마리만.
             //   (전투/F키 상호작용/화살 명중 등 실외 검증용 최소 구성)
             AttachAttackSystem();
-            SetupTestDummies();   // 병사 1 + 몬스터 1
+            // [2026-10-11] Test_15_Livelihood는 생활기술 전용 검증 씬 — 병사/몬스터 더미 배치 제외(사용자 요구 슬림화).
+            if (!_isLivelihoodScene)
+                SetupTestDummies();   // 병사 1 + 몬스터 1
             // Test_10은 MainScene의 GameSetup/CoreSystemsBootstrap을 거치지 않으므로
             // UTK 루트/패널을 이 씬에서 명시적으로 준비하고, 자가부트 창은 각 UI 타입 Ensure로 동일하게 보장.
             SetupUITestArena();            // UTK 창 부트 + 창고·크래프트 박스/전 아이템 시딩
@@ -80,8 +88,7 @@ namespace ProjectName.Systems
 
             // [2026-10-07] Test_15_Livelihood 전용 — 낚시/채광/채집/농경 4활동 검증 씬.
             // 씬 이름에 "Livelihood" 가 들어가면 배치. base Awake(플레이어/지형/시스템/UTK)는 이미 실행됨.
-            bool isLivelihoodScene = gameObject.scene.name != null && gameObject.scene.name.Contains("Livelihood");
-            if (isLivelihoodScene) SetupLivelihoodTestScene();
+            if (_isLivelihoodScene) SetupLivelihoodTestScene();
         }
 
         /// <summary>
@@ -94,10 +101,92 @@ namespace ProjectName.Systems
         private void SetupLivelihoodTestScene()
         {
             SetupFishingArea();
+            SetupNatureResources();   // [2026-10-11] 실제 나무/돌/과일나무 GLB 배치(벌목·채광·사과 수확)
             SetupMiningNodes();
             SetupHerbs();
             SetupFarm();
-            Debug.Log("[Test15Livelihood] 🧪 4활동 배치 완료 — 확인 포인트: ①물가 E키 낚시 ②광물 좌클릭/접근 ③허브 채집 ④밭 파종→성장→수확");
+            Debug.Log("[Test15Livelihood] 🧪 생활기술 배치 완료 — 확인 포인트: ①호수 물가 E키 낚시 ②벌목(E 채널·나무 흔들림·통나무) ③돌 채광 ④허브 채집 ⑤밭 파종→성장→수확 ⑥제작소 목재 조합");
+        }
+
+        /// <summary>
+        /// [2026-10-11] Test_15 전용 — 실제 나무(GLB)/돌(GLB)/과일나무 소량 배치.
+        /// 메인씬 NaturalResourceSpawner의 공개 로더/스폰 코어/구성기를 재사용(동일 코드 경로) →
+        /// E 채널(파랑 진행바)·나무 스웨이·도끼 커서·소멸→리스폰이 그대로 검증된다.
+        /// 결정론: 고정 시드 System.Random + 지터 그리드(±52.5m) — 실행마다 동일 배치.
+        /// 제외존: 호수(0,-22 r=13)·농장/광물/약초 클러스터(0,19 r=8)·내 영지 성(0,25 r=9)·스폰(0,0 r=9)·지형 밖(±56m).
+        /// </summary>
+        private void SetupNatureResources()
+        {
+            try
+            {
+                var woodVisuals = NaturalResourceSpawner.LoadWoodTreeVisuals();
+                var rockVisuals = NaturalResourceSpawner.LoadRockVisuals();
+                var fruitVisuals = NaturalResourceSpawner.LoadFruitTreeVisuals();
+                if ((woodVisuals == null || woodVisuals.Length == 0)
+                    && (rockVisuals == null || rockVisuals.Length == 0)
+                    && (fruitVisuals == null || fruitVisuals.Length == 0))
+                {
+                    Debug.LogWarning("[Test15Livelihood] ⚠️ 자원 GLB 로드 실패(폴백도 비어 있음) — 자원 배치 생략");
+                    return;
+                }
+
+                var container = new GameObject("NaturalResources_Test15");
+                var rng = new System.Random(20261011);   // 고정 시드 — 결정론 계약
+
+                const int woodTarget = 20, rockTarget = 20, fruitTarget = 3;
+                const float pondX = 0f, pondZ = -22f, pondR2 = 13f * 13f;
+                const float clusterX = 0f, clusterZ = 19f, clusterR2 = 8f * 8f;
+                const float castleX = 0f, castleZ = 25f, castleR2 = 9f * 9f;
+                const float spawnR2 = 9f * 9f;
+
+                int wood = 0, rock = 0, fruit = 0, total = 0;
+                const int gridHalf = 3;                  // 7×7 = 49 슬롯(보호 구역 제외 후 충분)
+                for (int gx = -gridHalf; gx <= gridHalf && total < woodTarget + rockTarget + fruitTarget; gx++)
+                {
+                    for (int gz = -gridHalf; gz <= gridHalf && total < woodTarget + rockTarget + fruitTarget; gz++)
+                    {
+                        float x = gx * 15f + (float)(rng.NextDouble() * 8.0 - 4.0);
+                        float z = gz * 15f + (float)(rng.NextDouble() * 8.0 - 4.0);
+                        if (Mathf.Abs(x) > 56f || Mathf.Abs(z) > 56f) continue;   // 미니지형 밖(±60m)
+                        float d2 = Dxz2(x, z, pondX, pondZ);
+                        if (d2 < pondR2) continue;
+                        if (Dxz2(x, z, clusterX, clusterZ) < clusterR2) continue;
+                        if (Dxz2(x, z, castleX, castleZ) < castleR2) continue;
+                        if (Dxz2(x, z, 0f, 0f) < spawnR2) continue;   // 스폰지(원점)
+
+                        GameObject[] visuals; System.Action<GameObject> configure; string nodeName; float scale;
+                        if (fruit < fruitTarget)      { fruit++; total++; visuals = fruitVisuals; configure = NaturalResourceSpawner.ConfigureFruitNode; nodeName = $"NaturalResource_Fruit_{fruit:D2}"; scale = 1.0f; }
+                        else if (wood < woodTarget)   { wood++; total++; visuals = woodVisuals;  configure = NaturalResourceSpawner.ConfigureWoodNode;  nodeName = $"NaturalResource_Wood_{wood:D2}";  scale = 0.9f; }
+                        else if (rock < rockTarget)   { rock++; total++; visuals = rockVisuals;  configure = NaturalResourceSpawner.ConfigureRockNode;  nodeName = $"NaturalResource_Rock_{rock:D2}";  scale = 0.9f + (float)rng.NextDouble() * 0.5f; }
+                        else break;
+
+                        if (visuals == null || visuals.Length == 0) continue;
+                        var prefab = visuals[(wood + rock + fruit) % visuals.Length];   // 결정론 순환
+                        float y = SurfaceY(x, z);
+                        float yaw = (float)(rng.NextDouble() * 360.0);
+                        var srcName = prefab != null ? prefab.name : null;
+                        NaturalResourceSpawner.SpawnTestNode(container.transform, nodeName, prefab, x, y, z, scale, yaw,
+                            go =>
+                            {
+                                if (configure != null) configure(go);
+                                NaturalResourceSpawner.ApplyStumpType(go, srcName);   // 벌목 그루터기 종별 전달(28차)
+                            });
+                    }
+                }
+
+                Debug.Log($"[Test15Livelihood] 🌲 자원 배치 완료 — 벌목 나무 {wood}/{woodTarget}, 돌 {rock}/{rockTarget}, 과일나무 {fruit}/{fruitTarget} (실제 GLB·메인씬 동일 노드 경로)");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test15Livelihood] 자원 배치 실패: {ex.Message}");
+            }
+        }
+
+        /// <summary>XZ 평면 거리 제곱 — 제외존 판정용(sqrt 회피).</summary>
+        static float Dxz2(float ax, float az, float bx, float bz)
+        {
+            float dx = ax - bx, dz = az - bz;
+            return dx * dx + dz * dz;
         }
 
         /// <summary>낚시 인프라: Water 태그 원판 + FishingSystem + fishing_rod 스타터 지급.</summary>
@@ -154,7 +243,8 @@ namespace ProjectName.Systems
                 GameObject waterDisc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 waterDisc.name = "Livelihood_Pond";
                 waterDisc.transform.position = new Vector3(wx, wy + 0.05f, wz);
-                waterDisc.transform.localScale = new Vector3(10f, 0.06f, 10f);
+                // [2026-10-11] 사용자 결정 — 호수 원판 확대(반경 5m→12m, cylinder 반경 0.5×scale)
+                waterDisc.transform.localScale = new Vector3(24f, 0.06f, 24f);
                 waterDisc.tag = "Untagged";
                 var wr = waterDisc.GetComponent<MeshRenderer>();
                 if (wr != null)
@@ -1675,10 +1765,9 @@ namespace ProjectName.Systems
 
             var node = go.AddComponent<ResourceNode>();
 
-            // _resourceType은 private SerializeField — 프로젝트 관례(HerbPickup._herbType 선례)대로 리플렉션으로 설정
-            var rf = typeof(ResourceNode).GetField("_resourceType",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            rf?.SetValue(node, nodeType);
+            // [34차] ConfigureResourceType — 리플렉션 후설정은 Awake가 계산한 _isWood(Wood 기본)를
+            //   못 고쳐 "채광 노드가 벌목으로 발행"됐다(채광 ui.PNG 실측). 공개 세터로 파생상태 동시 설정.
+            node.ConfigureResourceType(nodeType);
 
             Debug.Log($"[MyTerritory] ⛏️ {goName} 배치 (type={nodeType}, pos={pos})");
         }
@@ -2007,6 +2096,17 @@ namespace ProjectName.Systems
         {
             var inv = PlayerInventory.Instance;
             if (inv == null) { Debug.LogWarning("[UITest] ⚠️ PlayerInventory 미발견 — 시딩 생략"); return; }
+
+            // [2026-10-11] Test_15 슬림화 — 검/가죽갑옷/곡괭이/고기 등 전투·일반 시딩 제외(사용자 요구).
+            // 크래프트 검증용 최소 재료만 지급: 목재 무기/공구(통나무+석재/엄니)로 도끼·삽·목재단검 제작 가능.
+            if (_isLivelihoodScene)
+            {
+                inv.AddItem(PlayerInventory.Mat_Wood, 6);
+                inv.AddItem(PlayerInventory.Mat_Stone, 2);
+                inv.AddItem(PlayerInventory.BoarTusk, 1);
+                Debug.Log("[Test15Livelihood] ✅ 크래프트 검증 재료 지급 — 통나무×6·석재×2·엄니×1");
+                return;
+            }
 
             inv.AddItem(PlayerInventory.Herb_Red, 5);
             inv.AddItem(PlayerInventory.RabbitMeat, 5);

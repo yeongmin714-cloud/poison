@@ -14,6 +14,10 @@ namespace ProjectName.Systems
         public const string TYPE_CRAFT_HOUSE = "CraftHouse";
         public const string TYPE_CHURCH = "Church";
         public const string TYPE_CASTLE = "Castle";
+        /// <summary>[2026-10-09] 4방위국 아레나 전투장 — 문 상호작용(E키)으로 실내 진입.</summary>
+        public const string TYPE_ARENA = "Arena";
+        /// <summary>[2026-10-09] 아레나 베팅 실내 → 실제 투기장 실내 전환용 타입.</summary>
+        public const string TYPE_ARENA_PIT = "ArenaPit";
 
         // ── 기본 상호작용 범위 ──────────────────────────────────────
         public const float DEFAULT_INTERACT_RANGE = 3f;
@@ -102,6 +106,41 @@ namespace ProjectName.Systems
             if (trigger != null)
                 trigger.NationStyle = nationStyle;
             Debug.Log($"[IndoorTransitionSetup] Castle 트리거 생성 완료 (nationStyle: {nationStyle})");
+            return go;
+        }
+
+        /// <summary>
+        /// 4방위국 아레나 BuildingTrigger 생성. buildingType = "Arena".
+        /// nationStyle을 전달해 실내 빌더가 국별 아레나 셸을 만들도록 한다.
+        /// </summary>
+        /// <param name="position">트리거(문) 위치</param>
+        /// <param name="nationStyle">국가 스타일 (Eastern, Western, Southern, Northern)</param>
+        /// <param name="parent">부모 Transform (선택사항)</param>
+        public static GameObject CreateArenaTrigger(Vector3 position, string nationStyle, Transform parent = null)
+        {
+            GameObject go = CreateBuildingTrigger(position, TYPE_ARENA, CASTLE_INTERACT_RANGE, parent);
+            if (go == null) return null;
+            var trigger = go.GetComponent<BuildingTrigger>();
+            if (trigger != null)
+                trigger.NationStyle = nationStyle;
+            Debug.Log($"[IndoorTransitionSetup] Arena 트리거 생성 완료 (nationStyle: {nationStyle})");
+            return go;
+        }
+
+        /// <summary>
+        /// 투기장(BuildingType = "ArenaPit") BuildingTrigger 생성 — 베팅 실내에서 E키로 투기장 실내 전환.
+        /// </summary>
+        /// <param name="position">트리거 위치</param>
+        /// <param name="nationStyle">국가 스타일 (Eastern, Western, Southern, Northern)</param>
+        /// <param name="parent">부모 Transform (선택사항)</param>
+        public static GameObject CreateArenaPitTrigger(Vector3 position, string nationStyle, Transform parent = null)
+        {
+            GameObject go = CreateBuildingTrigger(position, TYPE_ARENA_PIT, CASTLE_INTERACT_RANGE, parent);
+            if (go == null) return null;
+            var trigger = go.GetComponent<BuildingTrigger>();
+            if (trigger != null)
+                trigger.NationStyle = nationStyle;
+            Debug.Log($"[IndoorTransitionSetup] ArenaPit 트리거 생성 완료 (nationStyle: {nationStyle})");
             return go;
         }
     }

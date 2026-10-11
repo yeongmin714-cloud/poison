@@ -52,6 +52,9 @@ namespace ProjectName.Systems
         [Header("포섭 (C9-15)")]
         [SerializeField] private bool _isRecruited = false;
 
+        [Header("실내 배치")]
+        [SerializeField] private int _indoorBedIndex = -1;   // [37차] 실내 침대 배치 번호(1..20, -1=미배치) — 병사배치 UI에서 각각 재배치
+
         // 가스 반응 — 방독면 부착 여부. 미착용(false)이면 가스에 노출 시 경직 반응.
         [Header("방독면 (가스 반응)")]
         [SerializeField] private bool _isGasMaskEquipped = false;
@@ -156,6 +159,17 @@ namespace ProjectName.Systems
 
             // C9-20/C9-21: 명령 실행 루프 — 플레이어 부재와 무관하게 RTS/전투 명령(이동·공격)을 수행한다
             ExecuteMovement();
+
+            // [15차] 홀드 자동 반격 — 제자리 고정 상태에서 근접 사거리 내 적만 스캔(0.2s 간격)
+            if (_isHolding)
+            {
+                _holdScanTimer -= Time.deltaTime;
+                if (_holdScanTimer <= 0f)
+                {
+                    _holdScanTimer = 0.2f;
+                    TryHoldEngage();
+                }
+            }
 
             if (player == null) return;
 
@@ -900,18 +914,14 @@ namespace ProjectName.Systems
         {
             _isSelected = selected;
 
-            // Phase 41-2: Selection Outline 표시/제거
-            if (SpecialEffectsController.Instance != null)
-            {
-                if (selected)
-                    SpecialEffectsController.Instance.AddSelectionOutline(this);
-                else
-                    SpecialEffectsController.Instance.RemoveSelectionOutline(this);
-            }
+            // [2026-10-11 사용자 요구 — 링 단일화] 레거시 SpecialEffectsController 선택 아웃라인
+            //   (평평한 Cylinder 디스크) 호출 폐기 — 파란 SelectionRing 외의 이중 표시 제거.
+            //   2026-09-30 사용자 시각 계약: 선택 병사 발밑 = 파란 링 하나만.
         }
         public bool IsSelected => _isSelected;
         public void SetCommandTarget(Vector3 t, bool a)
         {
+            _isHolding = false;   // [15차] 새 명령이 홀드를 해제한다
             _commandTargetPos = t;
             _isAttackCommand = a;
             _hasCommand = true;
@@ -925,19 +935,74 @@ namespace ProjectName.Systems
         {
             _hasCommand = false;
             _isAttackCommand = false;
+            _moveStuckTimer = 0f;
+            _lastMoveDistXZ = float.MaxValue;
             _attackTarget = null;
             _attackTargetOffset = Vector3.zero;
             _hasResolvedAttackTarget = false;
         }
         public bool HasCommand => _hasCommand;
         public Vector3 CommandTarget => _commandTargetPos;
+
+        // ===== [15차 사용자 확정] 지휘 핫키 — H=홀드(제자리 방어) / X=스톱(선택 시만) =====
+        private bool _isHolding;
+        private float _holdScanTimer;
+
+        /// <summary>홀드 — 제자리 고정 + 사정거리 내 적 자동 반격(후퇴/추격 금지). 새 명령이 홀드를 해제한다.</summary>
+        public bool IsHolding => _isHolding;
+
+        public void SetHold(bool hold)
+        {
+            _isHolding = hold;
+            if (hold)
+            {
+                ClearCommand();
+                SetInCombat(false);
+                if (_rigAnim != null) _rigAnim.SetState(AnimationState.Idle);
+            }
+        }
+
+        /// <summary>스톱 — 이동/공격/홀드 즉시 취소 + 제자리 유휴.</summary>
+        public void StopNow()
+        {
+            _isHolding = false;
+            ClearCommand();
+            SetInCombat(false);
+            if (_rigAnim != null) _rigAnim.SetState(AnimationState.Idle);
+        }
+
+        /// <summary>홀드 자동 반격 — 제자리에서 근접 사거리 내 적만 쿨다운 게이트 교전(이동 없음).</summary>
+        private void TryHoldEngage()
+        {
+            if (_attackCooldown > 0f) return;
+            Collider[] hits = Physics.OverlapSphere(transform.position, ATTACK_MELEE_RANGE);
+            Component best = null;
+            float bestDist = float.MaxValue;
+            foreach (var hit in hits)
+            {
+                if (hit == null) continue;
+                var dmg = hit.GetComponentInParent<IDamageable>();
+                if (dmg == null || !dmg.IsAlive) continue;
+                var comp = dmg as Component;
+                if (comp == null || comp.gameObject == gameObject) continue;
+                var otherGuard = comp.GetComponentInParent<GuardPlaceholder>();
+                if (otherGuard != null && !HostileToPlayerFaction) continue;   // 아군 병사 제외(적대 정책은 허용)
+                float d = Vector3.Distance(transform.position, comp.transform.position);
+                if (d < bestDist) { bestDist = d; best = comp; }
+            }
+            if (best == null) return;
+            FaceToward(best.transform.position - transform.position, Time.deltaTime);
+            if (_attackCooldown <= 0f) PerformAttack((IDamageable)best);
+        }
         public bool IsAttackCommand => _isAttackCommand;
         /// <summary>Resolved execution target for the current attack command; null until target resolution succeeds.</summary>
         public Component CurrentAttackTarget => _hasCommand && _isAttackCommand ? _attackTarget : null;
 
         // ===== C9-20/C9-21: 명령 실행 루프 =====
-        private const float MOVE_CLEAR_RADIUS = 1.0f;       // 이동 명령 해제 반경(m)
-        private const float MOVE_STOP_RADIUS = 0.6f;        // 이동 정지 판정 반경(m) — 이내 접근 금지(목표 넘어감 방지)
+        // [2026-10-11 사용자 요구 — 지정 포인트 정확 도착] 기존 1.0/0.6m는 지정점 0.6~1.0m 손전 정지의 원인.
+        private const float MOVE_CLEAR_RADIUS = 0.25f;      // 이동 명령 해제 반경(m) — 지정점 ±0.25m 이내 도착
+        private const float MOVE_STOP_RADIUS = 0.15f;       // 이동 정지 판정 반경(m) — 이내 접근 금지(목표 넘어감 방지)
+        private const float MOVE_STUCK_CLEAR_SECONDS = 0.6f; // 이동 진행 정체 해제 시간(초) — collider 막힘 대비
         private const float ATTACK_ARRIVE_RADIUS = 1.5f;    // 공격 명령 도달 반경(m) — 공격 모션 개시
         private const float ATTACK_MELEE_RANGE = 2.2f;      // 근접 공격 유효 거리(m)
         private const float ATTACK_COOLDOWN_SECONDS = 1.2f; // 공격 쿨다운(초)
@@ -945,6 +1010,8 @@ namespace ProjectName.Systems
         private const float TARGET_SEARCH_RADIUS = 2.5f;    // 명령 지점 주변 적 탐색 반경(m)
 
         private Component _attackTarget;                    // 공격 명령 대상 (IDamageable 구현 컴포넌트 캐시)
+        private float _lastMoveDistXZ = float.MaxValue;     // [2026-10-11] 이동 정체 감지 — 직전 프레임 목표 거리
+        private float _moveStuckTimer;                      // [2026-10-11] 거리 무감소 누적 시간
         private Vector3 _attackTargetOffset;                 // 이동 타겟의 현재 위치 기준 공격 접근점 오프셋
         private bool _hasResolvedAttackTarget;               // 명령 중 실제 타겟을 한 번이라도 확보했는지
         private float _attackCooldown = 0f;                 // 공격 쿨다운 잔여 시간(초)
@@ -960,7 +1027,8 @@ namespace ProjectName.Systems
         {
             if (_isDead || !_hasCommand) return;
             // [P14] 실내 활성 시 이동 명령 정지 — 병사가 실내 좌표로 걸어 들어오는 것 차단
-            if (ProjectName.Core.UITransitionState.IndoorActive) return;
+            // [39차] 예외: 배치 UI가 의도한 명령(출동/수비 보행)은 허용 — IndoorMoveExempt.
+            if (ProjectName.Core.UITransitionState.IndoorActive && !IndoorMoveExempt) return;
 
             float delta = Time.deltaTime;
 
@@ -1028,7 +1096,7 @@ namespace ProjectName.Systems
             }
             else
             {
-                // ----- 이동 명령: 도달 반경 1.0m 진입 시 명령 해제 -----
+                // ----- 이동 명령: 도달 반경 0.25m 진입 시 명령 해제 -----
                 if (distXZ <= MOVE_CLEAR_RADIUS)
                 {
                     ClearCommand();
@@ -1037,6 +1105,19 @@ namespace ProjectName.Systems
                 else
                 {
                     StepToward(current, target, distXZ, delta);
+                    // [2026-10-11 이동 정확도] 진행 정체 감지 — collider 막힘 등으로 목표 거리가 줄지 않으면
+                    // 명령을 해제한다(영구 멈춤/잔존 지속 마커 방지). 도착 판정은 기존 XZ 반경 계약 유지.
+                    if (distXZ < _lastMoveDistXZ - 0.001f)
+                        _moveStuckTimer = 0f;
+                    else
+                        _moveStuckTimer += delta;
+                    _lastMoveDistXZ = distXZ;
+                    if (_moveStuckTimer >= MOVE_STUCK_CLEAR_SECONDS)
+                    {
+                        Debug.Log($"[GuardPlaceholder] {guardName} 이동 진행 정체({MOVE_STUCK_CLEAR_SECONDS:0.0}s) → 명령 해제");
+                        ClearCommand();
+                        if (_rigAnim != null) _rigAnim.SetState(AnimationState.Idle);
+                    }
                 }
             }
         }
@@ -1285,6 +1366,13 @@ namespace ProjectName.Systems
         public void UpdateCombatTimer(float delta) { if (_isInCombat) _combatTimer += delta; }
         public void ResetCombatTimer() { _combatTimer = 0f; }
         public bool IsRecruited => _isRecruited;
+
+        /// <summary>[37차] 실내 침대 배치 번호(1..20, -1=미배치) — 병사배치 UI 표시/재배치용.</summary>
+        public int IndoorBedIndex => _indoorBedIndex;
+        public void SetIndoorBedIndex(int bedNumber) => _indoorBedIndex = bedNumber;
+
+        /// <summary>[39차] 배치 UI가 의도한 실내 이동 명령 허용 플래그(출동/수비 보행) — P14 게이트 예외.</summary>
+        public bool IndoorMoveExempt { get; set; }
         /// <summary>방독면 착용 여부 — 착용 시 가스 경직 반응을 받지 않는다.</summary>
         public bool IsGasMaskEquipped => _isGasMaskEquipped;
         public GuardRole Role { get => _role; set => _role = value; }

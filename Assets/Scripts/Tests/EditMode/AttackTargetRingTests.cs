@@ -18,34 +18,35 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
-        public void SharedPresentation_UsesOneTextureAndMaterialConfigurationWithTintOnlyDifferences()
+        public void SharedPresentation_UsesOneShaderMaterialConfigurationWithTintOnlyDifferences()
         {
             var gold = CommandRingPresentation.CreateMaterial(CommandRingPresentation.MoveTargetColor);
             var blue = CommandRingPresentation.CreateMaterial(CommandRingPresentation.SelectedGuardColor);
             var red = CommandRingPresentation.CreateMaterial(CommandRingPresentation.ExplicitTargetColor);
             try
             {
-                var texture = Resources.Load<Texture2D>(CommandRingPresentation.TextureResourcePath);
-                Assert.IsNotNull(texture, "the shared ring texture must be available from Resources");
-                Assert.AreSame(texture, gold.mainTexture);
-                Assert.AreSame(texture, blue.mainTexture);
-                Assert.AreSame(texture, red.mainTexture);
-                Assert.AreEqual(CommandRingPresentation.MoveTargetColor, gold.color);
-                Assert.AreEqual(CommandRingPresentation.SelectedGuardColor, blue.color);
-                Assert.AreEqual(CommandRingPresentation.ExplicitTargetColor, red.color);
-                Assert.AreEqual(3000, gold.renderQueue);
-                Assert.AreEqual(gold.GetInt("_SrcBlend"), blue.GetInt("_SrcBlend"));
-                Assert.AreEqual(gold.GetInt("_SrcBlend"), red.GetInt("_SrcBlend"));
-                Assert.AreEqual(gold.GetInt("_DstBlend"), blue.GetInt("_DstBlend"));
-                Assert.AreEqual(gold.GetInt("_DstBlend"), red.GetInt("_DstBlend"));
-                Assert.IsTrue(gold.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT"));
-                Assert.IsTrue(blue.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT"));
-                Assert.IsTrue(red.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT"));
+                // [2026-10-11 사용자 요구 — 링 수정] 시각 소스 = Custom/SelectionRing 셰이더 단일 소스.
+                //   구 베이크 MoveTargetRing 텍스처 경로는 환형 밴드 결손 에셋 + 검은 사각형 렌더로 폐기.
+                Assert.IsNotNull(gold.shader);
+                Assert.AreEqual("Custom/SelectionRing", gold.shader.name,
+                    "all rings share the SDF selection shader (broken baked-texture path retired)");
                 Assert.AreSame(gold.shader, blue.shader);
                 Assert.AreSame(gold.shader, red.shader);
-                Assert.AreEqual(1.9f, CommandRingPresentation.BaseScale);
-                Assert.AreEqual(0.22f, CommandRingPresentation.RingThickness,
-                    "all tints use the same baked MoveTargetRing texture thickness");
+                Assert.AreEqual(CommandRingPresentation.MoveTargetColor, gold.GetColor("_TeamColor"));
+                Assert.AreEqual(CommandRingPresentation.SelectedGuardColor, blue.GetColor("_TeamColor"));
+                Assert.AreEqual(CommandRingPresentation.ExplicitTargetColor, red.GetColor("_TeamColor"));
+                Assert.AreEqual(CommandRingPresentation.ShaderRingRadius, gold.GetFloat("_RingRadius"), 0.0001f);
+                Assert.AreEqual(CommandRingPresentation.ShaderRingThickness, gold.GetFloat("_RingThickness"), 0.0001f);
+                Assert.AreEqual(CommandRingPresentation.ShaderGlowWidth, gold.GetFloat("_GlowWidth"), 0.0001f);
+                Assert.AreEqual(blue.GetFloat("_RingRadius"), red.GetFloat("_RingRadius"), 0.0001f,
+                    "all tints use the same ring geometry (tint-only differences)");
+                Assert.AreEqual(0f, gold.GetFloat("_PulseSpeed"), 0.0001f,
+                    "pulse is owned by GetPulseScale (transform), not the shader");
+                Assert.AreEqual(0f, gold.GetFloat("_ArcSpeed"), 0.0001f,
+                    "shared presentation keeps an even Fluent appearance (no arc sweep)");
+                Assert.GreaterOrEqual(gold.renderQueue, 3000, "transparent queue for ground decals");
+                Assert.AreEqual(0.95f, CommandRingPresentation.BaseScale,
+                    "user request 2026-10-11: ring diameter halved (1.9 -> 0.95)");
                 var baseScale = Vector3.one * CommandRingPresentation.BaseScale;
                 var pulseAtSample = CommandRingPresentation.GetPulseScale(baseScale, 0.75f);
                 Assert.AreEqual(baseScale.x, pulseAtSample.x / pulseAtSample.y * baseScale.y, 0.0001f,

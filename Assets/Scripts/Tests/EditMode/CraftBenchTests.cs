@@ -67,30 +67,35 @@ namespace ProjectName.Tests.EditMode
         [Test]
         public void WeaponCraft_CraftSuccess_ConsumesMaterials_GivesResult()
         {
-            Give("mat_boar_tusk", 2);
+            // [36차] 성공률 90% 롤이 Random 시드에 따라 10% 확율로 실패해 풀런에서
+            //   간헐 플레이크(36차 실측) — 시드 고정으로 결정론화(테스트 전용).
+            UnityEngine.Random.InitState(12345);
+            Give("mat_wood", 2);
+            Give("mat_boar_tusk", 1);
             int before = _inv.GetItemCount("weapon_sword_wood");
 
             bool ok = CraftingHelper.CraftWeapon("weapon_sword_wood", out var msg);
 
             Assert.IsTrue(ok, msg);
-            Assert.AreEqual(0, _inv.GetItemCount("mat_boar_tusk"), "재료 소모");
+            Assert.AreEqual(0, _inv.GetItemCount("mat_wood"), "목재 소모");
+            Assert.AreEqual(0, _inv.GetItemCount("mat_boar_tusk"), "엄니 소모");
             Assert.AreEqual(before + 1, _inv.GetItemCount("weapon_sword_wood"), "결과 지급");
         }
 
         [Test]
         public void WeaponCraft_InsufficientMaterials_Fails()
         {
-            Give("mat_boar_tusk", 1);   // 목검엔 2 필요
+            Give("mat_wood", 1);   // 목검엔 목재 2 필요
             bool ok = CraftingHelper.CraftWeapon("weapon_sword_wood", out var msg);
             Assert.IsFalse(ok);
             Assert.IsNotEmpty(msg);
-            Assert.AreEqual(1, _inv.GetItemCount("mat_boar_tusk"), "실패 시 재료 보존");
+            Assert.AreEqual(1, _inv.GetItemCount("mat_wood"), "실패 시 재료 보존");
         }
 
         [Test]
         public void WeaponCraft_MultisetMatch_FindsRecipe()
         {
-            var placed = new List<string> { "mat_boar_tusk", "mat_boar_tusk" };
+            var placed = new List<string> { "mat_wood", "mat_wood", "mat_boar_tusk" };
             bool ok = WeaponCraftDatabase.TryMatch(placed, out var r);
             Assert.IsTrue(ok);
             Assert.AreEqual("weapon_sword_wood", r.ResultId);
@@ -138,11 +143,24 @@ namespace ProjectName.Tests.EditMode
             System.Action<string> handler = id => received = id;
             CraftingHelper.CraftSucceeded += handler;
 
-            Give("mat_boar_tusk", 2);
-            CraftingHelper.CraftWeapon("weapon_sword_wood", out _);
-
-            CraftingHelper.CraftSucceeded -= handler;
-            Assert.AreEqual("weapon_sword_wood", received, "칭호 카운터 경유 발화 확인");
+            // [2026-10-10 수리] 제작 성공률(base 90%) 랜덤 롤 때문에 이 테스트는 ~10% 확률로 실패하는
+            //   본질적 flaky였다(전체 회귀에서 간헐 발현 — 단독 실행 시 통과 확인). 실패 시 재료 손실
+            //   모델(30% 보존/50% 1개 손실/20% 전송)을 고려해 재료 재보급+재시도로 결정론화
+            //   (40회 재시도 실패 확률 ≈ 0.1^40 ≈ 0).
+            try
+            {
+                for (int attempt = 0; attempt < 40 && received == null; attempt++)
+                {
+                    Give("mat_wood", 2);
+                    Give("mat_boar_tusk", 1);
+                    CraftingHelper.CraftWeapon("weapon_sword_wood", out _);
+                }
+            }
+            finally
+            {
+                CraftingHelper.CraftSucceeded -= handler;
+            }
+            Assert.AreEqual("weapon_sword_wood", received, "칭호 카운터 경유 발화 확인(재시도 결정론화)");
         }
     }
 }

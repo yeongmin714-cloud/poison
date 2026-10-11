@@ -64,13 +64,13 @@ namespace ProjectName.UI.Toolkit
         private readonly Label _descBody;      // 설명
         private readonly Label _tipLabel;      // SystemTip
         private readonly VisualElement _resultPanel;
+        private readonly VisualElement _panelShadow;   // [33차] 플루언트 소프트 섀도
         private readonly VisualElement _header;
         private readonly VisualElement _actions;
         private readonly VisualElement _tip;
         private IVisualElementScheduledItem _tickTask;
-        private IVisualElementScheduledItem _closeTask;
         private int _lastToken = -1;
-        private int _closeGeneration;
+        private string _iconAppliedItemId;   // [30차] 아이콘 지연 베이크 재적용 추적
 
         private HarvestResultUTK() : base("🎣 채집·광질 결과", new Vector2(WinW, WinH))
         {
@@ -98,16 +98,24 @@ namespace ProjectName.UI.Toolkit
             _staminaLabel.style.color = Hex(0xFF7300);   // STA 주황
             header.Add(_staminaLabel);
 
-            // ── ResultPanel ──
+            // ── ResultPanel ── [32차 Fluent] 유리 배경(α0.88) — 뒷 배경이 희미하게 비침
+            // [33차] .utk-window-shadow(다른 UTK 창과 동일 소프트 섀도) — 플루언트 크롬 일치
+            var panelShadow = new VisualElement { name = "ResultPanelShadow" };
+            panelShadow.AddToClassList("utk-window-shadow");
+            panelShadow.style.position = Position.Absolute;
+            panelShadow.pickingMode = PickingMode.Ignore;
+            Content.Add(panelShadow);
+            _panelShadow = panelShadow;
+
             var panel = new VisualElement();
             _resultPanel = panel;
-            panel.style.backgroundColor = Dark.Panel;
-            panel.style.borderTopWidth = panel.style.borderBottomWidth = panel.style.borderLeftWidth = panel.style.borderRightWidth = 1f;
+            panel.style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xE0));
+            panel.style.borderTopWidth = panel.style.borderBottomWidth = panel.style.borderLeftWidth = panel.style.borderRightWidth = 2f;   // [33차] .utk-window 2px 계약
             panel.style.borderTopColor = panel.style.borderBottomColor = panel.style.borderLeftColor = panel.style.borderRightColor = new StyleColor(Dark.Stroke);
             panel.style.borderTopLeftRadius = 8f; panel.style.borderTopRightRadius = 8f;
             panel.style.borderBottomLeftRadius = 8f; panel.style.borderBottomRightRadius = 8f;
-            panel.style.paddingTop = 24f; panel.style.paddingBottom = 24f;   // [Figma 72:17] pad24
-            panel.style.paddingLeft = 24f; panel.style.paddingRight = 24f;
+            panel.style.paddingTop = 28.8f; panel.style.paddingBottom = 28.8f;   // [Figma 72:80 실측] pad28.8(31차)
+            panel.style.paddingLeft = 28.8f; panel.style.paddingRight = 28.8f;
             Content.Add(panel);
 
             // PanelHeader — 서브타이틀 + Badge
@@ -118,13 +126,15 @@ namespace ProjectName.UI.Toolkit
             panel.Add(head);
 
             _subtitle = new Label("FISHING RESULT");
-            _subtitle.style.fontSize = 14.4f;
+            _subtitle.style.fontSize = 16.8f;                                   // [Figma 72:80] fs16.8 fw700(31차)
+            _subtitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             _subtitle.style.color = Dark.TextSub;
             _subtitle.style.flexGrow = 1f;
             head.Add(_subtitle);
 
             _badge = new Label("SUCCESS");
             _badge.style.fontSize = 13.2f;
+            _badge.style.unityFontStyleAndWeight = FontStyle.Bold;   // [Figma 72:80] fw700(31차)
             _badge.style.color = Dark.Accent;
             _badge.style.backgroundColor = Dark.Accent;
             _badge.style.borderTopLeftRadius = 4f; _badge.style.borderTopRightRadius = 4f;
@@ -137,14 +147,15 @@ namespace ProjectName.UI.Toolkit
 
             // NotificationTitle
             _verb = new Label("");
-            _verb.style.fontSize = 16.8f;
+            _verb.style.fontSize = 18f;      // [Figma 72:80] fs18 fw500(31차)
             _verb.style.color = Dark.Accent;
             _verb.style.marginTop = 20f;   // [Figma] gap20
             _verb.style.whiteSpace = WhiteSpace.Normal;
             panel.Add(_verb);
 
             _itemName = new Label("");
-            _itemName.style.fontSize = 15.6f;
+            _itemName.style.fontSize = 28.8f;   // [Figma 72:80 실측] fs28.8 fw800 — 메인 타이틀 대형(31차, 기존 15.6)
+            _itemName.style.unityFontStyleAndWeight = FontStyle.Bold;
             _itemName.style.color = Dark.Gold;
             _itemName.style.whiteSpace = WhiteSpace.Normal;
             _itemName.style.marginBottom = 20f;   // [Figma] gap20
@@ -163,26 +174,32 @@ namespace ProjectName.UI.Toolkit
             imageSec.Add(_tierStrip);
 
             var imageRow = new VisualElement();
-            imageRow.style.flexDirection = FlexDirection.Row;
-            imageRow.style.alignItems = Align.Center;
+            imageRow.style.height = 312f;         // [Figma 72:80 실측] ItemImage 518.4×312 대형 영역(31차)
             imageRow.style.backgroundColor = Dark.Inset;
             imageRow.style.borderTopLeftRadius = 6f; imageRow.style.borderTopRightRadius = 6f;
             imageRow.style.borderBottomLeftRadius = 6f; imageRow.style.borderBottomRightRadius = 6f;
-            imageRow.style.paddingTop = 16f; imageRow.style.paddingBottom = 16f;
-            imageRow.style.paddingLeft = 12f; imageRow.style.paddingRight = 12f;
+            imageRow.style.paddingTop = 0f; imageRow.style.paddingBottom = 0f;
+            imageRow.style.paddingLeft = 0f; imageRow.style.paddingRight = 0f;
             imageSec.Add(imageRow);
 
             _tierClass = new Label("LEGENDARY CLASS");
-            _tierClass.style.fontSize = 14.4f;
+            _tierClass.style.fontSize = 13.2f;    // [Figma 72:80] fs13.2 fw700 — 이미지 좌상단 오버레이
+            _tierClass.style.unityFontStyleAndWeight = FontStyle.Bold;
             _tierClass.style.color = Dark.Gold;
-            _tierClass.style.flexGrow = 1f;
+            _tierClass.style.position = Position.Absolute;   // [Figma] 이미지 위 오버레이(14.4,14.4)
+            _tierClass.style.left = 14.4f;
+            _tierClass.style.top = 14.4f;
             imageRow.Add(_tierClass);
 
+            // [32차 수리] 31차의 absolute inset0 + utk-slot 클래스 + BackgroundSize.Contain 조합이
+            //   ".utk-slot 64px/불투명 검정" 클래스 충돌로 거대 검은 박스+좌상단 소형 아이콘(.ASS 가림)을
+            //   만들었다(벌목 ui.PNG 실측). 검증된 기본 배경 스케일로 회귀 — 정사각 베이크와 1:1인
+            //   276×276(=312−36) 중앙 배치, 클래스 미적용.
             _itemImage = new VisualElement();
-            _itemImage.style.width = 120f;
-            _itemImage.style.height = 120f;
+            _itemImage.style.width = 276f;
+            _itemImage.style.height = 276f;
             _itemImage.style.alignSelf = Align.Center;
-            _itemImage.AddToClassList("utk-slot");
+            _itemImage.style.marginTop = 18f;    // (312−276)/2 — 수직 중앙
             imageRow.Add(_itemImage);
 
             // ItemSpecs — 3칸 SpecBox
@@ -193,26 +210,28 @@ namespace ProjectName.UI.Toolkit
 
             BuildSpecBox(specs, out _spec1Label, out _spec1Val);
             BuildSpecBox(specs, out _spec2Label, out _spec2Val);
-            BuildSpecBox(specs, out _spec3Label, out _spec3Val);
+            BuildSpecBox(specs, out _spec3Label, out _spec3Val, last: true);
 
-            // DescriptionSection
+            // DescriptionSection — [Figma 72:80 실측] 518.4×155, pad 19.2, 제목 fs16.8/본문 fs15.6(31차)
             var descSec = new VisualElement();
             descSec.style.backgroundColor = Dark.Inset;
             descSec.style.borderTopLeftRadius = 6f; descSec.style.borderTopRightRadius = 6f;
             descSec.style.borderBottomLeftRadius = 6f; descSec.style.borderBottomRightRadius = 6f;
-            descSec.style.paddingTop = 8f; descSec.style.paddingBottom = 8f;
-            descSec.style.paddingLeft = 10f; descSec.style.paddingRight = 10f;
+            descSec.style.paddingTop = 19.2f; descSec.style.paddingBottom = 19.2f;
+            descSec.style.paddingLeft = 19.2f; descSec.style.paddingRight = 19.2f;
+            descSec.style.minHeight = 155f;
             descSec.style.marginBottom = 20f;   // [Figma] gap20
             panel.Add(descSec);
 
             _descHeader = new Label("물고기 특징");
-            _descHeader.style.fontSize = 14.4f;
+            _descHeader.style.fontSize = 16.8f;
+            _descHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
             _descHeader.style.color = Dark.Accent;
-            _descHeader.style.marginBottom = 4f;
+            _descHeader.style.marginBottom = 9.6f;
             descSec.Add(_descHeader);
 
             _descBody = new Label("");
-            _descBody.style.fontSize = 13.2f;
+            _descBody.style.fontSize = 15.6f;
             _descBody.style.color = Dark.TextMain;
             _descBody.style.whiteSpace = WhiteSpace.Normal;
             descSec.Add(_descBody);
@@ -224,16 +243,29 @@ namespace ProjectName.UI.Toolkit
             actions.style.marginTop = 4f;
             panel.Add(actions);
 
-            var keepBtn = UTKButton.Create("확인 · 이미 획득됨", () => Close(), UTKButton.Variant.Primary);
+            // [33차] 버튼 = 실제 동작(피그마 KeepButton/DiscardButton 계약) — 습득 유지 또는
+            //   인벤토리에서 제거 후 닫기. 기존 "확인·이미 획득됨/닫기·인벤토리 유지" 무동작 표기 폐지.
+            var keepBtn = UTKButton.Create("습득하기", () => Close(), UTKButton.Variant.Primary);
             keepBtn.style.flexGrow = 1f;
-            keepBtn.style.marginRight = 6f;
+            keepBtn.style.marginRight = 9.6f;   // [Figma 72:80] 버튼 간격 9.6(31차)
+            keepBtn.style.height = 48.8f;       // [Figma] 48.8
+            keepBtn.style.fontSize = 16.8f;
+            keepBtn.style.unityFontStyleAndWeight = FontStyle.Bold;
             StyleKeepButton(keepBtn);
             actions.Add(keepBtn);
 
-            // Available inventory removal is aggregate item-ID/count only, not acquisition scoped.
-            // Keep the second action honest: close without claiming that the acquired item is discarded.
-            var discardBtn = UTKButton.Create("닫기 · 인벤토리 유지", () => Close(), UTKButton.Variant.Secondary);
+            // 버리기 — 습득분을 인벤토리에서 제거(아이템 id+수량 기준) 후 창 닫기.
+            var discardBtn = UTKButton.Create("버리기", () =>
+            {
+                var item = HarvestResultBridge.LatestItemData;
+                if (item != null && PlayerInventory.Instance != null)
+                    PlayerInventory.Instance.RemoveItem(item.id, Mathf.Max(1, HarvestResultBridge.LatestCount));
+                Close();
+            }, UTKButton.Variant.Secondary);
             discardBtn.style.flexGrow = 1f;
+            discardBtn.style.height = 48.8f;
+            discardBtn.style.fontSize = 16.8f;
+            discardBtn.style.unityFontStyleAndWeight = FontStyle.Bold;
             StyleCloseButton(discardBtn);
             actions.Add(discardBtn);
 
@@ -246,7 +278,7 @@ namespace ProjectName.UI.Toolkit
             Content.Add(tip);
 
             _tipLabel = new Label("");
-            _tipLabel.style.fontSize = 12f;
+            _tipLabel.style.fontSize = 14.4f;   // [Figma 72:80] SystemTip fs14.4(31차)
             _tipLabel.style.color = Dark.TextSub;
             _tipLabel.style.whiteSpace = WhiteSpace.Normal;
             tip.Add(_tipLabel);
@@ -259,12 +291,13 @@ namespace ProjectName.UI.Toolkit
             _header.style.position = Position.Absolute;
             _header.style.left = 0f; _header.style.top = 0f;
             _header.style.width = 1920f; _header.style.height = 76.8f;
+            _header.style.display = DisplayStyle.None;   // [32차] 좌상단 유령 "벌목" 텍스트 원인 — 캔버스 헤더 스트립은 게임 HUD와 중복, 폐지
             _resultPanel.style.position = Position.Absolute;
             _resultPanel.style.left = 672f; _resultPanel.style.top = 111.2f;
             _resultPanel.style.width = WinW; _resultPanel.style.height = WinH;
             _actions.style.position = Position.Absolute;
-            _actions.style.left = 24f; _actions.style.right = 24f;
-            _actions.style.bottom = 24f;
+            _actions.style.left = 28.8f; _actions.style.right = 28.8f;   // [Figma 72:80] pad28.8(31차)
+            _actions.style.bottom = 28.8f;
             _tip.style.position = Position.Absolute;
             _tip.style.left = 675.3f; _tip.style.top = 1028.6f;
             _tip.style.width = 569.4f; _tip.style.height = 17f;
@@ -275,53 +308,72 @@ namespace ProjectName.UI.Toolkit
             var root = UIToolkitBootstrap.UIRoot;
             if (root == null) return;
             FigmaCanvasLayout.Apply(this, new Rect(0f, 0f, 1920f, 1080f), root);
-            float sx = root.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth;
-            float sy = root.resolvedStyle.height / FigmaCanvasLayout.CanvasHeight;
-            _header.style.width = 1920f * sx; _header.style.height = 76.8f * sy;
+            // [32차 수리] sx/sy 독립 스케일 = 게임뷰가 16:9가 아니면 세로 15% 늘어남(벌목 ui.PNG
+            //   "세로로 이상해짐"의 실측 원인) — 등배수 계약(k=min) 균일 스케일로 교정.
+            float kx = root.resolvedStyle.width / FigmaCanvasLayout.CanvasWidth;
+            float ky = root.resolvedStyle.height / FigmaCanvasLayout.CanvasHeight;
+            float k = Mathf.Min(kx, ky);
+            _header.style.width = 1920f * k; _header.style.height = 76.8f * k;
             _header.style.left = 0f; _header.style.top = 0f;
             float resultHeight = HarvestResultBridge.LatestKind switch
             {
                 HarvestResultBridge.HarvestKind.Gathering => 862.8f,
                 HarvestResultBridge.HarvestKind.Mining => 896.8f,
+                // [2026-10-11 28차] 벌목 — gathering variant 공유(동일 템플릿 패밀리)
+                HarvestResultBridge.HarvestKind.Woodcutting => 862.8f,
                 _ => 859.8f,
             };
             float resultTop = HarvestResultBridge.LatestKind switch
             {
                 HarvestResultBridge.HarvestKind.Gathering => 109.7f,
                 HarvestResultBridge.HarvestKind.Mining => 92.7f,
+                HarvestResultBridge.HarvestKind.Woodcutting => 109.7f,
                 _ => 111.2f,
             };
             float tipTop = HarvestResultBridge.LatestKind switch
             {
                 HarvestResultBridge.HarvestKind.Gathering => 1030.1f,
                 HarvestResultBridge.HarvestKind.Mining => 1047.1f,
+                HarvestResultBridge.HarvestKind.Woodcutting => 1030.1f,
                 _ => 1028.6f,
             };
-            _resultPanel.style.left = 672f * sx; _resultPanel.style.top = resultTop * sy;
-            _resultPanel.style.width = WinW * sx; _resultPanel.style.height = resultHeight * sy;
-            _tip.style.left = 675.3f * sx; _tip.style.top = tipTop * sy;
-            _tip.style.width = 569.4f * sx; _tip.style.height = 17f * sy;
+            _resultPanel.style.left = 672f * k; _resultPanel.style.top = resultTop * k;
+            _resultPanel.style.width = WinW * k; _resultPanel.style.height = resultHeight * k;
+            if (_panelShadow != null)
+            {
+                _panelShadow.style.left = (672f - 14f) * k;
+                _panelShadow.style.top = (resultTop - 14f) * k;
+                _panelShadow.style.width = (WinW + 28f) * k;
+                _panelShadow.style.height = (resultHeight + 28f) * k;
+            }
+            _tip.style.left = 675.3f * k; _tip.style.top = tipTop * k;
+            _tip.style.width = 569.4f * k; _tip.style.height = 17f * k;
         }
 
-        private void BuildSpecBox(VisualElement parent, out Label lbl, out Label val)
+        private void BuildSpecBox(VisualElement parent, out Label lbl, out Label val, bool last = false)
         {
             var box = new VisualElement();
+            // [Figma 72:80 실측] SpecBox 166.4×70.6, 간격 9.6 — 32차: flexGrow 균등 분할(패널 테두리
+            //   2px 분 때문에 고정폭 3칸은 2px 넘침 — 벌목 ui.PNG "수량 박스 튀어나옴" 실측)
             box.style.flexGrow = 1f;
-            box.style.marginRight = 4f;
+            box.style.flexShrink = 0f;
+            box.style.height = 70.6f;
+            box.style.marginRight = last ? 0f : 9.6f;
             box.style.backgroundColor = Dark.Sub;
             box.style.borderTopLeftRadius = 6f; box.style.borderTopRightRadius = 6f;
             box.style.borderBottomLeftRadius = 6f; box.style.borderBottomRightRadius = 6f;
-            box.style.paddingTop = 6f; box.style.paddingBottom = 6f;
+            box.style.paddingTop = 14.4f; box.style.paddingBottom = 6f;
             parent.Add(box);
 
             lbl = new Label("—");
-            lbl.style.fontSize = 12f;
+            lbl.style.fontSize = 13.2f;
             lbl.style.color = Dark.TextSub;
             lbl.style.unityTextAlign = TextAnchor.MiddleCenter;
             box.Add(lbl);
 
             val = new Label("—");
-            val.style.fontSize = 14.4f;
+            val.style.fontSize = 16.8f;
+            val.style.unityFontStyleAndWeight = FontStyle.Bold;
             val.style.color = Dark.TextMain;
             val.style.unityTextAlign = TextAnchor.MiddleCenter;
             box.Add(val);
@@ -329,6 +381,12 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 공개 API =====
         public static HarvestResultUTK Instance => _instance;
+
+        /// <summary>[2026-10-11 29차 수리] 전 씬 자가부트 — publish는 이미 호출되고 있었으나(로그 실측:
+        /// "🧺 치유초 x1 획득 — 결과 창 표시") Ensure가 어디서도 불리지 않아 Updater(LatestToken 폴링)
+        /// 가 부재 → 창이 영구 미오픈이었다. FishingUTK 선례와 동일.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap() => Ensure();
 
         public static void Ensure()
         {
@@ -359,7 +417,6 @@ namespace ProjectName.UI.Toolkit
 
         public override void Hide()
         {
-            CancelAutoClose();
             base.Hide();
         }
 
@@ -384,6 +441,21 @@ namespace ProjectName.UI.Toolkit
         // ===== 폴링 — Bridge에서 새 결과 감지 → 표시, consume 후 자동 닫기 =====
         private void PollBridge()
         {
+            // [2026-10-11 30차 수리] 아이콘 지연 베이크 재적용 — GLB 아이콘(RT 베이크)은 publish
+            //   직후 몇 프레임 뒤에야 완성된다. ApplyLatest는 토큰당 1회라 그 사이를 놓치면
+            //   이미지 슬롯이 영구 빈 채로 남았다("glb 사진이 안 뜬다"의 원인). 창이 열려 있는
+            //   동안 해결될 때까지 재적용(텍스처가 바뀔 때만 스타일 변경 — 16ms 스팸 없음).
+            if (IsOpen && _iconAppliedItemId != HarvestResultBridge.LatestItemData?.id
+                && HarvestResultBridge.LatestItemData != null)
+            {
+                var tex = ItemIconDatabase.GetOrCreateIcon(HarvestResultBridge.LatestItemData);
+                if (tex != null)
+                {
+                    _itemImage.style.backgroundImage = UTKTextureSafe.ToBackground(tex);
+                    _iconAppliedItemId = HarvestResultBridge.LatestItemData.id;
+                }
+            }
+
             if (HarvestResultBridge.LatestToken == _lastToken) return;
             _lastToken = HarvestResultBridge.LatestToken;
 
@@ -391,36 +463,12 @@ namespace ProjectName.UI.Toolkit
             ApplyLatest();
             ApplyCanvasBounds();
             Show();
-            RestartAutoClose();
+            // [33차] 3초 자동 닫기 폐지 — "창이 자동으로 닫아지는 버그".
+            //   습득하기/버리기 클릭(또는 ESC) 시에만 닫힌다.
         }
 
-        private void RestartAutoClose()
-        {
-            CancelAutoClose();
-            int generation = _closeGeneration;
-            _closeTask = schedule.Execute(() =>
-            {
-                if (generation != _closeGeneration) return;
-                // A token may have arrived just before this callback but not yet reached the next
-                // 16ms poll. Consume it first rather than letting the previous timer close it.
-                if (HarvestResultBridge.LatestToken != _lastToken)
-                {
-                    PollBridge();
-                    return;
-                }
-                _closeTask = null;
-                if (IsOpen) Close();
-            });
-            _closeTask.ExecuteLater(3000L);
-        }
-
-        private void CancelAutoClose()
-        {
-            _closeGeneration++;
-            if (_closeTask == null) return;
-            _closeTask.Pause();
-            _closeTask = null;
-        }
+        // [33차] 3초 자동 닫기 제거 — RestartAutoClose/CancelAutoClose 폐지(자동 닫힘 버그 근원).
+        //   창은 습득하기/버리기(또는 ESC/새 결과)로만 닫힌다.
 
         private void ApplyLatest()
         {
@@ -428,12 +476,14 @@ namespace ProjectName.UI.Toolkit
             {
                 HarvestResultBridge.HarvestKind.Fishing   => "FISHING RESULT",
                 HarvestResultBridge.HarvestKind.Gathering => "GATHERING RESULT",
+                HarvestResultBridge.HarvestKind.Woodcutting => "WOODCUTTING RESULT",   // [28차]
                 _ => "MINING RESULT",
             };
             _badge.text = HarvestResultBridge.LatestKind switch
             {
                 HarvestResultBridge.HarvestKind.Fishing   => "SUCCESS",
                 HarvestResultBridge.HarvestKind.Gathering => "채집 성공",
+                HarvestResultBridge.HarvestKind.Woodcutting => "벌목 성공",             // [28차]
                 _ => "채굴 성공",
             };
             _verb.text = HarvestResultBridge.LatestResultVerb;
@@ -447,6 +497,7 @@ namespace ProjectName.UI.Toolkit
 
             // 아이콘
             _itemImage.style.backgroundImage = StyleKeyword.Null;
+            _iconAppliedItemId = null;   // [30차] 새 결과 — 재적용 재개
             if (HarvestResultBridge.LatestItemData != null)
             {
                 var tex = ItemIconDatabase.GetOrCreateIcon(HarvestResultBridge.LatestItemData);
@@ -466,6 +517,7 @@ namespace ProjectName.UI.Toolkit
             {
                 HarvestResultBridge.HarvestKind.Fishing   => "물고기 특징",
                 HarvestResultBridge.HarvestKind.Gathering => "약초 특징",
+                HarvestResultBridge.HarvestKind.Woodcutting => "통나무 특징",           // [28차]
                 _ => "광석 특징",
             };
             _descBody.text = string.IsNullOrEmpty(HarvestResultBridge.LatestDescription)
@@ -476,6 +528,7 @@ namespace ProjectName.UI.Toolkit
             {
                 HarvestResultBridge.HarvestKind.Fishing   => "물가 낚시",
                 HarvestResultBridge.HarvestKind.Gathering => "채집",
+                HarvestResultBridge.HarvestKind.Woodcutting => "벌목",                // [28차]
                 _ => "광맥 채굴",
             };
             _staminaLabel.text = "";
@@ -488,12 +541,14 @@ namespace ProjectName.UI.Toolkit
         // ===== 스타일 (이 창 한정 인라인) =====
         private void ApplyGitHubDarkStyle()
         {
-            style.backgroundColor = Dark.Bg;
+            // [32차 — Fluent 전환] 단독 불투명 풀스크린 창 폐지 — 뒷 배경(월드/HUD)이 희미하게
+            //   비치는 플루언트 플로팅 패널로. 창 루트는 완전 투명+클릭 투과, 패널만 유리 배경.
+            style.backgroundColor = new StyleColor(Color.clear);
             style.backgroundImage = new StyleBackground(StyleKeyword.None);
-            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 1f;
-            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = new StyleColor(Dark.Stroke);
-            style.borderTopLeftRadius = 8f; style.borderTopRightRadius = 8f;
-            style.borderBottomLeftRadius = 8f; style.borderBottomRightRadius = 8f;
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 0f;
+            style.borderTopLeftRadius = 0f; style.borderTopRightRadius = 0f;
+            style.borderBottomLeftRadius = 0f; style.borderBottomRightRadius = 0f;
+            pickingMode = PickingMode.Ignore;   // [32차] 빈 영역 클릭 통과 — 패널/버튼은 자체 수신(IStyle 아닌 VE 속성)
             style.color = Dark.TextMain;
             style.minWidth = WinW; style.minHeight = WinH;
 
@@ -548,7 +603,6 @@ namespace ProjectName.UI.Toolkit
                 if (window != null)
                 {
                     window.StopTick();
-                    window.CancelAutoClose();
                     window.RemoveFromHierarchy();
                 }
             }

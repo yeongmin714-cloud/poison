@@ -26,11 +26,15 @@ namespace ProjectName.Core
         public const float WallPlasterCoverX = 2.2f;     // 회반죽도 동일 그리드
         public const float DecalSizeMeters = 1.2f;       // 짚단 데칼 한 장
 
-        private static Texture2D _floor, _floorN, _wallStone, _wallStoneN, _wallPlaster, _wood, _straw;
+        private static Texture2D _floor, _floorN, _wallStone, _wallStoneN, _wallPlaster, _wallPlasterN, _wood, _woodN, _straw;
         private static bool _loaded;
 
         /// <summary>[P17] 실내 기둥 표시 여부 — 기본 OFF(예시 이미지 스타일: 기둥 없음).</summary>
         public static bool IncludePillars = false;
+
+        /// <summary>[2026-10-10 F1] 벽 하부 석재 밴드 복귀 옵션 — 기본 OFF(계획 D1 전면 회반죽 유지).
+        /// true 시 성 내부 벽 하부 ~1.1m에 wall_stone_lower 밴드(예시의 하단 석재 노출)가 얹힌다.</summary>
+        public static bool IncludeWallStoneLower = false;
 
         public static bool HasFiles { get { Load(); return _floor != null; } }
 
@@ -39,6 +43,8 @@ namespace ProjectName.Core
         public static Texture2D WallStone { get { Load(); return _wallStone; } }
         public static Texture2D WallStoneNormal { get { Load(); return _wallStoneN; } }
         public static Texture2D WallPlaster { get { Load(); return _wallPlaster; } }
+        public static Texture2D WallPlasterNormal { get { Load(); return _wallPlasterN; } }
+        public static Texture2D WoodNormal { get { Load(); return _woodN; } }
         public static Texture2D Wood { get { Load(); return _wood; } }
         public static Texture2D StrawDecal { get { Load(); return _straw; } }
 
@@ -51,7 +57,9 @@ namespace ProjectName.Core
             _wallStone = Resources.Load<Texture2D>(BasePath + "wall_stone_lower");
             _wallStoneN = Resources.Load<Texture2D>(BasePath + "wall_stone_lower_n");
             _wallPlaster = Resources.Load<Texture2D>(BasePath + "wall_plaster_upper");
+            _wallPlasterN = Resources.Load<Texture2D>(BasePath + "wall_plaster_upper_n");
             _wood = Resources.Load<Texture2D>(BasePath + "wood_frame");
+            _woodN = Resources.Load<Texture2D>(BasePath + "wood_frame_n");
             _straw = Resources.Load<Texture2D>(BasePath + "floor_straw_decal");
             Debug.Log($"[IndoorTextureLoader] 로드 — floor={(_floor != null)} normal={(_floorN != null)} " +
                       $"stone={(_wallStone != null)} stoneN={(_wallStoneN != null)} plaster={(_wallPlaster != null)} " +

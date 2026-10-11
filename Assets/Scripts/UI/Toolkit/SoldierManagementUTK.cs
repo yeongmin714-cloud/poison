@@ -266,6 +266,10 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 중앙 상세 [Figma 69:118 SoldierDetailPanel] =====
         private Label _dName, _dLevel, _dRole, _dNationBadge, _dTraitText, _dImageHint;
+        private VisualElement _previewImage;             // [39차] 3D 미리보기 RT 표시 영역
+        private RenderTexture _previewRT;                // [39차] 오프스크린 렌더 타깃
+        private GameObject _previewCamGo;                // [39차] 미리보기 카메라
+        private GameObject _previewModel;                // [39차] 현재 마운트된 병사 모델 클론
         private readonly VisualElement[] _statBars = new VisualElement[4];
         private readonly Label[] _statVals = new Label[4];
 
@@ -309,7 +313,7 @@ namespace ProjectName.UI.Toolkit
             _dLevel.style.marginTop = 4.8f;
             hero.Add(_dLevel);
 
-            // [Figma SoldierImageFrame 528×384] 3D 미리보기 placeholder (데이터 아닌 시각 자리)
+            // [Figma SoldierImageFrame 528×384] 3D 미리보기 — [39차] 실제 병사 모델 RT 렌더 표시
             var image = new VisualElement { name = "SoldierImageFrame" };
             image.style.height = 384f;
             image.style.minHeight = 384f;
@@ -320,7 +324,15 @@ namespace ProjectName.UI.Toolkit
             image.style.borderTopLeftRadius = image.style.borderTopRightRadius = image.style.borderBottomLeftRadius = image.style.borderBottomRightRadius = 9.6f;
             image.style.justifyContent = Justify.Center;
             image.style.alignItems = Align.Center;
-            _dImageHint = MkLabel("3D 미리보기", 15.6f, GitHubDark.TextSub);
+            _previewImage = new VisualElement { name = "SoldierPreviewImage" };
+            _previewImage.style.width = 460f;
+            _previewImage.style.height = 340f;
+            _previewImage.style.borderTopLeftRadius = _previewImage.style.borderTopRightRadius = _previewImage.style.borderBottomLeftRadius = _previewImage.style.borderBottomRightRadius = 6f;
+            image.Add(_previewImage);
+            // [42차] "3D 미리보기" 안내 텍스트 제거(피그마 = 순수 그래픽 영역) — 박스 밖으로
+            //   삐져나가던 원인. 실제 모델 RT가 영역을 채운다.
+            _dImageHint = MkLabel("", 15.6f, GitHubDark.TextSub);
+            _dImageHint.style.display = DisplayStyle.None;
             image.Add(_dImageHint);
             parent.Add(image);
 
@@ -443,16 +455,7 @@ namespace ProjectName.UI.Toolkit
                 row.style.borderTopLeftRadius = row.style.borderTopRightRadius = row.style.borderBottomLeftRadius = row.style.borderBottomRightRadius = 9.6f;
                 row.RegisterCallback<PointerDownEvent>(_ => SelectDeploymentTask(_deployDefs[idx].Item2));
 
-                var radio = new VisualElement { name = "DeploymentRadio_" + idx };
-                radio.style.width = 21.6f;
-                radio.style.height = 21.6f;
-                radio.style.flexShrink = 0f;
-                radio.style.borderTopWidth = radio.style.borderBottomWidth = radio.style.borderLeftWidth = radio.style.borderRightWidth = 1.6f;
-                radio.style.borderTopColor = radio.style.borderBottomColor = radio.style.borderLeftColor = radio.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-                radio.style.borderTopLeftRadius = radio.style.borderTopRightRadius = radio.style.borderBottomLeftRadius = radio.style.borderBottomRightRadius = 10.8f;
-                radio.style.marginRight = 14.4f;
-                row.Add(radio);
-
+                // [39차 사용자 요구] 라디오 파란 점 제거 — 선택 상태는 카드 테두리 색만으로 표시.
                 var name = MkLabel(_deployDefs[idx].Item1, UTKTheme.FontCardName, GitHubDark.TextMain);   // [Figma] 16.8/700
                 name.style.unityFontStyleAndWeight = FontStyle.Bold;
                 name.style.flexGrow = 1f;
@@ -490,6 +493,9 @@ namespace ProjectName.UI.Toolkit
             _applyDeploymentButton.style.unityFontStyleAndWeight = FontStyle.Bold;
             _applyDeploymentButton.style.borderTopLeftRadius = _applyDeploymentButton.style.borderTopRightRadius = _applyDeploymentButton.style.borderBottomLeftRadius = _applyDeploymentButton.style.borderBottomRightRadius = 7.2f;
             parent.Add(_applyDeploymentButton);
+            // [38차] 실내 침대 수동 배치 UI 제거(사용자 확정) — 침대 누움은 자동(모든 영지 소속 병사),
+            //   이 UI는 역할 배치(공격대/수비대/특사 등)에 집중.
+
             RefreshDeploymentOptions();
         }
 
@@ -568,6 +574,7 @@ namespace ProjectName.UI.Toolkit
 
         public override void Hide()
         {
+            CleanupPreviewAll();   // [39차] 미리보기 리그 정리(모델/카메라/RT)
             if (_geometryRoot != null)
                 _geometryRoot.UnregisterCallback<GeometryChangedEvent>(OnCanvasGeometryChanged);
             _geometryRoot = null;
@@ -712,29 +719,39 @@ namespace ProjectName.UI.Toolkit
             tierStrip.pickingMode = PickingMode.Ignore;
             card.Add(tierStrip);
 
-            // 아바타 (원형 — 이름 첫 글자) [Figma AvatarFrame 52.8×52.8]
-            var avatar = new Label((g.GuardName.Length > 0 ? g.GuardName[0].ToString() : "?"));
+            // 아바타 (원형 — 사람 아이콘 [39차 사용자 요구: 글자 대신 사람 아이콘]) [Figma AvatarFrame 52.8×52.8]
+            var avatar = new VisualElement { name = "SoldierAvatar" };
             avatar.style.width = 52.8f; avatar.style.height = 52.8f;
-            avatar.style.backgroundColor = GitHubDark.Accent;
-            avatar.style.color = GitHubDark.BgBase;
-            avatar.style.unityFontStyleAndWeight = FontStyle.Bold;
-            avatar.style.unityTextAlign = TextAnchor.MiddleCenter;
-            avatar.style.fontSize = 21.6f;
+            avatar.style.backgroundColor = GitHubDark.PanelSub;
+            avatar.style.borderTopWidth = avatar.style.borderBottomWidth = avatar.style.borderLeftWidth = avatar.style.borderRightWidth = 1.2f;
+            avatar.style.borderTopColor = avatar.style.borderBottomColor = avatar.style.borderLeftColor = avatar.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
             avatar.style.borderTopLeftRadius = avatar.style.borderTopRightRadius = avatar.style.borderBottomLeftRadius = avatar.style.borderBottomRightRadius = 26.4f;
             avatar.style.marginRight = 14.4f;
             avatar.style.flexShrink = 0f;
+            avatar.style.justifyContent = Justify.Center;
+            avatar.style.alignItems = Align.Center;
+            var personIcon = new VisualElement { name = "SoldierAvatarIcon" };
+            var avatarTex = Resources.Load<Texture2D>("UI/SoldierAvatarIcon");
+            if (avatarTex != null)
+                personIcon.style.backgroundImage = UTKTextureSafe.ToBackground(avatarTex);
+            personIcon.style.width = 32f; personIcon.style.height = 32f;   // [42차] 30→32 — 카드 대비 아이콘 크기 보정
+            avatar.Add(personIcon);
             card.Add(avatar);
 
             var info = new VisualElement();
-            info.style.flexDirection = FlexDirection.Column;
             info.style.flexGrow = 1f;
-            // [Figma NameRow/RoleRow] 이름 16.8/700 · 직책 14.4/400
+            // [Figma 69:4 SoldierSlot 실측] 이름 y12.2(fs16.8/700) → 직책 y47.1(fs14.4/400) — 행간 리듬 고정.
+            // [42차] 이름/직책 겹침(부대 명부 ui2.PNG 실측) 수리: 이름 높이 고정 22 + 직책 상단 12.
             var name = MkLabel(g.GuardName, UTKTheme.FontCardName, GitHubDark.TextMain);
             name.style.unityFontStyleAndWeight = FontStyle.Bold;
+            name.style.height = 22f;
+            name.style.flexShrink = 0f;
             info.Add(name);
-            var role = MkLabel(g.JobTitle ?? "병사", UTKTheme.FontBody, GitHubDark.TextSub);
+            // [37차] 직책 + 실내 침대 배치 표시(침대 n) — 각각 배치 현황이 목록에서 바로 보임.
+            string bedTag = g.IndoorBedIndex > 0 ? $" · 🛏️ 침대 {g.IndoorBedIndex}" : "";
+            var role = MkLabel((g.JobTitle ?? "병사") + bedTag, UTKTheme.FontBody, GitHubDark.TextSub);
             role.style.unityFontStyleAndWeight = FontStyle.Normal;
-            role.style.marginTop = 4.8f;
+            role.style.marginTop = 12f;
             info.Add(role);
             card.Add(info);
 
@@ -762,6 +779,111 @@ namespace ProjectName.UI.Toolkit
             if (taskName == "특사") return GitHubDark.StatusOrange;
             if (taskName != "대기") return GitHubDark.StatusGreen;
             return GitHubDark.TextSub;
+        }
+
+        // ===== [39차] 3D 미리보기 — 선택 병사 모델을 오프스크린 RT에 동기 렌더 =====
+        //  GblItemIconRenderer 동기 베이크(34차)와 동일 패턴: 마운트→cam.Render→ReadPixels→표시.
+
+        private void RenderSoldierPreview(GuardPlaceholder g)
+        {
+            if (_previewImage == null) return;
+            if (g == null || !Application.isPlaying)
+            {
+                _previewImage.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                return;
+            }
+
+            // 모델 프리팹 — TerritoryBuilder 병사 FBX 키(레벨 구간) 재사용
+            string fbxKey = TerritoryBuilder.GetSoldierFbxKeyForLevel(g.Level);
+            var modelPrefab = Resources.Load<GameObject>(fbxKey);
+            if (modelPrefab == null)
+            {
+                _previewImage.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                return;
+            }
+
+            try
+            {
+                CleanupPreviewRig();
+
+                const int size = 256;
+                if (_previewRT == null)
+                {
+                    _previewRT = new RenderTexture(size, size, 24, RenderTextureFormat.ARGB32);
+                    _previewRT.Create();
+                }
+
+                _previewModel = Object.Instantiate(modelPrefab);
+                _previewModel.name = "SoldierPreview_" + fbxKey;
+                Vector3 remote = new Vector3(20000f, 2000f, 20000f);
+                _previewModel.transform.position = remote;
+
+                // 프레이밍 — bounds 상면 기준 살짝 사선
+                var rends = _previewModel.GetComponentsInChildren<Renderer>();
+                if (rends.Length == 0) return;
+                Bounds b = rends[0].bounds;
+                foreach (var r in rends) b.Encapsulate(r.bounds);
+                float h = b.size.y;
+                if (h > 0.01f) _previewModel.transform.localScale *= 1.8f / h;
+                b = rends[0].bounds;
+                foreach (var r in rends) b.Encapsulate(r.bounds);
+                _previewModel.transform.position += new Vector3(0f, remote.y - b.min.y, 0f);
+                b = rends[0].bounds;
+                foreach (var r in rends) b.Encapsulate(r.bounds);
+
+                if (_previewCamGo == null)
+                {
+                    _previewCamGo = new GameObject("SoldierPreviewCam");
+                    _previewCamGo.AddComponent<Camera>();
+                }
+                var cam = _previewCamGo.GetComponent<Camera>();
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = new Color(0.043f, 0.047f, 0.078f, 1f);   // #0B0E14
+                cam.cullingMask = ~0;
+                cam.nearClipPlane = 0.1f;
+                cam.farClipPlane = 20f;
+                cam.fieldOfView = 28f;
+                cam.targetTexture = _previewRT;
+
+                Vector3 center = b.center;
+                float halfH = Mathf.Max(0.5f, b.extents.y * 1.15f);
+                float dist = halfH / Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
+                cam.transform.position = center + new Vector3(dist * 0.30f, 0f, -dist);
+                cam.transform.LookAt(center + Vector3.up * 0.05f);
+                cam.Render();
+
+                var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+                RenderTexture prev = RenderTexture.active;
+                RenderTexture.active = _previewRT;
+                tex.ReadPixels(new Rect(0, 0, size, size), 0, 0);
+                tex.Apply();
+                RenderTexture.active = prev;
+                tex.wrapMode = TextureWrapMode.Clamp;
+                tex.hideFlags = HideFlags.HideAndDontSave;
+
+                _previewImage.style.backgroundImage = UTKTextureSafe.ToBackground(tex);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[SoldierMgmt] 3D 미리보기 렌더 실패(무시): " + e.Message);
+            }
+        }
+
+        private void CleanupPreviewRig()
+        {
+            if (_previewModel != null) { Object.Destroy(_previewModel); _previewModel = null; }
+        }
+
+        private void CleanupPreviewAll()
+        {
+            CleanupPreviewRig();
+            if (_previewCamGo != null) { Object.Destroy(_previewCamGo); _previewCamGo = null; }
+            if (_previewRT != null)
+            {
+                _previewRT.Release();
+                Object.Destroy(_previewRT);
+                _previewRT = null;
+            }
         }
 
         private static string GetTaskName(GuardPlaceholder g)
@@ -800,6 +922,7 @@ namespace ProjectName.UI.Toolkit
             _dNationBadge.text = string.IsNullOrEmpty(g.Nation) ? "-" : g.Nation;
             _dTraitText.text = $"{g.JobTitle ?? "병사"}는 임무 배치 시 영지 생산과 국경 전투력에 기여합니다. 현재 임무: {GetTaskName(g)} · 현재체력 {Mathf.Round(g.CurrentHP)}/{Mathf.Round(g.MaxHP)}.";
             _dImageHint.text = "3D 미리보기";
+            RenderSoldierPreview(g);
 
             int atk = g.GetAttack();
             int def = g.GetDefense();

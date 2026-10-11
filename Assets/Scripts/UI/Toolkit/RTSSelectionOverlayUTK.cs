@@ -153,6 +153,18 @@ namespace ProjectName.UI.Toolkit
             accent.style.backgroundColor = GithubBlue;
             _countChip.Add(accent);
 
+            // [15차 A5] 액센트 도트 — Fluent 배지 신호등
+            var statusDot = new VisualElement { name = "RTSSelectionDot", pickingMode = PickingMode.Ignore };
+            statusDot.style.width = 7f;
+            statusDot.style.height = 7f;
+            statusDot.style.marginRight = 7f;
+            statusDot.style.borderTopLeftRadius = 4f;
+            statusDot.style.borderTopRightRadius = 4f;
+            statusDot.style.borderBottomLeftRadius = 4f;
+            statusDot.style.borderBottomRightRadius = 4f;
+            statusDot.style.backgroundColor = GithubBlue;
+            _countChip.Add(statusDot);
+
             _countLabel = new Label { name = "RTSSelectedCount" };
             _countLabel.style.color = GithubText;
             _countLabel.style.fontSize = 13.2f;

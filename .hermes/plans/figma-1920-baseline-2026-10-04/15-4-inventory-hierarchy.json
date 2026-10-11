@@ -1,0 +1,5430 @@
+{
+  "id": "15:4",
+  "canvasSize": [
+    1920.0,
+    1080.0
+  ],
+  "children": [
+    {
+      "id": "15:5",
+      "name": "InventoryPanel",
+      "type": "FRAME",
+      "bounds": {
+        "x": 144.0,
+        "y": 84.0,
+        "width": 504.0,
+        "height": 912.0
+      },
+      "layoutMode": "VERTICAL",
+      "itemSpacing": 7.200000286102295,
+      "padding": [
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "children": [
+        {
+          "id": "15:6",
+          "name": "DecalTL",
+          "type": "FRAME",
+          "bounds": {
+            "x": 144.0,
+            "y": 84.0,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:7",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 144.0,
+                "y": 84.0,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:8",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 144.0,
+                "y": 84.0,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:9",
+          "name": "DecalTR",
+          "type": "FRAME",
+          "bounds": {
+            "x": 633.6,
+            "y": 84.0,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:10",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 633.6,
+                "y": 84.0,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:11",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 633.6,
+                "y": 84.0,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:12",
+          "name": "DecalBL",
+          "type": "FRAME",
+          "bounds": {
+            "x": 144.0,
+            "y": 981.6,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:13",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 144.0,
+                "y": 981.6,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:14",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 144.0,
+                "y": 981.6,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:15",
+          "name": "DecalBR",
+          "type": "FRAME",
+          "bounds": {
+            "x": 633.6,
+            "y": 981.6,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:16",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 633.6,
+                "y": 981.6,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:17",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 633.6,
+                "y": 981.6,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:18",
+          "name": "PanelHeader",
+          "type": "FRAME",
+          "bounds": {
+            "x": 168.0,
+            "y": 108.0,
+            "width": 456.0,
+            "height": 52.8
+          },
+          "layoutMode": "HORIZONTAL",
+          "children": [
+            {
+              "id": "15:19",
+              "name": "TitleGroup",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 113.2,
+                "width": 207.0,
+                "height": 28.0
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 12.0,
+              "children": [
+                {
+                  "id": "15:20",
+                  "name": "Title",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 168.0,
+                    "y": 113.2,
+                    "width": 117.0,
+                    "height": 28.0
+                  },
+                  "text": "개인 소지품"
+                },
+                {
+                  "id": "15:21",
+                  "name": "Subtitle",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 297.0,
+                    "y": 122.2,
+                    "width": 78.0,
+                    "height": 17.0
+                  },
+                  "text": "INVENTORY"
+                }
+              ]
+            },
+            {
+              "id": "15:22",
+              "name": "CloseBtn",
+              "type": "FRAME",
+              "bounds": {
+                "x": 592.8,
+                "y": 111.6,
+                "width": 31.2,
+                "height": 31.2
+              },
+              "layoutMode": "HORIZONTAL",
+              "padding": [
+                7.200000286102295,
+                7.200000286102295,
+                7.200000286102295,
+                7.200000286102295
+              ],
+              "children": [
+                {
+                  "id": "15:338",
+                  "name": "x-circle",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 600.0,
+                    "y": 118.8,
+                    "width": 16.8,
+                    "height": 16.8
+                  },
+                  "children": [
+                    {
+                      "id": "15:339",
+                      "name": "Vector",
+                      "type": "VECTOR",
+                      "bounds": {
+                        "x": 601.4,
+                        "y": 120.2,
+                        "width": 14.0,
+                        "height": 14.0
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "15:24",
+          "name": "TabContainer",
+          "type": "FRAME",
+          "bounds": {
+            "x": 168.0,
+            "y": 168.0,
+            "width": 456.0,
+            "height": 36.2
+          },
+          "layoutMode": "HORIZONTAL",
+          "itemSpacing": 4.800000190734863,
+          "children": [
+            {
+              "id": "15:25",
+              "name": "Tab",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 168.0,
+                "width": 87.36,
+                "height": 36.2
+              },
+              "layoutMode": "HORIZONTAL",
+              "padding": [
+                9.600000381469727,
+                14.40000057220459,
+                9.600000381469727,
+                14.40000057220459
+              ],
+              "children": [
+                {
+                  "id": "15:26",
+                  "name": "TabLabel",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 198.18,
+                    "y": 177.6,
+                    "width": 27.0,
+                    "height": 17.0
+                  },
+                  "text": "전체"
+                }
+              ]
+            },
+            {
+              "id": "15:27",
+              "name": "Tab",
+              "type": "FRAME",
+              "bounds": {
+                "x": 260.16,
+                "y": 168.0,
+                "width": 87.36,
+                "height": 36.2
+              },
+              "layoutMode": "HORIZONTAL",
+              "padding": [
+                9.600000381469727,
+                14.40000057220459,
+                9.600000381469727,
+                14.40000057220459
+              ],
+              "children": [
+                {
+                  "id": "15:28",
+                  "name": "TabLabel",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 290.34,
+                    "y": 177.6,
+                    "width": 27.0,
+                    "height": 17.0
+                  },
+                  "text": "무기"
+                }
+              ]
+            },
+            {
+              "id": "15:29",
+              "name": "Tab",
+              "type": "FRAME",
+              "bounds": {
+                "x": 352.32,
+                "y": 168.0,
+                "width": 87.36,
+                "height": 36.2
+              },
+              "layoutMode": "HORIZONTAL",
+              "padding": [
+                9.600000381469727,
+                14.40000057220459,
+                9.600000381469727,
+                14.40000057220459
+              ],
+              "children": [
+                {
+                  "id": "15:30",
+                  "name": "TabLabel",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 376.0,
+                    "y": 177.6,
+                    "width": 40.0,
+                    "height": 17.0
+                  },
+                  "text": "방어구"
+                }
+              ]
+            },
+            {
+              "id": "15:31",
+              "name": "Tab",
+              "type": "FRAME",
+              "bounds": {
+                "x": 444.48,
+                "y": 168.0,
+                "width": 87.36,
+                "height": 36.2
+              },
+              "layoutMode": "HORIZONTAL",
+              "padding": [
+                9.600000381469727,
+                14.40000057220459,
+                9.600000381469727,
+                14.40000057220459
+              ],
+              "children": [
+                {
+                  "id": "15:32",
+                  "name": "TabLabel",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 468.16,
+                    "y": 177.6,
+                    "width": 40.0,
+                    "height": 17.0
+                  },
+                  "text": "소모품"
+                }
+              ]
+            },
+            {
+              "id": "18:3",
+              "name": "Tab",
+              "type": "FRAME",
+              "bounds": {
+                "x": 536.64,
+                "y": 168.0,
+                "width": 87.36,
+                "height": 36.2
+              },
+              "layoutMode": "HORIZONTAL",
+              "padding": [
+                9.600000381469727,
+                14.40000057220459,
+                9.600000381469727,
+                14.40000057220459
+              ],
+              "children": [
+                {
+                  "id": "18:4",
+                  "name": "TabLabel",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 566.82,
+                    "y": 177.6,
+                    "width": 27.0,
+                    "height": 17.0
+                  },
+                  "text": "재료"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "15:33",
+          "name": "EquippedSection",
+          "type": "FRAME",
+          "bounds": {
+            "x": 168.0,
+            "y": 211.4,
+            "width": 456.0,
+            "height": 230.4
+          },
+          "layoutMode": "VERTICAL",
+          "itemSpacing": 12.0,
+          "padding": [
+            14.40000057220459,
+            14.40000057220459,
+            14.40000057220459,
+            14.40000057220459
+          ],
+          "children": [
+            {
+              "id": "15:34",
+              "name": "SectionLabel",
+              "type": "TEXT",
+              "bounds": {
+                "x": 182.4,
+                "y": 225.8,
+                "width": 87.0,
+                "height": 17.0
+              },
+              "text": "장착 중인 장비"
+            },
+            {
+              "id": "15:35",
+              "name": "EquipGrid",
+              "type": "FRAME",
+              "bounds": {
+                "x": 182.4,
+                "y": 254.8,
+                "width": 427.2,
+                "height": 172.8
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 4.800000190734863,
+              "children": [
+                {
+                  "id": "15:36",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 182.4,
+                    "y": 254.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:37",
+                      "name": "EquipBadge",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 187.2,
+                        "y": 259.6,
+                        "width": 22.6,
+                        "height": 15.8
+                      },
+                      "layoutMode": "HORIZONTAL",
+                      "padding": [
+                        2.4000000953674316,
+                        4.800000190734863,
+                        2.4000000953674316,
+                        4.800000190734863
+                      ],
+                      "children": [
+                        {
+                          "id": "15:38",
+                          "name": "E",
+                          "type": "TEXT",
+                          "bounds": {
+                            "x": 192.0,
+                            "y": 262.0,
+                            "width": 13.0,
+                            "height": 11.0
+                          },
+                          "text": "EQ"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:39",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 182.4,
+                        "y": 254.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:506",
+                      "name": "helmet",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 204.0,
+                        "y": 276.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:31",
+                          "name": "hard-hat",
+                          "type": "FRAME",
+                          "bounds": {
+                            "x": 204.0,
+                            "y": 276.4,
+                            "width": 38.4,
+                            "height": 38.4
+                          },
+                          "children": [
+                            {
+                              "id": "91:32",
+                              "name": "Vector",
+                              "type": "VECTOR",
+                              "bounds": {
+                                "x": 207.2,
+                                "y": 282.8,
+                                "width": 32.0,
+                                "height": 24.0
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:3",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 209.8,
+                        "y": 320.8,
+                        "width": 18.0,
+                        "height": 11.0
+                      },
+                      "text": "투구"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:41",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 268.8,
+                    "y": 254.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:42",
+                      "name": "EquipBadge",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 273.6,
+                        "y": 259.6,
+                        "width": 22.6,
+                        "height": 15.8
+                      },
+                      "layoutMode": "HORIZONTAL",
+                      "padding": [
+                        2.4000000953674316,
+                        4.800000190734863,
+                        2.4000000953674316,
+                        4.800000190734863
+                      ],
+                      "children": [
+                        {
+                          "id": "15:43",
+                          "name": "E",
+                          "type": "TEXT",
+                          "bounds": {
+                            "x": 278.4,
+                            "y": 262.0,
+                            "width": 13.0,
+                            "height": 11.0
+                          },
+                          "text": "EQ"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:44",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 268.8,
+                        "y": 254.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:350",
+                      "name": "chest-armor",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 290.4,
+                        "y": 276.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:16",
+                          "name": "shirt",
+                          "type": "FRAME",
+                          "bounds": {
+                            "x": 290.4,
+                            "y": 276.4,
+                            "width": 38.4,
+                            "height": 38.4
+                          },
+                          "children": [
+                            {
+                              "id": "91:17",
+                              "name": "Vector",
+                              "type": "VECTOR",
+                              "bounds": {
+                                "x": 294.0,
+                                "y": 279.6,
+                                "width": 31.2,
+                                "height": 32.0
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:4",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 295.6,
+                        "y": 320.8,
+                        "width": 18.0,
+                        "height": 11.0
+                      },
+                      "text": "갑옷"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:46",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 355.2,
+                    "y": 254.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:47",
+                      "name": "EquipBadge",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 360.0,
+                        "y": 259.6,
+                        "width": 22.6,
+                        "height": 15.8
+                      },
+                      "layoutMode": "HORIZONTAL",
+                      "padding": [
+                        2.4000000953674316,
+                        4.800000190734863,
+                        2.4000000953674316,
+                        4.800000190734863
+                      ],
+                      "children": [
+                        {
+                          "id": "15:48",
+                          "name": "E",
+                          "type": "TEXT",
+                          "bounds": {
+                            "x": 364.8,
+                            "y": 262.0,
+                            "width": 13.0,
+                            "height": 11.0
+                          },
+                          "text": "EQ"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:49",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 355.2,
+                        "y": 254.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:332",
+                      "name": "boot",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 376.8,
+                        "y": 276.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:39",
+                          "name": "Boot shaft",
+                          "type": "RECTANGLE",
+                          "bounds": {
+                            "x": 385.2,
+                            "y": 282.4,
+                            "width": 10.8,
+                            "height": 18.0
+                          }
+                        },
+                        {
+                          "id": "91:40",
+                          "name": "Boot foot",
+                          "type": "RECTANGLE",
+                          "bounds": {
+                            "x": 385.2,
+                            "y": 298.0,
+                            "width": 26.4,
+                            "height": 10.8
+                          }
+                        },
+                        {
+                          "id": "91:41",
+                          "name": "Boot sole",
+                          "type": "RECTANGLE",
+                          "bounds": {
+                            "x": 385.2,
+                            "y": 308.8,
+                            "width": 26.4,
+                            "height": 2.4
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:5",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 382.0,
+                        "y": 320.8,
+                        "width": 18.0,
+                        "height": 11.0
+                      },
+                      "text": "신발"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:51",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 441.6,
+                    "y": 254.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:52",
+                      "name": "EquipBadge",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 446.4,
+                        "y": 259.6,
+                        "width": 22.6,
+                        "height": 15.8
+                      },
+                      "layoutMode": "HORIZONTAL",
+                      "padding": [
+                        2.4000000953674316,
+                        4.800000190734863,
+                        2.4000000953674316,
+                        4.800000190734863
+                      ],
+                      "children": [
+                        {
+                          "id": "15:53",
+                          "name": "E",
+                          "type": "TEXT",
+                          "bounds": {
+                            "x": 451.2,
+                            "y": 262.0,
+                            "width": 13.0,
+                            "height": 11.0
+                          },
+                          "text": "EQ"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:54",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 441.6,
+                        "y": 254.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:482",
+                      "name": "shield",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 463.2,
+                        "y": 276.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:13",
+                          "name": "shield",
+                          "type": "FRAME",
+                          "bounds": {
+                            "x": 463.2,
+                            "y": 276.4,
+                            "width": 38.4,
+                            "height": 38.4
+                          },
+                          "children": [
+                            {
+                              "id": "91:14",
+                              "name": "Vector",
+                              "type": "VECTOR",
+                              "bounds": {
+                                "x": 469.6,
+                                "y": 279.6,
+                                "width": 25.6,
+                                "height": 32.01
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:6",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 468.4,
+                        "y": 320.8,
+                        "width": 18.0,
+                        "height": 11.0
+                      },
+                      "text": "방패"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:56",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 528.0,
+                    "y": 254.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:57",
+                      "name": "EquipBadge",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 532.8,
+                        "y": 259.6,
+                        "width": 22.6,
+                        "height": 15.8
+                      },
+                      "layoutMode": "HORIZONTAL",
+                      "padding": [
+                        2.4000000953674316,
+                        4.800000190734863,
+                        2.4000000953674316,
+                        4.800000190734863
+                      ],
+                      "children": [
+                        {
+                          "id": "15:58",
+                          "name": "E",
+                          "type": "TEXT",
+                          "bounds": {
+                            "x": 537.6,
+                            "y": 262.0,
+                            "width": 13.0,
+                            "height": 11.0
+                          },
+                          "text": "EQ"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:59",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 528.0,
+                        "y": 254.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:503",
+                      "name": "sword",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 549.6,
+                        "y": 276.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:19",
+                          "name": "sword",
+                          "type": "FRAME",
+                          "bounds": {
+                            "x": 549.6,
+                            "y": 276.4,
+                            "width": 38.4,
+                            "height": 38.4
+                          },
+                          "children": [
+                            {
+                              "id": "91:20",
+                              "name": "Vector",
+                              "type": "VECTOR",
+                              "bounds": {
+                                "x": 554.4,
+                                "y": 281.2,
+                                "width": 28.8,
+                                "height": 28.8
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:7",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 554.8,
+                        "y": 320.8,
+                        "width": 18.0,
+                        "height": 11.0
+                      },
+                      "text": "무기"
+                    }
+                  ]
+                },
+                {
+                  "id": "18:13",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 182.4,
+                    "y": 346.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:14",
+                      "name": "EquipBadge",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 187.2,
+                        "y": 350.8,
+                        "width": 22.6,
+                        "height": 15.8
+                      },
+                      "layoutMode": "HORIZONTAL",
+                      "padding": [
+                        2.4000000953674316,
+                        4.800000190734863,
+                        2.4000000953674316,
+                        4.800000190734863
+                      ],
+                      "children": [
+                        {
+                          "id": "18:15",
+                          "name": "E",
+                          "type": "TEXT",
+                          "bounds": {
+                            "x": 192.0,
+                            "y": 353.2,
+                            "width": 13.0,
+                            "height": 11.0
+                          },
+                          "text": "EQ"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "18:16",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 182.4,
+                        "y": 346.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:17",
+                      "name": "gas-mask",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 204.0,
+                        "y": 367.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:42",
+                          "name": "Mask face",
+                          "type": "ELLIPSE",
+                          "bounds": {
+                            "x": 213.6,
+                            "y": 376.0,
+                            "width": 19.2,
+                            "height": 18.0
+                          }
+                        },
+                        {
+                          "id": "91:43",
+                          "name": "Left filter",
+                          "type": "ELLIPSE",
+                          "bounds": {
+                            "x": 207.6,
+                            "y": 389.2,
+                            "width": 8.4,
+                            "height": 8.4
+                          }
+                        },
+                        {
+                          "id": "91:44",
+                          "name": "Right filter",
+                          "type": "ELLIPSE",
+                          "bounds": {
+                            "x": 230.4,
+                            "y": 389.2,
+                            "width": 8.4,
+                            "height": 8.4
+                          }
+                        },
+                        {
+                          "id": "91:45",
+                          "name": "Mask center",
+                          "type": "RECTANGLE",
+                          "bounds": {
+                            "x": 222.0,
+                            "y": 385.6,
+                            "width": 2.4,
+                            "height": 10.8
+                          }
+                        },
+                        {
+                          "id": "91:46",
+                          "name": "Left strap",
+                          "type": "RECTANGLE",
+                          "bounds": {
+                            "x": 204.0,
+                            "y": 380.8,
+                            "width": 9.6,
+                            "height": 2.4
+                          }
+                        },
+                        {
+                          "id": "91:47",
+                          "name": "Right strap",
+                          "type": "RECTANGLE",
+                          "bounds": {
+                            "x": 232.8,
+                            "y": 380.8,
+                            "width": 9.6,
+                            "height": 2.4
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:8",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 202.4,
+                        "y": 412.0,
+                        "width": 27.0,
+                        "height": 11.0
+                      },
+                      "text": "방독면"
+                    }
+                  ]
+                },
+                {
+                  "id": "18:19",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 268.8,
+                    "y": 346.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:20",
+                      "name": "EquipBadge",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 273.6,
+                        "y": 350.8,
+                        "width": 22.6,
+                        "height": 15.8
+                      },
+                      "layoutMode": "HORIZONTAL",
+                      "padding": [
+                        2.4000000953674316,
+                        4.800000190734863,
+                        2.4000000953674316,
+                        4.800000190734863
+                      ],
+                      "children": [
+                        {
+                          "id": "18:21",
+                          "name": "E",
+                          "type": "TEXT",
+                          "bounds": {
+                            "x": 278.4,
+                            "y": 353.2,
+                            "width": 13.0,
+                            "height": 11.0
+                          },
+                          "text": "EQ"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "18:22",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 268.8,
+                        "y": 346.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:23",
+                      "name": "syringe",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 290.4,
+                        "y": 367.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:22",
+                          "name": "briefcase",
+                          "type": "FRAME",
+                          "bounds": {
+                            "x": 290.4,
+                            "y": 367.6,
+                            "width": 38.4,
+                            "height": 38.4
+                          },
+                          "children": [
+                            {
+                              "id": "91:23",
+                              "name": "Vector",
+                              "type": "VECTOR",
+                              "bounds": {
+                                "x": 293.6,
+                                "y": 370.8,
+                                "width": 32.0,
+                                "height": 28.8
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:9",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 288.8,
+                        "y": 412.0,
+                        "width": 27.0,
+                        "height": 11.0
+                      },
+                      "text": "분사기"
+                    }
+                  ]
+                },
+                {
+                  "id": "18:25",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 355.2,
+                    "y": 346.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:26",
+                      "name": "EquipBadge",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 360.0,
+                        "y": 350.8,
+                        "width": 22.6,
+                        "height": 15.8
+                      },
+                      "layoutMode": "HORIZONTAL",
+                      "padding": [
+                        2.4000000953674316,
+                        4.800000190734863,
+                        2.4000000953674316,
+                        4.800000190734863
+                      ],
+                      "children": [
+                        {
+                          "id": "18:27",
+                          "name": "E",
+                          "type": "TEXT",
+                          "bounds": {
+                            "x": 364.8,
+                            "y": 353.2,
+                            "width": 13.0,
+                            "height": 11.0
+                          },
+                          "text": "EQ"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "18:28",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 355.2,
+                        "y": 346.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:29",
+                      "name": "gas-tank",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 376.8,
+                        "y": 367.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:25",
+                          "name": "atom",
+                          "type": "FRAME",
+                          "bounds": {
+                            "x": 376.8,
+                            "y": 367.6,
+                            "width": 38.4,
+                            "height": 38.4
+                          },
+                          "children": [
+                            {
+                              "id": "91:26",
+                              "name": "Vector",
+                              "type": "VECTOR",
+                              "bounds": {
+                                "x": 381.61,
+                                "y": 372.41,
+                                "width": 28.79,
+                                "height": 28.79
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:10",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 382.0,
+                        "y": 412.0,
+                        "width": 18.0,
+                        "height": 11.0
+                      },
+                      "text": "물약"
+                    }
+                  ]
+                },
+                {
+                  "id": "91:49",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 441.6,
+                    "y": 346.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "91:50",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 441.6,
+                        "y": 346.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "91:51",
+                      "name": "ring",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 463.2,
+                        "y": 367.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:52",
+                          "name": "Ellipse",
+                          "type": "ELLIPSE",
+                          "bounds": {
+                            "x": 475.2,
+                            "y": 379.6,
+                            "width": 14.4,
+                            "height": 14.4
+                          }
+                        },
+                        {
+                          "id": "91:53",
+                          "name": "Ellipse",
+                          "type": "ELLIPSE",
+                          "bounds": {
+                            "x": 475.2,
+                            "y": 379.6,
+                            "width": 7.2,
+                            "height": 7.2
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:54",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 468.4,
+                        "y": 412.0,
+                        "width": 18.0,
+                        "height": 11.0
+                      },
+                      "text": "반지"
+                    }
+                  ]
+                },
+                {
+                  "id": "91:55",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 528.0,
+                    "y": 346.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "91:56",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 528.0,
+                        "y": 346.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "91:57",
+                      "name": "necklace",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 549.6,
+                        "y": 367.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "91:58",
+                          "name": "Ellipse",
+                          "type": "ELLIPSE",
+                          "bounds": {
+                            "x": 561.6,
+                            "y": 379.6,
+                            "width": 14.4,
+                            "height": 14.4
+                          }
+                        },
+                        {
+                          "id": "91:59",
+                          "name": "Rectangle",
+                          "type": "RECTANGLE",
+                          "bounds": {
+                            "x": 567.6,
+                            "y": 394.0,
+                            "width": 2.4,
+                            "height": 7.2
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "91:60",
+                      "name": "EquipLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 548.0,
+                        "y": 412.0,
+                        "width": 27.0,
+                        "height": 11.0
+                      },
+                      "text": "목걸이"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "21:4",
+          "name": "Divider",
+          "type": "FRAME",
+          "bounds": {
+            "x": 168.0,
+            "y": 449.0,
+            "width": 456.0,
+            "height": 1.2
+          },
+          "layoutMode": "HORIZONTAL"
+        },
+        {
+          "id": "15:61",
+          "name": "InventoryGridSection",
+          "type": "FRAME",
+          "bounds": {
+            "x": 168.0,
+            "y": 457.4,
+            "width": 456.0,
+            "height": 446.4
+          },
+          "layoutMode": "VERTICAL",
+          "itemSpacing": 9.600000381469727,
+          "children": [
+            {
+              "id": "18:6",
+              "name": "GridRow1",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 457.4,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "15:63",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 168.0,
+                    "y": 457.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:64",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 168.0,
+                        "y": 457.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:497",
+                      "name": "zap-off",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 189.6,
+                        "y": 479.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:498",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 192.8,
+                            "y": 482.19,
+                            "width": 32.0,
+                            "height": 32.01
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:66",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 259.2,
+                    "y": 457.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:67",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 259.2,
+                        "y": 457.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:356",
+                      "name": "battery",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 280.8,
+                        "y": 479.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:357",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 284.0,
+                            "y": 488.6,
+                            "width": 32.0,
+                            "height": 19.2
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:69",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 325.2,
+                        "y": 517.4,
+                        "width": 8.0,
+                        "height": 17.0
+                      },
+                      "text": "5"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:70",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 350.4,
+                    "y": 457.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:71",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 350.4,
+                        "y": 457.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:488",
+                      "name": "syringe",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 372.0,
+                        "y": 479.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:489",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 375.2,
+                            "y": 482.2,
+                            "width": 32.0,
+                            "height": 32.0
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:73",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 408.0,
+                        "y": 517.4,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "12"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:74",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 441.6,
+                    "y": 457.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:75",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 441.6,
+                        "y": 457.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:389",
+                      "name": "atom",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 463.2,
+                        "y": 479.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:390",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 468.01,
+                            "y": 483.81,
+                            "width": 28.79,
+                            "height": 28.79
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:77",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 507.6,
+                        "y": 517.4,
+                        "width": 8.0,
+                        "height": 17.0
+                      },
+                      "text": "2"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:78",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 532.8,
+                    "y": 457.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:79",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 532.8,
+                        "y": 457.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:365",
+                      "name": "shield",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 554.4,
+                        "y": 479.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:366",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 560.8,
+                            "y": 482.2,
+                            "width": 25.6,
+                            "height": 32.01
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:81",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 590.4,
+                        "y": 517.4,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "18"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:7",
+              "name": "GridRow2",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 548.6,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "15:83",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 168.0,
+                    "y": 548.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:84",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 168.0,
+                        "y": 548.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:344",
+                      "name": "backpack",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 189.6,
+                        "y": 570.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:345",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 196.0,
+                            "y": 573.4,
+                            "width": 25.6,
+                            "height": 32.0
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:86",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 234.0,
+                        "y": 608.6,
+                        "width": 8.0,
+                        "height": 17.0
+                      },
+                      "text": "7"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:87",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 259.2,
+                    "y": 548.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:88",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 259.2,
+                        "y": 548.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:383",
+                      "name": "droplet",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 280.8,
+                        "y": 570.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:384",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 288.8,
+                            "y": 575.0,
+                            "width": 22.4,
+                            "height": 30.4
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:90",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 325.2,
+                        "y": 608.6,
+                        "width": 8.0,
+                        "height": 17.0
+                      },
+                      "text": "9"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:91",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 350.4,
+                    "y": 548.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:92",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 350.4,
+                        "y": 548.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:374",
+                      "name": "microchip",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 372.0,
+                        "y": 570.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:375",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 378.4,
+                            "y": 573.4,
+                            "width": 25.6,
+                            "height": 32.0
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:94",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 408.0,
+                        "y": 608.6,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "42"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:95",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 441.6,
+                    "y": 548.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:96",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 441.6,
+                        "y": 548.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:362",
+                      "name": "terminal",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 463.2,
+                        "y": 570.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:363",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 469.6,
+                            "y": 578.2,
+                            "width": 25.6,
+                            "height": 22.4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:98",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 532.8,
+                    "y": 548.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:99",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 532.8,
+                        "y": 548.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:392",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 554.4,
+                        "y": 570.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:393",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 559.2,
+                            "y": 575.0,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:43",
+              "name": "GridRow3",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 639.8,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "18:44",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 168.0,
+                    "y": 639.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:45",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 168.0,
+                        "y": 639.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:46",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 189.6,
+                        "y": 661.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:47",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 194.4,
+                            "y": 666.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:48",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 259.2,
+                    "y": 639.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:49",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 259.2,
+                        "y": 639.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:50",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 280.8,
+                        "y": 661.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:51",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 285.6,
+                            "y": 666.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:52",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 350.4,
+                    "y": 639.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:53",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 350.4,
+                        "y": 639.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:54",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 372.0,
+                        "y": 661.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:55",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 376.8,
+                            "y": 666.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:56",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 441.6,
+                    "y": 639.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:57",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 441.6,
+                        "y": 639.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:58",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 463.2,
+                        "y": 661.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:59",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 468.0,
+                            "y": 666.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:60",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 532.8,
+                    "y": 639.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:61",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 532.8,
+                        "y": 639.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:62",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 554.4,
+                        "y": 661.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:63",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 559.2,
+                            "y": 666.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:64",
+              "name": "GridRow4",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 731.0,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "18:65",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 168.0,
+                    "y": 731.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:66",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 168.0,
+                        "y": 731.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:67",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 189.6,
+                        "y": 752.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:68",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 194.4,
+                            "y": 757.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:69",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 259.2,
+                    "y": 731.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:70",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 259.2,
+                        "y": 731.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:71",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 280.8,
+                        "y": 752.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:72",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 285.6,
+                            "y": 757.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:73",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 350.4,
+                    "y": 731.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:74",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 350.4,
+                        "y": 731.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:75",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 372.0,
+                        "y": 752.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:76",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 376.8,
+                            "y": 757.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:77",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 441.6,
+                    "y": 731.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:78",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 441.6,
+                        "y": 731.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:79",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 463.2,
+                        "y": 752.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:80",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 468.0,
+                            "y": 757.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:81",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 532.8,
+                    "y": 731.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:82",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 532.8,
+                        "y": 731.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:83",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 554.4,
+                        "y": 752.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:84",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 559.2,
+                            "y": 757.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:85",
+              "name": "GridRow5",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 822.2,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "18:86",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 168.0,
+                    "y": 822.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:87",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 168.0,
+                        "y": 822.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:88",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 189.6,
+                        "y": 843.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:89",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 194.4,
+                            "y": 848.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:90",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 259.2,
+                    "y": 822.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:91",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 259.2,
+                        "y": 822.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:92",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 280.8,
+                        "y": 843.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:93",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 285.6,
+                            "y": 848.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:94",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 350.4,
+                    "y": 822.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:95",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 350.4,
+                        "y": 822.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:96",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 372.0,
+                        "y": 843.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:97",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 376.8,
+                            "y": 848.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:98",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 441.6,
+                    "y": 822.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:99",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 441.6,
+                        "y": 822.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:100",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 463.2,
+                        "y": 843.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:101",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 468.0,
+                            "y": 848.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:102",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 532.8,
+                    "y": 822.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:103",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 532.8,
+                        "y": 822.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:104",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 554.4,
+                        "y": 843.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:105",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 559.2,
+                            "y": 848.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "15:133",
+          "name": "InventoryFooter",
+          "type": "FRAME",
+          "bounds": {
+            "x": 168.0,
+            "y": 911.0,
+            "width": 456.0,
+            "height": 56.0
+          },
+          "layoutMode": "VERTICAL",
+          "itemSpacing": 14.40000057220459,
+          "children": [
+            {
+              "id": "15:134",
+              "name": "WeightRow",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 925.4,
+                "width": 456.0,
+                "height": 20.0
+              },
+              "layoutMode": "HORIZONTAL",
+              "children": [
+                {
+                  "id": "15:135",
+                  "name": "WeightTitle",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 168.0,
+                    "y": 926.4,
+                    "width": 129.0,
+                    "height": 18.0
+                  },
+                  "layoutMode": "HORIZONTAL",
+                  "itemSpacing": 7.200000286102295,
+                  "children": [
+                    {
+                      "id": "15:494",
+                      "name": "dumbbell",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 168.0,
+                        "y": 927.0,
+                        "width": 16.8,
+                        "height": 16.8
+                      },
+                      "children": [
+                        {
+                          "id": "15:495",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 169.35,
+                            "y": 928.35,
+                            "width": 14.1,
+                            "height": 14.1
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:137",
+                      "name": "WeightLabel",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 192.0,
+                        "y": 926.4,
+                        "width": 105.0,
+                        "height": 18.0
+                      },
+                      "text": "인벤토리 적재량"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:138",
+                  "name": "WeightValue",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 483.0,
+                    "y": 925.4,
+                    "width": 141.0,
+                    "height": 20.0
+                  },
+                  "text": "34.8 / 120.0 kg"
+                }
+              ]
+            },
+            {
+              "id": "15:139",
+              "name": "ProgressBar",
+              "type": "FRAME",
+              "bounds": {
+                "x": 168.0,
+                "y": 959.8,
+                "width": 456.0,
+                "height": 7.2
+              },
+              "layoutMode": "HORIZONTAL",
+              "children": [
+                {
+                  "id": "15:140",
+                  "name": "ProgressFill",
+                  "type": "RECTANGLE",
+                  "bounds": {
+                    "x": 168.0,
+                    "y": 959.8,
+                    "width": 146.4,
+                    "height": 7.2
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "15:141",
+      "name": "DetailPanel",
+      "type": "FRAME",
+      "bounds": {
+        "x": 672.0,
+        "y": 175.2,
+        "width": 576.0,
+        "height": 729.6
+      },
+      "layoutMode": "VERTICAL",
+      "itemSpacing": 19.200000762939453,
+      "padding": [
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "children": [
+        {
+          "id": "15:142",
+          "name": "DecalTL",
+          "type": "FRAME",
+          "bounds": {
+            "x": 672.0,
+            "y": 175.2,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:143",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 672.0,
+                "y": 175.2,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:144",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 672.0,
+                "y": 175.2,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:145",
+          "name": "DecalTR",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1233.6,
+            "y": 175.2,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:146",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1233.6,
+                "y": 175.2,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:147",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1233.6,
+                "y": 175.2,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:148",
+          "name": "DecalBL",
+          "type": "FRAME",
+          "bounds": {
+            "x": 672.0,
+            "y": 890.4,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:149",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 672.0,
+                "y": 890.4,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:150",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 672.0,
+                "y": 890.4,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:151",
+          "name": "DecalBR",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1233.6,
+            "y": 890.4,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:152",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1233.6,
+                "y": 890.4,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:153",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1233.6,
+                "y": 890.4,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:154",
+          "name": "PanelHeader",
+          "type": "FRAME",
+          "bounds": {
+            "x": 696.0,
+            "y": 199.2,
+            "width": 528.0,
+            "height": 52.8
+          },
+          "layoutMode": "HORIZONTAL",
+          "children": [
+            {
+              "id": "15:155",
+              "name": "TitleGroup",
+              "type": "FRAME",
+              "bounds": {
+                "x": 696.0,
+                "y": 204.4,
+                "width": 218.0,
+                "height": 28.0
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 12.0,
+              "children": [
+                {
+                  "id": "15:156",
+                  "name": "Title",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 696.0,
+                    "y": 204.4,
+                    "width": 95.0,
+                    "height": 28.0
+                  },
+                  "text": "상세 정보"
+                },
+                {
+                  "id": "15:157",
+                  "name": "Subtitle",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 803.0,
+                    "y": 213.4,
+                    "width": 111.0,
+                    "height": 17.0
+                  },
+                  "text": "SPECIFICATIONS"
+                }
+              ]
+            },
+            {
+              "id": "21:6",
+              "name": "CloseButton",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1190.4,
+                "y": 201.6,
+                "width": 33.6,
+                "height": 33.6
+              },
+              "layoutMode": "VERTICAL",
+              "children": [
+                {
+                  "id": "21:9",
+                  "name": "x-circle",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1198.8,
+                    "y": 210.0,
+                    "width": 16.8,
+                    "height": 16.8
+                  },
+                  "children": [
+                    {
+                      "id": "21:10",
+                      "name": "Vector",
+                      "type": "VECTOR",
+                      "bounds": {
+                        "x": 1200.2,
+                        "y": 211.4,
+                        "width": 14.0,
+                        "height": 14.0
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "22:3",
+          "name": "ItemNameSection",
+          "type": "FRAME",
+          "bounds": {
+            "x": 696.0,
+            "y": 271.2,
+            "width": 528.0,
+            "height": 67.2
+          },
+          "layoutMode": "VERTICAL"
+        },
+        {
+          "id": "22:4",
+          "name": "ItemImageSection",
+          "type": "FRAME",
+          "bounds": {
+            "x": 696.0,
+            "y": 357.6,
+            "width": 528.0,
+            "height": 384.0
+          },
+          "layoutMode": "VERTICAL"
+        },
+        {
+          "id": "22:5",
+          "name": "DescriptionSection",
+          "type": "FRAME",
+          "bounds": {
+            "x": 696.0,
+            "y": 760.8,
+            "width": 528.0,
+            "height": 120.0
+          },
+          "layoutMode": "VERTICAL"
+        }
+      ]
+    },
+    {
+      "id": "15:197",
+      "name": "StoragePanel",
+      "type": "FRAME",
+      "bounds": {
+        "x": 1272.0,
+        "y": 84.0,
+        "width": 504.0,
+        "height": 912.0
+      },
+      "layoutMode": "VERTICAL",
+      "itemSpacing": 24.0,
+      "padding": [
+        24.0,
+        24.0,
+        24.0,
+        24.0
+      ],
+      "children": [
+        {
+          "id": "15:198",
+          "name": "DecalTL",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1272.0,
+            "y": 84.0,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:199",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1272.0,
+                "y": 84.0,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:200",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1272.0,
+                "y": 84.0,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:201",
+          "name": "DecalTR",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1761.6,
+            "y": 84.0,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:202",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1761.6,
+                "y": 84.0,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:203",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1761.6,
+                "y": 84.0,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:204",
+          "name": "DecalBL",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1272.0,
+            "y": 981.6,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:205",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1272.0,
+                "y": 981.6,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:206",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1272.0,
+                "y": 981.6,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:207",
+          "name": "DecalBR",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1761.6,
+            "y": 981.6,
+            "width": 14.4,
+            "height": 14.4
+          },
+          "children": [
+            {
+              "id": "15:208",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1761.6,
+                "y": 981.6,
+                "width": 12.0,
+                "height": 0.0
+              }
+            },
+            {
+              "id": "15:209",
+              "name": "Line",
+              "type": "LINE",
+              "bounds": {
+                "x": 1761.6,
+                "y": 981.6,
+                "width": 0.0,
+                "height": 12.0
+              }
+            }
+          ]
+        },
+        {
+          "id": "15:210",
+          "name": "PanelHeader",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1296.0,
+            "y": 108.0,
+            "width": 456.0,
+            "height": 52.8
+          },
+          "layoutMode": "HORIZONTAL",
+          "children": [
+            {
+              "id": "15:211",
+              "name": "TitleGroup",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 113.2,
+                "width": 154.0,
+                "height": 28.0
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 12.0,
+              "children": [
+                {
+                  "id": "15:212",
+                  "name": "Title",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 1296.0,
+                    "y": 113.2,
+                    "width": 45.0,
+                    "height": 28.0
+                  },
+                  "text": "창고"
+                },
+                {
+                  "id": "15:213",
+                  "name": "Subtitle",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 1353.0,
+                    "y": 122.2,
+                    "width": 97.0,
+                    "height": 17.0
+                  },
+                  "text": "BASE DEPOSIT"
+                }
+              ]
+            },
+            {
+              "id": "15:214",
+              "name": "CloseBtn",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1720.8,
+                "y": 111.6,
+                "width": 31.2,
+                "height": 31.2
+              },
+              "layoutMode": "HORIZONTAL",
+              "padding": [
+                7.200000286102295,
+                7.200000286102295,
+                7.200000286102295,
+                7.200000286102295
+              ],
+              "children": [
+                {
+                  "id": "15:341",
+                  "name": "x-circle",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1728.0,
+                    "y": 118.8,
+                    "width": 16.8,
+                    "height": 16.8
+                  },
+                  "children": [
+                    {
+                      "id": "15:342",
+                      "name": "Vector",
+                      "type": "VECTOR",
+                      "bounds": {
+                        "x": 1729.4,
+                        "y": 120.2,
+                        "width": 14.0,
+                        "height": 14.0
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "15:216",
+          "name": "StorageStats",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1296.0,
+            "y": 184.8,
+            "width": 456.0,
+            "height": 26.6
+          },
+          "layoutMode": "HORIZONTAL",
+          "children": [
+            {
+              "id": "15:217",
+              "name": "BadgeItem",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 184.8,
+                "width": 76.2,
+                "height": 26.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "padding": [
+                4.800000190734863,
+                9.600000381469727,
+                4.800000190734863,
+                9.600000381469727
+              ],
+              "children": [
+                {
+                  "id": "15:218",
+                  "name": "BadgeText",
+                  "type": "TEXT",
+                  "bounds": {
+                    "x": 1305.6,
+                    "y": 189.6,
+                    "width": 57.0,
+                    "height": 17.0
+                  },
+                  "text": "보관 가능"
+                }
+              ]
+            },
+            {
+              "id": "15:219",
+              "name": "SlotCapacity",
+              "type": "TEXT",
+              "bounds": {
+                "x": 1612.0,
+                "y": 188.6,
+                "width": 140.0,
+                "height": 19.0
+              },
+              "text": "사용 슬롯: 14 / 80"
+            }
+          ]
+        },
+        {
+          "id": "15:220",
+          "name": "StorageGrid",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1296.0,
+            "y": 235.4,
+            "width": 456.0,
+            "height": 537.6
+          },
+          "layoutMode": "VERTICAL",
+          "itemSpacing": 9.600000381469727,
+          "children": [
+            {
+              "id": "18:8",
+              "name": "GridRow1",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 235.4,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "15:222",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1296.0,
+                    "y": 235.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:223",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1296.0,
+                        "y": 235.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:335",
+                      "name": "circle-x",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1317.6,
+                        "y": 257.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:336",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1320.8,
+                            "y": 260.2,
+                            "width": 32.0,
+                            "height": 32.0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:225",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1387.2,
+                    "y": 235.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:226",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1387.2,
+                        "y": 235.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:485",
+                      "name": "headset",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1408.8,
+                        "y": 257.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:486",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1413.6,
+                            "y": 260.2,
+                            "width": 28.8,
+                            "height": 32.0
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:228",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1478.4,
+                    "y": 235.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:229",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1478.4,
+                        "y": 235.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:500",
+                      "name": "zap-off",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1500.0,
+                        "y": 257.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:501",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1503.2,
+                            "y": 260.19,
+                            "width": 32.0,
+                            "height": 32.01
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:231",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1569.6,
+                    "y": 235.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:232",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1569.6,
+                        "y": 235.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:353",
+                      "name": "sword",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1591.2,
+                        "y": 257.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:354",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1596.0,
+                            "y": 261.8,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:234",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1635.6,
+                        "y": 295.4,
+                        "width": 8.0,
+                        "height": 17.0
+                      },
+                      "text": "3"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:235",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1660.8,
+                    "y": 235.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:236",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1660.8,
+                        "y": 235.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:359",
+                      "name": "battery",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1682.4,
+                        "y": 257.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:360",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1685.6,
+                            "y": 266.6,
+                            "width": 32.0,
+                            "height": 19.2
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:238",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1718.4,
+                        "y": 295.4,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "15"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:9",
+              "name": "GridRow2",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 326.6,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "15:240",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1296.0,
+                    "y": 326.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:241",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1296.0,
+                        "y": 326.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:491",
+                      "name": "syringe",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1317.6,
+                        "y": 348.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:492",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1320.8,
+                            "y": 351.4,
+                            "width": 32.0,
+                            "height": 32.0
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:243",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1362.0,
+                        "y": 386.6,
+                        "width": 8.0,
+                        "height": 17.0
+                      },
+                      "text": "4"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:244",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1387.2,
+                    "y": 326.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:245",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1387.2,
+                        "y": 326.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:347",
+                      "name": "backpack",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1408.8,
+                        "y": 348.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:348",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1415.2,
+                            "y": 351.4,
+                            "width": 25.6,
+                            "height": 32.0
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:247",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1444.8,
+                        "y": 386.6,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "22"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:248",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1478.4,
+                    "y": 326.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:249",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1478.4,
+                        "y": 326.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:386",
+                      "name": "droplet",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1500.0,
+                        "y": 348.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:387",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1508.0,
+                            "y": 353.0,
+                            "width": 22.4,
+                            "height": 30.4
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:251",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1536.0,
+                        "y": 386.6,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "14"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:252",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1569.6,
+                    "y": 326.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:253",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1569.6,
+                        "y": 326.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:368",
+                      "name": "shield",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1591.2,
+                        "y": 348.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:369",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1597.6,
+                            "y": 351.4,
+                            "width": 25.6,
+                            "height": 32.01
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:255",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1627.2,
+                        "y": 386.6,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "50"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:256",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1660.8,
+                    "y": 326.6,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:257",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1660.8,
+                        "y": 326.6,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:371",
+                      "name": "shield",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1682.4,
+                        "y": 348.2,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:372",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1688.8,
+                            "y": 351.4,
+                            "width": 25.6,
+                            "height": 32.01
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:259",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1718.4,
+                        "y": 386.6,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "50"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:10",
+              "name": "GridRow3",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 417.8,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "15:261",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1296.0,
+                    "y": 417.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:262",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1296.0,
+                        "y": 417.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:377",
+                      "name": "microchip",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1317.6,
+                        "y": 439.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:378",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1324.0,
+                            "y": 442.6,
+                            "width": 25.6,
+                            "height": 32.0
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "15:264",
+                      "name": "Count",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1353.6,
+                        "y": 477.8,
+                        "width": 16.0,
+                        "height": 17.0
+                      },
+                      "text": "80"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:265",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1387.2,
+                    "y": 417.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:266",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1387.2,
+                        "y": 417.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:425",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1408.8,
+                        "y": 439.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:426",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1413.6,
+                            "y": 444.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:268",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1478.4,
+                    "y": 417.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:269",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1478.4,
+                        "y": 417.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:428",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1500.0,
+                        "y": 439.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:429",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1504.8,
+                            "y": 444.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:271",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1569.6,
+                    "y": 417.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:272",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1569.6,
+                        "y": 417.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:431",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1591.2,
+                        "y": 439.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:432",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1596.0,
+                            "y": 444.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:274",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1660.8,
+                    "y": 417.8,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:275",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1660.8,
+                        "y": 417.8,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:434",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1682.4,
+                        "y": 439.4,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:435",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1687.2,
+                            "y": 444.2,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:11",
+              "name": "GridRow4",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 509.0,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "15:278",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1296.0,
+                    "y": 509.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:279",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1296.0,
+                        "y": 509.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:437",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1317.6,
+                        "y": 530.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:438",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1322.4,
+                            "y": 535.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:281",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1387.2,
+                    "y": 509.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:282",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1387.2,
+                        "y": 509.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:440",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1408.8,
+                        "y": 530.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:441",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1413.6,
+                            "y": 535.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:284",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1478.4,
+                    "y": 509.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:285",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1478.4,
+                        "y": 509.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:443",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1500.0,
+                        "y": 530.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:444",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1504.8,
+                            "y": 535.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:287",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1569.6,
+                    "y": 509.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:288",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1569.6,
+                        "y": 509.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:446",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1591.2,
+                        "y": 530.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:447",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1596.0,
+                            "y": 535.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:290",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1660.8,
+                    "y": 509.0,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:291",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1660.8,
+                        "y": 509.0,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:449",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1682.4,
+                        "y": 530.6,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:450",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1687.2,
+                            "y": 535.4,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:12",
+              "name": "GridRow5",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 600.2,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "15:294",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1296.0,
+                    "y": 600.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:295",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1296.0,
+                        "y": 600.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:452",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1317.6,
+                        "y": 621.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:453",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1322.4,
+                            "y": 626.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:297",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1387.2,
+                    "y": 600.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:298",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1387.2,
+                        "y": 600.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:455",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1408.8,
+                        "y": 621.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:456",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1413.6,
+                            "y": 626.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:300",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1478.4,
+                    "y": 600.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:301",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1478.4,
+                        "y": 600.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:458",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1500.0,
+                        "y": 621.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:459",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1504.8,
+                            "y": 626.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:303",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1569.6,
+                    "y": 600.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:304",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1569.6,
+                        "y": 600.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:461",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1591.2,
+                        "y": 621.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:462",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1596.0,
+                            "y": 626.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "15:306",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1660.8,
+                    "y": 600.2,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "15:307",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1660.8,
+                        "y": 600.2,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "15:464",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1682.4,
+                        "y": 621.8,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "15:465",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1687.2,
+                            "y": 626.6,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "18:106",
+              "name": "GridRow6",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 691.4,
+                "width": 456.0,
+                "height": 81.6
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "18:107",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1296.0,
+                    "y": 691.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:108",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1296.0,
+                        "y": 691.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:109",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1317.6,
+                        "y": 713.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:110",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1322.4,
+                            "y": 717.8,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:111",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1387.2,
+                    "y": 691.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:112",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1387.2,
+                        "y": 691.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:113",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1408.8,
+                        "y": 713.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:114",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1413.6,
+                            "y": 717.8,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:115",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1478.4,
+                    "y": 691.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:116",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1478.4,
+                        "y": 691.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:117",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1500.0,
+                        "y": 713.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:118",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1504.8,
+                            "y": 717.8,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:119",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1569.6,
+                    "y": 691.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:120",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1569.6,
+                        "y": 691.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:121",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1591.2,
+                        "y": 713.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:122",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1596.0,
+                            "y": 717.8,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "18:123",
+                  "name": "ItemSlot",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1660.8,
+                    "y": 691.4,
+                    "width": 81.6,
+                    "height": 81.6
+                  },
+                  "layoutMode": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "18:124",
+                      "name": "TierStrip",
+                      "type": "RECTANGLE",
+                      "bounds": {
+                        "x": 1660.8,
+                        "y": 691.4,
+                        "width": 81.6,
+                        "height": 3.6
+                      }
+                    },
+                    {
+                      "id": "18:125",
+                      "name": "square-dashed",
+                      "type": "FRAME",
+                      "bounds": {
+                        "x": 1682.4,
+                        "y": 713.0,
+                        "width": 38.4,
+                        "height": 38.4
+                      },
+                      "children": [
+                        {
+                          "id": "18:126",
+                          "name": "Vector",
+                          "type": "VECTOR",
+                          "bounds": {
+                            "x": 1687.2,
+                            "y": 717.8,
+                            "width": 28.8,
+                            "height": 28.8
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "15:325",
+          "name": "StorageFooter",
+          "type": "FRAME",
+          "bounds": {
+            "x": 1296.0,
+            "y": 797.0,
+            "width": 456.0,
+            "height": 61.2
+          },
+          "layoutMode": "VERTICAL",
+          "itemSpacing": 14.40000057220459,
+          "children": [
+            {
+              "id": "15:326",
+              "name": "ActionButtonGroup",
+              "type": "FRAME",
+              "bounds": {
+                "x": 1296.0,
+                "y": 811.4,
+                "width": 456.0,
+                "height": 46.8
+              },
+              "layoutMode": "HORIZONTAL",
+              "itemSpacing": 9.600000381469727,
+              "children": [
+                {
+                  "id": "15:327",
+                  "name": "StoreAllButton",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1296.0,
+                    "y": 811.4,
+                    "width": 223.2,
+                    "height": 46.8
+                  },
+                  "layoutMode": "HORIZONTAL",
+                  "padding": [
+                    14.40000057220459,
+                    14.40000057220459,
+                    14.40000057220459,
+                    14.40000057220459
+                  ],
+                  "children": [
+                    {
+                      "id": "15:328",
+                      "name": "StoreAllText",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1362.6,
+                        "y": 825.8,
+                        "width": 90.0,
+                        "height": 18.0
+                      },
+                      "text": "전부 보관하기"
+                    }
+                  ]
+                },
+                {
+                  "id": "15:329",
+                  "name": "RetrieveAllButton",
+                  "type": "FRAME",
+                  "bounds": {
+                    "x": 1528.8,
+                    "y": 811.4,
+                    "width": 223.2,
+                    "height": 46.8
+                  },
+                  "layoutMode": "HORIZONTAL",
+                  "padding": [
+                    14.40000057220459,
+                    14.40000057220459,
+                    14.40000057220459,
+                    14.40000057220459
+                  ],
+                  "children": [
+                    {
+                      "id": "15:330",
+                      "name": "RetrieveAllText",
+                      "type": "TEXT",
+                      "bounds": {
+                        "x": 1602.4,
+                        "y": 825.8,
+                        "width": 76.0,
+                        "height": 18.0
+                      },
+                      "text": "전부 꺼내기"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

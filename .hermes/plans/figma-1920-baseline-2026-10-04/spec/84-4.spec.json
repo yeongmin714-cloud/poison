@@ -1,0 +1,4523 @@
+{
+ "frame": "84:4",
+ "name": "equipment-inventory-panel",
+ "origin": [
+  29618.0,
+  3.0
+ ],
+ "root": {
+  "fill": [
+   null,
+   "#0B0E14@0.85"
+  ]
+ },
+ "nodes": [
+  {
+   "id": "84:4",
+   "name": "equipment-inventory-panel",
+   "type": "FRAME",
+   "depth": 0,
+   "x": 0.0,
+   "y": 0.0,
+   "w": 1920.0,
+   "h": 1080.0,
+   "layout": "HORIZONTAL",
+   "gap": 28.8,
+   "pad": [
+    48.0,
+    48.0,
+    48.0,
+    48.0
+   ],
+   "fill": [
+    null,
+    "#0B0E14@0.85"
+   ]
+  },
+  {
+   "id": "84:5",
+   "name": "TelemetryOverlay",
+   "type": "FRAME",
+   "depth": 1,
+   "x": 240.0,
+   "y": 48.0,
+   "w": 1440.0,
+   "h": 19.0,
+   "layout": "HORIZONTAL",
+   "pad": [
+    19.2,
+    null,
+    19.2,
+    null
+   ]
+  },
+  {
+   "id": "84:6",
+   "name": "SYSTEM_STATUS: ONLINE // LOADOUT_ENGAGED: TRUE",
+   "type": "TEXT",
+   "depth": 2,
+   "x": 259.2,
+   "y": 48.0,
+   "w": 398.0,
+   "h": 19.0,
+   "text": "SYSTEM_STATUS: ONLINE // LOADOUT_ENGAGED",
+   "fontSize": 14.40000057220459,
+   "fontWeight": 400,
+   "lineHeight": 18.719999313354492,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#484F58@1"
+   ]
+  },
+  {
+   "id": "84:7",
+   "name": "SECTOR: DEEP_GRID_ALPHA // PORT: 0x9F4C",
+   "type": "TEXT",
+   "depth": 2,
+   "x": 1323.8,
+   "y": 48.0,
+   "w": 337.0,
+   "h": 19.0,
+   "text": "SECTOR: DEEP_GRID_ALPHA // PORT: 0x9F4C",
+   "fontSize": 14.40000057220459,
+   "fontWeight": 400,
+   "lineHeight": 18.719999313354492,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#484F58@1"
+   ]
+  },
+  {
+   "id": "84:8",
+   "name": "CharacterStatusPanel",
+   "type": "FRAME",
+   "depth": 1,
+   "x": 391.8,
+   "y": 72.0,
+   "w": 576.0,
+   "h": 936.0,
+   "layout": "VERTICAL",
+   "gap": 19.2,
+   "pad": [
+    24.0,
+    24.0,
+    24.0,
+    24.0
+   ],
+   "fill": [
+    "#161B22@0.7"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 14.4,
+   "effects": [
+    {
+     "type": "BACKGROUND_BLUR",
+     "radius": 36.0,
+     "y": 0,
+     "spread": 0,
+     "a": 0,
+     "color": null
+    },
+    {
+     "type": "DROP_SHADOW",
+     "radius": 38.4,
+     "y": 19.2,
+     "spread": 0,
+     "a": 0.38,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "84:9",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 391.8,
+   "y": 72.0,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "84:10",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 391.8,
+   "y": 72.0,
+   "w": 14.4,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:11",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 391.8,
+   "y": 72.0,
+   "w": 0.0,
+   "h": 14.4,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:12",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 953.4,
+   "y": 72.0,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "84:13",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 953.4,
+   "y": 72.0,
+   "w": 14.4,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:14",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 953.4,
+   "y": 72.0,
+   "w": 0.0,
+   "h": 14.4,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:15",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 391.8,
+   "y": 993.6,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "84:16",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 391.8,
+   "y": 993.6,
+   "w": 14.4,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:17",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 391.8,
+   "y": 993.6,
+   "w": 0.0,
+   "h": 14.4,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:18",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 953.4,
+   "y": 993.6,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "84:19",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 953.4,
+   "y": 993.6,
+   "w": 14.4,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:20",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 953.4,
+   "y": 993.6,
+   "w": 0.0,
+   "h": 14.4,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:21",
+   "name": "PanelHeader",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 415.8,
+   "y": 96.0,
+   "w": 528.0,
+   "h": 52.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    null,
+    null,
+    null,
+    14.4
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2
+  },
+  {
+   "id": "84:22",
+   "name": "TitleGroup",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 415.8,
+   "y": 101.2,
+   "w": 234.0,
+   "h": 28.0,
+   "layout": "HORIZONTAL",
+   "gap": 12.0
+  },
+  {
+   "id": "84:23",
+   "name": "상태 정보",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 415.8,
+   "y": 101.2,
+   "w": 95.0,
+   "h": 28.0,
+   "text": "상태 정보",
+   "fontSize": 24.0,
+   "fontWeight": 700,
+   "lineHeight": 28.125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  },
+  {
+   "id": "84:24",
+   "name": "CHARACTER STATUS",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 522.8,
+   "y": 110.2,
+   "w": 127.0,
+   "h": 17.0,
+   "text": "CHARACTER STATUS",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": null,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "84:25",
+   "name": "CloseBtn",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 912.6,
+   "y": 99.6,
+   "w": 31.2,
+   "h": 31.2,
+   "layout": "HORIZONTAL",
+   "pad": [
+    7.2,
+    7.2,
+    7.2,
+    7.2
+   ],
+   "fill": [
+    "#FFFFFF@0.06"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 7.2
+  },
+  {
+   "id": "84:26",
+   "name": "x-circle",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 919.8,
+   "y": 106.8,
+   "w": 16.8,
+   "h": 16.8
+  },
+  {
+   "id": "84:27",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 5,
+   "x": 919.8,
+   "y": 106.8,
+   "w": 16.8,
+   "h": 16.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "84:28",
+   "name": "Identity",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 415.8,
+   "y": 168.0,
+   "w": 528.0,
+   "h": 85.0,
+   "layout": "VERTICAL",
+   "gap": 7.2,
+   "pad": [
+    14.4,
+    14.4,
+    14.4,
+    14.4
+   ],
+   "fill": [
+    "#FFFFFF@0.02"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "84:29",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 430.2,
+   "y": 182.4,
+   "w": 499.2,
+   "h": 18.0,
+   "layout": "HORIZONTAL"
+  },
+  {
+   "id": "84:30",
+   "name": "전설적인 에이전트 (LEGENDARY)",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 430.2,
+   "y": 182.4,
+   "w": 222.0,
+   "h": 18.0,
+   "text": "전설적인 에이전트 (LEGENDARY)",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "84:31",
+   "name": "클래스: 뱅가드",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 835.4,
+   "y": 182.4,
+   "w": 94.0,
+   "h": 18.0,
+   "text": "클래스: 뱅가드",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 400,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "84:32",
+   "name": "코드네임: 아르테미스",
+   "type": "TEXT",
+   "depth": 3,
+   "x": 430.2,
+   "y": 207.6,
+   "w": 499.2,
+   "h": 31.0,
+   "text": "코드네임: 아르테미스",
+   "fontSize": 26.400001525878906,
+   "fontWeight": 700,
+   "lineHeight": 30.937501907348633,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  },
+  {
+   "id": "84:33",
+   "name": "Portrait",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 415.8,
+   "y": 272.2,
+   "w": 528.0,
+   "h": 312.0,
+   "layout": "VERTICAL",
+   "fill": [
+    "#0B0E14@1"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "84:34",
+   "name": "Rectangle",
+   "type": "RECTANGLE",
+   "depth": 3,
+   "x": 415.8,
+   "y": 272.2,
+   "w": 528.0,
+   "h": 312.0,
+   "fill": [
+    null
+   ]
+  },
+  {
+   "id": "84:35",
+   "name": "HudOverlay",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 415.8,
+   "y": 272.2,
+   "w": 528.0,
+   "h": 44.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    14.4,
+    14.4,
+    14.4,
+    14.4
+   ]
+  },
+  {
+   "id": "84:36",
+   "name": "SYS_SCAN_ACTIVE",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 430.2,
+   "y": 286.6,
+   "w": 108.0,
+   "h": 16.0,
+   "text": "SYS_SCAN_ACTIVE",
+   "fontSize": 12.0,
+   "fontWeight": 400,
+   "lineHeight": 15.59999942779541,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#58A6FF@1"
+   ]
+  },
+  {
+   "id": "84:37",
+   "name": "HP 100%",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 878.4,
+   "y": 286.6,
+   "w": 51.0,
+   "h": 16.0,
+   "text": "HP 100%",
+   "fontSize": 12.0,
+   "fontWeight": 400,
+   "lineHeight": 15.59999942779541,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#58A6FF@1"
+   ]
+  },
+  {
+   "id": "84:38",
+   "name": "Stats",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 415.8,
+   "y": 603.4,
+   "w": 528.0,
+   "h": 157.8,
+   "layout": "HORIZONTAL",
+   "gap": 19.2,
+   "pad": [
+    14.4,
+    14.4,
+    14.4,
+    14.4
+   ],
+   "fill": [
+    "#FFFFFF@0.01"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "84:39",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 430.2,
+   "y": 617.8,
+   "w": 120.0,
+   "h": 129.0,
+   "layout": "VERTICAL",
+   "gap": 4.8,
+   "pad": [
+    19.2,
+    19.2,
+    19.2,
+    19.2
+   ],
+   "fill": [
+    "#FFFFFF@0.02"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 7.2
+  },
+  {
+   "id": "84:40",
+   "name": "LEVEL",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 471.2,
+   "y": 637.0,
+   "w": 38.0,
+   "h": 15.0,
+   "text": "LEVEL",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 15.468750953674316,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "84:41",
+   "name": "85",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 466.7,
+   "y": 656.8,
+   "w": 47.0,
+   "h": 50.0,
+   "text": "85",
+   "fontSize": 38.400001525878906,
+   "fontWeight": 800,
+   "lineHeight": 49.92000198364258,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#58A6FF@1"
+   ]
+  },
+  {
+   "id": "84:42",
+   "name": "EXP 94.2%",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 457.7,
+   "y": 711.6,
+   "w": 65.0,
+   "h": 16.0,
+   "text": "EXP 94.2%",
+   "fontSize": 12.0,
+   "fontWeight": 400,
+   "lineHeight": 15.59999942779541,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#56E39F@1"
+   ]
+  },
+  {
+   "id": "84:43",
+   "name": "StatsGrid",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 569.4,
+   "y": 617.8,
+   "w": 360.0,
+   "h": 104.4,
+   "layout": "VERTICAL",
+   "gap": 9.6
+  },
+  {
+   "id": "84:44",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 569.4,
+   "y": 617.8,
+   "w": 360.0,
+   "h": 22.0,
+   "layout": "HORIZONTAL"
+  },
+  {
+   "id": "84:45",
+   "name": "공격력 (ATK)",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 569.4,
+   "y": 619.8,
+   "w": 87.0,
+   "h": 18.0,
+   "text": "공격력 (ATK)",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "84:46",
+   "name": "+1,845",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 868.4,
+   "y": 617.8,
+   "w": 61.0,
+   "h": 22.0,
+   "text": "+1,845",
+   "fontSize": 16.80000114440918,
+   "fontWeight": 700,
+   "lineHeight": 21.84000015258789,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#58A6FF@1"
+   ]
+  },
+  {
+   "id": "84:47",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 4,
+   "x": 569.4,
+   "y": 649.4,
+   "w": 360.0,
+   "h": 0.0,
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2
+  },
+  {
+   "id": "84:48",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 569.4,
+   "y": 659.0,
+   "w": 360.0,
+   "h": 22.0,
+   "layout": "HORIZONTAL"
+  },
+  {
+   "id": "84:49",
+   "name": "방어력 (DEF)",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 569.4,
+   "y": 661.0,
+   "w": 86.0,
+   "h": 18.0,
+   "text": "방어력 (DEF)",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "84:50",
+   "name": "+1,230",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 868.4,
+   "y": 659.0,
+   "w": 61.0,
+   "h": 22.0,
+   "text": "+1,230",
+   "fontSize": 16.80000114440918,
+   "fontWeight": 700,
+   "lineHeight": 21.84000015258789,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  },
+  {
+   "id": "84:51",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 4,
+   "x": 569.4,
+   "y": 690.6,
+   "w": 360.0,
+   "h": 0.0,
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2
+  },
+  {
+   "id": "84:52",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 569.4,
+   "y": 700.2,
+   "w": 360.0,
+   "h": 22.0,
+   "layout": "HORIZONTAL"
+  },
+  {
+   "id": "84:53",
+   "name": "최대 체력 (HP)",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 569.4,
+   "y": 702.2,
+   "w": 98.0,
+   "h": 18.0,
+   "text": "최대 체력 (HP)",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "84:54",
+   "name": "15,400",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 868.4,
+   "y": 700.2,
+   "w": 61.0,
+   "h": 22.0,
+   "text": "15,400",
+   "fontSize": 16.80000114440918,
+   "fontWeight": 700,
+   "lineHeight": 21.84000015258789,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#FF7B72@1"
+   ]
+  },
+  {
+   "id": "85:3",
+   "name": "SpecialStatsSection",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 415.8,
+   "y": 780.4,
+   "w": 528.0,
+   "h": 157.0,
+   "layout": "VERTICAL",
+   "gap": 16.8,
+   "pad": [
+    16.8,
+    16.8,
+    16.8,
+    16.8
+   ],
+   "fill": [
+    "#FFFFFF@0.01"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "85:4",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 432.6,
+   "y": 797.2,
+   "w": 494.4,
+   "h": 17.0,
+   "layout": "HORIZONTAL"
+  },
+  {
+   "id": "85:5",
+   "name": "특수 상태 게이지",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 432.6,
+   "y": 797.2,
+   "w": 100.0,
+   "h": 17.0,
+   "text": "특수 상태 게이지",
+   "fontSize": 14.40000057220459,
+   "fontWeight": 700,
+   "lineHeight": 16.875,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:6",
+   "name": "SPECIAL VITALS",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 826.0,
+   "y": 797.7,
+   "w": 101.0,
+   "h": 16.0,
+   "text": "SPECIAL VITALS",
+   "fontSize": 12.0,
+   "fontWeight": 400,
+   "lineHeight": 15.59999942779541,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#484F58@1"
+   ]
+  },
+  {
+   "id": "85:7",
+   "name": "GaugeContainer",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 432.6,
+   "y": 831.0,
+   "w": 494.4,
+   "h": 36.4,
+   "layout": "VERTICAL",
+   "gap": 7.2
+  },
+  {
+   "id": "85:8",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 432.6,
+   "y": 831.0,
+   "w": 494.4,
+   "h": 22.0,
+   "layout": "HORIZONTAL"
+  },
+  {
+   "id": "85:9",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 432.6,
+   "y": 833.0,
+   "w": 139.8,
+   "h": 18.0,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "85:10",
+   "name": "Ellipse",
+   "type": "ELLIPSE",
+   "depth": 6,
+   "x": 432.6,
+   "y": 838.4,
+   "w": 7.2,
+   "h": 7.2,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "85:11",
+   "name": "호감도 (Affection)",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 449.4,
+   "y": 833.0,
+   "w": 123.0,
+   "h": 18.0,
+   "text": "호감도 (Affection)",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  },
+  {
+   "id": "85:12",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 807.8,
+   "y": 831.0,
+   "w": 119.2,
+   "h": 22.0,
+   "layout": "HORIZONTAL",
+   "gap": 7.2
+  },
+  {
+   "id": "85:13",
+   "name": "Lv. 4",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 807.8,
+   "y": 831.0,
+   "w": 51.0,
+   "h": 22.0,
+   "text": "Lv. 4",
+   "fontSize": 16.80000114440918,
+   "fontWeight": 700,
+   "lineHeight": 21.84000015258789,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "85:14",
+   "name": "(신뢰 단계)",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 866.0,
+   "y": 836.0,
+   "w": 61.0,
+   "h": 15.0,
+   "text": "(신뢰 단계)",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 400,
+   "lineHeight": 15.468750953674316,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:15",
+   "name": "BarBg",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 432.6,
+   "y": 860.2,
+   "w": 494.4,
+   "h": 7.2,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#FFFFFF@0.06"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "85:16",
+   "name": "BarFill",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 432.6,
+   "y": 860.2,
+   "w": 307.2,
+   "h": 7.2,
+   "fill": [
+    "#BC8CFF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "85:17",
+   "name": "GaugeContainer",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 432.6,
+   "y": 884.2,
+   "w": 494.4,
+   "h": 36.4,
+   "layout": "VERTICAL",
+   "gap": 7.2
+  },
+  {
+   "id": "85:18",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 432.6,
+   "y": 884.2,
+   "w": 494.4,
+   "h": 22.0,
+   "layout": "HORIZONTAL"
+  },
+  {
+   "id": "85:19",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 432.6,
+   "y": 886.2,
+   "w": 129.8,
+   "h": 18.0,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "85:20",
+   "name": "Ellipse",
+   "type": "ELLIPSE",
+   "depth": 6,
+   "x": 432.6,
+   "y": 891.6,
+   "w": 7.2,
+   "h": 7.2,
+   "fill": [
+    "#F2C94C@1"
+   ]
+  },
+  {
+   "id": "85:21",
+   "name": "중독도 (Toxicity)",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 449.4,
+   "y": 886.2,
+   "w": 113.0,
+   "h": 18.0,
+   "text": "중독도 (Toxicity)",
+   "fontSize": 15.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 18.28125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  },
+  {
+   "id": "85:22",
+   "name": "Frame",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 827.8,
+   "y": 884.2,
+   "w": 99.2,
+   "h": 22.0,
+   "layout": "HORIZONTAL",
+   "gap": 7.2
+  },
+  {
+   "id": "85:23",
+   "name": "24%",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 827.8,
+   "y": 884.2,
+   "w": 31.0,
+   "h": 22.0,
+   "text": "24%",
+   "fontSize": 16.80000114440918,
+   "fontWeight": 700,
+   "lineHeight": 21.84000015258789,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F2C94C@1"
+   ]
+  },
+  {
+   "id": "85:24",
+   "name": "(안정 상태)",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 866.0,
+   "y": 889.2,
+   "w": 61.0,
+   "h": 15.0,
+   "text": "(안정 상태)",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 400,
+   "lineHeight": 15.468750953674316,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:25",
+   "name": "BarBg",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 432.6,
+   "y": 913.4,
+   "w": 494.4,
+   "h": 7.2,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#FFFFFF@0.06"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "85:26",
+   "name": "BarFill",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 432.6,
+   "y": 913.4,
+   "w": 92.4,
+   "h": 7.2,
+   "fill": [
+    "#F2C94C@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "84:55",
+   "name": "EquipmentPanel",
+   "type": "FRAME",
+   "depth": 1,
+   "x": 996.6,
+   "y": 72.0,
+   "w": 531.6,
+   "h": 936.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#161B22@0.7"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 14.4,
+   "effects": [
+    {
+     "type": "BACKGROUND_BLUR",
+     "radius": 36.0,
+     "y": 0,
+     "spread": 0,
+     "a": 0,
+     "color": null
+    },
+    {
+     "type": "DROP_SHADOW",
+     "radius": 38.4,
+     "y": 19.2,
+     "spread": 0,
+     "a": 0.38,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "84:56",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 996.6,
+   "y": 72.0,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "84:57",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 996.6,
+   "y": 72.0,
+   "w": 14.4,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:58",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 996.6,
+   "y": 72.0,
+   "w": 0.0,
+   "h": 14.4,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:59",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 1513.8,
+   "y": 72.0,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "84:60",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1513.8,
+   "y": 72.0,
+   "w": 14.4,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:61",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1513.8,
+   "y": 72.0,
+   "w": 0.0,
+   "h": 14.4,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:62",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 996.6,
+   "y": 993.6,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "84:63",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 996.6,
+   "y": 993.6,
+   "w": 14.4,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:64",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 996.6,
+   "y": 993.6,
+   "w": 0.0,
+   "h": 14.4,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:65",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 1513.8,
+   "y": 993.6,
+   "w": 14.4,
+   "h": 14.4
+  },
+  {
+   "id": "84:66",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1513.8,
+   "y": 993.6,
+   "w": 14.4,
+   "h": 0.0,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:67",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1513.8,
+   "y": 993.6,
+   "w": 0.0,
+   "h": 14.4,
+   "stroke": [
+    "#58A6FF@1"
+   ],
+   "strokeWeight": 1.8
+  },
+  {
+   "id": "84:68",
+   "name": "EquipmentLoadout",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 996.6,
+   "y": 72.0,
+   "w": 531.6,
+   "h": 936.0,
+   "layout": "VERTICAL",
+   "gap": 19.2,
+   "pad": [
+    24.0,
+    24.0,
+    24.0,
+    24.0
+   ]
+  },
+  {
+   "id": "84:69",
+   "name": "SectionHeader",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1020.6,
+   "y": 96.0,
+   "w": 483.6,
+   "h": 52.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    null,
+    null,
+    null,
+    14.4
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2
+  },
+  {
+   "id": "84:70",
+   "name": "TitleGroup",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1020.6,
+   "y": 101.2,
+   "w": 218.0,
+   "h": 28.0,
+   "layout": "HORIZONTAL",
+   "gap": 12.0
+  },
+  {
+   "id": "84:71",
+   "name": "장착 장비",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1020.6,
+   "y": 101.2,
+   "w": 95.0,
+   "h": 28.0,
+   "text": "장착 장비",
+   "fontSize": 24.0,
+   "fontWeight": 700,
+   "lineHeight": 28.125,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  },
+  {
+   "id": "84:72",
+   "name": "LOADOUT MATRIX",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1127.6,
+   "y": 110.2,
+   "w": 111.0,
+   "h": 17.0,
+   "text": "LOADOUT MATRIX",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": null,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "84:73",
+   "name": "SYS_EQ_STABLE",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 1410.2,
+   "y": 107.2,
+   "w": 94.0,
+   "h": 16.0,
+   "text": "SYS_EQ_STABLE",
+   "fontSize": 12.0,
+   "fontWeight": 400,
+   "lineHeight": 15.59999942779541,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#56E39F@1"
+   ]
+  },
+  {
+   "id": "93:4",
+   "name": "EquippedSection",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1020.6,
+   "y": 168.0,
+   "w": 483.6,
+   "h": 230.4,
+   "layout": "VERTICAL",
+   "gap": 12.0,
+   "pad": [
+    14.4,
+    14.4,
+    14.4,
+    14.4
+   ],
+   "fill": [
+    "#FFFFFF@0.02"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:5",
+   "name": "장착 중인 장비",
+   "type": "TEXT",
+   "depth": 4,
+   "x": 1035.0,
+   "y": 182.4,
+   "w": 116.0,
+   "h": 23.0,
+   "text": "장착 중인 장비",
+   "fontSize": 19.200000762939453,
+   "fontWeight": 700,
+   "lineHeight": 22.5,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#58A6FF@1"
+   ]
+  },
+  {
+   "id": "93:6",
+   "name": "EquipGrid",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1048.8,
+   "y": 217.2,
+   "w": 427.2,
+   "h": 172.8,
+   "layout": "HORIZONTAL",
+   "gap": 4.8
+  },
+  {
+   "id": "93:7",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1048.8,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:8",
+   "name": "EquipBadge",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1053.6,
+   "y": 222.0,
+   "w": 22.6,
+   "h": 15.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    4.8,
+    2.4,
+    4.8,
+    2.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "93:9",
+   "name": "EQ",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1058.4,
+   "y": 224.4,
+   "w": 13.0,
+   "h": 11.0,
+   "text": "EQ",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "93:10",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1048.8,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "93:11",
+   "name": "helmet",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1070.4,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:12",
+   "name": "hard-hat",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1070.4,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:13",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1073.6,
+   "y": 245.2,
+   "w": 32.0,
+   "h": 24.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:14",
+   "name": "투구",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1076.8,
+   "y": 283.2,
+   "w": 18.0,
+   "h": 11.0,
+   "text": "투구",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:15",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1135.2,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:16",
+   "name": "EquipBadge",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1140.0,
+   "y": 222.0,
+   "w": 22.6,
+   "h": 15.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    4.8,
+    2.4,
+    4.8,
+    2.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "93:17",
+   "name": "EQ",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1144.8,
+   "y": 224.4,
+   "w": 13.0,
+   "h": 11.0,
+   "text": "EQ",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "93:18",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1135.2,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#1F6FEB@1"
+   ]
+  },
+  {
+   "id": "93:19",
+   "name": "chest-armor",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1156.8,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:20",
+   "name": "shirt",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1156.8,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:21",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1160.4,
+   "y": 242.0,
+   "w": 31.2,
+   "h": 32.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:22",
+   "name": "갑옷",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1162.6,
+   "y": 283.2,
+   "w": 18.0,
+   "h": 11.0,
+   "text": "갑옷",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:23",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1221.6,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:24",
+   "name": "EquipBadge",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1226.4,
+   "y": 222.0,
+   "w": 22.6,
+   "h": 15.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    4.8,
+    2.4,
+    4.8,
+    2.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "93:25",
+   "name": "EQ",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1231.2,
+   "y": 224.4,
+   "w": 13.0,
+   "h": 11.0,
+   "text": "EQ",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "93:26",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1221.6,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "93:27",
+   "name": "boot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1243.2,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:28",
+   "name": "Boot shaft",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1251.6,
+   "y": 244.8,
+   "w": 10.8,
+   "h": 18.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4,
+   "radius": 3.6
+  },
+  {
+   "id": "93:29",
+   "name": "Boot foot",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1251.6,
+   "y": 260.4,
+   "w": 26.4,
+   "h": 10.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4,
+   "radius": 4.8
+  },
+  {
+   "id": "93:30",
+   "name": "Boot sole",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1251.6,
+   "y": 271.2,
+   "w": 26.4,
+   "h": 2.4,
+   "fill": [
+    "#8B949E@1"
+   ],
+   "radius": 1.2
+  },
+  {
+   "id": "93:31",
+   "name": "신발",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1249.0,
+   "y": 283.2,
+   "w": 18.0,
+   "h": 11.0,
+   "text": "신발",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:32",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1308.0,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:33",
+   "name": "EquipBadge",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1312.8,
+   "y": 222.0,
+   "w": 22.6,
+   "h": 15.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    4.8,
+    2.4,
+    4.8,
+    2.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "93:34",
+   "name": "EQ",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1317.6,
+   "y": 224.4,
+   "w": 13.0,
+   "h": 11.0,
+   "text": "EQ",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "93:35",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1308.0,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:36",
+   "name": "shield",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1329.6,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:37",
+   "name": "shield",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1329.6,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:38",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1336.0,
+   "y": 242.0,
+   "w": 25.6,
+   "h": 32.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:39",
+   "name": "방패",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1335.4,
+   "y": 283.2,
+   "w": 18.0,
+   "h": 11.0,
+   "text": "방패",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:40",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1394.4,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:41",
+   "name": "EquipBadge",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1399.2,
+   "y": 222.0,
+   "w": 22.6,
+   "h": 15.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    4.8,
+    2.4,
+    4.8,
+    2.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "93:42",
+   "name": "EQ",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1404.0,
+   "y": 224.4,
+   "w": 13.0,
+   "h": 11.0,
+   "text": "EQ",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "93:43",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1394.4,
+   "y": 217.2,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:44",
+   "name": "sword",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1416.0,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:45",
+   "name": "sword",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1416.0,
+   "y": 238.8,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:46",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1420.8,
+   "y": 243.6,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:47",
+   "name": "무기",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1421.8,
+   "y": 283.2,
+   "w": 18.0,
+   "h": 11.0,
+   "text": "무기",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:48",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1048.8,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:49",
+   "name": "EquipBadge",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1053.6,
+   "y": 313.2,
+   "w": 22.6,
+   "h": 15.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    4.8,
+    2.4,
+    4.8,
+    2.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "93:50",
+   "name": "EQ",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1058.4,
+   "y": 315.6,
+   "w": 13.0,
+   "h": 11.0,
+   "text": "EQ",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "93:51",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1048.8,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "93:52",
+   "name": "gas-mask",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1070.4,
+   "y": 330.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:53",
+   "name": "Mask face",
+   "type": "ELLIPSE",
+   "depth": 7,
+   "x": 1080.0,
+   "y": 338.4,
+   "w": 19.2,
+   "h": 18.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:54",
+   "name": "Left filter",
+   "type": "ELLIPSE",
+   "depth": 7,
+   "x": 1074.0,
+   "y": 351.6,
+   "w": 8.4,
+   "h": 8.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:55",
+   "name": "Right filter",
+   "type": "ELLIPSE",
+   "depth": 7,
+   "x": 1096.8,
+   "y": 351.6,
+   "w": 8.4,
+   "h": 8.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:56",
+   "name": "Mask center",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1088.4,
+   "y": 348.0,
+   "w": 2.4,
+   "h": 10.8,
+   "fill": [
+    "#8B949E@1"
+   ],
+   "radius": 1.2
+  },
+  {
+   "id": "93:57",
+   "name": "Left strap",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1070.4,
+   "y": 343.2,
+   "w": 9.6,
+   "h": 2.4,
+   "fill": [
+    "#8B949E@1"
+   ],
+   "radius": 1.2
+  },
+  {
+   "id": "93:58",
+   "name": "Right strap",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1099.2,
+   "y": 343.2,
+   "w": 9.6,
+   "h": 2.4,
+   "fill": [
+    "#8B949E@1"
+   ],
+   "radius": 1.2
+  },
+  {
+   "id": "93:59",
+   "name": "방독면",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1068.8,
+   "y": 374.4,
+   "w": 27.0,
+   "h": 11.0,
+   "text": "방독면",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:60",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1135.2,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:61",
+   "name": "EquipBadge",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1140.0,
+   "y": 313.2,
+   "w": 22.6,
+   "h": 15.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    4.8,
+    2.4,
+    4.8,
+    2.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "93:62",
+   "name": "EQ",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1144.8,
+   "y": 315.6,
+   "w": 13.0,
+   "h": 11.0,
+   "text": "EQ",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "93:63",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1135.2,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#1F6FEB@1"
+   ]
+  },
+  {
+   "id": "93:64",
+   "name": "syringe",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1156.8,
+   "y": 330.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:65",
+   "name": "briefcase",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1156.8,
+   "y": 330.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:66",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1160.0,
+   "y": 333.2,
+   "w": 32.0,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:67",
+   "name": "분사기",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1155.2,
+   "y": 374.4,
+   "w": 27.0,
+   "h": 11.0,
+   "text": "분사기",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:68",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1221.6,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:69",
+   "name": "EquipBadge",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1226.4,
+   "y": 313.2,
+   "w": 22.6,
+   "h": 15.8,
+   "layout": "HORIZONTAL",
+   "pad": [
+    4.8,
+    2.4,
+    4.8,
+    2.4
+   ],
+   "fill": [
+    "#58A6FF@1"
+   ],
+   "radius": 3.6
+  },
+  {
+   "id": "93:70",
+   "name": "EQ",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1231.2,
+   "y": 315.6,
+   "w": 13.0,
+   "h": 11.0,
+   "text": "EQ",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 700,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "93:71",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1221.6,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "93:72",
+   "name": "gas-tank",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1243.2,
+   "y": 330.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:73",
+   "name": "atom",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1243.2,
+   "y": 330.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:74",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1248.0,
+   "y": 334.8,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:75",
+   "name": "물약",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1249.0,
+   "y": 374.4,
+   "w": 18.0,
+   "h": 11.0,
+   "text": "물약",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:76",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1308.0,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:77",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1308.0,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:78",
+   "name": "ring",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1329.6,
+   "y": 330.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:79",
+   "name": "Ellipse",
+   "type": "ELLIPSE",
+   "depth": 7,
+   "x": 1341.6,
+   "y": 342.0,
+   "w": 14.4,
+   "h": 14.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:80",
+   "name": "Ellipse",
+   "type": "ELLIPSE",
+   "depth": 7,
+   "x": 1341.6,
+   "y": 342.0,
+   "w": 7.2,
+   "h": 7.2,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:81",
+   "name": "반지",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1335.4,
+   "y": 374.4,
+   "w": 18.0,
+   "h": 11.0,
+   "text": "반지",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:82",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1394.4,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:83",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 6,
+   "x": 1394.4,
+   "y": 308.4,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:84",
+   "name": "necklace",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1416.0,
+   "y": 330.0,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:85",
+   "name": "Ellipse",
+   "type": "ELLIPSE",
+   "depth": 7,
+   "x": 1428.0,
+   "y": 342.0,
+   "w": 14.4,
+   "h": 14.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:86",
+   "name": "Rectangle",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1434.0,
+   "y": 356.4,
+   "w": 2.4,
+   "h": 7.2,
+   "fill": [
+    "#8B949E@1"
+   ],
+   "radius": 1.2
+  },
+  {
+   "id": "93:87",
+   "name": "목걸이",
+   "type": "TEXT",
+   "depth": 6,
+   "x": 1414.4,
+   "y": 374.4,
+   "w": 27.0,
+   "h": 11.0,
+   "text": "목걸이",
+   "fontSize": 9.600000381469727,
+   "fontWeight": 500,
+   "lineHeight": 11.25,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:88",
+   "name": "TacticalPackSection",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1020.6,
+   "y": 417.6,
+   "w": 483.6,
+   "h": 567.0,
+   "layout": "VERTICAL",
+   "gap": 14.4,
+   "pad": [
+    19.2,
+    14.4,
+    19.2,
+    14.4
+   ],
+   "fill": [
+    "#FFFFFF@0.01"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:89",
+   "name": "SidebarHeader",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1039.8,
+   "y": 432.0,
+   "w": 445.2,
+   "h": 58.2,
+   "layout": "VERTICAL",
+   "gap": 4.8,
+   "pad": [
+    null,
+    null,
+    null,
+    14.4
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2
+  },
+  {
+   "id": "93:90",
+   "name": "전술 배낭",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1039.8,
+   "y": 432.0,
+   "w": 76.0,
+   "h": 23.0,
+   "text": "전술 배낭",
+   "fontSize": 19.200000762939453,
+   "fontWeight": 700,
+   "lineHeight": 22.5,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#F0F6FC@1"
+   ]
+  },
+  {
+   "id": "93:91",
+   "name": "TACTICAL PACK",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1039.8,
+   "y": 459.8,
+   "w": 94.0,
+   "h": 16.0,
+   "text": "TACTICAL PACK",
+   "fontSize": 12.0,
+   "fontWeight": 400,
+   "lineHeight": 15.59999942779541,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:100",
+   "name": "InventoryGrid",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1039.8,
+   "y": 504.6,
+   "w": 445.2,
+   "h": 465.6,
+   "layout": "VERTICAL",
+   "gap": 14.4
+  },
+  {
+   "id": "85:101",
+   "name": "InventoryRow1",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1039.8,
+   "y": 504.6,
+   "w": 445.2,
+   "h": 81.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "85:102",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1039.8,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:92",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1039.8,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "85:104",
+   "name": "zap-off",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1061.4,
+   "y": 526.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "85:105",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1064.6,
+   "y": 529.4,
+   "w": 32.0,
+   "h": 32.0,
+   "stroke": [
+    "#F0F6FC@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:93",
+   "name": "1",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1105.8,
+   "y": 564.6,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "1",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:94",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1131.0,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:95",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1131.0,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#1F6FEB@1"
+   ]
+  },
+  {
+   "id": "85:109",
+   "name": "battery",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1152.6,
+   "y": 526.2,
+   "w": 38.4,
+   "h": 38.4,
+   "layout": "VERTICAL"
+  },
+  {
+   "id": "93:96",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1155.8,
+   "y": 535.8,
+   "w": 32.0,
+   "h": 19.2,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:97",
+   "name": "5",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1197.0,
+   "y": 564.6,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "5",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:98",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1222.2,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:99",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1222.2,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:114",
+   "name": "syringe",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1243.8,
+   "y": 526.2,
+   "w": 38.4,
+   "h": 38.4,
+   "layout": "VERTICAL",
+   "gap": 4.8
+  },
+  {
+   "id": "93:100",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1247.0,
+   "y": 529.4,
+   "w": 32.0,
+   "h": 32.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:101",
+   "name": "12",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1279.8,
+   "y": 564.6,
+   "w": 16.0,
+   "h": 17.0,
+   "text": "12",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:102",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1313.4,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "85:118",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1313.4,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#1F6FEB@1"
+   ]
+  },
+  {
+   "id": "93:103",
+   "name": "atom",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1335.0,
+   "y": 526.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:104",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1339.8,
+   "y": 531.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:105",
+   "name": "2",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1379.4,
+   "y": 564.6,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "2",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:122",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1404.6,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:106",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1404.6,
+   "y": 504.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:107",
+   "name": "shield",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1426.2,
+   "y": 526.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:108",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1432.6,
+   "y": 529.4,
+   "w": 25.6,
+   "h": 32.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:109",
+   "name": "18",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1462.2,
+   "y": 564.6,
+   "w": 16.0,
+   "h": 17.0,
+   "text": "18",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:127",
+   "name": "InventoryRow2",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1039.8,
+   "y": 600.6,
+   "w": 445.2,
+   "h": 81.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "85:128",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1039.8,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:110",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1039.8,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:111",
+   "name": "backpack",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1061.4,
+   "y": 622.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:112",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1067.8,
+   "y": 625.4,
+   "w": 25.6,
+   "h": 32.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:113",
+   "name": "7",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1105.8,
+   "y": 660.6,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "7",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:133",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1131.0,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:114",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1131.0,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:135",
+   "name": "droplet",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1152.6,
+   "y": 622.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "85:136",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1160.6,
+   "y": 627.0,
+   "w": 22.4,
+   "h": 30.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:115",
+   "name": "9",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1197.0,
+   "y": 660.6,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "9",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:116",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1222.2,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:117",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1222.2,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#1F6FEB@1"
+   ]
+  },
+  {
+   "id": "85:140",
+   "name": "microchip",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1243.8,
+   "y": 622.2,
+   "w": 38.4,
+   "h": 38.4,
+   "layout": "VERTICAL"
+  },
+  {
+   "id": "93:118",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1250.2,
+   "y": 625.4,
+   "w": 25.6,
+   "h": 32.0,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:119",
+   "name": "42",
+   "type": "TEXT",
+   "depth": 7,
+   "x": 1279.8,
+   "y": 660.6,
+   "w": 16.0,
+   "h": 17.0,
+   "text": "42",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:120",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1313.4,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:121",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1313.4,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#BC8CFF@1"
+   ]
+  },
+  {
+   "id": "85:145",
+   "name": "terminal",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1335.0,
+   "y": 622.2,
+   "w": 38.4,
+   "h": 38.4,
+   "layout": "VERTICAL",
+   "gap": 4.8
+  },
+  {
+   "id": "93:122",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1341.4,
+   "y": 630.2,
+   "w": 25.6,
+   "h": 22.4,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "85:147",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1404.6,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:123",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1404.6,
+   "y": 600.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:124",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1426.2,
+   "y": 622.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:125",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1431.0,
+   "y": 627.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "85:151",
+   "name": "InventoryRow3",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1039.8,
+   "y": 696.6,
+   "w": 445.2,
+   "h": 81.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "85:152",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1039.8,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:126",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1039.8,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:127",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1061.4,
+   "y": 718.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:128",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1066.2,
+   "y": 723.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:129",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1131.0,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:130",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1131.0,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "85:158",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1152.6,
+   "y": 718.2,
+   "w": 38.4,
+   "h": 38.4,
+   "layout": "VERTICAL"
+  },
+  {
+   "id": "93:131",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1157.4,
+   "y": 723.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:132",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1222.2,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "85:161",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1222.2,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:133",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1243.8,
+   "y": 718.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:134",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1248.6,
+   "y": 723.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:135",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1313.4,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:136",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1313.4,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:137",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1335.0,
+   "y": 718.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:138",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1339.8,
+   "y": 723.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:139",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1404.6,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:140",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1404.6,
+   "y": 696.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:141",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1426.2,
+   "y": 718.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:142",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1431.0,
+   "y": 723.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:143",
+   "name": "InventoryRow4",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1039.8,
+   "y": 792.6,
+   "w": 445.2,
+   "h": 81.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "93:144",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1039.8,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:145",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1039.8,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:146",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1061.4,
+   "y": 814.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:147",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1066.2,
+   "y": 819.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:148",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1131.0,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:149",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1131.0,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:150",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1152.6,
+   "y": 814.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:151",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1157.4,
+   "y": 819.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:152",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1222.2,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:153",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1222.2,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:154",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1243.8,
+   "y": 814.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:155",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1248.6,
+   "y": 819.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:156",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1313.4,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:157",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1313.4,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:158",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1335.0,
+   "y": 814.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:159",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1339.8,
+   "y": 819.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:160",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1404.6,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:161",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1404.6,
+   "y": 792.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:162",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1426.2,
+   "y": 814.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:163",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1431.0,
+   "y": 819.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:164",
+   "name": "InventoryRow5",
+   "type": "FRAME",
+   "depth": 5,
+   "x": 1039.8,
+   "y": 888.6,
+   "w": 445.2,
+   "h": 81.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.6
+  },
+  {
+   "id": "93:165",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1039.8,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:166",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1039.8,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:167",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1061.4,
+   "y": 910.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:168",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1066.2,
+   "y": 915.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:169",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1131.0,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:170",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1131.0,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:171",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1152.6,
+   "y": 910.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:172",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1157.4,
+   "y": 915.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:173",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1222.2,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:174",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1222.2,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:175",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1243.8,
+   "y": 910.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:176",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1248.6,
+   "y": 915.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:177",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1313.4,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:178",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1313.4,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:179",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1335.0,
+   "y": 910.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:180",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1339.8,
+   "y": 915.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "93:181",
+   "name": "ItemSlot",
+   "type": "FRAME",
+   "depth": 6,
+   "x": 1404.6,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 81.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#21262D@0.6"
+   ],
+   "stroke": [
+    "#30363D@0.5"
+   ],
+   "strokeWeight": 1.2,
+   "radius": 9.6
+  },
+  {
+   "id": "93:182",
+   "name": "TierStrip",
+   "type": "RECTANGLE",
+   "depth": 7,
+   "x": 1404.6,
+   "y": 888.6,
+   "w": 81.6,
+   "h": 3.6,
+   "fill": [
+    "#8B949E@1"
+   ]
+  },
+  {
+   "id": "93:183",
+   "name": "square-dashed",
+   "type": "FRAME",
+   "depth": 7,
+   "x": 1426.2,
+   "y": 910.2,
+   "w": 38.4,
+   "h": 38.4
+  },
+  {
+   "id": "93:184",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 8,
+   "x": 1431.0,
+   "y": 915.0,
+   "w": 28.8,
+   "h": 28.8,
+   "stroke": [
+    "#8B949E@1"
+   ],
+   "strokeWeight": 2.4
+  }
+ ]
+}

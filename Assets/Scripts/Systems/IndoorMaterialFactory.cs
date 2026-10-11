@@ -67,6 +67,15 @@ namespace ProjectName.Systems
                 m.mainTexture = tex;
                 m.mainTextureScale = Vector2.one;
                 m.color = new Color(0.92f, 0.88f, 0.82f);
+                // [2026-10-10 F1] wood_frame_n 제공 시 나뭇결 범프(파일 없으면 스킵 — 선택 규약)
+                var woodN = IndoorTextureLoader.WoodNormal;
+                if (woodN != null)
+                {
+                    IndoorTextureLoader.Configure(woodN, linear: true);
+                    m.EnableKeyword("_NORMALMAP");
+                    m.SetTexture("_BumpMap", woodN);
+                    m.SetTextureScale("_BumpMap", Vector2.one);
+                }
             }
             else
             {
@@ -92,6 +101,15 @@ namespace ProjectName.Systems
                 stone.mainTexture = plasterTex;
                 stone.mainTextureScale = Vector2.one;
                 stone.color = new Color(0.94f, 0.93f, 0.90f);
+                // [2026-10-10 F1] wall_plaster_upper_n 제공 시 회반죽 범프(파일 없으면 스킵 — 선택 규약)
+                var plasterN = IndoorTextureLoader.WallPlasterNormal;
+                if (plasterN != null)
+                {
+                    IndoorTextureLoader.Configure(plasterN, linear: true);
+                    stone.EnableKeyword("_NORMALMAP");
+                    stone.SetTexture("_BumpMap", plasterN);
+                    stone.SetTextureScale("_BumpMap", Vector2.one);
+                }
             }
             else
             {
@@ -285,6 +303,222 @@ namespace ProjectName.Systems
                 }
                 Debug.Log("[IndoorMaterialFactory] HQ 머티리얼 적용 완료 — Floor+Wall(석재/회반죽 투톤)");
             }
+        }
+
+        // ==================================================================================================
+        // [2026-10-10 F1~F3 고품질화] 신규 머티리얼 팩토리 3종
+        // ==================================================================================================
+
+        /// <summary>[F1] 벽 하부 석재 밴드 머티리얼 — wall_stone_lower(2.2×1.1m 그리드).
+        /// UV는 밴드 빌더가 실제 길이에 맞춰 기록하므로 여기선 1장 그대로. 파일 없으면 null.</summary>
+        public static Material CreateWallStoneLower()
+        {
+            if (!IndoorTextureLoader.HasFiles || IndoorTextureLoader.WallStone == null) return null;
+            var m = new Material(UrpLit) { name = "IndoorHQ_WallStoneLower" };
+            var tex = IndoorTextureLoader.WallStone;
+            IndoorTextureLoader.Configure(tex, linear: false);
+            m.mainTexture = tex;
+            m.mainTextureScale = Vector2.one;
+            m.color = new Color(0.92f, 0.91f, 0.88f);
+            var stoneN = IndoorTextureLoader.WallStoneNormal;
+            if (stoneN != null)
+            {
+                IndoorTextureLoader.Configure(stoneN, linear: true);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetTexture("_BumpMap", stoneN);
+                m.SetTextureScale("_BumpMap", Vector2.one);
+            }
+            if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.30f);
+            return m;
+        }
+
+        /// <summary>[F2/F3] HDR 발광(ember/촛불) 머티리얼 — URP Unlit + HDR 색(F4 Bloom이 픽업).
+        /// 절차 셰이더 검색 실패 시 null(호출부 스킵) — 프리미티브 금지 규약과 무관(머티리얼만).</summary>
+        public static Material CreateEmberUnlit(Color hdrColor, string name)
+        {
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) return null;
+            var m = new Material(shader) { name = name };
+            var c = new Color(hdrColor.r, hdrColor.g, hdrColor.b, 1f);
+            m.color = c;                    // Unlit은 base color × 1 — HDR 양수로 과노출 유도
+            if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", c);
+            return m;
+        }
+
+        /// <summary>[F1] 짚단/약초 바닥 데칼 머티리얼 — floor_straw_decal(알파) 투명 Unlit.
+        /// 렌더러 전용 데칼 쿼드 전용 — 파일 없으면 null.</summary>
+        public static Material CreateStrawDecal()
+        {
+            if (!IndoorTextureLoader.HasFiles || IndoorTextureLoader.StrawDecal == null) return null;
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) return null;
+            var m = new Material(shader) { name = "IndoorHQ_StrawDecal" };
+            var tex = IndoorTextureLoader.StrawDecal;
+            IndoorTextureLoader.Configure(tex, linear: false);
+            if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", tex);
+            else m.mainTexture = tex;
+            m.color = new Color(1f, 1f, 1f, 1f);
+            // 투명 데칼 — 표면 타입/블렌드 수동 구성(Unlit transparent)
+            if (m.HasProperty("_Surface")) m.SetFloat("_Surface", 1f);          // 1 = Transparent
+            if (m.HasProperty("_SrcBlend")) m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (m.HasProperty("_DstBlend")) m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            if (m.HasProperty("_ZWrite")) m.SetFloat("_ZWrite", 0f);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            return m;
+        }
+
+        // ==================================================================================================
+        // [2026-10-10 H2/H5 — 탑다운 친화] 접지 블롭 섀도우 + 바닥 마모 스탬프
+        // ==================================================================================================
+
+        private static Texture2D _blobShadowTex;
+
+        /// <summary>[H2] 블롭 섀도우 텍스처(64²) — 중심 검정 알파 0.38 → 가장자리 0. 캐시 1회.</summary>
+        public static Texture2D GetBlobShadowTexture()
+        {
+            if (_blobShadowTex != null) return _blobShadowTex;
+            const int size = 64;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = "IndoorBlobShadow" };
+            var pixels = new Color[size * size];
+            float half = size * 0.5f;
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f - half) / half;
+                    float dy = (y + 0.5f - half) / half;
+                    float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy));
+                    float a = 0.38f * Mathf.Pow(1f - d, 1.5f);
+                    pixels[y * size + x] = new Color(0f, 0f, 0f, a);
+                }
+            }
+            tex.SetPixels(pixels);
+            tex.Apply(false, true);
+            _blobShadowTex = tex;
+            return tex;
+        }
+
+        /// <summary>[H2] 블롭 섀도우 머티리얼 — 투명 Unlit. 실패 시 null(호출부 스킵).</summary>
+        public static Material CreateBlobShadowMat()
+        {
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) return null;
+            var m = new Material(shader) { name = "IndoorHQ_BlobShadow" };
+            var tex = GetBlobShadowTexture();
+            if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", tex);
+            else m.mainTexture = tex;
+            m.color = new Color(1f, 1f, 1f, 1f);
+            if (m.HasProperty("_Surface")) m.SetFloat("_Surface", 1f);
+            if (m.HasProperty("_SrcBlend")) m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (m.HasProperty("_DstBlend")) m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            if (m.HasProperty("_ZWrite")) m.SetFloat("_ZWrite", 0f);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            return m;
+        }
+
+        private static Texture2D _flameGlowTex;
+
+        /// <summary>[2026-10-11 사용자 요구 — 횃불 은은한 글로우] 방사형 웜 글로우 텍스처(128²) —
+        /// 중심 알파 0.5 → 가장자리 0(제곱 폴오프, 은은한 광원 풀). 색은 머티리얼 틴트 담당. 캐시 1회.</summary>
+        public static Texture2D GetFlameGlowTexture()
+        {
+            if (_flameGlowTex != null) return _flameGlowTex;
+            const int size = 128;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = "IndoorFlameGlow" };
+            var pixels = new Color[size * size];
+            float half = size * 0.5f;
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f - half) / half;
+                    float dy = (y + 0.5f - half) / half;
+                    float a = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy));
+                    a *= a;                 // 제곱 폴오프 — 부드러운 가장자리
+                    a *= 0.5f;              // 최대 알파 0.5 — 발광판이 아닌 은은한 풀
+                    pixels[y * size + x] = new Color(1f, 1f, 1f, a);
+                }
+            }
+            tex.SetPixels(pixels);
+            tex.Apply();
+            _flameGlowTex = tex;
+            return tex;
+        }
+
+        /// <summary>[2026-10-11] 횃불 글로우 머티리얼 — 투명 Unlit + 가산 웜 블렌드(어두운 바닥 위 은은한 빛 풀).
+        /// 실패 시 null(호출부 스킵).</summary>
+        public static Material CreateFlameGlowMat()
+        {
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) return null;
+            var m = new Material(shader) { name = "IndoorHQ_FlameGlow" };
+            var tex = GetFlameGlowTexture();
+            if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", tex);
+            else m.mainTexture = tex;
+            m.color = new Color(1f, 0.55f, 0.28f, 1f);   // 웜 횃불 틴트
+            if (m.HasProperty("_Surface")) m.SetFloat("_Surface", 1f);
+            if (m.HasProperty("_SrcBlend")) m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (m.HasProperty("_DstBlend")) m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+            if (m.HasProperty("_ZWrite")) m.SetFloat("_ZWrite", 0f);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            return m;
+        }
+
+        private static Texture2D _floorWearTex;
+
+        /// <summary>[H5] 바닥 마모 스탬프 텍스처(256²) — 어두운 얼룩+균열, 알파 최대 ~0.22(색 변화 없음). 캐시 1회.</summary>
+        public static Texture2D GetFloorWearTexture()
+        {
+            if (_floorWearTex != null) return _floorWearTex;
+            const int size = 256;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { name = "IndoorFloorWear" };
+            var pixels = new Color[size * size];
+            var rng = new System.Random(20261010);
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f - size * 0.5f) / (size * 0.5f);
+                    float dy = (y + 0.5f - size * 0.5f) / (size * 0.5f);
+                    float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy));
+                    // 얼룩 — 중심부 여러 겹 사인 노이즈(어두운 때), 가장자리 페이드
+                    float blotch = 0.5f + 0.5f * Mathf.Sin(x * 0.11f + 1.3f) * Mathf.Sin(y * 0.13f + 0.7f)
+                                 + 0.25f * Mathf.Sin((x + y) * 0.09f);
+                    float a = Mathf.Pow(1f - d, 1.7f) * Mathf.Clamp01(blotch) * 0.22f;
+                    // 균열 — 얇은 사선 2줄
+                    float crack1 = Mathf.Abs((x - y) % 97 - 48) / 48f;
+                    float crack2 = Mathf.Abs((x * 2 - y) % 151 - 75) / 75f;
+                    if (crack1 < 0.05f || crack2 < 0.04f) a = Mathf.Max(a, 0.10f * Mathf.Pow(1f - d, 1.2f));
+                    float jitter = 0.9f + 0.2f * (float)rng.NextDouble();
+                    pixels[y * size + x] = new Color(0f, 0f, 0f, Mathf.Clamp01(a * jitter));
+                }
+            }
+            tex.SetPixels(pixels);
+            tex.Apply(false, true);
+            _floorWearTex = tex;
+            return tex;
+        }
+
+        /// <summary>[H5] 바닥 마모 스탬프 머티리얼 — 투명 Unlit. 실패 시 null.</summary>
+        public static Material CreateFloorWearMat()
+        {
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) return null;
+            var m = new Material(shader) { name = "IndoorHQ_FloorWear" };
+            var tex = GetFloorWearTexture();
+            if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", tex);
+            else m.mainTexture = tex;
+            m.color = new Color(1f, 1f, 1f, 1f);
+            if (m.HasProperty("_Surface")) m.SetFloat("_Surface", 1f);
+            if (m.HasProperty("_SrcBlend")) m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            if (m.HasProperty("_DstBlend")) m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            if (m.HasProperty("_ZWrite")) m.SetFloat("_ZWrite", 0f);
+            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            return m;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ProjectName.Core;
 using UnityEngine;
 
@@ -205,6 +206,54 @@ namespace ProjectName.Systems
 
         static readonly PlayerInventory.ItemData[] _items = BuildItems();
 
+        /// <summary>[31차] 사용자 지명 종만 출조 대상 — 한국어 34종 + 영문 4종 = 38종.
+        /// 번호형(f002~) "물고기 F0xx"는 낚시 결과에서 등장하지 않는다(사용자 요구:
+        /// "내가 이름넣은 생선 50종이 뜨게").</summary>
+        static readonly string[] NamedKeySet =
+        {
+            "atlantic-salmon", "clownfish", "mackerel", "olive-flounder",
+        };
+        static readonly int[] _namedIndices = BuildNamedIndices();
+        static readonly int[][] _namedByTier = BuildNamedByTier();
+
+        static int[] BuildNamedIndices()
+        {
+            var list = new List<int>(48);
+            for (int i = 0; i < SpeciesKeys.Length; i++)
+            {
+                if (FishNamedKor[i].Length > 0)
+                {
+                    list.Add(i);
+                    continue;
+                }
+                string key = SpeciesKeys[i];
+                for (int k = 0; k < NamedKeySet.Length; k++)
+                {
+                    if (NamedKeySet[k] == key) { list.Add(i); break; }
+                }
+            }
+            return list.ToArray();
+        }
+
+        static int[][] BuildNamedByTier()
+        {
+            var byTier = new int[3][];
+            var buckets = new List<int>[3]
+            {
+                new List<int>(8), new List<int>(16), new List<int>(24),
+            };
+            foreach (int i in _namedIndices)
+            {
+                FishTier t = i < CommonEnd ? FishTier.Common
+                           : i < RareEnd   ? FishTier.Rare
+                           :                 FishTier.Legendary;
+                buckets[(int)t].Add(i);
+            }
+            for (int t = 0; t < 3; t++)
+                byTier[t] = buckets[t].ToArray();
+            return byTier;
+        }
+
         /// <summary>333종 전체 ItemData (정적 캐시 — id 스태킹은 PlayerInventory.AddItem이 처리)</summary>
         public static PlayerInventory.ItemData[] AllItems => _items;
 
@@ -213,22 +262,29 @@ namespace ProjectName.Systems
         /// <summary>GLB 에셋 경로 (에디터 AssetDatabase 로드용 — NaturalResourceSpawner 선례)</summary>
         public static string GlbPath(int index) => GLB_DIR + "fish-" + SpeciesKeys[index] + ".glb";
 
+        /// <summary>키→GLB 경로 — GblItemIconRenderer의 fish_glb_ 리졸버용(28차). 미지 키면 null.</summary>
+        public static string GlbPathByKey(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return null;
+            for (int i = 0; i < SpeciesKeys.Length; i++)
+                if (SpeciesKeys[i] == key) return GlbPath(i);
+            return null;
+        }
+
         public static PlayerInventory.ItemData GetItem(int index) => _items[index];
 
         /// <summary>
-        /// 등급 밴드 내에서 1종 추첨 (UnityEngine.Random — 인게임 드롭용, 기존 GetRandomFish 관례).
-        /// 기존 3티어 아이템(Fish_Common/Rare/Legendary) 경로를 깨지 않고 그 위에 얹는 매핑.
+        /// 등급 밴드 내에서 1종 추첨 — [31차] 사용자 지명 종(NamedKeySet+한국어 34종) 한정.
+        /// 해당 밴드에 지명 종이 없으면 지명 종 전체에서 보완 추첨(빈 밴드에서 무명 종이
+        /// 나오는 일 원천 차단). UnityEngine.Random 사용(기존 관례).
         /// </summary>
         public static PlayerInventory.ItemData GetRandomFishItem(FishTier tier)
         {
-            int lo, hi;
-            switch (tier)
-            {
-                case FishTier.Legendary: lo = RareEnd;    hi = TotalCount;  break;
-                case FishTier.Rare:      lo = CommonEnd;  hi = RareEnd;     break;
-                default:                 lo = 0;          hi = CommonEnd;   break;
-            }
-            return _items[Random.Range(lo, hi)];
+            // [31차] 밴드(lo/hi) 스캔 폐지 — 지명 종 풀(_namedByTier)로 직접 추첨.
+            int[] pool = _namedByTier[(int)tier];
+            if (pool == null || pool.Length == 0)
+                pool = _namedIndices;   // 밴드 내 지명 종 부재 — 지명 종 전체로 보완
+            return _items[pool[Random.Range(0, pool.Length)]];
         }
 
         static PlayerInventory.ItemData[] BuildItems()

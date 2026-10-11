@@ -24,7 +24,7 @@ namespace ProjectName.UI.Toolkit
 
         private const float Size = 44f;
         private readonly VisualElement _icon;
-        private readonly Texture2D _primary, _mine, _gather, _interact, _shop, _attack, _cook, _monster, _door;
+        private readonly Texture2D _primary, _mine, _gather, _interact, _shop, _attack, _cook, _monster, _door, _wood;
         private HoverTargetClassifier.TargetKind _lastKind = HoverTargetClassifier.TargetKind.None;
         private int _lastSelectionCount = -1;
         private bool _lastCtrlHeld;
@@ -68,6 +68,12 @@ namespace ProjectName.UI.Toolkit
             _cook     = Resources.Load<Texture2D>("UI/cursor_cook");
             _monster  = Resources.Load<Texture2D>("UI/cursor_monster");
             _door     = Resources.Load<Texture2D>("UI/cursor_door");
+            // [2026-10-11 벌목 도끼 커서 수리] HoverTargetClassifier의 Wood 판정(22차)이 오버레이에
+            //   배선돼 있지 않았다 — 22차가 도끼 커서를 폐기된 ContextCursorSystem.BuildAxe에 붙여
+            //   P22-2 대체(UTKCursorOverlay) 후 커서가 아예 안 나왔던 것이 근본 원인(테스트 15 실측).
+            //   도끼 계열 에셋 = Figma 채굴 매핑 커서(cursor_mine — 넓은 만월날 도끼) 재사용.
+            //   전용 곡괭이/도끼 분리 베이크는 후속(사용자 제공 시).
+            _wood     = Resources.Load<Texture2D>("UI/cursor_mine");
 
             SetIcon(_primary);
 
@@ -99,7 +105,10 @@ namespace ProjectName.UI.Toolkit
             UpdateVisibility();
         }
 
-        /// <summary>[P25-B] 표시 조건: ①Ctrl 홀드 or ②UI 호버 or ③활 드로(리티클 대체) — 그 외엔 숨김.</summary>
+        /// <summary>[P25-B → 2026-10-11 수리] 표시 조건: ①Ctrl 홀드 or ②UI 호버 or ③상호작용 대상 호버
+        ///  or ④활 드로(리티클 대체). 기존엔 Ctrl 홀드 중 아니면 아이콘이 아예 숨겨져 "대상을 봐도
+        ///  커서 변화가 없다"는 보고(도끼 커서 안 됨)의 원인이 됐다 — 대상 위에선 Ctrl 없이도 표시.
+        ///  기본 화살표(Terrain/None)는 기존대로 숨김 유지.</summary>
         private void UpdateVisibility()
         {
             bool drawing = ProjectName.Systems.BowAimState.Drawing;
@@ -110,9 +119,30 @@ namespace ProjectName.UI.Toolkit
             }
             bool ctrlHeld = IsCtrlHeld();
             bool overUI = ProjectName.Core.UITransitionState.PointerOverUI;
-            bool show = ctrlHeld || overUI;
+            bool interactiveHover = IsInteractiveKind(_lastKind);
+            bool show = ctrlHeld || overUI || interactiveHover;
             _icon.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             _icon.style.opacity = overUI ? 0.45f : 0.92f;
+        }
+
+        /// <summary>상호작용 가능 대상(컨텍스트 아이콘을 Ctrl 없이 표시할 종류).</summary>
+        private static bool IsInteractiveKind(HoverTargetClassifier.TargetKind kind)
+        {
+            switch (kind)
+            {
+                case HoverTargetClassifier.TargetKind.Mine:
+                case HoverTargetClassifier.TargetKind.Wood:
+                case HoverTargetClassifier.TargetKind.Gather:
+                case HoverTargetClassifier.TargetKind.Door:
+                case HoverTargetClassifier.TargetKind.Cook:
+                case HoverTargetClassifier.TargetKind.Shop:
+                case HoverTargetClassifier.TargetKind.Monster:
+                case HoverTargetClassifier.TargetKind.EnemyGuard:
+                case HoverTargetClassifier.TargetKind.NPC:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>Ctrl 홀드 여부 — [F-UI] UpdateKind/UpdateVisibility 공용.</summary>
@@ -127,8 +157,10 @@ namespace ProjectName.UI.Toolkit
 
         private void UpdateKind()
         {
-            // [P25-B] 숨김 상태(기본/드로/비 Ctrl)에서는 분류 생략
-            if (_icon.style.display == DisplayStyle.None) return;
+            // [2026-10-11 수리] 숨김 상태에서도 분석 유지 — "대상 호버 시 Ctrl 없이 표시"가
+            //   표시 판정(_lastKind)에 의존하므로 숨김 중 분류 생략 시 닭-달걀 순환으로 영구 숨김이 됐었다.
+            //   250ms 폴링 유지(비용 동일 — 레이캐스트 1회).
+            if (ProjectName.Systems.BowAimState.Drawing) return;
 
             bool overUI = ProjectName.Core.UITransitionState.PointerOverUI;
             if (overUI)
@@ -163,6 +195,7 @@ namespace ProjectName.UI.Toolkit
             switch (kind)
             {
                 case HoverTargetClassifier.TargetKind.Mine:     SetIcon(_mine); break;
+                case HoverTargetClassifier.TargetKind.Wood:     SetIcon(_wood); break;
                 case HoverTargetClassifier.TargetKind.Gather:   SetIcon(_gather); break;
                 // 선택 병사가 있으면 몬스터는 강제 공격 아이콘이 Ctrl보다 우선.
                 case HoverTargetClassifier.TargetKind.Monster:  SetIcon(selectionCount > 0 ? _attack : (ctrl ? _monster : _attack)); break;

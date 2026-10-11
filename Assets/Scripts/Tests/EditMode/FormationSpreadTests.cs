@@ -11,7 +11,8 @@ namespace ProjectName.Tests.EditMode
     /// </summary>
     public class FormationSpreadTests
     {
-        private const float DefaultUnitRadius = 1.6f;
+        // [2026-10-11 사용자 요구 — 지정 포인트 근접] 생산 기본값 갱신 동기(1.6→0.9).
+        private const float DefaultUnitRadius = 0.9f;
         private static readonly Vector3 Origin = Vector3.zero;
 
         // ── Distribute: 중심/개수 ──────────────────────────────────────

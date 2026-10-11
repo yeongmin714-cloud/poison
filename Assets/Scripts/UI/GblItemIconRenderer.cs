@@ -38,6 +38,7 @@ namespace ProjectName.UI
         {
             public string itemId;
             public string modelKey;
+            public string glbPath;   // [2026-10-11 28차] 물고기 등 UserProvided 밖 GLB 직결 경로(에디터 로드)
             public GameObject node;
             public Camera cam;
             public RenderTexture rt;
@@ -82,10 +83,26 @@ namespace ProjectName.UI
 
                 // 모델키 해석 실패 → 절차 폴백
                 string modelKey = ResolveModelKey(item);
+                string glbPath = null;
                 if (string.IsNullOrEmpty(modelKey))
                 {
-                    _knownMissing.Add(item.id); // 음성 캐시 — 재검색 생략
-                    return null;
+                    // [2026-10-11 28차] 물고기(fish_glb_<key>) — FishCatalog GLB 직결
+                    //   (Assets/새로운 glb/crops-fish/, 에디터 AssetDatabase 로드 — UserProvided 밖).
+                    glbPath = ResolveFishGlbPath(item);
+                    if (string.IsNullOrEmpty(glbPath))
+                    {
+                        _knownMissing.Add(item.id); // 음성 캐시 — 재검색 생략
+                        return null;
+                    }
+                    modelKey = item.id;   // 캐시/노드/RT 명명용
+
+                    // [34차] 동기 베이크 — 큐(마운트 프레임→다음 프레임 베이크→적용)의 프레임 갭에서
+                    //   결과창 첫 페인트가 폴백으로 고정되는 유실 차단. publish 즉시 1회 호출에 완결.
+#if UNITY_EDITOR
+                    var synced = SyncBakeFromGlbPath(item.id, glbPath);
+                    if (synced != null)
+                        return synced;
+#endif
                 }
 
                 // 캐시 상한 초과 — 새 베이크 중단(폴백 유지)
@@ -100,9 +117,13 @@ namespace ProjectName.UI
                 {
                     itemId = item.id,
                     modelKey = modelKey,
+                    glbPath = glbPath,
                     mounted = false
                 });
                 _queuedIds.Add(item.id);
+                // [32차 진단] 물고기 GLB 미표시 원인 판별용 — id당 1회(큐 등록 시점)
+                if (glbPath != null)
+                    Debug.Log($"[GblItemIconRenderer] 베이크 큐 등록 — {item.id} glb={glbPath}");
             }
             catch (System.Exception e)
             {
@@ -307,6 +328,100 @@ namespace ProjectName.UI
             return null;
         }
 
+        /// <summary>[2026-10-11 28차] fish_glb_<key> → FishCatalog GLB 전체 경로. 물고기 외 null.</summary>
+        private static string ResolveFishGlbPath(PlayerInventory.ItemData item)
+        {
+            if (item == null || string.IsNullOrEmpty(item.id)) return null;
+            const string prefix = "fish_glb_";
+            if (!item.id.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase)) return null;
+            string key = item.id.Substring(prefix.Length);
+            string path = FishCatalog.GlbPathByKey(key);
+            return string.IsNullOrEmpty(path) ? null : path;
+        }
+
+        // ================================================================
+        //  [34차] 동기 베이크 — GLB 직결 경로용(물고기). 1회 호출 안에서
+        //  마운트→렌더→ReadPixels→캐시까지 완결(큐/프레임 갭 없음).
+        // ================================================================
+#if UNITY_EDITOR
+        private static Texture2D SyncBakeFromGlbPath(string itemId, string glbPath)
+        {
+            try
+            {
+                var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(glbPath);
+                if (prefab == null)
+                {
+                    Debug.LogWarning($"[GblItemIconRenderer] 동기 베이크 실패(프리팹 없음) — {glbPath}");
+                    return null;
+                }
+
+                var node = Object.Instantiate(prefab);
+                node.name = "GblIconSync_" + itemId;
+                Vector3 remotePos = new Vector3(10000f, 1000f, 10000f);
+                node.transform.position = remotePos;
+
+                var rends = node.GetComponentsInChildren<Renderer>();
+                if (rends.Length == 0)
+                {
+                    Object.Destroy(node);
+                    return null;
+                }
+                Bounds b = rends[0].bounds;
+                foreach (var r in rends) b.Encapsulate(r.bounds);
+                float h = b.size.y;
+                if (h > 0.01f) node.transform.localScale *= 1.8f / h;
+                b = rends[0].bounds;
+                foreach (var r in rends) b.Encapsulate(r.bounds);
+                node.transform.position += new Vector3(0f, remotePos.y - b.min.y, 0f);
+                b = rends[0].bounds;
+                foreach (var r in rends) b.Encapsulate(r.bounds);
+
+                var rt = new RenderTexture(IconSize, IconSize, 24, RenderTextureFormat.ARGB32);
+                rt.Create();
+                var camGo = new GameObject("GblIconSyncCam");
+                var cam = camGo.AddComponent<Camera>();
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = new Color(0.06f, 0.06f, 0.09f, 1f);
+                cam.cullingMask = ~0;
+                cam.nearClipPlane = 0.1f;
+                cam.farClipPlane = 20f;
+                cam.fieldOfView = 30f;
+                cam.targetTexture = rt;
+
+                Vector3 center = b.center;
+                float halfH = Mathf.Max(0.5f, b.extents.y * 1.25f);
+                float dist = halfH / Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
+                cam.transform.position = center + new Vector3(dist * 0.35f, 0f, -dist);
+                cam.transform.LookAt(center);
+                cam.Render();
+
+                Texture2D copy = new Texture2D(IconSize, IconSize, TextureFormat.RGBA32, false);
+                RenderTexture prev = RenderTexture.active;
+                RenderTexture.active = rt;
+                copy.ReadPixels(new Rect(0, 0, IconSize, IconSize), 0, 0);
+                copy.Apply();
+                RenderTexture.active = prev;
+                copy.wrapMode = TextureWrapMode.Clamp;
+                copy.hideFlags = HideFlags.HideAndDontSave;
+                copy.name = "GblIcon_" + itemId;
+
+                Object.Destroy(camGo);
+                Object.Destroy(node);
+                rt.Release();
+                Object.Destroy(rt);
+
+                _iconCache[itemId] = copy;
+                Debug.Log($"[GblItemIconRenderer] 동기 베이크 완료 — {itemId} ({glbPath})");
+                return copy;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[GblItemIconRenderer] 동기 베이크 예외(폴백 진행): " + e.Message);
+                return null;
+            }
+        }
+#endif
+
         /// <summary>id에서 알려진 접두사를 제거합니다.</summary>
         private static string StripPrefix(string id)
         {
@@ -327,9 +442,21 @@ namespace ProjectName.UI
         {
             try
             {
-                var prefab = Resources.Load<GameObject>("Models/UserProvided/" + job.modelKey);
+                GameObject prefab = null;
+                if (!string.IsNullOrEmpty(job.glbPath))
+                {
+#if UNITY_EDITOR
+                    prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(job.glbPath);
+#endif
+                }
                 if (prefab == null)
+                    prefab = Resources.Load<GameObject>("Models/UserProvided/" + job.modelKey);
+                if (prefab == null)
+                {
+                    // [32차 진단] 마운트 실패 원인 가시화 — 경로/폴백 여부를 로그로(성공 시 무출력)
+                    Debug.LogWarning($"[GblItemIconRenderer] 마운트 실패(모델 없음) — id={job.itemId} glbPath={job.glbPath ?? "null"} modelKey={job.modelKey}");
                     return false; // 모델 없음 — 폴백
+                }
 
                 job.node = Instantiate(prefab);
                 job.node.name = "GblIconNode_" + job.modelKey;

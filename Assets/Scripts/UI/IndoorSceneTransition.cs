@@ -227,17 +227,28 @@ namespace ProjectName.UI
                         _activeCastleIsPlayerOwned = _pendingIsPlayerOwned;
                         // INTERIOR-VAR: 영지 키(우선)/nation+소유로 결정론 해시 → 8종 레이아웃 변형.
                         int layoutVariant = ComputeLayoutVariant(_pendingTerritoryKey, nation, _pendingIsPlayerOwned);
-                        // 소유 상태 분기: 플레이어 소유 성 → PlayerCastleInteriorBuilder, 영주 성 → CastleInteriorBuilder
-                        hqRoom = _pendingIsPlayerOwned
-                            ? PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, layoutVariant)
-                            : CastleInteriorBuilder.BuildCastleInterior(nation, layoutVariant);
+                        // [2026-10-10 J1 — 영지 실내 통일] 소유 여부 무관 동일 빌더 — 모든 영지 실내가
+                        //   플레이어 성 표준(배치/모습/품질 계층 H1~H5)을 따른다. 구 영주 성 셸(48×36) 폐기.
+                        hqRoom = PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, layoutVariant);
+                        // [J2] 잠긴 문 콘텐츠(집무실/금고/무기고/문서고)는 유지 — 로비 포탈 재정착(영주 성만).
+                        if (hqRoom != null && !_pendingIsPlayerOwned)
+                            CastleInteriorBuilder.AddLordLockedDoors(hqRoom);
                         if (hqRoom != null)
                         {
+                            // [38차] 병사 관리 체계 보장 — 씬 전환으로 GuardManager(씬 싱글턴)가
+                            //   소실된 경우 재생성(배치 UI 목록/역할 배정이 실내에서도 작동).
+                            if (GuardManager.Instance == null)
+                            {
+                                var gmGO = new GameObject("GuardManager");
+                                gmGO.AddComponent<GuardManager>();
+                            }
+                            GuardTaskSystem.Ensure();
+
                             // [Phase F] 플레이어 소유 성: 상점/크래프트 기능 배치 + 아군 막사 병사 / 영주 성: 성향 배분 실내 수비 병사 스폰+적대
                             if (_pendingIsPlayerOwned)
                             {
                                 TerritoryBuilder.SpawnInteriorFixtures(hqRoom.transform.position, nation);
-                                TerritoryBuilder.SpawnInteriorAlliedGuards(hqRoom, nation); // 배럭 지휘탁자 주변 아군 3명
+                                TerritoryBuilder.SpawnInteriorAlliedGuards(hqRoom, nation); // 배럭 침대에 아군 병사(38차 — 모든 영지 소속 병사 침대 휴식)
                             }
                             else
                                 TerritoryBuilder.SpawnInteriorDefenseGuards(hqRoom.transform.position, nation, _pendingTerritoryKey);
@@ -255,6 +266,18 @@ namespace ProjectName.UI
                         _activeCastleNationStyle = null;
                         _activeCastleIsPlayerOwned = false;
                         hqRoom = CaveInteriorBuilder.BuildCaveInterior(_pendingNationStyle ?? "default", 1);
+                        break;
+                    case "arena":
+                        _activeCastleTerritoryKey = null;
+                        _activeCastleNationStyle = null;
+                        _activeCastleIsPlayerOwned = false;
+                        hqRoom = ArenaInteriorBuilder.BuildArenaInterior(_pendingNationStyle ?? "Empire");
+                        break;
+                    case "arenapit":
+                        _activeCastleTerritoryKey = null;
+                        _activeCastleNationStyle = null;
+                        _activeCastleIsPlayerOwned = false;
+                        hqRoom = ArenaPitInteriorBuilder.BuildArenaPitInterior(_pendingNationStyle ?? "Empire");
                         break;
                     default:
                         _activeCastleTerritoryKey = null;
@@ -451,10 +474,21 @@ namespace ProjectName.UI
                     exitingPlayer.transform.position = _returnPosition.Value;
                 SceneManager.MoveGameObjectToScene(exitingPlayer, worldScene);
             }
+
+            // [41차] 출동 병사 배치 — 역할 부여된 실내 병사를 문밖(입장 위치)에 재스폰하고
+            //   역할 루틴을 재개한다(Attack=추종/Defend=영지 안 수비/Farm·Gather·Mine·Hunt=주변 작업).
+            //   IndoorScene 언로드 전 스냅샷 → 월드 활성화 후 스폰 순서.
+            Vector3 gatePos = exitingPlayer != null
+                ? exitingPlayer.transform.position
+                : (_returnPosition ?? Vector3.zero);
+            ProjectName.Systems.AttackSquadDeployment.CaptureFromIndoor(gatePos);
+
             _returnPosition = null;
             _activeCastleTerritoryKey = null;
             _activeCastleNationStyle = null;
             _activeCastleIsPlayerOwned = false;
+
+            ProjectName.Systems.AttackSquadDeployment.SpawnAllInWorld();
 
             // IndoorScene 언로드 — 플레이어가 이미 월드로 이동한 뒤라 안전
             Scene indoorScene = SceneManager.GetSceneByName(INDOOR_SCENE_NAME);

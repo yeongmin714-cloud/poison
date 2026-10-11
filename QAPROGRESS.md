@@ -1,3 +1,276 @@
+## 2026-10-11 (42차) 실내 병사 추종 버그 수리(역할 루틴 실내 게이트)+부대 명부 카드 정합 (미커밋)
+
+- **부대 명부 ui2.PNG 판정:** 목록/배치 작동 ✓. 수리: ①좌측 카드 **이름·직책 겹침** — 피그마 69:4 SoldierSlot 행간 리듬(이름 y12.2→직책 y47.1)으로 고정(이름 높이 22 고정+직책 상단 12) ②사람 아이콘 30→32 ③"3D 미리보기" 안내 텍스트 제거(박스 밖 삐져나옴 — 피그마=순수 그래픽 영역, RT 미리보기가 채움).
+- **"실내 병사가 나를 따라다님" 근원 수리(GuardTaskSystem):** Attack 역할 루틴(플레이어 추종 — SetCommandTarget 1s 갱신)이 **실내에서도** 돌고, 39차 IndoorMoveExempt가 P14를 우회해 침대 병사가 따라다님. 수리: **Update 루프 자체를 실내 게이트**(IndoorActive → 역할 루틴 스킵) — "실내 병사 = 전원 침대 휴식" 계약 확정. 역할 명령은 퇴출 시 AttackSquadDeployment가 월드 문밖 스폰+루틴 개시로 수행(41차).
+- **39차 실내 즉시 보행 제거:** AssignTask의 WakeFromBed+SetCommandTarget(로비/막사 앞) 삭제 — 배정 = 출동 예약(침대 유지), 이동 = 퇴출 시 월드에서. IndoorMoveExempt 플래그/필드는 월드 루틴 명령 호환 위해 잔존.
+- **검증:** 컴파일 `error CS` **0**(EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa42`).
+- **다음(Play 게이트):** ①실내 = 병사 전원 침대 누움 유지(따라다님 없음) ②역할 배정 = 출동 예약(로그 "출동 예약") ③성 퇴출 = 문밖 "(출동)" 병사 + 역할 루틴(농사/채집/광물/사냥/수비·영지 안) ④부대 명부 카드 겹침 없음+사람 아이콘 ⑤상세 3D 미리보기(텍스트 없음). stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (41차) 배치조 → 실제 명령 수행(출동 배지 — 실내↔월드 병사 운반 + 역할 루틴 개시) (미커밋)
+
+- **질문 답변 = 이미 절반은 존재, 끊긴 구간 연결:** GuardTaskSystem에는 역할 루틴이 이미 완비(0.4s 루프 — Attack=플레이어 추종/Defend=수비/Gather=약초 채집(TryGather)/Hunt=몬스터 사냥+전리품/Farm=파종·수확/Mine=채굴/Envoy=첩보). 그러나 **IndoorScene은 월드 언로드/재로드 구조(P19)** 라 실내 생성 병사가 씬 언로드와 함께 소멸 → 월드에서 루틴이 실행될 병사가 없었다(끊긴 고리).
+- **AttackSquadDeployment 신설(Systems) — 출동 배지:**
+  - CaptureFromIndoor(gatePos): 성 퇴출 직전 **역할 부여 병사만** 스냅샷(이름/레벨/국가/역할) — 역할 없는 병사는 실내 잔류(침대 휴식, 재입장 시 재배치).
+  - SpawnAllInWorld(): 월드 복귀 직후 **문밖(플레이어 입장 위치)** 에 재스폰(CreateGuard 위임 — 높이/비주얼/장비 체인 동일) + GuardManager standalone 등록 + **AssignTask 재부여 → 역할 루틴 자동 개시**.
+- **FinishExit 훅(IndoorSceneTransition):** Indoor 언로드 전 Capture(gatePos=복귀 위치=성문 밖) → 월드 SetActive 후 SpawnAllInWorld — "실내에서 배치 → 나가면 문밖에서 실제로 일하는 병사".
+- **수비 루틴 사용자 요구 정합(41차 재확정):** RoutineDefend 수비 위치 = 성문 앞(바깥) → **영지 안(중심 인측 2m)** — 문밖에서 스폰된 수비 병사가 문을 통과해 영지 안으로 들어와 주둔(ComputeGateDir 분리).
+- **기대 흐름(월드 플레이):** 실내 병사배치 UI(농사/채집/광물/사냥/특사/공격/수비) → 성 퇴출 → 문밖에 "(출동)" 병사 스폰 → 루틴: 근처 밭 파종·수확/약초 채집/암석 채굴/몬스터 사냥(전리품)/첩보, 공격조=플레이어 추종, 수비대=영지 안 주둔. 로그: "📦 출동 대기"/"⚔️ 출동 병사 월드 배치".
+- **검증:** 컴파일 `error CS` **0**(using 보강 후 EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa41`).
+- **다음(Play 게이트 — 월드 흐름):** 실내 병사배치(역할 부여) → 성 퇴출 → 문밖 "(출동)" 병사 스폰+루틴 관찰(농사=밭 이동·작업, 사냥=몬스터 교전, 수비=영지 안 진입 주둔). stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (40차) 공격대 배치 시스템 — 피그마 "공격조 전투 배치"(204:1963) 구현 (미컴밋)
+
+- **피그마 노드 발견·전수 실측:** "공격조 전투 배치"(204:1963, 1920×1080) — 좌 공격조 명부(168,48,480,984: 필터 전체/배치/미배치·대원 카드 432×82(번호/아바타48/이름 fs16/직책 fs13/Lv+칸배지)·요약+진행률) + 우 전투 배치 계획(672,48,1080,984: 적 방향 스트립 / **5열(A~E)×4행(1=전열,2=중열,3=지원,4=후열)=20칸 배치도**(셀 헤더 좌표+대원 번호칩+이름+역할 아이콘/빈칸="+배치 가능") / 선택 대원 배치 정보(현재 "C1·전열 중앙" 표기) / 계획 저장(취소+**전투 배치 적용**)).
+- **AttackFormationSystem 신설(Systems):** 칸 레지스트리(한 셀 1명 — 점유 칸 배치 거부) + CellOffset(열 중심 정렬 ×2.0m, 행 깊이 ×2.2m — 행1=전열이 적 방향 최전) + RowName("전열/중열/지원/후열") + **ApplyFormation(anchor)** = 편성 확정 → 배치 대원 전원 SetCommandTarget(anchor+칸오프셋) 보행 개시(IndoorMoveExempt). Summarize("5 / 7 명").
+- **AttackFormationUTK 신설(Toolkit):** 피그마 실측 그대로 — 좌 명부(작동 필터 3탭+대원 카드(사람 아이콘 아바타/번호/이름/직책+칸태그/Lv/칸배지)+요약·진행률바) / 우 배치도(적 방향 스트립+20칸 클릭 편성: 빈칸 클릭=선택 대원 배치·점유칸 클릭=그 대원 선택·배치해제 칩·배치 초기화)+선택 정보+적용/취소. squad = Attack 역할 배정 병사 + 포섭 아군 전원(실데이터).
+- **진입점 — "병사배치 상호작용 밑에":** PlayerCastleInteriorBuilder가 **AttackFormationBoard**(전술 배치판)를 BarracksMapTable 바로 아래(authored -12.25,-16.6 → ×2.45 패스 통과) 배치 + CastleAttackFormationStation(E키 → AttackFormationUTK.Open) 부착 + 네임플레이트 "🗺️ 공격대 배치".
+- **역할 편성 흐름 완결:** 병사배치 UI(역할: 공격대=Attack) → 공격대 배치 UI(칸 편성: 선봉/중열/지원/후열) → 전투 배치 적용 → 편성 위치 보행. 월드 전투 시 ApplyFormation anchor가 공격 목표 지점으로 대체되는 구조(DeployAttack 연동 지점).
+- **검증:** 컴파일 `error CS` **0**(Instance 중복/GlassStroke/using 3건 수리 후 EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa40`).
+- **다음(Play 게이트):** ①배럭 탁자 아래 전술 배치판 [E] 공격대 배치 ②명부 선택→빈칸 배치→"전투 배치 적용"→편성 위치 보행 ③선봉(행1)/후방(행4) 배치 확인. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (39차) 부대 명부 UI 재정비 — 파란점 제거·사람 아바타·3D 미리보기 RT·침대 누움 강제·역할 배치=실제 보행 (미컴밋)
+
+- **부대 명부 ui.PNG 판정:** 배치 UI 자체는 작동(막사 수비병 3명 목록+농사/수비/전투 배정 로그 실측 ✓). 요구 5건 수리.
+- **①파란 점 제거:** 임무 카드 좌측 라디오 원(21.6px) 삭제 — 선택 상태는 카드 테두리 색(#58A6FF)만.
+- **②침대 안 누움 근본 차단(BedRestEnforcer 신설):** 누운 앵커/자세를 LateUpdate에서 재단언 — HumanoidClipDriver/전투 AI 등 어떤 시스템이 루트 transform을 덮어써도 실내에서 항상 누워 있음(IndoorActive 게이트). 기상 시 제거.
+- **③가운데 3D 미리보기(피그마 SoldierImageFrame 528×384):** 선택 병사 모델(레벨 구간 FBX — TerritoryBuilder.GetSoldierFbxKeyForLevel 공개)을 오프스크린 RT에 동기 렌더(GblItemIconRenderer 34차 동기베이크 동일 패턴) → 상세창 460×340 이미지 표시. 창 닫힘 시 리그 정리.
+- **④좌측 카드 피그마 정합:** 사람 아이콘 아바타(글자 '막' → 베이크 SoldierAvatarIcon.png 실루엣, PanelSub 원형+글래스 스트로크) + 직책 행 간격 피그마 실측(InfoGroup 이름 16.8/700 상단·직책 14.4/400 — 69:4 SoldierSlot 실측치와 대조, 구조 일치 확인 후 아이콘/간격 교정).
+- **⑤역할 배치 = 실제 이동(GuardTaskSystem.AssignTask 확장):** 배치 시 **침대 기상**(TerritoryBuilder.WakeFromBed — 강제자 제거+기립+침대 옵 하앙) → **SetCommandTarget 보행** — 출동 계열(공격/농사/채집/광물/수색/특사)=로비 중앙(문 앞), 수비대=막사 앞 영지 안 근무지. IndoorScene은 월드 언로드 별도 씬이라 실내 구간 보행=문 앞까지, 월드 복귀 시점의 문밖 출동/게이트 복귀는 TerritoryDeploymentSystem(gateFront/영지 중앙)과 연결. P14 실내 이동 금지는 IndoorMoveExempt(배치 UI 의도 명령) 예외로 유지.
+- **검증:** 컴파일 `error CS` **0**(EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa39`).
+- **다음(Play 게이트):** ①파란점 없음 ②병사 3명 침대에 누워 유지 ③병사 선택 → 중앙에 3D 모습 ④역할 배치 → 기상+문 앞/막사 앞 보행 ⑤수비대 = 영지 안 복귀. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (38차) 실내 병사 = 침대 누움 자동화 확대+침대 수동 UI 제거+병사배치 UI 목록/역할 배정 실내 작동 (미커밋)
+
+- **사용자 의도 재확인 반영:** ①침대 누움 = **자동**(37차의 침대 번호/눕히기 수동 UI는 제거) ②배치 UI = 영지 소속 병사가 **목록에 표시**되고 **공격대/수비대/특사 등 역할 배치**가 실내에서 작동.
+- **침대 누움 자동화 확대(TerritoryBuilder.AssignBedsToAllIndoorAllies 신설):** SpawnInteriorAlliedGuards 말미에 전체 스윕 — GuardManager 등록 **모든 포섭 아군**(외부 유입 포함) 중 침대 미배치자를 빈 침대(BarrackBed_1..20, 1명/침대)에 순차 눕힘. 이미 누운 병사(IndoorBedIndex>0) 유지. 사용 침대 충돌 없음.
+- **병사배치 UI 목록 실내 작동(근원 = CreateGuard가 GuardManager에 미등록):** GuardManager.RegisterStandalone 신설(영지 미소속 아군 — 포섭분만 목록 포함) + GetAllPlayerGuards에 standalone 병합(+TerritoryDatabase 부재 씬 NRE 가드). SpawnInteriorAlliedGuards에서 등록 → 실내씬/실게임 모두 목록 표시.
+- **역할 배정 체계 보장:** GuardTaskSystem.Ensure()는 존재했으나 실내 경로 어디서도 호출 없음 + GuardManager = 씬 싱글턴(씬 전환 시 소실) → **실내 진입 시(IndoorSceneTransition + 실내 플레이테스트 부트) 보장 생성**(TestTerritorySetup 선례). AssignTask→공격대/수비대/특사/농사/채집/광물/수색/대기 배치 + 카운트 배지 실내에서도 갱신. 이동은 P14 게이트(실내 이동 금지)와 공존 — 역할은 영지 시스템 귀속, 실내에선 침대 휴식.
+- **37차 잔여 정리:** SoldierManagementUTK 침대 배치 섹션/필드/상태 라벨/OnPlaceSelectedOnBed 제거(목록 🛏️ 침대 n 태그는 유지 — 자동 배치 현황 표시). TerritoryBuilder.TryPlaceAllyOnBed는 헬퍼로 잔존(스폰 경로 공유).
+- **검증:** 컴파일 `error CS` **0**(using 보강 후 EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa38`).
+- **다음(Play 게이트):** ①실내씬: 병사 전원 침대 누움 + 병사 관리 창 목록에 3명 표시 + 역할 카드 선택→적용 → 카운트 배지 갱신 ②실게임: 내 성 실내 진입 시 동일. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (37차) 병사배치 UI에서 실내 병사 개별 침대 배치 (미커밋)
+
+- **병사배치 UI(SoldierManagementUTK)에 "🛏️ 실내 침대 배치" 섹션 신설(사용자 요구 — 각각 배치):**
+  - 우측 임무 배치 패널 하단: 침대 번호 입력(1~20, TextField) + "이 병사 눕히기" 액션 + 상태 라벨.
+  - 동작: 목록에서 병사 선택 → 번호 입력 → 눕히기 → **TerritoryBuilder.TryPlaceAllyOnBed**(스폰과 동일 공개 헬퍼 — bounds 실측·−90° 피치·머리=베개) → 목록/상태 즉시 갱신. 아군(포섭)만 허용, 실패 사유 상태 라벨 표시.
+  - 선택 병사의 현재 침대 = 상태 라벨("현재: 막사 수비병 · 침대 2") + 번호 필드 프리필.
+  - **목록 카드에도 현황 표시**: 직책 행에 " · 🛏️ 침대 n" 태그.
+- **데이터 계약:** GuardPlaceholder에 `_indoorBedIndex`(1..20, -1=미배치) + IndoorBedIndex/SetIndoorBedIndex 공개 — 스폰 시 자동 부여(36차 침대 배치와 동일 헬퍼 경유).
+- **피그마 계약 준수:** SoldierManagementFigma69Tests "deployment 패널 Button=닫기+적용 2개 한정(단일 apply)" — 침대 액션을 **라벨 칩+PointerDownEvent**(임무 카드 클릭 선례)로 구현해 계약 유지(첫 구현 Button 3건 → 테스트 적발 → 칩 전환 → 재검증 통과).
+- **검증:** 컴파일 `error CS` **0**(EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa37c` — SoldierMgmt 계약 테스트 단독 재검증 포함).
+- **다음(Play 게이트):** 병사 관리 탁자(E) → 병사 선택 → 침대 번호 입력 → 눕히기 → 해당 침대에 눕는 것 + 목록 🛏️ 태그 갱신. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (36차) 실내 아군 병사 = 배럭 침대 누워 휴식(이동 금지) + 제작 테스트 RNG 플레이크 결정론화 (미커밋)
+
+- **병사 침대 휴식(TerritoryBuilder.SpawnInteriorAlliedGuards 재작성 — 사용자 요구 "움직이지 말고 배럭 침대에 누워있도록"):**
+  - 기존: 탁자 옆 서서 대기. 변경: **BarrackBed_1..N**(빌더 4열×5행 20개) 중 앞쪽 count개에 1명씩 **누워 배치** — 발 피벗(FBX 피벗=발)을 침대 발칪(z+)에 두고 X축 −90° 피치로 몸이 −Z로 눕는다 → 머리가 베개(−depth×0.4) 쪽.
+  - 위치는 **침대 렌더러 bounds 실측**(GetBedBounds 신설) — authored/×2.45 스케일패스 어느 쪽이든 무관, 매트리스 상면(max.y)+0.12.
+  - 침대 미발견/bounds 0 → 기존 탁자 옵 대기 폴백(경고 로그).
+  - 이동 금지 = 기존 P14(ExecuteMovement의 IndoorActive 게이트)+무명령(_hasCommand=false) 이중 충족 — 추가 코드 불필요 확인.
+  - 로그: "🛏️ 아군 병사 침대 휴식 배치: BarracksAlly_n → BarrackBed_n".
+- **제작 테스트 플레이크 제거(CraftBenchTests):** WeaponCraft_CraftSuccess(성공률 90%)가 Random 시드에 따라 10% 확율로 실패 — 36차 풀런에서 실측(8 failed). `Random.InitState(12345)` 시드 고정 → 재검증 통과. 최종 **624/617/7 = baseline 정확 동일**(qa36d).
+- **검증:** 컴파일 `error CS` **0**(EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**.
+- **다음(Play 게이트):** ①실내씬(내 소속) 입장 → 배럭 침대 3개에 병사 누워있음(호흡 애니) + 움직임 없음 ②프롬프트 기울임 가독. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (35차) 프롬프트 기울임 빌보딩(34차 풀직면 롤백+절반 기울임)·실내씬 병사 3명 배치 실증 (미커밋)
+
+- **프롬프트(34차 풀 직면이 오히려 가시성 저하 — 사용자 재보고):** LookRotation이 up과 거의 평행(dir.y≈0.9)해져 비틀림. **"아까처럼 세운 패널 + 탑다운에서 보이게"** = 카메라 수직 성분 **0.55배만 반영한 기울임 빌보딩**(dir=(x, y×0.55, z) 정규화 — 세워진 느낌 유지 + 상단에서 면이 보임 + 수직 추월 가드 유지). 크기(3.2×0.543/글자 0.22)는 유지.
+- **실내씬 병사 배치 실증(PlayerCastleInteriorPlaytest):** Test_PlayerCastleInterior 씬 부트에 **TerritoryBuilder.SpawnInteriorAlliedGuards(room, "Empire", 3)** 추가 — 실게임 경로(IndoorSceneTransition→동일 위임)와 같은 체인(CreateGuard→GuardPlaceholder.SetRecruited+SoldierIdlePose)을 그대로 타므로 Play 1회로 배치 실증. 배럭 지휘탁자(barrack final -30,0,-35) 주변 3명(막사 수비병 Lv8~10, 아군·비적대).
+- **검증:** 컴파일 `error CS` **0**(EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa35_editmode.xml`).
+- **다음(Play 게이트):** ①프롬프트 = 서 있는 패널이 카메라 쪽으로 기울어 탑다운에서 글씨 판독 ②실내씬 = 막사 테이블 주변 병사 3명 표시+idle("🪖 아군 막사 병사 배치" 로그 3건). stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (34차) "모두 벌목" 근원(_isWood 프리징)·물고기 GLB 동기 베이크·프롬프트 풀 빌보딩 확대 (미컴밋)
+
+- **스크린샷 판정(채광/낚시/e키 PNG):** ①낚시 결과창 = 유리배경(녹색 비침)·섀도·습득하기/버리기·지명종("🐟 대서양 연어") = 33차 반영 확인 ✓ — 물고기 이미지 슬롯만 회색 폴백 ②채광 = **아이템 "석재"인데 WOODCUTTING RESULT/벌목 성공!/통나무 특징/통나무 tip** ③프롬프트 = **위치 좋음(사용자 확인)**, 그러나 쿼드가 옆으로 누워 글씨 뭉개짐.
+- **"모두 벌목" 근원 수리(ResourceNode.ConfigureResourceType 신설):** `_resourceType` 기본값=Woods → **Awake가 AddComponent 순간 _isWood=true 계산** → 스포너가 리플렉션으로 _resourceType만 Stone으로 나중에 변경 → **_isWood는 Wood에 프리징** → 모든 채광이 Woodcutting/"벌목 성공!"/"통나무 특징"/stone tip까지 통나무 tip으로 발행. 수리: 공개 세터(타입+_isWood+_visual 동시 재계산) — NaturalResourceSpawner 5곳 + TestTerritoryCombatSetup 1곳 전면 교체.
+- **물고기 GLB — 동기 베이크(GblItemIconRenderer.SyncBakeFromGlbPath):** 이번 세션 로그 실측 = 큐 등록→마운트 무경고 정상인데 결과창 첫 페인트가 폴백으로 고정(프레임 갭 유실). 큐 경로 앞에 **1회 호출 동기 베이크**(마운트→렌더→ReadPixels→캐시 즉시 완결, #if UNITY_EDITOR) — publish 첫 페인트에 진짜 GLB. 성공/실패 모두 로그.
+- **프롬프트 가시성 [사용자 요구]:** ①**풀 빌보딩** — Y축만 회전하면 스티프 탑다운에서 쿼드가 측면으로 누움(e키.PNG 실측) → 카메라 방향 벡터로 완전 직면(수직 추월 가드 포함) ②**확대** — 쿼드 2.6×0.44 → **3.2×0.543m**, 글자 0.18 → **0.22m**.
+- **검증:** 컴파일 `error CS` **0**(EXIT=0). EditMode **624/617/7 — baseline 7건 동일, 신규 회귀 0**(`qa34_editmode.xml`).
+- **다음(Play 게이트):** ①채광="채광 성공!"+석재 tip / 벌목=벌목 / 채집=채집 ②낚시 물고기 GLB 사진(동기 베이크 로그 "동기 베이크 완료" 확인) ③프롬프트 글씨 정면+확대 가독. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (33차) 프롬프트 월드 빌보드 전환(게이지 동일 메커니즘)·결과창 습득/버리기 실동작·자동닫힘 폐지·플루언트 섀도 (미커밋)
+
+- **피그마 3차 정합 감사(nodes API — 72:80 채집 + 72:143 채굴 전수 재실측):** 31·32차 반영 상수가 피그마와 1:1 재확인(패널 672/92.7~111.2 576×859.8~896.8·타이틀 fs28.8 fw800·ItemImage 518.4×312·SpecBox 166.4×70.6×3 간격9.6·설명 pad19.2/155·버튼 253.2/255.6×48.8·tip fs14.4). 남은 차이 2건 처리: ①"플루언트 스타일도 아니고" → **.utk-window-shadow 소프트 섀도 + 2px 보더**(다른 UTK 창과 동일 크롬) 추가 — 유리 패널(α0.88) 유지 ②스펙 라벨(피그마 데모 "순도/무게" vs 게임 실데이터 "판매가/수량")은 실데이터 유지 — 더미 수치 지양.
+- **프롬프트(상단에만 뜸) — 근본 재설계 [사용자 지정 "게이지처럼"]:** 채널링 게이지(WorkProgressBar)가 항상 대상 위에 뜨는 이유 = **월드공간 쿼드**(투영 없음) → 프롬프트도 동일 메커니즘으로 전환. UTK 투영 오버레이 폐지: **대상 렌더러 bounds 앵커** — 작은 대상(돌/약초/밭/문) = bounds 정점+0.35m **위**, 큰 대상(나무 등 2.5m 초과) = **우측**(반폭+0.9m, 카메라 right 벡터) — 사용자 지정 그대로. 베이크 PNG(EInteractionPromptPanel.png — 라운드+스트로크+좌측 액센트 바, poison-unity-bake-png 규약) + TextMesh(#F0F6FC) 빌보딩 — 카메라 선택/좌표계와 무관하게 항상 대상 근처.
+- **습득하기/버리기 실동작(피그마 KeepButton/DiscardButton 계약):** "확인·이미 획득됨/닫기·인벤토리 유지" 무동작 표기 폐지 → **습득하기**(유지·닫기) / **버리기**(PlayerInventory.RemoveItem(id, count) 후 닫기).
+- **자동 닫힘 버그 근원 제거:** 3초 자동 닫기 타이머(RestartAutoClose/CancelAutoClose/필드) 완전 삭제 — 습득/버리기(또는 ESC/새 결과)로만 닫힘.
+- **물고기 GLB — 파이프라인 정적 검증 완료:** fish-*.glb.meta = glTFast ScriptedImporter 확인(나무와 동일 로드 경로) + 32차 진단 로그(큐 등록 경로/마운트 실패 사유) 탑재 — **다음 Play에서 낚시 1회 성공 시 로그로 즉시 판별**(이번 세션은 낚시 성공 0건이라 런타임 실측 불가였던 것이 유일한 빈틈).
+- **검증:** 컴파일 `error CS` **0**(월드 리그 재작성 후 QaValidator EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa33_editmode.xml`). 구버전 버튼 라벨 참조 테스트 없음 확인.
+- **다음(Play 게이트 — 사용자 확인):** ①프롬프트 = 돌/약초 위·나무 우측(게이지처럼 항상 대상 근처 — 로그 anchor 값 확인) ②결과창 = 섀도/2px 보더 플루언트 크롬 + 유리 배경 ③습득하기/버리기 동작 + 닫힘 없음(자동) ④낚시 성공 1회 → 물고기 GLB 로그 확인. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (32차) 벌목 ui 재보고 — 결과창 Fluent 전환·31차 후근 수리·프롬프트 카메라 근원 수리·낚시 등급별 난이도 (미커밋)
+
+- **벌목 ui.PNG 판정(vision):** ①아이템 이미지 영역 = 거대 빈 검은 박스+좌상단 소형 아이콘(CLASS 라벨 ".ASS" 가림) ②수량 스펙박스 우측 넘침 ③좌상단 유령 "벌목" 텍스트 ④세로로 늘어난 비율.
+- **③31차 후근 수리(HarvestResultUTK):** absolute inset0 + `.utk-slot` 클래스(64px/불투명 #010409 강제) + BackgroundSize.Contain 조합이 충돌 → 수리: 클래스 제거 + **검증된 기본 배경 스케일 회귀**(정사각 베이크 1:1 = **276×276 중앙**, 312 영역 내 (312−276)/2 상하 여백) — GLB는 크게·왜곡 없이·라벨과 무충돌.
+- **②수량 박스 넘침:** 고정폭 3×166.4+간격 19.2 = 518.4 > 내용폭 516.4(테두리 2px 분) → **flexGrow 균등 분할**(높이 70.6·간격 9.6 유지).
+- **④세로 왜곡 근원:** ApplyCanvasBounds가 sx/sy **독립 스케일**(게임뷰 1172×758 → sy 15% 과대) — **등배수 계약 k=min 교정**(패널/타이팁 전부).
+- **Fluent 전환(사용자 요구 — 4종 결과창 모두):** 창 루트 = 완전 투명+클릭 투과(pickingMode Ignore — VE 속성), 풀스크린 불투명 Black 배경/테두리 폐지. **ResultPanel = 유리 배경 #161B22 α0.88** — 뒷 배경이 희미하게 비침. 캔버스 헤더 스트립(좌상단 유령 "벌목"/STA 중복 원인) = display None.
+- **프롬프트(대상과 무관한 상단/코너) — 근원 수리(EInteractionPromptUTK.RefreshCamera):** Camera.main 의존 폐지 → **활성+targetTexture==null 카메라만**(아이콘 베이크/미니맵 RT 카메라 배제, MainCamera 태그 우선) — 진단 vp 가비지(4.17,2.01)의 유력 원인 차단. 31차 가장자리 폴백은 안전망으로 유지.
+- **물고기 GLB 진단 보강(GblItemIconRenderer):** 베이크 큐 등록 시 glb 경로 1회 로그 + 마운트 실패(모델 없음) 시 경로/사유 경고 — 다음 Play 낚시 성공 1회로 파이프라인 정상/불량 즉시 판별. (이번 세션은 낚시 성공 0건 — 로그 실측 불가였던 것이 확인의 빈틈.)
+- **낚시 난이도 = 등급별(FishingSystem):** 입질 순간 RollFishingTier()(기존 60/30/10+밤2배/비1.5배) 확정 → **난이도-보상 정합**(어려운 미니게임 = 희귀 물고기): 일반 0.08/0.07·드레인0.02·완화0.05·핀250 · 희귀 0.06/0.085·0.035/0.04·320 · 전설 0.045/0.10·0.05/0.03·400, SweetSpotWidth 30/22/15. 기존 13연타 무조건 성공 구조 → 리듬 캐치(성공 시점 재추첨 폐지).
+- **검증:** 컴파일 `error CS` **0**(pickingMode VE 속성 교정 후 QaValidator EXIT=0). EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`qa32_editmode.xml`).
+- **다음(Play 게이트 — 사용자 확인):** ①벌목/채집/채광 결과창 = 플루언트 유리 패널(배경 비침)+큰 GLB 아이콘(276)+CLASS 라벨 노출+스펙 3박스 정렬 ②프롬프트 = 대상 바로 위(cam/onScreen 로그로 카메라 판별) ③낚시 = 희귀 물고기일수록 어려움 + 물고기 GLB 사진(큐 등록/마운트 로그 확인) ④낚시 중 점프 없음. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (31차) 창고/결과창 피그마 실측 정합 + 프롬프트 폴백 복귀 + 낚시 지명종 전용 + 점프 차단 + HP 굵게 (미커밋)
+
+- **창고 UI(창고 ui9.PNG) — Figma 15:4 StoragePanel 실측 비교:** 패널/헤더/스탯/그리드/푸터 regions는 InventoryClusterPanelRegions와 이미 1:1(24,24,456,52.8·100.8·151.4,537.6·713,61.2·버튼 223.2/255.6×46.8). 불일치 1건 발견·수리: **"사용 슬롯 n/160" 라벨 fs 12→14.4**(Figma 실측 fs14.4 — WarehouseWindowUTK.ApplyCapacityLabelLayout).
+- **결과 창(벌목/채집/채광/낚시 공용 HarvestResultUTK) — Figma 72:80 nodes API 전수 실측으로 "배열/크기" 정합 수리:**
+  - **아이템 이미지 = 대형 영역 전환**: 기존 120×120 소형 슬롯 → **Figma ItemImage 518.4×312**(절대 inset0 채움 + BackgroundSize.Contain — GLB 베이크 왜곡 없이 대형 표시). LEGENDARY CLASS 라벨 = 이미지 좌상단 오버레이(14.4,14.4, fs13.2 Bold).
+  - **메인 타이틀 fs 15.6 → 28.8 Bold**(Figma fs28.8 fw800 — "치유초" 이름이 크게 보임), 상단 verb 16.8→18, eyebrow(GATHERING RESULT) 14.4→16.8 Bold, 배지 Bold.
+  - **SpecBox 3칸 = 고정 166.4×70.6, 간격 9.6**(기존 flexGrow/간격4), 라벨 fs13.2/값 fs16.8 Bold, pad-top 14.4. 설명 섹션 = pad 19.2 + minHeight 155, 제목 fs16.8 Bold/본문 fs15.6. 하단 버튼 2개 높이 48.8·간격 9.6·fs16.8 Bold, actions inset 28.8. 패널 pad 24→28.8. SystemTip fs 12→14.4.
+- **프롬프트(여전히 안 뜸) — 근본 원인 확정:** 이번 Editor 세션 로그에서 `[EInteractionPrompt]` **0건** — 30차 가시성 필터가 근접 후보를 전부 탈락시켜(투영 vp=(4.17,2.01)·(-24.75,10.74) 등 가비지) 영구 미표시였음. 수리(EInteractionPromptUTK): **필터 폐지 + 화면 가장자리 폴백** — 최근접 후보는 항상 유지(E키 최근접 판정과 일치), 대상이 화면 밖이면 대상 방향 가장자리(0.08/0.92)로 위치 삽입, 카메라 뒤(z≤0)면 플레이어 화면점 위. 진단 로그에 cam='이름'·onScreen 추가 → 다음 Play에서 카메라 불량 여부 즉시 판별.
+- **낚시 = 사용자 지명종 전용(FishCatalog):** 333종 중 지명종은 **한국어 34종+영문 4종=38종**뿐이고 Common/Rare 밴드는 무명 "🐟 물고기 F0xx"뿐 → 낚시 결과 89%가 무명종이었던 것이 "생선 이름/설명이 안 떠"의 실체. **GetRandomFishItem = 지명종 풀 한정**(밴드별 분배 유지, 밴드 내 부재 시 지명종 전체 보완) — "물고기 F0xx"는 결과에 더 이상 없음. 물고기 설명 = "낚시로 잡은 붕어. 신선하다." 자동.
+- **낚시 중 점프 차단(PlayerMovement):** Space=낚시(리일/입질 대기) 중 `fishingBlocksJump`(IsFishing‖IsWaitingForBite‖IsMinigameActive) → 점프 미발동. JumpProbe 로그에 fishingBlocked 플래그 추가.
+- **HP 숫자 가시성(HUDUTK):** 색 #8B949E 회색 → **#F0F6FC 흰색 + Bold**(22×k 크기 유지).
+- **검증:** 컴파일 `error CS` **0**(QaValidator EXIT=0 — FishCatalog using 보강 후). EditMode **624/617/7 — baseline 7건 정확히 동일, 신규 회귀 0**(`qa31_editmode.xml`).
+- **다음(Play 게이트 — 사용자 확인):** ①창고 "사용 슬롯" 폰트 ②결과 창 = 대형 GLB 사진(518×312)+큰 타이틀 28.8+스펙 3박스 ③프롬프트 항상 표시(가장자리 폴백 포함 — 로그 cam/onScreen 확인) ④낚시 = 지명종("🐟 붕어" 등)+설명 ⑤낚시 중 Space 점프 없음 ⑥HP 숫자 흰색 굵게. stage/commit/push 미수행.
+
+---
+
+## 2026-10-11 (30차) 테스트 15씬 2 재보고 수리 — 그루터기 1.5m·프롬프트 화면 가시성 필터·아이콘 지연 재적용·HP 라벨 2배·시계 DAY 표시 (미커밋)
+
+- **영상 판정(테스트 15씬 2.mp4, ffmpeg 21프레임+vision):** ①그루터기 = 캐릭터 발치 높이로 너무 작음(0.86m — 원거리 카메라에서 더 작게 읽힘) ②프롬프트 미표시 프레임 다수 ③시계 "00:53" 정상 표시 ④HP 라벨 표시 확인(흐릿/작음).
+- **①그루터기 — 0.86m → 1.5m**(나무의 약 1/5.7, bounds 높이 정규화 방식 유지 — GLB 원본 크기 무관).
+- **②③프롬프트 + 결과 창 — 29차 진단 로그가 뿌리를 실증:**
+- 프롬프트 vp 실측: `Warehouse_1 vp=(1.10,2.55,5.5)`·`Rock_04 (4.17,2.01,1.6)`·`Wood_15 (-24.75,10.74,0.3)` — **근접 광각 카메라에서 대상 화면점이 프러스텀 밖**(카메라 뒤 z≈0.3 포함) → 코너 고정(24,24)/(1236,24)·미표시. 수리: **Collect에 화면 가시성 필터**(vp.z>0 & x/y ∈ [-0.05,1.05] 밖 후보 스킵) — 프롬프트는 항상 화면에 보이는 대상에만(7호출부 전파). 코너 클램프는 최후 안전망으로 유지.
+- 결과 창: **Figma 실측(nodes API — fishing 72:4/gathering 72:80/mining 72:143) = HarvestResultUTK 상수와 1:1 일치 확인**(ResultPanel 672/111.2/576×859.8·tip 675.3/1028.6/569.4·헤더 1920×76.8 — 치수 불일치 없음). "형태가 다르다"의 실체 = **이미지 슬롯이 빈 채**로 보이는 것 → GLB 아이콘(RT 베이크)은 publish 직후 몇 프레임 뒤 완성되는데 ApplyLatest가 토큰당 1회만 그려 **베이크 완료를 놓침**. 수리: PollBridge에 **아이콘 지연 재적용**(창 열림+미해결 동안 재시도, 텍스처 변화 시만 스타일 변경 — 16ms 스팸 없음, 새 결과 시 리셋).
+- **④HP 라벨 2배**: fontSize 11×k → **22×k**, 라벨 박스 14×k → 20×k, 호스트 높이 동행(+20×k — 하단 24px 여백 내 수납 유지).
+- **⑤시계 DAY 표시**: TimeClockGlassUTK 카드 하단에 **"DAY n"** 라벨 신설(CurrentDay+1 — 1일차=DAY 1, GitHub 액센트 #58A6FF, 카드 높이 60→76, Row→Column 재배치) — Refresh의 조기 반환보다 앞에서 갱신(자정 직후 즉시).
+- **검증:** 신규 컴파일 `error CS` **0**(QaValidator EXIT=0). 전체 EditMode **624/617/7 — baseline 정확히 동일, 신규 회귀 0**(`/mnt/c/tmp/r31_editmode.xml`).
+- **다음(Play 게이트 — 사용자 확인):** ①그루터기 1.5m 체감 ②프롬프트 = 화면에 보이는 대상 위에만, 코너 고정 없음 ③채집/채광/벌목/낚시 결과 창 = 물고기 GLB 사진 + 한국어 설명 섹션 채워짐 ④HP 숫자 2배 ⑤시계 카드 "DAY 1" 표시. stage/commit/push 미수행.
+
+---
+
+1|## 2026-10-11 (29차) 28차 Play 재보고 수리 — 그루터기 1/10 정규화·결과 창 자가부트·E프롬프트 화면공간 앵커 (미커밋)
+
+- **사용자 확정(28차 Play):** 채광/채집 사라짐→리젠 ✅. 재보고: ①그루터기 너무 큼(나무 높이의 1/10로) ②E프롬프트 대상 앞 미표시 ③채집/채광/벌목 결과 창 모두 미표시.
+- **①그루터기 — 정규화로 수리(ResourceNode):** 기존 = 나무 localScale 등비 복사 → GLB 원본 크기 차로 과대. 수리: **bounds 높이 정규화 = 0.86m**(나무 8.6m의 1/10 — 사용자 지정 배율), 밑면 지표 정렬 유지.
+- **③결과 창 — 근본 원인 확정·수리(HarvestResultUTK):** 로그 실측 — publish는 이미 작동("🧺 치유초 x1 획득 — 결과 창 표시" 실존)하나 **"[HarvestResultUTK] 인스턴스 생성" 0건 = Ensure 무호출** → Updater(LatestToken 폴링) 부재 → 창 영구 미오픈. 수리: `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)] Bootstrap→Ensure()`(FishingUTK 27차 선례). 낚시/채집/채광/벌목 4종 전부 이 창으로 통일 완료.
+- **②E프롬프트 — 진단 로그가 뿌리를 실증(28차 진단 screen=(24,24) 두 나무 공통):** 월드 전면점(+up 오프셋) 투영이 스티프 탑다운 카메라에서 시야 밖 → **Clamp가 좌상단 코너에 고정**(시계 카드 뒤라 미표시로 읽힘). 수리: **화면공간 앵커 전환** — 대상 중심 투영(z>0 가드) 후 "대상 화면점 바로 위" 배치, x는 대상↔플레이어 화면점 35% 블렌드(=대상 앞쪽). 월드 up/전면점 수학 폐지 — 투영이 시야 내면 항상 대상 근처. 진단에 raw vp 추가.
+- **검증:** 신규 컴파일 `error CS` **0**(QaValidator EXIT=0). 전체 EditMode **624/617/7 — baseline 정확히 동일, 신규 회귀 0**(`/mnt/c/tmp/r30_editmode.xml`).
+- **다음(Play 게이트 — 사용자 확인):** ①벌목 → 그루터기 0.86m(나무 1/10) 잔존 → 리스폰 ②채집/채광/벌목 → **결과 창 표시**(물고기=GLB 사진+한국어 설명/약초·통나무·석재=이름·설명·등급) ③E프롬프트 = 대상 화면점 바로 위·앞쪽(진단 vp 로그로 잔여 문제 즉시 판정). stage/commit/push 미수행.
+
+---
+
+1|## 2026-10-11 (28차) 결과 창 통일(피그마)+물고기 GLB 아이콘 + 그루터기 잔존 + 진행바 마크 제거 + E프롬프트 최상단/전면 + HUD HP 라벨 (미커밋)
+
+- **사용자 확정(27차 Play):** 낚시 창 오픈 ✅ / HUD 링 ✅ / 진행바 Fluent 감 ✅. 스태미나 라벨은 제외 확정(하트만). 신규 요구: 벌목 후 그루터기 잔존, 돌/채집 사라짐→리젠.
+- **P1 — 결과 창 통일(사용자 요구: "전리품 형태가 아니라 피그마 창"):**
+- `ResourceNode.HarvestForPlayer`(채광/벌목): LootBasket 생성 → **아이템 직접 지급 + HarvestResultBridge.Publish(immediate: true)** — Woodcutting/Mining 종, "벌목 성공!"/"채광 성공!", displayName/description/등급/수량/tip 전달. 희귀 보너스 광물 = 인벤 직접 지급(창은 대표 아이템만).
+- `HerbPickup.Harvest`(채집/과일나무): 동일 전환 — Gathering 종 + 씨앗 확률 드랍을 바구니 대신 직접 지급(씨앗 여부 tip에 반영).
+- **병사 자동 작업은 기존 LootBasket 유지**(throttle 스팸 방지 규약 — 플레이어 경로만 창 전환).
+- `HarvestResultBridge.HarvestKind.Woodcutting` 신설 + HarvestResultUTK variant 5곳 확장(WOODCUTTING RESULT/벌목 성공/통나무 특징/벌목/gathering bounds 공유).
+- **물고기 사진(GLB→아이콘)**: `GblItemIconRenderer` — `ResolveFishGlbPath`(fish_glb_<key> → FishCatalog.GlbPathByKey) + BakeJob.glbPath + TryMount의 에디터 AssetDatabase 경로(새로운 glb/crops-fish/) — UserProvided 밖 GLB도 베이크 파이프라인 재사용. 결과 창·인벤 아이콘 동시 커버(절차 폴백 유지).
+- **P6 — 자원 노드 사라짐/리젠 정합(사용자 요구):**
+- **나무 = 그루터기 잔존**: ResourceNode에 `_stumpType`(스포너가 시각 GLB 파일명에서 birch/broadleaf/pine 자동 추출 — 델리게이트에 visualName 전달 추가) + `EnsureStump()`(종별 cut-stump GLB — nature 폴더 실존 3종 — 나무 등비 스케일+밑면 지표 정렬, 지연 1회 생성) + `SetChildRenderersVisible`의 **"Stump" 자식 반전 토글**(벌목=나무 숨김+그루터기 표시, 리스폰=반대). 기존 흔들림/리스폰 불변.
+- **돌/채집 = 사라짐→리스폰**: 기존 구현(Visual 숨김+Respawn) 확인·유지 + **과일나무(허브 픽업의 나무 GLB)도 자식 렌더러까지 숨김**으로 확장(기존엔 루트 렌더러만 해제돼 몸통이 남음 — HerbPickup.SetHarvestVisualsVisible 신설, Respawn 복원 동행).
+- **P2 — 진행바**: 이동 마크(팁 글로우) 제거 — 트랙(라운드 프레임) 안 파랑 채움만 좌→우 성장(사용자: "검정색 마크 이동보다 파랑 게이지가 차는 식").
+- **P3 — E프롬프트**: ①`root.Add` 최상단 드로우(기존 Insert(0)=최하단 — 가려짐 후보 제거) ②전면 오프셋 타이트화(clamp d×0.35, 0.25~0.8m) ③수집 거리 XZ→**3D 일원화**(활성 판정과 정합 — "보이는데 E 안 먹는" 간극 제거) ④표시 진단 로그 강화(감지+screen 좌표, 위치 계산 뒤로 이동 — 스코프 실수 즉시 수리).
+- **P4 — HUD**: 하트 링 아래 **"67 / 100"** 남은/전체 체력 라벨(#8B949E 보조텍스트·중앙정렬, 하단 24px 여백 내 수납 — 하단 고정 앵커 계약 수식 불변). 폴링마다 CurrentHP/MaxHP 갱신, 시스템 부재 시 "100 / 100". **스타미나 라벨 제외(사용자 확정)**.
+- **검증:** 신규 컴파일 `error CS` **0**(QaValidator EXIT=0 — 중간 CS0103 PlaceCategory 변수명 실수 1건 즉시 수리). 전체 EditMode **624/617/7 — baseline 정확히 동일, 신규 회귀 0**(`/mnt/c/tmp/r29_editmode.xml`).
+- **다음(Play 게이트 — 사용자 확인):** ①벌목: 나무 흔들림→완료→**그루터기 잔존**→리스폰(나무 복원+그루터기 소멸) ②채광/채집: 사라짐→리스폰(과일나무 몸통까지) ③성공 시 결과 창(물고기 GLB 사진/광석·통나무·약초 이름·설명·등급) ④진행바 마크 없음 ⑤E프롬프트 대상 바로 앞(진단 로그) ⑥HUD "HP/MaxHP" 라벨. stage/commit/push 미수행.
+
+---
+
+1|## 2026-10-11 (27차) 26차 Play 재보고 수리 — 낚시 창 미오픈 자가부트·HUD 링 베이크 스트립 교체·진행바 Fluent 베이크·E프롬프트 "대상 바로 앞" (미커밋)
+
+- **사용자 재보고(26차 Play):** ①호수 낚시 여전히 불가 ②진행바는 정상화됐는데 더 플루언트하게 ③E 프롬프트 = **상호작용 대상 바로 앞**에 표시 ④하트/번개 링 여전히 시계방향 소모 없음.
+- **①낚시 — 두 번째 근본 원인 확정·수리(FishingUTK):** Editor.log 실측 — `[EInteractionPrompt] 대상 감지 — Player dist=0.0m` = **물가 판정(26차 OverlapSphere 수리)·프롬프트·E키는 이미 작동**. 실체는 **FishingUTK.Ensure가 세션에서 0회 호출**("[FishUTK] 인스턴스 생성" 로그 부재) — 창 자동 오픈 폴링(Updater: IsFishing→Open)이 존재하지 않아 **E로 낚시는 시작되는데 화면에 아무 변화가 없음**. MainScene은 GameSetup.EnsureFishingSystem이 UI까지 열어주지만 Test_15는 그 경로가 없음. 수리: `FishingUTK`에 `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)] Bootstrap→Ensure()` 자가부트(TimeClock/HUDUTK 선례).
+- **④HUD 링 — 구조 교체(UTKGaugeStripArc 신설):** 26차 메시 무스케일 이관 후에도 갱신 재도장이 안정하지 않음(사용자: "여전히 소모 안 됨" — 링은 이제 보이지만 값 갱신이 안 되는 상태). **벡터 메시 → 베이크 스트립 교체**로 규약(poison-unity-bake-png: 신규 표시기=베이크 PNG)대로 종결: `UTKGaugeArcStrip.png` **65프레임**(프레임 128px, 4배 슈퍼샘플+LANCZOS, 흰 코어 0.8r..1.0r 밴드+글로우 2패스+tip, 시계방향 소모 프레임 굽힘: 시작 에지 -90°+360°×(1-f)·스윕 360°×f) + `UTKGaugeStripArc.cs`(Fraction→backgroundPositionX 슬라이싱 — **스타일 변경이라 재도장이 엔진 보장**, resolvedStyle 기반 자동 등비, meta isReadable:1). 색 = unityBackgroundImageTintColor 틴트(HP 레드/스타미나 옐로 — 시맨틱 색 계약 유지). 스택 폼(7층/하단 앵커/간격 24) 불변, 활 리티클(UTKCircularGauge) 무변경. HudBottomAnchorTests 계약 2건을 스트립 현실로 갱신("new UTKGaugeStripArc()"·틴트/DrainClockwise 단정).
+- **②진행바 — Fluent 베이크(WorkProgressBar):** 26차 프레임+좌정렬 정상 확인(사용자) → 고품질 규약대로 프리미티브 단색을 베이크 텍스처로 교체: `GatherBarTrack.png`(라운드 트랙 #0D1117+스트로크 #2E343D+상단 하이라이트) / `GatherBarFill.png`(#58A6FF 수직 그라데이션 3스톱) + 채움 선두 끝 **팁 글로우**(UI/shadow_glow 재사용, 진행 중만 표시) — 4배 슈퍼샘플+LANCZOS, meta isReadable:1.
+- **③E프롬프트 — "대상 바로 앞" 위치(EInteractionPromptUTK):** 앵커점을 대상 중심+up에서 **대상 중심→플레이어 방향 전면 가장자리(clamp 0.4~1.2m)+up** 로 변경(기존 월드 앵커/화면 클램프 유지). 낚시 등 앵커=플레이어인 커스텀 등록은 종전(플레이어 머리 위) — 대상=물이라 앞 점이 자기 자신.
+- **검증:** 신규 컴파일 `error CS` **0**(QaValidator EXIT=0) + 심볼 착륙(UTKGaugeStripArc 3건·UTKGaugeArcStrip/GatherBarTrack/GatherBarFill UTF-16 리터럴). 전체 EditMode **624/617/7 — baseline 정확히 동일, 신규 회귀 0**(`/mnt/c/tmp/r28b_editmode.xml`).
+- **다음(Play 게이트 — 사용자 확인):** ①호수 물가 E → **낚시 창 자동 오픈**(입질 대기→미니게임, Space 리일/Q·ESC 취소) ②HUD 링 = 전체 렌더 + 피격 시 시계방향 소모(65프레임 슬라이싱) ③진행바 Fluent(라운드 프레임+그라데이션+팁) ④E 프롬프트가 대상 전면 위에 뜸 ⑤도끼 커서(26차) 유지 확인. stage/commit/push 미수행.
+
+---
+
+1|## 2026-10-11 (26차) 테스트 15 영상 피드백 5종 수리 — 낚시 물가 판정·도끼 커서 배선·진행바 프레임/좌정렬·E프롬프트 크래프트/창고·HUD arc 메시 무스케일 (미커밋)
+
+- **사용자 영상 보고(테스트 씬 15.mp4):** ①호수에서 낚시 상호작용 안 됨 ②벌목 도끼 커서 안 됨 ③파랑 진행바가 프레임 안에 차오르는 게 아니라 그냥 파란색 형태 ④채집/채광/농경/크래프트 등 **모든 E 상호작용에 프롬프트 + 대상 위 표시** ⑤시계는 흐름(25차 수리 효과 확인) ⑥HUD 게이지 여전히 미표시 ⑦질문: 돌이 직접 만든 프리미티브 아니냐 → **아니오: GLB 바위 클러스터 3종 전부 실존·배치됨**(폴백 프리미티브 아님 — 에셋 실측).
+- **영상 프레임 분석(ffmpeg 8프레임+PIL 픽셀 실측+vision):** ①HUD 링(arc)이 **하단 짧은 호만** 렌더(빨강 557px 밴드 — 전체 스윕 아님) ②진행바 = 프레임 없는 반투명 배경 + 좌정렬 안 된 파랑 쿼드 ③E 프롬프트 영상 전체 미표시(채널 중 숨김은 설계대로) ④호수는 좌상단 블럭으로만 보임.
+- **①낚시 — 근본 원인 확정·수리(FishingSystem.IsNearWater):** 수직 하향 레이캐스트만 검사 → **물 위에 직접 서야만 true**, 해안(물가)에 서면 발밑이 땅이라 항상 false → 프롬프트·E 시작 전부 불발. 수리: 발밑 하향 + **수평 근접 OverlapSphereNonAlloc(반경 2.5m)** Water 태그 병행 — "물가=해안 근접" 의미 구현.
+- **②도끼 커서 — 근본 원인 확정·수리(UTKCursorOverlay):** 22차가 도끼 커서를 **폐기된 ContextCursorSystem.BuildAxe**(P22-2 스폰 중단)에 배선 → 대체제 오버레이엔 Wood 케이스·도끼 에셋이 아예 없었다. 수리: `_wood = cursor_mine.png`(Figma 채굴 매핑의 만월날 도끼 — 3D 스타일 정합) 로드 + `case Wood → _wood`. **표시 게이트도 수리**: 기존 P25-B는 Ctrl 홀드 중 아니면 아이콘 영구 숨김("대상을 봐도 변화 없음"의 원인) — **상호작용 대상(Mine/Wood/Gather/Door/Cook/Shop/Monster/EnemyGuard/NPC) 호버 시 Ctrl 없이 표시**로 확장(기본 화살표는 기존대로 숨김). 분석 게이트도 숨김 중 유지(닭-달걀 순환 제거). 전용 곡괭이/도끼 분리 베이크는 후속.
+- **③진행바 — 수리(WorkProgressBar):** 기존 = 반투명 검정 배경 쿼드 + 채움 쿼드가 **중앙 피벗 스케일**(좌정렬 불가 — 배경 반폭만큼 왼쪽으로 삐져나감). 수리: **다크 트랙 + 스트로크 프레임 4변 + 좌단 고정 채움**(LateUpdate에서 scale과 position을 함께 갱신해 좌정렬 성장) — GitHub-dark 톤, z 오프셋으로 페이드아웃 방지.
+- **④E프롬프트 — 커버 확장(EInteractionPromptUTK):** 기존(허브/자원노드/밭/잠긴문+브리지 커스텀)에 **CraftingStation(제작소)·TerritoryWarehouse(창고) 스캔 추가**(3m, "E키를 눌러 상호작용", 대상 위 월드 앵커 — 기존 WorldToViewportPoint 경로 그대로). 대상 감지 진단 로그 추가(후보 변경 시 1회 — 미표시 보고의 Play 판별용).
+- **⑥HUD 게이지 — 근본 원인 확정·수리(HUDUTK+UTKCircularGauge):** 게이지 호스트가 **transform.scale(0.75)**로 등비 확대하는 구조에서 **generateVisualContent 벡터 메시(arc 링)가 조상 transform.scale을 메시 좌표에 반영하지 못해** 링 일부만 렌더·어긋남(픽셀 실측 = 하단 짧은 호). 배경이미지 7층은 transform 스케일이 정상이라 아이콘/틀만 보였던 것. 수리: ①호스트 transform.scale **폐지 → 레이아웃 등비**(width/height×k) ②스택 루트에 transform.scale=k 이관(ScaleStack 신설 — 이미지 층 담당) ③**arc를 스택에서 호스트 직속(무스케일 서브트리)으로 이동** + 레이아웃 등비 크기(PositionArc 신설 — 메시는 resolvedStyle로 스스로 계산). 링 밴드 0.8r..1.0r·두께 0.2r·시계방향 소모·glow/tip 계약 불변.
+- **검증:** 신규 컴파일 `error CS` **0**(QaValidator batch EXIT=0). 전체 EditMode **624/617/7 — baseline과 정확히 동일, 신규 회귀 0**(`/mnt/c/tmp/r27_editmode.xml`).
+- **다음(Play 게이트 — 사용자 확인):** ①호수 물가(물 위 아님, 해안)에서 E 프롬프트→낚시 시작/미니게임 ②나무 호버 시 도끼 커서(Ctrl 불필요) ③진행바 = 프레임 안 파랑 좌→우 차오름 ④제작소/창고 접근 시 E 프롬프트 ⑤HUD 하트/번개 링 전체 렌더+피격 시계방향 소모. stage/commit/push 미수행.
+
+---
+
+1|## 2026-10-11 (25차) 시계 정지 근본 수리 + Test_15 생활기술 통합 씬 + 실내 ×2 점프 + 제작소 목재 기본 공개 (미커밋)
+
+- **사용자 보고/요구:** ①실내 여전히 어두움 → "실내씬 예시 정도의 밝기" ②HUD 시계방향 소모 미작동 ③벌목 나무 추가했는데 미표시 ④메인씬 확인 불가 → **Test_15_Livelihood에서 낚시 호수·실제 나무·돌 추가 후 채광/채집/농경/나무 흔들림 통합 확인** ⑤제작소 나무 조합 확인 ⑥Test_10에서도 HUD 미표시 ⑦시간 UI 시간 미흐름. (계획: `.hermes/plans/2026-10-11_livelihood-testscene-indoor-hud-gather-plan.md`)
+- **⑤확인(소스 실측): 목재 레시피는 DB에 전부 존재** — WeaponCraftDatabase 정적 목록(dagger/sword/spear/bow_wood·tool_axe/pickaxe/**shovel**·fishing_rod). 미표시 원인 = Milestone D **"?" 블라인드**(RecipeDiscoverySystem 미발견 마스킹) → A안 확정으로 수리(아래).
+- **P5 — 시계 정지 근본 원인 확정·수리(TimeClockGlassUTK):** `EnsureUpdater()` 가드가 `if (_instance != null) return;`인데 Ensure()가 _instance를 세팅한 **뒤** 호출 → **Updater가 영구 미생성**, 300ms 폴링이 아예 없어 시계가 생성 시점 값에서 고정(사용자 보고 "시간이 안흐른다"의 근본 원인). 수리: 존재 판정을 `FindAnyObjectByType<Updater>()`로 교체(도메인 리로드 OFF 대비 — 정적 bool 가드는 Play 종료 시 DDOL GO 파괴로 재발 위험).
+- **P4 — Test_10 HUD 판정:** Editor.log 실측 — 진단 로그 `hpFraction=0.62→0.53 ph=True attached=True`(피격 실측·데이터/부착 정상) + `gaugeHost left=229.8 top=775.1 scale=0.75 root=(1440×902)`(온스크린·하단 고정 앵커 정상). **부트·데이터·위치 전부 정상 — 코드상 결함 미발견.** 렌더 판별용 진단 강화: 진단 로그에 `hostRect/panel/onScreen` 추가 — 다음 Play에서 온/오프스크린 직접 확정. (어제 캡처 hud ui 7.PNG 실측: 게이지 렌더 자체는 정상 표시 확인)
+- **P1 — Test_15 통합 확장+슬림화:** `NaturalResourceSpawner`에 테스트 공개 API 신설(`LoadWoodTreeVisuals/LoadRockVisuals/LoadFruitTreeVisuals`·`SpawnTestNode`(높이 위임형 SpawnNodeAt 분리)·`ConfigureWoodNode/ConfigureRockNode/ConfigureFruitNode`) — 테스트 미니지형(±60m)에서 메인씬과 **동일 노드 코드 경로**(ResourceNode/HerbPickup + E 채널 파랑 진행바 + 스웨이 + 도끼 커서 + 소멸→리스폰) 검증. `TestTerritoryCombatSetup.SetupNatureResources()` — 고정 시드(20261011) 지터 그리드, **나무 20·돌 20·과일나무 3**(사과), 호수(0,-22 r13)/농장클러스터/성/스폰 제외존. 슬림화(사용자 결정): Livelihood에서 `SetupTestDummies`(병사+몬스터)·`SeedPlayerInventory`(검/갑옷/곡괭이/고기/Gold) 스킵 → 크래프트 검증 재료만 지급(통나무×6·석재×2·엄니×1). **호수 원판 확대**(반경 5m→12m).
+- **P2 — 실내 조명 예시 정합 ×2 점프:** 목표 = 내부씬 예시.PNG luminance(PIL 실측 mean 37/median 34/p75 50/p90 75 — 10-10 어둡게 요구 전 캡처는 mean 79~87로 예시보다 훨씬 밝았음 → 현재 상태가 예시보다 어두운 것과 정합). 3연속 재보고 교훈대로 소폭 계단 금지·배수 점프: IndoorScene 화광 **3→6×3**, 삼분광 ×2(Sky 0.44/0.3/0.2·Eq 0.28/0.2/0.15·Ground 0.14/0.11/0.08), 성내부 빌더 전 광원 ×2(입구 1.0→2.0·바운스 1.15→2.3·앰비언트 ×2.0·중앙 0.9→1.8·랜턴 1.2→2.4·작업풀 1.15/1.2→2.3/2.4·사인 0.9/0.85→1.8/1.7). 직사광 0(소등)·AERO 포그 0.12·탑다운 금지 등 유지 규약 불변. **계약 3파일 동기**: IndoorAeroFogTests(메서드명 To30→**To60**·stale 3 추가·삼분광 0.44 단정), TimberFrameTests 상한 1.30→**2.60**, Warehouse 상한 1.3→**2.6**+앰비언트 0.20/0.15/0.11, CollisionAndKitchen 입구측 1.25→**2.50**.
+- **P3 — 제작소 목재 기본 공개(A안 확정):** `RecipeDiscoverySystem.Initialize`에서 `DefaultDiscoveredResultIds`(목재 무기 4종+공구 3종+낚싯대)를 DisplayName으로 항상 시드+Save. 석재·철·크리스탈·방어구는 기존 발견 시스템 유지.
+- **검증:** 신규 컴파일 `error CS` **0**(QaValidator batch, EXIT=0) + 심볼 착륙 확인(Systems: SpawnTestNode/ConfigureWoodNode, Core: DefaultDiscoveredResultIds, UI: TimeClockGlassUTK_Updater UTF-16). 전체 EditMode **624/617/7 — baseline과 정확히 동일, 신규 회귀 0**(`/mnt/c/tmp/r26_editmode.xml`, 실패 7건 전부 기존 baseline).
+- **다음(Play 게이트 — 사용자 확인):** Test_15_Livelihood Play에서 ①호수 물가 E→낚시 ②벌목: 도끼 커서→파랑 진행바+나무 흔들림→통나무→리스폰 ③돌 채광 ④허브/밭 ⑤병사·몬스터·불필요 장비 없음 ⑥HUD 게이지+피격 시계방향 소모(진단 로그 onScreen 필드) ⑦시계 실시간 흐름 ⑧제작소 목재 조합 표시. 메인씬 나무는 Editor.log 🌳 로그 대조(테스트씬 통과=시스템 정상 → 메인씬 배치/환경 분리). stage/commit/push 미수행.
+
+---
+
+1|## 2026-10-11 (24차) 장비/무기/공구 레시피 목재 반영 + 현실감 재설계 (미커밋)
+
+- **사용자 요구:** ①장비 크래프트에 목재(통나무) 반영해 현실감 있게 재설계 ②도끼/곡괭이/삽 등 공구도 레시피에 추가.
+- **확인:** ①오히려 `weapon_*_wood`(목재 티어)가 목재를 안 쓰고 멧돼지 엄니로 제작되던 것이 실체. ②공구는 곡괭이/도끼만 존재, **삽 미정의**. ③`RecipeDB_SO` 에셋 없음 → 정적 `_recipes`가 실동작(수정 바로 반영).
+- **PlayerInventory:** `Shovel`(tool_shovel) 아이템 신설 (도끼/곡괭이 옆, Tool, 내구 30).
+- **WeaponCraftDatabase 재설계 (최대 2재료):**
+  - 목재티어 무기 = 실제 통나무 + 엄니/토끼털 (dagger `mat_wood1+엄니1`, sword `mat_wood2+엄니1`, spear `mat_wood2+토끼털1`, bow `mat_wood2+토끼털1`).
+  - 공구 3종 = `mat_wood2 + mat_stone1` (도끼/곡괭이/삽, Lv3 Common).
+  - 석재티어 = 돌날+목재자루 (`mat_stone + mat_wood`).
+  - 철티어 = 늑대이빨+목재손잡이/자루(dagger/spear/bow), 검은 멧돼지가죽 손잡이 유지.
+  - 크리스탈 티어 = 목재 불포함(고급 금속/수정 유지). 방어구는 helmet_wood만 목재(유지).
+- **CraftBenchTests 갱신:** weapon_sword_wood 재료(멧돼지엄니→목재2+엄니1) 반영해 CraftSuccess/Insufficient/MultisetMatch/NotifyCraftSucceeded 4개 테스트 수정.
+- **검증:** 신규 컴파일 `error CS` **0**. EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`/mnt/c/tmp/r26_editmode.xml`). stage/commit/push 미수행.
+- **다음(Play):** 크래프트 벤치에서 목재 기반 무기/공구 제작 확인. 커밋은 명시 요청 시.
+
+---
+
+## 2026-10-11 (23차) 돌 200개 상향 + 지역 균등 (미커밋, + 나무 흔들림/스웨이 별도 22-2 기록)
+
+- **사용자 요구:** 돌을 나무 수준(200)으로 늘리고, 채광 후 돌이 사라지게, 나무·돌 리스폰.
+- **돌 개수·배치**: `NaturalResourceSpawner.ROCK_TARGET 40→200`·`ROCK_ATTEMPTS 800→3500`, `RockAcceptance` → **전 국가 균등(동/서/남/북 1.0)** (기존 서/남 편중 제거) → 지역당 ~50.
+- **돌 사라짐·리젠: 22차에서 이미 구현** — `ResourceNode.SetChildRenderersVisible`로 채광·벌목 시 `Visual` 모델 숨김 + `Respawn`(리스폰시간 후) 복원. 돌 노드에도 동일 적용(Visual 자식 존재). 신규 코드 없음(확인만).
+- **검증**: 신규 컴파일 `error CS` **0**. EditMode **624/617/7 — baseline 동일, 신규 회귀 0**(`/mnt/c/tmp/r25_editmode.xml`).
+- **현 배치(채굴/채집 노드)**: 돌 200, 나무 200, 과일 30, 허브 50, 크롭 40. 커밋은 명시 요청 시.
+
+---
+
+## 2026-10-11 (22-2) 벌목 나무 흔들림 모션 (미커밋)
+
+- **사용자 요구:** 나무를 벨 때 나무가 흔들리는 모션 + 채집과 동일한 게이지(진행바). 게이지는 22차에서 이미 구현(파랑 진행바·채널) — **스웨이 모션만 신규 추가.**
+- **구현:** `GatherChannelSystem.ActiveTarget`(현재 채널 대상 트랜스폼) 노출. `ResourceNode`에 나무 스웨이 연출 추가 — 벌목 채널 진행 중 이 노드가 대상이면 나무 모델(`Visual` 자식)을 **사인파(16Hz)·진행률에 따라 강도 0.7→3.0°** 로 좌우 흔듦. 완료/취소/리스폰 시 원래 회전 복원(`StopSway`). Wood 노드 전용(`Visual` 자식 없으면 스킵 — 돌/테스트 노드 안전).
+- **검증:** 신규 컴파일 `error CS` **0**. 전체 EditMode **624/617/7 — baseline과 동일, 신규 회귀 0**(`/mnt/c/tmp/r24_editmode.xml`).
+- **다음(Play):** 벌목 시 나무가 까닥까닥 흔들리다(파랑 진행바와 동시) 완료 시 통나무 드랍·나무 소멸 → 리스폰. 커밋은 명시 요청 시.
+
+---
+
 ## 2026-10-11 (22차) 나무 벌목 200그루 + 과일나무 실제 과일 수확 + 도끼 커서 (미커밋)
 
 - **사용자 요구:** ①새 nature GLB 중 과일나무에서 실제 과일의 GLB을 수확 ②일반 나무(idyllic 포함) 벌목 ③도끼 커서 ④나무 크기 idyllic 조형 나무와 일치. **나무 200그루 배치 확정 → 무중단 실행.**

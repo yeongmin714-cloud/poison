@@ -647,7 +647,7 @@ namespace ProjectName.UI.Toolkit
             label.style.top = 3.8f * sy;
             label.style.width = 140f * sx;
             label.style.height = 19f * sy;
-            label.style.fontSize = 12f * sy;
+            label.style.fontSize = 14.4f * sy;   // [31차] Figma "사용 슬롯: 14/80" fs14.4 — 기존 12은 작아 실측 불일치
         }
 
         private static void SetStorageRect(VisualElement element, Rect panelRect)

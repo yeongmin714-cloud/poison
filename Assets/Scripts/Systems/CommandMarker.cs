@@ -24,7 +24,7 @@ namespace ProjectName.Systems
         /// 명령 지점 표시. color 미지정 시 골드. owner != null이면 **지속형**(도착/취소/사망까지 잔존),
         /// owner == null이면 기존 1.5s 페이드형(공격 명령용).
         /// </summary>
-        public static CommandMarker Spawn(Vector3 position, Color? color = null, GuardPlaceholder owner = null)
+        public static CommandMarker Spawn(Vector3 position, Color? color = null, GuardPlaceholder owner = null, float? scaleOverride = null)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Quad);
             go.name = "CommandMarker";
@@ -32,7 +32,8 @@ namespace ProjectName.Systems
             if (col != null) Destroy(col);
             go.transform.position = new Vector3(position.x, position.y + 0.03f, position.z);
             go.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            go.transform.localScale = Vector3.one * CommandRingPresentation.BaseScale;
+            // [2026-10-11 사용자 요구] 이동 포인트 링 = 현행 절반 — scaleOverride로 지속 마커만 축소.
+            go.transform.localScale = Vector3.one * (scaleOverride ?? CommandRingPresentation.BaseScale);
             var marker = go.AddComponent<CommandMarker>();
             if (color.HasValue) marker._baseColor = color.Value;
             marker._persistent = owner != null;
@@ -40,12 +41,29 @@ namespace ProjectName.Systems
             return marker;
         }
 
+        private float _burstElapsed = -1f;   // [15차] 명령 ack 확산 펄스 진행(>=0 활성)
+
         private void Start()
         {
             _rend = GetComponent<Renderer>();
+            // [2026-10-11 사용자 요구 — 검은 사각형 제거] 명령 링 쿼드도 지면 데칼 — 그림자 방출/수신 금지.
+            _rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _rend.receiveShadows = false;
             if (_persistent) SetupPersistent();
             else SetupFading();
             _startScale = transform.localScale;
+            _burstElapsed = 0f;   // [15차] 모든 명령 마커에 1회 ack 확산
+        }
+
+        /// <summary>버스트/페이 공통 알파 대입 — 셰이더(_TeamColor)/폴백(_Color) 모두.</summary>
+        private void SetMarkerAlpha(float a)
+        {
+            if (_rend == null) return;
+            var m = _rend.sharedMaterial;
+            if (m == null) return;
+            a = Mathf.Clamp01(a);
+            if (m.HasProperty("_TeamColor")) { var c = m.GetColor("_TeamColor"); c.a = a; m.SetColor("_TeamColor", c); }
+            else if (m.HasProperty("_Color")) { var c = m.GetColor("_Color"); c.a = a; m.SetColor("_Color", c); }
         }
 
         /// <summary>지속형 — 베이크 고품질 지면 링 텍스처(MoveTargetRing) + 팀색. 셰이더가 없어도 렌더.</summary>
@@ -86,6 +104,21 @@ namespace ProjectName.Systems
         private void Update()
         {
             _elapsed += Time.deltaTime;
+            // [15차 입체감] rim 하이라이트 방향 갱신(버스트/페이 공통).
+            CommandRingPresentation.UpdateRimDirection(_rend, _rend != null ? _rend.sharedMaterial : null);
+
+            // [15차] 명령 ack 확산 펄스 — 스폰 순간 스케일 1.30→1.0 + 알파 램프인(0.35s, 1회).
+            if (_burstElapsed >= 0f && _burstElapsed < CommandRingPresentation.AckBurstDuration)
+            {
+                _burstElapsed += Time.deltaTime;
+                float burstT = Mathf.Clamp01(_burstElapsed / CommandRingPresentation.AckBurstDuration);
+                transform.localScale = _startScale * Mathf.Lerp(CommandRingPresentation.AckBurstStartScale, 1f, burstT);
+                float lifeAlpha = _persistent ? 1f : 1f - Mathf.Clamp01(_elapsed / _life);
+                SetMarkerAlpha(lifeAlpha * Mathf.Lerp(CommandRingPresentation.AckBurstStartAlpha, 1f, burstT));
+                if (_persistent) return;
+                if (_elapsed >= _life) { Destroy(gameObject); return; }
+                return;
+            }
 
             if (_persistent)
             {
@@ -112,7 +145,8 @@ namespace ProjectName.Systems
             if (_elapsed >= _life) Destroy(gameObject);
         }
 
-        private static Texture2D BuildRingTexture(int size)
+        /// <summary>절차 환형 링 텍스처 — CommandRingPresentation 셰이더 폴백 경로에서도 재사용(public).</summary>
+        public static Texture2D BuildRingTexture(int size)
         {
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
             float c = size * 0.5f;

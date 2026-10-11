@@ -72,28 +72,36 @@ namespace ProjectName.Systems
         public static GameObject CreateTable(float width, float depth, float height, Material mat)
         {
             var go = Spawn(TablePool, TableTargetHeight, "Table");
-            return go != null ? go : IndoorFurniturePlacer.CreateTable(width, depth, height, mat);
+            if (go == null) go = IndoorFurniturePlacer.CreateTable(width, depth, height, mat);
+            AddBlobShadow(go, 1.6f);
+            return go;
         }
 
         /// <summary>의자 (targetHeight 0.5). GLB 실패 시 프리미티브 폴백.</summary>
         public static GameObject CreateChair(float height, Material mat)
         {
             var go = Spawn(ChairPool, ChairTargetHeight, "Chair");
-            return go != null ? go : IndoorFurniturePlacer.CreateChair(height, mat);
+            if (go == null) go = IndoorFurniturePlacer.CreateChair(height, mat);
+            AddBlobShadow(go, 0.9f);
+            return go;
         }
 
         /// <summary>선반/사이드보드 (targetHeight 1.8). GLB 실패 시 프리미티브 폴백.</summary>
         public static GameObject CreateShelf(float width, float height, float depth, Material mat, int shelves = 3)
         {
             var go = Spawn(ShelfPool, ShelfTargetHeight, "Shelf");
-            return go != null ? go : IndoorFurniturePlacer.CreateShelf(width, height, depth, mat, shelves);
+            if (go == null) go = IndoorFurniturePlacer.CreateShelf(width, height, depth, mat, shelves);
+            AddBlobShadow(go, 1.7f);
+            return go;
         }
 
         /// <summary>카운터 (targetHeight 1.0). GLB 실패 시 프리미티브 폴백.</summary>
         public static GameObject CreateCounter(float width, float height, float depth, Material mat)
         {
             var go = Spawn(CounterPool, CounterTargetHeight, "Counter");
-            return go != null ? go : IndoorFurniturePlacer.CreateCounter(width, height, depth, mat);
+            if (go == null) go = IndoorFurniturePlacer.CreateCounter(width, height, depth, mat);
+            AddBlobShadow(go, 1.6f);
+            return go;
         }
 
         /// <summary>
@@ -105,7 +113,7 @@ namespace ProjectName.Systems
         {
             var go = Spawn(BedPool, BedTargetHeight, "Bed");
             if (go == null)
-                return IndoorFurniturePlacer.CreateBed(width, depth, mat);
+                go = IndoorFurniturePlacer.CreateBed(width, depth, mat);
 
             BoxCollider bedCollider = go.GetComponent<BoxCollider>();
             if (bedCollider == null)
@@ -116,6 +124,7 @@ namespace ProjectName.Systems
 
             if (go.GetComponent<Bed>() == null)
                 go.AddComponent<Bed>();
+            AddBlobShadow(go, 1.8f);
             return go;
         }
 
@@ -123,14 +132,18 @@ namespace ProjectName.Systems
         public static GameObject CreateCrate(float width, float height, float depth, Material mat)
         {
             var go = Spawn(CratePool, CrateTargetHeight, "Crate");
-            return go != null ? go : IndoorFurniturePlacer.CreateCounter(width, height, depth, mat);
+            if (go == null) go = IndoorFurniturePlacer.CreateCounter(width, height, depth, mat);
+            AddBlobShadow(go, 1.1f);
+            return go;
         }
 
         /// <summary>거울(벽장식) (targetHeight 1.6). GLB 실패 시 프리미티브 CreateShelf 폴백.</summary>
         public static GameObject CreateMirror(float width, float height, float depth, Material mat)
         {
             var go = Spawn(MirrorPool, MirrorTargetHeight, "Mirror");
-            return go != null ? go : IndoorFurniturePlacer.CreateShelf(width, height, depth, mat);
+            if (go == null) go = IndoorFurniturePlacer.CreateShelf(width, height, depth, mat);
+            AddBlobShadow(go, 1.0f);
+            return go;
         }
 
         // ===================================================================
@@ -187,5 +200,39 @@ namespace ProjectName.Systems
         }
 
         private static int Mod(int a, int b) { int r = a % b; return r < 0 ? r + b : r; }
+
+        /// <summary>[2026-10-10 H2] 접지 블롭 섀도우 — 바닥 위 1cm 방사형 어두운 쿼드(오브제 접지감).
+        /// 렌더러 전용·그림자 미방출·콜라이더 없음. 머티리얼 실패 시 무블롭(스킵).</summary>
+        private static void AddBlobShadow(GameObject go, float radius)
+        {
+            if (go == null || radius <= 0f) return;
+            var mat = IndoorMaterialFactory.CreateBlobShadowMat();
+            if (mat == null) return;
+            var blob = new GameObject("BlobShadow");
+            blob.transform.SetParent(go.transform, false);
+            blob.transform.localPosition = new Vector3(0f, 0.01f, 0f);
+            blob.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            var mf = blob.AddComponent<MeshFilter>();
+            var mesh = new Mesh { name = "BlobShadow_Mesh" };
+            float h = radius * 0.5f;
+            mesh.vertices = new Vector3[]
+            {
+                new Vector3(-h, -h, 0), new Vector3(h, -h, 0),
+                new Vector3(-h,  h, 0), new Vector3(h,  h, 0)
+            };
+            mesh.uv = new Vector2[]
+            {
+                new Vector2(0f, 0f), new Vector2(1f, 0f),
+                new Vector2(0f, 1f), new Vector2(1f, 1f)
+            };
+            mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mf.sharedMesh = mesh;
+            var r = blob.AddComponent<MeshRenderer>();
+            r.sharedMaterial = mat;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            // No Collider by design: blob shadow is visual only.
+        }
     }
 }

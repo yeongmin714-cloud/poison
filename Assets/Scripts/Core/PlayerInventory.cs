@@ -303,6 +303,7 @@ namespace ProjectName.Core
         // 기본 도구
         public static readonly ItemData Pickaxe      = new ItemData { id = "tool_pickaxe",     displayName = "곡괭이",  description = "광석 채굴용 도구.",          category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
         public static readonly ItemData Axe          = new ItemData { id = "tool_axe",         displayName = "도끼",     description = "벌목용 도구.",               category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
+        public static readonly ItemData Shovel       = new ItemData { id = "tool_shovel",      displayName = "삽",       description = "땅 파기/약초 수확용 도구.",   category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
         // [P29] 낚시대는 FishingRodItem(id=fishing_rod)이 단일 정의 — 시스템(HasItem("fishing_rod")) 기준과 일치.
         //       (기존 중복 FishingRod(tool_fishing_rod)는 사용처 0건이라 제거 — 상점/시스템 아이디 불일치 버그 방지)
 

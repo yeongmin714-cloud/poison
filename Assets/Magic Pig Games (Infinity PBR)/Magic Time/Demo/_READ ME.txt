@@ -1,0 +1,16 @@
+MAGIC TIME DEMO READ ME
+
+Open Scene/Magic Time Demo.unity and press Play.
+
+The demo scene uses Cinemachine 3.x and the Input System package. Both ship with
+Unity 6, so there is normally nothing to install.
+
+INPUT SYSTEM NOTE
+-----------------
+The scene's EventSystem uses InputSystemUIInputModule, which needs Active Input
+Handling (Project Settings > Player) set to "Input System Package (New)" or "Both".
+If your project is set to "Input Manager (Old)" only, the UI sliders will not
+respond -- switch that setting, or replace the module on the EventSystem object
+with the legacy StandaloneInputModule.
+
+The demo's own scripts do not read input directly, so nothing else is affected.

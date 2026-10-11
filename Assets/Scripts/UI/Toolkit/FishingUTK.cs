@@ -227,6 +227,14 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 공개 API =====
 
+        /// <summary>[2026-10-11 수리] 전 씬 자가부트 — Test_15처럼 GameSetup(메인씬 전용)을 거치지
+        /// 않는 씬에서는 Ensure가 한 번도 불리지 않아 Updater(자동 오픈/닫기 폴링)가 부재했다:
+        /// E키로 낚시 "시스템 상태"는 시작되지만 창이 영구 미오픈 → 사용자에게는 아무 일도
+        /// 일어나지 않는다("호수에서 낚시 안 됨"의 실체 — 로그: FishUTK 인스턴스 생성 0건).
+        /// TimeClockGlassUTK/HUDUTK의 [RuntimeInitializeOnLoadMethod] 선례와 동일.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap() => Ensure();
+
         /// <summary>싱글톤 + 입력 Updater 보장 (멱등).</summary>
         public static void Ensure()
         {

@@ -27,17 +27,16 @@ namespace ProjectName.Tests.EditMode
                     Assert.That(child.name, Is.Not.EqualTo("Hearth_Right"), "Physical right hearth props must not be built.");
                 }
 
-                // [2026-10-09 교정] 10-08 승인 개편("실내 어둡게 + 은은한 조명만")으로 입구측
-                // 화광이 (1,0.55,0.25)@|x|20~30 강광에서 저강도 웜 풀로 재편됐다.
-                // 물리 브레이저 금지 원칙 유지 — 입구측(최종 로컬 z<-35)에 따뜻한 광원이
-                // 은은한 세기(intensity<=0.5)·근거리(range<=7)로 남아 있는지만 단정.
+                // [2026-10-09 교정 → 2026-10-11 20차 갱신] 입구측(최종 로컬 z<-35) 웜 광원 =
+                //   남벽 인접 작업풀 2개(20차 예시 정합 ×2 점프로 1.15→2.3). 물리 브레이저 금지 원칙 유지 —
+                //   따뜻한 광원 존재(강도<=2.50·근거리<=7)만 단정.
                 bool retainedWarmEntranceLight = false;
                 foreach (Light light in room.GetComponentsInChildren<Light>(true))
                 {
                     if (light.transform.localPosition.z < -35f &&
                         light.color.r >= 0.9f && light.color.g >= 0.4f && light.color.g <= 0.9f &&
                         light.color.b >= 0.1f && light.color.b <= 0.7f &&
-                        light.intensity <= 0.5f && light.range <= 7f)
+                        light.intensity <= 2.50f && light.range <= 7f)
                         retainedWarmEntranceLight = true;
                 }
                 Assert.That(retainedWarmEntranceLight, Is.True,

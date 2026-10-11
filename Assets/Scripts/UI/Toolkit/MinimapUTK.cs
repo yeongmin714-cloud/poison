@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using ProjectName.Core;        // PlayerInventory 불필요
+using ProjectName.Core.Data;   // [15차 A4] BiomeType — 지형 높이 역산
 using ProjectName.Systems;     // TemperatureSystem, SoundSystem, TimeWeatherSystem, QuestMarkerSystem, TerrainSplatBaker
 using WeatherType = ProjectName.Systems.TimeWeatherSystem.WeatherType;
 
@@ -77,6 +78,13 @@ namespace ProjectName.UI.Toolkit
         private WeatherType _weather = WeatherType.Clear;
 
         private Transform _playerTransform;
+
+        // [15차 A4] 유닛 블립 풀 + 우클릭 명령
+        private readonly System.Collections.Generic.List<VisualElement> _unitBlipPool = new System.Collections.Generic.List<VisualElement>();
+        private const int MaxUnitBlips = 40;
+        private const float UnitBlipSize = 8f;
+        private static readonly Color AllyBlipColor = new Color32(88, 166, 255, 255);   // Fluent 액센트
+        private static readonly Color EnemyBlipColor = new Color32(248, 81, 73, 255);   // 위험
         private Texture2D _mapTexture;
 
         private MinimapUTK()
@@ -91,6 +99,8 @@ namespace ProjectName.UI.Toolkit
 
             // 미니맵 캔버스 — 월드 스플랫 backgroundImage + 원형 프레임
             _mapFrame = new VisualElement();
+            // [15차 A4] 미니맵 우클릭 = 선택 병사 이동 명령(월드 좌표 역산)
+            _mapFrame.RegisterCallback<PointerDownEvent>(OnMapPointerDown);
             _mapFrame.name = "MapFrame";
             _mapFrame.style.position = Position.Absolute;
             _mapFrame.style.left = 0f;
@@ -434,6 +444,126 @@ namespace ProjectName.UI.Toolkit
         //  영지/퀘스트 마커 — 원본 DrawMarkerOverlay 실제 데이터 실측
         //  로컬뷰: +x=우, +z=북(위), 플레이어 중앙. radius 밖 마커는 스킵.
         // =====================================================================
+        // =====================================================================
+        //  [15차 A4] 유닛 블립 — 크롭 수식과 동일 좌표계(북=상, 동=우)
+        // =====================================================================
+        public void RefreshUnitBlips()
+        {
+            if (_markerHost == null || _playerTransform == null) return;
+            float side = _mapFrame != null && _mapFrame.contentRect.width > 0f
+                ? _mapFrame.contentRect.width
+                : Diameter - 4f;
+            float half = side * 0.5f;
+            Vector3 pp = _playerTransform.position;
+
+            float sideLen = half * 2f;
+            int used = 0;
+            used = FillBlips(used, half, sideLen, pp,
+                UnityEngine.Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None),
+                AllyBlipColor);
+            used = FillBlips(used, half, sideLen, pp,
+                UnityEngine.Object.FindObjectsByType<AnimalAI>(FindObjectsSortMode.None),
+                EnemyBlipColor);
+
+            // 미사용 풀 숨김
+            for (int i = used; i < _unitBlipPool.Count; i++)
+                _unitBlipPool[i].style.display = DisplayStyle.None;
+        }
+
+        private int FillBlips(int used, float half, float sideLen, Vector3 playerPos,
+            GuardPlaceholder[] units, Color color)
+        {
+            foreach (var unit in units)
+            {
+                if (unit == null || !unit.IsAlive || !unit.IsRecruited || used >= MaxUnitBlips) continue;
+                Vector3 up = unit.transform.position;
+                float dx = up.x - playerPos.x;
+                float dz = up.z - playerPos.z;
+                if (Mathf.Abs(dx) > LocalRadius || Mathf.Abs(dz) > LocalRadius) continue;
+                float px = half + (dx / (2f * LocalRadius)) * sideLen;
+                float py = half - (dz / (2f * LocalRadius)) * sideLen;
+
+                VisualElement blip;
+                if (used < _unitBlipPool.Count) blip = _unitBlipPool[used];
+                else
+                {
+                    blip = new VisualElement { name = "UnitBlip", pickingMode = PickingMode.Ignore };
+                    blip.style.position = Position.Absolute;
+                    blip.style.width = UnitBlipSize;
+                    blip.style.height = UnitBlipSize;
+                    blip.style.borderTopLeftRadius = 4f;
+                    blip.style.borderTopRightRadius = 4f;
+                    blip.style.borderBottomLeftRadius = 4f;
+                    blip.style.borderBottomRightRadius = 4f;
+                    _markerHost.Add(blip);
+                    _unitBlipPool.Add(blip);
+                }
+                blip.style.display = DisplayStyle.Flex;
+                blip.style.left = px - UnitBlipSize * 0.5f;
+                blip.style.top = py - UnitBlipSize * 0.5f;
+                blip.style.backgroundColor = color;
+                used++;
+            }
+            return used;
+        }
+
+        private int FillBlips(int used, float half, float sideLen, Vector3 playerPos,
+            AnimalAI[] units, Color color)
+        {
+            foreach (var unit in units)
+            {
+                if (unit == null || !unit.IsAlive || used >= MaxUnitBlips) continue;
+                Vector3 up = unit.transform.position;
+                float dx = up.x - playerPos.x;
+                float dz = up.z - playerPos.z;
+                if (Mathf.Abs(dx) > LocalRadius || Mathf.Abs(dz) > LocalRadius) continue;
+                float px = half + (dx / (2f * LocalRadius)) * sideLen;
+                float py = half - (dz / (2f * LocalRadius)) * sideLen;
+
+                VisualElement blip;
+                if (used < _unitBlipPool.Count) blip = _unitBlipPool[used];
+                else
+                {
+                    blip = new VisualElement { name = "UnitBlip", pickingMode = PickingMode.Ignore };
+                    blip.style.position = Position.Absolute;
+                    blip.style.width = UnitBlipSize;
+                    blip.style.height = UnitBlipSize;
+                    blip.style.borderTopLeftRadius = 4f;
+                    blip.style.borderTopRightRadius = 4f;
+                    blip.style.borderBottomLeftRadius = 4f;
+                    blip.style.borderBottomRightRadius = 4f;
+                    _markerHost.Add(blip);
+                    _unitBlipPool.Add(blip);
+                }
+                blip.style.display = DisplayStyle.Flex;
+                blip.style.left = px - UnitBlipSize * 0.5f;
+                blip.style.top = py - UnitBlipSize * 0.5f;
+                blip.style.backgroundColor = color;
+                used++;
+            }
+            return used;
+        }
+
+        /// <summary>[15차 A4] 미니맵 우클릭 → 클릭 지점의 월드 좌표 역산 → 선택 병사 이동 명령.</summary>
+        private void OnMapPointerDown(PointerDownEvent evt)
+        {
+            if (evt.button != 1) return;
+            if (_playerTransform == null) return;
+            var rts = RTSCommandSystem.Instance;
+            if (rts == null || rts.SelectedCount == 0) return;   // 선택 없음 → 명령 없음(카메라 점프 미구현)
+
+            float sideLen = _mapFrame != null && _mapFrame.contentRect.width > 0f
+                ? _mapFrame.contentRect.width
+                : Diameter - 4f;
+            Vector2 local = evt.localPosition;
+            float dx = ((local.x / sideLen) - 0.5f) * 2f * LocalRadius;
+            float dz = -((local.y / sideLen) - 0.5f) * 2f * LocalRadius;
+            Vector3 world = new Vector3(_playerTransform.position.x + dx, _playerTransform.position.y, _playerTransform.position.z + dz);
+            try { world.y = 1f + TerrainGenerator.GetHeightAt(world.x, world.z, BiomeType.Plains, 42); }
+            catch { /* 지형 조회 실패 시 플레이어 y 폴백 */ }
+            rts.IssueMoveCommandAtWorld(world);
+        }
+
         private void RefreshMarkers()
         {
             if (_markerHost == null) return;
@@ -458,6 +588,7 @@ namespace ProjectName.UI.Toolkit
         {
             public MinimapUTK map;
             private float _tick = 0.4f;
+            private float _blipTick = 0.25f;   // [15차 A4] 유닛 블립 전용 고속 틱
 
             private void Update()
             {
@@ -472,6 +603,14 @@ namespace ProjectName.UI.Toolkit
                     _tick = 0.4f;
                     if (map.parent != null)
                         map.Refresh();
+                }
+                // [15차 A4] 유닛 블립 고속 틱(0.25s) — 유닛 이동 추종
+                _blipTick -= Time.unscaledDeltaTime;
+                if (_blipTick <= 0f)
+                {
+                    _blipTick = 0.25f;
+                    if (map.parent != null)
+                        map.RefreshUnitBlips();
                 }
             }
         }

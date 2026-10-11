@@ -110,12 +110,14 @@ namespace ProjectName.Systems
                 // 공격 명령 — 페이드 마커(즉시), selected 전달(중복 호출 방지)
                 if (ctrl) IssueSynchronizedAttackCommand(selected, target, hit.point);
                 else IssueAttackCommand(selected, target, hit.point);
+                RTSCommandFeedback.PlayAttackAck();   // [15차 A1] 공격 확인음
             }
             else
             {
                 // 이동 명령 — 지속 지면 원형 링(도착까지), selected 전달
                 if (ctrl) IssueSynchronizedMoveCommand(selected, hit.point);
                 else IssueMoveCommand(selected, hit.point);
+                RTSCommandFeedback.PlayMoveAck();   // [15차 A1] 이동 확인음
             }
         }
 
@@ -136,12 +138,35 @@ namespace ProjectName.Systems
             {
                 if (guard != null && guard.IsAlive)
                 {
-                    guard.ClearCommand();
-                    guard.SetInCombat(false);
+                    guard.StopNow();   // [15차] 이동/공격/홀드 즉시 취소 + 유휴
                 }
             }
 
-            Debug.Log($"[RTSCommandSystem] {selected.Count}명 명령 취소 (H키)");
+            Debug.Log($"[RTSCommandSystem] {selected.Count}명 정지 (X키)");
+        }
+
+        /// <summary>[15차 사용자 확정] 홀드 — 선택 병사 제자리 고정 + 사정거리 내 자동 반격.</summary>
+        public void HoldSelectedGuards()
+        {
+            var selected = GetSelectedGuards();
+            ClearActiveMoveMarks();
+            if (selected == null || selected.Count == 0)
+            {
+                Debug.Log("[RTSCommandSystem] 홀드할 병사 없음");
+                return;
+            }
+
+            int count = 0;
+            foreach (var guard in selected)
+            {
+                if (guard != null && guard.IsAlive)
+                {
+                    guard.SetHold(true);
+                    count++;
+                }
+            }
+
+            Debug.Log($"[RTSCommandSystem] {count}명 홀드 (H키)");
         }
 
         /// <summary>
@@ -166,6 +191,7 @@ namespace ProjectName.Systems
                 {
                     guard.SetCommandTarget(attackPos, true);
                     guard.SetInCombat(true);
+                    AttackLinkFX.Spawn(guard.transform.position, attackPos);   // [15차 B4] 연결선
                     count++;
                 }
             }
@@ -201,6 +227,12 @@ namespace ProjectName.Systems
         /// </summary>
         private void IssueMoveCommand(IReadOnlyList<GuardPlaceholder> selected, Vector3 position)
         {
+            IssueMoveCommandCore(selected, position);
+        }
+
+        /// <summary>이동 명령 본체 — 화면 레이캐스트 경로와 월드 직행(미니맵) 경로가 공유.</summary>
+        private void IssueMoveCommandCore(IReadOnlyList<GuardPlaceholder> selected, Vector3 position)
+        {
             // 분산 지점 수 = 생존 병사 수 (죽은 병사는 제외)
             int aliveCount = 0;
             foreach (var guard in selected)
@@ -218,6 +250,7 @@ namespace ProjectName.Systems
                 {
                     guard.SetCommandTarget(spread[count], false);
                     TrackMoveMark(guard, spread[count]);   // [P26] 병사별 도착까지 지속 링
+                    // [16차 사용자 요구] 경로 점 제거 — 최종 지점 링만 표시
                     count++;
                 }
             }
@@ -259,10 +292,24 @@ namespace ProjectName.Systems
             return all.AsReadOnly();
         }
 
+        /// <summary>[15차 A4] 미니맵 우클릭 등 월드 좌표 직행 이동 — 화면 레이캐스트 우회.</summary>
+        public void IssueMoveCommandAtWorld(Vector3 position)
+        {
+            var selected = GetSelectedGuards();
+            if (selected == null || selected.Count == 0)
+            {
+                Debug.Log("[RTSCommandSystem] 이동 명령 대상 없음 (월드 직행)");
+                return;
+            }
+            IssueMoveCommandCore(selected, position);
+            RTSCommandFeedback.PlayMoveAck();
+        }
+
         /// <summary>병사별 목표 지점에 지속 원형 링 표시(도착/취소/사망 시 자동 소멸).</summary>
         private void TrackMoveMark(GuardPlaceholder guard, Vector3 targetPos)
         {
-            var mark = CommandMarker.Spawn(targetPos, null, guard);   // persistent
+            // [2026-10-11 사용자 요구] 이동 포인트 링 = 현행의 절반 + 파란 액센트(MoveTargetColor 변경 동행).
+            var mark = CommandMarker.Spawn(targetPos, null, guard, CommandRingPresentation.MoveMarkerScale);   // persistent
             if (mark != null) _activeMoveMarks.Add(mark);
         }
 
@@ -276,6 +323,8 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // [16차 사용자 요구] 컨텍스트 커서 제거 — 기본 커서 유지(상호작용 프롬프트만 표시)
+
             // [P26] 소유 병사 도착/취소/사망으로 자동 소멸된 마커를 추적 리스트에서 제거
             for (int i = _activeMoveMarks.Count - 1; i >= 0; i--)
             {

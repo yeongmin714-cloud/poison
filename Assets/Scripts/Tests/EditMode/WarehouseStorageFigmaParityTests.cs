@@ -188,15 +188,17 @@ namespace ProjectName.Tests.EditMode
             GameObject room = ProjectName.Systems.PlayerCastleInteriorBuilder.BuildPlayerCastleInterior("Empire", 0);
             try
             {
-                Assert.That(RenderSettings.ambientLight.r, Is.LessThanOrEqualTo(0.10f));
-                Assert.That(RenderSettings.ambientLight.g, Is.LessThanOrEqualTo(0.08f));
-                Assert.That(RenderSettings.ambientLight.b, Is.LessThanOrEqualTo(0.06f));
+                // [2026-10-11 20차 예시 정합 ×2 점프] 앰비언트 base(0.10/0.075/0.055)×2.0 → 상한 동행 갱신.
+                Assert.That(RenderSettings.ambientLight.r, Is.LessThanOrEqualTo(0.20f));
+                Assert.That(RenderSettings.ambientLight.g, Is.LessThanOrEqualTo(0.15f));
+                Assert.That(RenderSettings.ambientLight.b, Is.LessThanOrEqualTo(0.11f));
                 int lightCount = 0;
                 bool foundWarmSource = false;
                 foreach (Light light in room.GetComponentsInChildren<Light>(true))
                 {
                     lightCount++;
-                    Assert.That(light.intensity, Is.LessThanOrEqualTo(0.4f), $"{light.name} should remain an understated accent");
+                    // [2026-10-11 20차 예시 정합 ×2 점프] 신규 최대 강도 2.4 — TimberFrameTests 상한 2.60과 동일 계약.
+                    Assert.That(light.intensity, Is.LessThanOrEqualTo(2.6f), $"{light.name} should remain an understated accent");
                     Assert.That(light.range, Is.LessThanOrEqualTo(6f), $"{light.name} should not wash the room uniformly");
                     Assert.That(RenderSettings.ambientMode, Is.EqualTo(UnityEngine.Rendering.AmbientMode.Flat));
                     if (light.color.r > light.color.b && light.intensity > 0f)

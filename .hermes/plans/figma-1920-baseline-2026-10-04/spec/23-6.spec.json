@@ -1,0 +1,1519 @@
+{
+ "frame": "23:6",
+ "name": "HUD_Canvas",
+ "origin": [
+  3965.0,
+  208.0
+ ],
+ "root": {
+  "fill": [
+   "#0B0E14@1"
+  ]
+ },
+ "nodes": [
+  {
+   "id": "23:6",
+   "name": "HUD_Canvas",
+   "type": "FRAME",
+   "depth": 0,
+   "x": 0.0,
+   "y": 0.0,
+   "w": 1920.0,
+   "h": 1080.0,
+   "layout": "VERTICAL",
+   "gap": 57.6,
+   "pad": [
+    76.8,
+    76.8,
+    76.8,
+    76.8
+   ],
+   "fill": [
+    "#0B0E14@1"
+   ]
+  },
+  {
+   "id": "23:7",
+   "name": "Rectangle",
+   "type": "RECTANGLE",
+   "depth": 1,
+   "x": 0.0,
+   "y": 0.0,
+   "w": 1920.0,
+   "h": 1080.0,
+   "fill": [
+    null,
+    "#0B0E14@0.85"
+   ]
+  },
+  {
+   "id": "39:2",
+   "name": "stamina-gauge",
+   "type": "FRAME",
+   "depth": 1,
+   "x": 306.4,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#FFFFFF@0.0"
+   ]
+  },
+  {
+   "id": "39:3",
+   "name": "bg-radial-glow",
+   "type": "ELLIPSE",
+   "depth": 2,
+   "x": 243.2,
+   "y": 780.0,
+   "w": 264.0,
+   "h": 264.0,
+   "fill": [
+    "grad(#FF7300@1@0.0,#FF7300@1@1.0)"
+   ],
+   "effects": [
+    {
+     "type": "LAYER_BLUR",
+     "radius": 48.0,
+     "y": 0,
+     "spread": 0,
+     "a": 0,
+     "color": null
+    }
+   ]
+  },
+  {
+   "id": "39:4",
+   "name": "gauge-widget",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 306.4,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "layout": "VERTICAL"
+  },
+  {
+   "id": "39:5",
+   "name": "outer-track",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 306.4,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "fill": [
+    "#FFFFFF@0.08"
+   ],
+   "stroke": [
+    "#FFFFFF@0.1"
+   ],
+   "strokeWeight": 1.32
+  },
+  {
+   "id": "39:6",
+   "name": "outer-progress-glow",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 306.4,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "fill": [
+    "grad(#FFB03A@1@0.0,#FF5E03@1@0.75,#FF5E03@1@1.0)"
+   ],
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 15.9,
+     "y": 0.0,
+     "spread": 0,
+     "a": 0.5,
+     "color": "#FF8C00@1"
+    },
+    {
+     "type": "DROP_SHADOW",
+     "radius": 5.3,
+     "y": 0.0,
+     "spread": 0,
+     "a": 0.25,
+     "color": "#FF3700@1"
+    }
+   ]
+  },
+  {
+   "id": "39:7",
+   "name": "progress-tip",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 306.4,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "fill": [
+    "#FFFFFF@1"
+   ],
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 7.9,
+     "y": 0.0,
+     "spread": 0,
+     "a": 1.0,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "39:8",
+   "name": "inner-plate",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 326.8,
+   "y": 875.6,
+   "w": 96.8,
+   "h": 96.8,
+   "fill": [
+    "grad(#FFFFFF@1@0.0,#FFFFFF@1@1.0)"
+   ],
+   "stroke": [
+    "#FFFFFF@0.2"
+   ],
+   "strokeWeight": 1.32,
+   "effects": [
+    {
+     "type": "BACKGROUND_BLUR",
+     "radius": 31.8,
+     "y": 0,
+     "spread": 0,
+     "a": 0,
+     "color": null
+    },
+    {
+     "type": "INNER_SHADOW",
+     "radius": 15.9,
+     "y": -5.3,
+     "spread": 0,
+     "a": 0.25,
+     "color": "#FFFFFF@1"
+    },
+    {
+     "type": "INNER_SHADOW",
+     "radius": 23.8,
+     "y": 13.2,
+     "spread": 0,
+     "a": 0.08,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "39:9",
+   "name": "inner-plate-rim-highlight",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 330.7,
+   "y": 879.5,
+   "w": 88.9,
+   "h": 88.9,
+   "stroke": [
+    "grad(#FFFFFF@1@0.0,#FFFFFF@1@0.5,#FFFFFF@1@1.0)"
+   ],
+   "strokeWeight": 1.98
+  },
+  {
+   "id": "39:10",
+   "name": "center-light",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 340.8,
+   "y": 889.6,
+   "w": 68.8,
+   "h": 68.8,
+   "fill": [
+    "grad(#FFFFFF@1@0.0,#FFFFFF@1@0.8)"
+   ]
+  },
+  {
+   "id": "39:11",
+   "name": "icon-wrapper",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 324.4,
+   "y": 873.2,
+   "w": 101.6,
+   "h": 101.6,
+   "layout": "VERTICAL"
+  },
+  {
+   "id": "59:4",
+   "name": "3d-heart-icon",
+   "type": "RECTANGLE",
+   "depth": 4,
+   "x": 340.8,
+   "y": 884.3,
+   "w": 68.8,
+   "h": 68.8,
+   "fill": [
+    null
+   ],
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 21.2,
+     "y": 7.9,
+     "spread": 0,
+     "a": 0.38,
+     "color": "#CC1A2E@1"
+    }
+   ]
+  },
+  {
+   "id": "35:4",
+   "name": "stamina-gauge",
+   "type": "FRAME",
+   "depth": 1,
+   "x": 468.0,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#FFFFFF@0.0"
+   ]
+  },
+  {
+   "id": "35:5",
+   "name": "bg-radial-glow",
+   "type": "ELLIPSE",
+   "depth": 2,
+   "x": 404.8,
+   "y": 780.0,
+   "w": 264.0,
+   "h": 264.0,
+   "fill": [
+    "grad(#FF7300@1@0.0,#FF7300@1@1.0)"
+   ],
+   "effects": [
+    {
+     "type": "LAYER_BLUR",
+     "radius": 48.0,
+     "y": 0,
+     "spread": 0,
+     "a": 0,
+     "color": null
+    }
+   ]
+  },
+  {
+   "id": "35:6",
+   "name": "gauge-widget",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 468.0,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "layout": "VERTICAL"
+  },
+  {
+   "id": "35:7",
+   "name": "outer-track",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 468.0,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "fill": [
+    "#FFFFFF@0.08"
+   ],
+   "stroke": [
+    "#FFFFFF@0.1"
+   ],
+   "strokeWeight": 1.32
+  },
+  {
+   "id": "35:8",
+   "name": "outer-progress-glow",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 468.0,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "fill": [
+    "grad(#FFB03A@1@0.0,#FF5E03@1@0.75,#FF5E03@1@1.0)"
+   ],
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 15.9,
+     "y": 0.0,
+     "spread": 0,
+     "a": 0.5,
+     "color": "#FF8C00@1"
+    },
+    {
+     "type": "DROP_SHADOW",
+     "radius": 5.3,
+     "y": 0.0,
+     "spread": 0,
+     "a": 0.25,
+     "color": "#FF3700@1"
+    }
+   ]
+  },
+  {
+   "id": "35:9",
+   "name": "progress-tip",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 468.0,
+   "y": 855.2,
+   "w": 137.6,
+   "h": 137.6,
+   "fill": [
+    "#FFFFFF@1"
+   ],
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 7.9,
+     "y": 0.0,
+     "spread": 0,
+     "a": 1.0,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "35:10",
+   "name": "inner-plate",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 488.4,
+   "y": 875.6,
+   "w": 96.8,
+   "h": 96.8,
+   "fill": [
+    "grad(#FFFFFF@1@0.0,#FFFFFF@1@1.0)"
+   ],
+   "stroke": [
+    "#FFFFFF@0.2"
+   ],
+   "strokeWeight": 1.32,
+   "effects": [
+    {
+     "type": "BACKGROUND_BLUR",
+     "radius": 31.8,
+     "y": 0,
+     "spread": 0,
+     "a": 0,
+     "color": null
+    },
+    {
+     "type": "INNER_SHADOW",
+     "radius": 15.9,
+     "y": -5.3,
+     "spread": 0,
+     "a": 0.25,
+     "color": "#FFFFFF@1"
+    },
+    {
+     "type": "INNER_SHADOW",
+     "radius": 23.8,
+     "y": 13.2,
+     "spread": 0,
+     "a": 0.08,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "35:11",
+   "name": "inner-plate-rim-highlight",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 492.3,
+   "y": 879.5,
+   "w": 88.9,
+   "h": 88.9,
+   "stroke": [
+    "grad(#FFFFFF@1@0.0,#FFFFFF@1@0.5,#FFFFFF@1@1.0)"
+   ],
+   "strokeWeight": 1.98
+  },
+  {
+   "id": "35:12",
+   "name": "center-light",
+   "type": "ELLIPSE",
+   "depth": 3,
+   "x": 502.4,
+   "y": 889.6,
+   "w": 68.8,
+   "h": 68.8,
+   "fill": [
+    "grad(#FFFFFF@1@0.0,#FFFFFF@1@0.8)"
+   ]
+  },
+  {
+   "id": "35:13",
+   "name": "icon-wrapper",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 486.0,
+   "y": 873.2,
+   "w": 101.6,
+   "h": 101.6,
+   "layout": "VERTICAL"
+  },
+  {
+   "id": "35:22",
+   "name": "zap-glow",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 490.8,
+   "y": 878.0,
+   "w": 92.1,
+   "h": 92.1,
+   "layout": "VERTICAL",
+   "effects": [
+    {
+     "type": "LAYER_BLUR",
+     "radius": 18.5,
+     "y": 0,
+     "spread": 0,
+     "a": 0,
+     "color": null
+    }
+   ]
+  },
+  {
+   "id": "59:7",
+   "name": "Rectangle",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 504.5,
+   "y": 891.7,
+   "w": 64.6,
+   "h": 64.6,
+   "fill": [
+    null
+   ]
+  },
+  {
+   "id": "35:25",
+   "name": "zap-main",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 493.0,
+   "y": 880.2,
+   "w": 87.6,
+   "h": 87.6,
+   "layout": "VERTICAL",
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 13.2,
+     "y": 2.6,
+     "spread": 0,
+     "a": 1.0,
+     "color": "#FF5E03@1"
+    }
+   ]
+  },
+  {
+   "id": "59:8",
+   "name": "Rectangle",
+   "type": "RECTANGLE",
+   "depth": 5,
+   "x": 505.6,
+   "y": 892.8,
+   "w": 62.4,
+   "h": 62.4,
+   "fill": [
+    null
+   ]
+  },
+  {
+   "id": "23:68",
+   "name": "QuickSlotsHUD",
+   "type": "FRAME",
+   "depth": 1,
+   "x": 629.6,
+   "y": 861.6,
+   "w": 902.4,
+   "h": 124.8,
+   "layout": "HORIZONTAL",
+   "gap": 19.2,
+   "fill": [
+    "#000000@0.0"
+   ],
+   "stroke": [
+    "#000000@0.0"
+   ],
+   "strokeWeight": 1.2
+  },
+  {
+   "id": "23:69",
+   "name": "corner-brackets",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 629.6,
+   "y": 861.6,
+   "w": 1080.0,
+   "h": 216.0
+  },
+  {
+   "id": "23:70",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 629.6,
+   "y": 861.6,
+   "w": 9.6,
+   "h": 0.0,
+   "stroke": [
+    "#8C734B@0.25"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "23:71",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 629.6,
+   "y": 861.6,
+   "w": 0.0,
+   "h": 9.6,
+   "stroke": [
+    "#8C734B@0.25"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "23:72",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1700.0,
+   "y": 861.6,
+   "w": 9.6,
+   "h": 0.0,
+   "stroke": [
+    "#8C734B@0.25"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "23:73",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1709.6,
+   "y": 861.6,
+   "w": 0.0,
+   "h": 9.6,
+   "stroke": [
+    "#8C734B@0.25"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "23:74",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 629.6,
+   "y": 1077.6,
+   "w": 9.6,
+   "h": 0.0,
+   "stroke": [
+    "#8C734B@0.25"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "23:75",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 629.6,
+   "y": 1068.0,
+   "w": 0.0,
+   "h": 9.6,
+   "stroke": [
+    "#8C734B@0.25"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "23:76",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1700.0,
+   "y": 1077.6,
+   "w": 9.6,
+   "h": 0.0,
+   "stroke": [
+    "#8C734B@0.25"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "23:77",
+   "name": "Line",
+   "type": "LINE",
+   "depth": 3,
+   "x": 1709.6,
+   "y": 1068.0,
+   "w": 0.0,
+   "h": 9.6,
+   "stroke": [
+    "#8C734B@0.25"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "23:78",
+   "name": "SlotsRow",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 629.6,
+   "y": 861.6,
+   "w": 902.4,
+   "h": 124.8,
+   "layout": "HORIZONTAL",
+   "gap": 19.2
+  },
+  {
+   "id": "23:79",
+   "name": "QuickSlot-1",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 629.6,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 124.8
+  },
+  {
+   "id": "23:80",
+   "name": "SlotBox",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 629.6,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 96.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#0D1015@0.9"
+   ],
+   "stroke": [
+    "#2E343D@0.6"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "INNER_SHADOW",
+     "radius": 2.4,
+     "y": 1.2,
+     "spread": 0,
+     "a": 0.03,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "23:87",
+   "name": "HotkeyBadge",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 665.6,
+   "y": 945.6,
+   "w": 24.0,
+   "h": 24.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#F0F3F5@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "23:88",
+   "name": "1",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 673.6,
+   "y": 949.1,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "1",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 900,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#1A1D20@1"
+   ]
+  },
+  {
+   "id": "23:89",
+   "name": "QuickSlot-2",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 744.8,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 124.8
+  },
+  {
+   "id": "23:90",
+   "name": "SlotBox",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 744.8,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 96.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#0D1015@0.9"
+   ],
+   "stroke": [
+    "#2E343D@0.6"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "INNER_SHADOW",
+     "radius": 2.4,
+     "y": 1.2,
+     "spread": 0,
+     "a": 0.03,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "23:95",
+   "name": "HotkeyBadge",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 780.8,
+   "y": 945.6,
+   "w": 24.0,
+   "h": 24.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#F0F3F5@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "23:96",
+   "name": "2",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 788.8,
+   "y": 949.1,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "2",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 900,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#1A1D20@1"
+   ]
+  },
+  {
+   "id": "23:97",
+   "name": "QuickSlot-3",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 860.0,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 124.8
+  },
+  {
+   "id": "23:98",
+   "name": "SlotBox",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 860.0,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 96.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#1D2430@0.9"
+   ],
+   "stroke": [
+    "#D4AF37@1"
+   ],
+   "strokeWeight": 2.4,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 14.4,
+     "y": 0.0,
+     "spread": 0,
+     "a": 0.25,
+     "color": "#D4AF37@1"
+    },
+    {
+     "type": "INNER_SHADOW",
+     "radius": 2.4,
+     "y": 1.2,
+     "spread": 0,
+     "a": 0.13,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "23:105",
+   "name": "HotkeyBadge",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 896.0,
+   "y": 945.6,
+   "w": 24.0,
+   "h": 24.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#D4AF37@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "23:106",
+   "name": "3",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 904.0,
+   "y": 949.1,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "3",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 900,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#000000@1"
+   ]
+  },
+  {
+   "id": "23:107",
+   "name": "QuickSlot-4",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 975.2,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 124.8
+  },
+  {
+   "id": "23:108",
+   "name": "SlotBox",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 975.2,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 96.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#0D1015@0.9"
+   ],
+   "stroke": [
+    "#2E343D@0.6"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "INNER_SHADOW",
+     "radius": 2.4,
+     "y": 1.2,
+     "spread": 0,
+     "a": 0.03,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "23:110",
+   "name": "HotkeyBadge",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1011.2,
+   "y": 945.6,
+   "w": 24.0,
+   "h": 24.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#F0F3F5@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "23:111",
+   "name": "4",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1019.2,
+   "y": 949.1,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "4",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 900,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#1A1D20@1"
+   ]
+  },
+  {
+   "id": "23:112",
+   "name": "QuickSlot-5",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1090.4,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 124.8
+  },
+  {
+   "id": "23:113",
+   "name": "SlotBox",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1090.4,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 96.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#0D1015@0.9"
+   ],
+   "stroke": [
+    "#2E343D@0.6"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "INNER_SHADOW",
+     "radius": 2.4,
+     "y": 1.2,
+     "spread": 0,
+     "a": 0.03,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "23:120",
+   "name": "HotkeyBadge",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1126.4,
+   "y": 945.6,
+   "w": 24.0,
+   "h": 24.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#F0F3F5@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "23:121",
+   "name": "5",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1134.4,
+   "y": 949.1,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "5",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 900,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#1A1D20@1"
+   ]
+  },
+  {
+   "id": "23:122",
+   "name": "QuickSlot-6",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1205.6,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 124.8
+  },
+  {
+   "id": "23:123",
+   "name": "SlotBox",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1205.6,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 96.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#0D1015@0.9"
+   ],
+   "stroke": [
+    "#2E343D@0.6"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "INNER_SHADOW",
+     "radius": 2.4,
+     "y": 1.2,
+     "spread": 0,
+     "a": 0.03,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "23:125",
+   "name": "HotkeyBadge",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1241.6,
+   "y": 945.6,
+   "w": 24.0,
+   "h": 24.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#F0F3F5@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "23:126",
+   "name": "6",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1249.6,
+   "y": 949.1,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "6",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 900,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#1A1D20@1"
+   ]
+  },
+  {
+   "id": "23:127",
+   "name": "QuickSlot-7",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1320.8,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 124.8
+  },
+  {
+   "id": "23:128",
+   "name": "SlotBox",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1320.8,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 96.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#0D1015@0.9"
+   ],
+   "stroke": [
+    "#2E343D@0.6"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "INNER_SHADOW",
+     "radius": 2.4,
+     "y": 1.2,
+     "spread": 0,
+     "a": 0.03,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "23:135",
+   "name": "HotkeyBadge",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1356.8,
+   "y": 945.6,
+   "w": 24.0,
+   "h": 24.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#F0F3F5@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "23:136",
+   "name": "7",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1364.8,
+   "y": 949.1,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "7",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 900,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#1A1D20@1"
+   ]
+  },
+  {
+   "id": "23:137",
+   "name": "QuickSlot-8",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1436.0,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 124.8
+  },
+  {
+   "id": "23:138",
+   "name": "SlotBox",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1436.0,
+   "y": 861.6,
+   "w": 96.0,
+   "h": 96.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#0D1015@0.9"
+   ],
+   "stroke": [
+    "#2E343D@0.6"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "INNER_SHADOW",
+     "radius": 2.4,
+     "y": 1.2,
+     "spread": 0,
+     "a": 0.03,
+     "color": "#FFFFFF@1"
+    }
+   ]
+  },
+  {
+   "id": "23:140",
+   "name": "HotkeyBadge",
+   "type": "FRAME",
+   "depth": 4,
+   "x": 1472.0,
+   "y": 945.6,
+   "w": 24.0,
+   "h": 24.0,
+   "layout": "HORIZONTAL",
+   "fill": [
+    "#F0F3F5@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "23:141",
+   "name": "8",
+   "type": "TEXT",
+   "depth": 5,
+   "x": 1480.0,
+   "y": 949.1,
+   "w": 8.0,
+   "h": 17.0,
+   "text": "8",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 900,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#1A1D20@1"
+   ]
+  },
+  {
+   "id": "23:142",
+   "name": "HOTKEY QUICK SLOTS · ACTIVE COMBAT MODE",
+   "type": "TEXT",
+   "depth": 2,
+   "x": 1023.8,
+   "y": 978.0,
+   "w": 292.0,
+   "h": 17.0,
+   "text": "HOTKEY QUICK SLOTS · ACTIVE COMBAT MODE",
+   "fontSize": 13.200000762939453,
+   "fontWeight": 500,
+   "lineHeight": 17.15999984741211,
+   "letterSpacing": null,
+   "fill": [
+    "#626A73@1"
+   ]
+  },
+  {
+   "id": "39:30",
+   "name": "TabRotationHint",
+   "type": "FRAME",
+   "depth": 1,
+   "x": 1556.0,
+   "y": 890.4,
+   "w": 57.6,
+   "h": 67.2,
+   "layout": "VERTICAL"
+  },
+  {
+   "id": "39:31",
+   "name": "HintIcon",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 1566.8,
+   "y": 906.0,
+   "w": 36.0,
+   "h": 36.0,
+   "layout": "VERTICAL",
+   "fill": [
+    "#F0F3F5@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 9.6,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "39:36",
+   "name": "rotate-cw",
+   "type": "FRAME",
+   "depth": 3,
+   "x": 1575.2,
+   "y": 914.4,
+   "w": 19.2,
+   "h": 19.2
+  },
+  {
+   "id": "39:37",
+   "name": "Vector",
+   "type": "VECTOR",
+   "depth": 4,
+   "x": 1577.6,
+   "y": 916.8,
+   "w": 14.4,
+   "h": 14.4,
+   "stroke": [
+    "#1A1D20@1"
+   ],
+   "strokeWeight": 2.4
+  },
+  {
+   "id": "39:33",
+   "name": "TabBadge",
+   "type": "FRAME",
+   "depth": 2,
+   "x": 1570.4,
+   "y": 936.0,
+   "w": 28.8,
+   "h": 21.6,
+   "layout": "VERTICAL",
+   "fill": [
+    "#D4AF37@1"
+   ],
+   "stroke": [
+    "#0D1015@1"
+   ],
+   "strokeWeight": 1.8,
+   "radius": 4.8,
+   "effects": [
+    {
+     "type": "DROP_SHADOW",
+     "radius": 4.8,
+     "y": 2.4,
+     "spread": 0,
+     "a": 0.4,
+     "color": "#000000@1"
+    }
+   ]
+  },
+  {
+   "id": "39:34",
+   "name": "TAB",
+   "type": "TEXT",
+   "depth": 3,
+   "x": 1573.8,
+   "y": 938.8,
+   "w": 22.0,
+   "h": 16.0,
+   "text": "TAB",
+   "fontSize": 12.0,
+   "fontWeight": 900,
+   "lineHeight": 15.59999942779541,
+   "letterSpacing": 0.0,
+   "fill": [
+    "#0D1015@1"
+   ]
+  }
+ ]
+}

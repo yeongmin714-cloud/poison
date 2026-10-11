@@ -348,11 +348,11 @@ namespace ProjectName.UI.Toolkit
 
         private void RefreshAllIcons()
         {
-            // [U8 요구] 부대 모드 슬롯 색상 차별화 — 청록 틴트 배경 (아이템 모드는 다크 브라운)
-            var squadBg = new StyleColor(new Color(0.10f, 0.22f, 0.30f, 0.92f));
+            // [2026-10-10 사용자 요구] 부대 모드 슬롯 색 통일 — 구 청록 틴트(0.10,0.22,0.30)는 파란 슬롯으로
+            //   보였다. 부대 모드도 아이템 모드와 동일한 핫바 슬롯색(다크 브라운)을 쓴다(모드 구분은 아바타/라벨이 담당).
             var itemBg = new StyleColor(new Color(0.07f, 0.05f, 0.03f, 0.85f));
             for (int i = 0; i < SlotCount; i++)
-                _slots[i].style.backgroundColor = _squadMode ? squadBg : itemBg;
+                _slots[i].style.backgroundColor = itemBg;
 
             if (_squadMode) { RefreshSquadSlots(); return; }   // [U8 요구] 부대 모드 — 동일 8슬롯에 부대 렌더
             for (int i = 0; i < SlotCount; i++)

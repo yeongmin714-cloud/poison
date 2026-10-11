@@ -25,7 +25,9 @@ namespace ProjectName.Systems
         /// center 주위에 count개 지점을 링으로 분산 배치한다.
         /// count=0이면 빈 배열, count=1이면 [center]. 정확히 count개만 잘라서 반환.
         /// </summary>
-        public static Vector3[] Distribute(Vector3 center, int count, float unitRadius = 1.6f)
+        // [2026-10-11 사용자 요구 — 지정 포인트 근접] 기본 unitRadius 1.6→0.9(링1 3.2→1.8m, 링2 5.6→3.15m).
+        //   뭉침 방지 분산 설계는 유지하되 클릭점 근접도를 높인다.
+        public static Vector3[] Distribute(Vector3 center, int count, float unitRadius = 0.9f)
         {
             if (count <= 0) return new Vector3[0];
 
@@ -73,7 +75,8 @@ namespace ProjectName.Systems
         /// Distribute를 재사용하므로 결과가 항상 동일하다 (결정론).
         /// index가 범위 밖이거나 count ≤ 0이면 center 반환.
         /// </summary>
-        public static Vector3 OffsetFor(int index, int count, Vector3 center, float unitRadius = 1.6f)
+        // [2026-10-11 사용자 요구 — 지정 포인트 근접] Distribute와 동일 기본값 유지(1.6→0.9) — OffsetFor/Distribute 정합 계약.
+        public static Vector3 OffsetFor(int index, int count, Vector3 center, float unitRadius = 0.9f)
         {
             if (count <= 0 || index < 0 || index >= count) return center;
             return Distribute(center, count, unitRadius)[index];

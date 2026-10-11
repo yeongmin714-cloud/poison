@@ -85,6 +85,7 @@ namespace ProjectName.Systems
             }
             foreach (var g in toRemove)
             {
+                GuardHighlightUtility.SetHighlight(g, false);   // [15차 B1] 하이라이트 해제
                 if (_selectionAuras[g] != null) Destroy(_selectionAuras[g]);
                 _selectionAuras.Remove(g);
             }
@@ -105,6 +106,7 @@ namespace ProjectName.Systems
                 GameObject inst = CreateSelectionIndicator(g);
                 if (inst == null) continue;
                 _selectionAuras[g] = inst;
+                GuardHighlightUtility.SetHighlight(g, true);   // [15차 B1] 실루엣 하이라이트
             }
         }
 
@@ -131,7 +133,10 @@ namespace ProjectName.Systems
         {
             PublishSelectionBox(false);
             foreach (var kv in _selectionAuras)
+            {
+                GuardHighlightUtility.SetHighlight(kv.Key, false);   // [15차 B1]
                 if (kv.Value != null) Destroy(kv.Value);
+            }
             _selectionAuras.Clear();
             if (Instance == this) Instance = null;
         }
@@ -287,10 +292,13 @@ namespace ProjectName.Systems
                 PublishSelectionBox(false);
             }
 
-            // H키 공격 중단 (RTSCommandSystem에 위임)
-            if (Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame)
+            // [15차 사용자 확정] 지정된 병사가 있을 때만 — H=홀드(제자리 방어) / X=스톱.
+            //   X는 현재 소비처가 없는 자유 키(제작 바인딩은 미배선) — 충돌 없음.
+            if (Keyboard.current != null && SelectedCount > 0)
             {
-                if (RTSCommandSystem.Instance != null)
+                if (Keyboard.current.hKey.wasPressedThisFrame && RTSCommandSystem.Instance != null)
+                    RTSCommandSystem.Instance.HoldSelectedGuards();
+                if (Keyboard.current.xKey.wasPressedThisFrame && RTSCommandSystem.Instance != null)
                     RTSCommandSystem.Instance.StopAllSelectedGuards();
             }
         }

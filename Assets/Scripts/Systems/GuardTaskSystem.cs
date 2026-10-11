@@ -103,6 +103,11 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // [42차] 실내에서는 역할 루틴 정지 — "실내 병사 = 전원 침대 휴식"(사용자 계약).
+            //   Attack(플레이어 추종) 등 루틴이 실내에서 돌면 침대 병사가 따라다니는 버그(실측).
+            //   역할 명령은 성 퇴출 시 AttackSquadDeployment가 월드에서 개시한다(41차 출동 배지).
+            if (ProjectName.Core.UITransitionState.IndoorActive) return;
+
             // 스로틀 — 매 프레임이 아니라 0.4s 간격으로 행동 루프만 실행.
             _throttleAccum += Time.deltaTime;
             if (_throttleAccum < UpdateThrottleSec) return;
@@ -157,7 +162,13 @@ namespace ProjectName.Systems
             EndChannel(g);              // [Milestone E] 작업 전환 시 캐스팅 취소
             _tasks[g] = task;
             _nextAction[g] = 0f;
-            Debug.Log($"{LogTag} {g.GuardName} → {task}");
+
+            // [39차 → 42차 변경] 역할 배정 = 출동 예약 — 실내에선 침대 휴식 유지(사용자 계약:
+            // "실내 병사는 모두 침대에 누워있어야"). 실제 이동/작업은 성 퇴출 시
+            // AttackSquadDeployment가 문밖 스폰+루틴 개시로 수행(41차).
+            // 실내 즉시 보행(39차의 WakeFromBed+SetCommandTarget)은 제거 — Attack 추종이
+            // 실내에서 이어지는 원인이기도 했다.
+            Debug.Log($"{LogTag} {g.GuardName} → {task} (출동 예약 — 퇴출 시 월드에서 수행)");
         }
 
         /// <summary>연결된 연결된 플레이어 소유 영지의 모든 병사에게 역할 배정.</summary>
@@ -252,7 +263,8 @@ namespace ProjectName.Systems
             CooldownStamp(guard, AttackSetTargetSec);
         }
 
-        /// <summary>Defend — 영지 성문 앞 수비. TerritoryDeploymentSystem의 성문 산식을 재사용해 주둔.</summary>
+        /// <summary>Defend — 영지 수비. [41차] 수비 위치 = 성문 앞(바깥) → **영지 안(중앙 인측)** 으로
+        ///   변경(사용자 요구: "영지 밖에서 돌아와서 영지 안으로") — 병사가 문을 통과해 안쪽에 주둔.</summary>
         private void RoutineDefend(GuardPlaceholder guard)
         {
             if (!CooldownReady(guard, ActionCooldownSec)) return;
@@ -262,8 +274,10 @@ namespace ProjectName.Systems
             {
                 TerritoryDefinition def = TerritoryDatabase.Instance.GetDefinition(tid);
                 Vector3 center = def.worldPosition != Vector3.zero ? def.worldPosition : Vector3.zero;
-                Vector3 gateFront = ComputeGateFrontFrom(center);
-                guard.SetCommandTarget(gateFront, false);
+                Vector3 gateDir = ComputeGateDir(center);
+                // 영지 안쪽 — 중심에서 문 반대 방향 2m (문을 들어온 안쪽 근무지)
+                Vector3 insidePost = center - gateDir * 2f;
+                guard.SetCommandTarget(insidePost, false);
             }
             else
             {
@@ -274,12 +288,11 @@ namespace ProjectName.Systems
             CooldownStamp(guard, ActionCooldownSec);
         }
 
-        /// <summary>성문 앞 위치 — TerritoryDeploymentSystem.ComputeGateFront와 동일 수식 (황제국 중심 기준 바깥 방향 + 3m).</summary>
-        private static Vector3 ComputeGateFrontFrom(Vector3 center)
+        /// <summary>성문 방향 — TerritoryDeploymentSystem.ComputeGateFront와 동일 수식(중심 기준 바깥 단위벡터).</summary>
+        private static Vector3 ComputeGateDir(Vector3 center)
         {
             Vector3 c2 = new Vector3(center.x, 0, center.z);
-            Vector3 gateDir = c2.sqrMagnitude < 0.0001f ? Vector3.back : Vector3.Normalize(c2);
-            return center + gateDir * 3f;
+            return c2.sqrMagnitude < 0.0001f ? Vector3.back : Vector3.Normalize(c2);
         }
 
         /// <summary>Hunt — 주변 몬스터 공격 + 확률 전리품 + 병사 사망 확률.</summary>

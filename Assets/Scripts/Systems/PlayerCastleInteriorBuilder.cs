@@ -339,9 +339,11 @@ namespace ProjectName.Systems
             Material bedMat = new Material(shader) { name = "PlayerCastle_BedMat" };
             bedMat.color = new Color(0.62f, 0.46f, 0.30f); // 따뜻한 나무 침대 프레임
 
-            // 중세 판타지 장식 재질들 (석재 기둥/러그)
-            Material pillarMat = new Material(shader) { name = "PlayerCastle_PillarMat" };
-            pillarMat.color = new Color(0.40f, 0.38f, 0.35f); // 회색 석재 기둥
+            // 중세 판타지 장식 재질들 (기둥/러그)
+            // [2026-10-10 D2 보완 수리] 석재 기둥도 wood_frame(하프팀버) — 계획 D2 범위(StonePillar) 누락분.
+            //   기둥은 P17에서 기본 비활성(IncludePillars)이므로 복원 시에도 목재로 등장.
+            Material pillarMat = IndoorMaterialFactory.CreateWoodFrame();
+            pillarMat.name = "PlayerCastle_PillarMat";
 
             Material rugMat = new Material(shader) { name = "PlayerCastle_RugMat" };
             rugMat.color = new Color(0.55f, 0.18f, 0.15f); // 붉은 카펫/문장 자수
@@ -461,8 +463,9 @@ namespace ProjectName.Systems
             CreateBoxPrimitive(bannerRoot, "BannerBar", new Vector3(3.8f, 0.06f, 0.06f),
                 new Vector3(0f, 4.5f, 0f), standMat);
 
-            // 깃천 (플레이어 청색) + 금장 트림 + 문장
-            CreateBoxPrimitive(bannerRoot, "BannerCloth", new Vector3(2.6f, 1.7f, 0.04f),
+            // 깃천 (플레이어 청색) — [2026-10-10 F3] 평면 박스 → 정적 S커브 천(천 시뮬레이션 없음,
+            //   베이크된 곡면만으로 천감 무드). 렌더러 전용.
+            CreateCurvedBanner(bannerRoot, "BannerCloth", 2.6f, 1.7f,
                 new Vector3(0f, 3.4f, 0f), bannerMat);
             CreateBoxPrimitive(bannerRoot, "BannerTrim_Top", new Vector3(2.6f, 0.08f, 0.05f),
                 new Vector3(0f, 4.2f, -0.03f), trimMat);
@@ -594,6 +597,16 @@ namespace ProjectName.Systems
             AttachUiComponent(barracksMapTable, CastleSoldierManagementStationTypeName,
                 "병사 관리", 1.8f);
 
+            // [40차] 공격대 배치(전투 편성) 전술 배치판 — 병사 관리 탁자 바로 아래(남측).
+            //   E키 → AttackFormationUTK(피그마 공격조 전투 배치 204:1963) — 선봉/후방 편성.
+            GameObject attackFormationBoard = IndoorFurnitureCatalog.CreateTable(2.0f, 1.4f, 1.0f, deskMat);
+            attackFormationBoard.name = "AttackFormationBoard";
+            attackFormationBoard.transform.SetParent(room.transform);
+            attackFormationBoard.transform.localPosition = new Vector3(-12.25f, 0f, -16.6f);
+            AddNameplate(attackFormationBoard, "🗺️ 공격대 배치");
+            AttachUiComponent(attackFormationBoard, CastleAttackFormationStationTypeName,
+                "공격대 배치", 1.8f);
+
             // [2026-10-09 수리] 배럭 침대 20개 — 병사 관리 탁자(BarracksMapTable) 옆 배럭 구역
             // (SW 사분면, GetTopologyZoneAt=="Barracks") 내부 4열×5행 그리드.
             // ⚠ 좌표는 authored(소형 공간) 값이고, 빌드 말미의 ×2.45 가구 스케일 패스를 통과한
@@ -698,16 +711,28 @@ namespace ProjectName.Systems
             // ===================================================================
             // 7. Warm entrance-side point lights only; no physical braziers or coals.
             // ===================================================================
+            var emberMat = IndoorMaterialFactory.CreateEmberUnlit(new Color(2.2f, 0.65f, 0.12f), "IndoorHQ_EmberGlow");
             for (int side = -1; side <= 1; side += 2)
             {
+                // [2026-10-11 20차 예시 정합 ×2 점프] 입구측 웜 광원 1.0 → 2.0(내부씬 예시 mean 37 목표 — CollisionAndKitchen 상한 2.50 동행 완화).
                 IndoorLighting.AddPointLight(room,
                     new Vector3(side * 10.0f, 1.5f, hearthZ),
-                    new Color(1f, 0.48f, 0.20f), 5f, 0.3f);
+                    new Color(1f, 0.48f, 0.20f), 5f, 2.0f);
+                // [2026-10-10 F2] ember 발광판 — 렌더러 전용(무콜라이더, 물리 브레이저 금지 계약 유지:
+                //   BrazierBowl/Coals/Hearth_* 명명 미사용). authored 좌표 → 스케일 패스로 라이트와 동행.
+                if (emberMat != null)
+                    CreateRendererOnlyStoneBox(room.transform, $"EmberGlow_{(side > 0 ? "R" : "L")}",
+                        new Vector3(side * 10.0f, 0.01f, hearthZ),
+                        new Vector3(1.6f, 0.02f, 1.0f), CreateUnitCubeMesh(), emberMat);
+                // [2026-10-11 횃불 은은한 글로우] 입구 화광 아래 부드러운 웜 광원 풀(렌더러 전용·무콜라이더).
+                AddFlameGlowPool(room.transform, $"FlameGlow_Entrance{(side > 0 ? "R" : "L")}", side * 10.0f, hearthZ, 2.8f);
             }
 
             // Subtle warm bounce near the front pillars; keep the central volume subdued.
-            IndoorLighting.AddPointLight(room, new Vector3(-pillarX - 0.55f, 4.5f, -5f), new Color(1f, 0.48f, 0.24f), 4.5f, 0.22f);
-            IndoorLighting.AddPointLight(room, new Vector3(pillarX + 0.55f, 4.5f, -5f), new Color(1f, 0.48f, 0.24f), 4.5f, 0.22f);
+            // [2026-10-11 19차] 기둥 옆 웜 바운스 0.8 → 1.15.
+            // [2026-10-10 H3] 존별 색온도 틴트 — authored×2.45(최종 좌표) 기준.
+            IndoorLighting.AddPointLight(room, new Vector3(-pillarX - 0.55f, 4.5f, -5f), TintForZone(new Color(1f, 0.48f, 0.24f), new Vector2((-pillarX - 0.55f) * TopologyFurnitureScale, -5f * TopologyFurnitureScale)), 4.5f, 2.3f);
+            IndoorLighting.AddPointLight(room, new Vector3(pillarX + 0.55f, 4.5f, -5f), TintForZone(new Color(1f, 0.48f, 0.24f), new Vector2((pillarX + 0.55f) * TopologyFurnitureScale, -5f * TopologyFurnitureScale)), 4.5f, 2.3f);
 
             // ===================================================================
             // 8. 중세 장식 — 왕실 문장 방패 + 붉은 러그 (기존 청색 배너는 유지)
@@ -763,6 +788,9 @@ namespace ProjectName.Systems
                     new Vector3(0f, 0.55f, 0f), trimMat);
             }
 
+            // [2026-10-10 F3] 플로어 캔들라브라 — 로비 좌우 무드 소품(authored 좌표 → 가구와 함께 ×2.45).
+            AddCandelabras(room, standMat);
+
             // ===================================================================
             // 9. 조명 — 따뜻한 중세 촛불빛 톤의 주황빛, 은은한 점멸
             // ===================================================================
@@ -771,27 +799,35 @@ namespace ProjectName.Systems
             Color ambient = new Color(0.10f, 0.075f, 0.055f);
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             // 주변광 대폭 축소 — 횃불/불빛(포인트라이트)만 남는 은은한 실내 무드.
-            IndoorLighting.SetupIndoorLighting(room, ambient, 0.26f, true, 0.22f, 6f);
-            RenderSettings.ambientLight = new Color(ambient.r * 0.26f, ambient.g * 0.26f, ambient.b * 0.26f);
+            // [2026-10-11 19차 사용자 요구 — 18차 상향 후에도 어두움 → 더더 밝게]
+            //   앰비언트 ×0.65→×1.0(base 색 그대로)·중앙 0.65→0.9.
+            // [2026-10-11 18차] 앰비언트 ×0.65·중앙 0.65 단계.
+            // [2026-10-11 20차 예시 정합 ×2 점프] 앰비언트 ×1.0→×2.0·중앙 0.9→1.8 (Warehouse ambient 단정도 0.20/0.15/0.11로 동행 갱신).
+            IndoorLighting.SetupIndoorLighting(room, ambient, 2.0f, true, 1.8f, 6f);
+            RenderSettings.ambientLight = new Color(ambient.r * 2.0f, ambient.g * 2.0f, ambient.b * 2.0f);
 
             // A subdued ceiling lantern leaves the room legible without flattening the candlelit mood.
+            // [2026-10-11 19차] 천장 랜턴 0.85 → 1.2.
             IndoorLighting.AddPointLight(room,
                 new Vector3(0f, roomHeight - 0.6f, 0f),
-                new Color(1f, 0.72f, 0.46f), 4.5f, 0.35f);
+                new Color(1f, 0.72f, 0.46f), 4.5f, 2.4f);
+            // [2026-10-11 횃불 은은한 글로우] 천장 랜턴 바닥 부드러운 웜 풀(렌더러 전용·무콜라이더).
+            AddFlameGlowPool(room.transform, "FlameGlow_Center", 0f, 0f, 2.6f);
 
             // Small warm pools keep work areas readable while the aisles remain dimmer.
+            // [2026-10-10 H3] 존별 색온도 틴트 — Craft/Barracks/Alchemy 존 광원이 미세하게 쿨/딥웜으로 변주.
             IndoorLighting.AddPointLight(room,
                 new Vector3(commandZX, 4.2f, roomDepth * 0.5f - 1.8f),
-                new Color(1f, 0.78f, 0.5f), 5.5f, 0.3f);
+                TintForZone(new Color(1f, 0.78f, 0.5f), new Vector2(commandZX * TopologyFurnitureScale, (roomDepth * 0.5f - 1.8f) * TopologyFurnitureScale)), 5.5f, 2.3f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * -5f, 3.8f, -roomDepth * 0.5f + 0.8f),
-                new Color(1f, 0.82f, 0.58f), 5.5f, 0.3f);
+                TintForZone(new Color(1f, 0.82f, 0.58f), new Vector2(mx * -5f * TopologyFurnitureScale, (-roomDepth * 0.5f + 0.8f) * TopologyFurnitureScale)), 5.5f, 2.3f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * -9.5f, 3.8f, 0.5f),
-                new Color(1f, 0.78f, 0.5f), 6f, 0.35f);
+                TintForZone(new Color(1f, 0.78f, 0.5f), new Vector2(mx * -9.5f * TopologyFurnitureScale, 0.5f * TopologyFurnitureScale)), 6f, 2.4f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * 9.5f, 3.8f, 0.5f),
-                new Color(1f, 0.78f, 0.5f), 6f, 0.35f);
+                TintForZone(new Color(1f, 0.78f, 0.5f), new Vector2(mx * 9.5f * TopologyFurnitureScale, 0.5f * TopologyFurnitureScale)), 6f, 2.4f);
 
             Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}, 레이아웃 변형: {layoutVariant}) — 석재 기둥 2열·따뜻한 조명·문장 방패·러그 장식 포함");
 
@@ -806,8 +842,10 @@ namespace ProjectName.Systems
             AddRoomSign(room, "Sign_Storage", 1.6f, 0.5f, crateMat, 12.5f, 5.2f, 0f, "🎒 저장고");
 
             // 은은한 방별 보조 조명 — 실내 어둠을 유지하고 각 기능 구역만 살짝 비춘다.
-            IndoorLighting.AddPointLight(room, new Vector3(16f, 4f, -9f), new Color(1f, 0.82f, 0.58f), 5.5f, 0.3f);
-            IndoorLighting.AddPointLight(room, new Vector3(-16f, 4f, 12f), new Color(1f, 0.78f, 0.5f), 5.5f, 0.28f);
+            // [2026-10-11 19차] 보조 광원 완화(0.65→0.9 / 0.62→0.85).
+            // [2026-10-10 H3] 사인 보조조명도 존 틴트 — (16,-9)→Alchemy 쿨, (-16,12)→Craft 쿨.
+            IndoorLighting.AddPointLight(room, new Vector3(16f, 4f, -9f), TintForZone(new Color(1f, 0.82f, 0.58f), new Vector2(16f * TopologyFurnitureScale, -9f * TopologyFurnitureScale)), 5.5f, 1.8f);
+            IndoorLighting.AddPointLight(room, new Vector3(-16f, 4f, 12f), TintForZone(new Color(1f, 0.78f, 0.5f), new Vector2(-16f * TopologyFurnitureScale, 12f * TopologyFurnitureScale)), 5.5f, 1.7f);
 
             // Scale furniture/decor uniformly into the expanded walkable footprint. The shell, floor,
             // ceiling and topology walls are already authored in final meters and remain untouched.
@@ -828,6 +866,26 @@ namespace ProjectName.Systems
 
             // Add after legacy furniture scaling so portal trim remains in wall-local meters.
             AddNonCollidingPortalStonework(room, GetTopologyWalls(), RoomHeight, WallThickness, shader);
+
+            // [2026-10-10 Phase D3 — 사용자 승인("d3도 진행이 안되었으면 진행해주고")] 하프팀버 벽 골조 —
+            //   벽 중간 수직 기둥 + 천장 연결 상단 보 + 대각 지지대. 렌더러 전용(무충돌)·벽 로컬 미터
+            //   (포탈 트림과 동일 스케일 패스 후 호출 — 문설주 선례 패턴).
+            AddTimberWallFrame(room, GetTopologyWalls(), RoomHeight, WallThickness);
+
+            // [2026-10-10 F1] 벽 하부 석재 밴드 — 옵션(기본 OFF, IncludeWallStoneLower).
+            AddWallStoneLowerBands(room, GetTopologyWalls(), WallThickness);
+            // [2026-10-10 F1] 짚단 바닥 데칼 — 엔트리홀/부엌(렌더러 전용, 최종 좌표).
+            AddStrawFloorDecals(room);
+            // [2026-10-10 H1] 벽 톱면 돌 캡 — 탑다운에서 벽이 "짙은 돌 선"으로 읽히게(방 구조 가독성).
+            AddWallTopCaps(room, GetTopologyWalls(), WallThickness);
+            // [2026-10-10 H5] 바닥 마모 스탬프 — 색 변화 없는 낡음 디테일(소량 12장).
+            AddFloorWearStamps(room);
+            // [2026-10-10 (8차) 걸레받이 제거] 탑다운에서 벽 자체가 거의 안 보여(얇은 톱면+면 컬링)
+            //   걸레받이만 "열린 바닥에 떠 있는 나무 선"으로 읽힌다(실내씬 8 사용자 확인) — 제거 확정.
+            //   탑다운에서 벽을 읽게 하는 방법은 벽 톱면 캡(G2 계획)으로 별도 검토.
+            // [2026-10-10 천장 들보 제거] 탑다운 뷰에서 입체 박스 들보가 천장 평면(위에서 백페이스 컬링)
+            //   과 달리 그대로 렌더링되어 방을 가로막고 그림자를 드리움 — 실내씬 7 사용자 확인 후 제거.
+            //   천장 요소는 저각도 뷰 도입 시 별도 계획으로만 재검토.
 
             // Interaction anchors are explicitly assigned to their intended player-owned zones.
             SetAnchorPosition(room, "Workbench", GetAnchorPosition("Workbench"));
@@ -952,6 +1010,8 @@ namespace ProjectName.Systems
             "ProjectName.UI.AlchemyStation, ProjectName.UI";
         private const string CastleSoldierManagementStationTypeName =
             "ProjectName.UI.CastleSoldierManagementStation, ProjectName.UI";
+        private const string CastleAttackFormationStationTypeName =
+            "ProjectName.UI.CastleAttackFormationStation, ProjectName.UI";
 
         /// <summary>
         /// 어셈블리 경계(ProjectName.UI)를 넘어 상호작용 컴포넌트를 리플렉션으로 부착한다.
@@ -1129,37 +1189,539 @@ namespace ProjectName.Systems
             // No Collider by design: decorative portal stonework must not block movement.
         }
 
+        // ==================================================================================================
+        // [2026-10-10 F1] 벽 하부 석재 밴드 — IncludeWallStoneLower(기본 OFF)일 때만 생성.
+        //   벽 하부 ~1.1m에 wall_stone_lower(예시의 하단 석재 노출). 병합 메시(벽당 1개)·렌더러 전용·
+        //   문 개구부 스팬은 분할 회피(D3 팀버와 동일 스킵 규칙). UV u=길이/2.2(석재 그리드 정합).
+        // ==================================================================================================
+        private static void AddWallStoneLowerBands(GameObject room, WallLayout[] walls, float wallThickness)
+        {
+            if (room == null || walls == null) return;
+            if (!IndoorTextureLoader.IncludeWallStoneLower) return;
+            var stone = IndoorMaterialFactory.CreateWallStoneLower();
+            if (stone == null) return;
+
+            const float bandHeight = 1.1f;
+            foreach (WallLayout wall in walls)
+            {
+                Vector2 delta = wall.End - wall.Start;
+                float length = delta.magnitude;
+                if (length < 1.2f) continue;
+
+                var verts = new List<Vector3>(64);
+                var tris = new List<int>(96);
+                var uvs = new List<Vector2>(64);
+
+                float half = length * 0.5f;
+                float faceOffset = wallThickness * 0.5f + 0.02f;   // 팀버(0.035)보다 살짝 안쪽 — 팀버 뒤 깔림
+                bool hasDoor = wall.DoorwayWidth > 0f;
+                float doorLeft = wall.DoorwayOffset - wall.DoorwayWidth * 0.5f;
+                float doorRight = wall.DoorwayOffset + wall.DoorwayWidth * 0.5f;
+
+                // 스팬 분할 — 문 개구부 구간 제외
+                var spans = new List<Vector2>(4);
+                if (!hasDoor)
+                {
+                    spans.Add(new Vector2(-half, half));
+                }
+                else
+                {
+                    if (doorLeft > -half) spans.Add(new Vector2(-half, doorLeft));
+                    if (doorRight < half) spans.Add(new Vector2(doorRight, half));
+                }
+
+                for (int s = 0; s < spans.Count; s++)
+                {
+                    float a = spans[s].x, b = spans[s].y;
+                    float spanLen = b - a;
+                    if (spanLen < 0.2f) continue;
+                    for (int si = 0; si < 2; si++)
+                    {
+                        int side = si == 0 ? -1 : 1;
+                        AppendBandQuad(verts, tris, uvs,
+                            new Vector3((a + b) * 0.5f, bandHeight * 0.5f, side * faceOffset),
+                            new Vector3(spanLen, bandHeight, 0.02f), spanLen / 2.2f);
+                    }
+                }
+
+                if (verts.Count == 0) continue;
+                CreateMergedMeshChild(room, wall.Name + "_StoneLowerBand", verts, tris, uvs,
+                    (wall.Start.x + wall.End.x) * 0.5f, (wall.Start.y + wall.End.y) * 0.5f,
+                    Mathf.Atan2(-delta.y, delta.x) * Mathf.Rad2Deg, stone);
+            }
+        }
+
+        /// <summary>[F1] 밴드용 정면 쿼드 1면 기록(외향) — u 길이 기반 타일.</summary>
+        private static void AppendBandQuad(List<Vector3> verts, List<int> tris, List<Vector2> uvs,
+            Vector3 center, Vector3 size, float uRepeat)
+        {
+            float sx = size.x * 0.5f, sy = size.y * 0.5f;
+            int first = verts.Count;
+            verts.Add(new Vector3(center.x - sx, center.y - sy, center.z));
+            verts.Add(new Vector3(center.x - sx, center.y + sy, center.z));
+            verts.Add(new Vector3(center.x + sx, center.y - sy, center.z));
+            verts.Add(new Vector3(center.x + sx, center.y + sy, center.z));
+            uvs.Add(new Vector2(0f, 0f)); uvs.Add(new Vector2(0f, 1f));
+            uvs.Add(new Vector2(uRepeat, 0f)); uvs.Add(new Vector2(uRepeat, 1f));
+            tris.Add(first); tris.Add(first + 2); tris.Add(first + 1);
+            tris.Add(first + 2); tris.Add(first + 3); tris.Add(first + 1);
+        }
+
+        /// <summary>[F1/F3] 병합 메시 공용 생성기 — room 직속 자식, 렌더러 전용(무콜라이더).</summary>
+        private static void CreateMergedMeshChild(GameObject room, string name, List<Vector3> verts,
+            List<int> tris, List<Vector2> uvs, float localX, float localZ, float rotationY, Material material)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(room.transform, false);
+            go.transform.localPosition = new Vector3(localX, 0f, localZ);
+            go.transform.localRotation = Quaternion.Euler(0f, rotationY, 0f);
+            var mesh = new Mesh { name = name + "_Mesh" };
+            mesh.SetVertices(verts);
+            mesh.SetTriangles(tris, 0);
+            mesh.SetUVs(0, uvs);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            go.AddComponent<MeshRenderer>().sharedMaterial = material;
+            // No Collider by design: decorative quality layers must not block movement.
+        }
+
+        // ==================================================================================================
+        // [2026-10-10 F1] 짚단 바닥 데칼 — 미사용이던 floor_straw_decal 적용기.
+        //   엔트리홀(x=±2 복도) 2장 + 부엌 앞 1장. 렌더러 전용 투명 쿼드(무콜라이더), 최종 좌표(스케일 패스 후).
+        // ==================================================================================================
+        private static void AddStrawFloorDecals(GameObject room)
+        {
+            if (room == null) return;
+            var strawMat = IndoorMaterialFactory.CreateStrawDecal();
+            if (strawMat == null) return;
+
+            float s = DecalSideMeters;   // 1.2m 계약(DecalSizeMeters)과 동일
+            AddDecalQuad(room, "StrawMat_Entry_1", new Vector3(-0.5f, 0.015f, -22f), s, strawMat);
+            AddDecalQuad(room, "StrawMat_Entry_2", new Vector3(0.5f, 0.015f, -31f), s, strawMat);
+            // 부엌(요리 테이블 authored (1,14) → 최종 ×2.45 ≈ (2.45, 34.3)) 옆 바닥
+            AddDecalQuad(room, "StrawMat_Kitchen", new Vector3(4.8f, 0.015f, 31.5f), s, strawMat);
+        }
+
+        /// <summary>[F1] 바닥 데칼 쿼드 1장 — 위향(+) 쿼드, UV 전체.</summary>
+        private static void AddDecalQuad(GameObject room, string name, Vector3 center, float side, Material material)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(room.transform, false);
+            go.transform.localPosition = center;
+            go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            var mf = go.AddComponent<MeshFilter>();
+            var mesh = new Mesh { name = name + "_Mesh" };
+            float h = side * 0.5f;
+            mesh.vertices = new Vector3[]
+            {
+                new Vector3(-h, -h, 0), new Vector3(h, -h, 0),
+                new Vector3(-h,  h, 0), new Vector3(h,  h, 0)
+            };
+            mesh.uv = new Vector2[]
+            {
+                new Vector2(0f, 0f), new Vector2(1f, 0f),
+                new Vector2(0f, 1f), new Vector2(1f, 1f)
+            };
+            mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mf.sharedMesh = mesh;
+            var r = go.AddComponent<MeshRenderer>();
+            r.sharedMaterial = material;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            // No Collider by design: floor decals are visual only.
+        }
+
+        /// <summary>[F1] 짚 데칼 한 변 길이 — DecalSizeMeters(1.2m) 계약 복사 상수.</summary>
+        private const float DecalSideMeters = 1.2f;
+
+        // ==================================================================================================
+        // [2026-10-10 H1] 벽 톱면 돌 캡 — 모든 토폴로지 벽(로비 8각 포함) 위 얇은 석재 캡.
+        //   탑다운에서 벽이 "짙은 돌 선"으로 읽혀 방 구조가 파악된다(걸레받이 실패의 정공법).
+        //   문 개구부 위에도 캡은 연속(포탈 컷은 2.8m — 상단 벽 존재). 병합 메시·무콜라이더.
+        // ==================================================================================================
+        private static void AddWallTopCaps(GameObject room, WallLayout[] walls, float wallThickness)
+        {
+            if (room == null || walls == null) return;
+            var stone = IndoorMaterialFactory.CreateWallStoneLower();
+            if (stone == null) return;
+            stone.color = new Color(0.78f, 0.76f, 0.73f);   // 회반죽보다 어두운 마감 톤
+
+            float capY = RoomHeight + 0.01f;                // 벽 톱면(6.0) 위 — z-fight 회피
+            foreach (WallLayout wall in walls)
+            {
+                Vector2 delta = wall.End - wall.Start;
+                float length = delta.magnitude;
+                if (length < 0.5f) continue;
+
+                var verts = new List<Vector3>(16);
+                var tris = new List<int>(24);
+                var uvs = new List<Vector2>(16);
+                float half = length * 0.5f;
+                // 벽 로컬 XZ 평면 캡 — 위향(+Y) 와인딩
+                Vector3 a = new Vector3(-half, capY, -wallThickness * 0.5f);
+                Vector3 b = new Vector3(half, capY, -wallThickness * 0.5f);
+                Vector3 c = new Vector3(-half, capY, wallThickness * 0.5f);
+                Vector3 d = new Vector3(half, capY, wallThickness * 0.5f);
+                verts.AddRange(new[] { a, b, c, d });
+                uvs.AddRange(new[]
+                {
+                    new Vector2(0f, 0f), new Vector2(length / 2.2f, 0f),
+                    new Vector2(0f, wallThickness / 1.1f), new Vector2(length / 2.2f, wallThickness / 1.1f)
+                });
+                tris.AddRange(new[] { 0, 2, 1, 2, 3, 1 });
+                CreateMergedMeshChild(room, wall.Name + "_TopCap", verts, tris, uvs,
+                    (wall.Start.x + wall.End.x) * 0.5f, (wall.Start.y + wall.End.y) * 0.5f,
+                    Mathf.Atan2(-delta.y, delta.x) * Mathf.Rad2Deg, stone);
+            }
+        }
+
+        // ==================================================================================================
+        // [2026-10-10 H5] 바닥 마모 스탬프 — 색 변화 없는 낡음(어두운 얼룩+균열, 알파 ≤0.22) 12장.
+        //   렌더러 전용·통로/로비 개방부(가구·앵커 회피). 실패 시 즉시 제거 원칙(오늘 교훈).
+        // ==================================================================================================
+        private static void AddFloorWearStamps(GameObject room)
+        {
+            if (room == null) return;
+            var mat = IndoorMaterialFactory.CreateFloorWearMat();
+            if (mat == null) return;
+            const float size = 1.6f;
+            // [주의] 스케일 패스 '후' 호출 → 최종 좌표 그대로(×2.45 동행 아님). 개방부 중심.
+            var spots = new[]
+            {
+                new Vector2(0f, 6f), new Vector2(14f, 10f), new Vector2(-14f, 10f),
+                new Vector2(28f, 6f), new Vector2(-28f, 6f), new Vector2(0f, -12f),
+                new Vector2(18f, -11f), new Vector2(-18f, -11f), new Vector2(44f, 20f),
+                new Vector2(-44f, 20f), new Vector2(44f, -26f), new Vector2(-44f, -26f),
+            };
+            for (int i = 0; i < spots.Length; i++)
+            {
+                var go = new GameObject("FloorWear_" + i);
+                go.transform.SetParent(room.transform, false);
+                go.transform.localPosition = new Vector3(spots[i].x, 0.03f, spots[i].y);
+                go.transform.localRotation = Quaternion.Euler(90f, (i % 4) * 90f, 0f);
+                var mf = go.AddComponent<MeshFilter>();
+                var mesh = new Mesh { name = "FloorWear_" + i + "_Mesh" };
+                float h = size * 0.5f;
+                mesh.vertices = new Vector3[]
+                {
+                    new Vector3(-h, -h, 0), new Vector3(h, -h, 0),
+                    new Vector3(-h,  h, 0), new Vector3(h,  h, 0)
+                };
+                mesh.uv = new Vector2[]
+                {
+                    new Vector2(0f, 0f), new Vector2(1f, 0f),
+                    new Vector2(0f, 1f), new Vector2(1f, 1f)
+                };
+                mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+                mesh.RecalculateNormals();
+                mesh.RecalculateBounds();
+                mf.sharedMesh = mesh;
+                var r = go.AddComponent<MeshRenderer>();
+                r.sharedMaterial = mat;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                // No Collider by design: wear stamps are visual only.
+            }
+        }
+
+        /// <summary>[2026-10-10 H3] 존별 조명 색온도 틴트 — 색 바닥 없이 방 무드 구분(강도 불변).
+        /// Alchemy/Craft=쿨 화백, Barracks=딥 웜, Bedroom=캔들 웜, Storage=중립 쿨, Lobby/EntryHall=원본 유지.</summary>
+        private static Color TintForZone(Color warm, Vector2 finalPos)
+        {
+            string zone = GetTopologyZoneAt(finalPos) ?? "Lobby";
+            switch (zone)
+            {
+                case "Alchemy":
+                case "Craft":     return Color.Lerp(warm, new Color(0.86f, 0.93f, 1.00f), 0.35f);
+                case "Barracks":  return Color.Lerp(warm, new Color(1.00f, 0.58f, 0.30f), 0.35f);
+                case "Bedroom":   return Color.Lerp(warm, new Color(1.00f, 0.76f, 0.52f), 0.40f);
+                case "Storage":   return Color.Lerp(warm, new Color(0.93f, 0.95f, 1.00f), 0.30f);
+                default:          return warm;
+            }
+        }
+
+        // ==================================================================================================
+        // [2026-10-10 F3] 곡면 배너 천 — 정적 S커브(하단 살짝 말림, 천 시뮬레이션 없음). 렌더러 전용.
+        // ==================================================================================================
+        private static void CreateCurvedBanner(GameObject parent, string name, float width, float height,
+            Vector3 localPosition, Material material)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent.transform, false);
+            go.transform.localPosition = localPosition;
+
+            const int cols = 8, rows = 6;
+            var verts = new List<Vector3>((cols + 1) * (rows + 1));
+            var uvs = new List<Vector2>((cols + 1) * (rows + 1));
+            var tris = new List<int>(cols * rows * 6);
+            for (int r = 0; r <= rows; r++)
+            {
+                float t = (float)r / rows;               // 0=상단(봉), 1=하단
+                float y = height * 0.5f - t * height;
+                // 하단으로 갈수록 앞(+z)으로 살짝 말림 — 천감
+                float z = 0.06f + 0.20f * t * t;
+                for (int c = 0; c <= cols; c++)
+                {
+                    float u = (float)c / cols;
+                    // 좌우 가장자리가 앞으로 살짝 말리는 배너 형태
+                    float sideCurl = 0.08f * Mathf.Sin(u * Mathf.PI) ;
+                    verts.Add(new Vector3(-width * 0.5f + u * width, y, z + sideCurl * (1f - t)));
+                    uvs.Add(new Vector2(u, 1f - t));
+                }
+            }
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    int a = r * (cols + 1) + c;
+                    int b = a + 1, d2 = a + cols + 1, c2 = d2 + 1;
+                    tris.Add(a); tris.Add(d2); tris.Add(b);
+                    tris.Add(b); tris.Add(d2); tris.Add(c2);
+                }
+            }
+            var mf = go.AddComponent<MeshFilter>();
+            var mesh = new Mesh { name = name + "_Mesh" };
+            mesh.SetVertices(verts);
+            mesh.SetTriangles(tris, 0);
+            mesh.SetUVs(0, uvs);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mf.sharedMesh = mesh;
+            var rr = go.AddComponent<MeshRenderer>();
+            rr.sharedMaterial = material;
+            // No Collider by design: banner cloth is decorative.
+        }
+
+        // ==================================================================================================
+        // [2026-10-10 F3] 플로어 캔들라브라 — 로비 좌우(기둥 자리 대체 무드). Emissive 불꽃(F4 Bloom 연동),
+        //   신규 라이트 추가 없음(비용 게이트). 프리미티브 계열이므로 콜라이더 보유(가구 관례와 동일).
+        // ==================================================================================================
+        private static void AddCandelabras(GameObject room, Material standMat)
+        {
+            if (room == null) return;
+            var flameMat = IndoorMaterialFactory.CreateEmberUnlit(new Color(3.0f, 1.4f, 0.35f), "IndoorHQ_CandleFlame");
+            var waxMat = new Material(standMat.shader) { name = "PlayerCastle_CandleWax" };
+            waxMat.color = new Color(0.93f, 0.90f, 0.84f);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var root = new GameObject($"Candelabra_{(side > 0 ? "R" : "L")}");
+                root.transform.SetParent(room.transform);
+                root.transform.localPosition = new Vector3(side * 7.5f, 0f, -3f);
+                CreateCylinderPrimitive(root, "CandlePole", 0.055f, 0.95f, new Vector3(0f, 0.475f, 0f), standMat);
+                CreateCylinderPrimitive(root, "CandleBase", 0.16f, 0.06f, new Vector3(0f, 0.03f, 0f), standMat);
+                CreateCylinderPrimitive(root, "CandleWax", 0.045f, 0.20f, new Vector3(0f, 1.05f, 0f), waxMat);
+                if (flameMat != null)
+                    CreateBoxPrimitive(root, "CandleFlame", new Vector3(0.07f, 0.11f, 0.07f),
+                        new Vector3(0f, 1.20f, 0f), flameMat);
+                // [2026-10-11 횃불 은은한 글로우] 촛불 바닥 부드러운 웜 풀(루트 자식 — 스케일 패스 동행).
+                AddFlameGlowPool(root.transform, "FlameGlow_Pool", 0f, 0f, 1.4f);
+            }
+        }
+
+        // ==================================================================================================
+        // [2026-10-11 사용자 요구 — 횃불 은은한 글로우] 화광원 바닥 부드러운 웜 광원 풀.
+        //   렌더러 전용(무콜라이더·그림자 미방출·물리 브레이저 금지 계약 유지) — 실내씬 예시의
+        //   "불빛 주변 은은한 빛 풀" 표현. authored 좌표 입력 → 가구와 함께 스케일 패스 동행(x/z만).
+        //   CreateRendererOnlyStoneBox 슬래브 관례(단위 큐브 톱면 UV 0..1 — 방사 글로우 텍스처) 준수.
+        // ==================================================================================================
+        private static void AddFlameGlowPool(Transform parent, string name, float x, float z, float size)
+        {
+            var mat = IndoorMaterialFactory.CreateFlameGlowMat();
+            if (mat == null || parent == null) return;
+            var pool = new GameObject(name);
+            pool.transform.SetParent(parent, false);
+            pool.transform.localPosition = new Vector3(x, 0.02f, z);
+            pool.transform.localScale = new Vector3(size, 0.02f, size);
+            pool.AddComponent<MeshFilter>().sharedMesh = CreateUnitCubeMesh();
+            var r = pool.AddComponent<MeshRenderer>();
+            r.sharedMaterial = mat;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            // No Collider by design: the glow pool is a light-pool decal, not an obstacle.
+        }
+
+        // ==================================================================================================
+        // [2026-10-10 Phase D3 — 사용자 승인] 하프팀버 벽 골조 — 실내씬 예시(하프 팀버 스타일) 계약:
+        //   벽 중간 수직 기둥 + 천장 연결 상단 보. [10-10 2차 사용자 피드백] 대각 지지대 제거 —
+        //   세로 기둥만, 기둥 폭 0.26→0.40로 굵게(참조 예시의 통통한 기둥 비율).
+        //   - 렌더러 전용(콜라이더 없음 — 이동 차단 금지 계약)·벽 로컬 미터(문설주/포탈 트림 선례).
+        //   - 벽 1개당 병합 메시 1개(드로우콜 최소화 — Intel HD 530 저사양 게이트 대응).
+        //   - 문 개구부(D±0.35 여유) 안 기둥은 생성하지 않는다(포탈 통로 보장).
+        // ==================================================================================================
+        private const float TimberPostWidth = 0.60f;   // 수직 기둥 단면(벽 길이 방향) — 10-10 사용자 요구 0.26→0.40→0.60(예시 비율)
+        private const float TimberPostDepth = 0.20f;   // 벽 두께 방향(면 돌출 얕게)
+        private const float TimberBeamHeight = 0.50f;  // 천장 연결 상단 보 높이(기둥과 동일 두께감)
+        private const float TimberMaxSpan = 5.5f;      // 기둥 간격 상한(최종 미터)
+
+        private static void AddTimberWallFrame(GameObject room, WallLayout[] walls,
+            float wallHeight, float wallThickness)
+        {
+            if (room == null || walls == null) return;
+            var timber = IndoorMaterialFactory.CreateWoodFrame();
+            timber.name = "PlayerCastle_TimberFrameMat";
+            if (timber.HasProperty("_Smoothness")) timber.SetFloat("_Smoothness", 0.14f);
+
+            foreach (WallLayout wall in walls)
+            {
+                Vector2 delta = wall.End - wall.Start;
+                float length = delta.magnitude;
+                if (length < 1.2f) continue;
+
+                var verts = new List<Vector3>(512);
+                var tris = new List<int>(768);
+                var uvs = new List<Vector2>(512);
+
+                float half = length * 0.5f;
+                float faceOffset = wallThickness * 0.5f + 0.035f;   // 문설주 선례 — 벽 면 바깥 살짝 돌출
+                bool hasDoor = wall.DoorwayWidth > 0f;
+                float doorLeft = wall.DoorwayOffset - wall.DoorwayWidth * 0.5f - 0.35f;
+                float doorRight = wall.DoorwayOffset + wall.DoorwayWidth * 0.5f + 0.35f;
+
+                // --- 수직 기둥: 양끝 코너 + 최대 간격 분할(문 개구부 회피) ---
+                int segments = Mathf.Max(1, Mathf.CeilToInt(length / TimberMaxSpan));
+                float step = length / segments;
+                var posts = new List<float>(segments + 1);
+                for (int i = 0; i <= segments; i++)
+                {
+                    float x = -half + i * step;
+                    if (i == 0 || i == segments ||
+                        !(hasDoor && x > doorLeft && x < doorRight))
+                        posts.Add(x);
+                }
+                float postH = wallHeight - TimberBeamHeight;    // 상단 보 하단까지
+                for (int p = 0; p < posts.Count; p++)
+                {
+                    for (int si = 0; si < 2; si++)
+                    {
+                        int side = si == 0 ? -1 : 1;
+                        AppendTimberBox(verts, tris, uvs,
+                            new Vector3(posts[p], postH * 0.5f, side * faceOffset),
+                            new Vector3(TimberPostWidth, postH, TimberPostDepth), 0f);
+                    }
+                }
+
+                // --- 천장 연결 상단 보: 벽 상단 전체(양면) ---
+                for (int si = 0; si < 2; si++)
+                {
+                    int side = si == 0 ? -1 : 1;
+                    AppendTimberBox(verts, tris, uvs,
+                        new Vector3(0f, wallHeight - TimberBeamHeight * 0.5f, side * faceOffset),
+                        new Vector3(length, TimberBeamHeight, TimberPostDepth), 0f);
+                }
+
+                // [10-10 사용자 피드백] 대각 지지대는 제거 — 세로 기둥+상단 보만 (예시 스타일 확정)
+
+                if (verts.Count == 0) continue;
+
+                var frameGo = new GameObject(wall.Name + "_TimberFrame");
+                frameGo.transform.SetParent(room.transform, false);
+                frameGo.transform.localPosition = new Vector3((wall.Start.x + wall.End.x) * 0.5f,
+                    0f, (wall.Start.y + wall.End.y) * 0.5f);
+                frameGo.transform.localRotation = Quaternion.Euler(0f,
+                    Mathf.Atan2(-delta.y, delta.x) * Mathf.Rad2Deg, 0f);
+                var mesh = new Mesh { name = wall.Name + "_TimberFrame_Mesh" };
+                mesh.SetVertices(verts);
+                mesh.SetTriangles(tris, 0);
+                mesh.SetUVs(0, uvs);
+                mesh.RecalculateNormals();
+                mesh.RecalculateBounds();
+                frameGo.AddComponent<MeshFilter>().sharedMesh = mesh;
+                frameGo.AddComponent<MeshRenderer>().sharedMaterial = timber;
+                // No Collider by design: half-timber wall frame is decorative and must not block movement.
+            }
+        }
+
+        /// <summary>병합용 박스 기록 — 유닛 큐브 6면(면별 UV 0..1)을 center/size/Z회전으로 변환해 누적.</summary>
+        private static void AppendTimberBox(List<Vector3> verts, List<int> tris, List<Vector2> uvs,
+            Vector3 center, Vector3 size, float angleZDeg)
+        {
+            float sx = size.x * 0.5f, sy = size.y * 0.5f, sz = size.z * 0.5f;
+            float cos = Mathf.Cos(angleZDeg * Mathf.Deg2Rad);
+            float sin = Mathf.Sin(angleZDeg * Mathf.Deg2Rad);
+
+            Vector3[] local = new Vector3[8];
+            int idx = 0;
+            for (int zi = 0; zi < 2; zi++)
+            {
+                float z = zi == 0 ? -sz : sz;
+                for (int yi = 0; yi < 2; yi++)
+                {
+                    float y = yi == 0 ? -sy : sy;
+                    for (int xi = 0; xi < 2; xi++)
+                    {
+                        float x = xi == 0 ? -sx : sx;
+                        float rx = x * cos - y * sin;
+                        float ry = x * sin + y * cos;
+                        local[idx] = new Vector3(center.x + rx, center.y + ry, center.z + z);
+                        idx++;
+                    }
+                }
+            }
+
+            // 인덱스: bit0=x(1), bit1=y(2), bit2=z(4) — local[i] = (x?, y?, z?) 조합.
+            // 면 순서(a,b,c,d)는 기존 AddCubeFace/CreateUnitCubeMesh 관례와 동일 — 외부 바운딩 와인딩 일치.
+            int[][] faces = new int[][]
+            {
+                new int[] { 0, 2, 1, 3 },   // -z: (-,-,-)(-,+,-)(+,-,-)(+,+,-)
+                new int[] { 5, 7, 4, 6 },   // +z: (+,-,+)(+,+,+)(-,-,+)(-,+,+)
+                new int[] { 4, 6, 0, 2 },   // -x: (-,-,+)(-,+,+)(-,-,-)(-,+,-)
+                new int[] { 1, 3, 5, 7 },   // +x: (+,-,-)(+,+,-)(+,-,+)(+,+,+)
+                new int[] { 2, 6, 3, 7 },   // +y: (-,+,-)(-,+,+)(+,+,-)(+,+,+)
+                new int[] { 4, 0, 5, 1 },   // -y: (-,-,+)(-,-,-)(+,-,+)(+,-,-)
+            };
+
+            for (int f = 0; f < faces.Length; f++)
+            {
+                int first = verts.Count;
+                int[] q = faces[f];
+                for (int vi = 0; vi < 4; vi++)
+                {
+                    verts.Add(local[q[vi]]);
+                    uvs.Add(new Vector2(vi == 2 || vi == 3 ? 1f : 0f, vi >= 1 ? 1f : 0f));
+                }
+                tris.Add(first); tris.Add(first + 2); tris.Add(first + 1);
+                tris.Add(first + 2); tris.Add(first + 3); tris.Add(first + 1);
+            }
+        }
+
         private static Mesh CreateUnitCubeMesh()
         {
             var vertices = new List<Vector3>(24);
             var triangles = new List<int>(36);
-            AddCubeFace(vertices, triangles, new Vector3(-0.5f, -0.5f, -0.5f),
+            // [2026-10-10 wood 가시화 수리] UV 부재였던 구 큐브는 모든 면이 텍스처 (0,0) 한 텍셀만
+            //   샘플링 → wood_frame을 입혀도 단색 슬래브로 보였던 근본 원인. 면별 UV 0..1 부여.
+            var uvs = new List<Vector2>(24);
+            AddCubeFace(vertices, triangles, uvs, new Vector3(-0.5f, -0.5f, -0.5f),
                 new Vector3(-0.5f, 0.5f, -0.5f), new Vector3(0.5f, -0.5f, -0.5f), new Vector3(0.5f, 0.5f, -0.5f));
-            AddCubeFace(vertices, triangles, new Vector3(0.5f, -0.5f, 0.5f),
+            AddCubeFace(vertices, triangles, uvs, new Vector3(0.5f, -0.5f, 0.5f),
                 new Vector3(0.5f, 0.5f, 0.5f), new Vector3(-0.5f, -0.5f, 0.5f), new Vector3(-0.5f, 0.5f, 0.5f));
-            AddCubeFace(vertices, triangles, new Vector3(-0.5f, -0.5f, 0.5f),
+            AddCubeFace(vertices, triangles, uvs, new Vector3(-0.5f, -0.5f, 0.5f),
                 new Vector3(-0.5f, 0.5f, 0.5f), new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(-0.5f, 0.5f, -0.5f));
-            AddCubeFace(vertices, triangles, new Vector3(0.5f, -0.5f, -0.5f),
+            AddCubeFace(vertices, triangles, uvs, new Vector3(0.5f, -0.5f, -0.5f),
                 new Vector3(0.5f, 0.5f, -0.5f), new Vector3(0.5f, -0.5f, 0.5f), new Vector3(0.5f, 0.5f, 0.5f));
-            AddCubeFace(vertices, triangles, new Vector3(-0.5f, 0.5f, -0.5f),
+            AddCubeFace(vertices, triangles, uvs, new Vector3(-0.5f, 0.5f, -0.5f),
                 new Vector3(-0.5f, 0.5f, 0.5f), new Vector3(0.5f, 0.5f, -0.5f), new Vector3(0.5f, 0.5f, 0.5f));
-            AddCubeFace(vertices, triangles, new Vector3(-0.5f, -0.5f, 0.5f),
+            AddCubeFace(vertices, triangles, uvs, new Vector3(-0.5f, -0.5f, 0.5f),
                 new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(0.5f, -0.5f, 0.5f), new Vector3(0.5f, -0.5f, -0.5f));
             var mesh = new Mesh { name = "PlayerCastle_RendererOnlyStoneTrimMesh" };
             mesh.SetVertices(vertices);
             mesh.SetTriangles(triangles, 0);
+            mesh.SetUVs(0, uvs);
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             return mesh;
         }
 
-        private static void AddCubeFace(List<Vector3> vertices, List<int> triangles,
+        private static void AddCubeFace(List<Vector3> vertices, List<int> triangles, List<Vector2> uvs,
             Vector3 a, Vector3 b, Vector3 c, Vector3 d)
         {
             int first = vertices.Count;
             vertices.Add(a); vertices.Add(b); vertices.Add(c); vertices.Add(d);
             triangles.Add(first); triangles.Add(first + 2); triangles.Add(first + 1);
             triangles.Add(first + 2); triangles.Add(first + 3); triangles.Add(first + 1);
+            uvs.Add(new Vector2(0f, 0f)); uvs.Add(new Vector2(0f, 1f));
+            uvs.Add(new Vector2(1f, 0f)); uvs.Add(new Vector2(1f, 1f));
         }
 
         /// <summary>Cube 프리미티브 생성 + 재질 적용.</summary>

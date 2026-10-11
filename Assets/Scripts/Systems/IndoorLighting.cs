@@ -142,9 +142,59 @@ namespace ProjectName.Systems
             light.color = color;
             light.range = range;
             light.intensity = intensity;
-            light.shadows = LightShadows.Soft;
+            // [2026-10-10 H4 — 그림자 디더링 튜닝] 포인트라이트 실시간 섀도우 OFF —
+            //   저해상도 큐브 섀도우가 점무늬 노이즈를 만들고(실내씬 7/8 지적), 어두운 실내에서
+            //   그림자 기여는 낮다. 방향성은 쿠키 무늬+여러 광원 조합으로 대체.
+            light.shadows = LightShadows.None;
+            // [2026-10-10 F2] 절차 불꽃 쿠키(큐브맵) — 라이트 풀에 화염 무늬(고르지 않은 밝기) 부여.
+            //   쿠키 생성 실패 시 무쿠키(기존 동작) — 선택 강화.
+            var cookie = GetOrCreateFlameCookie();
+            if (cookie != null) light.cookie = cookie;
 
             return light;
+        }
+
+        // ===== [F2] 절차 불꽃 쿠키 =====
+        private static Cubemap _flameCookie;
+
+        /// <summary>절차 불꽃 쿠키 큐브맵(32² ×6면) — 중심 웜 블롭 + 미세 노이즈. 1회 생성 캐시.</summary>
+        private static Cubemap GetOrCreateFlameCookie()
+        {
+            if (_flameCookie != null) return _flameCookie;
+            try
+            {
+                const int face = 32;
+                var cube = new Cubemap(face, TextureFormat.RGBA32, false) { name = "IndoorFlameCookie" };
+                var pixels = new Color[face * face];
+                for (int f = 0; f < 6; f++)
+                {
+                    for (int y = 0; y < face; y++)
+                    {
+                        for (int x = 0; x < face; x++)
+                        {
+                            float dx = (x + 0.5f - face * 0.5f) / (face * 0.5f);
+                            float dy = (y + 0.5f - face * 0.5f) / (face * 0.5f);
+                            float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy));
+                            // 불꽃 실루엣 — 중심 밝고 가장자리 페이드 + 블롭 무늬(고르지 않은 그을음)
+                            float blob = Mathf.Pow(1f - d, 1.6f);
+                            float noise = 0.85f + 0.10f * Mathf.Sin(d * 14f + x * 0.7f + y * 1.3f)
+                                          + 0.05f * Mathf.Sin(x * 2.1f + y * 3.7f);
+                            float a = Mathf.Clamp01(blob * noise);
+                            pixels[y * face + x] = new Color(1f, 1f, 1f, a);
+                        }
+                    }
+                    var faceEnum = (CubemapFace)f;
+                    cube.SetPixels(pixels, faceEnum);
+                }
+                cube.Apply(false, true);
+                _flameCookie = cube;
+                return cube;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[IndoorLighting] 불꽃 쿠키 생성 실패 — 무쿠키 진행: " + e.Message);
+                return null;
+            }
         }
 
         /// <summary>
@@ -174,11 +224,20 @@ namespace ProjectName.Systems
 
             private IEnumerator FlickerLoop()
             {
+                // [2026-10-10 F2] 화재 플리커 고도화 — 구 균등 PingPong 사인은 기계적으로 보였다.
+                //   3중 사인(서로 다른 주파수) + 러너별 위상차 → 촛불/화로가 서로 다르게 흔들린다.
+                //   배율은 FLICKER_MIN~MAX(0.8~1.2)로 클램프 — 기존 계약 밴드 유지.
+                float phase1 = Random.value * Mathf.PI * 2f;
+                float phase2 = Random.value * Mathf.PI * 2f;
+                float phase3 = Random.value * Mathf.PI * 2f;
                 while (_target != null)
                 {
-                    // FLICKER_MIN_MULT ~ FLICKER_MAX_MULT 배율로 왕복
-                    float t = Mathf.PingPong(Time.time * FLICKER_SPEED, 1f);
-                    float multiplier = FLICKER_MIN_MULT + t * (FLICKER_MAX_MULT - FLICKER_MIN_MULT);
+                    float t = Time.unscaledTime;
+                    float multiplier = 1f
+                        + 0.085f * Mathf.Sin(t * FLICKER_SPEED * 1.0f + phase1)
+                        + 0.050f * Mathf.Sin(t * FLICKER_SPEED * 2.3f + phase2)
+                        + 0.045f * Mathf.Sin(t * FLICKER_SPEED * 5.9f + phase3);
+                    multiplier = Mathf.Clamp(multiplier, FLICKER_MIN_MULT, FLICKER_MAX_MULT);
                     _target.intensity = _baseIntensity * multiplier;
                     yield return null;
                 }

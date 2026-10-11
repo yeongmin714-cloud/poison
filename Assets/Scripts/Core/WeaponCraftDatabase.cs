@@ -24,29 +24,35 @@ namespace ProjectName.Core
 
         private static readonly List<WeaponRecipe> _recipes = new List<WeaponRecipe>
         {
-            // ── Wood 티어 (멧돼지 엄니 = 뿔 재료, 토끼털 = 묶음) — Common ──
-            new WeaponRecipe { ResultId="weapon_dagger_wood", Mat1Id="mat_boar_tusk", Mat1Count=1, Mat2Count=0, RequiredLevel=1, rarity=ItemRarity.Common },
-            new WeaponRecipe { ResultId="weapon_sword_wood",  Mat1Id="mat_boar_tusk", Mat1Count=2, Mat2Count=0, RequiredLevel=1, rarity=ItemRarity.Common },
-            new WeaponRecipe { ResultId="weapon_spear_wood",  Mat1Id="mat_boar_tusk", Mat1Count=2, Mat2Id="mat_rabbit_fur", Mat2Count=1, RequiredLevel=2, rarity=ItemRarity.Common },
-            new WeaponRecipe { ResultId="weapon_bow_wood",    Mat1Id="mat_boar_tusk", Mat1Count=1, Mat2Id="mat_rabbit_fur", Mat2Count=2, RequiredLevel=2, rarity=ItemRarity.Common },
-            // [P29] 낚시대 — 도구 (통나무 2 + 토끼털 1, Lv2). 시스템 기준 아이디(fishing_rod=FishingRodItem)와 일치.
+            // ── Wood 티어 (실제 통나무 재료 + 엄니날/묶음) — Common ──
+            // dagger/sword = 목재 칼자루 + 엄니 날, spear/bow = 목재 자루/활대 + 토끼털 줄.
+            new WeaponRecipe { ResultId="weapon_dagger_wood", Mat1Id="mat_wood",      Mat1Count=1, Mat2Id="mat_boar_tusk", Mat2Count=1, RequiredLevel=1, rarity=ItemRarity.Common },
+            new WeaponRecipe { ResultId="weapon_sword_wood",  Mat1Id="mat_wood",      Mat1Count=2, Mat2Id="mat_boar_tusk", Mat2Count=1, RequiredLevel=1, rarity=ItemRarity.Common },
+            new WeaponRecipe { ResultId="weapon_spear_wood",  Mat1Id="mat_wood",      Mat1Count=2, Mat2Id="mat_rabbit_fur", Mat2Count=1, RequiredLevel=2, rarity=ItemRarity.Common },
+            new WeaponRecipe { ResultId="weapon_bow_wood",    Mat1Id="mat_wood",      Mat1Count=2, Mat2Id="mat_rabbit_fur", Mat2Count=1, RequiredLevel=2, rarity=ItemRarity.Common },
+            // [P29] 낚시대 — 도구. 시스템 기준 아이디(fishing_rod). 목재 자루 + 끈.
             new WeaponRecipe { ResultId="fishing_rod",        Mat1Id="mat_wood",      Mat1Count=2, Mat2Id="mat_rabbit_fur", Mat2Count=1, RequiredLevel=2, rarity=ItemRarity.Common },
 
-            // ── Steel 티어 (늑대 이빨 = 날, 가죽/모피 = 손잡이/시위) — Uncommon ──
-            new WeaponRecipe { ResultId="weapon_dagger_steel", Mat1Id="mat_wolf_tooth", Mat1Count=2, Mat2Count=0, RequiredLevel=5, rarity=ItemRarity.Uncommon },
+            // ── 공구(도끼/곡괭이/삽) — 목재 자루 + 돌날 — Common ──
+            new WeaponRecipe { ResultId="tool_axe",      Mat1Id="mat_wood", Mat1Count=2, Mat2Id="mat_stone", Mat2Count=1, RequiredLevel=3, rarity=ItemRarity.Common },
+            new WeaponRecipe { ResultId="tool_pickaxe",  Mat1Id="mat_wood", Mat1Count=2, Mat2Id="mat_stone", Mat2Count=1, RequiredLevel=3, rarity=ItemRarity.Common },
+            new WeaponRecipe { ResultId="tool_shovel",   Mat1Id="mat_wood", Mat1Count=2, Mat2Id="mat_stone", Mat2Count=1, RequiredLevel=3, rarity=ItemRarity.Common },
+
+            // ── Steel 티어 (늑대 이빨 = 날, 목재 손잡이/자루 — 검은 가죽 손잡이) — Uncommon ──
+            new WeaponRecipe { ResultId="weapon_dagger_steel", Mat1Id="mat_wolf_tooth", Mat1Count=2, Mat2Id="mat_wood",       Mat2Count=1, RequiredLevel=5, rarity=ItemRarity.Uncommon },
             new WeaponRecipe { ResultId="weapon_sword_steel",  Mat1Id="mat_wolf_tooth", Mat1Count=3, Mat2Id="mat_boar_leather", Mat2Count=1, RequiredLevel=6, rarity=ItemRarity.Uncommon },
-            new WeaponRecipe { ResultId="weapon_spear_steel",  Mat1Id="mat_wolf_tooth", Mat1Count=2, Mat2Id="mat_boar_leather", Mat2Count=2, RequiredLevel=6, rarity=ItemRarity.Uncommon },
-            new WeaponRecipe { ResultId="weapon_bow_steel",    Mat1Id="mat_wolf_tooth", Mat1Count=1, Mat2Id="mat_wolf_fur", Mat2Count=2, RequiredLevel=7, rarity=ItemRarity.Uncommon },
+            new WeaponRecipe { ResultId="weapon_spear_steel",  Mat1Id="mat_wolf_tooth", Mat1Count=2, Mat2Id="mat_wood",       Mat2Count=1, RequiredLevel=6, rarity=ItemRarity.Uncommon },
+            new WeaponRecipe { ResultId="weapon_bow_steel",    Mat1Id="mat_wolf_tooth", Mat1Count=1, Mat2Id="mat_wood",       Mat2Count=2, RequiredLevel=7, rarity=ItemRarity.Uncommon },
 
             // ── 방어구 (가죽 계열) ──
             new WeaponRecipe { ResultId="armor_leather",  Mat1Id="mat_boar_leather", Mat1Count=3, Mat2Count=0, RequiredLevel=3, rarity=ItemRarity.Common },
             new WeaponRecipe { ResultId="mat_rabbit_fur", Mat1Id="mat_rabbit_fur",   Mat1Count=0, Mat2Count=0, RequiredLevel=0, rarity=ItemRarity.Common },
 
-            // ── [Milestone B] Stone 티어 (석재 + 늑대 이빨) — Uncommon ──
-            new WeaponRecipe { ResultId="weapon_dagger_stone", Mat1Id="mat_stone", Mat1Count=2, Mat2Id="mat_wolf_tooth", Mat2Count=1, RequiredLevel=4, rarity=ItemRarity.Uncommon },
-            new WeaponRecipe { ResultId="weapon_sword_stone",  Mat1Id="mat_stone", Mat1Count=3, Mat2Id="mat_wolf_tooth", Mat2Count=1, RequiredLevel=5, rarity=ItemRarity.Uncommon },
-            new WeaponRecipe { ResultId="weapon_spear_stone",  Mat1Id="mat_stone", Mat1Count=3, Mat2Id="mat_wolf_tooth", Mat2Count=2, RequiredLevel=5, rarity=ItemRarity.Uncommon },
-            new WeaponRecipe { ResultId="weapon_bow_stone",    Mat1Id="mat_stone", Mat1Count=2, Mat2Id="mat_wolf_tooth", Mat2Count=1, RequiredLevel=6, rarity=ItemRarity.Uncommon },
+            // ── [Milestone B] Stone 티어 (돌날 + 목재 자루) — Uncommon ──
+            new WeaponRecipe { ResultId="weapon_dagger_stone", Mat1Id="mat_stone", Mat1Count=2, Mat2Id="mat_wood", Mat2Count=1, RequiredLevel=4, rarity=ItemRarity.Uncommon },
+            new WeaponRecipe { ResultId="weapon_sword_stone",  Mat1Id="mat_stone", Mat1Count=2, Mat2Id="mat_wood", Mat2Count=1, RequiredLevel=5, rarity=ItemRarity.Uncommon },
+            new WeaponRecipe { ResultId="weapon_spear_stone",  Mat1Id="mat_stone", Mat1Count=2, Mat2Id="mat_wood", Mat2Count=1, RequiredLevel=5, rarity=ItemRarity.Uncommon },
+            new WeaponRecipe { ResultId="weapon_bow_stone",    Mat1Id="mat_stone", Mat1Count=1, Mat2Id="mat_wood", Mat2Count=2, RequiredLevel=6, rarity=ItemRarity.Uncommon },
 
             // ── [Milestone B] Crystal 티어 (수정석 + 미스릴) — Epic ──
             new WeaponRecipe { ResultId="weapon_dagger_crystal", Mat1Id="crystal_shard", Mat1Count=2, Mat2Id="mat_mythril_ore", Mat2Count=1, RequiredLevel=12, rarity=ItemRarity.Epic },

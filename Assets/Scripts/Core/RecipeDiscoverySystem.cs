@@ -22,6 +22,20 @@ namespace ProjectName.Core
         private const string PREFS_KEY = "DiscoveredRecipes";
 
         /// <summary>
+        /// [2026-10-11 A안 확정] 게임 시작 시 기본 공개 레시피 — 생활 사이클의 진입 레시피.
+        /// 목재티어 무기 4종 + 공구 3종(도끼/곡괭이/삽) + 낚싯대. 제작소(WeaponForgeUTK)의
+        /// "?" 블라인드(RecipeDiscoverySystem.IsDiscovered)가 이것들을 가리지 않게 한다.
+        /// 판정 키 = 결과명(DisplayName)이므로 동일 문자열로 시드. 석재·철·크리스탈 티어와
+        /// 방어구는 기존 발견(성공 제작 시 MarkDiscovered) 시스템 유지.
+        /// </summary>
+        private static readonly string[] DefaultDiscoveredResultIds =
+        {
+            "weapon_dagger_wood", "weapon_sword_wood", "weapon_spear_wood", "weapon_bow_wood",
+            "tool_axe", "tool_pickaxe", "tool_shovel",
+            "fishing_rod",
+        };
+
+        /// <summary>
         /// Load discovered recipes from PlayerPrefs.
         /// </summary>
         public static void Initialize()
@@ -40,7 +54,20 @@ namespace ProjectName.Core
                         _discovered.Add(trimmed);
                 }
             }
-            Debug.Log($"[RecipeDiscoverySystem] Loaded {_discovered.Count} discovered recipes.");
+
+            // [2026-10-11 A안] 기본 공개 시드 — 저장 유무와 무관하게 항상 보장(누락 시 보완 저장).
+            int seeded = 0;
+            foreach (string id in DefaultDiscoveredResultIds)
+            {
+                string displayName = WeaponCraftDatabase.DisplayName(id);
+                if (_discovered.Add(displayName))
+                {
+                    seeded++;
+                }
+            }
+            if (seeded > 0) Save();
+
+            Debug.Log($"[RecipeDiscoverySystem] Loaded {_discovered.Count} discovered recipes (기본 공개 {DefaultDiscoveredResultIds.Length}종 포함).");
         }
 
         /// <summary>

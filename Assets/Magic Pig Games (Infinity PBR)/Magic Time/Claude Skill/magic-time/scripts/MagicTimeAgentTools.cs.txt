@@ -1,0 +1,196 @@
+// MagicTimeAgentTools — optional editor helper for the magic-time AI skill.
+//
+// INSTALL: copy this file to  <project>/Assets/Editor/MagicTimeAgentTools.cs
+// (drop the ".txt"), let Unity compile, then call it from a unity-mcp CommandScript
+// or your own [MenuItem]. It only wraps the public Magic Time API + Unity editor
+// API; the inline recipes in references/setup.md do the same thing without it.
+//
+// Example (after install, in a unity-mcp CommandScript):
+//   var global = MagicTimeAgentTools.CreateLocalTimeScale("Assets/_MagicTime/Scales", "Global", 1f);
+//   var slow   = MagicTimeAgentTools.CreateLocalTimeScale("Assets/_MagicTime/Scales", "SlowMo", 0.3f);
+//   MagicTimeAgentTools.EnsureManager(global, slow);          // adds the manager + lists both
+//   var user   = MagicTimeAgentTools.MakeUser(GameObject.Find("Enemy"), 1f, slow);
+//   var zone   = MagicTimeAgentTools.CreateTimeZone("Slow Bubble", 0.3f, Vector3.one * 4f);
+//   MagicTimeAgentTools.Verify();
+//
+// Requires: Magic Time installed (namespace MagicPigGames.MagicTime).
+
+#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+using MagicPigGames.MagicTime;
+
+namespace MagicPigGames.MagicTime.AgentTools
+{
+    public static class MagicTimeAgentTools
+    {
+        const string Tag = "[Magic Time]";
+
+        // ---- Create a LocalTimeScale asset ----
+        // value: 1 = normal, 0.5 = half speed, 0 = paused/frozen, 2 = double.
+        // Sets the serialized 'value' field (the runtime Value setter is private).
+        public static LocalTimeScale CreateLocalTimeScale(string folder, string assetName, float value = 1f)
+        {
+            Directory.CreateDirectory(folder);
+            var scale = ScriptableObject.CreateInstance<LocalTimeScale>();
+            var path = AssetDatabase.GenerateUniqueAssetPath($"{folder}/{assetName}.asset");
+            AssetDatabase.CreateAsset(scale, path);
+            SetField(scale, "value", value);          // serialized default; clamps/applies at runtime
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            var loaded = AssetDatabase.LoadAssetAtPath<LocalTimeScale>(path);
+            Debug.Log($"{Tag} Created LocalTimeScale '{assetName}' ({value}x) at {path}");
+            return loaded;
+        }
+
+        // ---- Find-or-create the scene's MagicTimeManager and list its initial scales ----
+        // Pass the LocalTimeScale assets you want cloned + served by name at play time.
+        public static MagicTimeManager EnsureManager(params LocalTimeScale[] initialScales)
+        {
+            var manager = UnityEngine.Object.FindAnyObjectByType<MagicTimeManager>();
+            if (manager == null)
+            {
+                var go = new GameObject("Magic Time Manager");
+                manager = go.AddComponent<MagicTimeManager>();
+                Undo.RegisterCreatedObjectUndo(go, "Create Magic Time Manager");
+                Debug.Log($"{Tag} Created Magic Time Manager");
+            }
+
+            if (initialScales != null && initialScales.Length > 0)
+            {
+                // initialTimeScales is a private [SerializeField] array — write via SerializedObject.
+                var so = new SerializedObject(manager);
+                var prop = so.FindProperty("initialTimeScales");
+                if (prop == null)
+                {
+                    Debug.LogError($"{Tag} Could not find 'initialTimeScales' on MagicTimeManager.");
+                }
+                else
+                {
+                    prop.arraySize = initialScales.Length;
+                    for (int i = 0; i < initialScales.Length; i++)
+                        prop.GetArrayElementAtIndex(i).objectReferenceValue = initialScales[i];
+                    so.ApplyModifiedProperties();
+                    EditorUtility.SetDirty(manager);
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            Debug.Log($"{Tag} Manager ready with {initialScales?.Length ?? 0} initial scale(s).");
+            return manager;
+        }
+
+        // ---- Make a GameObject a MagicTimeUser (get-or-add) ----
+        // defaultScale: the object's own starting scale. initial: named scales to subscribe to.
+        public static MagicTimeUser MakeUser(GameObject go, float defaultScale = 1f, params LocalTimeScale[] initial)
+        {
+            if (go == null) { Debug.LogError($"{Tag} MakeUser: null GameObject"); return null; }
+            var user = go.GetComponent<MagicTimeUser>() ?? Undo.AddComponent<MagicTimeUser>(go);
+            user.defaultTimeScale = Mathf.Max(0f, defaultScale);
+            user.initialTimeScales = initial != null ? new List<LocalTimeScale>(initial) : new List<LocalTimeScale>();
+            EditorUtility.SetDirty(go);
+            Debug.Log($"{Tag} '{go.name}' is a MagicTimeUser (default {defaultScale}x, {user.initialTimeScales.Count} subscribed scale(s)). " +
+                      $"Remember: its motion code must read user.DeltaTime to actually slow.");
+            return user;
+        }
+
+        // ---- Add a specialized User (audio / particle / trail driver) ----
+        // T is one of MagicTimeUserAudioSource / AudioMixer / ParticleSystem / TrailRenderer.
+        public static T AddSpecializedUser<T>(GameObject go) where T : MagicTimeMonoBehaviour
+        {
+            if (go == null) { Debug.LogError($"{Tag} AddSpecializedUser: null GameObject"); return null; }
+            if (go.GetComponent<MagicTimeUser>() == null)
+                Debug.LogWarning($"{Tag} {go.name} has no MagicTimeUser — {typeof(T).Name} reads its TimeScale, add one (MakeUser).");
+            var comp = go.GetComponent<T>() ?? Undo.AddComponent<T>(go);
+            EditorUtility.SetDirty(go);
+            Debug.Log($"{Tag} Added {typeof(T).Name} to {go.name}");
+            return comp;
+        }
+
+        // ---- Create a TimeZone volume (GameObject + trigger BoxCollider + TimeZone) ----
+        public static TimeZone CreateTimeZone(string name, float value, Vector3 size)
+        {
+            var go = new GameObject(name);
+            Undo.RegisterCreatedObjectUndo(go, "Create Time Zone");
+            var box = go.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.size = size;
+            var zone = go.AddComponent<TimeZone>();
+            zone.SetTimeScaleStartingValue(value);    // sets the per-zone starting time scale
+            EditorUtility.SetDirty(go);
+            Debug.Log($"{Tag} Created TimeZone '{name}' ({value}x). Entering objects need IHaveLocalTime (a MagicTimeUser) and a non-trigger collider.");
+            return zone;
+        }
+
+        // ---- Set a serialized field on any UnityEngine.Object by name ----
+        // Works for private [SerializeField] fields. Returns false (and logs) if missing/unhandled.
+        public static bool SetField(UnityEngine.Object target, string fieldName, object value)
+        {
+            if (target == null) { Debug.LogError($"{Tag} SetField: null target"); return false; }
+            var so = new SerializedObject(target);
+            var prop = so.FindProperty(fieldName);
+            if (prop == null)
+            {
+                Debug.LogError($"{Tag} Field '{fieldName}' not found on {target.GetType().Name}. " +
+                               $"Check the .cs for the exact [SerializeField] name.");
+                return false;
+            }
+            switch (prop.propertyType)
+            {
+                case SerializedPropertyType.Float:           prop.floatValue          = Convert.ToSingle(value); break;
+                case SerializedPropertyType.Integer:         prop.intValue            = Convert.ToInt32(value); break;
+                case SerializedPropertyType.Boolean:         prop.boolValue           = Convert.ToBoolean(value); break;
+                case SerializedPropertyType.String:          prop.stringValue         = value?.ToString(); break;
+                case SerializedPropertyType.Color:           prop.colorValue          = (Color)value; break;
+                case SerializedPropertyType.Vector2:         prop.vector2Value        = (Vector2)value; break;
+                case SerializedPropertyType.Vector3:         prop.vector3Value        = (Vector3)value; break;
+                case SerializedPropertyType.Vector4:         prop.vector4Value        = (Vector4)value; break;
+                case SerializedPropertyType.Quaternion:      prop.quaternionValue     = (Quaternion)value; break;
+                case SerializedPropertyType.Enum:            prop.enumValueIndex      = Convert.ToInt32(value); break;
+                case SerializedPropertyType.ObjectReference: prop.objectReferenceValue = value as UnityEngine.Object; break;
+                case SerializedPropertyType.AnimationCurve:  prop.animationCurveValue = (AnimationCurve)value; break;
+                default:
+                    Debug.LogError($"{Tag} Unhandled property type {prop.propertyType} for '{fieldName}'.");
+                    return false;
+            }
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(target);
+            return true;
+        }
+
+        // ---- List every LocalTimeScale asset in the project ----
+        public static LocalTimeScale[] ListProjectScales()
+        {
+            var guids = AssetDatabase.FindAssets("t:LocalTimeScale");
+            var scales = new List<LocalTimeScale>();
+            foreach (var g in guids)
+            {
+                var s = AssetDatabase.LoadAssetAtPath<LocalTimeScale>(AssetDatabase.GUIDToAssetPath(g));
+                if (s != null) scales.Add(s);
+            }
+            Debug.Log($"{Tag} {scales.Count} LocalTimeScale asset(s): {string.Join(", ", scales.ConvertAll(s => s.name))}");
+            return scales.ToArray();
+        }
+
+        // ---- Read-back verification ----
+        public static void Verify(GameObject go = null)
+        {
+            var manager = UnityEngine.Object.FindAnyObjectByType<MagicTimeManager>();
+            if (manager == null) Debug.LogError($"{Tag} VERIFY: no MagicTimeManager in scene (named scales + zones won't fully attach).");
+            else                 Debug.Log($"{Tag} VERIFY: MagicTimeManager present on '{manager.name}'.");
+
+            ListProjectScales();
+
+            if (go != null)
+            {
+                var user = go.GetComponent<MagicTimeUser>();
+                if (user == null) Debug.LogError($"{Tag} VERIFY: '{go.name}' is NOT a MagicTimeUser.");
+                else Debug.Log($"{Tag} VERIFY: '{go.name}' is a MagicTimeUser (default {user.defaultTimeScale}x, {user.initialTimeScales.Count} scale(s)).");
+            }
+        }
+    }
+}
+#endif

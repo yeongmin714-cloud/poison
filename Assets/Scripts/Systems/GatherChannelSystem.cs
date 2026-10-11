@@ -49,6 +49,9 @@ namespace ProjectName.Systems
         }
 
         public bool IsActive => _active;
+
+        /// <summary>현재 채널 대상(트리/노드 트랜스폼) — 나무 흔들림 등 대상 연출에 사용.</summary>
+        public Transform ActiveTarget => _active ? _targetAnchor : null;
         public float Progress
         {
             get

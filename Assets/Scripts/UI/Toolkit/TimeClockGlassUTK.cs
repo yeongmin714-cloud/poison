@@ -25,6 +25,7 @@ namespace ProjectName.UI.Toolkit
         };
 
         private VisualElement _row;
+        private Label _dayLabel;   // [30차] DAY n 표시
         private readonly Dictionary<char, Texture2D> _tex = new Dictionary<char, Texture2D>();
         private string _lastText;
 
@@ -46,8 +47,13 @@ namespace ProjectName.UI.Toolkit
 
         private static void EnsureUpdater()
         {
-            if (_instance != null) return;
-            var go = new GameObject("TimeClockGlassUTK");
+            // [2026-10-11 수리] 구 가드 `if (_instance != null) return;`는 Ensure()가 _instance를
+            //   세팅한 뒤 호출되므로 항상 참 → Updater가 영구 미생성, 시계가 생성 시점 값에서
+            //   고정되는 정지 버그(사용자 보고 "시간 ui도 시간이 안흐른다")의 근본 원인이었다.
+            //   존재 여부는 씬 오브젝트로 판정한다 — 도메인 리로드 OFF여도 Play 종료 시
+            //   DDOL GO는 파괴되므로 정적 bool 가드는 재발 위험이 있다(FindAnyObjectByType 안전).
+            if (Object.FindAnyObjectByType<Updater>() != null) return;
+            var go = new GameObject("TimeClockGlassUTK_Updater");
             Object.DontDestroyOnLoad(go);
             go.AddComponent<Updater>();
         }
@@ -60,8 +66,8 @@ namespace ProjectName.UI.Toolkit
             style.left = 14f;
             style.top = 12f;
             style.width = 166f;
-            style.height = GlyphHeight + 14f;
-            style.flexDirection = FlexDirection.Row;
+            style.height = GlyphHeight + 30f;   // [30차] DAY 라벨 행 추가
+            style.flexDirection = FlexDirection.Column;
             style.alignItems = Align.Center;
             style.paddingLeft = 8f;
             style.paddingRight = 8f;
@@ -90,13 +96,32 @@ namespace ProjectName.UI.Toolkit
                 _tex[c] = Resources.Load<Texture2D>("UI/GlassDig_" + c);
             _tex[':'] = Resources.Load<Texture2D>("UI/GlassColon");
 
+            // [2026-10-11 30차 사용자 요구] DAY 표시 — 좌상단 시계 카드 하단 "DAY n".
+            //   날짜 = TimeManager.CurrentDay + 1(0기반 → 1일차 표시).
+            _dayLabel = new Label("DAY 1");
+            _dayLabel.style.fontSize = 10.5f;
+            _dayLabel.style.color = new StyleColor(new Color32(0x58, 0xA6, 0xFF, 0xFF));   // GitHub 액센트
+            _dayLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _dayLabel.pickingMode = PickingMode.Ignore;
+            Add(_dayLabel);
+
             Refresh();
         }
 
         private void Refresh()
         {
-            var tm = TimeManager.Instance;
+            // [2026-10-10 수리] 구 코드는 TimeManager.Instance를 직접 읽어 씬에 TimeManager가 없으면
+            //   영구 빈 패널이었다(hud ui 7 좌상단 빈 시계창의 근본 원인). StarField/RegionBGM 선례대로
+            //   GetOrCreate()로 지연 생성해 어떤 씬에서도 시계가 살아있게 한다.
+            var tm = TimeManager.GetOrCreate();
             if (tm == null) return;
+
+            // [30차] DAY 갱신 — 시간 텍스트 무변경 조기 반환보다 앞에서(자정 넘어갈 때 즉시).
+            if (_dayLabel != null)
+            {
+                string dayText = $"DAY {tm.CurrentDay + 1:0}";
+                if (_dayLabel.text != dayText) _dayLabel.text = dayText;
+            }
 
             string text = tm.GetFormattedTime();   // "HH:MM"
             if (text == _lastText) return;

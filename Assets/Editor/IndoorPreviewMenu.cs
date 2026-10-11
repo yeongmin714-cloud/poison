@@ -108,12 +108,16 @@ namespace ProjectName.EditorTools
 
         // ── 공통 처리 ─────────────────────────────────────────
 
-        /// <summary>영주 성 내부 생성 + 런타임과 동일한 실내 fixture 후처리.</summary>
+        /// <summary>영주 성 내부 생성 + 런타임과 동일한 실내 fixture 후처리.
+        /// [2026-10-10 J1] 통일 빌더(플레이어 성 표준) + 잠긴 문 재정착 — 런타임 진입 흐름과 동일.</summary>
         private static GameObject BuildLordCastle(string nation, int variant)
         {
-            var interior = CastleInteriorBuilder.BuildCastleInterior(nation, variant);
+            var interior = PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, variant);
             if (interior != null)
+            {
+                CastleInteriorBuilder.AddLordLockedDoors(interior);
                 TerritoryBuilder.SpawnInteriorFixtures(interior.transform.position, nation);
+            }
             return interior;
         }
 

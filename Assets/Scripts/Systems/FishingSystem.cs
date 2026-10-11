@@ -39,6 +39,35 @@ namespace ProjectName.Systems
         private float _reelProgress = 0f;   // 0..1 — Space로 증가, 1.0 도달 = 성공
         private float _reelTension = 0f;    // 0..1 — Space로 증가·자연 감소, 1.0 도달 = 라인 끊김 실패
 
+        // [32차] 등급별 난이도 — 입질 순간 등급을 확정해 미니게임 파라미터에 반영.
+        //   희귀 등급일수록: 당김 효율↓·장력 상승↑·저항(드레인)↑·완화↓·핀 속도↑ → 무작정 스페이스 연타 불가.
+        private FishCatalog.FishTier _pendingTier = FishCatalog.FishTier.Common;
+        private float _progressGain;   // 리일 1회 진행 상승
+        private float _tensionCost;    // 리일 1회 장력 상승
+        private float _progressDrain;  // 초당 진행 하락 (물고기 저항)
+        private float _tensionRelax;   // 초당 장력 완화
+        private float _pinSpeed;       // 핀 이동 속도(px/s — 레거시 1바)
+
+        /// <summary>등급별 미니게임 파라미터 산출 — WaitForBite(입질) 시 1회.</summary>
+        private void ApplyDifficulty(FishCatalog.FishTier tier)
+        {
+            switch (tier)
+            {
+                case FishCatalog.FishTier.Legendary:   // 전설 — 어렵음
+                    _progressGain = 0.045f; _tensionCost = 0.100f;
+                    _progressDrain = 0.050f; _tensionRelax = 0.030f; _pinSpeed = 400f;
+                    break;
+                case FishCatalog.FishTier.Rare:        // 희귀 — 중간
+                    _progressGain = 0.060f; _tensionCost = 0.085f;
+                    _progressDrain = 0.035f; _tensionRelax = 0.040f; _pinSpeed = 320f;
+                    break;
+                default:                               // 일반 — 기존 난이도(쉬움)
+                    _progressGain = 0.080f; _tensionCost = 0.070f;
+                    _progressDrain = 0.020f; _tensionRelax = 0.050f; _pinSpeed = 250f;
+                    break;
+            }
+        }
+
         // 팝업
         private string _popupMessage = "";
         private float _popupTimer;
@@ -60,8 +89,10 @@ namespace ProjectName.Systems
         /// <summary>스위트스팟 시작 위치 (픽셀)</summary>
         public float SweetSpotStart => _sweetSpotStart;
 
-        /// <summary>스위트스팟 너비 (픽셀, 고정 30)</summary>
-        public float SweetSpotWidth => 30f;
+        /// <summary>스위트스팟 너비 (픽셀) — [32차] 물고기 등급별 난이도(희귀할수록 좁음)</summary>
+        public float SweetSpotWidth => _pendingTier == FishCatalog.FishTier.Legendary ? 15f
+                                     : _pendingTier == FishCatalog.FishTier.Rare      ? 22f
+                                     : 30f;
 
         /// <summary>프로그레스바 너비 (픽셀, 고정 300)</summary>
         public float ProgressBarWidth => 300f;
@@ -146,16 +177,28 @@ namespace ProjectName.Systems
 
         // ===== 물 감지 =====
 
-        /// <summary>플레이어 아래 "Water" 태그가 있는지 Raycast로 확인</summary>
+        // [2026-10-11 수리] 물가 근접 OverlapSphere 버퍼 — GC 없는 재사용.
+        private readonly Collider[] _waterOverlap = new Collider[16];
+
+        /// <summary>물 근접 판정 — ①발밑 수직 하향(물 위에 선 경우) ②수평 근접 OverlapSphere(물가에 선 경우).
+        /// 기존엔 수직 하향만 검사해 물 위에 직접 서야만 true — 해안에 서면 발밑이 땅이라 항상 false →
+        /// "호수에서 낚시 상호작용 안 됨"의 근본 원인(테스트 15 영상 실측). 물가=해안 근접이므로 수평 판정 병행.</summary>
         private bool IsNearWater()
         {
             if (_player == null) return false;
 
             RaycastHit hit;
             Vector3 origin = _player.position + Vector3.up * 0.1f;
-            if (Physics.Raycast(origin, Vector3.down, out hit, _waterCheckRange))
-                return hit.collider.CompareTag("Water");
+            if (Physics.Raycast(origin, Vector3.down, out hit, _waterCheckRange)
+                && hit.collider.CompareTag("Water"))
+                return true;
 
+            int n = Physics.OverlapSphereNonAlloc(_player.position, _waterCheckRange, _waterOverlap);
+            for (int i = 0; i < n; i++)
+            {
+                var c = _waterOverlap[i];
+                if (c != null && c.CompareTag("Water")) return true;
+            }
             return false;
         }
 
@@ -213,7 +256,9 @@ namespace ProjectName.Systems
             _isWaitingForBite = false;
             _isMinigameActive = true;
 
-            // 미니게임 초기화
+            // 미니게임 초기화 — [32차] 입질 순간 등급 확정 → 난이도 파라미터 반영
+            _pendingTier = RollFishingTier();
+            ApplyDifficulty(_pendingTier);
             _pinPosition = 0f;
             _pinDirectionRight = true;
             _sweetSpotStart = Random.Range(0f, ProgressBarWidth - SweetSpotWidth);
@@ -225,7 +270,7 @@ namespace ProjectName.Systems
 
         private void UpdatePinMovement()
         {
-            float speed = 250f; // 픽셀/초
+            float speed = _pinSpeed; // [32차] 등급별 핀 속도(일반 250/희귀 320/전설 400 px/s)
             float delta = speed * Time.deltaTime;
 
             if (_pinDirectionRight)
@@ -253,10 +298,9 @@ namespace ProjectName.Systems
         //  장력은 Space로 상승·시간 경과로 완화. 장력 100% 도달 = 라인 끊겨 실패.
         private void UpdateReelSim()
         {
-            float progressDrain = 0.02f;  // 초당 진행 천천히 하락 (물고기가 저항)
-            float tensionRelax = 0.05f;   // 초당 장력 완화
-            _reelProgress = Mathf.Max(0f, _reelProgress - progressDrain * Time.deltaTime);
-            _reelTension = Mathf.Clamp(_reelTension - tensionRelax * Time.deltaTime, 0f, 1f);
+            // [32차] 등급별 저항/완화(일반 0.02/0.05 · 희귀 0.035/0.04 · 전설 0.05/0.03)
+            _reelProgress = Mathf.Max(0f, _reelProgress - _progressDrain * Time.deltaTime);
+            _reelTension = Mathf.Clamp(_reelTension - _tensionRelax * Time.deltaTime, 0f, 1f);
         }
 
         /// <summary>
@@ -268,8 +312,10 @@ namespace ProjectName.Systems
             if (!_isMinigameActive) return;
             if (PlayerInventory.Instance == null) return;
 
-            const float progressGain = 0.08f;   // 리일 1회 진행 상승
-            const float tensionCost  = 0.07f;   // 리일 1회 장력 상승
+            // [32차] 등급별 리일 효율/장력(일반 0.08/0.07 · 희귀 0.06/0.085 · 전설 0.045/0.10)
+            //   — 연타만으로 성공하던 기존 구조(13연타=무조건 성공)에서 리듬 캐치로 변경.
+            float progressGain = _progressGain;
+            float tensionCost  = _tensionCost;
 
             _reelProgress += progressGain;
             _reelTension += tensionCost;
@@ -379,12 +425,15 @@ namespace ProjectName.Systems
 
         // ===== 확률 보정 아이템 획득 =====
 
-        /// <summary>시간대/날씨 보정된 확률로 물고기 반환</summary>
-        private PlayerInventory.ItemData GetRandomFish()
+        /// <summary>
+        /// [32차] 시간대/날씨 보정 등급 롤 — 입질(WaitForBite) 시 1회 호출해 _pendingTier 확정.
+        /// 미니게임 난이도와 결과 물고기가 같은 등급을 공유(어려운 게임 = 희귀 물고기).
+        /// </summary>
+        private FishCatalog.FishTier RollFishingTier()
         {
-            float rareWeight = 30f;   // 30%
+            float rareWeight = 30f;      // 30%
             float legendaryWeight = 10f; // 10%
-            float commonWeight = 60f; // 60%
+            float commonWeight = 60f;    // 60%
 
             // 시간대 보정: 밤(20~4시) 희귀 확률 2배
             if (TimeManager.Instance != null)
@@ -409,14 +458,17 @@ namespace ProjectName.Systems
             float totalWeight = commonWeight + rareWeight + legendaryWeight;
             float roll = Random.Range(0f, totalWeight);
 
-            // 09-23: 기존 3티어 롤(가중치/시간대/날씨 보정)은 그대로 유지하고,
-            // 그 위에 FishCatalog 결정론 50종 중 해당 등급 밴드 1종을 얹는다.
-            // (기존 Fish_Common/Rare/Legendary 정의·다른 호출부는 보존 — 세이브 호환)
             if (roll < legendaryWeight)
-                return FishCatalog.GetRandomFishItem(FishCatalog.FishTier.Legendary);
+                return FishCatalog.FishTier.Legendary;
             if (roll < legendaryWeight + rareWeight)
-                return FishCatalog.GetRandomFishItem(FishCatalog.FishTier.Rare);
-            return FishCatalog.GetRandomFishItem(FishCatalog.FishTier.Common);
+                return FishCatalog.FishTier.Rare;
+            return FishCatalog.FishTier.Common;
+        }
+
+        /// <summary>입질 시 확정된 등급의 물고기 반환 — [32차] 성공 시점 재추첨 폐지(난이도-보상 정합).</summary>
+        private PlayerInventory.ItemData GetRandomFish()
+        {
+            return FishCatalog.GetRandomFishItem(_pendingTier);
         }
 
         // ===== 팝업 =====

@@ -19,7 +19,8 @@ namespace ProjectName.Systems
     /// </summary>
     public static class HarvestResultBridge
     {
-        public enum HarvestKind { Fishing, Gathering, Mining }
+        // [2026-10-11 28차] Woodcutting 신설 — 벌목(통나무)도 낚시/채집/채광과 같은 피그마 결과 창으로.
+        public enum HarvestKind { Fishing, Gathering, Mining, Woodcutting }
 
         /// <summary>병사 작업 결과 팝업 최소 표시 간격(초). 이 안의 재발행은 데이터만 교체.</summary>
         public const float ThrottleSec = 1.5f;

@@ -167,18 +167,40 @@ namespace ProjectName.Systems
         public List<GuardPlaceholder> GetAllPlayerGuards()
         {
             var result = new List<GuardPlaceholder>();
+            // [38차] 영지 DB 부재 씬(실내 플레이테스트 등)에서도 NRE 없이 standalone 목록 반환.
             var db = TerritoryDatabase.Instance;
-            foreach (var kvp in _territoryGuards)
+            if (db != null)
             {
-                TerritoryId id = ParseTerritoryKey(kvp.Key);
-                TerritoryState state = db.GetState(id);
-                if (state != null && state.ownership == TerritoryOwnership.PlayerOwned)
+                foreach (var kvp in _territoryGuards)
                 {
-                    result.AddRange(kvp.Value);
+                    TerritoryId id = ParseTerritoryKey(kvp.Key);
+                    TerritoryState state = db.GetState(id);
+                    if (state != null && state.ownership == TerritoryOwnership.PlayerOwned)
+                    {
+                        result.AddRange(kvp.Value);
+                    }
                 }
             }
+
+            // [38차] 영지 미소속 아군(실내 막사 배치 등) — 배치 UI 목록에 포함(포섭분만).
+            foreach (var g in _standaloneGuards)
+                if (g != null && g.IsRecruited && !result.Contains(g))
+                    result.Add(g);
             return result;
         }
+
+        /// <summary>[38차] 영지 미소속 아군 등록(실내 막사 병사 등) — 병사배치 UI 목록/역할 배정 대상.</summary>
+        public void RegisterStandalone(GuardPlaceholder guard)
+        {
+            if (guard == null) return;
+            if (!_standaloneGuards.Contains(guard))
+            {
+                _standaloneGuards.Add(guard);
+                Debug.Log($"[GuardManager] ✅ {guard.GuardName} 등록됨 → standalone(실내)");
+            }
+        }
+
+        private readonly List<GuardPlaceholder> _standaloneGuards = new List<GuardPlaceholder>();
 
         /// <summary>모든 병사의 전투 중단</summary>
         public void StopAllCombat()

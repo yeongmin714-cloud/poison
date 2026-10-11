@@ -1,5 +1,6 @@
 // U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
 #pragma warning disable 618
+using System.Collections.Generic;
 using System.Linq;
 using ProjectName.Core.Data;
 using UnityEngine;
@@ -156,6 +157,16 @@ namespace ProjectName.Systems
             _hasBuilt = true;
             RefreshRegistrations();
             Debug.Log($"[TerritoryBuilder] 전체 영지 Placeholder 생성 완료 (분산)! 총 {builtCount}개 영지 신규 생성");
+
+            // 4방위국 아레나 배치 (영지 아님 — 메인씬에 국별 아레나 4곳 + 문 트리거)
+            try
+            {
+                BuildArenaRegions();
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[TerritoryBuilder] 아레나 배치 실패: {e.Message}");
+            }
         }
 
         /// <summary>TerritoryManager에 건물/병사 재등록 요청 (빌드 완료 후 스캔)</summary>
@@ -163,6 +174,45 @@ namespace ProjectName.Systems
         {
             if (TerritoryManager.Instance != null)
                 TerritoryManager.Instance.RefreshRegistrations();
+        }
+
+        /// <summary>
+        /// 4방위국(동/서/남/북) 아레나를 메인씬에 배치 — 영지와 무관한 국별 방향 특정 지점.
+        /// 각 아레나는 국가 기준 각도 방향, 링 사이 중간 거리(1150m)에 놓아 영지 밀집과 분리.
+        /// 문(BuildingTrigger TYPE_ARENA) = E키 상호작용 → ArenaInteriorBuilder 실내 진입.
+        /// </summary>
+        public void BuildArenaRegions()
+        {
+            BuildArenaRegion(NationType.East,  "Eastern",  0f);
+            BuildArenaRegion(NationType.North, "Northern", 90f);
+            BuildArenaRegion(NationType.West,  "Western",  180f);
+            BuildArenaRegion(NationType.South, "Southern", 270f);
+            Debug.Log("[TerritoryBuilder] 4방위국 아레나 4곳 배치 완료");
+        }
+
+        /// <summary>국가 방향 각도(도)와 링 중간 거리로 아레나 1곳 생성.</summary>
+        private void BuildArenaRegion(NationType nation, string nationStyle, float angleDeg)
+        {
+            string rootName = $"Arena_{nationStyle}";
+            if (GameObject.Find(rootName) != null) return; // 중복 방지
+
+            // 링1(1450)과 링2(1000) 사이 중간 거리 → 영지 밀집과 분리된 국가 영역 내 지점
+            const float arenaDistance = 1150f;
+            float rad = angleDeg * Mathf.Deg2Rad;
+            Vector3 pos = new Vector3(Mathf.Cos(rad) * arenaDistance, 0f, Mathf.Sin(rad) * arenaDistance);
+
+            var root = new GameObject(rootName);
+            root.transform.position = pos;
+
+            // 지형 높이 보정 (아레나 바닥이 지면에 닿도록)
+            float groundY = TerrainGenerator.GetHeightAt(pos.x, pos.z, BiomeType.Plains, 42) + 1f;
+            root.transform.position = new Vector3(pos.x, groundY, pos.z);
+
+            // 아레나 출입문(BuildingTrigger) — E키로 실내 진입. 문은 루트 중심 남쪽(World 방향은 일괄 +Z)에 배치.
+            Vector3 doorPos = new Vector3(pos.x, groundY, pos.z + 6f);
+            IndoorTransitionSetup.CreateArenaTrigger(doorPos, nationStyle, root.transform);
+
+            Debug.Log($"[TerritoryBuilder] 아레나 배치: {rootName} @ {pos} (angle {angleDeg}°, style {nationStyle})");
         }
 
         /// <summary>단일 영지 생성</summary>
@@ -419,18 +469,39 @@ namespace ProjectName.Systems
                         baseLevel + (i % 3), nation, null, default, TerritoryDifficulty.Ring1);
                     if (go == null) continue;
 
-                    // 실내 바닥 y 고정 (월드 지형 높이 오염 방지)
-                    go.transform.position = new Vector3(pos.x, floorY + 0.05f, pos.z);
+                    // [36→37차] 내 소속 영지 실내 병사 = 움직이지 말고 **배럭 침대에 누워 휴식**.
+                    //   배치는 공개 헬퍼(PlaceAllyOnBed) 경유 — 병사배치 UI의 개별 재배치와 동일 코드 경로.
+                    Transform bed = room.transform.Find($"BarrackBed_{i + 1}");
 
                     var ph = go.GetComponent<GuardPlaceholder>();
+                    bool bedPlaced = false;
+                    if (bed != null)
+                        bedPlaced = PlaceAllyOnBed(go, bed, i + 1);
+                    if (!bedPlaced)
+                    {
+                        if (bed != null)
+                            Debug.LogWarning($"[TerritoryBuilder] {bed.name} 배치 실패 — 탁자 옵 대기 배치로 폴백");
+                        else
+                            Debug.LogWarning($"[TerritoryBuilder] BarrackBed_{i + 1} 미발견 — 탁자 옵 대기 배치");
+                        go.transform.position = new Vector3(pos.x, floorY + 0.05f, pos.z);
+                        if (ph != null) ph.SetIndoorBedIndex(-1);
+                    }
+
                     if (ph != null)
                     {
                         ph.SetRecruited(true);          // 아군 — 플레이어와 동맹
                         ph.HostileToPlayerFaction = false;
+                        // [38차] 병사배치 UI 목록 등재 — 영지 미소속(실내) 아군으로 등록.
+                        GuardManager.Instance?.RegisterStandalone(ph);
                     }
-                    Debug.Log($"[TerritoryBuilder] 🪖 아군 막사 병사 배치: {go.name} (Lv.{baseLevel + (i % 3)}) @ {pos}");
+                    Debug.Log($"[TerritoryBuilder] 🪖 아군 막사 병사 배치: {go.name} (Lv.{baseLevel + (i % 3)})");
                 }
-                Debug.Log($"[TerritoryBuilder] 아군 막사 병사 {count}명 배치 완료 (style: {nationStyle})");
+
+                // [38차] "영지 소속 모든 병사는 침대에 누워있게" — 침대 미배치 아군(외부에서
+                //   등록된 포섭 병사 포함)을 빈 침대에 순차 배치(BarrackBed_1..20, 1명/침대).
+                AssignBedsToAllIndoorAllies(room);
+
+                Debug.Log($"[TerritoryBuilder] 아군 막사 병사 {count}명 배치 완료 — 침대 휴식 (style: {nationStyle})");
             }
             catch (System.Exception e)
             {
@@ -449,6 +520,160 @@ namespace ProjectName.Systems
                 case "northern": return NationType.North;
                 case "empire": return NationType.Empire;
                 default: return NationType.Empire;
+            }
+        }
+
+        /// <summary>[36차] 침대 시각 bounds 실측 — 자식 렌더러(매트리스/프레임/베개) 캡슐화.
+        ///   authored/스케일패스 좌표 어느 쪽이든 런타임 실측으로 정확한 상면/중심/깊이를 얻는다.</summary>
+        private static Bounds GetBedBounds(Transform bed)
+        {
+            var rends = bed.GetComponentsInChildren<Renderer>();
+            if (rends.Length == 0) return default;
+            Bounds b = rends[0].bounds;
+            for (int i = 1; i < rends.Length; i++)
+                b.Encapsulate(rends[i].bounds);
+            return b;
+        }
+
+        /// <summary>
+        /// [37차] 실내 아군 병사를 지정 침대에 눕힌다(병사배치 UI 개별 재배치용 공개 API).
+        /// 눕기: FBX 피벗=발 기준 → X축 −90° 피치로 몸이 −Z(침대 깊이 방향)로 눕고, 발 피벗을
+        /// 침대 발칪(z+)에, 몸 높이(y)는 매트리스 상면(bounds.max.y)+0.12 — 머리가 베개 쪽.
+        /// 위치는 bounds 실측이라 authored/×2.45 스케일 어느 쪽이든 무관.
+        /// 성공 시 guard.SetIndoorBedIndex(bedNumber).
+        /// </summary>
+        public static bool PlaceAllyOnBed(GameObject guardGo, Transform bed, int bedNumber)
+        {
+            if (guardGo == null || bed == null || bedNumber < 1) return false;
+            Bounds bb = GetBedBounds(bed);
+            if (bb.size.sqrMagnitude <= 0.0001f) return false;
+
+            float bedTop = bb.max.y;
+            Vector3 bedCenter = bb.center;
+            float bedDepth = Mathf.Max(0.5f, bb.size.z);
+            Vector3 anchor = new Vector3(
+                bedCenter.x,
+                bedTop + 0.12f,
+                bedCenter.z + bedDepth * 0.5f - 0.25f);   // 발칪(탁자 반대 끝)에서 몸이 −Z로
+            Quaternion pose = Quaternion.Euler(-90f, 0f, 0f);   // 눕기(머리 = −Z 쪽)
+            guardGo.transform.position = anchor;
+            guardGo.transform.rotation = pose;
+
+            // [39차] 누움 강제 — 애니메이터/전투 AI가 루트를 덮어써 서서 끓는 문제(사용자 재보고)
+            //   을 LateUpdate 재단언으로 근본 차단. 기상(WakeFromBed) 시 제거.
+            var old = guardGo.GetComponent<BedRestEnforcer>();
+            if (old != null) Object.Destroy(old);
+            var enforcer = guardGo.AddComponent<BedRestEnforcer>();
+            enforcer.Anchor = anchor;
+            enforcer.Pose = pose;
+
+            var ph = guardGo.GetComponent<GuardPlaceholder>();
+            if (ph != null) ph.SetIndoorBedIndex(bedNumber);
+            Debug.Log($"[TerritoryBuilder] 🛏️ 아군 병사 침대 휴식 배치: {guardGo.name} → {bed.name} (침대 {bedNumber})");
+            return true;
+        }
+
+        /// <summary>
+        /// [39차] 기상 — 침대 휴식 해제: 강제자 제거 + 서 있는 자세로 침대 옆 바닥에 세움.
+        /// 역할 배치(출동/수비) 직전에 호출 — 이후 SetCommandTarget으로 배치지점까지 보행.
+        /// </summary>
+        public static void WakeFromBed(GuardPlaceholder guard)
+        {
+            if (guard == null) return;
+            int bedNumber = guard.IndoorBedIndex;
+            var enforcer = guard.GetComponent<BedRestEnforcer>();
+            if (enforcer != null) Object.Destroy(enforcer);
+
+            if (bedNumber > 0)
+            {
+                var bedGo = GameObject.Find($"BarrackBed_{bedNumber}");
+                if (bedGo != null)
+                {
+                    Bounds bb = GetBedBounds(bedGo.transform);
+                    Vector3 c = bb.size.sqrMagnitude > 0.0001f ? bb.center : bedGo.transform.position;
+                    // 침대 루트 y = 바닥 — 서 있는 발 위치로 옆으로 내려선다
+                    guard.transform.position = new Vector3(c.x + 0.9f, bedGo.transform.position.y + 0.05f, c.z);
+                }
+                guard.transform.rotation = Quaternion.Euler(0f, 180f, 0f);   // 침대 쪽 보고 서기
+                Debug.Log($"[TerritoryBuilder] 🪖 {guard.GuardName} 기상 (침대 {bedNumber} → 출동 준비)");
+            }
+            guard.SetIndoorBedIndex(-1);
+        }
+
+        /// <summary>[39차] 실내 기준점 — 로비 중앙(출구 방향)과 막사 앞(수비 근무지).
+        ///   IndoorScene은 월드가 언로드된 별도 씬이므로 출동=로비(문 앞)까지 보행이
+        ///   실내에서 확인 가능한 이동이고, 월드 복귀 시점의 문밖 배치는 배치 시스템 몫.</summary>
+        public static bool TryGetIndoorPost(GuardPlaceholder guard, GuardTaskSystem.GuardTask task, out Vector3 post)
+        {
+            post = default;
+            var room = GameObject.Find("Room");
+            if (room == null) return false;
+            Vector3 roomBase = room.transform.position;
+            // 출동(공격/농사/채집/광물/수색/특사) = 로비 중앙(문 앞) — 수비 = 막사 앞 영지 안 근무지
+            post = task == GuardTaskSystem.GuardTask.Defend
+                ? roomBase + new Vector3(-15f, 0f, -20f)
+                : roomBase + new Vector3(0f, 0f, 0f);
+            return true;
+        }
+
+        /// <summary>[37차] 병사배치 UI용 — 씬에서 BarrackBed_n을 찾아 선택 병사를 눕힌다.</summary>
+        public static bool TryPlaceAllyOnBed(GuardPlaceholder guard, int bedNumber)
+        {
+            if (guard == null || bedNumber < 1) return false;
+            var bedGo = GameObject.Find($"BarrackBed_{bedNumber}");
+            if (bedGo == null) return false;
+            return PlaceAllyOnBed(guard.gameObject, bedGo.transform, bedNumber);
+        }
+
+        /// <summary>
+        /// [38차] "영지 소속 모든 병사는 침대에 누워있게" — 실내의 침대 미배치 아군 전원을
+        /// 빈 침대(BarrackBed_1..20)에 순차 배치. 이미 누운 병사(IndoorBedIndex>0)는 유지.
+        /// GuardManager 등록 아군(standalone 포함)까지 훑어 외부 유입 포섭 병사도 커버.
+        /// </summary>
+        public static void AssignBedsToAllIndoorAllies(GameObject room)
+        {
+            if (room == null) return;
+
+            // 사용 중 침대 수집
+            var used = new HashSet<int>();
+            var allies = new List<GuardPlaceholder>();
+            var gm = GuardManager.Instance;
+            if (gm != null)
+            {
+                foreach (var g in gm.GetAllPlayerGuards())
+                    if (g != null && g.IsRecruited)
+                        allies.Add(g);
+            }
+
+            foreach (var g in allies)
+            {
+                if (g.IndoorBedIndex > 0)
+                {
+                    used.Add(g.IndoorBedIndex);
+                }
+            }
+
+            // 침대 오브젝트 프리캐시(1..20)
+            var beds = new Dictionary<int, Transform>();
+            for (int n = 1; n <= 20; n++)
+            {
+                var bed = room.transform.Find($"BarrackBed_{n}");
+                if (bed != null) beds[n] = bed;
+            }
+
+            foreach (var g in allies)
+            {
+                if (g.IndoorBedIndex > 0) continue;   // 이미 누워 있음 — 유지
+                for (int n = 1; n <= 20; n++)
+                {
+                    if (used.Contains(n)) continue;
+                    if (!beds.TryGetValue(n, out var bed)) continue;
+                    if (PlaceAllyOnBed(g.gameObject, bed, n))
+                    {
+                        used.Add(n);
+                        break;
+                    }
+                }
             }
         }
 
@@ -631,6 +856,19 @@ namespace ProjectName.Systems
             }
 
             return go;
+        }
+
+        /// <summary>[41차] 출동 병사 월드 스폰 — AttackSquadDeployment가 문밖 재스폰+역할 루틴 재부여.
+        ///   CreateGuard 위임(높이/비주얼/장비 체인 동일) — 배치조 명령이 월드에서 실제 수행된다.</summary>
+        public static GameObject SpawnDeployedGuard(string name, int level, NationType nation, Vector3 pos)
+        {
+            return CreateGuard(name, pos, "출동 병사", level, nation, null, default, TerritoryDifficulty.Ring1);
+        }
+
+        /// <summary>[39차] 병사 FBX 키 공개 — 병사배치 UI 3D 미리보기가 동일 비주얼 소스 사용.</summary>
+        public static string GetSoldierFbxKeyForLevel(int level)
+        {
+            return SoldierFbxKeyForLevel(level);
         }
 
         /// <summary>

@@ -884,12 +884,17 @@ namespace ProjectName.Systems
                 return;
 
             // [JumpProbe] 점프 무반응 원인 분리 — Space 입력 순간 판정 변수 스냅샷(진단 로그 전용, 동작 변경 없음)
+            // [31차] 낚시 중(출조 대기/입질/미니게임) Space는 낚시 전용 입력 — 점프 완전 차단(사용자 요구).
+            bool fishingBlocksJump = FishingSystem.Instance != null
+                                     && (FishingSystem.Instance.IsFishing
+                                         || FishingSystem.Instance.IsWaitingForBite
+                                         || FishingSystem.Instance.IsMinigameActive);
             if (kb.spaceKey.wasPressedThisFrame)
             {
-                Debug.Log($"[JumpProbe] Space입력: grounded={_isGrounded} rolling={_isRolling} mountBlocked={(MountSystem.Instance != null && MountSystem.Instance.IsMounted)} vv={_verticalVelocity:F2}");
+                Debug.Log($"[JumpProbe] Space입력: grounded={_isGrounded} rolling={_isRolling} mountBlocked={(MountSystem.Instance != null && MountSystem.Instance.IsMounted)} fishingBlocked={fishingBlocksJump} vv={_verticalVelocity:F2}");
             }
 
-            if (kb.spaceKey.wasPressedThisFrame && _isGrounded)
+            if (kb.spaceKey.wasPressedThisFrame && _isGrounded && !fishingBlocksJump)
             {
                 _verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
                 _isJumping = true;
