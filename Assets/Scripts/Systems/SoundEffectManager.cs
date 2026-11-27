@@ -62,7 +62,22 @@ namespace ProjectName.Systems
             AutoMove_Complete,
 
             /// <summary>자동 이동 취소</summary>
-            AutoMove_Cancel
+            AutoMove_Cancel,
+
+            /// <summary>[95차 후속 SFX] 패링 PERFECT — 밝은 금속 clang(딩!)</summary>
+            Parry_Perfect,
+
+            /// <summary>[95차 후속 SFX] 패링 GOOD — 무디어 clang</summary>
+            Parry_Good,
+
+            /// <summary>[무번호 62] 패링 실패/빈 — 최소 신호음(낮은 짧은 음. 36-PW2 의사결정 갱신 — 성공 위계와 대비)</summary>
+            Parry_Fail,
+
+            /// <summary>[무번호 16-B4] 텔레그래프 경고 — 저음 웅성(공격 예고 시각+청각 이중 예고)</summary>
+            Telegraph_Warning,
+
+            /// <summary>[무번호 19-E2] 몬스터 발견 — 저음 웅성+짧은 경계음(Alert 진입 시각+청각 이중 예고)</summary>
+            Monster_Alert
         }
 
         // ===== 싱글톤 =====
@@ -104,6 +119,17 @@ namespace ProjectName.Systems
 
         private List<AudioSource> _sourcePool;
         private int _nextSourceIndex;
+
+        // ===== [95차 후속 SFX] 실오디오 클립 캐시 =====
+        /// <summary>SFXType → AudioClip 캐시(1회 로드 — Resources.Load 반복 호출 방지). 인스턴스 소멸 시 함께 해제.</summary>
+        private readonly Dictionary<SFXType, AudioClip> _clipCache = new Dictionary<SFXType, AudioClip>();
+
+        // ===== [133차-P2] 표면 변형 클립 캐시 =====
+        /// <summary>클립 이름 → AudioClip 캐시(발소리 표면 변형 전용). 부재 결과(null)도 캐시하여 반복 로드 시도 방지.</summary>
+        private readonly Dictionary<string, AudioClip> _variantClipCache = new Dictionary<string, AudioClip>();
+
+        /// <summary>[133차-P2] 표면 변형 클립 인덱스 상한 — 표면별 3변형(_000~_002) 배치 기준.</summary>
+        private const int SurfaceVariantCount = 3;
 
         /// <summary>현재 볼륨 값 (0-1)</summary>
         public float Volume
@@ -165,7 +191,6 @@ namespace ProjectName.Systems
             }
 
             string sfxName = GetSFXName(type);
-            Debug.Log($"[SoundEffectManager] 🔊 SFX 재생: {sfxName} (플레이스홀더 — 실제 오디오 없음)");
 
             // AudioSource 풀에서 다음 소스 선택 (라운드 로빈)
             AudioSource source = GetNextAvailableSource();
@@ -181,8 +206,18 @@ namespace ProjectName.Systems
             source.pitch = 1f;
             source.panStereo = 0f;
 
-            // 플레이스홀더: clip이 null이므로 재생되지 않음
-            // 실제 구현에서는 Resources.Load 또는 Addressables로 SFX 클립 로드
+            // [95차 후속 SFX] 실재생 경로 — Resources/Audio/SFX 클립을 캐시로 1회 로드해 풀 소스로 출력.
+            AudioClip clip = LoadCachedClip(type);
+            if (clip != null)
+            {
+                source.clip = clip;
+                source.volume = _volume;
+                source.Play();
+                return;
+            }
+
+            // [133차-P2 수리] 클립 부재 폴백 — 로드 실패 시 무음 재생(정상 동작, 플레이스홀더가 아님 — 문구만 실상에 맞게 교정)
+            Debug.Log($"[SoundEffectManager] SFX 클립 부재 폴백: {sfxName} (무음 — 에셋 미배치)");
             source.clip = null;
             source.volume = _volume;
             source.Play();
@@ -202,10 +237,8 @@ namespace ProjectName.Systems
             }
 
             string sfxName = GetSFXName(type);
-            Debug.Log($"[SoundEffectManager] 🔊 SFX 3D 재생: {sfxName} at {position} (플레이스홀더)");
 
             // 플레이스홀더: AudioSource.PlayClipAtPoint 사용 (3D 공간 음향)
-            // clip이 null이므로 실제로 재생되지는 않음
             AudioSource source = GetNextAvailableSource();
             if (source == null)
             {
@@ -218,6 +251,19 @@ namespace ProjectName.Systems
             source.spatialBlend = 1f;      // 3D 사운드
             source.pitch = 1f;
             source.panStereo = 0f;
+
+            // [95차 후속 SFX] 실재생 경로(3D) — 캐시 로드한 클립 출력, 부재 시 기존 플레이스홀더 폴백 유지.
+            AudioClip clip = LoadCachedClip(type);
+            if (clip != null)
+            {
+                source.clip = clip;
+                source.volume = _volume;
+                source.Play();
+                return;
+            }
+
+            // clip이 null이므로 실제로 재생되지는 않음(무해 폴백)
+            Debug.Log($"[SoundEffectManager] 🔊 SFX 3D 재생: {sfxName} at {position} (플레이스홀더)");
             source.clip = null;
             source.volume = _volume;
             source.Play();
@@ -333,7 +379,6 @@ namespace ProjectName.Systems
             }
 
             string sfxName = GetSFXNameWithVariant(type, surfaceVariant);
-            Debug.Log($"[SoundEffectManager] 🔊 SFX 재생: {sfxName} (플레이스홀더 — 실제 오디오 없음)");
 
             AudioSource source = GetNextAvailableSource();
             if (source == null)
@@ -342,14 +387,81 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // 소스 상태 초기화 (PlaySFXAtPoint에서 오염 방지)
             source.transform.localPosition = Vector3.zero;
-            source.spatialBlend = 0f;
-            source.pitch = 1f;
+            source.spatialBlend = 0f;      // 2D 사운드 — 물발소리 포함 기존 정책 유지 [133차-P2]
             source.panStereo = 0f;
 
+            // [133차-P2] 실재생 경로 — 표면 변형 클립을 변형 랜덤 선택으로 로드해 풀 소스로 출력.
+            // 반복 방지: 변형 인덱스 랜덤 + pitch 0.94~1.06 미세 변주.
+            AudioClip clip = LoadCachedVariantClip(sfxName, surfaceVariant);
+            if (clip != null)
+            {
+                source.clip = clip;
+                source.pitch = Random.Range(0.94f, 1.06f);
+                source.volume = _volume;
+                source.Play();
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"[SoundEffectManager] 🔊 SFX 재생: {source.clip.name} pitch={source.pitch:F2}");
+#endif
+                return;
+            }
+
+            // 클립 부재 — 무해 폴백(clip=null 무음). 로그는 개발빌드 전용으로 축소 [133차-P2]
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.Log($"[SoundEffectManager] SFX 클립 부재: {sfxName} (무음 폴백)");
+#endif
+            source.pitch = 1f;
             source.clip = null;
             source.volume = _volume;
             source.Play();
+        }
+
+        /// <summary>
+        /// [133차-P2] 표면 변형 클립 로드 — {베이스}_{variant}_{NNN} 3변형 중 랜덤 선택.
+        /// 선택 인덱스 클립이 없으면 하위 인덱스로 재시도(물발소리 등 변형 수가 적은 표면 대응),
+        /// 전부 없으면 기본 SFX_Footstep 클립으로 폴백.
+        /// </summary>
+        /// <param name="sfxName">GetSFXNameWithVariant가 산출한 변형 접두 이름 (예: SFX_Footstep_step_grass)</param>
+        /// <param name="surfaceVariant">표면 변형 태그(빈 값이면 기본 클립 경로)</param>
+        private AudioClip LoadCachedVariantClip(string sfxName, string surfaceVariant)
+        {
+            // variant가 비었거나 태그 형식이 아니면 기본 클립 경로
+            if (string.IsNullOrEmpty(surfaceVariant))
+                return LoadCachedClip(SFXType.Footstep);
+
+            // 랜덤 인덱스 선택 → 부재 시 0까지 하향 재시도 (0도 없으면 폴백)
+            for (int index = Random.Range(0, SurfaceVariantCount); index >= 0; index--)
+            {
+                string clipName = $"{sfxName}_{index:D3}";
+                if (_variantClipCache.TryGetValue(clipName, out AudioClip cached))
+                {
+                    if (cached != null) return cached;
+                    continue; // 부재 캐시 — 다음 인덱스
+                }
+
+                AudioClip clip = Resources.Load<AudioClip>($"Audio/SFX/{clipName}");
+                _variantClipCache[clipName] = clip; // 부재 결과도 캐시 — 반복 로드 시도 방지
+                if (clip != null) return clip;
+            }
+
+            // 표면 변형 클립 전체 부재 — 기본 SFX_Footstep 폴백
+            return LoadCachedClip(SFXType.Footstep);
+        }
+
+        /// <summary>
+        /// [95차 후속 SFX] Resources/Audio/SFX/{이름} 클립을 캐시 딕셔너리로 1회 로드합니다.
+        /// 클립이 없으면 null 반환(호출부는 기존 플레이스홀더 폴백 유지).
+        /// </summary>
+        private AudioClip LoadCachedClip(SFXType type)
+        {
+            if (_clipCache.TryGetValue(type, out AudioClip cached))
+                return cached;
+
+            AudioClip clip = Resources.Load<AudioClip>($"Audio/SFX/{GetSFXName(type)}");
+            _clipCache[type] = clip; // 부재 결과도 캐시 — 반복 로드 시도 방지
+            return clip;
         }
 
         /// <summary>
@@ -375,6 +487,14 @@ namespace ProjectName.Systems
                 SFXType.AutoMove_Start => "SFX_AutoMove_Start",
                 SFXType.AutoMove_Complete => "SFX_AutoMove_Complete",
                 SFXType.AutoMove_Cancel => "SFX_AutoMove_Cancel",
+                // [95차 후속 SFX] 패링 등급별 실오디오 — Resources/Audio/SFX 클립명 매핑
+                SFXType.Parry_Perfect => "SFX_Parry_Perfect",
+                SFXType.Parry_Good => "SFX_Parry_Good",
+                SFXType.Parry_Fail => "SFX_Parry_Fail",
+                // [무번호 16-B4] 텔레그래프 경고 저음 웅성 — Resources/Audio/SFX 클립명 매핑
+                SFXType.Telegraph_Warning => "SFX_Telegraph_Warning",
+                // [무번호 19-E2] 몬스터 발견 경계음 — Resources/Audio/SFX 클립명 매핑
+                SFXType.Monster_Alert => "SFX_Monster_Alert",
                 _ => "SFX_Unknown"
             };
         }

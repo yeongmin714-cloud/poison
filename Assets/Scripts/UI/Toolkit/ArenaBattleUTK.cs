@@ -2,6 +2,7 @@
 #pragma warning disable 114
 using UnityEngine;
 using UnityEngine.UIElements;
+using ProjectName.Core;        // [고스트 체력바 78차] GhostHpDisplay
 using ProjectName.Systems;
 
 namespace ProjectName.UI.Toolkit
@@ -80,6 +81,12 @@ namespace ProjectName.UI.Toolkit
         private Label _rewardMsg;
         private Label _closeHint;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
+        private UnityEngine.UIElements.IVisualElementScheduledItem _ghostTask;  // [고스트 체력바 78차] 16ms 틱
+        private float _lastGhostTick;
+        private GhostHpDisplay _oppGhost = new GhostHpDisplay();  // [고스트 체력바] 상대 뒷줄
+        private GhostHpDisplay _fgtGhost = new GhostHpDisplay();  // 아군 뒷줄
+        private VisualElement _oppTrail;
+        private VisualElement _fgtTrail;
 
         private ArenaBattleUTK() : base("⚔️ 아레나 전투", new Vector2(WinW, WinH))
         {
@@ -108,6 +115,9 @@ namespace ProjectName.UI.Toolkit
             _resultShown = false;
             _resultTimer = 0f;
             StartRefreshLoop();
+            // [고스트 체력바 78차] 16ms 추격 틱 — 300ms 재빌드만으론 뒷줄이 계단처럼 줄어든다
+            if (_ghostTask == null)
+                _ghostTask = schedule.Execute(TickGhost).Every(16);
             RefreshDisplay();
             Debug.Log("[ArenaBattleUTK] 전투 HUD 열림");
         }
@@ -116,6 +126,11 @@ namespace ProjectName.UI.Toolkit
         {
             base.Hide();
             StopRefreshLoop();
+            if (_ghostTask != null)
+            {
+                _ghostTask.Pause();
+                _ghostTask = null;
+            }
             Debug.Log("[ArenaBattleUTK] 전투 HUD 닫힘");
         }
 
@@ -124,6 +139,8 @@ namespace ProjectName.UI.Toolkit
         {
             _fighter = fighter;
             _opponent = opponent;
+            _oppGhost.Reset(1f);   // [고스트 체력바 78차] 새 전투 — 흔적 리셋
+            _fgtGhost.Reset(1f);
             _currentLog = ArenaSystem.Instance != null ? ArenaSystem.Instance.GetCurrentBattleLog() : null;
             _resultShown = false;
             _resultTimer = 0f;
@@ -152,6 +169,29 @@ namespace ProjectName.UI.Toolkit
                 _refreshTask.Pause();
                 _refreshTask = null;
             }
+        }
+
+        /// <summary>[고스트 체력바 78차] 뒷줄 추격 틱(16ms) — 채움/흔적 폭을 매 프레임 갱신(재빌드 300ms 무관).</summary>
+        private void TickGhost()
+        {
+            if (!IsOpen) return;
+            float now = Time.unscaledTime;
+            float dt = Mathf.Clamp(now - _lastGhostTick, 0f, 0.1f);
+            _lastGhostTick = now;
+
+            UpdateGhost(_oppGhost, _opponent.currentHP, _opponent.maxHP, dt, _oppHPFill, _oppTrail);
+            UpdateGhost(_fgtGhost, _fighter.currentHP, _fighter.maxHP, dt, _fgtHPFill, _fgtTrail);
+        }
+
+        private static void UpdateGhost(GhostHpDisplay ghost, float cur, float max, float dt,
+            VisualElement fill, VisualElement trail)
+        {
+            if (fill == null) return;
+            float ratio = max > 0f ? Mathf.Clamp01(cur / max) : 0f;
+            ghost.Tick(ratio, dt);
+            fill.style.width = new Length(Mathf.Max(ghost.Front * 100f, 0f), LengthUnit.Percent);
+            if (trail != null)
+                trail.style.width = new Length(Mathf.Max(ghost.Trail * 100f, 0f), LengthUnit.Percent);
         }
 
         // ===== 전투 상태 갱신 (원본 실측: 반복 표시 기준) =====
@@ -205,7 +245,8 @@ namespace ProjectName.UI.Toolkit
             // 상대 (빨강)
             _list.Add(Lbl($"⚔️ {_opponent.name} Lv.{_opponent.level}"));
             float oppRatio = _opponent.maxHP > 0 ? Mathf.Clamp01(_opponent.currentHP / _opponent.maxHP) : 0f;
-            var oppBar = BuildBar(oppRatio, UTKTheme.Danger, new Color(0.3f, 0.1f, 0.1f, 1f));
+            var oppBar = BuildBar(oppRatio, UTKTheme.Danger, new Color(0.3f, 0.1f, 0.1f, 1f), out _oppTrail);
+            _oppHPFill = oppBar.Q<VisualElement>("Fill");   // [고스트 체력바] 재빌드 후 틱 갱신 대상
             _oppHPText = barText(oppBar);
             _list.Add(oppBar);
             _oppHPText.text = $"{Mathf.Max(0, _opponent.currentHP):F0}/{_opponent.maxHP:F0}";
@@ -216,7 +257,8 @@ namespace ProjectName.UI.Toolkit
             string fighterIcon = _fighter.isPlayer ? "👤" : "🪖";
             _list.Add(Lbl($"{fighterIcon} {_fighter.name} Lv.{_fighter.level}"));
             float fgtRatio = _fighter.maxHP > 0 ? Mathf.Clamp01(_fighter.currentHP / _fighter.maxHP) : 0f;
-            var fgtBar = BuildBar(fgtRatio, UTKTheme.Success, new Color(0.1f, 0.3f, 0.1f, 1f));
+            var fgtBar = BuildBar(fgtRatio, UTKTheme.Success, new Color(0.1f, 0.3f, 0.1f, 1f), out _fgtTrail);
+            _fgtHPFill = fgtBar.Q<VisualElement>("Fill");   // [고스트 체력바] 재빌드 후 틱 갱신 대상
             _fgtHPText = barText(fgtBar);
             _list.Add(fgtBar);
             _fgtHPText.text = $"{Mathf.Max(0, _fighter.currentHP):F0}/{_fighter.maxHP:F0}";
@@ -315,7 +357,7 @@ namespace ProjectName.UI.Toolkit
             return text;
         }
 
-        private static VisualElement BuildBar(float ratio, Color fill, Color bg)
+        private static VisualElement BuildBar(float ratio, Color fill, Color bg, out VisualElement trail)
         {
             var bar = new VisualElement { name = "HPBar" };
             bar.style.height = 18f;
@@ -324,6 +366,15 @@ namespace ProjectName.UI.Toolkit
             bar.style.backgroundColor = bg;
             bar.style.flexDirection = FlexDirection.Row;
             bar.style.position = Position.Relative;
+
+            // [고스트 체력바 78차] 뒷줄 — 절대 배치(Row flex 비개입), 채움 아래 페인트
+            trail = new VisualElement { name = "Trail" };
+            trail.style.position = Position.Absolute;
+            trail.style.left = 0f; trail.style.top = 0f; trail.style.bottom = 0f;
+            trail.style.width = new Length(Mathf.Clamp01(ratio) * 100f, LengthUnit.Percent);
+            trail.style.backgroundColor = new StyleColor(new Color(1f, 0.72f, 0.35f, 1f));
+            trail.pickingMode = PickingMode.Ignore;
+            bar.Add(trail);
 
             var fillEl = new VisualElement { name = "Fill" };
             fillEl.style.height = new Length(100f, LengthUnit.Percent);

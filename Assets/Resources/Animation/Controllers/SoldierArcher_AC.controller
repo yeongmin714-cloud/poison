@@ -21,7 +21,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -203655887218126122, guid: a640d71cbdd7b27428d48b620a69ff7a, type: 3}
+  m_Motion: {fileID: 1827226128182048838, guid: 467cd2e6169ce0844b4a2a865e960377, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -133,6 +133,12 @@ AnimatorController:
   m_Name: SoldierArcher_AC
   serializedVersion: 6
   m_AnimatorParameters:
+  - m_Name: MoveRate
+    m_Type: 1
+    m_DefaultFloat: 1
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
   - m_Name: Speed
     m_Type: 1
     m_DefaultFloat: 0
@@ -304,13 +310,13 @@ AnimatorState:
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1
   m_Mirror: 0
-  m_SpeedParameterActive: 0
+  m_SpeedParameterActive: 1
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: ba58acae7504290428e85b46edc6096a, type: 2}
+  m_Motion: {fileID: 7400000, guid: 8b7edae5b7999564bac5c390964fcd7e, type: 2}
   m_Tag: 
-  m_SpeedParameter: 
+  m_SpeedParameter: MoveRate
   m_MirrorParameter: 
   m_CycleOffsetParameter: 
   m_TimeParameter: 

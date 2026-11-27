@@ -1,0 +1,87 @@
+[
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/potion_hp_small.glb",
+  "note": "체력 소형 — potion_hp와 동일 계열(표준)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -97.90577,
+    "sat": 1.63916,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/potion_hp_big.glb",
+  "note": "체력 대형 — 동 hue 명도↑",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -97.90577,
+    "sat": 1.832,
+    "val": 6.82506
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/potion_attack.glb",
+  "note": "공격 버프 — 진적",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -104.90577,
+    "sat": 1.73558,
+    "val": 5.50408
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/potion_defense.glb",
+  "note": "방어 버프 — 청",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 111.09423,
+    "sat": 1.54274,
+    "val": 6.05449
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/potion_agility.glb",
+  "note": "민첩 버프 — 황금",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -44.90577,
+    "sat": 1.63916,
+    "val": 6.6049
+   }
+  ]
+ }
+]

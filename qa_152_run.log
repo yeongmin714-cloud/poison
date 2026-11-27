@@ -1,0 +1,9 @@
+=== Unity Test Runner ===
+Project: C:/Unity/code
+Mode: editmode
+
+--- EditMode Tests ---
+❌ EditMode: 테스트 실패 — result=Failed(Child), passed=1830, failed=12
+
+💥 Some tests failed (exit code: 1)
+EXIT_CODE=1

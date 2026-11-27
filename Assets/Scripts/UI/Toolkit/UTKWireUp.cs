@@ -29,16 +29,17 @@ namespace ProjectName.UI.Toolkit
             if (_wired) return;
             _wired = true;
 
-            // 침대 상호작용 → 수면 UTK (폴백: 원본 SleepUI)
+            // [73차] 침대 상호작용 → 수면 시스템 패널(피그마 227:262) (폴백: 원본 SleepUI)
             Bed.OnInteractRequestedUTK += bed =>
             {
                 if (bed == null) return;
                 UIToolkitBootstrap.Ensure();
                 if (UIToolkitBootstrap.UIRoot != null)
                 {
-                    SleepUTK.Ensure();
-                    SleepUTK.Open(bed);
-                    Debug.Log("[UTKWire] 침대 → SleepUTK");
+                    // [144차 D6] 구 SleepUTK 완전 폐기(.cs 삭제) — 73차부터 SleepPanelUTK(피그마 227:262) 위임 중이었다.
+                    // SaveAtBed 계약은 SleepPanelUTK로 이식(침대 저장 기능 보존).
+                    SleepPanelUTK.Open(bed);
+                    Debug.Log("[UTKWire] 침대 → SleepPanelUTK");
                 }
                 else if (SleepUI.Instance != null)
                 {
@@ -61,7 +62,8 @@ namespace ProjectName.UI.Toolkit
                     LootWindowUTK.Open(basket, LootWindowUTK.CompositionBounds);
                     InventoryWindowUTK.Open();            // [U8 요구] 전리품 열림 시 인벤 동시 표시
                     // [Figma 정합 v3 / 배열 수리] 상세창(672,175.2,576,729.6)은 전리품(708,324,504,432)과
-                    // Figma 좌표상 완전히 겹쳐 전리품 창을 가린다 — 전리품 라우트에서는 개방하지 않는다(70:4 캔버스는 전리품 단독).
+                    // Figma 좌표상 겹침 — [전리품설명 C3] 계약 변경(사용자 지시 2026-11-07): 창 개방 시의 자동 개방은
+                    // 금지 유지, "슬롯 좌클릭" 시에만 ItemDescriptionWindowUTK.ShowItem로 개방/갱신(겹침 수용 — 전면 표시).
                     // ItemDescriptionWindowUTK.Open();
                     Debug.Log("[UTKWire] 바구니 → LootWindowUTK + 인벤/설명 동시 표시");
                 }
@@ -114,6 +116,9 @@ namespace ProjectName.UI.Toolkit
                     if (inv != null) inv.TogglePlayerInventory();
                 }
             };
+
+            // [63-B] 상태이상 바 자가부트 보장 — 멱등(자체 RuntimeInitialize 부트와 중복 무해)
+            StatusEffectBarUTK.Ensure();
 
             Debug.Log("[UTKWire] 호출부 배선 완료 (침대 수면/전리품 바구니/상점/인벤 I키)");
         }

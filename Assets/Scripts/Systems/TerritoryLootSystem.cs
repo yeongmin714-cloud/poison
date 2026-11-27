@@ -133,7 +133,7 @@ namespace ProjectName.Systems
         ///  (a) 영지 금고 골드 → PlayerStats.AddGold(source: "confiscate") 후 금고 0 처리
         ///  (b) 영지 창고 아이템 → PlayerInventory 이관(개수 유지) 후 창고 슬롯 비움.
         ///      창고가 텅 비어 있으면 난이도 기반 기본 보급품(1~3종)을 시딩한 뒤 몰수.
-        ///  (c) 생존 미포섭 병사 → GuardRecruitSystem.GetMaxRecruits(난이도 레벨) 상한 내 포섭(SetRecruited(true)).
+        ///  (c) 생존 미포섭 병사 → 상한 없이 전원 포섭(SetRecruited(true)), 입단비 결제 실패자만 제외.
         ///
         /// 반환: 총 몰수 골드. 멱등 — 동일 소유 구간 내 재호출 시 0 반환(중복 지급 없음).
         /// </summary>
@@ -271,15 +271,11 @@ namespace ProjectName.Systems
             Debug.Log($"[TerritoryLoot] 빈 창고 기본 보급품 시딩: {key} ({kinds}종 ×{perKind})");
         }
 
-        /// <summary>(c) 영지 생존 병사 중 미포섭을 포섭 상한(GetMaxRecruits(난이도 레벨)) 내에서 아군 전환.</summary>
+        /// <summary>(c) 영지 생존 병사 중 미포섭 병사를 전부 아군 전환(인원 상한 없음, 생존 로스터만 대상). 입단비 결제 실패 병사만 건너뜀.</summary>
         private static int RecruitSurvivingGuards(TerritoryId id)
         {
             var guardManager = GuardManager.Instance;
             if (guardManager == null) return 0;
-
-            var def = TerritoryDatabase.Instance.GetDefinition(id);
-            int level = Mathf.Max(1, (int)def.difficulty + 1);        // Ring1=1 … Empire=5
-            int maxRecruits = GuardRecruitSystem.GetMaxRecruits(level);
 
             var guards = guardManager.GetGuardsInTerritory(id);
             if (guards == null || guards.Count == 0) return 0;
@@ -287,15 +283,17 @@ namespace ProjectName.Systems
             int recruited = 0;
             foreach (var guard in guards)
             {
-                if (recruited >= maxRecruits) break;
                 if (guard == null || !guard.IsAlive || guard.IsRecruited) continue;
+
+                // 입단비 결제 성공 시에만 편입 확정 (골드 부족 → 해당 병사만 보류, 상태 불변)
+                if (!SoldierWageSystem.TryChargeGuardAdmissionFee(guard, "confiscate", out _)) continue;
 
                 guard.SetRecruited(true);
                 recruited++;
             }
 
             if (recruited > 0)
-                Debug.Log($"[TerritoryLoot] 생존 병사 포섭: {id} — {recruited}/{guards.Count}명 (상한 {maxRecruits}, 레벨 {level})");
+                Debug.Log($"[TerritoryLoot] 생존 병사 포섭: {id} — {recruited}/{guards.Count}명 (상한 없음)");
 
             return recruited;
         }

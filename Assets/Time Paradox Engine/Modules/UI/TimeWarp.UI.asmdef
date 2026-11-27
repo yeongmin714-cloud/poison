@@ -1,0 +1,17 @@
+{
+    "name": "TimeWarp.UI",
+    "rootNamespace": "TimeWarp.Modules.UI",
+    "references": [
+        "TimeWarp.Runtime",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -81,11 +81,15 @@ namespace ProjectName.UI.Toolkit
             ProjectName.Core.UITransitionState.UtkActive = true;   // [U8 은퇴 게이트] 원본 HUD류 자가 은퇴 트리거
             // [U8] 월드 이름표 오버레이 — UIRoot "먼저"(index 0) 부착되어 모든 창보다 아래 깔림.
             NameplateOverlayUTK.Ensure();
+            // [26차 농경 업그레이드] 밭 위 성장/수분 2행 가로바 — NameplateOverlayUTK 다음(순서 1) 부착.
+            FarmPlateOverlayUTK.Ensure();
             // [통합 09-24] 핫바 옆 HP/스태미나 원형 게이지는 HUDUTK(자동 부트)가 담당 — StatusGaugesUTK 제거(중복)
             // [P22-2] 화면 커서 오버레이 (3D 앵커 커서 폐기 — 항상 정확히 마우스 위치 표시)
             UTKCursorOverlay.Ensure();
             // [P25-C1] 활 조준 리티클 (기본 숨김 — 드로 시 표시)
             BowAimReticleUTK.Ensure();
+            UTKClickRipple.Ensure();   // [클릭 빛물결] 클릭 지점 원형 빛 물결 FX — 시각 전용 오버레이(클릭 흡수 없음)
+            UTKPressGlow.Ensure();   // [클릭 글로우] 눌린 요소 경계 플래시 — 시각 전용 오버레이(클릭 흡수 없음)
             // [UTK] 원본 IMGUI 이름표/헤드UI 3종 은퇴 — NameplateOverlayUTK가 데이터·표시 규칙을 계승.
             ProjectName.Systems.GuardHeadUI.s_retired = true;
             ProjectName.Systems.MonsterHeadUI.s_retired = true;

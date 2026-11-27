@@ -46,8 +46,10 @@ namespace ProjectName.Systems
         public static int PendingCount => _log.Count;
 
         /// <summary>
-        /// 게임일 경계 호출 — 누적된 전쟁 전보를 요약해 표시하고 비운다.
-        /// 표시는 Systems 소속 WarNotificationUI 배너(즉각 알림)를 재사용(어셈블리 제약 회피).
+        /// 게임일 경계 호출 — 누적된 전쟁 전보를 요약해 비둘기 비행 연출로 전달하고 비운다.
+        /// [79-R19] 비둘기 연출: 오전 6시(게임일 경계 = OnDayStart, IsDay = Hour>=6)에 호출되며
+        /// PigeonMessenger가 플레이어에게 날아와 도착·디스폰 직후 배너를 표시한다.
+        /// 폴백: 실내 씬/플레이어 부재/GLB 부재/예외 → 즉시 배너(전보 유실 방지 계약).
         /// 로그가 비어 있으면 아무것도 안 함.
         /// </summary>
         public static void FlushDayLog()
@@ -57,6 +59,43 @@ namespace ProjectName.Systems
             string summary = "📜 어제 전역 전보\n" + string.Join("\n", _log);
             _log.Clear();
 
+            try
+            {
+                // [79-R19] 전보 비둘기 — 실외 씬에서만 스폰, 실패 시 즉시 배너 폴백
+                if (!ProjectName.Systems.ConstructionManager.IsIndoorScene())
+                {
+                    var pigeon = PigeonMessenger.Spawn(summary, () =>
+                    {
+                        try
+                        {
+                            WarNotificationUI.ShowNotification(summary, WarNotificationUI.NotificationType.Info);
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.Log("[DailyWarLog] 어제 전역 전보: " + summary);
+                            Debug.LogWarning($"[DailyWarLog] 전보 배너 표시 실패 — 콘솔 로그 대체: {e.Message}");
+                        }
+                        Debug.Log("[DailyWarLog] 전역 전보: " + summary.Replace("\n", " | "));
+                    });
+                    if (pigeon != null) return;   // 비둘기 배달 위임 — 폴백 배너 즉시 표시 안 함
+                    Debug.Log("[DailyWarLog] 비둘기 스폰 실패 — 즉시 배너 폴백");
+                }
+                else
+                {
+                    Debug.Log("[DailyWarLog] 실내 씬 — 비둘기 스폰 생략, 즉시 배너 폴백");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[DailyWarLog] 비둘기 스폰 예외 — 즉시 배너 폴백: {e.Message}");
+            }
+
+            ShowImmediateBanner(summary);
+        }
+
+        /// <summary>폴백 경로 — 비둘기 없이 즉시 배너(기존 FlushDayLog 동작).</summary>
+        private static void ShowImmediateBanner(string summary)
+        {
             try
             {
                 WarNotificationUI.ShowNotification(summary, WarNotificationUI.NotificationType.Info);

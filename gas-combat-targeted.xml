@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="23" result="Passed" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.1319998">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="430" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.132000" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1481" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="421" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.114970" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1468" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1482" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="421" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.111271" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1483" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="421" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.107776" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1484" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="418" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.103779" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1221" name="HumanoidClipDriverComboTests" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.093837" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="1235" name="ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.042111" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1232" name="ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping(1,0.3333333f,System.Int32[])" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping(1,0.3333333f,System.Int32[])" methodname="ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1303394107" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.031881" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1233" name="ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping(2,0.6666667f,System.Int32[])" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping(2,0.6666667f,System.Int32[])" methodname="ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1617092932" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000299" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1234" name="ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping(3,1.0f,System.Int32[])" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping(3,1.0f,System.Int32[])" methodname="ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1928117005" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000172" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1226" name="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.005326" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1222" name="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext(False,False,False,False,False)" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext(False,False,False,False,False)" methodname="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1369869812" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.002893" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1223" name="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext(True,True,False,False,True)" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext(True,True,False,False,True)" methodname="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="392465459" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000252" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1224" name="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext(True,False,True,True,True)" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext(True,False,True,True,True)" methodname="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="573276161" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000160" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1225" name="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext(True,False,False,False,False)" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext(True,False,False,False,False)" methodname="ExternalHitLight_QueuesOnlyWhilePlayerMeleeIsCurrentOrNext" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="480627374" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000139" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1231" name="FollowupResumesAtHeldBoundary_AndExpiredWindowExitsAfterAuthorizedSegment" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.FollowupResumesAtHeldBoundary_AndExpiredWindowExitsAfterAuthorizedSegment" methodname="FollowupResumesAtHeldBoundary_AndExpiredWindowExitsAfterAuthorizedSegment" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1845986055" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.001868" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1237" name="IncorrectSingleAttackHelpers_AreRemoved" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.IncorrectSingleAttackHelpers_AreRemoved" methodname="IncorrectSingleAttackHelpers_AreRemoved" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1000815731" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000411" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1227" name="OneAcceptedClick_AuthorizesOnlyFirstThirdAndOneHitMarker" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.OneAcceptedClick_AuthorizesOnlyFirstThirdAndOneHitMarker" methodname="OneAcceptedClick_AuthorizesOnlyFirstThirdAndOneHitMarker" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1584220367" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000493" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1244" name="SpearAcceptedSecondClick_DoesNotExpireWhileWaitingForDriverDispatch" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearAcceptedSecondClick_DoesNotExpireWhileWaitingForDriverDispatch" methodname="SpearAcceptedSecondClick_DoesNotExpireWhileWaitingForDriverDispatch" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1581354845" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000529" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1243" name="SpearDriverOwnership_PreventsLegacyImmediateImpactWithoutChangingOtherWeapons" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearDriverOwnership_PreventsLegacyImmediateImpactWithoutChangingOtherWeapons" methodname="SpearDriverOwnership_PreventsLegacyImmediateImpactWithoutChangingOtherWeapons" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1016638407" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000553" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1245" name="SpearExpiredSequence_IsDetectedOnlyAfterClickWindow" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearExpiredSequence_IsDetectedOnlyAfterClickWindow" methodname="SpearExpiredSequence_IsDetectedOnlyAfterClickWindow" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="689495542" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000656" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1242" name="SpearFollowup_AuthorizesOnlyOneWeaponComboSwingAtItsSegmentTwoMarker" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearFollowup_AuthorizesOnlyOneWeaponComboSwingAtItsSegmentTwoMarker" methodname="SpearFollowup_AuthorizesOnlyOneWeaponComboSwingAtItsSegmentTwoMarker" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="849093137" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.002286" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1238" name="SpearFollowupDispatch_UsesAcceptedClickTimeRatherThanDelayedDispatchTime" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearFollowupDispatch_UsesAcceptedClickTimeRatherThanDelayedDispatchTime" methodname="SpearFollowupDispatch_UsesAcceptedClickTimeRatherThanDelayedDispatchTime" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="1988158288" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000823" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1241" name="SpearOpener_UsesAttackThrustAndResolvesOneHitOnlyAfterItsStrikeMarker" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearOpener_UsesAttackThrustAndResolvesOneHitOnlyAfterItsStrikeMarker" methodname="SpearOpener_UsesAttackThrustAndResolvesOneHitOnlyAfterItsStrikeMarker" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="560518152" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000972" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1246" name="SpearOpenerRestart_RewindsAndUnexpectedStateExitCleansSequence" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearOpenerRestart_RewindsAndUnexpectedStateExitCleansSequence" methodname="SpearOpenerRestart_RewindsAndUnexpectedStateExitCleansSequence" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="259523956" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.002411" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1239" name="SpearRestart_RecognizesExpiredAcceptedClickAndReplaysFromStart" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearRestart_RecognizesExpiredAcceptedClickAndReplaysFromStart" methodname="SpearRestart_RecognizesExpiredAcceptedClickAndReplaysFromStart" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="595248279" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.001667" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1240" name="SpearSequence_IsRetiredWhenOpenerOrFollowupIsInterrupted" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.SpearSequence_IsRetiredWhenOpenerOrFollowupIsInterrupted" methodname="SpearSequence_IsRetiredWhenOpenerOrFollowupIsInterrupted" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="156274473" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.003671" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1229" name="ThirdTimelyClick_AuthorizesAllThreeMarkersAndNoFourthClick" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ThirdTimelyClick_AuthorizesAllThreeMarkersAndNoFourthClick" methodname="ThirdTimelyClick_AuthorizesAllThreeMarkersAndNoFourthClick" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="2097049926" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000899" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1236" name="ThreeStrikeMarkers_AreDistinctAndOrderedWithinWeaponCombo" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.ThreeStrikeMarkers_AreDistinctAndOrderedWithinWeaponCombo" methodname="ThreeStrikeMarkers_AreDistinctAndOrderedWithinWeaponCombo" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="938738178" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.005705" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1228" name="TimelyFollowup_AuthorizesSecondThirdAndSecondHitMarker" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.TimelyFollowup_AuthorizesSecondThirdAndSecondHitMarker" methodname="TimelyFollowup_AuthorizesSecondThirdAndSecondHitMarker" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="386332403" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.000729" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1230" name="WeaponComboPlaybackSpeedAndFollowupWindow_MatchFastSegmentTiming" fullname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests.WeaponComboPlaybackSpeedAndFollowupWindow_MatchFastSegmentTiming" methodname="WeaponComboPlaybackSpeedAndFollowupWindow_MatchFastSegmentTiming" classname="ProjectName.Tests.EditMode.HumanoidClipDriverComboTests" runstate="Runnable" seed="113541928" result="Passed" start-time="2026-10-02 03:11:48Z" end-time="2026-10-02 03:11:48Z" duration="0.006646" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -101,6 +101,8 @@ namespace ProjectName.Tests.EditMode
         [Test]
         public void Workbench_UsesEInputAndRoutesEquipmentCraftingToWeaponForge()
         {
+            // [122차] 빈 실내 규칙: 기본값(FurnishStations=false)에서는 시설 미구성 — 임시 구성으로 수행.
+            PlayerCastleInteriorBuilder.FurnishStations = true;
             GameObject room = PlayerCastleInteriorBuilder.BuildPlayerCastleInterior("Empire", 0);
             Assert.That(room, Is.Not.Null);
             try
@@ -137,12 +139,15 @@ namespace ProjectName.Tests.EditMode
             finally
             {
                 Object.DestroyImmediate(room);
+                PlayerCastleInteriorBuilder.FurnishStations = false;   // [122차] 기본값 복원
             }
         }
 
         [Test]
         public void PlayerCastleBedAndAlchemyStation_AreAttachedAndRouteToTheirToolkitWindows()
         {
+            // [122차] 빈 실내 규칙: 연금 테이블은 FurnishStations=true 임시 구성으로 수행(침대는 항상 구성).
+            PlayerCastleInteriorBuilder.FurnishStations = true;
             GameObject room = PlayerCastleInteriorBuilder.BuildPlayerCastleInterior("Empire", 0);
             Assert.That(room, Is.Not.Null);
             try
@@ -173,7 +178,8 @@ namespace ProjectName.Tests.EditMode
                 Assert.That(HasCallTo(openStation, ensureBootstrap), Is.True,
                     "Alchemy station must initialize the Toolkit root before opening its bench.");
 
-                MethodInfo saveAtBed = typeof(SleepUTK).GetMethod("SaveAtBed", BindingFlags.Static | BindingFlags.NonPublic);
+                // [144차 D6] SleepUTK 폐기 → SaveAtBed는 SleepPanelUTK로 이식(침대 저장 기능 보존) — 계약 대상 교체.
+                MethodInfo saveAtBed = typeof(SleepPanelUTK).GetMethod("SaveAtBed", BindingFlags.Static | BindingFlags.NonPublic);
                 MethodInfo setSpawn = typeof(Bed).GetMethod("SetSpawnPoint", BindingFlags.Public | BindingFlags.Static);
                 MethodInfo autoSave = typeof(SaveManager).GetMethod("AutoSave", BindingFlags.Public | BindingFlags.Instance);
                 Assert.That(saveAtBed, Is.Not.Null);
@@ -185,6 +191,7 @@ namespace ProjectName.Tests.EditMode
             finally
             {
                 Object.DestroyImmediate(room);
+                PlayerCastleInteriorBuilder.FurnishStations = false;   // [122차] 기본값 복원
             }
         }
 

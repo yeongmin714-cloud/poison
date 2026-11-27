@@ -13,7 +13,8 @@ namespace ProjectName.Core
     /// </summary>
     public static class IndoorTextureGenerator
     {
-        private const int DEFAULT_SIZE = 256;
+        // [바닥/벽 품질 v2] 256→512 — 줄눈/결/얼룩 판독력 상향(9/20 예시 품질바). 절차 생성 — 임포트 비용 0.
+        private const int DEFAULT_SIZE = 512;
 
         // ===================================================================
         // C11-02: 기본 텍스처
@@ -22,8 +23,10 @@ namespace ProjectName.Core
         /// <summary>격자 패턴 타일 (primary 배경 + secondary 선)</summary>
         public static Texture2D GenerateFloorTile(int width, int height, Color primary, Color secondary, float tileSize = 0.25f)
         {
+            // [바닥 품질 v2] 타일별 톤 편차(해시 — 결정론) + 미세 스펙클 + 줄눈 측 마모 어두움.
             var tex = CreateBaseTexture(width, height);
-            int gridPixels = Mathf.RoundToInt(width * tileSize);
+            int gridPixels = Mathf.Max(8, Mathf.RoundToInt(width * tileSize));
+            int grout = Mathf.Max(2, gridPixels / 32);   // 해상도 비례 줄눈(512에서 ~4px)
 
             for (int y = 0; y < height; y++)
             {
@@ -31,13 +34,44 @@ namespace ProjectName.Core
                 {
                     int gx = x % gridPixels;
                     int gy = y % gridPixels;
-                    bool isLine = gx < 1 || gy < 1 || gx >= gridPixels - 1 || gy >= gridPixels - 1;
-                    tex.SetPixel(x, y, isLine ? secondary : primary);
+                    bool isLine = gx < grout || gy < grout || gx >= gridPixels - grout || gy >= gridPixels - grout;
+                    Color c;
+                    if (isLine)
+                    {
+                        c = secondary;
+                    }
+                    else
+                    {
+                        int tileH = StableTileHash(x / gridPixels, y / gridPixels);
+                        float variance = ((tileH & 0x3F) / 63f - 0.5f) * 0.08f;   // 타일별 ±4% 톤
+                        int px = (x * 7 + y * 13) & 0x1F;
+                        float speckle = (px / 31f - 0.5f) * 0.035f;
+                        c = primary + new Color(variance + speckle, variance + speckle, variance * 0.8f + speckle, 0f);
+                        // 줄눈 측 마모 어두움(에지 8% 밴드)
+                        int edge = Mathf.Min(Mathf.Min(gx, gy), Mathf.Min(gridPixels - 1 - gx, gridPixels - 1 - gy));
+                        int wearBand = Mathf.Max(2, gridPixels / 16);
+                        if (edge < wearBand)
+                        {
+                            float wear = 1f - (float)edge / wearBand;
+                            c -= new Color(wear * 0.05f, wear * 0.05f, wear * 0.05f, 0f);
+                        }
+                    }
+                    tex.SetPixel(x, y, new Color(
+                        Mathf.Clamp01(c.r), Mathf.Clamp01(c.g), Mathf.Clamp01(c.b), c.a));
                 }
             }
 
             tex.Apply();
             return tex;
+        }
+
+        /// <summary>타일 좌표 결정론 해시 — 엔진 난수 미사용(FNV-1a 변형).</summary>
+        private static int StableTileHash(int tx, int ty)
+        {
+            uint h = 2166136261u;
+            h = (h ^ (uint)tx) * 16777619u;
+            h = (h ^ (uint)ty) * 16777619u;
+            return (int)h;
         }
 
         /// <summary>석재/패널 라인 패턴</summary>
@@ -74,24 +108,44 @@ namespace ProjectName.Core
             var tex = CreateBaseTexture(width, height);
             int plankPixels = Mathf.RoundToInt(width * plankWidth);
             if (plankPixels < 2) plankPixels = 2;
+            int gap = Mathf.Max(2, plankPixels / 24);   // 해상도 비례 틈(512에서 ~4px)
 
             Color darkColor = new Color(
-                woodColor.r * 0.7f,
-                woodColor.g * 0.7f,
-                woodColor.b * 0.7f,
+                woodColor.r * 0.62f,
+                woodColor.g * 0.62f,
+                woodColor.b * 0.62f,
                 woodColor.a
             );
+            // 판자별 톤 편차 — 판 인덱스 해시(결정론)
+            int plankCount = Mathf.Max(1, width / plankPixels);
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     int px = x % plankPixels;
-                    // 판자 경계선 (어둡게)
-                    bool isGap = px < 1;
-                    // 나뭇결 노이즈
-                    float grain = Mathf.PerlinNoise(x * 0.05f, y * 0.1f) * 0.15f;
+                    bool isGap = px < gap;
+                    // 나뭇결 — 두 주파수 중첩(세로 결 방향 강조)
+                    float grain = Mathf.PerlinNoise(x * 0.05f, y * 0.1f) * 0.12f
+                                + Mathf.PerlinNoise(x * 0.01f, y * 0.03f) * 0.06f;
                     Color baseColor = isGap ? darkColor : woodColor;
+                    if (!isGap)
+                    {
+                        int plank = x / plankPixels;
+                        int plankH = StableTileHash(plank, y / Mathf.Max(1, height / 2));
+                        float variance = ((plankH & 0x1F) / 31f - 0.5f) * 0.10f;   // 판별 ±5%
+                        baseColor = baseColor + new Color(variance, variance, variance * 0.8f, 0f);
+                        // 매듭 — 낮은 빈도 어두운 타원(해시 그리드)
+                        int knotCell = 64;
+                        int kx = StableTileHash(x / knotCell, y / knotCell);
+                        if ((kx & 0x0F) == 0)
+                        {
+                            float dx = (x % knotCell) - knotCell * 0.5f;
+                            float dy = (y % knotCell) - ((kx >> 4) % knotCell);
+                            if (dx * dx + dy * dy * 4f < 40f)
+                                baseColor = baseColor * 0.72f;
+                        }
+                    }
                     Color finalColor = new Color(
                         Mathf.Clamp01(baseColor.r + grain),
                         Mathf.Clamp01(baseColor.g + grain * 0.5f),
@@ -131,8 +185,24 @@ namespace ProjectName.Core
                     int localX = (x + offsetX) % bw;
                     int localY = y % bh;
 
-                    bool isMortar = localX < 1 || localX >= bw - 1 || localY < 1 || localY >= bh - 1;
-                    tex.SetPixel(x, y, isMortar ? mortarColor : brickColor);
+                    bool isMortar = localX < 2 || localX >= bw - 2 || localY < 2 || localY >= bh - 2;
+                    if (isMortar)
+                    {
+                        // 모르타르 깊이감 — 벽돌 에지에서 살짝 어둡게(그림자 오목)
+                        tex.SetPixel(x, y, mortarColor * 0.9f);
+                    }
+                    else
+                    {
+                        // 벽돌별 톤 편차(행+열 해시 — 결정론) + 표면 미세 노이즈
+                        int bx = (x + offsetX) / bw;
+                        int by = y / bh;
+                        int bh2 = StableTileHash(bx, by);
+                        float variance = ((bh2 & 0x3F) / 63f - 0.5f) * 0.12f;
+                        float surface = (Mathf.PerlinNoise(x * 0.25f, y * 0.25f) - 0.5f) * 0.06f;
+                        Color c = brickColor + new Color(variance + surface, variance + surface, variance * 0.7f + surface, 0f);
+                        tex.SetPixel(x, y, new Color(
+                            Mathf.Clamp01(c.r), Mathf.Clamp01(c.g), Mathf.Clamp01(c.b), c.a));
+                    }
                 }
             }
 
@@ -173,15 +243,16 @@ namespace ProjectName.Core
                         tex.SetPixel(x, y, crackColor);
                     }
 
-                    // 표면 텍스처 (미세 변주)
+                    // 표면 텍스처 (미세 변주) + 저주파 얼룩 패치
                     float surfaceNoise = (Mathf.PerlinNoise(x * 0.2f, y * 0.2f) - 0.5f) * 0.1f;
+                    float blotch = (Mathf.PerlinNoise(x * 0.03f + 13f, y * 0.03f + 13f) - 0.5f) * 0.08f;
                     Color existing = tex.GetPixel(x, y);
                     if (!isCrack && existing.r > 0.01f)
                     {
                         tex.SetPixel(x, y, new Color(
-                            Mathf.Clamp01(stoneColor.r + surfaceNoise),
-                            Mathf.Clamp01(stoneColor.g + surfaceNoise),
-                            Mathf.Clamp01(stoneColor.b + surfaceNoise),
+                            Mathf.Clamp01(stoneColor.r + surfaceNoise + blotch),
+                            Mathf.Clamp01(stoneColor.g + surfaceNoise + blotch),
+                            Mathf.Clamp01(stoneColor.b + surfaceNoise + blotch * 0.7f),
                             stoneColor.a
                         ));
                     }
@@ -195,6 +266,69 @@ namespace ProjectName.Core
         // ===================================================================
         // C11-03: 건물 용도별 바닥 프리셋
         // ===================================================================
+
+        /// <summary>
+        /// [125차 후속24 — A1] 모래 텍스처 — 격자 없는 미세 입자 노이즈(결정론 해시).
+        /// 결투장 모래 계약: GenerateFloorTile 격자 패턴은 실내 타일 재질이라 실외 모래 부적합 → 대체.
+        /// 밝은 톤(125차 후속18 계승) + 어두운 입자 밀도 + 저주파 패치(밟아 다진 자국 띠).
+        /// </summary>
+        public static Texture2D GenerateSandTexture(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            tex.name = "ArenaSandTex";
+            Color baseCol = new Color(0.88f, 0.80f, 0.62f);   // 후속18 밝은 모래 톤 계승
+            Color grain = new Color(0.78f, 0.69f, 0.50f);
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    // 결정론 해시 노이즈 — 시드 불변(빌더 결정론 로그 규약과 동일)
+                    int h = (x * 73856093) ^ (y * 19349663);
+                    float n1 = ((h >> 7) & 0xFF) / 255f;
+                    float n2 = (((h >> 15) & 0xFF) + ((h >> 23) & 0x1F)) / 287f;
+                    // 저주파 패치 — 밟아 다진/흩어진 모래 띠(두 사인 혼합)
+                    float patch = Mathf.Sin((x + y * 0.7f) * 0.05f) * 0.5f
+                                + Mathf.Sin((x * 0.3f - y) * 0.04f) * 0.5f;
+                    float mix = Mathf.Clamp01(0.55f + n1 * 0.35f + patch * 0.18f);
+                    tex.SetPixel(x, y, Color.Lerp(baseCol, grain, mix * 0.85f + n2 * 0.15f));
+                }
+            }
+            tex.Apply();
+            return tex;
+        }
+
+        /// <summary>[125차 후속24 — A1] 모래 높이장 — 색/노멀 양쪽이 공유하는 결정론 함수(질감 일관성).</summary>
+        private static float SandHeight(int x, int y)
+        {
+            int hash = (x * 73856093) ^ (y * 19349663);
+            float n1 = ((hash >> 7) & 0xFF) / 255f;
+            float patch = Mathf.Sin((x + y * 0.7f) * 0.05f) * 0.5f
+                        + Mathf.Sin((x * 0.3f - y) * 0.04f) * 0.5f;
+            return n1 * 0.35f + patch * 0.18f;
+        }
+
+        /// <summary>
+        /// [125차 후속24 — A1] 모래 노멀맵 — SandHeight 중심차분에서 탄젠트 공간 노멀 생성(결정론).
+        /// **AG 스위즐 계약**: 런타임 생성 노멀은 임포터 스위즐이 없으므로 URP UnpackNormalmapRGorAG
+        /// 데스크톱 규약(x=알파, y=그린, z=재구성)에 맞춰 기록 — 리니어 텍스처 필수.
+        /// </summary>
+        public static Texture2D GenerateSandNormalTexture(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
+        {
+            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false, linear: true);
+            tex.name = "ArenaSandNormalTex";
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float hx = SandHeight((x + 1) % width, y) - SandHeight((x - 1 + width) % width, y);
+                    float hy = SandHeight(x, (y + 1) % height) - SandHeight(x, (y - 1 + height) % height);
+                    Vector3 n = new Vector3(-hx * 2.2f, -hy * 2.2f, 1f).normalized;
+                    tex.SetPixel(x, y, new Color(1f, n.y * 0.5f + 0.5f, 0f, n.x * 0.5f + 0.5f));
+                }
+            }
+            tex.Apply();
+            return tex;
+        }
 
         /// <summary>상점 바닥 — 따뜻한 갈색 나무 바닥</summary>
         public static Texture2D GenerateShopFloor(int width = DEFAULT_SIZE, int height = DEFAULT_SIZE)
@@ -259,18 +393,24 @@ namespace ProjectName.Core
 
                     bool isMortar = localX < 1 || localX >= sw - 1 || localY < 1 || localY >= sh - 1;
 
-                    // 돌 표면 미세 텍스처
+                    // 돌 표면 미세 텍스처 + 돌별 톤 편차(해시 — 결정론)
                     float surfaceNoise = (Mathf.PerlinNoise(x * 0.3f, y * 0.3f) - 0.5f) * 0.08f;
                     if (isMortar)
                     {
-                        tex.SetPixel(x, y, mortarColor);
+                        tex.SetPixel(x, y, mortarColor * 0.92f);
                     }
                     else
                     {
+                        int sx = (x + offsetX) / sw;
+                        int sy = y / sh;
+                        int sH = StableTileHash(sx, sy);
+                        float variance = ((sH & 0x3F) / 63f - 0.5f) * 0.10f;
+                        // 하부 그라데이션 — 벽 하단 25% 살짝 어둡게(실측 사진 투톤 느낌)
+                        float bottom = y < height * 0.25f ? -(1f - y / (height * 0.25f)) * 0.05f : 0f;
                         tex.SetPixel(x, y, new Color(
-                            Mathf.Clamp01(stoneColor.r + surfaceNoise),
-                            Mathf.Clamp01(stoneColor.g + surfaceNoise),
-                            Mathf.Clamp01(stoneColor.b + surfaceNoise),
+                            Mathf.Clamp01(stoneColor.r + surfaceNoise + variance + bottom),
+                            Mathf.Clamp01(stoneColor.g + surfaceNoise + variance + bottom),
+                            Mathf.Clamp01(stoneColor.b + surfaceNoise + variance * 0.7f + bottom),
                             stoneColor.a
                         ));
                     }
@@ -330,14 +470,16 @@ namespace ProjectName.Core
             {
                 for (int x = 0; x < width; x++)
                 {
-                    // 미세한 요철감
+                    // 미세한 요철감 + 저주파 얼룩(수분/그을음 흔적 — 결정론 펄린)
                     float noise = (Mathf.PerlinNoise(x * 0.15f, y * 0.15f) - 0.5f) * 0.12f;
                     float noise2 = (Mathf.PerlinNoise(x * 0.3f + 50f, y * 0.3f + 50f) - 0.5f) * 0.06f;
+                    float stain = (Mathf.PerlinNoise(x * 0.02f + 7f, y * 0.02f + 7f) - 0.5f) * 0.09f;
+                    float stain2 = Mathf.Max(0f, Mathf.PerlinNoise(x * 0.05f + 31f, y * 0.05f + 31f) - 0.62f) * 0.5f;
 
                     tex.SetPixel(x, y, new Color(
-                        Mathf.Clamp01(plasterColor.r + noise + noise2),
-                        Mathf.Clamp01(plasterColor.g + noise + noise2),
-                        Mathf.Clamp01(plasterColor.b + noise + noise2),
+                        Mathf.Clamp01(plasterColor.r + noise + noise2 + stain - stain2),
+                        Mathf.Clamp01(plasterColor.g + noise + noise2 + stain - stain2 * 0.8f),
+                        Mathf.Clamp01(plasterColor.b + noise + noise2 + stain * 0.8f - stain2 * 0.6f),
                         plasterColor.a
                     ));
                 }
@@ -599,6 +741,192 @@ namespace ProjectName.Core
                 wrapMode = TextureWrapMode.Repeat,
                 filterMode = FilterMode.Bilinear
             };
+        }
+
+        // ===================================================================
+        // [125차 후속35-R P3] 런타임 맵 합성 — 파일 교체 0 (AO 파생 + 미세 노이즈)
+        // ===================================================================
+
+        /// <summary>AO 파생 캐시 — 원본 텍스처별 1회 합성(정적 캐시, 파일 쓰기 없음).</summary>
+        private static readonly System.Collections.Generic.Dictionary<Texture2D, Texture2D> _aoCache
+            = new System.Collections.Generic.Dictionary<Texture2D, Texture2D>();
+
+        /// <summary>
+        /// [125차 후속35-R P3-1] 런타임 AO 맵 합성 — 알베도 휘도 하위 구간을 크레비스로 판정해
+        /// 블러 후 AO 맵 생성(RGB 전채 동일 값 — URP Lit는 G 채널로 오클루전 판독).
+        /// Blit 경유 판독이라 원본 readable 여부 무관. 파일 교체 0, 원본 무손상.
+        /// 실패 시 null(호출부 폴백 계약 — AO 없는 기존 머티리얼 유지).
+        /// </summary>
+        public static Texture2D SynthesizeOcclusionFromAlbedo(Texture2D source)
+        {
+            if (source == null) return null;
+            if (_aoCache.TryGetValue(source, out var cached) && cached != null) return cached;
+            try
+            {
+                const int size = 256;
+                var rt = RenderTexture.GetTemporary(size, size, 0, RenderTextureFormat.ARGB32);
+                var prevActive = RenderTexture.active;
+                Graphics.Blit(source, rt);
+                RenderTexture.active = rt;
+                var sampled = new Texture2D(size, size, TextureFormat.RGBA32, false);
+                sampled.ReadPixels(new Rect(0f, 0f, size, size), 0, 0);
+                sampled.Apply(false, false);
+                RenderTexture.active = prevActive;
+                RenderTexture.ReleaseTemporary(rt);
+
+                var pixels = sampled.GetPixels32();
+                // 휘도 → 하위 30분위를 크레비스 후보로 판정(결정론 — RNG 없음)
+                var lum = new float[pixels.Length];
+                var hist = new int[32];
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    float l = (pixels[i].r * 0.299f + pixels[i].g * 0.587f + pixels[i].b * 0.114f) / 255f;
+                    lum[i] = l;
+                    hist[Mathf.Clamp((int)(l * 31.99f), 0, 31)]++;
+                }
+                int acc = 0, cutoffIdx = 0;
+                int target = pixels.Length * 3 / 10;
+                for (int b = 0; b < 32; b++)
+                {
+                    acc += hist[b];
+                    if (acc >= target) { cutoffIdx = b; break; }
+                }
+                float cutoff = (cutoffIdx + 1) / 32f;
+
+                var ao = new float[pixels.Length];
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    // 어두운 픽셀일수록 낮은 AO — 선형 페이드(하한 0.55로 클램프해 뭉개짐 방지)
+                    float a = Mathf.Clamp01(lum[i] / Mathf.Max(0.02f, cutoff));
+                    ao[i] = Mathf.Lerp(0.55f, 1f, a);
+                }
+                // 3×3 박스 블러 2패스 — 크레비스 가장자리 부드럽게(랩 어드레싱 — 시임리스)
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    var src = pass == 0 ? ao : (float[])ao.Clone();
+                    for (int y = 0; y < size; y++)
+                    {
+                        for (int x = 0; x < size; x++)
+                        {
+                            float sum = 0f;
+                            for (int dy = -1; dy <= 1; dy++)
+                                for (int dx = -1; dx <= 1; dx++)
+                                    sum += src[((y + dy + size) % size) * size + ((x + dx + size) % size)];
+                            ao[y * size + x] = sum / 9f;
+                        }
+                    }
+                }
+
+                var outTex = new Texture2D(size, size, TextureFormat.RGBA32, false)
+                {
+                    name = "RuntimeAO_From_" + source.name,
+                    wrapMode = TextureWrapMode.Repeat,
+                    filterMode = FilterMode.Bilinear
+                };
+                var outPx = new Color32[size * size];
+                for (int i = 0; i < outPx.Length; i++)
+                {
+                    byte v = (byte)Mathf.RoundToInt(Mathf.Clamp01(ao[i]) * 255f);
+                    outPx[i] = new Color32(v, v, v, 255);   // G 채널 판독 계약 — 전채 동일 값
+                }
+                outTex.SetPixels32(outPx);
+                outTex.Apply(false, false);
+                Object.DestroyImmediate(sampled);   // [125차 후속35-R] EditMode 안전 — Destroy는 에디트모드 금지(테스트 로그 에러 원인)
+                _aoCache[source] = outTex;
+                return outTex;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[IndoorTextureGenerator] AO 합성 실패 — 무AO 폴백: " + e.Message);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// [125차 후속35-R P3-3] 미세 노이즈(타일러블 벨류 노이즈) — 디테일 알베도 맵.
+        /// 반복 타일 위 미세 밝기 변이로 타일 반복감 완화. 32셀 랩 보간으로 좌우/상하 시임리스.
+        /// 결정론(정수 해시) — RNG 없음.
+        /// </summary>
+        public static Texture2D GenerateMicroNoiseTexture(int size = 256)
+        {
+            const int cells = 32;
+            float[] cellValues = new float[cells * cells];
+            for (int cy = 0; cy < cells; cy++)
+                for (int cx = 0; cx < cells; cx++)
+                {
+                    // 정수 해시 — 결정론 시임리스 노이즈
+                    int h = cx * 374761393 + cy * 668265263;
+                    h = (h ^ (h >> 13)) * 1274126177;
+                    h = h ^ (h >> 16);
+                    cellValues[cy * cells + cx] = (h & 0xFFFF) / 65535f;
+                }
+
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                name = "RuntimeMicroNoise",
+                wrapMode = TextureWrapMode.Repeat,
+                filterMode = FilterMode.Bilinear
+            };
+            var px = new Color32[size * size];
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float u = (float)x / size * cells;
+                    float v = (float)y / size * cells;
+                    int x0 = (int)u % cells, y0 = (int)v % cells;
+                    int x1 = (x0 + 1) % cells, y1 = (y0 + 1) % cells;
+                    float fx = u - Mathf.Floor(u), fy = v - Mathf.Floor(v);
+                    fx = fx * fx * (3f - 2f * fx);   // 스무스스텝 보간
+                    fy = fy * fy * (3f - 2f * fy);
+                    float n = Mathf.Lerp(
+                        Mathf.Lerp(cellValues[y0 * cells + x0], cellValues[y0 * cells + x1], fx),
+                        Mathf.Lerp(cellValues[y1 * cells + x0], cellValues[y1 * cells + x1], fx), fy);
+                    byte g = (byte)Mathf.RoundToInt((0.5f + (n - 0.5f) * 0.18f) * 255f);   // ±9% 미세 변이
+                    px[y * size + x] = new Color32(g, g, g, 255);
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, false);
+            return tex;
+        }
+
+        /// <summary>
+        /// [125차 후속36 A4] 모래→에이프런 경계 블렌드 그라데이션 — 가로 방향 페이드(모래색→다진 흙색)
+        /// + 미세 노이즈. 링 메시의 u(내연→외연)에 매핑. 결정론, 시임리스(세로 랩).
+        /// </summary>
+        public static Texture2D GenerateEdgeBlendTexture(int width = 128, int height = 8)
+        {
+            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false)
+            {
+                name = "RuntimeEdgeBlend",
+                wrapMode = TextureWrapMode.Repeat,
+                filterMode = FilterMode.Bilinear
+            };
+            var sand = new Color32(219, 200, 155, 255);     // 모래 베이스(GenerateSand 평균 톤)
+            var apron = new Color32(120, 111, 95, 255);     // 다진 흙 베이스(CreateApron 평균 톤)
+            var px = new Color32[width * height];
+            for (int x = 0; x < width; x++)
+            {
+                float t = (float)x / (width - 1);
+                // 스무스스텝 — 내연(모래)에서 빠르게 시작해 외연(흙)으로 부드럽게
+                float g = t * t * (3f - 2f * t);
+                // 정수 해시 노이즈 ±4% — 기계적 그라데이션 방지(가로 방향만 — 세로는 균일)
+                int h = (int)(x * 2654435761L);   // [수리] 승수가 int 범위 초과 — long 곱 후 캐스트
+                h = (h ^ (h >> 13)) * 1274126177;
+                h = h ^ (h >> 16);
+                float noise = ((h & 0xFF) / 255f - 0.5f) * 0.08f;
+                for (int y = 0; y < height; y++)
+                {
+                    byte r = (byte)Mathf.Clamp(Mathf.Lerp(sand.r, apron.r, g) + noise * 255f, 0f, 255f);
+                    byte gg = (byte)Mathf.Clamp(Mathf.Lerp(sand.g, apron.g, g) + noise * 255f, 0f, 255f);
+                    byte b = (byte)Mathf.Clamp(Mathf.Lerp(sand.b, apron.b, g) + noise * 255f, 0f, 255f);
+                    px[y * width + x] = new Color32(r, gg, b, 255);
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, false);
+            return tex;
         }
     }
 }

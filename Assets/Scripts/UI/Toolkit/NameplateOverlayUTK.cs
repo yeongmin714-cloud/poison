@@ -21,6 +21,8 @@ namespace ProjectName.UI.Toolkit
     ///    마진 40px 스킵. 표시명 MonsterDatabase.displayName, 레벨 MonsterLevelManager.GetLevelDisplay
     ///    ("Lv." 이후), 티어색 EstimateTierByName(녹/노랑/주황/빨강). HP 바 90x8 + cur/max.
     ///  - NPC(NameplateDisplay): 앵커 up*2.0, 카메라 뒤 스킵, 플레이어 3m 이내일 때만 표시(이름만).
+    ///    [102차] 영주(InvadedLordEncounter)가 NameplateDisplay 부모에 붙어 있으면 체력바 슬롯으로
+    ///    승격 — 병사 그라디언트(_gradGuard/_gradGuardWarn) 계승 + 고스트 트레일 동일 계약.
     ///
     /// [배치] UIToolkitBootstrap.Ensure → UIRoot의 "먼저"(index 0)에 부착되어 모든 창보다 아래 깔린다
     /// (첫 자식이 맨 아래). pickingMode=Ignore 전체로 게임 월드 클릭 통과.
@@ -59,17 +61,33 @@ namespace ProjectName.UI.Toolkit
         private const float  SlotW             = 120f;  // 슬롯 컨테이너 폭(중앙정렬 기준)
         private const float  NameH             = 18f;   // 이름 라벨 높이
         private const float  LvH               = 16f;   // 몬스터 Lv 라벨 높이
-        private const float  BarW              = 78f;   // Figma 101:5 gauge-container bounds
+        private const float  BarW              = 78f;   // Figma 101:5 gauge-container 진실치 78 — [80차] PlateW 통일 계약 유지([144차 P8-NP #2] 기록)
         private const float  BarH              = 9.6f;
+        // [80차] 이름표 2행(이름 행/바 행) 폭 통일 — "두 줄 크기가 안맞아 어색" 해소(2026-10-15 HUD 영상 실측:
+        // 병사 이름 행 114px vs 바 78px로 좌우 돌출). 두 행을 PlateW로 강제하고, 몬스터 배지(20+마진4)만큼
+        // 이름 라벨을 PlateW-NameBadgeReserve로 채워 행 외곽선이 정확히 일치하게 한다.
+        private const float  PlateW            = 96f;
+        private const float  NameBadgeReserve  = 24f;
         private const float  NpcH              = 26f;   // NPC 이름표 높이
 
         // 라벨 배경 (다크 갈색 아크릴 반투명) — 요구 rgba(30,24,18,0.82)
         // [F-UI Phase1] GitHub-dark 팔레트 — Figma reference-monster-health-bar(어두운 트로프+적색 채움)
         private static readonly Color LabelBgColor   = new Color(0.086f, 0.114f, 0.133f, 0.92f); // #161B22 패널
         private static readonly Color GoldRing       = new Color(46 / 255f, 52 / 255f, 61 / 255f, 1f); // #2E343D 슬레이트 스트로크
-        private static readonly Color TroughBg       = new Color(0x45 / 255f, 0x12 / 255f, 0x12 / 255f, 1f); // #451212 다크 적색 트로프(HP바 트랙)
+        // [144차 P8-NP] 트로프 #1F242C — 101:5 gauge-container 기준. 판별: 코드 HP바 경로(barWrap+trough)는
+        // 101:5 monster-health-bar 단독 바 구조(루트+게이지 컨테이너)이며 병사/영주/NPC/몬스터가 공유한다.
+        // 110:14 참조판의 hp-bar-track(#451212, 98.4×6 r1.2)은 별도 노드 — 코드에 독립 트랙 없음 → 101:5 기준 적용.
+        private static readonly Color TroughBg       = new Color(0x1F / 255f, 0x24 / 255f, 0x2C / 255f, 1f); // #1F242C 트로프(HP바 트랙)
+        private static readonly Color BarGlassBg     = new Color(0x16 / 255f, 0x1B / 255f, 0x22 / 255f, 0.702f); // #161B22@0.702 — [144차 P8-NP] 101:5 루트 글래스 배경(BACKGROUND_BLUR:24 UTK 미지원 — 반투명 근사)
+        private static readonly Color BarRootStroke  = new Color(0x30 / 255f, 0x36 / 255f, 0x3D / 255f, 0.502f); // #30363D@0.502 — [144차 P8-NP] 101:5 루트 스트로크
+        private static readonly Color GaugeStroke    = new Color(0x4F / 255f, 0x59 / 255f, 0x64 / 255f, 1f);     // #4F5964 — [144차 P8-NP] 101:27 gauge-container 스트로크
+        private static readonly Color StatPanelStroke = new Color(0x7C / 255f, 0xE2 / 255f, 0xFE / 255f, 0.4f);  // #7CE2FE@0.4 — [144차 P8-NP] 110:143 floating-stats-panel 스트로크
+        // [144차 P8-NP] 베벨 하이라이트 — 101:27 스트로크 #4F5964 1.2로 대체됨(참조 잔존)
         private static readonly Color BevelTopHi     = new Color(1f, 1f, 1f, 0.16f);          // 상좌 밝은 하이라이트
         private static readonly Color BevelBottomLo  = new Color(0f, 0f, 0f, 0.45f);          // 하우 어두운 베벨
+
+        // [고스트 체력바 78차] 뒷줄(타격 흔적) 색 — 따뜻한 주황(피격 흔적 가독 — 병사 초록/몬스터 빨강 양쪽 대비)
+        private static readonly Color GhostTrailColor = new Color(1f, 0.72f, 0.35f, 1f);
 
         // 세로 그라디언트 텍스처 해상도 (4x16, 스트레치로 입체 광택)
         private const int    GradW = 4;
@@ -84,7 +102,6 @@ namespace ProjectName.UI.Toolkit
         // ═══════════════ 공유 그라디언트 텍스처 (지연 1회 생성) ═══════════════
         private static Texture2D _gradGuard;      // 병사 정상 — 청록·초록 (상밋→하진)
         private static Texture2D _gradGuardWarn;  // 병사 경고 — 주황·적 (HP<30%)
-        private static Texture2D _gradMonster;    // 몬스터 — 적색 계열
 
         // ═══════════════ 필드 ═══════════════
         private VisualElement _overlayRoot;   // 풀스크린 절대 오버레이 루트
@@ -107,7 +124,7 @@ namespace ProjectName.UI.Toolkit
         private MonsterLevelManager _levelMgr;
 
         // ═══════════════ 유닛 유형 ═══════════════
-        private enum Kind { Guard, Monster, Npc }
+        private enum Kind { Guard, Monster, Npc, Duelist }   // [125차 후속25 R5] Duelist — 결투선수(병사형 이름표 계약)
 
         // ═══════════════ 풀 슬롯 ═══════════════
         private sealed class Slot
@@ -124,6 +141,8 @@ namespace ProjectName.UI.Toolkit
             public GuardPlaceholder guard;
             public AnimalAI monster;
             public NameplateDisplay npc;
+            public InvadedLordEncounter lord;   // [102차] NPC 슬롯 승격 — 침략 영주 참조(병사와 동일 HP바)
+            public ArenaDuelFighterTag duelist; // [125차 후속25 R5] 결투선수 — 병사형 이름표(이름행+HP바) 동일 계약
 
             // UI 요소
             public VisualElement root;
@@ -134,13 +153,18 @@ namespace ProjectName.UI.Toolkit
             public VisualElement fill;
             public Label ratioLabel;
 
+            // [고스트 체력바 78차] 뒷줄(타격 흔적) — 풀 재사용 시 owner 비교로 리셋
+            public VisualElement trailFill;
+            public GhostHpDisplay ghost = new GhostHpDisplay();
+            public Object ghostOwner;
+
             // [F5] 몬스터 헤드 — reference-monster-health-bar 구조 (level-badge + 이름 인라인 + 플로팅 스탯)
             public VisualElement nameRow;     // [배지 + 이름] 가로
-            public Label levelBadge;          // 티어색 배경 + 흰 레벨 숫자 (13×18)
-            public VisualElement statPanel;   // floating-stats 3행 (#10151C)
+            public Label levelBadge;          // 티어색 배경 + 흰 레벨 숫자 (110:135 — 15.6×19.2 [144차 P8-NP])
+            public VisualElement statPanel;   // floating-stats 3행 수직 (#10151C@0.22 — HP/공격/의약 [144차 P8-NP #9])
             public Label hpStatVal;
             public Label atkStatVal;
-            public Label spdStatVal;
+            public Label spdStatVal;          // [144차 P8-NP] 3행=의약(medicine) — 실데이터 부재 '—' 표기(필드 키 보존)
 
             public float estHeight; // 종류별 추정 높이(위치 보정)
 
@@ -151,7 +175,10 @@ namespace ProjectName.UI.Toolkit
                 guard = null;
                 monster = null;
                 npc = null;
+                lord = null;                    // [102차] 풀 재사용 오염 방지(80차 패턴)
+                duelist = null;                 // [125차 후속25 R5] 결투선수 슬롯 재사용 오염 방지
                 transform = null;
+                ghostOwner = null;              // [고스트 체력바] 재사용 시 다음 바인드에서 리셋 유도
                 if (root != null) root.style.display = DisplayStyle.None;
             }
         }
@@ -268,6 +295,16 @@ namespace ProjectName.UI.Toolkit
                 if (slot != null) BindNpc(slot, n);
             }
 
+            // [125차 후속25 R5] 결투선수 — 기존 병사형 이름표(이름행+HP바)에 선수 이름 바인딩(사용자 계약).
+            //   커스텀 TextMesh/마커 폐기 — 기존 오버레이 경로만 사용.
+            var duelists = Object.FindObjectsByType<ArenaDuelFighterTag>(FindObjectsSortMode.None);
+            foreach (var f in duelists)
+            {
+                if (f == null || !f.IsAlive) continue;
+                Slot slot = AcquireOrGetSlot(f.GetInstanceID(), f);
+                if (slot != null) BindDuelist(slot, f);
+            }
+
             // ── 미할당(사망/파괴/해제) 슬롯 회수 ──
             _removeScratch.Clear();
             foreach (var kv in _slotByUnit)
@@ -338,8 +375,12 @@ namespace ProjectName.UI.Toolkit
             slot.guard = g;
             slot.monster = null;
             slot.npc = null;
+            slot.lord = null;                  // [102차] 풀 재사용 오염 방지
+            slot.duelist = null;               // [125차 후속25 R5] 슬롯 재사용 오염 방지
             slot.headOffset = 2.2f;            // GuardHeadUI 앵커 계승
             slot.estHeight = NameH + BarH + 4f;
+            slot.nameRow.style.width = PlateW;                 // [80차] 두 행 폭 통일(풀 재사용 오염 방지 재설정)
+            slot.nameLabel.style.width = PlateW;               // [80차] 배지 없는 병사 — 라벨이 행 전체를 채움
             slot.lvLabel.style.display = DisplayStyle.None;
             slot.levelBadge.style.display = DisplayStyle.None;   // [F5] 배지 — 병사 미표시
             slot.statPanel.style.display = DisplayStyle.None;    // [F5] 스탯 — 병사 미표시
@@ -352,8 +393,10 @@ namespace ProjectName.UI.Toolkit
             slot.monster = m;
             slot.guard = null;
             slot.npc = null;
+            slot.lord = null;                  // [102차] 풀 재사용 오염 방지
+            slot.duelist = null;               // [125차 후속25 R5] 슬롯 재사용 오염 방지
             // [F5] 배지(18) + 이름(18) 행 + 바(10+여백) + 스탯패널(~26)
-            slot.estHeight = NameH + BarH + 4f + 30f + 8f;
+            slot.estHeight = NameH + BarH + 4f + 60f + 8f;   // [144차 P8-NP #9] 스탯 패널 3행 수직화 → 여유 30→60
             slot.lvLabel.style.display = DisplayStyle.None;        // [F5] 배지로 대체
             slot.levelBadge.style.display = DisplayStyle.Flex;     // [F5] 티어색 배지
             slot.statPanel.style.display = DisplayStyle.Flex;      // [F5] floating-stats
@@ -366,31 +409,60 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
+        private void BindDuelist(Slot slot, ArenaDuelFighterTag f)
+        {
+            // [125차 후속25 R5] 병사형 이름표 계약(BindGuard 동일 레이아웃) — 이름행+HP바, 배지/스탯 없음
+            slot.kind = Kind.Duelist;
+            slot.duelist = f;
+            slot.guard = null;
+            slot.monster = null;
+            slot.npc = null;
+            slot.lord = null;
+            slot.headOffset = 2.2f;            // 병사 앵커 계승
+            slot.estHeight = NameH + BarH + 4f;
+            slot.nameRow.style.width = PlateW;
+            slot.nameLabel.style.width = PlateW;
+            slot.lvLabel.style.display = DisplayStyle.None;
+            slot.levelBadge.style.display = DisplayStyle.None;
+            slot.statPanel.style.display = DisplayStyle.None;
+            slot.barWrap.style.display = DisplayStyle.Flex;
+        }
+
         private void BindNpc(Slot slot, NameplateDisplay n)
         {
             slot.kind = Kind.Npc;
             slot.npc = n;
             slot.guard = null;
             slot.monster = null;
+            slot.duelist = null;               // [125차 후속25 R5] 슬롯 재사용 오염 방지
+            // [102차] 영주 판정 — NameplateDisplay 부모 체인의 InvadedLordEncounter. 있으면
+            // 병사와 동일하게 이름+체력바 2행 슬롯으로 승격(풀 재사용 오염 방지 — 매 바인드 재판정).
+            slot.lord = n != null ? n.GetComponentInParent<InvadedLordEncounter>() : null;
             slot.headOffset = 2.0f;            // NameplateDisplay 앵커 계승
-            slot.estHeight = NpcH;
+            slot.estHeight = slot.lord != null ? NameH + BarH + 4f : NpcH;   // [102차] 영주=병사 2행 높이
+            slot.nameRow.style.width = PlateW;                 // [80차] NPC 이름 pill도 동일 폭(시각 일관성)
+            slot.nameLabel.style.width = PlateW;
             slot.lvLabel.style.display = DisplayStyle.None;
             slot.levelBadge.style.display = DisplayStyle.None;   // [F5]
             slot.statPanel.style.display = DisplayStyle.None;    // [F5]
-            slot.barWrap.style.display = DisplayStyle.None;
+            slot.barWrap.style.display = slot.lord != null
+                ? DisplayStyle.Flex                              // [102차] 영주 — 체력바 표시
+                : DisplayStyle.None;
         }
 
         // ═══════════════ 프레임 갱신 ═══════════════
         private void RefreshSlot(Slot slot)
         {
-            // 사망/파괴 유닛 — 해제 대상으로 표시(다음 스캔에서 회수)
-            if (!SlotAlive(slot)) { slot.used = false; return; }
+            // 사망/파괴 유닛 — [80차] 즉시 숨김 수리: used=false만 두면 루트가 마지막 위치에 DisplayStyle.Flex로
+            // 남아 다음 스캔 회수(최대 0.3s)까지 이름표가 빈 공중에 부유했다(HUD 영상 00:50~ 실측).
+            if (!SlotAlive(slot)) { slot.used = false; Hide(slot); return; }
 
             switch (slot.kind)
             {
                 case Kind.Guard:   RefreshGuard(slot); break;
                 case Kind.Monster: RefreshMonster(slot); break;
                 case Kind.Npc:     RefreshNpc(slot); break;
+                case Kind.Duelist: RefreshDuelist(slot); break;   // [125차 후속25 R5]
             }
         }
 
@@ -402,8 +474,28 @@ namespace ProjectName.UI.Toolkit
                 case Kind.Guard:   return slot.guard != null && slot.guard.IsAlive;
                 case Kind.Monster: return slot.monster != null && slot.monster.IsAlive;
                 case Kind.Npc:     return slot.npc != null;
+                case Kind.Duelist: return slot.duelist != null && slot.duelist.IsAlive;   // [125차 후속25 R5]
                 default: return false;
             }
+        }
+
+        private void RefreshDuelist(Slot slot)
+        {
+            // [125차 후속25 R5] 결투선수 — 병사형 그라디언트/고스트 트레일 계약 완전 재사용(신규 UI 없음)
+            ArenaDuelFighterTag f = slot.duelist;
+            if (f == null) return;
+
+            float ratio = f.HpFraction;
+            float front = TickGhost(slot, f, ratio);
+            slot.nameLabel.text = f.DisplayName;
+            SetFillWidth(slot, front);
+            SetTrailWidth(slot, slot.ghost.Trail);
+            slot.fill.style.backgroundImage = ratio < 0.3f
+                ? UTKTextureSafe.ToBackground(_gradGuardWarn)
+                : UTKTextureSafe.ToBackground(_gradGuard);
+            slot.ratioLabel.text = Mathf.RoundToInt(ratio * 100f).ToString() + "%";
+
+            PlaceSlot(slot);
         }
 
         // ─── 뱡사 ───
@@ -413,8 +505,10 @@ namespace ProjectName.UI.Toolkit
             if (g == null) return;
 
             float ratio = g.MaxHP > 0f ? Mathf.Clamp01(g.CurrentHP / g.MaxHP) : 0f;
+            float front = TickGhost(slot, g, ratio);          // [고스트 체력바] 앞줄=실제 즉시, 뒷줄 추격
             slot.nameLabel.text = g.GuardName + " Lv." + g.Level.ToString();
-            SetFillWidth(slot, ratio);
+            SetFillWidth(slot, front);
+            SetTrailWidth(slot, slot.ghost.Trail);
             // 경고 전환: HP<30% → 주황·적 / 그 외 청록·초록 (몬스터 제외 뱡사만)
             slot.fill.style.backgroundImage = ratio < 0.3f
                 ? UTKTextureSafe.ToBackground(_gradGuardWarn)
@@ -434,19 +528,26 @@ namespace ProjectName.UI.Toolkit
             Color tierColor = ResolveTierColor(displayName);
 
             slot.nameLabel.text = displayName;
-            slot.nameLabel.style.width = StyleKeyword.Auto;   // [F5] 이름은 배지 옆 flex — 배지 함몰 방지 위해 auto
+            // [80차] 이름 행 폭 = 바 행 폭 통일 — 배지(20+마진4)를 제외한 라벨이 행 나머지를 채워
+            // 행 외곽이 96px로 바와 정확히 일치(구: 라벨 auto 폭 → 이름 길이마다 행 폭 들쭉날쭉).
+            slot.nameRow.style.width = PlateW;
+            slot.nameLabel.style.width = PlateW - NameBadgeReserve;
             // [F5] 레벨 배지 — 티어색 배경 + 흰 숫자 (reference level-badge)
             slot.levelBadge.text = m.Level.ToString();
             slot.levelBadge.style.backgroundColor = new StyleColor(tierColor);
 
             float ratio = m.MaxHP > 0f ? Mathf.Clamp01(m.CurrentHP / m.MaxHP) : 0f;
-            SetFillWidth(slot, ratio);
-            // [F5] reference HP fill = 플랫 #E53E3E (기존 그라디언트 텍스처 → 단순 플랫)
-            slot.fill.style.backgroundImage = StyleKeyword.Null;
-            slot.fill.style.backgroundColor = new StyleColor(new Color(0xE5 / 255f, 0x3E / 255f, 0x3E / 255f, 1f));
+            float front = TickGhost(slot, m, ratio);          // [고스트 체력바] 앞줄=실제 즉시, 뒷줄 추격
+            SetFillWidth(slot, front);
+            SetTrailWidth(slot, slot.ghost.Trail);
+            // [무번호 179] 몬스터 체력바 = 병사 체력바 동일 계약 — 청록·초록 그라디언트 + HP<30% 주황·적 경고
+            //   (구: [F5] 플랫 #E53E3E 적색 단일 — 경고 전환 없음. 사용자 지시 "몬스터 체력바도 그냥 병사 체력바와 동일")
+            slot.fill.style.backgroundImage = ratio < 0.3f
+                ? UTKTextureSafe.ToBackground(_gradGuardWarn)
+                : UTKTextureSafe.ToBackground(_gradGuard);
             slot.ratioLabel.text = Mathf.RoundToInt(ratio * 100f).ToString() + "%";
 
-            // [F5] floating-stats — HP / 공격력 / 속도
+            // [F5] floating-stats — 3행: HP / 공격 / 의약 [144차 P8-NP #9 P0]
             if (slot.hpStatVal != null)
                 slot.hpStatVal.text = m.CurrentHP < 0 ? "0" : Mathf.RoundToInt(m.CurrentHP).ToString();
             if (slot.atkStatVal != null)
@@ -455,7 +556,7 @@ namespace ProjectName.UI.Toolkit
                 slot.atkStatVal.text = def != null ? def.baseDamage.ToString() : "?";
             }
             if (slot.spdStatVal != null)
-                slot.spdStatVal.text = m.CurrentSpeed <= 0f ? "0" : Mathf.RoundToInt(m.CurrentSpeed).ToString();
+                slot.spdStatVal.text = "—";   // [144차 P8-NP #9] 3행 라벨=의약(medicine) — 게임 데이터에 의약 실데이터 부재 → '—' 표기(기록). 구 CurrentSpeed 피드 제거(데이터 키·필드는 무손상 보존)
 
             PlaceSlot(slot);
         }
@@ -465,6 +566,38 @@ namespace ProjectName.UI.Toolkit
         {
             NameplateDisplay n = slot.npc;
             if (n == null) return;
+
+            // [102차] 영주 슬롯 — 종결/사망 시 즉시 숨김(SlotAlive의 Npc 경로는 npc 파괴만 보므로
+            // RefreshNpc 내부에서 먼저 처리해 RefreshSlot 충돌 없이 정리).
+            InvadedLordEncounter lord = slot.lord;
+            if (lord != null)
+            {
+                if (lord.IsDead || lord.State == InvadedLordEncounter.EncounterState.Resolved)
+                { slot.used = false; Hide(slot); return; }
+
+                RefreshPlayer();   // 0.5s 캐시
+                bool lordNearby = false;
+                if (_playerRoot != null)
+                {
+                    float dSqr = (n.transform.position - _playerRoot.position).sqrMagnitude;
+                    lordNearby = dSqr <= n.InteractRange * n.InteractRange;
+                }
+                if (!lordNearby) { Hide(slot); return; }
+
+                slot.nameLabel.text = n.DisplayName;            // "👑 세드릭 경" 그대로
+                float lordRatio = lord.MaxHP > 0f ? Mathf.Clamp01(lord.CurrentHP / lord.MaxHP) : 0f;
+                float lordFront = TickGhost(slot, lord, lordRatio);   // [고스트 체력바] 앞줄=실제 즉시, 뒷줄 추격
+                SetFillWidth(slot, lordFront);
+                SetTrailWidth(slot, slot.ghost.Trail);
+                // [102차] 영주=병사 그라디언트 계승(_gradGuard/_gradGuardWarn — EnsureElements의 fill 배경과 공용)
+                slot.fill.style.backgroundImage = lordRatio < 0.3f
+                    ? UTKTextureSafe.ToBackground(_gradGuardWarn)
+                    : UTKTextureSafe.ToBackground(_gradGuard);
+                slot.ratioLabel.text = Mathf.RoundToInt(lordRatio * 100f).ToString() + "%";
+
+                PlaceSlot(slot);
+                return;
+            }
 
             RefreshPlayer();   // 0.5s 캐시
             bool nearby = false;
@@ -513,6 +646,26 @@ namespace ProjectName.UI.Toolkit
         {
             float pct = Mathf.Clamp01(ratio) * 100f;
             slot.fill.style.width = new Length(pct, LengthUnit.Percent);
+        }
+
+        /// <summary>[고스트 체력바 78차] 뒷줄(타격 흔적) 폭 — 앞줄보다 클 때만 보인다(오른쪽 갭).</summary>
+        private void SetTrailWidth(Slot slot, float ratio)
+        {
+            if (slot.trailFill == null) return;
+            float pct = Mathf.Clamp01(ratio) * 100f;
+            slot.trailFill.style.width = new Length(pct, LengthUnit.Percent);
+        }
+
+        /// <summary>[고스트 체력바 78차] 슬롯 틱 — 유닛 교체(풀 재사용) 리셋 + 앞줄 즉시/뒷줄 추격. 실제 비율 반환.</summary>
+        private float TickGhost(Slot slot, Object owner, float actualRatio)
+        {
+            if (!ReferenceEquals(slot.ghostOwner, owner))
+            {
+                slot.ghostOwner = owner;
+                slot.ghost.Reset(actualRatio);
+            }
+            slot.ghost.Tick(actualRatio, Time.deltaTime);
+            return slot.ghost.Front;
         }
 
         private void Hide(Slot slot)
@@ -600,16 +753,24 @@ namespace ProjectName.UI.Toolkit
             slot.nameRow.pickingMode = PickingMode.Ignore;
             slot.root.Add(slot.nameRow);
 
-            // 레벨 배지 — 티어색 배경 + 흰 숫자 (reference-monster-health-bar level-badge, 13×18)
+            // 레벨 배지 — 티어색 배경 + 흰 숫자 (reference-monster-health-bar level-badge 110:135)
+            // [144차 P8-NP] 15.6×19.2(구 20×18) + 스트로크 #FFFFFF@0.502 0.6 + 좌우 pad 4.8 신설, r3 유지
             slot.levelBadge = new Label();
-            slot.levelBadge.style.width = 20f;
-            slot.levelBadge.style.height = 18f;
+            slot.levelBadge.style.width = 15.6f;
+            slot.levelBadge.style.height = 19.2f;
             slot.levelBadge.style.fontSize = 12f;
             slot.levelBadge.style.unityFontStyleAndWeight = UnityEngine.FontStyle.Bold;
             slot.levelBadge.style.unityTextAlign = TextAnchor.MiddleCenter;
             slot.levelBadge.style.color = new StyleColor(Color.white);
             slot.levelBadge.style.borderTopLeftRadius = 3f; slot.levelBadge.style.borderTopRightRadius = 3f;
             slot.levelBadge.style.borderBottomLeftRadius = 3f; slot.levelBadge.style.borderBottomRightRadius = 3f;
+            slot.levelBadge.style.borderTopWidth = 0.6f; slot.levelBadge.style.borderBottomWidth = 0.6f;
+            slot.levelBadge.style.borderLeftWidth = 0.6f; slot.levelBadge.style.borderRightWidth = 0.6f;
+            slot.levelBadge.style.borderTopColor = new StyleColor(new Color(1f, 1f, 1f, 0.502f));
+            slot.levelBadge.style.borderBottomColor = new StyleColor(new Color(1f, 1f, 1f, 0.502f));
+            slot.levelBadge.style.borderLeftColor = new StyleColor(new Color(1f, 1f, 1f, 0.502f));
+            slot.levelBadge.style.borderRightColor = new StyleColor(new Color(1f, 1f, 1f, 0.502f));
+            slot.levelBadge.style.paddingLeft = 4.8f; slot.levelBadge.style.paddingRight = 4.8f;
             slot.levelBadge.style.marginRight = 4f;
             slot.levelBadge.pickingMode = PickingMode.Ignore;
             slot.levelBadge.style.display = DisplayStyle.None;
@@ -626,9 +787,9 @@ namespace ProjectName.UI.Toolkit
             slot.nameLabel.style.borderRightColor = new StyleColor(GoldRing);
             slot.nameLabel.style.borderTopLeftRadius = 4f; slot.nameLabel.style.borderTopRightRadius = 4f;
             slot.nameLabel.style.borderBottomLeftRadius = 4f; slot.nameLabel.style.borderBottomRightRadius = 4f;
-            slot.nameLabel.style.width = SlotW - 6f;
+            slot.nameLabel.style.width = PlateW;   // [80차] 이름 행 폭 = 바 행 폭 통일
             slot.nameLabel.style.height = NameH;
-            slot.nameLabel.style.fontSize = 12f;
+            slot.nameLabel.style.fontSize = 13.2f;   // [144차 P8-NP] 110:136 monster-name 13.2(lineH 16 — UTK line-height 미지원, NameH=18로 근사)
             slot.nameLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             slot.nameLabel.style.color = new StyleColor(Color.white);
             slot.nameLabel.style.whiteSpace = WhiteSpace.NoWrap;
@@ -645,41 +806,63 @@ namespace ProjectName.UI.Toolkit
             slot.lvLabel.pickingMode = PickingMode.Ignore;
             slot.root.Add(slot.lvLabel);
 
-            // ═══ 입체 HP바 ═══ (요구: 외곽 진흙 테두리 + 상좌 하이라이트/하우 베벨 음각 → 골드 링)
+            // ═══ 입체 HP바 ═══ (101:5 monster-health-bar 구조: 루트 barWrap + 게이지 컨테이너 trough)
             slot.barWrap = new VisualElement();
             slot.barWrap.name = "HpBarFrame";
-            slot.barWrap.style.width = BarW;
+            // [144차 P8-NP #2] Figma 진실치 78(101:5 gauge-container) — [80차] 두 행 폭 통일 계약 유지
+            // (barWrap.width=PlateW=96 의도적 통일, 구 78 — 폭 계약은 유지+기록)
+            slot.barWrap.style.width = PlateW;
             slot.barWrap.style.height = BarH;
             slot.barWrap.style.marginTop = 4f;
             slot.barWrap.style.marginBottom = 2f;
             slot.barWrap.style.flexShrink = 0f;
             slot.barWrap.pickingMode = PickingMode.Ignore;
-            // 골드 외곽 링 (봉투 — 창 표시 경계)
-            slot.barWrap.style.borderTopWidth = 1f; slot.barWrap.style.borderBottomWidth = 1f;
-            slot.barWrap.style.borderLeftWidth = 1f; slot.barWrap.style.borderRightWidth = 1f;
-            slot.barWrap.style.borderTopColor = new StyleColor(GoldRing);
-            slot.barWrap.style.borderBottomColor = new StyleColor(GoldRing);
-            slot.barWrap.style.borderLeftColor = new StyleColor(GoldRing);
-            slot.barWrap.style.borderRightColor = new StyleColor(GoldRing);
-            slot.barWrap.style.borderTopLeftRadius = 2f; slot.barWrap.style.borderTopRightRadius = 2f;
-            slot.barWrap.style.borderBottomLeftRadius = 2f; slot.barWrap.style.borderBottomRightRadius = 2f;
+            // [144차 P8-NP #4] 루트 글래스 배경 #161B22@0.702 (101:5 fills — BACKGROUND_BLUR:24 UTK 미지원, 반투명 근사)
+            slot.barWrap.style.backgroundColor = new StyleColor(BarGlassBg);
+            // [144차 P8-NP #5] 루트 스트로크 #30363D@0.502 0.6 (구 GoldRing #2E343D 1px)
+            slot.barWrap.style.borderTopWidth = 0.6f; slot.barWrap.style.borderBottomWidth = 0.6f;
+            slot.barWrap.style.borderLeftWidth = 0.6f; slot.barWrap.style.borderRightWidth = 0.6f;
+            slot.barWrap.style.borderTopColor = new StyleColor(BarRootStroke);
+            slot.barWrap.style.borderBottomColor = new StyleColor(BarRootStroke);
+            slot.barWrap.style.borderLeftColor = new StyleColor(BarRootStroke);
+            slot.barWrap.style.borderRightColor = new StyleColor(BarRootStroke);
+            // [144차 P8-NP #3] 루트 코너 pill — 101:5/101:27 r1198.8 = pill(완전 원형 근사 BarH/2).
+            // 110:14 track r1.2와 공존 — barWrap만 pill, 트로프(trough)는 r2 유지(아래).
+            slot.barWrap.style.borderTopLeftRadius = BarH * 0.5f; slot.barWrap.style.borderTopRightRadius = BarH * 0.5f;
+            slot.barWrap.style.borderBottomLeftRadius = BarH * 0.5f; slot.barWrap.style.borderBottomRightRadius = BarH * 0.5f;
             slot.root.Add(slot.barWrap);
 
-            // 음각 트로프 — 거의 검정 배경 + 내부 상좌 밝은/하우 어두운 베벨
+            // 게이지 컨테이너 트로프 — 101:27 gauge-container 대응
+            // [144차 P8-NP #6] fill #1F242C(101:5 기준 — 판별 주석은 TroughBg 정의 참조).
+            // [144차 P8-NP #10 기록] 110:14 hp-bar-track은 98.4×6 r1.2 vs 101:5 컨테이너 78×9.6 — 코드 바 경로는
+            // 병사/영주/NPC/몬스터 공유 단일 트랙이라 [80차] 폭 통일 계약(PlateW) 유지, 98.4×6 별도 적용 안 함.
+            // [144차 P8-NP #5] 컨테이너 스트로크 #4F5964 1.2 (구 베벨 하이라이트/음각 대체)
             slot.trough = new VisualElement();
             slot.trough.style.position = Position.Absolute;
             slot.trough.style.left = 1f; slot.trough.style.right = 1f;
             slot.trough.style.top = 1f;  slot.trough.style.bottom = 1f;
             slot.trough.style.overflow = Overflow.Hidden;
             slot.trough.style.backgroundColor = new StyleColor(TroughBg);
-            slot.trough.style.borderTopWidth = 1f;  slot.trough.style.borderBottomWidth = 1f;
-            slot.trough.style.borderLeftWidth = 1f; slot.trough.style.borderRightWidth = 1f;
-            slot.trough.style.borderTopColor = new StyleColor(BevelTopHi);
-            slot.trough.style.borderBottomColor = new StyleColor(BevelBottomLo);
-            slot.trough.style.borderLeftColor = new StyleColor(BevelTopHi);
-            slot.trough.style.borderRightColor = new StyleColor(BevelBottomLo);
+            slot.trough.style.borderTopWidth = 1.2f;  slot.trough.style.borderBottomWidth = 1.2f;
+            slot.trough.style.borderLeftWidth = 1.2f; slot.trough.style.borderRightWidth = 1.2f;
+            slot.trough.style.borderTopColor = new StyleColor(GaugeStroke);
+            slot.trough.style.borderBottomColor = new StyleColor(GaugeStroke);
+            slot.trough.style.borderLeftColor = new StyleColor(GaugeStroke);
+            slot.trough.style.borderRightColor = new StyleColor(GaugeStroke);
+            // 트랙 코너 r2 유지(루트 pill화와 공존 — [144차 P8-NP #3])
+            slot.trough.style.borderTopLeftRadius = 2f; slot.trough.style.borderTopRightRadius = 2f;
+            slot.trough.style.borderBottomLeftRadius = 2f; slot.trough.style.borderBottomRightRadius = 2f;
             slot.trough.pickingMode = PickingMode.Ignore;
             slot.barWrap.Add(slot.trough);
+
+            // [고스트 체력바 78차] 뒷줄(타격 흔적) — 채움보다 먼저 추가(아래 깔림), 오른쪽 갭으로 가시
+            slot.trailFill = new VisualElement();
+            slot.trailFill.style.position = Position.Absolute;
+            slot.trailFill.style.left = 0f; slot.trailFill.style.top = 0f; slot.trailFill.style.bottom = 0f;
+            slot.trailFill.style.width = new Length(0f, LengthUnit.Percent);
+            slot.trailFill.style.backgroundColor = new StyleColor(GhostTrailColor);
+            slot.trailFill.pickingMode = PickingMode.Ignore;
+            slot.trough.Add(slot.trailFill);
 
             // 채움 — 세로 그라디언트 (상밋→하진 광택)
             slot.fill = new VisualElement();
@@ -703,30 +886,31 @@ namespace ProjectName.UI.Toolkit
             slot.ratioLabel.pickingMode = PickingMode.Ignore;
             slot.trough.Add(slot.ratioLabel);
 
-            // [F5] floating-stats 패널 (#10151C, 3행: HP/공격력/속도 — reference-monster-health-bar)
+            // [F5] floating-stats 패널 (110:143) — [144차 P8-NP #9 P0] Row 1행 → Vertical 3행(HP/공격/의약).
+            // Figma 원문: 30.6×27.2(18.8 아님), VERTICAL gap 2.448, pad 3.672, r1.8,
+            // fill #10151C@0.22, stroke #7CE2FE@0.4 0.46.
             slot.statPanel = new VisualElement();
-            slot.statPanel.style.flexDirection = FlexDirection.Row;
-            slot.statPanel.style.alignItems = Align.Center;
-            slot.statPanel.style.justifyContent = Justify.Center;
-            slot.statPanel.style.backgroundColor = new StyleColor(new Color(0x10 / 255f, 0x15 / 255f, 0x1C / 255f, 1f)); // #10151C
-            slot.statPanel.style.borderTopLeftRadius = 3f; slot.statPanel.style.borderTopRightRadius = 3f;
-            slot.statPanel.style.borderBottomLeftRadius = 3f; slot.statPanel.style.borderBottomRightRadius = 3f;
-            slot.statPanel.style.borderTopWidth = 1f; slot.statPanel.style.borderBottomWidth = 1f;
-            slot.statPanel.style.borderLeftWidth = 1f; slot.statPanel.style.borderRightWidth = 1f;
-            slot.statPanel.style.borderTopColor = new StyleColor(GoldRing);
-            slot.statPanel.style.borderBottomColor = new StyleColor(GoldRing);
-            slot.statPanel.style.borderLeftColor = new StyleColor(GoldRing);
-            slot.statPanel.style.borderRightColor = new StyleColor(GoldRing);
+            slot.statPanel.style.flexDirection = FlexDirection.Column;
+            slot.statPanel.style.alignItems = Align.Stretch;
+            slot.statPanel.style.backgroundColor = new StyleColor(new Color(0x10 / 255f, 0x15 / 255f, 0x1C / 255f, 0.22f)); // #10151C@0.22 [144차 P8-NP #11]
+            slot.statPanel.style.borderTopLeftRadius = 1.8f; slot.statPanel.style.borderTopRightRadius = 1.8f;
+            slot.statPanel.style.borderBottomLeftRadius = 1.8f; slot.statPanel.style.borderBottomRightRadius = 1.8f;
+            slot.statPanel.style.borderTopWidth = 0.46f; slot.statPanel.style.borderBottomWidth = 0.46f;
+            slot.statPanel.style.borderLeftWidth = 0.46f; slot.statPanel.style.borderRightWidth = 0.46f;
+            slot.statPanel.style.borderTopColor = new StyleColor(StatPanelStroke);
+            slot.statPanel.style.borderBottomColor = new StyleColor(StatPanelStroke);
+            slot.statPanel.style.borderLeftColor = new StyleColor(StatPanelStroke);
+            slot.statPanel.style.borderRightColor = new StyleColor(StatPanelStroke);
             slot.statPanel.style.marginTop = 4f;
-            slot.statPanel.style.paddingTop = 2f; slot.statPanel.style.paddingBottom = 2f;
-            slot.statPanel.style.paddingLeft = 6f; slot.statPanel.style.paddingRight = 6f;
+            slot.statPanel.style.paddingTop = 3.7f; slot.statPanel.style.paddingBottom = 3.7f;
+            slot.statPanel.style.paddingLeft = 3.7f; slot.statPanel.style.paddingRight = 3.7f;
             slot.statPanel.pickingMode = PickingMode.Ignore;
             slot.statPanel.style.display = DisplayStyle.None;
             slot.root.Add(slot.statPanel);
 
-            slot.hpStatVal = BuildStatItem(slot.statPanel, "❤", new Color(0.49f, 0.89f, 1f, 1f));     // #7CE2FE
-            slot.atkStatVal = BuildStatItem(slot.statPanel, "⚔", new Color(0.31f, 0.93f, 0.67f, 1f));   // #4EFEAA
-            slot.spdStatVal = BuildStatItem(slot.statPanel, "💨", new Color(0.31f, 0.93f, 0.67f, 1f));  // #4EFEAA
+            slot.hpStatVal = BuildStatItem(slot.statPanel, "❤", new Color(0.49f, 0.89f, 1f, 1f));     // #7CE2FE — HP
+            slot.atkStatVal = BuildStatItem(slot.statPanel, "⚔", new Color(0.31f, 0.93f, 0.67f, 1f));   // #4EFEAA — 공격
+            slot.spdStatVal = BuildStatItem(slot.statPanel, "💊", new Color(0.31f, 0.93f, 0.67f, 1f));  // #4EFEAA — 의약 [144차 P8-NP #9] 속도→의약(라벨만, 데이터 키 무손상)
 
             UTKWindowBase.ApplyUIToolkitFont(slot.root);
         }
@@ -737,7 +921,8 @@ namespace ProjectName.UI.Toolkit
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
-            row.style.marginRight = 8f;
+            row.style.marginBottom = 2.4f;   // [144차 P8-NP #9] 110:143 VERTICAL gap 2.448 (구 Row 마진 8)
+            row.style.justifyContent = Justify.SpaceBetween;
             row.pickingMode = PickingMode.Ignore;
             parent.Add(row);
 
@@ -765,8 +950,6 @@ namespace ProjectName.UI.Toolkit
                 CreateGradient(new Color(0.42f, 0.90f, 0.62f), new Color(0.16f, 0.52f, 0.30f)); // 뱡사 정상 청록·초록
             _gradGuardWarn =
                 CreateGradient(new Color(1.00f, 0.62f, 0.25f), new Color(0.72f, 0.16f, 0.10f)); // 경고 주황·적
-            _gradMonster =
-                CreateGradient(new Color(0.95f, 0.42f, 0.34f), new Color(0.52f, 0.10f, 0.08f)); // 몬스터 적색
         }
 
         private static Texture2D CreateGradient(Color top, Color bottom)

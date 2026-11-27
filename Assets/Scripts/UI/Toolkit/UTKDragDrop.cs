@@ -54,6 +54,14 @@ namespace ProjectName.UI.Toolkit
         bool Drop(UTKDragPayload payload);
     }
 
+    /// <summary>
+    /// [66차 수리] 백드롭 마커 — UIRoot 전체를 덮는 폴백 타겟(월드 버림 등).
+    /// 커서 아래 "구체 타겟"(핫바 슬롯·인벤 셀 등)이 하나라도 있으면 백드롭은 양보한다.
+    /// 기존: 후등록 우선 체인에서 UIRoot 백드롭이 핫바 슬롯 드롭을 가로채 아이템이 땅에 버려졌다
+    /// (Play 실측 — [UTKDragDrop] targets=[WorldDropTarget,HotbarSlotDropTarget] → World 소비).
+    /// </summary>
+    public interface IUTKBackdropDropTarget : IUTKDropTarget { }
+
     // ─────────────────────────────────────────────────────────────
     // UTKDragDrop — 드래그 라이프사이클 + 드롭 타겟 레지스트리 + 고스트
     // ─────────────────────────────────────────────────────────────
@@ -96,10 +104,27 @@ namespace ProjectName.UI.Toolkit
         /// <summary>드래그 취소/종료 — 고스트 즉시 소멸(애니 없음), 상태 클리어.</summary>
         public static void Cancel()
         {
+            bool wasActive = Active;
             HideGhost();
             Active = false;
             Payload = null;
+            if (wasActive) FireDragEnded();   // [65차 P3] 활성 드래그 종료 시 1회만 통지
         }
+
+        // ─────────────────────────────── [65차 P3] 드래그 피드백 이벤트 ───────────────────────────────
+
+        /// <summary>
+        /// [65차 P3] 드래그 중 패널좌표 이동 통지 — 핫바 숫자패드 하이라이트용(인벤→핫바 드롭 안내).
+        /// OnDragPointerMove(engaged 후)와 PointerUp(드롭 판정 직전)에서 발화.
+        /// </summary>
+        public static event System.Action<Vector2> DragMoved;
+
+        /// <summary>[65차 P3] 드래그 종료 통지(성공/취소 공용, 1회) — 숫자패드 원복용.</summary>
+        public static event System.Action DragEnded;
+
+        private static void FireDragMoved(Vector2 panelPos) => DragMoved?.Invoke(panelPos);
+
+        private static void FireDragEnded() => DragEnded?.Invoke();
 
         /// <summary>
         /// 드롭 완료 — 레지스트리에서 커서 아래 최상위 타겟을 찾아 CanDrop→Drop.
@@ -115,8 +140,15 @@ namespace ProjectName.UI.Toolkit
 
             // [U8 수리] 폴백 체인 — 최상위 타겟이 CanDrop 거부해도 다음 타겟으로 계속 시도
             // (셀 타겟이 Loot/Warehouse 소스를 거부해 창 레벨 수령이 죽던 뿌리 수리)
-            bool consumed = false;
-            var tried = FindDropTargetsAt(_ghostPos);
+            // [66차 수리] 백드롭 양보 — 구체 타겟(핫바 슬롯 등)이 커서 아래 있으면 UIRoot 백드롭 제외.
+            //   후등록 우선이라 UIRoot 월드 버림이 핫바 드롭보다 앞서 아이템이 땅에 버려지던 결함.
+            var allTried = FindDropTargetsAt(_ghostPos);
+            var tried = new List<IUTKDropTarget>();
+            foreach (var t in allTried)
+            {
+                if (!(t is IUTKBackdropDropTarget)) tried.Add(t);
+            }
+            if (tried.Count == 0) tried = allTried;   // 백드롭뿐이면 그대로 시도
             string triedNames = tried.Count > 0 ? string.Join(",", tried.ConvertAll(t => t.GetType().Name).ToArray()) : "없음";
             var invWin = InventoryWindowUTK.Instance;
             var whWin = WarehouseWindowUTK.Instance;
@@ -124,6 +156,7 @@ namespace ProjectName.UI.Toolkit
                 + $" | inv={(invWin != null && invWin.IsOpen ? invWin.worldBound.ToString() : "닫힘")}"
                 + $" | wh={(whWin != null && whWin.IsOpen ? whWin.worldBound.ToString() : "닫힘")}");
 
+            bool consumed = false;
             foreach (var target in tried)
             {
                 if (!target.CanDrop(Payload)) continue;
@@ -275,6 +308,7 @@ namespace ProjectName.UI.Toolkit
 
             _ghostPos = GetPanelPointerPos();   // [U8 수리 v2] 마우스 실측 단일 경로
             MoveGhost(_ghostPos);
+            FireDragMoved(_ghostPos);           // [65차 P3] 숫자패드 피드백 통지
             evt.StopPropagation();
         }
 
@@ -292,6 +326,7 @@ namespace ProjectName.UI.Toolkit
                 _ghostPos = GetPanelPointerPos();   // [U8 수리 v2] 마우스 실측 단일 경로
                 LastDropPos = _ghostPos;
                 MoveGhost(_ghostPos);
+                FireDragMoved(_ghostPos);           // [65차 P3] 드롭 판정 직전 좌표 통지
             }
 
             if (drag.captured)

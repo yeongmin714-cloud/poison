@@ -82,6 +82,16 @@ namespace ProjectName.Systems
 
         public static int AssignedCount => _cells.Count;
 
+        /// <summary>
+        /// 소유 명부 → 파견 수 연동. 배치된 칸 수를 기존 영주별 동시 공격 상한(WarMarchSimulation,
+        /// 영지 보유 수와 무관, 20명)에 맞춰 결정한다. alreadyDeployed = 해당 영주가 이미 파견 중인 수.
+        /// 배치판 칸 수(Columns*Rows)도 같은 상한이어야 하므로 EditMode 테스트에서 일치를 검증한다.
+        /// </summary>
+        public static int ResolveDeployableCount(int alreadyDeployed = 0)
+        {
+            return WarMarchSimulation.ResolveAttackForce(AssignedCount, alreadyDeployed);
+        }
+
         /// <summary>편성 확정 — 배치된 대원에게 칸 오프셋 보행 명령. anchor = 전투 기준점(적 방향 +Z).</summary>
         public static int ApplyFormation(Vector3 anchor)
         {
@@ -90,6 +100,10 @@ namespace ProjectName.Systems
             {
                 var g = kvp.Key;
                 if (g == null) continue;
+                // [45차] 침대 기상 — BedRestEnforcer가 매 프레임 누운 자세로 되돌려 보행과 충돌하는
+                //   것을 사전 제거(기상 시 강제자 파괴+기립). 기상은 역할 배정 경로(AssignTask)와 동일.
+                if (g.IndoorBedIndex > 0)
+                    TerritoryBuilder.WakeFromBed(g);
                 Vector3 target = anchor + CellOffset(kvp.Value);
                 g.IndoorMoveExempt = true;          // 배치 UI 의도 명령 — P14 예외
                 g.SetCommandTarget(target, false);

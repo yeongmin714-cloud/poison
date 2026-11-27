@@ -38,6 +38,10 @@ namespace ProjectName.Systems
         /// <summary>새 슬로우모션 적용(기존 진행 중이어도 재시작). dipDur 동안 targetScale로 디핑, holdDur 홀드, 복원.</summary>
         public void Apply(float targetScale, float dipDur, float holdDur)
         {
+            // [무번호 80-P4] 딥 프리즈 흡수 가드 — HitStopManager FrozenScaleGuard(0.05) 선례:
+            //   딥 프리즈(HitStopManager 0.05) 진행 중 재적용하면 _phaseStartScale을 프리즈 값으로
+            //   캡처해 복원 램프가 프리즈 값에서 시작하는 왜곡이 생긴다 → 조용히 흡수.
+            if (Time.timeScale <= 0.05f) return;
             _phaseStartScale = Time.timeScale;
             _targetScale = Mathf.Clamp(targetScale, 0.05f, 1f);
             _dipDur = Mathf.Max(0.01f, dipDur);
@@ -57,6 +61,10 @@ namespace ProjectName.Systems
         private void Update()
         {
             if (_phase == Phase.Idle) return;
+            // [무번호 80-P4] 딥 프리즈 존중 — HitStopManager(FrozenScaleGuard 0.05 선례)가 timeScale을
+            //   0.05 이하로 고정한 창에서는 타이머 진행과 쓰기를 모두 멈춘다(프리즈가 지배).
+            //   가드 없으면 dip lerp가 매 프레임 프리즈 값을 덮어써 딥 프리즈가 1프레임 만에 사망(80-P4 포렌식).
+            if (Time.timeScale <= 0.05f) return;
             _timer += Time.unscaledDeltaTime;
 
             switch (_phase)

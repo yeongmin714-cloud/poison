@@ -149,6 +149,13 @@ namespace ProjectName.Systems
                 foreach (var npc in _allNPCs)
                     Debug.Log($"  - {npc.npcName} (위치: {npc.homePosition}, 상점: {npc.isShopNPC})");
             }
+
+            // [2026-10-15] 자율 판단 브레인 부착 — 씬 내 기존 NPC(태그/알려진 타입) 전수.
+            // 병사(GuardPlaceholder/GateGuard/Skeleton)·몬스터는 EnsureOn 내부 가드가 제외한다.
+            foreach (var go in found)
+            {
+                if (go != null) ProjectName.Systems.NPCBrain.EnsureOn(go);
+            }
         }
 
         /// <summary>특정 스크립트 타입이 붙은 오브젝트를 찾아 등록</summary>

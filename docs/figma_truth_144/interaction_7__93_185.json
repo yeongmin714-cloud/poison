@@ -1,0 +1,444 @@
+{
+ "id": "93:185",
+ "name": "interaction-panel",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 31690,
+ "ay": 3,
+ "w": 288.0,
+ "h": 64.8,
+ "d": 0,
+ "fills": [
+  "#161B22/1.0@0.702"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.2,
+ "r": 9.6,
+ "fx": [
+  "BACKGROUND_BLUR:24.0:None",
+  "DROP_SHADOW:19.200000762939453:#000000/0.4"
+ ],
+ "layout": "VERTICAL",
+ "gap": 7.200000286102295,
+ "pl": 9.600000381469727,
+ "pr": 9.600000381469727,
+ "pt": 9.600000381469727,
+ "pb": 9.600000381469727,
+ "c": [
+  {
+   "id": "93:186",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 31690,
+   "ay": 3,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "93:187",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 31690,
+     "ay": 3,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "93:188",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 31690,
+     "ay": 3,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "93:189",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 31968,
+   "ay": 3,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "93:190",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 31968,
+     "ay": 3,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "93:191",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 31968,
+     "ay": 3,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "93:192",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 31690,
+   "ay": 58,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "93:193",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 31690,
+     "ay": 58,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "93:194",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 31690,
+     "ay": 58,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "93:195",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 31968,
+   "ay": 58,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "93:196",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 31968,
+     "ay": 58,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "93:197",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 31968,
+     "ay": 58,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "93:198",
+   "name": "ActionGrid",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 31700,
+   "ay": 13,
+   "w": 268.8,
+   "h": 36.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "VERTICAL",
+   "gap": 7.200000286102295,
+   "c": [
+    {
+     "id": "93:199",
+     "name": "GridRow1",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 31700,
+     "ay": 13,
+     "w": 268.8,
+     "h": 36.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 7.200000286102295,
+     "c": [
+      {
+       "id": "93:200",
+       "name": "ActionExecute",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 31700,
+       "ay": 13,
+       "w": 130.8,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#30363D/1.0@0.8"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 7.200000286102295,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:201",
+         "name": "skull",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 31709,
+         "ay": 22,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "93:223",
+           "name": "skull",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 31709,
+           "ay": 22,
+           "w": 16.8,
+           "h": 16.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "93:224",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 31712,
+             "ay": 24,
+             "w": 11.2,
+             "h": 13.3,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "93:203",
+         "name": "Label",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 31733,
+         "ay": 23,
+         "w": 87.6,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "처형하기",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      },
+      {
+       "id": "93:204",
+       "name": "ActionRelease",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 31838,
+       "ay": 13,
+       "w": 130.8,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 7.200000286102295,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:205",
+         "name": "key",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 31847,
+         "ay": 22,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "93:226",
+           "name": "key",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 31847,
+           "ay": 22,
+           "w": 16.8,
+           "h": 16.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "93:227",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 31849,
+             "ay": 24,
+             "w": 13.7,
+             "h": 13.3,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "93:207",
+         "name": "Label",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 31871,
+         "ay": 23,
+         "w": 87.6,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "풀어주기",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 500 Medium",
+         "lineH": 15.5
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

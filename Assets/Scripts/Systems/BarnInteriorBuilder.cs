@@ -32,6 +32,12 @@ namespace ProjectName.Systems
             BuildShelf();
             SetupLighting();
 
+            // [수조 통일] 천장 제거+남측 벽 시각 절단(콜라이더 유지) — 9/20 실내씬 예시 기준
+            IndoorDioramaKit.Apply(_root);
+
+            // [실내 고품질화 P3] 가구/조명/소품 가산 패스.
+            InteriorFurnishingPass.ApplyBuilding(_root, "barn", ROOM_WIDTH, ROOM_DEPTH, null, ROOM_HEIGHT);
+
             Debug.Log("[BarnInteriorBuilder] 헛간 실내 생성 완료!");
         }
 
@@ -69,10 +75,8 @@ namespace ProjectName.Systems
             floor.transform.localScale = new Vector3(ROOM_WIDTH / 10f, 1, ROOM_DEPTH / 10f);
 
             var renderer = floor.GetComponent<MeshRenderer>();
-            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = new Color(0.6f, 0.4f, 0.2f); // light wood
-            mat.SetFloat("_Metallic", 0f);
-            mat.SetFloat("_Smoothness", 0.2f);
+            // [무번호 32] 영지 실내 공통 석타일 — 목재 색 바닥 폐기(씬 통일 계약). Plane UV 0..1 → 1m 타일 스케일.
+            var mat = InteriorQualityBaseline.CreateCommonInteriorFloorMat(ROOM_WIDTH, ROOM_DEPTH, "Barn");
             renderer.material = mat;
         }
 

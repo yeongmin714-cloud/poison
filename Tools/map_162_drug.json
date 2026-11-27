@@ -1,0 +1,172 @@
+[
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_01.glb",
+  "note": "마약 단계 1 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 160.09423,
+    "sat": 0.96421,
+    "val": 10.45775
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_02.glb",
+  "note": "마약 단계 2 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 170.09423,
+    "sat": 1.03921,
+    "val": 9.84619
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_03.glb",
+  "note": "마약 단계 3 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -179.90577,
+    "sat": 1.1142,
+    "val": 9.23462
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_04.glb",
+  "note": "마약 단계 4 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -169.90577,
+    "sat": 1.1892,
+    "val": 8.62306
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_05.glb",
+  "note": "마약 단계 5 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -159.90577,
+    "sat": 1.26419,
+    "val": 8.01149
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_06.glb",
+  "note": "마약 단계 6 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -149.90577,
+    "sat": 1.33918,
+    "val": 7.39993
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_07.glb",
+  "note": "마약 단계 7 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -139.90577,
+    "sat": 1.41418,
+    "val": 6.78836
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_08.glb",
+  "note": "마약 단계 8 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -129.90577,
+    "sat": 1.48917,
+    "val": 6.1768
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_09.glb",
+  "note": "마약 단계 9 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -119.90577,
+    "sat": 1.56417,
+    "val": 5.56524
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/drug_10.glb",
+  "note": "마약 단계 10 (중독성 그라데이션)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -109.90577,
+    "sat": 1.63916,
+    "val": 4.95367
+   }
+  ]
+ }
+]

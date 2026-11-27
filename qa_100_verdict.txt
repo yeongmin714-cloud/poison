@@ -1,0 +1,68 @@
+═══════════════════════════════════════════════════════════════════
+100차 QA 판정서 (EditMode 전수 배치)
+═══════════════════════════════════════════════════════════════════
+실행: Unity 6000.4.10f1 -batchmode -nographics -runTests -testPlatform EditMode
+결과: C:/Unity/code/qa_100_results.xml (1,195,589 bytes) / 로그: qa_100_test.log
+실행시각: 2026-10-18 09:45:06Z ~ 09:45:30Z (duration 23.9s), Unity exit code 2(실패 존재)
+컴파일: qa_100_test.log 내 "error CS" 0건
+
+[정량 대조]
+  BASELINE(99차): total=1299  passed=1288  failed=11
+  RUN 100:        total=1327  passed=1315  failed=12   (inconclusive=0, skipped=0)
+  증분: +28 total / +27 passed / +1 failed  (dropped test = 0)
+
+[판정: 회귀 1건 — 회귀 0 아님]
+
+■ 회귀 (baseline pass → now fail, 1건)
+  ProjectName.Tests.EditMode.DialogueFeedbackTests.
+    DialogueCameraDirector_Contract_FixedFrameH_DiagBoundsY_EndLogOrder_92Followup
+  - 메시지: [92차 후속 F-A] 프레이밍 경로의 MeasureBounds 호출 제거(Begin/Reframe
+    fullBody 분기). Expected: not String containing "MeasureBounds(targetT"
+    But was: <DialogueCameraDirector.cs 전체 소스 — LogFullBodyFrameCheck() 내
+    "Bounds b = MeasureBounds(targetT, out bool has);" 재등장 확인>
+  - 스택: at ...DialogueCameraDirector_Contract_FixedFrameH_DiagBoundsY_EndLogOrder_92Followup ()
+    [0x000a6] in C:\Unity\code\Assets\Scripts\Tests\EditMode\DialogueFeedbackTests.cs:353
+  - 원인 요약(수리 아님, 보고 전용): 100차 F-2가 [99차 F-B] 전신프레임 실측 로그의
+    하단 기준을 bounds min.y → Foot 본으로 교체하며 진단 경로(LogFullBodyFrameCheck,
+    Begin 1회)에서 MeasureBounds(targetT, ...)를 재호출. 프레이밍 산식 자체는
+    1.8m 고정 계약 유지(Begin fullBody/ReframeCamera 분기는 bounds 미사용)이나,
+    해당 계약 테스트는 소스 전체에서 "MeasureBounds(targetT" 부재를 어설션하므로
+    진단 전용 호출도 위반으로 판정. 소스 스캔 어설션 = 결정적(비 flaky).
+
+■ baseline 11건 1:1 (전부 동일하게 잔존 — 신규 실패 없음, 소멸 없음)
+  = AeroLocalizedGasPhase4BTests.IsolatedSessionWithoutConfiguredPipeline_LeavesGlobalPipelineSettingsUntouched
+  = CraftBenchTests.CookingDatabase_AllRecipes_Loaded
+  = InstrumentTests.Performance_TryStart_Success_IsPerforming
+  = InstrumentTests.Performance_DoubleStart_Blocked_WhilePerforming
+  = InstrumentTests.Performance_EndPerformance_ClearsState_AndCooldownBlocks
+  = InvadedLordEncounterTests.DamageIsIgnoredUntilAttackIsChosen_ThenDefeatDoesNotResolveTerritory
+  = InvadedLordEncounterTests.Initialize_StartsNeutralAndRegistersAnUnresolvedLivingLord
+  = MeleeClickOwnershipTests.EachAcceptedAttack_IncrementsStreakUpToExpectedCount(2,2)
+  = MeleeClickOwnershipTests.EachAcceptedAttack_IncrementsStreakUpToExpectedCount(3,3)
+  = RecipeCatalogTests.FindRecipe_UnknownCombo_ReturnsNull
+  = ThemeUssSanityTests.ThemeUss_HasBakedBackgroundPngs
+
+[증분 +28 설명 — 기대 ~1303(+4)과의 차이]
+  신규 테스트 28건, 삭제 0건 → 1299+28=1327. passed 1288+28−1(회귀)=1315. 산술 일치.
+  ① 100차 F-1~F-4 신규 5건 — 전부 통과:
+     + TargetProjectionTests.InteractionPanelUTK_HeadAbovePlacement_And_SemanticAttach_100F1  [F-1]
+     + VillageNpcFKeyTests.InteractionPanelUTK_HeadAboveAttach_Contract_100F1                 [F-1]
+     + DialogueFeedbackTests.DialogueCameraDirector_FootMeasure_And_OcclusionProbe_100F2      [F-2]
+     + VillagerWanderTests.Wanderer_WalkSpeedCacheAdopt_And_LockContract_100F3                [F-3]
+     + ConstructionManagementFigmaTests.Window_Source_100F4_Remasure_And_FillRateProbe        [F-4]
+  ② 본 작업 외 병행 반영분 23건 — 전부 통과(증분 수치의 나머지 설명):
+     + RestaurantDemandMathTests 11건 (GradeBasePrice 3 / VisitorDemandFactor 6 / VisitorRatio 2)
+     + RestaurantSystemTests 3건 (RunDailySale_*100 3건)
+     + RestaurantVisitorTests 8건 (CoinPopup/ComputeVisitorCount/ResolvePurchaseAmount/
+       VisitSeed/VisitorSystem_PureVisual/VisitorSystem_Uses_DemandMath/Wanderer_VisitTarget 등 *_100)
+     + VillageDrugSaveTests.ExportImport_NormalRegisteredPrice_RoundTrip100
+     → F-1~F-4 외 프로젝트 내 기 수용(커밋済) 테스트 증분. 회귀/삭제와 무관.
+  ③ 계약진화 흡수 확인: 기존 테스트 삭제 0건 — 카메라 상수(0.45/1.75)/walkSpeed(0.95/0.85)
+     계약 반영 갱신분은 기존 테스트명 유지 상태에서 흡수 통과(신규+삭제 목록에 부재).
+
+[결론]
+  회귀 0 판정 불가 — 회귀 1건 존재. 수리 금지 지침에 따라 본 판정서는 테스트명+
+  스택+원인 요약만 보고하고 소스/테스트를 일절 수정하지 않음.
+  F-1~F-4 신규 5건은 전부 통과(신규 실패 0). baseline 11건 1:1 잔존 확인.
+═══════════════════════════════════════════════════════════════════
+파서: /tmp/qa100_compare.py (qa_99 ↔ qa_100 결과 XML 대조)

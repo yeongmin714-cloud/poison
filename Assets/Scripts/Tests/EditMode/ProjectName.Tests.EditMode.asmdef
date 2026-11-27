@@ -6,7 +6,8 @@
     "UnityEditor.TestRunner",
     "ProjectName.Core",
     "ProjectName.Systems",
-    "ProjectName.UI"
+    "ProjectName.UI",
+    "Unity.RenderPipelines.Universal.Runtime"
   ],
   "includePlatforms": [
     "Editor"

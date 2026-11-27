@@ -164,8 +164,9 @@ namespace ProjectName.Tests.EditMode
                     .Invoke(host, new object[] { itemData });
                 var firstInputSlot = host.Q<UTKSlot>("cooking-input-slot-0");
                 Assert.That(firstInputSlot, Is.Not.Null);
-                Assert.That(((Label)firstInputSlot.parent[1]).text, Is.EqualTo("사과"),
-                    "The existing placement operation fills the first cooking input slot without consuming inventory.");
+                // [144차 P2-COOK C11] Count 형식 "보유/요구" — 보유 2(사과) / 요구 1(슬롯당 1개 차감).
+                Assert.That(((Label)firstInputSlot.parent[1]).text, Is.EqualTo("2/1"),
+                    "The input slot count uses the Figma 64:41 held/required format without consuming inventory.");
                 Assert.That(inventory.GetItemCount(itemData.id), Is.EqualTo(2), "Placing an ingredient is not consumption.");
             }
             finally
@@ -222,8 +223,11 @@ namespace ProjectName.Tests.EditMode
             var footer = storage.Q<VisualElement>("cooking-storage-footer");
             Assert.That(footer, Is.Not.Null, "Saved Figma StorageFooter must have a runtime counterpart.");
             Assert.That(footer.Q<Label>("cooking-storage-weight-title"), Is.Not.Null);
-            Assert.That(footer.Q<Label>("cooking-storage-weight-value").text, Does.Contain("사용 슬롯 기반"),
-                "PlayerInventory has slot capacity, not weight data; do not claim a numeric weight.");
+            // [144차 P2-COOK C38/C39] 문구 "재료 적재 중량" + 값 "—" — 무게 데이터 부재(위조 금지 D7).
+            Assert.That(footer.Q<Label>("cooking-storage-weight-title").text, Does.Contain("재료 적재 중량"),
+                "Storage footer label must use the Figma 64:332 wording.");
+            Assert.That(footer.Q<Label>("cooking-storage-weight-value").text, Is.EqualTo("—"),
+                "PlayerInventory has slot capacity, not weight data; do not claim a numeric weight (D7).");
             Assert.That(footer.Q<VisualElement>("cooking-storage-progress-track"), Is.Not.Null);
             Assert.That(footer.Q<VisualElement>("cooking-storage-progress-fill"), Is.Not.Null);
             Assert.That(footer.style.width.value.value, Is.EqualTo(456f).Within(0.001f));
@@ -286,6 +290,64 @@ namespace ProjectName.Tests.EditMode
             Assert.That(source, Does.Contain("cooking-storage-progress-fill"));
         }
 
+
+        [Test]
+        public void CookingWindow_144P2Cook_AppliesCraftPanelSurgeryContract()
+        {
+            // [144차 P2-COOK] C행 수술 핵심 수치 계약 — 64:2 진실치 기반.
+            CookingWindowUTK.Ensure();
+            var host = CookingWindowUTK.Instance;
+            var craft = host.Q<VisualElement>("cooking-craft-panel");
+            Assert.That(craft, Is.Not.Null);
+
+            // [C5/C6] 탭바 상단 (24,96,456,37.2) — 활성 108.6 / 비활성 111.
+            var tabs = craft.Q<VisualElement>("cooking-recipe-tabs");
+            Assert.That(tabs, Is.Not.Null);
+            Assert.That(tabs.style.left.value.value, Is.EqualTo(24f).Within(0.001f), "C5 tab bar left");
+            Assert.That(tabs.style.top.value.value, Is.EqualTo(96f).Within(0.001f), "C5 tab bar moved to the Figma 64:23 top position");
+            Assert.That(tabs.style.height.value.value, Is.EqualTo(37.2f).Within(0.001f), "C5 tab bar height");
+            Assert.That(tabs.childCount, Is.EqualTo(4));
+            Assert.That(tabs[0].style.width.value.value, Is.EqualTo(108.6f).Within(0.001f), "C6 active tab width stays 108.6");
+            Assert.That(tabs[1].style.width.value.value, Is.EqualTo(111f).Within(0.001f), "C6 inactive tab width 108.6→111");
+
+            // [C15] Divider (24,366,456,1.2).
+            var divider = craft.Q<VisualElement>("cooking-section-divider");
+            Assert.That(divider, Is.Not.Null, "C15 divider must exist between combination and recipe sections.");
+            Assert.That(divider.style.top.value.value, Is.EqualTo(366f).Within(0.001f));
+            Assert.That(divider.style.height.value.value, Is.EqualTo(1.2f).Within(0.001f));
+
+            // [C18] recipeScroll — Figma 64:69는 RecipeListSection(64:67)의 자식(로컬 top 27 = 절대 413.4).
+            // 구현은 섹션-자식 구조로 배치(렌더 절대 413.4 정합) → 어서션도 섹션-로컬 좌표계로 판정.
+            var recipeList = craft.Q<VisualElement>("cooking-recipe-list");
+            Assert.That(recipeList.style.top.value.value, Is.EqualTo(27f).Within(0.001f), "C18 recipe scroll top(섹션-로컬, 절대 413.4)");
+            Assert.That(recipeList.style.height.value.value, Is.EqualTo(392.6f).Within(0.001f), "C18 recipe scroll height");
+
+            // [C14] EstimatedRate 좌/우 분리 — 2자식(타이틀 + 값).
+            var rateRow = craft.Q<VisualElement>("cooking-rate");
+            Assert.That(rateRow.childCount, Is.EqualTo(2), "C14 rate row must be split into title + value labels.");
+            Assert.That(((Label)rateRow[0]).text, Is.EqualTo("조리 성공 확률"));
+
+            // [C20] CraftFooter (24,825,456,63.2) + 버튼 48.8.
+            var footer = craft.Q<VisualElement>("cooking-craft-footer");
+            Assert.That(footer, Is.Not.Null, "C20 footer container must exist.");
+            Assert.That(footer.style.top.value.value, Is.EqualTo(825f).Within(0.001f));
+            var cookBtn = craft.Q<Button>("cooking-cook-action");
+            Assert.That(cookBtn.style.height.value.value, Is.EqualTo(48.8f).Within(0.001f), "C20 cook button height 456x48.8 inside footer");
+
+            // [C38] StorageFooter track top 48.
+            var storage = host.Q<VisualElement>("cooking-storage-panel");
+            var track = storage.Q<VisualElement>("cooking-storage-progress-track");
+            Assert.That(track.style.top.value.value, Is.EqualTo(48f).Within(0.001f), "C38 storage track top 34.4→48");
+
+            // [C22/C20 문구/C39/C25] 소스 문자열 계약.
+            string source = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/CookingWindowUTK.cs");
+            Assert.That(source, Does.Contain("\"요리 정보\", \"RECIPE\""), "C22 detail header wording.");
+            Assert.That(source, Does.Not.Contain("\"상세 정보\""), "C22 old detail header wording must be gone.");
+            Assert.That(source, Does.Contain("요리 제작하기 (COOK)"), "C20/D7 cook button wording.");
+            Assert.That(source, Does.Contain("재료 적재 중량"), "C39 storage footer wording.");
+            Assert.That(source, Does.Contain("UTKTheme.CreateTierBadge"), "C26 tier badge must use the UTKTheme vocabulary.");
+            Assert.That(source, Does.Not.Contain("new Label(\"◇\")"), "C37 ◇ glyph must be replaced by the circle-dashed approximation.");
+        }
 
         [Test]
         public void CookingStationEntry_RoutesToToolkitCookingWindow()

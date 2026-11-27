@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Failed(Child)" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.073057">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="758" result="Failed" site="Child" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.073057" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1854" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="749" result="Failed" site="Child" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.062038" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="10816" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1855" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="746" result="Failed" site="Child" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.060088" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1856" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="746" result="Failed" site="Child" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.058617" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1857" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="731" result="Failed" site="Child" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.057052" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1100" name="AttackTargetRingTests" fullname="ProjectName.Tests.EditMode.AttackTargetRingTests" classname="ProjectName.Tests.EditMode.AttackTargetRingTests" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.042628" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1117" name="SetExplicitAttackTarget_MethodExistsOnGuardPlaceholder" fullname="ProjectName.Tests.EditMode.AttackTargetRingTests.SetExplicitAttackTarget_MethodExistsOnGuardPlaceholder" methodname="SetExplicitAttackTarget_MethodExistsOnGuardPlaceholder" classname="ProjectName.Tests.EditMode.AttackTargetRingTests" runstate="Runnable" seed="1620244287" result="Failed" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.022185" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  GuardPlaceholder must expose public instance method SetExplicitAttackTarget(IDamageable, Vector3) for explicit enemy focus.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.AttackTargetRingTests.SetExplicitAttackTarget_MethodExistsOnGuardPlaceholder () [0x00038] in C:\Unity\code\Assets\Scripts\Tests\EditMode\AttackTargetRingTests.cs:374
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1118" name="SetExplicitAttackTarget_PinsClickedEnemyOverNearerDistractor" fullname="ProjectName.Tests.EditMode.AttackTargetRingTests.SetExplicitAttackTarget_PinsClickedEnemyOverNearerDistractor" methodname="SetExplicitAttackTarget_PinsClickedEnemyOverNearerDistractor" classname="ProjectName.Tests.EditMode.AttackTargetRingTests" runstate="Runnable" seed="1224536098" result="Failed" start-time="2026-10-13 05:30:11Z" end-time="2026-10-13 05:30:11Z" duration="0.000998" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  precondition: SetExplicitAttackTarget(IDamageable, Vector3) must exist (see MethodExistsOnGuardPlaceholder).
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.AttackTargetRingTests.SetExplicitAttackTarget_PinsClickedEnemyOverNearerDistractor () [0x00038] in C:\Unity\code\Assets\Scripts\Tests\EditMode\AttackTargetRingTests.cs:387
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -26,7 +26,14 @@ namespace ProjectName.Core
         public const float WallPlasterCoverX = 2.2f;     // 회반죽도 동일 그리드
         public const float DecalSizeMeters = 1.2f;       // 짚단 데칼 한 장
 
+        // [125차 후속32 T1] 주점 세트 커버 — 기존 계약 승계(바닥 1장=2.4×2.4m / 벽 1장=2.2×1.1m)
+        public const float TavernFloorCoverMeters = 2.4f;
+        public const float TavernWallCoverX = 2.2f;
+        public const float TavernWallCoverY = 1.1f;
+
         private static Texture2D _floor, _floorN, _wallStone, _wallStoneN, _wallPlaster, _wallPlasterN, _wood, _woodN, _straw;
+        // [125차 후속32 T1] 주점 세트(tavern_*) — 아레나 로비 전용(성 내부 불변 계약 유지 — 기존 5종과 병행)
+        private static Texture2D _tavernFloor, _tavernFloorN, _tavernWallPlaster, _tavernWallPlasterN, _tavernWallTimber, _tavernWallTimberN;
         private static bool _loaded;
 
         /// <summary>[P17] 실내 기둥 표시 여부 — 기본 OFF(예시 이미지 스타일: 기둥 없음).</summary>
@@ -38,6 +45,9 @@ namespace ProjectName.Core
 
         public static bool HasFiles { get { Load(); return _floor != null; } }
 
+        /// <summary>[125차 후속32 T1] 주점 세트 존재 판정 — tavern_floor_plank 로드 성공 여부(파일 부재 시 기존 경로 폴백).</summary>
+        public static bool HasTavernFiles { get { Load(); return _tavernFloor != null; } }
+
         public static Texture2D Floor { get { Load(); return _floor; } }
         public static Texture2D FloorNormal { get { Load(); return _floorN; } }
         public static Texture2D WallStone { get { Load(); return _wallStone; } }
@@ -47,6 +57,12 @@ namespace ProjectName.Core
         public static Texture2D WoodNormal { get { Load(); return _woodN; } }
         public static Texture2D Wood { get { Load(); return _wood; } }
         public static Texture2D StrawDecal { get { Load(); return _straw; } }
+        public static Texture2D TavernFloor { get { Load(); return _tavernFloor; } }
+        public static Texture2D TavernFloorNormal { get { Load(); return _tavernFloorN; } }
+        public static Texture2D TavernWallPlaster { get { Load(); return _tavernWallPlaster; } }
+        public static Texture2D TavernWallPlasterNormal { get { Load(); return _tavernWallPlasterN; } }
+        public static Texture2D TavernWallTimber { get { Load(); return _tavernWallTimber; } }
+        public static Texture2D TavernWallTimberNormal { get { Load(); return _tavernWallTimberN; } }
 
         private static void Load()
         {
@@ -61,9 +77,17 @@ namespace ProjectName.Core
             _wood = Resources.Load<Texture2D>(BasePath + "wood_frame");
             _woodN = Resources.Load<Texture2D>(BasePath + "wood_frame_n");
             _straw = Resources.Load<Texture2D>(BasePath + "floor_straw_decal");
+            // [125차 후속32 T1] 주점 세트 — 아레나 로비 전용(파일 부재 시 null → 기존 경로 폴백)
+            _tavernFloor = Resources.Load<Texture2D>(BasePath + "tavern_floor_plank");
+            _tavernFloorN = Resources.Load<Texture2D>(BasePath + "tavern_floor_plank_n");
+            _tavernWallPlaster = Resources.Load<Texture2D>(BasePath + "tavern_wall_plaster");
+            _tavernWallPlasterN = Resources.Load<Texture2D>(BasePath + "tavern_wall_plaster_n");
+            _tavernWallTimber = Resources.Load<Texture2D>(BasePath + "tavern_wall_timber");
+            _tavernWallTimberN = Resources.Load<Texture2D>(BasePath + "tavern_wall_timber_n");
             Debug.Log($"[IndoorTextureLoader] 로드 — floor={(_floor != null)} normal={(_floorN != null)} " +
                       $"stone={(_wallStone != null)} stoneN={(_wallStoneN != null)} plaster={(_wallPlaster != null)} " +
-                      $"wood={(_wood != null)} straw={(_straw != null)}");
+                      $"wood={(_wood != null)} straw={(_straw != null)} " +
+                      $"tavern[floor={(_tavernFloor != null)} floorN={(_tavernFloorN != null)} plaster={(_tavernWallPlaster != null)} plasterN={(_tavernWallPlasterN != null)} timber={(_tavernWallTimber != null)} timberN={(_tavernWallTimberN != null)}] [125차 후속32 T1]");
         }
 
         /// <summary>Wrap/필터/리니어(노멀) 표준 세팅 — 로드 직후 1회.</summary>

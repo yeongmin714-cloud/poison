@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 01:22:25Z" end-time="2026-10-05 01:22:26Z" duration="1.1279281">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="481" result="Passed" start-time="2026-10-05 01:22:25Z" end-time="2026-10-05 01:22:26Z" duration="1.127928" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1538" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="472" result="Passed" start-time="2026-10-05 01:22:25Z" end-time="2026-10-05 01:22:26Z" duration="1.103373" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="12284" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1539" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="472" result="Passed" start-time="2026-10-05 01:22:25Z" end-time="2026-10-05 01:22:26Z" duration="1.095159" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1540" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="472" result="Passed" start-time="2026-10-05 01:22:25Z" end-time="2026-10-05 01:22:26Z" duration="1.085538" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1541" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="457" result="Passed" start-time="2026-10-05 01:22:25Z" end-time="2026-10-05 01:22:26Z" duration="1.076852" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1527" name="WarehouseFigmaTransferTests" fullname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" classname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-05 01:22:25Z" end-time="2026-10-05 01:22:26Z" duration="1.063045" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1528" name="CanDrop_AcceptsInventoryPayload" fullname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests.CanDrop_AcceptsInventoryPayload" methodname="CanDrop_AcceptsInventoryPayload" classname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" runstate="Runnable" seed="974632286" result="Passed" start-time="2026-10-05 01:22:25Z" end-time="2026-10-05 01:22:26Z" duration="0.791493" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1529" name="CanDrop_RejectsWarehousePayload" fullname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests.CanDrop_RejectsWarehousePayload" methodname="CanDrop_RejectsWarehousePayload" classname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" runstate="Runnable" seed="571632709" result="Passed" start-time="2026-10-05 01:22:26Z" end-time="2026-10-05 01:22:26Z" duration="0.004549" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1531" name="DepositFromInventory_MovesExactlyOneAndConservesStack" fullname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests.DepositFromInventory_MovesExactlyOneAndConservesStack" methodname="DepositFromInventory_MovesExactlyOneAndConservesStack" classname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" runstate="Runnable" seed="964665272" result="Passed" start-time="2026-10-05 01:22:26Z" end-time="2026-10-05 01:22:26Z" duration="0.064898" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[WarehouseUTK] 입고: single-deposit (sourceSlot=0)
+]]></output>
+              </test-case>
+              <test-case id="1532" name="DepositFromInventory_WhenWarehouseFull_FailsWithoutChangingEitherSide" fullname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests.DepositFromInventory_WhenWarehouseFull_FailsWithoutChangingEitherSide" methodname="DepositFromInventory_WhenWarehouseFull_FailsWithoutChangingEitherSide" classname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" runstate="Runnable" seed="563433854" result="Passed" start-time="2026-10-05 01:22:26Z" end-time="2026-10-05 01:22:26Z" duration="0.004937" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[WarehouseUTK] 창고 가득 — 입고 취소(롤백=True): full-warehouse-deposit
+]]></output>
+              </test-case>
+              <test-case id="1530" name="Drop_WarehousePayloadFromDifferentTerritory_DoesNotWithdrawCurrentTerritorySlot" fullname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests.Drop_WarehousePayloadFromDifferentTerritory_DoesNotWithdrawCurrentTerritorySlot" methodname="Drop_WarehousePayloadFromDifferentTerritory_DoesNotWithdrawCurrentTerritorySlot" classname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" runstate="Runnable" seed="2078614710" result="Passed" start-time="2026-10-05 01:22:26Z" end-time="2026-10-05 01:22:26Z" duration="0.003830" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1534" name="RetrieveAll_UsesOriginalDescendingIndicesAndLeavesBlockedItems" fullname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests.RetrieveAll_UsesOriginalDescendingIndicesAndLeavesBlockedItems" methodname="RetrieveAll_UsesOriginalDescendingIndicesAndLeavesBlockedItems" classname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" runstate="Runnable" seed="1756152027" result="Passed" start-time="2026-10-05 01:22:26Z" end-time="2026-10-05 01:22:26Z" duration="0.114032" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[PlayerInventory] 인벤토리 가득 참! retrieve-first x1 못 넣음
+]]></output>
+              </test-case>
+              <test-case id="1533" name="StoreAll_WhenWarehouseFillsMidBatch_AbortsWithoutLosingItems" fullname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests.StoreAll_WhenWarehouseFillsMidBatch_AbortsWithoutLosingItems" methodname="StoreAll_WhenWarehouseFillsMidBatch_AbortsWithoutLosingItems" classname="ProjectName.Tests.EditMode.WarehouseFigmaTransferTests" runstate="Runnable" seed="220942567" result="Passed" start-time="2026-10-05 01:22:26Z" end-time="2026-10-05 01:22:26Z" duration="0.055987" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[WarehouseUTK] 입고: bulk-stack (sourceSlot=0)
+[WarehouseUTK] 창고 가득 — 입고 취소(롤백=True): bulk-stack
+Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

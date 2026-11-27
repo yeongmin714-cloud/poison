@@ -22,6 +22,11 @@ namespace ProjectName.UI.Toolkit
     ///  - 보상 요약: QuestRewardPreview.GetRewardSummary(QuestData)  (ProjectName.UI)
     ///
     /// 폴링 400ms(schedule.Execute().Every) + J 키 토글 / ESC 닫기.
+    ///
+    /// [144차] daily-combat-log(94:6) 매핑 폐기 — 123차 사용자 요청으로 전투로그 시스템은 no-op 스텁
+    /// (Systems/CombatLog.cs)로 폐기됨. 본 창은 퀘스트 저널 기능으로 현상 유지(매핑 해제·기록만 —
+    /// 전투일지 재구현은 폐기 계약 위반이므로 금지). 94:6 공유 크롬 축만 정합 적용:
+    /// 패널 글래스 #161B22@0.702 / 스트로크 #30363D@0.502 1.2 / r14.4 / 코너 데칼 #58A6FF 1.8 / 헤더 하단 구분선.
     /// </summary>
     public class QuestJournalUTK : UTKWindowBase
     {
@@ -128,15 +133,9 @@ namespace ProjectName.UI.Toolkit
         /// <summary>창 크롬(본체/타이틀바/닫기버튼) GitHub-dark 리스타일 — 생성 시 1회.</summary>
         private void ApplyGitHubDarkStyle()
         {
-            // [Figma 93:230 글래스] #161B22@0.85(사용자 조정) + #30363D@0.5 1.2px + r14.4
-            style.backgroundColor = new StyleColor(UTKTheme.GlassPanelFill);
-            style.backgroundImage = new StyleBackground(StyleKeyword.None);
-            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = UTKTheme.GlassStrokeWidth;
-            style.borderTopColor = style.borderBottomColor = style.borderLeftColor = style.borderRightColor = new StyleColor(UTKTheme.GlassPanelStroke);
-            style.borderTopLeftRadius = UTKTheme.GlassRadius;
-            style.borderTopRightRadius = UTKTheme.GlassRadius;
-            style.borderBottomLeftRadius = UTKTheme.GlassRadius;
-            style.borderBottomRightRadius = UTKTheme.GlassRadius;
+            // [144차] 공유 크롬 정합(93:230 어휘) — UTKTheme.ApplyFigmaGlass:
+            //  #161B22@0.702(D1 통일) + #30363D@0.502 1.2 4면 + r14.4. 구 0.85 불투명 크롬 폐기.
+            UTKTheme.ApplyFigmaGlass(this);
             style.color = GitHubDark.TextMain;   // 명시색 없는 라벨 상속색 — 기본 텍스트
 
             var titleBar = this.Q("TitleBar");
@@ -198,7 +197,7 @@ namespace ProjectName.UI.Toolkit
             _content.style.flexDirection = FlexDirection.Column;
             _content.style.paddingLeft = _content.style.paddingRight = 24f;
             _content.style.paddingTop = _content.style.paddingBottom = 24f;
-            AddCornerDecals(_content);   // [Figma 정합 v3] 데칼도 디자인공간(_content) 내부에 두어 창 스케일 k와 함께 등비 축소
+            UTKTheme.AddCornerDecals(_content, 12f, 1.8f);   // [144차] 94:47~58 — 12px 2선/코너 #58A6FF/1.8, UTKTheme 공용 어휘(outside). 구 #2E343D 1.0 로컬 데칼 폐기
 
             // ── PanelHeader 432×52.8 ──
             var panelHeader = new VisualElement { name = "PanelHeader" };
@@ -207,6 +206,9 @@ namespace ProjectName.UI.Toolkit
             panelHeader.style.height = 52.8f;
             panelHeader.style.minHeight = 52.8f;
             panelHeader.style.flexShrink = 0f;
+            // [144차] 헤더 h 52.8 유지 + 하단 구분선 #30363D@0.502 1.2(93:244/94:59 공유 크롬)
+            panelHeader.style.borderBottomWidth = 1.2f;
+            panelHeader.style.borderBottomColor = new StyleColor(UTKTheme.GlassPanelStroke);
             var jTitle = MkLabel("퀘스트 창", UTKTheme.FontTitle, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 21.6/700
             jTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             panelHeader.Add(jTitle);
@@ -275,26 +277,7 @@ namespace ProjectName.UI.Toolkit
             style.top = 48f;
         }
 
-        /// <summary>[Figma 93:230] 패널 4모서리 L자 데칼(12선) — 시각 전용.</summary>
-        private static void AddCornerDecals(VisualElement host)
-        {
-            void Line(float left, float top, float lw, float lh)
-            {
-                var l = new VisualElement();
-                l.style.position = Position.Absolute;
-                l.style.left = left;
-                l.style.top = top;
-                l.style.width = lw;
-                l.style.height = lh;
-                l.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
-                l.pickingMode = PickingMode.Ignore;
-                host.Add(l);
-            }
-            Line(0f, 0f, 12f, 1f); Line(0f, 0f, 1f, 12f);
-            Line(WinW - 12f, 0f, 12f, 1f); Line(WinW - 1f, 0f, 1f, 12f);
-            Line(0f, WinH - 1f, 12f, 1f); Line(0f, WinH - 12f, 1f, 12f);
-            Line(WinW - 12f, WinH - 1f, 12f, 1f); Line(WinW - 1f, WinH - 12f, 1f, 12f);
-        }
+        // [144차] 구 로컬 AddCornerDecals(#2E343D/1.0 8선) 폐기 — UTKTheme.AddCornerDecals 공용 어휘로 교체(위 호출부).
 
         private void SwitchTab(int tab)
         {

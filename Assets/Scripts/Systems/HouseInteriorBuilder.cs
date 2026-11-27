@@ -22,7 +22,7 @@ namespace ProjectName.Systems
             const float roomDepth = 6f;
 
             // ===== 텍스처 생성 =====
-            Texture2D floorTex = IndoorTextureGenerator.GenerateHouseFloor();
+            // [무번호 32] House 전용 바닥 텍스처 폐기 — 영지 실내 공통 석타일(씬 통일 계약).
             Texture2D wallTex = IndoorTextureGenerator.GenerateHouseWall();
             Texture2D ceilingTex = IndoorTextureGenerator.GeneratePlasterWall(256, 256,
                 new Color(0.78f, 0.72f, 0.60f));
@@ -35,15 +35,13 @@ namespace ProjectName.Systems
                     "Ensure URP is installed and assigned in Graphics Settings. " +
                     "Aborting interior generation.");
                 // 생성된 텍스처 정리
-                Object.Destroy(floorTex);
                 Object.Destroy(wallTex);
                 Object.Destroy(ceilingTex);
                 return null;
             }
 
-            Material floorMat = new Material(shader) { name = "House_FloorMat" };
-            floorMat.mainTexture = floorTex;
-            floorMat.color = Color.white;
+            // [무번호 32] 영지 실내 공통 석타일 — 국가 무관 단일 바닥(1m 타일, UV 0..1 쿼드 스케일 정합).
+            Material floorMat = InteriorQualityBaseline.CreateCommonInteriorFloorMat(roomWidth, roomDepth, "House");
 
             Material wallMat = new Material(shader) { name = "House_WallMat" };
             wallMat.mainTexture = wallTex;
@@ -73,7 +71,6 @@ namespace ProjectName.Systems
             matTracker.Track(ceilingMat);
             matTracker.Track(woodMat);
             matTracker.Track(fabricMat);
-            matTracker.TrackTexture(floorTex);
             matTracker.TrackTexture(wallTex);
             matTracker.TrackTexture(ceilingTex);
 
@@ -143,7 +140,7 @@ namespace ProjectName.Systems
             // ===== 조명 설정 =====
             // 따뜻한 앰비언트 + 깜빡임(난로 불빛 연출)
             Color ambientWarm = new Color(0.12f, 0.08f, 0.04f);
-            IndoorLighting.SetupIndoorLighting(room, ambientWarm, 0.28f, true);
+            IndoorLighting.SetupIndoorLighting(room, ambientWarm, 0.38f, true);   // [125차 후속5] 앰비언트 0.28→0.38 상향
 
             Debug.Log("[HouseInteriorBuilder] NPC 주택 실내 생성 완료!");
 
@@ -162,6 +159,11 @@ namespace ProjectName.Systems
             exitBt.BuildingType = "Exit";
             exitBt.InteractRange = 3f;
 
+            // [수조 통일] 천장 제거+남측(카메라 측) 벽 시각 절단(콜라이더 유지) — 9/20 실내씬 예시 기준
+            IndoorDioramaKit.Apply(room);
+
+            // [실내 고품질화 P3] 가구/조명/소품 가산 패스(렌더러 전용 장식 — 앵커 무수정).
+            InteriorFurnishingPass.ApplyBuilding(room, "house", roomWidth, roomDepth, null, roomHeight);
             return room;
         }
 

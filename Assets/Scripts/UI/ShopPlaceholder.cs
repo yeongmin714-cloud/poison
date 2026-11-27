@@ -3,6 +3,7 @@ using ProjectName.UI.Themes;
 using Game.UI.Core;
 using UnityEngine.InputSystem;
 using ProjectName.Core;
+using ProjectName.Systems;   // [43차] EInteractionPromptBridge
 
 namespace ProjectName.UI
 {
@@ -52,7 +53,14 @@ namespace ProjectName.UI
 
             // sqrMagnitude로 거리 비교 (Distance보다 GC/성능 우수)
             float sqrDist = (transform.position - _player.transform.position).sqrMagnitude;
-            if (sqrDist > _interactRange * _interactRange) return;
+            bool nearby = sqrDist <= _interactRange * _interactRange;
+
+            // [43차] 공용 E 월드 프롬프트 — 근접 시 등록, 이탈 시 해제(창 열림 시 UI가 자동 숨김).
+            if (nearby)
+                EInteractionPromptBridge.RaiseRegister(transform, $"[E] {_shopkeeperName} 상점", _interactRange);
+            else
+                EInteractionPromptBridge.RaiseUnregister(transform);
+            if (!nearby) return;
 
             // E키로 상호작용 (Input System)
             if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)

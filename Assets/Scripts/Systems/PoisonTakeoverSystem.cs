@@ -396,6 +396,9 @@ namespace ProjectName.Systems
             TerritoryLootSystem.EnsureTerritoryGold(territoryId);
             TerritoryLootSystem.ConfiscateOnCapture(territoryId);
 
+            // [F1] 플레이어 깃발 게양 — 독살 점령 경로
+            TerritoryCaptureSystem.OnTerritoryCaptured(territoryId, NationType.East, true);
+
             // 점령 완료 등록
             _takenOver.Add(territoryId);
 

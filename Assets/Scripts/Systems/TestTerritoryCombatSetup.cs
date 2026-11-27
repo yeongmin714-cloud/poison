@@ -1,4 +1,4 @@
-// U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
+﻿// U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
 #pragma warning disable 618
 using UnityEngine;
 using ProjectName.Core;
@@ -15,6 +15,11 @@ namespace ProjectName.Systems
     /// </summary>
     public class TestTerritoryCombatSetup : MonoBehaviour
     {
+        // [52차] 병사 키 검증 대상 — CreateGuard가 만든 비주얼 바디(FBX/GLB). 0.9s 후 실측·자가수리.
+        //   근거: 생성 직후 bounds 실측은 SkinnedMeshRenderer가 렌더 갱신 전일 수 있어 실제와 어긋날 수 있고,
+        //   47~51차 4차례 "병사가 작아 보임" 재보고의 잔여 용의선 — 렌더 안정화 후 플레이어와 같은 방식으로 재측정한다.
+        private readonly System.Collections.Generic.List<GameObject> _heightTrackedBodies = new System.Collections.Generic.List<GameObject>();
+
         [Header("배치 좌표")]
         [SerializeField] private Vector3 _lordPos = new Vector3(0, 0, 15);
         [SerializeField] private Vector3 _guardPos = new Vector3(3, 0, 12);
@@ -25,10 +30,47 @@ namespace ProjectName.Systems
         // [2026-10-11] Test_15_Livelihood 전용 게이트 — Awake 최상단에서 판정해 더미/시딩 슬림화에 사용.
         private bool _isLivelihoodScene;
 
+        // [148차] Test_20_LivelihoodResources 전용 게이트 — 자원/낚시 씬 분리(주민스폰 제거·농경만 Test_15 유지).
+        private bool _isLivelihoodResourcesScene;
+
+        // [147차] Test_15 설계 마을 기본 설계 id — BuildPlotFlat 교체용(계획 §5 확정: V1 강변 자급자족 마을,
+        //   표준 설계만 평지 모드 대상). 사용자 지명 시 const 1줄로 교체 가능하게 노출(§6-3 ①).
+        private const string Test15DefaultVillageDesignId = "V1";
+
+        // ═══════════════ [147차] P0 계측 — Awake 주 단계별 Stopwatch ms 누적 + 1줄 요약(계획 §1-3/§6-3) ═══════════════
+        // 용도: 로딩 원인 재분석(§0-C "미측정" 해소) — 단계별 ms 표가 1급 단서.
+        //   첫 Play(강제 리컴파일 ~10.5s 고정비 §0-A) vs 2회차 Play(무변경) 구분 실측은 사용자 Play 로그로 판정.
+        // 동일 키 재호출 시 누적 합산. Stopwatch는 정규한정 — using System.Diagnostics 추가 금지(Debug 모호성, §6-3 ⑤).
+        private readonly System.Collections.Generic.Dictionary<string, long> _p0StageMs =
+            new System.Collections.Generic.Dictionary<string, long>();
+
+        /// <summary>[147차] 단계 실행 + 경과 ms를 동일 키에 누적(예외가 나도 finally로 계측 보장).</summary>
+        private void P0Time(string stageKey, System.Action stage)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            try { stage(); }
+            finally
+            {
+                _p0StageMs[stageKey] = (_p0StageMs.TryGetValue(stageKey, out long prev) ? prev : 0L) + sw.ElapsedMilliseconds;
+            }
+        }
+
+        /// <summary>[147차] Awake 말미 1줄 요약 로그 — P0 판정용(단계별 ms 표).</summary>
+        private void P0LogSummary()
+        {
+            var sb = new System.Text.StringBuilder("[147차][P0] Awake 단계별(ms):");
+            foreach (var kv in _p0StageMs)
+                sb.Append($" {kv.Key}={kv.Value}ms");
+            Debug.Log(sb.ToString());
+        }
+
         private void Awake()
         {
             bool isLivelihoodEarly = gameObject.scene.name != null && gameObject.scene.name.Contains("Livelihood");
             _isLivelihoodScene = isLivelihoodEarly;
+
+            // [148차] Resources 전용 게이트 — isLivelihoodEarly와 동일 패턴(씬명 부분문자열 판정).
+            _isLivelihoodResourcesScene = gameObject.scene.name != null && gameObject.scene.name.Contains("LivelihoodResources");
 
             // Test_10_TerritoryCombat 전용: HighSpec 모드 강제 (메인 씬은 Balanced 기본값 유지)
             ActionFeel.SetMode(ActionFeelMode.HighSpec);
@@ -55,7 +97,7 @@ namespace ProjectName.Systems
             EnsureGameManager();
             SetupCamera();      // 2026-09-10: SetupPlayer보다 먼저 — PlayerMovement.Awake의 "카메라 없음! 생성" 에러 방지
             SetupPlayer();
-            SetupGround();
+            P0Time("SetupGround", SetupGround);   // [147차] P0 계측(§6-3 ②)
             SetupLight();
             EnsureEventSystem();
             // [P21→P21b 사용자 정정] 영지/실내 상호작용(트리거) 전면 제거 — 실내 작업은
@@ -67,7 +109,27 @@ namespace ProjectName.Systems
                 SetupTestDummies();   // 병사 1 + 몬스터 1
             // Test_10은 MainScene의 GameSetup/CoreSystemsBootstrap을 거치지 않으므로
             // UTK 루트/패널을 이 씬에서 명시적으로 준비하고, 자가부트 창은 각 UI 타입 Ensure로 동일하게 보장.
-            SetupUITestArena();            // UTK 창 부트 + 창고·크래프트 박스/전 아이템 시딩
+            P0Time("UTK", SetupUITestArena);   // UTK 창 부트 + 창고·크래프트 박스/전 아이템 시딩 — [147차] P0 계측(§6-3 ②)
+
+            // [무번호 181] Test_10 폭탄 지급 — 퀵슬롯 등록 후 번호키 무장·좌클릭 투척 검증용(BombArmController 선배선).
+            // 기존 지급 블록(Mat_Wood 등 Test15 블록) 무수정 — 신규 블록만(additive). Instance 부재 시 보류 경로(L775 선례).
+            // 씬 가드: 본 Awake는 Test_10/13/14/15/17·Shop 공유 — Test_10_TerritoryCombat에서만 지급(isShopScene 선례).
+            bool isBombTestScene = gameObject.scene.name != null && gameObject.scene.name.Contains("Test_10");
+            if (isBombTestScene)
+            {
+                var bombInv = PlayerInventory.Instance;
+                if (bombInv != null)
+                {
+                    bombInv.AddItem(PlayerInventory.Bomb_Explosive, 3);
+                    bombInv.AddItem(PlayerInventory.Saddle, 1);   // [205차] Test_10 인벤 안장 지급 — 말 길들이기 테스트
+                    Debug.Log("[TestTerritoryCombat] ✅ 폭탄 3개 지급; 안장 1개 지급 — 퀵슬롯 등록 후 번호키 무장·좌클릭 투척");
+                }
+                else
+                {
+                    // [206차] PlayerInventory 부재 → 지연 재시도(3회·1s 간격) — Awake 실행 순서 타이밍 스킵 보강
+                    StartCoroutine(GrantBombAndSaddleDelayed());
+                }
+            }
 
 
             // 2026-09-10: Test_10에 몬스터 없음 — Aggro 등록 없으므로 시스템 인스턴스만 정리 대상.
@@ -86,9 +148,361 @@ namespace ProjectName.Systems
             bool isLordsWarScene = gameObject.scene.name != null && gameObject.scene.name.Contains("LordsWar");
             if (isLordsWarScene) SetupLordsWarVillageTestScene();
 
+            // [62차] Test_17_LordInteraction 전용 — 야외 마을 상호작용(대화 패널) 검증 씬.
+            //   씬 이름에 "LordInteraction"이 들어가면 야외 마을 배치(마을 NPC 2 + 영주 NPC 1 + 내 병사 3 + 적군 병사 3).
+            //   base Awake(플레이어/지형/시스템/UTK + GSM·RTS·Router 자가부트)는 이미 실행됨. IndoorActive는 세팅하지 않음(야외 기본 false).
+            bool isLordInteractionScene = gameObject.scene.name != null && gameObject.scene.name.Contains("LordInteraction");
+            if (isLordInteractionScene) SetupLordInteractionTestScene();
+
             // [2026-10-07] Test_15_Livelihood 전용 — 낚시/채광/채집/농경 4활동 검증 씬.
             // 씬 이름에 "Livelihood" 가 들어가면 배치. base Awake(플레이어/지형/시스템/UTK)는 이미 실행됨.
-            if (_isLivelihoodScene) SetupLivelihoodTestScene();
+            // [148차] 생활씬 스테이지는 Resources 전용 — 자원/낚시 검증은 Test_20_LivelihoodResources로 분리
+            //   (Test_15 경량화: 주민스폰 제거·농경만 유지, 계획 §1-3). SetupLivelihoodTestScene 호출 소멸
+            //   (원복 가능성 대비 보존 — 메서드는 남김).
+            if (_isLivelihoodResourcesScene) P0Time("생활씬", SetupLivelihoodResourcesScene);   // [147차] P0 계측(§6-3 ②) + [148차] Resources 전용 분기 교체
+
+            // [81차] Test_15_Livelihood 전용 — 메인씬 동일 마을 1개(건물+주민) 재현 + 음식점 마약 경영
+            //   검증 상태 시딩(음식점 실제 건설 경로/재고/판매틱). 상세 계약은 메서드 요약 참조.
+            if (_isLivelihoodScene && !_isLivelihoodResourcesScene) SetupTest15VillageDrugEconomy();   // [148차] 마을/마약 경로 — Resources 씬 제외(자원 전용 경량 씬 분리)
+
+            // [147차] P0 요약 — Awake 주 단계별 ms 1줄 로그(계획 §1-3 P0 1급 단서).
+            P0LogSummary();
+
+            // [52차] 병사 키 검증+자가수리 — 렌더 안정화(0.9s) 후 실측(플레이어 대조 로그).
+            //   이 setup 경로로 스폰된 병사가 있을 때만 실행.
+            if (_heightTrackedBodies.Count > 0)
+                StartCoroutine(VerifySoldierHeightsDelayed());
+        }
+
+        /// <summary>[206차] Test_10 폭탄/안장 지급 지연 재시도 — PlayerInventory.Instance 초기화 타이밍 대응.
+        ///   Awake 순서에 따라 Instance가 아직 미성립일 수 있어(기존 즉시 스킵 경로) VerifySoldierHeightsDelayed
+        ///   선례의 코루틴으로 3회·1s 간격 재시도. 성공 시 즉시 종료, 3회 실패 시 경고 로그(스킵 사유 추적).</summary>
+        private System.Collections.IEnumerator GrantBombAndSaddleDelayed()
+        {
+            for (int attempt = 1; attempt <= 3; attempt++)
+            {
+                yield return new WaitForSeconds(1f);
+                var inv = PlayerInventory.Instance;
+                if (inv == null) continue;
+                inv.AddItem(PlayerInventory.Bomb_Explosive, 3);
+                inv.AddItem(PlayerInventory.Saddle, 1);   // [205차] 인벤 안장 동반 지급(말 길들이기 테스트)
+                Debug.Log($"[TestTerritoryCombat] ✅ 폭탄 3개 지급; 안장 1개 지급(지연 재시도 {attempt}회차) — 퀵슬롯 등록 후 번호키 무장·좌클릭 투척");
+                yield break;
+            }
+            Debug.LogWarning("[TestTerritoryCombat] PlayerInventory 3회 재시도 후에도 부재 — 폭탄/안장 지급 보류 [206차]");
+        }
+
+        // ═══════════════ [81차] Test_15 마을 + 음식점 마약 경영 검증 ═══════════════
+        /// <summary>
+        /// Test_15_Livelihood 전용 — 메인씬과 동일 코드로 마을 1개(건물+주민)를 재현하고 음식점
+        /// 마약 경영(D1~D5) 엔드투엔드 검증 상태를 시딩한다. (사용자 요구: "메인씬 마을 하나를 그대로
+        /// 구현해서 밀매(마약 경영) 시스템이 가능하게 확인")
+        ///  ①마을: VillagePlacementSystem 결정론 좌표 중 플레이어 스폰에서 가장 가까운 '일반'(비촌락) 마을
+        ///    → [147차] Village5DesignRenderer.BuildPlotFlat(기본 설계 id const — 설계 배치표 마을, 울타리 링 270 소멸)
+        ///    → 대표면 상점주인 [148차] 주민 스폰은 제거(Awake 15.5s 절감) — 자원/낚시 검증은 Test_20 분리
+        ///  ②음식점: 실제 건설 경로(골드600/나무5/돌3 시드 → TryPlace → ForceComplete → StructureCompleted
+        ///    → RestaurantPropBuilder 실물 + SetRestaurantBuilt). 위치 = 마을 중심→성 방향 12m
+        ///    (영지 반경 60m 내 보장 + 마을 반경 45m 매칭 내). TryPlace 실패 시 플래그만 세팅(실물 생략).
+        ///  ③재고: 마약 요리(drugged_cook_01, 3단계, 30개, 기본가 30) + 일반 요리(20개, 기본가 10)
+        ///    + 등록가 30(권장가 = 기본가 — 수요 팩터 1.0 시작)
+        ///  ④판매 담당 병사: 씬 내 GuardPlaceholder.StableId(없으면 GTEST01 — 발각 시 실체 부재 경로)
+        ///  ⑤틱: TimeManager.GetOrCreate + RestaurantDailyTicker 부착(OnDayStart → RunAllDaily — 프로덕션 경로)
+        ///  ⑥Y키: 일일 판매 틱 즉시 1회(검증 루프 단축용 숏컷 — RunAllDaily+이탈 판정)
+        /// </summary>
+        private void SetupTest15VillageDrugEconomy()
+        {
+            try
+            {
+                // ① 마을 선택 — 플레이어 스폰에서 가장 가까운 '일반'(비촌락) 마을 (결정론)
+                var playerGO = GameObject.FindGameObjectWithTag("Player");
+                Vector3 origin = playerGO != null ? playerGO.transform.position : Vector3.zero;
+                VillagePlacementSystem.VillageInfo best = default;
+                float bestDist = float.MaxValue;
+                bool found = false;
+                foreach (var v in VillagePlacementSystem.GetAllVillages())
+                {
+                    if (v.isHamlet) continue;   // 일반 마을만 — 주민 6~10명(판매 수요 실측 최적)
+                    float d = (v.center - origin).sqrMagnitude;
+                    if (d < bestDist) { bestDist = d; best = v; found = true; }
+                }
+                if (!found)
+                {
+                    Debug.LogWarning("[Test15VillageDrug] 마을 조회 실패 — 마을/마약 경영 셋업 스킵");
+                    // [142차 C2] 폴백 — 마을 미발견 시 원점 앵커(호수 남측 배치 유지: dOut=남).
+                    SetupLivelihoodCompactCluster(Vector3.zero, Vector3.forward * 10f);
+                    return;
+                }
+                Debug.Log($"[Test15VillageDrug] 마을 선택: {best.nation} #{best.index} center=({best.center.x:F1},{best.center.z:F1}) dist={Mathf.Sqrt(bestDist):F0}m (메인씬 동일 좌표)");
+
+                // [149차 P1] 농경 아군 영지 시딩(Test_15 전용) — 밭(FarmingManager.SpawnPlots East#1)의 소유 판정 통과.
+                //   FarmPlot.ValidateOwnership은 TerritoryDatabase PlayerOwned를 요구하고, 미시딩 시
+                //   "아군 영지에서만 경작 가능"으로 Grass 강제된다(사용자 보고). Test_10(L1933)/Test_14(L779) 선례와
+                //   동일한 프로덕션 상태 API — 배너/가드 색상은 소유 전환의 정상 부작용(검증에 유리).
+                TerritoryDatabase.Instance.SetOwnership(NationType.East, 1, TerritoryOwnership.PlayerOwned);
+                Debug.Log("[149차] ✅ 농경 아군 영지 시딩 — East_01 PlayerOwned (밭 경작 가능)");
+
+                // [146차] Test_15 기본 지형 복귀 — Idyllic 플롯/쇼케이스 10마을 빌드 제거(로딩 경량화, 사용자 지시). 메인씬 Idyllic 무영향(Village5 호출점은 본 파일이 유일). [145차 P2b] H1 분기는 Village5DesignRenderer에 보존.
+                // [146차] 기본 지형 경로 — 86차 지면 패치 + 마약 경영(항상 실행).
+                // [147차] 판정 — 유지: SetupGround는 원점 ±60m만 커버, 마을 중심은 ~454m 이격(미커버 — 계획 §7 확정사실 2).
+                //   평지 게이트로 패치 정점 전부 동일 y(1+Test15FlatHeight) — 중복 무해, 호출 유지.
+                P0Time("지면패치", () => BuildVillageGroundPatch(best.center, 140));   // [147차] P0 계측(§6-3 ③)
+
+                // [86차] 플레이어를 마을 가장자리로 이동 — 건물/주민/음식점/펜스를 즉시 확인 가능(도보 455m 제거).
+                //   카메라는 HandleCameraInput이 매 프레임 추종, 접지는 ClampToGroundByHeight가 흡수한다.
+                if (playerGO != null)
+                {
+                    Vector3 toOrigin = (Vector3.zero - best.center); toOrigin.y = 0f;
+                    Vector3 edge = best.center + (toOrigin.sqrMagnitude > 0.01f ? toOrigin.normalized : Vector3.back) * (best.radius + 18f);
+                    edge.y = SurfaceY(edge.x, edge.z);
+                    playerGO.transform.position = edge;
+                    Debug.Log($"[Test15VillageDrug] 플레이어 이동: 마을 가장자리 ({edge.x:F0},{edge.z:F0}) — 마을 중심까지 {(edge - best.center).magnitude:F0}m");
+                }
+
+                // [142차 C2] 생활기술 컴팩트 클러스터 — 마을 가장자리(플레이어 착지지) 앵커 기준.
+                // [151차 P4] 약초3/밭2x2/호수 — 호수는 142차 블록 복원 복귀(물뿌리개 안내 정합), 나무3/돌3은
+                //   NatureCluster(Test_20) 분리 유지. 결정론 배치(마을 건물/식당 스팟 무충돌).
+                SetupLivelihoodCompactCluster(
+                    playerGO != null ? playerGO.transform.position : best.center + Vector3.back * (best.radius + 18f),
+                    best.center);
+
+                // [147차] 설계 마을 플롯 — 구형 hut GLB+울타리 링 270(BuildSingleVillage) → V1 설계 플롯으로 교체
+                //   (울타리 270 인스턴스 소멸 — 로딩 경량화 L2, 계획 §1-2). 주민/상점NPC/음식점 키는 best 유지(§6-3 ④).
+                P0Time("마을플롯", () => Village5DesignRenderer.BuildPlotFlat(Test15DefaultVillageDesignId, best.center, "_Game"));
+                // [148차] 주민 10명 스폰 제거 — Awake 15.5s 절감(147차 P0 실측 66%), 자원/낚시 검증은 Test_20 분리.
+                //   (구: 주민스폰 P0 스테이지 삭제 — 스포너 클래스 자체는 무수정, 메인씬 경로 유지)
+
+                // [115차 후속] 상점 NPC 배치 — 세금제안(권장세금 UI) 진입점. VillageNpcSpawner의 대표 마을
+                //   상점주인은 NPCAmbientDialogue 경로라 HoverTargetClassifier의 ShopNPC 분류
+                //   (TerritoryNPCBehaviour.IsShopNPC 리플렉션) 대상이 아니므로, Test_13/14 SpawnVillageNpc
+                //   패턴(캡슐→npc_shop_rigged GLB 교체+E프롬프트+F키)으로 별도 배치한다.
+                // [147차] P0 계측 — 세금제안 진입점 경로 유지([115차 후속]).
+                P0Time("상점NPC", () => SpawnVillageNpc("test15_shopkeeper", "마을 상인", true, "어서 오세요! 세금 제안도 받고 있습니다.",
+                    best.center + new Vector3(4f, 0f, -4f), $"{best.nation}_{best.index:D2}"));
+
+                // [149차 P5] 고객 NPC 1명 — 음식점 구매 액션 관측용 전용 주민(148차 "주민 0명" 계약 유지 — 이 1명은 고객 목적).
+                //   RestaurantVisitorSystem 스캔 계약: GameObject.Find($"Village_{nation}_{index:D2}") 자식의 VillagerWanderer
+                //   (VillageBuilder 명명 규약). Test_15 마을은 BuildPlotFlat(루트 Village5Designs_Root)이라 계약명 루트가
+                //   없으므로 스캔용 루트를 계약명으로 생성하고 고객을 자식으로 스폰한다. 방문 시간대는 게임 시작 8시([134차 B-2])
+                //   → 영업 시간(8≤h<22) 충족 — 별도 시각 시딩 불필요.
+                GameObject customerRoot = GameObject.Find($"Village_{best.nation}_{best.index:D2}");
+                if (customerRoot == null)
+                    customerRoot = new GameObject($"Village_{best.nation}_{best.index:D2}");   // [149차 P5] 스캔 계약명 루트
+                VillageNpcSpawner.SpawnSingleVillager(customerRoot.transform, "girl1",
+                    best.center + new Vector3(6f, 0f, 6f), best.center, "Test15Customer", best.radius);
+
+                // ② 음식점 — 실제 건설 경로(시드 → TryPlace → ForceComplete)
+                var stats = PlayerStats.Instance ?? FindAnyObjectByType<PlayerStats>();
+                if (stats != null) stats.AddGold(600, "test15_seed");
+                else Debug.LogWarning("[Test15VillageDrug] PlayerStats 없음 — 골드 시드 생략(건설 실패 시 플래그 폴백)");
+                var inv = PlayerInventory.Instance ?? FindAnyObjectByType<PlayerInventory>();
+                if (inv != null)
+                {
+                    inv.AddItem(PlayerInventory.Mat_Wood, 5);
+                    inv.AddItem(PlayerInventory.Mat_Stone, 3);
+                }
+
+                if (ConstructionManager.Instance == null)
+                {
+                    var cmGO = new GameObject("ConstructionManager");
+                    cmGO.AddComponent<ConstructionManager>();
+                }
+
+                // [116차 R3] Test_15 음식점 프리빌드 폐기 — "처음엔 없음"(사용자 지시). U키 홀로그램으로 직접 건설 검증.
+                //   기존 자동 건설(82차)은 실물 생성까지 성공했으나(2026-10-23 Editor.log 실측: ✅ 건설 완료+🏠 실물 생성)
+                //   "이미 음식점이 있는 마을" 가드(88차)와 결합해 재건설 불가 체감 유발 → 시작 시 강제 리셋.
+                P0Time("음식점리셋", () =>   // [147차] P0 계측 — 내부 문자열 계약 전수 보존(§6-3 ④)
+                {
+                    VillageDrugState.SetRestaurantBuilt(best.nation, best.index, false);   // 플래그 리셋 — 세이브 복원분 포함
+                    foreach (var e in ConstructionManager.Instance.Structures)
+                    {
+                        if (e.blueprintId != "bp_restaurant" || !e.isComplete) continue;
+                        if (ConstructionManager.Instance.TryRemoveStructure(e.structureId))
+                            RestaurantPropBuilder.TryDestroyProp(e.structureId);   // 잔존 실물 정리(세이브 복원분 포함)
+                    }
+                    RestaurantPropBuilder.RebuildFromSave();   // 구조물 제거 후 무동작(멱등) — [106차] 순서 계약 유지
+                });
+                Debug.Log("[Test15VillageDrug] 음식점 상태 리셋 — restaurantBuilt=false, 잔존 구조물/실물 제거 (U키로 직접 건설)");
+
+                // ④ 판매 담당 병사 — 씬 내 병사 있으면 그 StableId, 없으면 합성 ID(발각 시 실체 부재 경로 실측)
+                var guard = FindAnyObjectByType<GuardPlaceholder>();
+                string stableId = guard != null && !string.IsNullOrEmpty(guard.StableId) ? guard.StableId : "GTEST01";
+                VillageDrugState.AssignGuard(best.nation, best.index, stableId);
+                Debug.Log($"[Test15VillageDrug] 판매 담당 병사 배치: {stableId} (실체 {(guard != null ? "있음" : "없음 — 발각 시 플래그 클리어 경로")})");
+
+                // ③ 재고 시딩 — 마약 요리(3단계) 30 + 일반 요리 20, 등록가 = 권장가(기본가) 시작
+                VillageDrugState.AddStock(best.nation, best.index, new RestaurantStockItem
+                {
+                    foodItemId = "drugged_cook_01", displayName = "마약 뿌려진 요리",
+                    count = 30, isDrugged = true, drugStage = 3, basePrice = 30,
+                });
+                VillageDrugState.AddStock(best.nation, best.index, new RestaurantStockItem
+                {
+                    foodItemId = "cook_01", displayName = "일반 요리",
+                    count = 20, isDrugged = false, drugStage = 0, basePrice = 10,
+                });
+                VillageDrugState.SetRegisteredPrice(best.nation, best.index, 30);
+                Debug.Log("[Test15VillageDrug] ✅ 재고 시딩: 마약 요리(3단계) 30 / 일반 요리 20 / 등록가 30");
+
+                // ⑤ 판매 틱 배선 — TimeManager 보장 + RestaurantDailyTicker(OnDayStart → RunAllDaily)
+                TimeManager.GetOrCreate();
+                if (FindAnyObjectByType<RestaurantDailyTicker>() == null)
+                {
+                    var tickerGO = new GameObject("RestaurantDailyTicker");
+                    tickerGO.AddComponent<RestaurantDailyTicker>();
+                }
+                Debug.Log("[Test15VillageDrug] 🧪 셋업 완료 — 확인: ①마을 건물+주민 ②음식점 실물 ③Y키=일일 판매 틱(골드+중독 상승) ④새벽 6시 경계 시 자동 틱(OnDayStart)");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test15VillageDrug] 셋업 실패: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>[86차] 마을 국소 지형 패치 — SetupGround와 동일 계약(정점 y=SurfaceY=GetHeightAt+1)으로
+        ///   지정 중심 ±halfSize 미니지형을 추가 생성한다. 이름을 달리해 SetupGround의 "Ground" 중복 가드와
+        ///   독립(멱등: Ground_Village 존재 시 스킵). 높이 수식이 동일해 기존 지형/마을 건물 접지와 연속된다.</summary>
+        private void BuildVillageGroundPatch(Vector3 center, int halfSize)
+        {
+            if (GameObject.Find("Ground_Village") != null) return;
+
+            const int step = 2;   // 정점 간격 2m — ±140m → 141x141 = 19881 정점
+            int vertCount = halfSize * 2 / step + 1;
+
+            var vertices = new Vector3[vertCount * vertCount];
+            var triangles = new int[(vertCount - 1) * (vertCount - 1) * 6];
+
+            int vi = 0;
+            for (int zi = 0; zi < vertCount; zi++)
+            {
+                for (int xi = 0; xi < vertCount; xi++)
+                {
+                    float x = center.x - halfSize + xi * step;
+                    float z = center.z - halfSize + zi * step;
+                    vertices[vi++] = new Vector3(x, SurfaceY(x, z), z);
+                }
+            }
+
+            int ti = 0;
+            for (int zi = 0; zi < vertCount - 1; zi++)
+            {
+                for (int xi = 0; xi < vertCount - 1; xi++)
+                {
+                    int tl = zi * vertCount + xi;
+                    int tr = tl + 1;
+                    int bl = tl + vertCount;
+                    int br = bl + 1;
+                    triangles[ti++] = tl;
+                    triangles[ti++] = bl;
+                    triangles[ti++] = tr;
+                    triangles[ti++] = tr;
+                    triangles[ti++] = bl;
+                    triangles[ti++] = br;
+                }
+            }
+
+            var mesh = new Mesh { vertices = vertices, triangles = triangles };
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            var ground = new GameObject("Ground_Village");
+            ground.transform.position = Vector3.zero;   // 메시는 월드 좌표 기준
+
+            var meshFilter = ground.AddComponent<MeshFilter>();
+            meshFilter.sharedMesh = mesh;
+
+            var renderer = ground.AddComponent<MeshRenderer>();
+            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            mat.color = new Color(0.2f, 0.5f, 0.2f, 1f);
+            renderer.material = mat;
+
+            var meshCollider = ground.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = mesh;
+            meshCollider.convex = false;
+
+            Debug.Log($"[Test15VillageDrug] 마을 지형 패치 생성: center=({center.x:F0},{center.z:F0}) ±{halfSize}m 정점 {vertCount}x{vertCount}");
+        }
+
+        /// <summary>[86차] Test_15 전용 — Y키 = 일일 판매 틱 즉시 1회(RunAllDaily + 이탈 판정).
+        /// 프로덕션 경로는 RestaurantDailyTicker(OnDayStart)지만, 검증 루프 단축용 숏컷을 제공한다.
+        /// ⚠ T키는 TutorialGuideUTK 토글과 충돌(실측) → Y키 사용.</summary>
+        private void Update()
+        {
+            if (!_isLivelihoodScene) return;
+
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            if (kb == null || !kb.yKey.wasPressedThisFrame) return;
+
+            try
+            {
+                int day = TimeManager.Instance != null ? TimeManager.Instance.CurrentDay : 0;
+                Debug.Log($"[Test15VillageDrug] Y키 — 일일 판매 틱 강제 1회(day={day})");
+                RestaurantSystem.RunAllDaily(day);
+                VillagerDepartureSystem.RunDailyDeparture(day);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test15VillageDrug] 판매 틱 실패: {ex.Message}");
+            }
+        }
+
+        /// <summary>[52차→53차] 병사 최종 키 검증+자가수리 — 렌더링 안정화 후 실측.
+        ///   [53차] 실측을 포즈/FX 독립(MeasureStandingHeight)으로 교체 — 52차 실측에서 애니 포즈로
+        ///   병사 2.07m(걷기 포즈)/플레이어 4.01m(이펙트 렌더러 오염) 오판이 실증됨.
+        ///   목표(1.8m) ±7% 초과 병사는 즉시 재스케일. 플레이어 비주얼도 동일 실측 — 1.8m 이탈 시
+        ///   모델 자식을 자가수리(47~52차 "병사가 작아 보임"의 실체 = 플레이어 오스케일 가능성 차단).</summary>
+        private System.Collections.IEnumerator VerifySoldierHeightsDelayed()
+        {
+            yield return new WaitForSeconds(0.9f);
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            // [54차] 플레이어 = **기준 자체** — 자가수리 폐지(53차 ×0.23 오축소 실측: localBounds 오측
+            //   7.91m가 원인). 플레이어 모델 자식을 월드 bounds(FX 제외)로 실측해 기준치 로그만 남긴다.
+            //   병사는 이 기준치와 동일 목표(SoldierTargetHeight=1.8m)로 정규화되므로 시각 일치.
+            float playerH = 0f;
+            if (player != null)
+            {
+                Transform pModel = FindPlayerVisualModel(player);
+                playerH = TerritoryBuilder.MeasureStandingHeight(pModel != null ? pModel.gameObject : player, skinnedLocalBounds: false);
+            }
+            Debug.Log($"[키검증] 플레이어 기준 키 {playerH:0.00}m (모델 자식, FX 제외) — 병사 {_heightTrackedBodies.Count}명 대조 (목표 {TerritoryBuilder.SoldierTargetHeight:0.00}m)");
+
+            int fixedCount = 0;
+            foreach (var body in _heightTrackedBodies)
+            {
+                if (body == null) continue;
+                float h = TerritoryBuilder.MeasureStandingHeight(body);
+                if (h < 0.05f) continue;   // 렌더러 부재 등 측정 불가 — 스킵
+                float deviation = Mathf.Abs(h - TerritoryBuilder.SoldierTargetHeight);
+                if (deviation <= TerritoryBuilder.SoldierTargetHeight * 0.07f)
+                {
+                    Debug.Log($"[키검증] ✅ {body.name} 최종 키 {h:0.00}m — 정상");
+                    continue;
+                }
+                float corr = TerritoryBuilder.SoldierTargetHeight / h;
+                body.transform.localScale *= corr;
+                fixedCount++;
+                Debug.Log($"[키검증] 🔧 {body.name} 최종 키 {h:0.00}m → 자가수리 ×{corr:0.00} (목표 {TerritoryBuilder.SoldierTargetHeight:0.00}m)");
+            }
+            if (fixedCount > 0)
+                Debug.Log($"[키검증] 자가수리 {fixedCount}명 완료 — 다음 프레임부터 1.8m 반영");
+        }
+
+        /// <summary>[53차] 플레이어 비주얼 모델 자식 탐색 — "PlayerModel" 이름 우선, 없으면 SkinnedMeshRenderer 보유 자식.</summary>
+        private static Transform FindPlayerVisualModel(GameObject player)
+        {
+            foreach (Transform child in player.transform)
+                if (child.name.Contains("PlayerModel"))
+                    return child;
+            foreach (Transform child in player.transform)
+                if (child.GetComponentInChildren<SkinnedMeshRenderer>() != null)
+                    return child;
+            return null;
+        }
+
+        /// <summary>[52차] 게임오브젝트 전체 렌더러 월드 bounds 높이 실측(플레이어/병사 공용 자) — [53차] MeasureStandingHeight 위임.</summary>
+        private static float MeasureVisualHeight(GameObject go)
+        {
+            return TerritoryBuilder.MeasureStandingHeight(go);
         }
 
         /// <summary>
@@ -97,23 +511,203 @@ namespace ProjectName.Systems
         ///  2) 채광: ResourceNode(Wood/Stone/IronOre) 프리미티브 큐브 3종 (SetupMiningNodes 재사용).
         ///  3) 채집: HerbPickup(Red/Purple/Green) 약초 3종 (SetupHerbs 재사용).
         ///  4) 농경: FarmingManager.SpawnPlots 2x2 밭 (SetupFarm 재사용).
+        /// [148차] 호출 소멸 — 생활씬 스테이지는 SetupLivelihoodResourcesScene(Test_20 전용)으로 교체.
+        ///   메서드는 원복 가능성 대비 보존(L456 선례).
         /// </summary>
         private void SetupLivelihoodTestScene()
         {
             SetupFishingArea();
-            SetupNatureResources();   // [2026-10-11] 실제 나무/돌/과일나무 GLB 배치(벌목·채광·사과 수확)
-            SetupMiningNodes();
-            SetupHerbs();
-            SetupFarm();
-            Debug.Log("[Test15Livelihood] 🧪 생활기술 배치 완료 — 확인 포인트: ①호수 물가 E키 낚시 ②벌목(E 채널·나무 흔들림·통나무) ③돌 채광 ④허브 채집 ⑤밭 파종→성장→수확 ⑥제작소 목재 조합");
+            // [142차 C2] 자원/농경/호수 배치 = SetupLivelihoodCompactCluster(마을 가장자리 앵커)로 이관.
+            // 근거: [86차] 플레이어가 마을 가장자리로 텔레포트되는데 기존 원점 기준 배치(호수 (0,-22)·밭
+            // (0,18)·자원 그리드)는 마을에서 수백 m 밖이라 전혀 안 보였다(142차 사용자 재보고 "나무와 돌
+            // 보이지 않고, 농경 지역도 안보여"). 클러스터 호출은 SetupTest15VillageDrugEconomy의
+            // 플레이어 텔레포트 직후(마을 확정 시점)에 수행. 기존 산포 배치 메서드
+            // (SetupNatureResources/SetupHerbs/SetupFarm/SetupMiningNodes)는 원복 가능성 대비 보존(호출부만 제외).
+            Debug.Log("[Test15Livelihood] 🧪 생활기술 인프라 준비(낚시 시스템+낚시대) — 자원 클러스터는 마을 앵커 기준[142차 C2]");
         }
 
         /// <summary>
-        /// [2026-10-11] Test_15 전용 — 실제 나무(GLB)/돌(GLB)/과일나무 소량 배치.
+        /// [142차 C2] 생활기술 컴팩트 클러스터 — 마을 가장자리(플레이어 착지지) 앵커 기준.
+        /// [148차] 호수/나무/돌 블록은 SetupLivelihoodNatureCluster로 오프셋 수식 그대로 이식.
+        /// [151차 P4] 호수 1개 복귀 배치 — 142차 호수 블록(anchor+dOut×16, 원판 r=12, tag "Water")을 본
+        ///   메서드로 복원 이식(사용자 지시: 물뿌리개 "호수에서 충전하세요" 안내와 실제 호수 정합).
+        ///   나무/돌은 NatureCluster(Test_20) 분리 유지 — 부분 복원만 수행.
+        /// 결정론: 고정 오프셋+고정 요각(Random 0건 계약). dOut = 앵커→마을 반대편(외부), dL = 수직.
+        ///  밭 2x2 = anchor+dL×14 · 약초 3 = 밭 주변(±3m) — 마을 반경 밖(무충돌), SurfaceY 접지 계약 준수.
+        ///  호수 = anchor+dOut×16(원판 r=12) — 밭 클러스터(중심 dL×14, 최외곽 ~4m)와 중심간 21.3m
+        ///  (dOut16 ⊥ dL14) > 12+4 → 무충돌(151차 P4 오프셋 실측 — 겹침 0, 오프셋 조정 불필요).
+        /// </summary>
+        private void SetupLivelihoodCompactCluster(Vector3 anchor, Vector3 villageCenter)
+        {
+            try
+            {
+                Vector3 dOut = anchor - villageCenter;
+                dOut.y = 0f;
+                dOut = dOut.sqrMagnitude > 0.0001f ? dOut.normalized : Vector3.back;
+                Vector3 dL = new Vector3(dOut.z, 0f, -dOut.x);   // 수직(좌)
+                // [148차] dR 계산은 SetupLivelihoodNatureCluster로 이식(나무/돌 블록 전용)
+
+                // ── 호수(낚시/물담기) — anchor+dOut×16 ──
+                // [151차 P4] 142차 호수 블록 복원 이식(SetupLivelihoodNatureCluster L551-566 소스, 오프셋 수식
+                //   그대로 — 결정론 보존). 148차 분리로 Test_15에 호수가 없어 물뿌리개 "호수에서 충전하세요"
+                //   안내와 불일치했던 점 해소. 나무/돌은 NatureCluster(Test_20) 분리 유지.
+                {
+                    float wx = anchor.x + dOut.x * 16f, wz = anchor.z + dOut.z * 16f;
+                    float wy = SurfaceY(wx, wz);
+                    GameObject waterDisc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    waterDisc.name = "Livelihood_Pond";
+                    waterDisc.transform.position = new Vector3(wx, wy + 0.05f, wz);
+                    waterDisc.transform.localScale = new Vector3(24f, 0.06f, 24f);   // 반경 12m(기존 계약)
+                    waterDisc.tag = "Untagged";
+                    var wr = waterDisc.GetComponent<MeshRenderer>();
+                    if (wr != null)
+                        wr.material = MaterialHelper.CreateLitMaterial(new Color(0.18f, 0.4f, 0.55f), "Test15Pond_Mat");
+                    try { waterDisc.tag = "Water"; }
+                    catch (UnityException) { Debug.LogWarning("[Test15Livelihood] 'Water' 태그 미정의 — Untagged 유지"); }
+                    Debug.Log($"[Test15Livelihood] 🌊 호수(Water) 배치[151차 P4] @ ({wx:F0},{wz:F0})");
+                }
+
+                // ── 밭(농경 1부지) + 약초 3 — anchor+dL×14 ──
+                Vector3 farmC = anchor + dL * 14f;
+                float fx = farmC.x, fz = farmC.z;
+                if (FarmingManager.Instance == null)
+                {
+                    var managerGO = new GameObject("FarmingManager");
+                    managerGO.AddComponent<FarmingManager>();
+                }
+                var plots = FarmingManager.Instance.SpawnPlots(NationType.East, 1,
+                    new Vector3(fx, SurfaceY(fx, fz) + 0.1f, fz), rows: 2, cols: 2, spacing: 2.5f,
+                    HerbPickup.HerbType.Red, 3);   // [26차] 성장 3일 계약 유지
+                Debug.Log($"[Test15Livelihood] 🌾 농경 부지 {plots.Count}칸 배치[142차 C2] @ ({fx:F0},{fz:F0})");
+                SetupHerb("Herb_Red", "Models/UserProvided/herb_red", new Vector3(fx + 3f, 0f, fz + 2f),
+                    HerbPickup.HerbType.Red, new Color(0.85f, 0.2f, 0.2f, 1f));
+                SetupHerb("Herb_Purple", "Models/UserProvided/herb_purple", new Vector3(fx - 3f, 0f, fz + 2f),
+                    HerbPickup.HerbType.Purple, new Color(0.7f, 0.2f, 0.8f, 1f));
+                SetupHerb("Herb_Green", "Models/UserProvided/herb_green", new Vector3(fx, 0f, fz - 2f),
+                    HerbPickup.HerbType.Green, new Color(0.2f, 0.7f, 0.2f, 1f));
+
+                Debug.Log("[Test15Livelihood] ✅ 컴팩트 클러스터 완료[151차 P4 호수 복귀] — 약초 3·밭 2x2(좌14m)·호수(정면16m) — 나무/돌은 NatureCluster(Test_20) 분리 유지");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test15Livelihood] 컴팩트 클러스터 배치 실패: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// [148차] 생활기술 자원 클러스터 — 호수(낚시/물담기)/나무 3(벌목)/돌 3(채광) 블록.
+        /// 출처: SetupLivelihoodCompactCluster에서 오프셋 수식 그대로 이식(142차 C2/C3 — 결정론 보존, Random 0건).
+        /// 로그 접두어 [Test15Livelihood]는 이동 후에도 유지(문자열 계약 — 검색 가능성 우선, 별도 계약 없음 확인).
+        ///  호수(원판 r12) = anchor+dOut×16 · 나무 3 = anchor+dR×14+dOut×(−5,0,+5) · 돌 3 = anchor+dR×24+dOut×(−4,0,+4)
+        ///  돌은 호수 원판(중심 dOut×16, r=12)에서 최근접 18m 밖(142차 C3 재배치 계약 유지).
+        /// </summary>
+        private void SetupLivelihoodNatureCluster(Vector3 anchor, Vector3 villageCenter)
+        {
+            try
+            {
+                Vector3 dOut = anchor - villageCenter;
+                dOut.y = 0f;
+                dOut = dOut.sqrMagnitude > 0.0001f ? dOut.normalized : Vector3.back;
+                Vector3 dL = new Vector3(dOut.z, 0f, -dOut.x);   // 수직(좌)
+                Vector3 dR = -dL;
+
+                // ── 호수(낚시/물담기) — anchor+dOut×16 ──
+                {
+                    float wx = anchor.x + dOut.x * 16f, wz = anchor.z + dOut.z * 16f;
+                    float wy = SurfaceY(wx, wz);
+                    GameObject waterDisc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    waterDisc.name = "Livelihood_Pond";
+                    waterDisc.transform.position = new Vector3(wx, wy + 0.05f, wz);
+                    waterDisc.transform.localScale = new Vector3(24f, 0.06f, 24f);   // 반경 12m(기존 계약)
+                    waterDisc.tag = "Untagged";
+                    var wr = waterDisc.GetComponent<MeshRenderer>();
+                    if (wr != null)
+                        wr.material = MaterialHelper.CreateLitMaterial(new Color(0.18f, 0.4f, 0.55f), "Test15Pond_Mat");
+                    try { waterDisc.tag = "Water"; }
+                    catch (UnityException) { Debug.LogWarning("[Test15Livelihood] 'Water' 태그 미정의 — Untagged 유지"); }
+                    Debug.Log($"[Test15Livelihood] 🌊 호수(Water) 배치[142차 C2] @ ({wx:F0},{wz:F0})");
+                }
+
+                // ── 나무 3(벌목 GLB E채널) — anchor+dR×14, dOut 전개 ──
+                var woodVisuals = NaturalResourceSpawner.LoadWoodTreeVisuals();
+                var container = new GameObject("NaturalResources_Test15");
+                (float dx, float dz)[] treeSpots = { (-5f, 0f), (0f, 0f), (5f, 0f) };
+                int wood = 0;
+                foreach (var t in treeSpots)
+                {
+                    if (woodVisuals == null || woodVisuals.Length == 0)
+                    {
+                        Debug.LogWarning("[Test15Livelihood] ⚠️ 나무 GLB 로드 실패 — 나무 배치 생략");
+                        break;
+                    }
+                    float x = anchor.x + dR.x * 14f + dOut.x * t.dx;
+                    float z = anchor.z + dR.z * 14f + dOut.z * t.dz;
+                    var prefab = woodVisuals[wood % woodVisuals.Length];   // 결정론 순환
+                    var srcName = prefab != null ? prefab.name : null;
+                    NaturalResourceSpawner.SpawnTestNode(container.transform, $"NaturalResource_Wood_{++wood:D2}",
+                        prefab, x, SurfaceY(x, z), z, 0.9f, 15f + wood * 60f,
+                        go =>
+                        {
+                            NaturalResourceSpawner.ConfigureWoodNode(go);
+                            NaturalResourceSpawner.ApplyStumpType(go, srcName);   // 벌목 그루터기 종별 전달(28차)
+                        });
+                }
+
+                // ── 돌 3(채광 GLB E채널) — [142차 C3 재배치] anchor+dR×24+dOut×(−4,0,+4) ──
+                //   기존(dOut×14+dR±5)은 호수 원판(중심 dOut×16, r=12) 내부로 계산됐다(사용자 재보고:
+                //   "돌이 호수 안에 있어서 채광 불가") — 호수 중심에서 최근접 18m 밖으로 이탈.
+                var rockVisuals = NaturalResourceSpawner.LoadRockVisuals();
+                (float dx, float dz)[] rockSpots = { (-4f, 0f), (0f, 0f), (4f, 0f) };
+                int rock = 0;
+                foreach (var t in rockSpots)
+                {
+                    if (rockVisuals == null || rockVisuals.Length == 0)
+                    {
+                        Debug.LogWarning("[Test15Livelihood] ⚠️ 돌 GLB 로드 실패 — 돌 배치 생략");
+                        break;
+                    }
+                    float x = anchor.x + dR.x * 24f + dOut.x * t.dx;
+                    float z = anchor.z + dR.z * 24f + dOut.z * t.dz;
+                    var prefab = rockVisuals[rock % rockVisuals.Length];   // 결정론 순환
+                    var srcName = prefab != null ? prefab.name : null;
+                    NaturalResourceSpawner.SpawnTestNode(container.transform, $"NaturalResource_Rock_{++rock:D2}",
+                        prefab, x, SurfaceY(x, z), z, 0.9f + 0.2f * rock, 140f + rock * 60f,
+                        go =>
+                        {
+                            NaturalResourceSpawner.ConfigureRockNode(go);
+                            NaturalResourceSpawner.ApplyStumpType(go, srcName);
+                        });
+                }
+
+                Debug.Log($"[Test15Livelihood] ✅ 자원 클러스터 완료[148차 Test_20 이관] — 나무 {wood}(좌14m)·돌 {rock}(우24m·호수밖)·호수(정면16m) (앵커 기준)");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test15Livelihood] 자원 클러스터 배치 실패: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// [148차] Test_20_LivelihoodResources 전용 — 자원/낚시 씬 셋업.
+        ///  낚시 인프라(SetupFishingArea: FishingSystem 보장+낚시대 지급) 이관 근거: 물 의존(물가 E키 낚시/
+        ///  물뿌리개 물담기 리필)이므로 호수(Livelihood_Pond)와 함께 Test_15에서 분리 — 리필 검증은
+        ///  Test_20 호수에서 수행(계획 §2). 자원 클러스터 = SetupLivelihoodNatureCluster(Vector3.zero,
+        ///  Vector3.forward * 10f) — 기존 폴백 호출과 동일 지오메트리(dOut=남 고정 계약, 142차 C2 수식 보존).
+        /// </summary>
+        private void SetupLivelihoodResourcesScene()
+        {
+            SetupFishingArea();
+            SetupLivelihoodNatureCluster(Vector3.zero, Vector3.forward * 10f);
+        }
+
+        /// <summary>
+        /// [142차 C] Test_15 전용 — 컴팩트 검증 세트(사용자 지시): 나무(벌목 GLB) 3 · 돌(채광 GLB) 3 ·
+        /// 과일나무 폐기(사용자 목록 외 — 산포 감축). 산포 그리드(20+20+3) 폐기 → 원점 근접 고정 배치로
+        /// 각 시스템 확인 동선 최소화. 결정론: 고정 좌표+고정 요각(Random 0건 계약).
         /// 메인씬 NaturalResourceSpawner의 공개 로더/스폰 코어/구성기를 재사용(동일 코드 경로) →
         /// E 채널(파랑 진행바)·나무 스웨이·도끼 커서·소멸→리스폰이 그대로 검증된다.
-        /// 결정론: 고정 시드 System.Random + 지터 그리드(±52.5m) — 실행마다 동일 배치.
-        /// 제외존: 호수(0,-22 r=13)·농장/광물/약초 클러스터(0,19 r=8)·내 영지 성(0,25 r=9)·스폰(0,0 r=9)·지형 밖(±56m).
+        /// 배치(제외존 준수: 호수(0,-22 r=13)·클러스터(0,19 r=8)·성(0,25 r=9)·스폰(0,0 r=9) 전부 이탈):
+        ///  나무 3 — 서측 (−9,−5)/(−12,−1)/(−9,3) / 돌 3 — 동측 (9,−4)/(12,0)/(9,4)
         /// </summary>
         private void SetupNatureResources()
         {
@@ -121,60 +715,62 @@ namespace ProjectName.Systems
             {
                 var woodVisuals = NaturalResourceSpawner.LoadWoodTreeVisuals();
                 var rockVisuals = NaturalResourceSpawner.LoadRockVisuals();
-                var fruitVisuals = NaturalResourceSpawner.LoadFruitTreeVisuals();
+                // 과일나무 [142차 C] 폐기 — 사용자 지정 컴팩트 목록(나무/돌/채집/농경/호수) 외 → 로드 생략.
                 if ((woodVisuals == null || woodVisuals.Length == 0)
-                    && (rockVisuals == null || rockVisuals.Length == 0)
-                    && (fruitVisuals == null || fruitVisuals.Length == 0))
+                    && (rockVisuals == null || rockVisuals.Length == 0))
                 {
                     Debug.LogWarning("[Test15Livelihood] ⚠️ 자원 GLB 로드 실패(폴백도 비어 있음) — 자원 배치 생략");
                     return;
                 }
 
                 var container = new GameObject("NaturalResources_Test15");
-                var rng = new System.Random(20261011);   // 고정 시드 — 결정론 계약
 
-                const int woodTarget = 20, rockTarget = 20, fruitTarget = 3;
-                const float pondX = 0f, pondZ = -22f, pondR2 = 13f * 13f;
-                const float clusterX = 0f, clusterZ = 19f, clusterR2 = 8f * 8f;
-                const float castleX = 0f, castleZ = 25f, castleR2 = 9f * 9f;
-                const float spawnR2 = 9f * 9f;
+                const int WoodTarget = 3, RockTarget = 3;   // [142차 C] 사용자 지정 — 나무 2~3·돌 3
+                const float woodX0 = -9f, woodZ0 = -5f;
+                const float woodX1 = -12f, woodZ1 = -1f;
+                const float woodX2 = -9f, woodZ2 = 3f;
+                const float rockX0 = 9f, rockZ0 = -4f;
+                const float rockX1 = 12f, rockZ1 = 0f;
+                const float rockX2 = 9f, rockZ2 = 4f;
+                const float yaw0 = 15f, yaw1 = 140f, yaw2 = 260f;   // 고정 요각 — 결정론(Random 0건)
 
-                int wood = 0, rock = 0, fruit = 0, total = 0;
-                const int gridHalf = 3;                  // 7×7 = 49 슬롯(보호 구역 제외 후 충분)
-                for (int gx = -gridHalf; gx <= gridHalf && total < woodTarget + rockTarget + fruitTarget; gx++)
+                int wood = 0, rock = 0;
+                // 나무(벌목 E채널) 3 — 서측 클러스터
+                (float x, float z, float yaw)[] woodSpots = { (woodX0, woodZ0, yaw0), (woodX1, woodZ1, yaw1), (woodX2, woodZ2, yaw2) };
+                foreach (var spot in woodSpots)
                 {
-                    for (int gz = -gridHalf; gz <= gridHalf && total < woodTarget + rockTarget + fruitTarget; gz++)
-                    {
-                        float x = gx * 15f + (float)(rng.NextDouble() * 8.0 - 4.0);
-                        float z = gz * 15f + (float)(rng.NextDouble() * 8.0 - 4.0);
-                        if (Mathf.Abs(x) > 56f || Mathf.Abs(z) > 56f) continue;   // 미니지형 밖(±60m)
-                        float d2 = Dxz2(x, z, pondX, pondZ);
-                        if (d2 < pondR2) continue;
-                        if (Dxz2(x, z, clusterX, clusterZ) < clusterR2) continue;
-                        if (Dxz2(x, z, castleX, castleZ) < castleR2) continue;
-                        if (Dxz2(x, z, 0f, 0f) < spawnR2) continue;   // 스폰지(원점)
-
-                        GameObject[] visuals; System.Action<GameObject> configure; string nodeName; float scale;
-                        if (fruit < fruitTarget)      { fruit++; total++; visuals = fruitVisuals; configure = NaturalResourceSpawner.ConfigureFruitNode; nodeName = $"NaturalResource_Fruit_{fruit:D2}"; scale = 1.0f; }
-                        else if (wood < woodTarget)   { wood++; total++; visuals = woodVisuals;  configure = NaturalResourceSpawner.ConfigureWoodNode;  nodeName = $"NaturalResource_Wood_{wood:D2}";  scale = 0.9f; }
-                        else if (rock < rockTarget)   { rock++; total++; visuals = rockVisuals;  configure = NaturalResourceSpawner.ConfigureRockNode;  nodeName = $"NaturalResource_Rock_{rock:D2}";  scale = 0.9f + (float)rng.NextDouble() * 0.5f; }
-                        else break;
-
-                        if (visuals == null || visuals.Length == 0) continue;
-                        var prefab = visuals[(wood + rock + fruit) % visuals.Length];   // 결정론 순환
-                        float y = SurfaceY(x, z);
-                        float yaw = (float)(rng.NextDouble() * 360.0);
-                        var srcName = prefab != null ? prefab.name : null;
-                        NaturalResourceSpawner.SpawnTestNode(container.transform, nodeName, prefab, x, y, z, scale, yaw,
-                            go =>
-                            {
-                                if (configure != null) configure(go);
-                                NaturalResourceSpawner.ApplyStumpType(go, srcName);   // 벌목 그루터기 종별 전달(28차)
-                            });
-                    }
+                    if (woodVisuals == null || woodVisuals.Length == 0) break;
+                    if (Mathf.Abs(spot.x) > 56f || Mathf.Abs(spot.z) > 56f) continue;   // 미니지형 밖(±60m)
+                    var prefab = woodVisuals[wood % woodVisuals.Length];   // 결정론 순환
+                    var srcName = prefab != null ? prefab.name : null;
+                    string nodeName = $"NaturalResource_Wood_{++wood:D2}";
+                    NaturalResourceSpawner.SpawnTestNode(container.transform, nodeName, prefab,
+                        spot.x, SurfaceY(spot.x, spot.z), spot.z, 0.9f, spot.yaw,
+                        go =>
+                        {
+                            NaturalResourceSpawner.ConfigureWoodNode(go);
+                            NaturalResourceSpawner.ApplyStumpType(go, srcName);   // 벌목 그루터기 종별 전달(28차)
+                        });
+                }
+                // 돌(채광 E채널) 3 — 동측 클러스터 (스케일 0.9/1.1/1.3 고정 다양화)
+                (float x, float z, float yaw, float scale)[] rockSpots = { (rockX0, rockZ0, yaw0, 0.9f), (rockX1, rockZ1, yaw1, 1.1f), (rockX2, rockZ2, yaw2, 1.3f) };
+                foreach (var spot in rockSpots)
+                {
+                    if (rockVisuals == null || rockVisuals.Length == 0) break;
+                    if (Mathf.Abs(spot.x) > 56f || Mathf.Abs(spot.z) > 56f) continue;   // 미니지형 밖(±60m)
+                    var prefab = rockVisuals[rock % rockVisuals.Length];   // 결정론 순환
+                    var srcName = prefab != null ? prefab.name : null;
+                    string nodeName = $"NaturalResource_Rock_{++rock:D2}";
+                    NaturalResourceSpawner.SpawnTestNode(container.transform, nodeName, prefab,
+                        spot.x, SurfaceY(spot.x, spot.z), spot.z, spot.scale, spot.yaw,
+                        go =>
+                        {
+                            NaturalResourceSpawner.ConfigureRockNode(go);
+                            NaturalResourceSpawner.ApplyStumpType(go, srcName);
+                        });
                 }
 
-                Debug.Log($"[Test15Livelihood] 🌲 자원 배치 완료 — 벌목 나무 {wood}/{woodTarget}, 돌 {rock}/{rockTarget}, 과일나무 {fruit}/{fruitTarget} (실제 GLB·메인씬 동일 노드 경로)");
+                Debug.Log($"[Test15Livelihood] 🌲 자원 배치 완료[142차 C 컴팩트] — 벌목 나무 {wood}/{WoodTarget}(서측), 돌 {rock}/{RockTarget}(동측), 과일나무 0(폐기) (실제 GLB·메인씬 동일 노드 경로)");
             }
             catch (System.Exception ex)
             {
@@ -234,29 +830,9 @@ namespace ProjectName.Systems
                 Debug.LogError($"[Test15Livelihood] 낚시대 스타터 지급 실패: {ex.Message}");
             }
 
-            // Water 태그 원판 — FishingSystem.IsNearWater가 플레이어 아래 "Water" 태그 콜라이더를 Raycast로 감지.
-            // LakeGenerator와 동일하게 try-catch로 태그 설정(미정의 시 침묵 경고 후 프리미티브 유지).
-            try
-            {
-                float wx = 0f, wz = -22f; // 플레이어(원점) 남쪽 접근 용이한 위치
-                float wy = SurfaceY(wx, wz);
-                GameObject waterDisc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                waterDisc.name = "Livelihood_Pond";
-                waterDisc.transform.position = new Vector3(wx, wy + 0.05f, wz);
-                // [2026-10-11] 사용자 결정 — 호수 원판 확대(반경 5m→12m, cylinder 반경 0.5×scale)
-                waterDisc.transform.localScale = new Vector3(24f, 0.06f, 24f);
-                waterDisc.tag = "Untagged";
-                var wr = waterDisc.GetComponent<MeshRenderer>();
-                if (wr != null)
-                    wr.material = MaterialHelper.CreateLitMaterial(new Color(0.18f, 0.4f, 0.55f), "Test15Pond_Mat");
-                try { waterDisc.tag = "Water"; }
-                catch (UnityException) { Debug.LogWarning("[Test15Livelihood] 'Water' 태그 미정의 — Untagged 유지"); }
-                Debug.Log($"[Test15Livelihood] 🌊 낚시 연못(Water) 배치 @ ({wx},{wy:F2},{wz})");
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"[Test15Livelihood] 낚시 연못 배치 실패: {ex.Message}");
-            }
+            // Water 태그 원판 [142차 C2] 원점 배치 폐기 — 마을(스폰 수백 m 밖)에서 안 보이는 실측.
+            // 호수는 SetupLivelihoodCompactCluster(마을 가장자리 앵커, anchor+dOut×16)로 이전.
+            // 낚시 시스템/낚시대 지급은 위 블록에서 유지(위치 무관 — Water 태그 레이캐스트 판정).
         }
 
         /// <summary>
@@ -353,11 +929,31 @@ namespace ProjectName.Systems
                 Debug.LogError($"[Test14LordsWar] 내 영지 문 배치 실패: {ex.Message}");
             }
 
-            // 아군 병사 2명 (내 영지 수비)
-            SpawnSoldier("LordsWarPlayerGuard1", new Vector3(20f, 0f, 44f), "내 수비병", 5, NationType.East, true,
+            // [50차 사용자 요구] 내 소속 병사 = **문지기 병사**로 선택 — 이 씬의 검증 목적
+            //   "AI 영주가 내 영지로 실제 공격을 하러 오는가"에서 내 병사는 문지기(수비 격) 존재감.
+            //   TerritoryGateSystem의 IsGatekeeper 소비 경로와 동일 플래그.
+            SpawnGatekeeper("LordsWarPlayerGuard1", new Vector3(20f, 0f, 44f), "내 문지기 병사", 5, NationType.East,
                 new Color(0.35f, 0.75f, 0.45f));
-            SpawnSoldier("LordsWarPlayerGuard2", new Vector3(16f, 0f, 44f), "내 수비병", 5, NationType.East, true,
+            SpawnGatekeeper("LordsWarPlayerGuard2", new Vector3(16f, 0f, 44f), "내 문지기 병사", 5, NationType.East,
                 new Color(0.35f, 0.75f, 0.45f));
+        }
+
+        /// <summary>[50차→51차] 문지기 병사 — SpawnSoldier와 동일하되 IsGatekeeper=true + **SetHold(제자리 고정)**.
+        ///   영지를 지키는 고정 수비 — 자동 추종/합세에서 제외(GuardCombatAI 51차 게이트), 근접 적만 제자리 반격.</summary>
+        private GameObject SpawnGatekeeper(string goName, Vector3 pos, string guardName, int level, NationType nation, Color color)
+        {
+            var go = SpawnSoldier(goName, pos, guardName, level, nation, true, color);
+            if (go != null)
+            {
+                var ph = go.GetComponent<GuardPlaceholder>();
+                if (ph != null)
+                {
+                    ph.IsGatekeeper = true;
+                    ph.SetHold(true);   // [51차] 나를 따라오지 않음 — 영지에 서서 지킴(근접 반격은 유지)
+                    Debug.Log($"[Test14LordsWar] 🚪 문지기 병사 부여 — {goName} (IsGatekeeper=true + 홀드=제자리 고정)");
+                }
+            }
+            return go;
         }
 
         /// <summary>타 소속 영주 2명 배치 + 영주 간 전쟁(점령) 트리거. West(Cruel)가 South를 물리로 침공.</summary>
@@ -391,46 +987,60 @@ namespace ProjectName.Systems
                 Debug.LogError($"[Test14LordsWar] 영주 성 표현 실패: {ex.Message}");
             }
 
-            // 타 영주 병사 스폰 — 서부(공격자) 5명 / 남부(방어자) 4명. 서부 침공군은 남부로 공격 행진 명령.
+            // 타 영주 병사 스폰 — [52차 사용자 재설계] **남부 = 공격자(즉시 출격) / 서부 = 수호자(제자리 방어)**.
+            //   "AI 영주가 공격 명령을 내렸다고 가정" — 남부 영주의 공격 명령으로 남부 침공군이 남부 영지에서
+            //   **즉시 출격**해 서부 영지로 행진하고, 서부 문지기는 서부 영지 방어선에서 **제자리 수호(홀드)**로 맞대응.
+            //   도착 시 51차 국가 상이 교전 규칙(GuardPlaceholder.IsEnemyGuard)으로 상호 교전이 성립한다.
             var westGuards = new System.Collections.Generic.List<GameObject>();
             var westGuardColor = new Color(0.75f, 0.5f, 0.2f);
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 4; i++)
             {
-                float gx = westPos.x - 3f + i * 1.5f;
+                float gx = westPos.x - 2.25f + i * 1.5f;
                 westGuards.Add(SpawnSoldier($"LordsWarWestGuard{i + 1}", new Vector3(gx, 0f, westPos.z + 2f),
-                    "서부 침공군", 8, NationType.West, false, westGuardColor));
+                    "서부 문지기 병사", 8, NationType.West, false, westGuardColor));
             }
             var southGuards = new System.Collections.Generic.List<GameObject>();
             var southGuardColor = new Color(0.45f, 0.25f, 0.6f);
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
-                float gx = southPos.x - 2.25f + i * 1.5f;
+                float gx = southPos.x - 3f + i * 1.5f;
                 southGuards.Add(SpawnSoldier($"LordsWarSouthGuard{i + 1}", new Vector3(gx, 0f, southPos.z + 2f),
-                    "남부 방어군", 8, NationType.South, false, southGuardColor));
+                    "남부 침공군", 8, NationType.South, false, southGuardColor));
             }
+            // [52차] 서부 문지기 = 제자리 고정 수비(홀드) — 방어선에서 근접 반격만 수행(행진/추격 없음).
+            int westHeld = 0;
+            foreach (var wg in westGuards)
+            {
+                if (wg == null) continue;
+                var wph = wg.GetComponent<GuardPlaceholder>();
+                if (wph != null) { wph.SetHold(true); westHeld++; }
+            }
+            Debug.Log($"[Test14LordsWar] 🛡️ 서부 문지기 병사 {westHeld}명 — 제자리 수호(방어선 홀드)");
 
-            // 영주 간 전쟁(점령) — 서부(공격자, Cruel)가 남부(방어자)로 공격 행진.
+            // 영주 간 전쟁(점령) — [52차] 남부(공격자)가 서부(수호자)로 공격 행진.
             // 하드 SpawnGarrison으로 영지 전체 주둔군(70~80명)이 중복 스폰되는 WarMarchSimulation 대신,
-            // 이미 배치한 서부 침공군 5명에게 직접 SetCommandTarget(남부, attack=true) 부여 → Play에서 실제 물리 이동·도달 시 교전.
+            // 이미 배치한 남부 침공군 5명에게 직접 SetCommandTarget(서부 방어선, attack=true) 부여
+            // → 씬 시작 즉시 출격(스폰과 명령 사이 지연 0) → Play에서 실제 물리 이동·도달 시 교전.
             try
             {
-                Vector3 southCastleTarget = new Vector3(southPos.x, southY, southPos.z);
+                // [52차] 행진 목표 = 서부 문지기 방어선 중앙(문지기들이 서 있는 z+2 라인) — 도착 즉시 교전이 눈에 보임.
+                Vector3 westDefenseTarget = new Vector3(westPos.x, westY, westPos.z + 2f);
                 int ordered = 0;
-                foreach (var g in westGuards)
+                foreach (var g in southGuards)
                 {
                     if (g == null) continue;
-                    CommandMarchToSouth(g, southCastleTarget);
+                    CommandMarchToTarget(g, westDefenseTarget);
                     ordered++;
                 }
-                Debug.Log($"[Test14LordsWar] ⚔️ 서부 영주 공격 명령: 침공군 {ordered}명 → 남부 행진");
+                Debug.Log($"[Test14LordsWar] ⚔️ 남부 영주 공격 명령(가정): 침공군 {ordered}명 → 즉시 출격, 서부 문지기 방어선 행진(가시 교전)");
 
                 // 영주 결정 체계 연동 로그 — AIWarSystem 사전조건(LordOwned · 국가 상이)도 함께 확인
                 var db = ProjectName.Core.Data.TerritoryDatabase.Instance;
                 var westDef = db.GetDefinition(new TerritoryId(NationType.West, 1));
                 var southDef = db.GetDefinition(new TerritoryId(NationType.South, 1));
-                float aggression = LordPersonalitySystem.GetAggression(new TerritoryId(NationType.West, 1));
-                int attackPlan = LordPersonalitySystem.GetDeploymentPlan(new TerritoryId(NationType.West, 1)).attackSoldiers;
-                Debug.Log($"[Test14LordsWar] 🔎 어질 판정 — 서부 공격성 {aggression:0.00} / 파견계획 {attackPlan}명 / 남부는 다른 국가 {westDef.nation != southDef.nation}");
+                float aggression = LordPersonalitySystem.GetAggression(new TerritoryId(NationType.South, 1));
+                int attackPlan = LordPersonalitySystem.GetDeploymentPlan(new TerritoryId(NationType.South, 1)).attackSoldiers;
+                Debug.Log($"[Test14LordsWar] 🔎 어질 판정 — 남부 공격성 {aggression:0.00} / 파견계획 {attackPlan}명 / 서부는 다른 국가 {southDef.nation != westDef.nation}");
             }
             catch (System.Exception ex)
             {
@@ -468,8 +1078,10 @@ namespace ProjectName.Systems
                 new Vector3(villagePos.x + 3f, vY, villagePos.z + 2f));
         }
 
-        /// <summary>캡슐 + 콜라이더로 클릭 가능한 TerritoryNPCBehaviour(NPCInstance) 스폰 (Test_13 패턴 + 상점/일반 구분).</summary>
-        private void SpawnVillageNpc(string id, string name, bool isShop, string greeting, Vector3 pos)
+        /// <summary>캡슐 + 콜라이더로 클릭 가능한 TerritoryNPCBehaviour(NPCInstance) 스폰 (Test_13 패턴 + 상점/일반 구분).
+        /// [118차 후속] territoryId 전달 시 NPCInstance.TerritoryId 설정 — 세금제안 창이 영지 컨텍스트
+        /// (세율/호감도/예상 징수액)를 해석하는 데 필수(115차 계약 "{nation}_{index:D2}").</summary>
+        private void SpawnVillageNpc(string id, string name, bool isShop, string greeting, Vector3 pos, string territoryId = null)
         {
             try
             {
@@ -491,14 +1103,119 @@ namespace ProjectName.Systems
                 npcDataType.GetField("NpcName")?.SetValue(npcData, name);
                 npcDataType.GetField("IsShopNPC")?.SetValue(npcData, isShop);
                 npcDataType.GetField("Greeting")?.SetValue(npcData, greeting);
+                if (!string.IsNullOrEmpty(territoryId))
+                    npcDataType.GetField("TerritoryId")?.SetValue(npcData, territoryId);   // [118차 후속] 세금제안 영지 컨텍스트
 
                 Component behaviour = npc.AddComponent(npcBehaviourType);
                 npcBehaviourType.GetMethod("Initialize").Invoke(behaviour, new object[] { npcData });
+
+                // [63차 사용자 요구 — NPC GLB] 캡슐 → 전용 NPC GLB 교체(성공 시). 실패/무렌더러 시 캡슐 유지(폴백).
+                TryReplaceNpcVisualWithGlb(npc, npc.transform.position);
+
+                // [116차 R4] 1.8m 캘리브레이션+애니 — VillageNpcSpawner 검증 블록 재사용(플레이어와 동일 키/Idle).
+                VillageNpcSpawner.EnsureVillageNpcHeight(npc, SurfaceY(pos.x, pos.z), name);
+                VillageNpcSpawner.EnsureVillageNpcAnimation(npc, isShop ? "shop_npc" : "villager", name);
+
+                // [64차 P3] NPC 근접 상호작용 프롬프트(피그마 82:45 형식 — 베이크 PNG 패널 + 키캡 라벨) 등록.
+                //   EInteractionPromptUTK(UI)는 리플렉션 등록(Systems→UI 참조 불가) — keycap-E가 기본이지만
+                //   라벨에 F키 표기 → 실제 F키 상호작용(PlayerMovement [64차 P3])과 정합
+                //   (패널 PNG의 keycap 이미지는 E 유지 — 라벨 텍스트가 F 안내).
+                //   라벨 분기: 상점 / 영주(isShop=false && NpcId에 lord 포함) / 일반 주민.
+                //   ⚠ "lords_war_*" 접두사도 "lord"를 포함하므로 단순 Contains("lord") 불가 —
+                //     NpcId 끝 단어 기준("_lord" 포함)으로 영주만 판정한다(test17_lord ↔ lords_war_villager 구별).
+                string idLowerForPrompt = (id ?? string.Empty).ToLowerInvariant();
+                string promptLabel = isShop
+                    ? "F키를 눌러 상점 이용"
+                    : (idLowerForPrompt.Contains("_lord") ? "F키를 눌러 영주와 대화" : "F키를 눌러 대화");
+                System.Type promptType = System.Type.GetType("ProjectName.UI.Toolkit.EInteractionPromptUTK, ProjectName.UI");
+                if (promptType != null)
+                {
+                    var register = promptType.GetMethod("Register",
+                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    register?.Invoke(null, new object[] { npc.transform, promptLabel, 3f });
+                    Debug.Log($"[64차 P3] 근접 프롬프트 등록 — {name} label=\"{promptLabel}\" range=3f");
+                }
+
                 Debug.Log($"[Test14LordsWar] NPC 배치: {name} (IsShopNPC={isShop}) @ {pos}");
             }
             catch (System.Exception ex)
             {
                 Debug.LogError($"[Test14LordsWar] NPC 배치 실패({name}): {ex.Message}");
+            }
+        }
+
+        /// <summary>[63차 사용자 요구 — NPC GLB] 캡슐 NPC를 전용 NPC GLB로 교체.
+        ///   매핑: IsShopNPC→npc_shop_rigged(NPC_Shop_Rigged), NpcId에 lord/king 포함→npc_lord_rigged(Npc_Lord_Rigged),
+        ///   그 외 주민 = npc_man1_rigged/npc_girl1_rigged(정점 순환) — TerritoryNPCSpawner.GetNPCKey와 동일 규칙.
+        ///   루트(캡슐 오브젝트)는 유지 — TerritoryNPCBehaviour/클릭 레이캐스트(BoxCollider) 보존, GLB 자식만 교체.
+        ///   GLB 자식의 자체 콜라이더는 제거(루트 BoxCollider와 중복 — 클릭 판정 중복 방지).
+        ///   높이 = TerritoryBuilder.SoldierTargetHeight(1.8m) bounds 정규화 + 발치 스냅(피벗 차이 무관).
+        ///   실패 시 캡슐 유지(폴백 — 배치 절대 중단 금지).</summary>
+        private void TryReplaceNpcVisualWithGlb(GameObject npcRoot, Vector3 groundPos)
+        {
+            try
+            {
+                // 키 매핑 — TerritoryNPCSpawner.GetNPCKey 규칙 동기(문자열 리플렉션: private이므로 로컬 재현)
+                string key;
+                string idLower = (npcRoot.name ?? string.Empty).ToLowerInvariant();
+                bool isShop = false;
+                var behaviour = npcRoot.GetComponent("TerritoryNPCBehaviour");
+                if (behaviour != null)
+                {
+                    var npcDataField = behaviour.GetType().GetProperty("NPCData");
+                    if (npcDataField != null)
+                    {
+                        var data = npcDataField.GetValue(behaviour);
+                        if (data != null)
+                        {
+                            var shopField = data.GetType().GetField("IsShopNPC");
+                            if (shopField != null) isShop = (bool)shopField.GetValue(data);
+                            var idField = data.GetType().GetField("NpcId");
+                            if (idField != null) idLower = (string)idField.GetValue(data) ?? string.Empty;
+                        }
+                    }
+                }
+                if (isShop) key = "npc_shop_rigged";
+                else if (idLower.Contains("lord") || idLower.Contains("king")) key = "npc_lord_rigged";
+                else key = (System.Math.Abs(npcRoot.GetInstanceID()) % 2 == 0)
+                    ? "npc_man1_rigged" : "npc_girl1_rigged";
+
+                if (!RuntimeModelLoader.TryGetModel(key, out var prefab) || prefab == null)
+                {
+                    Debug.LogWarning($"[Test17] NPC GLB 미로드 — {npcRoot.name} 캡슐 유지 (key={key})");
+                    return;
+                }
+
+                var glb = Object.Instantiate(prefab, npcRoot.transform);
+                glb.name = "NpcVisual";
+                glb.transform.localPosition = Vector3.zero;
+                glb.transform.localRotation = Quaternion.identity;
+
+                // GLB 자식 콜라이더 제거 — 클릭 레이캐스트는 루트 BoxCollider 하나만(중복 판정 방지).
+                var glbCols = glb.GetComponentsInChildren<Collider>(true);
+                foreach (var c in glbCols) { if (c != null) Object.Destroy(c); }
+                if (npcRoot.GetComponent<Collider>() == null)
+                {
+                    var col = npcRoot.AddComponent<BoxCollider>();
+                    col.size = new Vector3(0.7f, 1.8f, 0.7f);
+                    col.center = new Vector3(0f, 0.9f, 0f);
+                }
+
+                // 1.8m bounds 정규화 + 발치 스냅(TerritoryBuilder.NormalizeSoldierHeight — bounds.min.y 원점 복원 포함).
+                TerritoryBuilder.NormalizeSoldierHeight(glb, TerritoryBuilder.SoldierTargetHeight);
+
+                // 캡슐 비주얼 제거(렌더러 불필요 — GLB로 완전 교체). MeshFilter는 enabled 속성이 없어
+                // sharedMesh=null로 비움. 루트는 유지(클릭 콜라이더/Behaviour).
+                var capsuleRenderer = npcRoot.GetComponent<MeshRenderer>();
+                if (capsuleRenderer != null) capsuleRenderer.enabled = false;
+                var capsuleFilter = npcRoot.GetComponent<MeshFilter>();
+                if (capsuleFilter != null) capsuleFilter.sharedMesh = null;
+
+                Debug.Log($"[Test17] 🧍 NPC GLB 교체 — {npcRoot.name} ← {key} (1.8m 정규화, 클릭 레이캐스트 루트 유지)");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"[Test17] NPC GLB 교체 실패({npcRoot.name}) — 캡슐 유지: {ex.Message}");
             }
         }
 
@@ -516,8 +1233,9 @@ namespace ProjectName.Systems
             }
         }
 
-        /// <summary>병사의 GuardPlaceholder에 남부 영성 목표로 공격 명령 부여 → Play에서 실제 물리 행진(공격 이동).</summary>
-        private void CommandMarchToSouth(GameObject guardGo, Vector3 southTarget)
+        /// <summary>[52차] 병사의 GuardPlaceholder에 목표 지점 공격 명령 부여 → Play에서 실제 물리 행진(공격 이동).
+        ///   스폰 직후 즉시 호출 — "AI 영주가 공격 명령을 내렸다" 가정의 즉시 출격 재현.</summary>
+        private void CommandMarchToTarget(GameObject guardGo, Vector3 target)
         {
             if (guardGo == null) return;
             try
@@ -528,8 +1246,8 @@ namespace ProjectName.Systems
                     Debug.LogWarning("[Test14LordsWar] 명령 대상 병사에 GuardPlaceholder 없음 — 행진 생략");
                     return;
                 }
-                ph.SetCommandTarget(southTarget, true); // IsAttackCommand=true → 목표로 걷고 도달 시 공격
-                Debug.Log($"[Test14LordsWar] 🚩 서부 침공군 명령 → 남부 공격 목표 {southTarget}");
+                ph.SetCommandTarget(target, true); // IsAttackCommand=true → 목표로 걷고 도달 시 공격
+                Debug.Log($"[Test14LordsWar] 🚩 침공군 명령 → 공격 목표 {target}");
             }
             catch (System.Exception ex)
             {
@@ -539,7 +1257,7 @@ namespace ProjectName.Systems
 
         private void LogLordsWarSummary()
         {
-            Debug.Log("[Test14LordsWar] 🧪 씬 구성 완료 — 확인 포인트: ①내 성 문(E)→실내 ②서부 영주가 남부 공격 행진 ③마을 상점/주민 NPC 클릭 상호작용");
+            Debug.Log("[Test14LordsWar] 🧪 씬 구성 완료 — 확인 포인트: ①내 성 문(E)→실내 ②내 문지기 2명 = 제자리 고정(따라옴 없음) ③남부 침공군 5명이 남부 영지에서 즉시 출격 → 서부 문지기 방어선 행진 → 상호 교전(가시 전투) ④서부 문지기 4명 = 제자리 수호 ⑤마을 상점/주민 NPC 클릭 상호작용");
         }
 
         /// <summary>Test_13_Shop 전용 런타임 배치 — E키 상점, 클릭 상점 NPC, 테스트 골드.</summary>
@@ -793,6 +1511,8 @@ namespace ProjectName.Systems
             if (player.GetComponent<PlayerInventory>() == null)
                 player.AddComponent<PlayerInventory>();
 
+            EnsureStealthSystem();   // [211차] 은신 시스템 부트 보장 — Test_10 C키 은신 무음(씬 StealthSystem 0건) 수리
+
             // PlayerMovement.Awake의 (728, …) 스폰 오버라이드를 여기서 이긴다(실행 순서 의존 유지).
             // 캡슐 중심 = 표면 + 1 + 여유 → ClampToGroundByHeight 텔레포트 트리거 없음.
             player.transform.position = new Vector3(0f, SurfaceY(0f, 0f) + 1.02f, 0f);
@@ -806,6 +1526,39 @@ namespace ProjectName.Systems
             //   쪽에도 동기 즉시 부착 경로를 추가해 이중 방어(패치 66-#3).
             StartCoroutine(EquipDemoStarterGearDelayed());
             Debug.Log($"[TestTerritoryCombat] ✅ Player 설정 완료 (pos={player.transform.position}, 표면 y={SurfaceY(0f, 0f):F2})");
+            // [패링D2] 패링 훈련 안내 — Test_10 패링 체인(텔레그래프→TakeDamage→TryParryReflection→FX) 사용자 검증 경로 명시.
+            //   체인 자체는 95차 F1~F5+159차 P3로 구현 완료(PlayerCombat/AnimalAI/PlayerHealth 소스 실측) — 발화 조건 안내만 추가.
+            Debug.Log("[TestTerritoryCombat] 🛡️ 패링 훈련 안내 — ①V 입력 시 청색 소형 링=창 개방(0.45s) 확인 ②몬스터(-5,0,8 근방)에 선제 타격으로 어그로 ③추격 후 적색 텔레그래프 링(0.5s)에 맞춰 V ④성공 시 PERFECT(금색 2겹 링+히트스톱+반격 ×1.5)/GOOD(청색 1겹) [패링D2]");
+        }
+
+        /// <summary>
+        /// [211차] StealthSystem 부트 보장 — Instance가 없으면 Player에 부착한다.
+        /// 근거: Test_10 씬 StealthSystem 컴포넌트 0건(guid 9a0a2d1e53c8dfd46b3c27a40c9964ef) →
+        ///   C키/은신 물약 모두 무반응(소비처 PlayerMovement.cs:481-495 C키→ToggleStealth,
+        ///   GuardPlaceholder.cs:798 IsStealthed, HumanoidClipDriver.cs:986, NPCAwarenessSystem.cs:430).
+        ///   TestAllInOneSetup.cs:566-581 EnsureStealthSystem 패턴 복제(Test_09 동일 증상의 작동 선례,
+        ///   플레이어 생성 직후 호출). StealthSystem.Awake가 Instance를 할당하므로 AddComponent만으로 부트.
+        /// StealthAssassination은 부착하지 않음(최소 변경): TestAllInOneSetup도 미부착 + 씬/프리팹
+        ///   어디에도 배치 0건(guid 57ec07b331a307048bce088000342994) — GuardPlaceholder.cs:794는
+        ///   Instance 부재 시 무음 스킵이라 부재 무해. 암살은 별도 과제로 검증.
+        /// </summary>
+        private void EnsureStealthSystem()
+        {
+            if (StealthSystem.Instance != null)
+            {
+                Debug.Log("[TestTerritoryCombat] ℹ️ StealthSystem 이미 존재 — 부트 스킵");
+                return;
+            }
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                Debug.LogWarning("[TestTerritoryCombat] ⚠️ Player 없음 — StealthSystem 부트 스킵");
+                return;
+            }
+
+            player.AddComponent<StealthSystem>();
+            Debug.Log("[TestTerritoryCombat] ✅ StealthSystem 부착 (C키 은신 토글 활성 — 비네트/속도감/반투명 피드)");
         }
 
         // [TEST25-66차] 부팅 레이스 흡수 — Awake 완료 후 0.25s 뒤 장착(위 주석 참조).
@@ -906,8 +1659,25 @@ namespace ProjectName.Systems
             GameObject camGO = GameObject.FindGameObjectWithTag("MainCamera");
             if (camGO == null)
             {
-                camGO = new GameObject("Main Camera");
-                camGO.tag = "MainCamera";
+                // [P206-P5] 재생성 방지 — 활성 태그 카메라가 없더라도 씬에 존재하는(비활성 포함) 카메라를
+                // 재사용한다. 원점에 별개 "Main Camera"를 새로 만들면 기존 씬 카메라와 태그가 중복되어
+                // Camera.main이 원점 매몰 카메라를 반환하는 조준 180° 반대 오류([BowAim] 88건 실측)의 근원.
+                Camera existingCam = FindFirstObjectByType<Camera>(FindObjectsInactive.Include);
+                if (existingCam != null)
+                {
+                    camGO = existingCam.gameObject;
+                    camGO.tag = "MainCamera";
+                    Debug.LogWarning($"[TestTerritoryCombat] 기존 카메라 '{camGO.name}' 재사용 — 원점 중복 Main Camera 생성 방지");
+                }
+                else
+                {
+                    camGO = new GameObject("Main Camera");
+                    camGO.tag = "MainCamera";
+                    // [207차 P1] 생성 위치 명시 — 원점(0,0,0) 생성임을 로그로 남긴다(로직 무변경 —
+                    // 테스트 213건 의존). 원점 생성 카메라가 세션 잔존 시 조준을 원점 고정시킨 P0 실측
+                    // (camId -2578, rayO=(0.03,-0.08,0.06)) 재발 판별용 좌표.
+                    Debug.LogWarning($"[TestTerritoryCombat] 씬에 카메라 부재 — 원점에 새 Main Camera 생성 (생성 위치=({camGO.transform.position}))");
+                }
             }
 
             Camera cam = camGO.GetComponent<Camera>();
@@ -1257,11 +2027,29 @@ namespace ProjectName.Systems
         /// </summary>
         private void SetupTestDummies()
         {
+            // [62차] Test_17_LordInteraction — 씬이 자체 배치(마을 NPC 2 + 영주 NPC 1 + 내 병사 3 + 적군 병사 3)를 소유.
+            //   TestGuard_1(병사1)·슬라임(몬스터1) 더미 전부 배제 — 검증 대상 혼선 방지. 조기 리턴은 CreateGuard 이전에 둔다.
+            bool isLordInteractionScene = gameObject.scene.name != null && gameObject.scene.name.Contains("LordInteraction");
+            if (isLordInteractionScene)
+            {
+                Debug.Log("[TestDummies][62차] Test_17_LordInteraction — 병사/몬스터 더미 미배치(야외 마을 상호작용 전용 구성)");
+                return;
+            }
+
             // 병사 1명 — 플레이어 근처(기존 단병사 위치), 포섭 상태(F키 상호작용/부대 테스트용)
             float gx = _guardPos.x, gz = _guardPos.z;
             var guardPos = new Vector3(gx, SurfaceY(gx, gz) + 1.0f, gz);
             CreateGuard("TestGuard_1", guardPos, "병사1", 10, NationType.East,
                 true, new Color(0.2f, 0.4f, 0.9f, 1f));
+
+            // [50차 사용자 요구] Test_14_LordsWar는 영주 전쟁 테스트 씬 — 몬스터(슬라임) 불필요.
+            //   해당 씬에서는 병사 1 + 몬스터 1 배치를 생략(내 소속 병사는 문지기 병사로 선택 — 아래 LordsWar 배선).
+            bool isLordsWarScene = gameObject.scene.name != null && gameObject.scene.name.Contains("LordsWar");
+            if (isLordsWarScene)
+            {
+                Debug.Log("[TestDummies][P21b→50차] Test_14_LordsWar — 병사/몬스터 더미 미배치(영주 전쟁 전용 구성: 문지기 병사+영주 침공군)");
+                return;
+            }
 
             // 몬스터 1마리 — 슬라임(전투/화살 명중 테스트용)
             SpawnMonster("slime");
@@ -1497,11 +2285,16 @@ namespace ProjectName.Systems
                     soldier.transform.localPosition = Vector3.zero;
                     soldier.transform.localRotation = Quaternion.identity;
                     soldier.transform.localScale = Vector3.one;
-                    // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화 — 스케일 후 접지
-                    // [후속17-2] lv20+ 덩치 병사는 일반(lv1-20) 대비 1.8배 확대 + 히트박스 동기화
-                    float soldierScale = GuardManager.NormalizeSoldierScaleToPlayer(soldier);
+                    // [51차 사용자 확정 — 키 1.8m 전 씬 통일] 근원(50차까지): NormalizeSoldierScaleToPlayer는
+                    //   그 씬의 플레이어(캡슐 1.8m / Heat 1.0m / 폴백 1.9f)를 실측 — 씬마다 기준이 흔들렸다.
+                    //   수리: **TerritoryBuilder.NormalizeSoldierHeightFactor(1.8m 고정 = SoldierTargetHeight)**로
+                    //   통일 — 테스트10/메인/실내/테스트14 어느 씬이든 병사 키 = 1.8m 고정. 플레이어 비주얼도
+                    //   동일 상수 정규화(실내 테스트 씬) — 병사-플레이어 동일 키.
+                    //   lv20+ 덩치 배율은 유지(GetSoldierSizeMultiplier — 배율 계약은 별도).
+                    float soldierScale = TerritoryBuilder.NormalizeSoldierHeightFactor(soldier, TerritoryBuilder.SoldierTargetHeight);
                     soldierScale *= GuardManager.GetSoldierSizeMultiplier(level);
                     soldier.transform.localScale = Vector3.one * soldierScale;
+                    _heightTrackedBodies.Add(soldier);   // [52차] 렌더 안정화 후 최종 키 검증 대상
                     ScaleGuardHitbox(guardGO, level);
                     // 접지 — FBX도 발끝을 실제 지면에 정렬(pos.y는 박스 오프셋+1.0 포함, 발이 뜸).
                     GroundModelToY(soldier, SurfaceY(pos.x, pos.z));
@@ -1551,11 +2344,11 @@ namespace ProjectName.Systems
                         soldier.transform.localPosition = Vector3.zero;
                         soldier.transform.localRotation = Quaternion.identity;
                         soldier.transform.localScale = Vector3.one;
-                        // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화 — 스케일 후 접지
-                        // [후속17-2] lv20+ 덩치 병사는 일반(lv1-20) 대비 1.8배 확대 + 히트박스 동기화
-                        float soldierScaleGlb = GuardManager.NormalizeSoldierScaleToPlayer(soldier);
+                        // [51차] GLB 폴백 경로도 1.8m 고정으로 통일(씬 무관 — SoldierTargetHeight).
+                        float soldierScaleGlb = TerritoryBuilder.NormalizeSoldierHeightFactor(soldier, TerritoryBuilder.SoldierTargetHeight);
                         soldierScaleGlb *= GuardManager.GetSoldierSizeMultiplier(level);
                         soldier.transform.localScale = Vector3.one * soldierScaleGlb;
+                        _heightTrackedBodies.Add(soldier);   // [52차] 렌더 안정화 후 최종 키 검증 대상
                         ScaleGuardHitbox(guardGO, level);
 
                         GroundModelToY(soldier, SurfaceY(pos.x, pos.z));
@@ -1687,8 +2480,8 @@ namespace ProjectName.Systems
         // ================================================================
         /// <summary>
         /// 내 소속 영지(East_01 — SetupMyTerritory가 SetOwnership(East,1,PlayerOwned) 등록) 근처 농장 2x2 배치.
-        /// FarmPlot: 빈 밭에서 [E] 파종 → TimeManager 게임 2일 경과 → Ready → 부착된 HerbPickup이
-        /// 기존 E키 채집 흐름(LootBasket.Create + Random yield + EXP)을 그대로 수행.
+        /// FarmPlot [26차]: 굉이질→파종(E 채널) → TimeManager 게임 3일 경과 → Ready → 부착된 HerbPickup이
+        /// 기존 E키 채집 흐름(LootBasket.Create + Random yield + EXP)을 그대로 수행. 수확 후 흙땅(Dirt) 복귀.
         /// y 좌표는 이 파일의 SurfaceY(x,z)+0.1 계약 준수(밭이 흙타일로 지면에 박히게 — FarmPlot.Awake에서도 자체 보정).
         /// </summary>
         private void SetupFarm()
@@ -1704,7 +2497,7 @@ namespace ProjectName.Systems
             Vector3 center = new Vector3(farmX, SurfaceY(farmX, farmZ) + 0.1f, farmZ);
 
             var plots = FarmingManager.Instance.SpawnPlots(NationType.East, 1, center,
-                rows: 2, cols: 2, spacing: 2.5f, HerbPickup.HerbType.Red, 2);
+                rows: 2, cols: 2, spacing: 2.5f, HerbPickup.HerbType.Red, 3);   // [26차] 성장 2→3일
 
             Debug.Log($"[Farm] ✅ 농장 {plots.Count}칸 배치 (내 영지 East_01, center={center})");
         }
@@ -1817,8 +2610,9 @@ namespace ProjectName.Systems
             InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.QuestWindowUTK", "Ensure");
             InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.QuestJournalUTK", "Ensure");
             InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.TimeClockGlassUTK", "Ensure");
+            InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.WorldMapWindowUTK", "Ensure"); // [114차] 월드맵 — M키 토글(자체 폴링), Test_10/13/14/15/17 공통 셋업
             InvokeUtkStatic(uiAsm, "ProjectName.UI.Toolkit.UTKWireUp", "Wire");
-            Debug.Log("[UITest] ✅ UTK app boot ensured: Minimap/HUD/Hotbar/Status/Quest/Journal/Clock + wire-up");
+            Debug.Log("[UITest] ✅ UTK app boot ensured: Minimap/HUD/Hotbar/Status/Quest/Journal/Clock/WorldMap + wire-up");
 
             // ② 구식 UIInventoryHotkey+InventoryWindow 생성 제거 — UTK 인벤은 정적 브리지/프로브 경유.
             // UTKWireUp.Wire()는 I키 이벤트에 연결하고 probe가 씬별 입력 이벤트를 발화한다.
@@ -2098,13 +2892,24 @@ namespace ProjectName.Systems
             if (inv == null) { Debug.LogWarning("[UITest] ⚠️ PlayerInventory 미발견 — 시딩 생략"); return; }
 
             // [2026-10-11] Test_15 슬림화 — 검/가죽갑옷/곡괭이/고기 등 전투·일반 시딩 제외(사용자 요구).
-            // 크래프트 검증용 최소 재료만 지급: 목재 무기/공구(통나무+석재/엄니)로 도끼·삽·목재단검 제작 가능.
             if (_isLivelihoodScene)
             {
                 inv.AddItem(PlayerInventory.Mat_Wood, 6);
                 inv.AddItem(PlayerInventory.Mat_Stone, 2);
                 inv.AddItem(PlayerInventory.BoarTusk, 1);
                 Debug.Log("[Test15Livelihood] ✅ 크래프트 검증 재료 지급 — 통나무×6·석재×2·엄니×1");
+                // [149차 P5] 음식점 검증 시딩(Test_15 전용 — Resources 씬 제외) — 일반 요리+마약 요리를
+                //   플레이어 인벤토리에 지급. 좌측 "판매 가능한 음식" 그리드 소스 = PlayerInventory Food/Drug(drugged_)
+                //   (RestaurantWindowUTK.CollectInventoryFoods) — 기존 시딩은 식재료 0종이라 "판매할 수 있는 음식이
+                //   없다"(사용자 실측)가 떴다. id는 VillageDrugState 재고 시딩(foodItemId cook_01/drugged_cook_01)과
+                //   일치 — RestockFromPlayer 입고 시 동일 병합 키 슬롯에 합산. 마약 설명에 stage 마커 필수
+                //   (RestaurantSystem.ParseDrugStage — "[마약: stage 3]" 파싱, 재고 시딩 stage=3와 병합 정합).
+                if (!_isLivelihoodResourcesScene)
+                {
+                    inv.AddItem(new PlayerInventory.ItemData { id = "cook_01", displayName = "일반 요리", description = "마을 음식점 판매용 일반 요리.", category = PlayerInventory.ItemCategory.Food, rarity = ItemRarity.Common, maxStack = 99, maxDurability = 0, basePrice = 10 }, 10);
+                    inv.AddItem(new PlayerInventory.ItemData { id = "drugged_cook_01", displayName = "마약 요리", description = "마약이 담긴 요리. [마약: stage 3]", category = PlayerInventory.ItemCategory.Food, rarity = ItemRarity.Common, maxStack = 99, maxDurability = 0, basePrice = 30 }, 10);
+                    Debug.Log("[149차] ✅ 음식점 검증 시딩 — 일반 요리 10 + 마약 요리(3단계) 10 인벤토리 지급");
+                }
                 return;
             }
 
@@ -2144,5 +2949,130 @@ namespace ProjectName.Systems
             hc.size = new Vector3(w, h, d);
             hc.center = new Vector3(hc.center.x, h * 0.5f, hc.center.z); // 바닥(0) 기준으로 스팬 — 발이 지면에 닿게
         }
+        // ================================================================
+        // [62차] Test_17_LordInteraction 전용 — 야외 마을 상호작용(대화 패널) 씬 배치
+        // ================================================================
+        /// <summary>
+        /// Test_17_LordInteraction 전용 런타임 배치 — 실내(구 Test_16 복제 구성) → 야외 마을 지형으로 재구성.
+        ///  ① 마을 광장 원판 — PlaceVillageWithNpcs 선례 패턴(Cylinder 12m·Untagged), 위치만 미니지형 중심부 (0,0,10).
+        ///  ② 마을 NPC 2종 — SpawnVillageNpc 재사용(좌클릭 → InteractionPanel → 대화하기=NPCDialoguePanelUTK / 상점=ShopWindowUTK).
+        ///  ③ 영주 NPC 1명 — SpawnVillageNpc 동일 패턴(isShop=false) 야외 배치. 좌클릭 → "NPC" 패널(상태보기/대화하기/선물주기/퀘스트)
+        ///     → 대화하기 → 대화 패널. InvadedLordEncounter는 실내 영주실 앵커(0,0,28)+토폴로지 검증이라 야외 부적합 → 미사용.
+        ///     LordFeedTarget/InvadedLordEncounter를 붙이면 호버 분류가 Lord가 되어 대화 액션이 "미지원"로 빠지므로 붙이지 않는다.
+        ///  ④ 내 소속 병사 3명(파랑·서측·포섭) + 적군 병사 3명(빨강·동측·적대) — SpawnSoldier(CreateGuard) 경로 + 콜라이더 보강 + 홀드.
+        ///  GSM/RTS/Router는 base Awake 자가부트 — 추가 부팅 불필요. IndoorActive는 세팅하지 않음(야외 기본 false).
+        /// </summary>
+        private void SetupLordInteractionTestScene()
+        {
+            PlaceLordInteractionPlaza();
+            SpawnLordInteractionNpcs();
+            SpawnLordInteractionSoldiers();
+            Debug.Log("[Test17] ✅ 마을 상호작용 준비 — ①마을 NPC 좌클릭=대화/상점 패널 ②영주 좌클릭=NPC 패널(대화하기)→대화 패널 ③병사 드래그 선택(파랑 서측) ④적군 병사(빨강 동측)");
+        }
+
+        /// <summary>마을 광장 원판 — PlaceVillageWithNpcs 선례 복제(위치만 (0,0,10) — 미니지형 중심부).</summary>
+        private void PlaceLordInteractionPlaza()
+        {
+            try
+            {
+                const float plazaX = 0f, plazaZ = 10f;
+                float pY = SurfaceY(plazaX, plazaZ);
+                var plaza = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                plaza.name = "Test17VillagePlaza";
+                plaza.transform.position = new Vector3(plazaX, pY + 0.06f, plazaZ);
+                plaza.transform.localScale = new Vector3(12f, 0.06f, 12f);
+                plaza.tag = "Untagged";
+                var pr = plaza.GetComponent<MeshRenderer>();
+                if (pr != null) pr.material = MaterialHelper.CreateLitMaterial(new Color(0.52f, 0.5f, 0.47f), "Test17VillagePlaza_Mat");
+                Debug.Log($"[Test17] 광장 원판 배치 @ ({plazaX:F1}, {pY + 0.06f:F2}, {plazaZ:F1})");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[Test17] 마을 광장 배치 실패: {ex.Message}");
+            }
+        }
+
+        /// <summary>마을 NPC 2종(상점/주민) + 영주 NPC 1명 — SpawnVillageNpc 재사용.
+        ///   본문이 SurfaceY(pos.x, pos.z)로 y를 재계산하므로 pos.y는 0 전달(선례와 동일).</summary>
+        private void SpawnLordInteractionNpcs()
+        {
+            const float plazaX = 0f, plazaZ = 10f;
+
+            // 마을 상점 NPC — 좌클릭 → InteractionPanel "상점" → ShopWindowUTK
+            SpawnVillageNpc("test17_shop", "잡화점 상인", true, "어서 오세요, 뭐 필요한가?",
+                new Vector3(plazaX - 3f, 0f, plazaZ - 2f));
+            // 마을 주민 NPC — 좌클릭 → InteractionPanel "대화하기" → NPCDialoguePanelUTK
+            SpawnVillageNpc("test17_villager", "마을 주민 한백", false, "안녕하세요, 여행자님. 최근 서부 영주가 저지르는 일이 걱정돼요.",
+                new Vector3(plazaX + 3f, 0f, plazaZ + 2f));
+            // 영주 NPC(야외) — 좌클릭 → InteractionPanel "NPC" 패널(상태보기/대화하기/선물주기/퀘스트) → 대화하기 → 대화 패널
+            SpawnVillageNpc("test17_lord", "👑 서부 영주 가레트", false, "서부 성에 온 손님이군요. 무슨 일이신가?",
+                new Vector3(plazaX, 0f, plazaZ + 5f));
+        }
+
+        /// <summary>내 병사 3명(서측 x-6 열 1.5m 간격·파랑·포섭) + 적군 병사 3명(동측 x+6 열 1.5m 간격·빨강·적대).
+        ///   CreateGuard가 BoxCollider(0.6×1.8×0.6·+0.9)/kinematic rb/GuardHeadUI를 부여하나, 스폰 후
+        ///   EnsureTest17CombatCollider로 누락 없음을 방어적 재보장(LordInteractionTestSetup.EnsureCombatCollider 동일 패턴).
+        ///   양측 모두 SetHold(true) — 제자리 고정으로 관측 안정(드래그 선택/명령은 플레이어 수동 검증).</summary>
+        private void SpawnLordInteractionSoldiers()
+        {
+            const float plazaX = 0f, plazaZ = 10f;
+            var myColor = new Color(0.25f, 0.5f, 0.9f);      // 내 진영 파랑
+            var enemyColor = new Color(0.9f, 0.3f, 0.3f);    // 적 진영 빨강
+
+            int myHeld = 0, enemyHeld = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                float gz = plazaZ - 1.5f + i * 1.5f;   // 열 1.5m 간격(z 방향 라인)
+
+                // 내 소속 병사 — 광장 서측(x-6) 열, 포섭(RecruitedSoldier 태그 → 드래그 선택 대상)
+                var myGo = SpawnSoldier($"Test17_MyGuard_{i + 1}", new Vector3(plazaX - 6f, 0f, gz),
+                    "내 수행 병사", 8, NationType.East, true, myColor);
+                if (myGo != null)
+                {
+                    EnsureTest17CombatCollider(myGo);
+                    var myPh = myGo.GetComponent<GuardPlaceholder>();
+                    if (myPh != null) { myPh.SetHold(true); myHeld++; }
+                    Debug.Log($"[Test17] 내 병사 배치: {myGo.name} @ {myGo.transform.position} (파랑·홀드)");
+                }
+
+                // 적군 병사 — 광장 동측(x+6) 열, 미포섭 + 플레이어 진영 적대
+                var enemyGo = SpawnSoldier($"Test17_EnemyGuard_{i + 1}", new Vector3(plazaX + 6f, 0f, gz),
+                    "서부 병사", 8, NationType.West, false, enemyColor);
+                if (enemyGo != null)
+                {
+                    EnsureTest17CombatCollider(enemyGo);
+                    var enemyPh = enemyGo.GetComponent<GuardPlaceholder>();
+                    if (enemyPh != null)
+                    {
+                        enemyPh.SetHold(true);                    // 제자리 — 관측 안정
+                        enemyPh.HostileToPlayerFaction = true;    // 적군 — 플레이어 진영 적대
+                        enemyHeld++;
+                    }
+                    Debug.Log($"[Test17] 적군 병사 배치: {enemyGo.name} @ {enemyGo.transform.position} (빨강·홀드·적대)");
+                }
+            }
+            Debug.Log($"[Test17] ⚔️ 병사 배치 완료 — 내 병사 3명(서측 x-6, 홀드 {myHeld}명) / 적군 병사 3명(동측 x+6, 홀드 {enemyHeld}명) — 국가 상이(East↔West) 서로 적대");
+        }
+
+        /// <summary>[62차] Test_17 병사 전투 판정 보강 — LordInteractionTestSetup.EnsureCombatCollider 동일 패턴(멱등).
+        ///   CreateGuard가 이미 동일 구성을 부여하지만, 스폰 경로 분기(비주얼 폴백 등)에서의 누락 가능성을 방어적으로 재보장.</summary>
+        private static void EnsureTest17CombatCollider(GameObject go)
+        {
+            if (go == null) return;
+            if (go.GetComponent<Collider>() == null)
+            {
+                var col = go.AddComponent<BoxCollider>();
+                col.size = new Vector3(0.6f, 1.8f, 0.6f);
+                col.center = new Vector3(0f, 0.9f, 0f);
+            }
+            var rb = go.GetComponent<Rigidbody>();
+            if (rb == null) rb = go.AddComponent<Rigidbody>();
+            rb.useGravity = false;
+            rb.isKinematic = true;
+            rb.mass = 1f;
+            if (go.GetComponent<GuardHeadUI>() == null)
+                go.AddComponent<GuardHeadUI>();
+        }
+
     }
 }

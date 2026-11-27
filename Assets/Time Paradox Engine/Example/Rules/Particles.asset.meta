@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 0977657c9a37a8e40877c57bad80f13d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Example/Rules/Particles.asset
+  uploadId: 898796

@@ -13,10 +13,7 @@ namespace ProjectName.Systems
 	{
 		public static MercenaryManager Instance { get; private set; }
 
-		[Header("설정")]
-		[SerializeField] private int _maxMercenaries = 10;
-
-		// 고용된 용병 목록
+		// 고용된 용병 목록 (인원 상한 없음 — 고용 가능 수는 카탈로그의 서로 다른 용병 수로 제한됨)
 		private List<MercenaryInstance> _hiredMercenaries = new List<MercenaryInstance>();
 
 		// 기본 용병 데이터베이스
@@ -167,7 +164,10 @@ namespace ProjectName.Systems
 			int level = stats?.Level ?? 1;
 			if (!ContentGate.IsUnlocked("tavern_mercenary", level))
 			{
-				Debug.LogWarning("[MercenaryManager] " + ContentGate.GetLockedMessage("tavern_mercenary"));
+				string msg = ContentGate.GetLockedMessage("tavern_mercenary");
+				// [158차 P2] 고용 차단 피드백 — 콘솔 전용 → 대화 패널 표출(상호작용불가=피드백 필수 계약).
+				PlayerNotify.Notify(msg);
+				Debug.LogWarning("[MercenaryManager] " + msg);
 				return false;
 			}
 
@@ -177,13 +177,7 @@ namespace ProjectName.Systems
 				return false;
 			}
 
-			if (_hiredMercenaries.Count >= _maxMercenaries)
-			{
-				Debug.LogWarning("[MercenaryManager] 최대 고용 인원 초과");
-				return false;
-			}
-
-			// 이미 고용된 용병 확인
+			// 이미 고용된 용병 확인 (동일 ID 중복 고용 금지 — 고용 상한은 카탈로그 고유 ID 수가 결정)
 			foreach (var m in _hiredMercenaries)
 			{
 				if (m.data.id == mercenaryId)
@@ -194,6 +188,14 @@ namespace ProjectName.Systems
 			}
 
 			var mercData = _mercenaryDatabase[mercenaryId];
+
+			// 입단비 + 첫 주 계약비 결제 (등록 전). 실패 시 고용 목록 불변.
+			if (!SoldierWageSystem.TryChargeMercenaryHire(mercData, out _, out _))
+			{
+				Debug.LogWarning($"[MercenaryManager] 골드 부족 — 고용 거부: {mercenaryId}");
+				return false;
+			}
+
 			var instance = new MercenaryInstance
 			{
 				data = mercData,
@@ -234,6 +236,8 @@ namespace ProjectName.Systems
 				{
 					Debug.Log($"[MercenaryManager] 🔴 용병 해고: {_hiredMercenaries[i].data.mercenaryName}");
 					_hiredMercenaries.RemoveAt(i);
+					// 계약 스케줄 정리 (스테일 청구일 방지). 골드 변동 없음.
+					SoldierWageSystem.ClearContractSchedule(mercenaryId);
 					// 호감도 데이터 정리 (고아 데이터 방지)
 					if (_affinity.ContainsKey(mercenaryId))
 						_affinity.Remove(mercenaryId);
@@ -279,8 +283,18 @@ namespace ProjectName.Systems
 		/// <summary>고용된 용병 수</summary>
 		public int HiredCount => _hiredMercenaries.Count;
 
-		/// <summary>최대 고용 가능 인원</summary>
-		public int MaxMercenaries => _maxMercenaries;
+		/// <summary>
+		/// 고용 가능한 서로 다른 용병 수 (카탈로그 고유 ID 수). 인원 상한이 아니라 실제 고용 가능 대상 수다.
+		/// 같은 ID는 한 번만 고용 가능하므로 HiredCount의 최댓값이 이 값이다.
+		/// </summary>
+		public int AvailableMercenaryCount
+		{
+			get
+			{
+				EnsureDatabase();
+				return _mercenaryDatabase.Count;
+			}
+		}
 
 		// ===== 호감도 시스템 =====
 
@@ -371,6 +385,90 @@ namespace ProjectName.Systems
 					_hiredMercenaries[idx] = merc; // ★ struct 재할당 (필수!)
 					Debug.Log($"[MercenaryManager] 💊 {merc.data.mercenaryName} 자동 회복! +{healAmount} HP");
 					return;
+				}
+			}
+		}
+
+		// ===== 저장/복원 (SaveData v4 mercenaries 블록) =====
+
+		/// <summary>
+		/// 고용 로스터와 호감도 테이블을 DTO로 내보낸다. Unity 참조(potionSlots 아이템)는 저장하지 않는다.
+		/// 호감도는 고용 중이 아닌 용병 것도 포함한다(_affinity 단일 테이블).
+		/// </summary>
+		public MercenarySaveData ExportSaveData()
+		{
+			var data = new MercenarySaveData();
+			foreach (var m in _hiredMercenaries)
+			{
+				data.hired.Add(new MercenaryInstanceSaveData
+				{
+					mercenaryId = m.data.id,
+					currentHP = m.currentHP,
+					isAlive = m.isAlive,
+					affinity = m.affinity
+				});
+			}
+
+			var keys = new List<string>(_affinity.Keys);
+			keys.Sort(string.CompareOrdinal);
+			foreach (string key in keys)
+			{
+				data.affinities.Add(new AffinitySaveEntry { mercenaryId = key, value = _affinity[key] });
+			}
+			return data;
+		}
+
+		/// <summary>
+		/// 고용 로스터 복원. 골드를 청구하지 않는다(TryChargeMercenaryHire 호출 없음).
+		/// 용병 정의는 id로 DB에서 재조회하며, 알 수 없는 id 또는 중복 id는 건너뛴다.
+		/// 물약 슬롯은 빈 상태로 복원된다. 호감도는 저장된 값을 우선하고, 없으면 고용 중 인스턴스 값/기본 50.
+		/// 계약 청구일 복원은 SoldierWageSystem.ImportSaveData가 담당한다(이 메서드 이후 호출).
+		/// </summary>
+		public void ImportSaveData(MercenarySaveData data)
+		{
+			EnsureDatabase();
+			_hiredMercenaries.Clear();
+			_affinity.Clear();
+
+			if (data == null) return;
+
+			if (data.affinities != null)
+			{
+				foreach (var a in data.affinities)
+				{
+					if (a == null || string.IsNullOrEmpty(a.mercenaryId)) continue;
+					_affinity[a.mercenaryId] = Mathf.Clamp(a.value, 0f, 100f);
+				}
+			}
+
+			if (data.hired != null)
+			{
+				foreach (var h in data.hired)
+				{
+					if (h == null || string.IsNullOrEmpty(h.mercenaryId)) continue;
+					if (!_mercenaryDatabase.TryGetValue(h.mercenaryId, out var mercData))
+					{
+						Debug.LogWarning($"[MercenaryManager] 세이브의 알 수 없는 용병 ID 건너뜀: {h.mercenaryId}");
+						continue;
+					}
+					bool duplicate = false;
+					foreach (var m in _hiredMercenaries)
+					{
+						if (m.data.id == h.mercenaryId) { duplicate = true; break; }
+					}
+					if (duplicate) continue;
+
+					float aff = _affinity.TryGetValue(h.mercenaryId, out float stored) ? stored : Mathf.Clamp(h.affinity, 0f, 100f);
+					_affinity[h.mercenaryId] = aff;
+
+					_hiredMercenaries.Add(new MercenaryInstance
+					{
+						data = mercData,
+						currentHP = Mathf.Clamp(h.currentHP, 0f, mercData.maxHP),
+						isAlive = h.isAlive,
+						affinity = aff,
+						potionSlots = new PlayerInventory.ItemData[3]
+					});
 				}
 			}
 		}

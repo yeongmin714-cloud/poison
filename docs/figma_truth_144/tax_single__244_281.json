@@ -1,0 +1,1706 @@
+{
+ "id": "244:281",
+ "name": "단일 영지 세금 관리 패널",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 50422,
+ "ay": 3,
+ "w": 624.0,
+ "h": 974.0,
+ "d": 0,
+ "fills": [
+  "#13181F/1.0"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.2,
+ "r": 14.4,
+ "fx": [
+  "DROP_SHADOW:38.400001525878906:#000000/0.251"
+ ],
+ "layout": "VERTICAL",
+ "gap": 19.200000762939453,
+ "pl": 24.0,
+ "pr": 24.0,
+ "pt": 24.0,
+ "pb": 24.0,
+ "c": [
+  {
+   "id": "244:282",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50422,
+   "ay": 3,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "244:284",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50422,
+     "ay": 3,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "244:283",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50422,
+     "ay": 3,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "244:285",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 51034,
+   "ay": 3,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "244:287",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51044,
+     "ay": 3,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "244:286",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51034,
+     "ay": 3,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "244:288",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50422,
+   "ay": 965,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "244:290",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50422,
+     "ay": 965,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "244:289",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50422,
+     "ay": 975,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "244:291",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 51034,
+   "ay": 965,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "244:293",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51044,
+     "ay": 965,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "244:292",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51034,
+     "ay": 975,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "244:294",
+   "name": "패널 제목",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50446,
+   "ay": 27,
+   "w": 576.0,
+   "h": 52.8,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 12.0,
+   "pb": 14.399999618530273,
+   "crossAlign": "BASELINE",
+   "c": [
+    {
+     "id": "244:295",
+     "name": "제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 50446,
+     "ay": 27,
+     "w": 85.0,
+     "h": 25.0,
+     "d": 2,
+     "fills": [
+      "#F0F6FC/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "세금 관리",
+     "fontSize": 21.600000381469727,
+     "font": "Roboto 700 Bold",
+     "lineH": 25.3
+    },
+    {
+     "id": "244:296",
+     "name": "보조 제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 50543,
+     "ay": 35,
+     "w": 135.0,
+     "h": 15.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "영지 세율 및 마을 호감도",
+     "fontSize": 13.199999809265137,
+     "font": "Roboto 500 Medium",
+     "lineH": 15.5
+    }
+   ]
+  },
+  {
+   "id": "244:297",
+   "name": "선택한 영지",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50446,
+   "ay": 99,
+   "w": 576.0,
+   "h": 86.4,
+   "d": 1,
+   "fills": [
+    "#FFFFFF/1.0@0.078"
+   ],
+   "strokes": [
+    "#58A6FF/1.0"
+   ],
+   "strokeW": 1.8,
+   "r": 9.6,
+   "layout": "HORIZONTAL",
+   "gap": 14.399999618530273,
+   "pl": 14.399999618530273,
+   "pr": 14.399999618530273,
+   "pt": 14.399999618530273,
+   "pb": 14.399999618530273,
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "244:298",
+     "name": "영지 등급",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50446,
+     "ay": 99,
+     "w": 4.8,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "244:299",
+     "name": "영지 상징",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50460,
+     "ay": 116,
+     "w": 52.8,
+     "h": 52.8,
+     "d": 2,
+     "fills": [
+      "#21262D/1.0@0.6"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 100.0,
+     "layout": "HORIZONTAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "244:300",
+       "name": "마을 상징",
+       "type": "VECTOR",
+       "x": null,
+       "y": null,
+       "ax": 50478,
+       "ay": 133,
+       "w": 18.0,
+       "h": 19.0,
+       "d": 3,
+       "strokes": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 2.1
+      }
+     ]
+    },
+    {
+     "id": "244:301",
+     "name": "영지 정보",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50528,
+     "ay": 121,
+     "w": 372.6,
+     "h": 41.8,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "VERTICAL",
+     "gap": 4.800000190734863,
+     "c": [
+      {
+       "id": "244:302",
+       "name": "영지 이름과 유형",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50528,
+       "ay": 121,
+       "w": 372.6,
+       "h": 20.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "244:303",
+         "name": "영지 이름",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50528,
+         "ay": 121,
+         "w": 62.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "그린필드",
+         "fontSize": 16.799999237060547,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        },
+        {
+         "id": "244:304",
+         "name": "영지 유형",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50599,
+         "ay": 126,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "농업 마을",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "244:305",
+       "name": "세금 항목",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50528,
+       "ay": 146,
+       "w": 372.6,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "주민세 · 농업세",
+       "fontSize": 14.399999618530273,
+       "font": "Roboto 400 Regular",
+       "lineH": 16.9
+      }
+     ]
+    },
+    {
+     "id": "244:306",
+     "name": "현재 호감도",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50915,
+     "ay": 120,
+     "w": 93.0,
+     "h": 43.8,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "VERTICAL",
+     "gap": 4.800000190734863,
+     "crossAlign": "MAX",
+     "c": [
+      {
+       "id": "244:307",
+       "name": "호감도 항목",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50949,
+       "ay": 120,
+       "w": 59.0,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "현재 호감도",
+       "fontSize": 12.0,
+       "font": "Roboto 400 Regular",
+       "lineH": 14.1
+      },
+      {
+       "id": "244:308",
+       "name": "호감도 수치",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50915,
+       "ay": 139,
+       "w": 93.0,
+       "h": 25.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "72 / 100",
+       "fontSize": 19.200000762939453,
+       "font": "Geist Mono 700 Bold",
+       "lineH": 25.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "244:309",
+   "name": "세금 조절",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50446,
+   "ay": 205,
+   "w": 576.0,
+   "h": 262.0,
+   "d": 1,
+   "fills": [
+    "#FFFFFF/1.0@0.02"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 9.6,
+   "layout": "VERTICAL",
+   "gap": 14.399999618530273,
+   "pl": 19.200000762939453,
+   "pr": 19.200000762939453,
+   "pt": 19.200000762939453,
+   "pb": 19.200000762939453,
+   "c": [
+    {
+     "id": "244:310",
+     "name": "세율 설정",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50465,
+     "ay": 224,
+     "w": 537.6,
+     "h": 50.4,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "244:311",
+       "name": "설정 안내",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50465,
+       "ay": 230,
+       "w": 189.0,
+       "h": 38.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "244:312",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50465,
+         "ay": 230,
+         "w": 67.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "세율 설정",
+         "fontSize": 16.799999237060547,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        },
+        {
+         "id": "244:313",
+         "name": "조절 안내",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50465,
+         "ay": 254,
+         "w": 189.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "슬라이더로 징수할 세율을 조절하세요.",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "244:314",
+       "name": "현재 설정",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50955,
+       "ay": 224,
+       "w": 48.0,
+       "h": 50.4,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 2.4000000953674316,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "244:315",
+         "name": "설정 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50955,
+         "ay": 224,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "현재 설정",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        },
+        {
+         "id": "244:316",
+         "name": "설정 세율",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50955,
+         "ay": 240,
+         "w": 48.0,
+         "h": 34.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "15%",
+         "fontSize": 26.399999618530273,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 34.3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "244:317",
+     "name": "세율 슬라이더",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50465,
+     "ay": 289,
+     "w": 537.6,
+     "h": 100.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "c": [
+      {
+       "id": "244:329",
+       "name": "최대 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50955,
+       "ay": 341,
+       "w": 48.0,
+       "h": 37.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "244:330",
+         "name": "기준 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50955,
+         "ay": 341,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "최대 세금",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        },
+        {
+         "id": "244:331",
+         "name": "기준 세율",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50977,
+         "ay": 359,
+         "w": 26.0,
+         "h": 19.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "30%",
+         "fontSize": 14.399999618530273,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 18.7
+        }
+       ]
+      },
+      {
+       "id": "244:326",
+       "name": "권장 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50604,
+       "ay": 341,
+       "w": 48.0,
+       "h": 37.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "244:327",
+         "name": "기준 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50604,
+         "ay": 341,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "권장 세금",
+         "fontSize": 12.0,
+         "font": "Roboto 700 Bold",
+         "lineH": 14.1
+        },
+        {
+         "id": "244:328",
+         "name": "기준 세율",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50615,
+         "ay": 359,
+         "w": 26.0,
+         "h": 19.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "10%",
+         "fontSize": 14.399999618530273,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 18.7
+        }
+       ]
+      },
+      {
+       "id": "244:323",
+       "name": "최소 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50465,
+       "ay": 341,
+       "w": 48.0,
+       "h": 37.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "244:324",
+         "name": "기준 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50465,
+         "ay": 341,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "최소 세금",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        },
+        {
+         "id": "244:325",
+         "name": "기준 세율",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50465,
+         "ay": 359,
+         "w": 18.0,
+         "h": 19.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "0%",
+         "fontSize": 14.399999618530273,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 18.7
+        }
+       ]
+      },
+      {
+       "id": "244:322",
+       "name": "최대 세율 표시선",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 50991,
+       "ay": 311,
+       "w": 2.4,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "244:321",
+       "name": "슬라이더 손잡이",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 50722,
+       "ay": 306,
+       "w": 24.0,
+       "h": 24.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokes": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 2.4
+      },
+      {
+       "id": "244:320",
+       "name": "권장 세율 표시선",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 50647,
+       "ay": 307,
+       "w": 2.4,
+       "h": 24.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "244:319",
+       "name": "설정 구간",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 50475,
+       "ay": 315,
+       "w": 246.8,
+       "h": 7.2,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "r": 4.0
+      },
+      {
+       "id": "244:318",
+       "name": "남은 세율 구간",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 50746,
+       "ay": 315,
+       "w": 246.8,
+       "h": 7.2,
+       "d": 3,
+       "fills": [
+        "#30363D/1.0"
+       ],
+       "strokeW": 1.0,
+       "r": 4.0
+      }
+     ]
+    },
+    {
+     "id": "244:332",
+     "name": "권장 초과 안내",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50465,
+     "ay": 403,
+     "w": 537.6,
+     "h": 44.4,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "pt": 12.0,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "244:333",
+       "name": "초과 세율",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50465,
+       "ay": 424,
+       "w": 132.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#D29922/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "권장 세율보다 5%p 높음",
+       "fontSize": 13.199999809265137,
+       "font": "Roboto 400 Regular",
+       "lineH": 15.5
+      },
+      {
+       "id": "244:334",
+       "name": "권장값 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50890,
+       "ay": 415,
+       "w": 113.0,
+       "h": 32.4,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 12.0,
+       "pr": 12.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "244:335",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50902,
+         "ay": 424,
+         "w": 89.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "권장값으로 설정",
+         "fontSize": 13.199999809265137,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "244:336",
+   "name": "마을 호감도 영향 설명창",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50446,
+   "ay": 486,
+   "w": 576.0,
+   "h": 279.0,
+   "d": 1,
+   "fills": [
+    "#D29922/1.0@0.063"
+   ],
+   "strokes": [
+    "#D29922/1.0@0.302"
+   ],
+   "strokeW": 1.2,
+   "r": 9.6,
+   "layout": "VERTICAL",
+   "gap": 14.399999618530273,
+   "pl": 19.200000762939453,
+   "pr": 19.200000762939453,
+   "pt": 19.200000762939453,
+   "pb": 19.200000762939453,
+   "c": [
+    {
+     "id": "244:337",
+     "name": "영향 제목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50465,
+     "ay": 505,
+     "w": 537.6,
+     "h": 20.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "gap": 9.600000381469727,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "244:368",
+       "name": "triangle-alert",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50465,
+       "ay": 505,
+       "w": 19.2,
+       "h": 19.2,
+       "d": 3,
+       "strokeW": 1.0,
+       "c": [
+        {
+         "id": "244:369",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 50467,
+         "ay": 508,
+         "w": 16.0,
+         "h": 14.4,
+         "d": 4,
+         "strokes": [
+          "#D29922/1.0"
+         ],
+         "strokeW": 1.8
+        }
+       ]
+      },
+      {
+       "id": "244:339",
+       "name": "제목",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50494,
+       "ay": 505,
+       "w": 452.2,
+       "h": 20.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "마을 호감도 영향",
+       "fontSize": 16.799999237060547,
+       "font": "Roboto 700 Bold",
+       "lineH": 19.7
+      },
+      {
+       "id": "244:340",
+       "name": "주간 변화",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50956,
+       "ay": 507,
+       "w": 47.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#F0887D/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "매주 −5",
+       "fontSize": 14.399999618530273,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    },
+    {
+     "id": "244:341",
+     "name": "호감도 예측",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50465,
+     "ay": 539,
+     "w": 537.6,
+     "h": 78.6,
+     "d": 2,
+     "fills": [
+      "#0B0E14/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "gap": 19.200000762939453,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "244:342",
+       "name": "현재 호감도",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50480,
+       "ay": 554,
+       "w": 225.6,
+       "h": 49.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "244:343",
+         "name": "항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50480,
+         "ay": 554,
+         "w": 59.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "현재 호감도",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        },
+        {
+         "id": "244:344",
+         "name": "수치",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50480,
+         "ay": 573,
+         "w": 77.0,
+         "h": 31.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "72 / 100",
+         "fontSize": 24.0,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 31.2
+        }
+       ]
+      },
+      {
+       "id": "244:371",
+       "name": "arrow-right",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50724,
+       "ay": 569,
+       "w": 19.2,
+       "h": 19.2,
+       "d": 3,
+       "strokeW": 1.0,
+       "c": [
+        {
+         "id": "244:372",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 50728,
+         "ay": 573,
+         "w": 11.2,
+         "h": 11.2,
+         "d": 4,
+         "strokes": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.8
+        }
+       ]
+      },
+      {
+       "id": "244:346",
+       "name": "징수 후 호감도",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50763,
+       "ay": 554,
+       "w": 225.6,
+       "h": 49.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "244:347",
+         "name": "항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50763,
+         "ay": 554,
+         "w": 87.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "다음 징수 후 예상",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        },
+        {
+         "id": "244:348",
+         "name": "수치",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50763,
+         "ay": 573,
+         "w": 77.0,
+         "h": 31.0,
+         "d": 4,
+         "fills": [
+          "#F0887D/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "67 / 100",
+         "fontSize": 24.0,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 31.2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "244:349",
+     "name": "현재 세율 영향",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 50465,
+     "ay": 632,
+     "w": 537.6,
+     "h": 46.0,
+     "d": 2,
+     "fills": [
+      "#F0F6FC/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "현재 설정한 15%는 권장 세금 10%를 초과합니다. 이 세율을 유지하면 세금 징수 시 마을 호감도가 매주 ",
+     "fontSize": 14.399999618530273,
+     "font": "Roboto 400 Regular",
+     "lineH": 23.0
+    },
+    {
+     "id": "244:350",
+     "name": "호감도 계산 기준",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50465,
+     "ay": 693,
+     "w": 537.6,
+     "h": 52.8,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "layout": "VERTICAL",
+     "gap": 4.800000190734863,
+     "pt": 12.0,
+     "c": [
+      {
+       "id": "244:351",
+       "name": "감소 기준",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50465,
+       "ay": 705,
+       "w": 537.6,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "권장 세율 초과 1%p당 호감도 −1 / 주 · 최대 세금 30%일 때 −20 / 주",
+       "fontSize": 12.0,
+       "font": "Roboto 400 Regular",
+       "lineH": 18.0
+      },
+      {
+       "id": "244:352",
+       "name": "권장 세율 안내",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50465,
+       "ay": 728,
+       "w": 537.6,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "10% 이하로 설정하면 세금으로 인한 호감도 하락이 없습니다.",
+       "fontSize": 12.0,
+       "font": "Roboto 400 Regular",
+       "lineH": 18.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "244:353",
+   "name": "세금 요약 및 적용",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50446,
+   "ay": 784,
+   "w": 576.0,
+   "h": 169.0,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 14.399999618530273,
+   "pt": 14.399999618530273,
+   "c": [
+    {
+     "id": "244:354",
+     "name": "징수 일정",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50446,
+     "ay": 798,
+     "w": 576.0,
+     "h": 15.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "244:355",
+       "name": "자동 징수 안내",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50446,
+       "ay": 798,
+       "w": 156.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "매주 월요일 00:00 자동 징수",
+       "fontSize": 13.199999809265137,
+       "font": "Roboto 400 Regular",
+       "lineH": 15.5
+      },
+      {
+       "id": "244:356",
+       "name": "적용 시점",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50927,
+       "ay": 799,
+       "w": 95.0,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "다음 징수부터 적용",
+       "fontSize": 12.0,
+       "font": "Roboto 400 Regular",
+       "lineH": 14.1
+      }
+     ]
+    },
+    {
+     "id": "244:357",
+     "name": "예상 주간 세금",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50446,
+     "ay": 828,
+     "w": 576.0,
+     "h": 67.6,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0@0.078"
+     ],
+     "strokes": [
+      "#58A6FF/1.0@0.251"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "244:358",
+       "name": "징수액 설명",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50460,
+       "ay": 842,
+       "w": 119.0,
+       "h": 38.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "244:359",
+         "name": "징수액 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50460,
+         "ay": 842,
+         "w": 117.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "예상 주간 징수액",
+         "fontSize": 16.799999237060547,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        },
+        {
+         "id": "244:360",
+         "name": "권장 세금 비교",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50460,
+         "ay": 867,
+         "w": 119.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "권장 세금 대비 +1,100g",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "244:361",
+       "name": "예상 징수액",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50913,
+       "ay": 845,
+       "w": 95.0,
+       "h": 34.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "3,300g",
+       "fontSize": 26.399999618530273,
+       "font": "Geist Mono 700 Bold",
+       "lineH": 34.3
+      }
+     ]
+    },
+    {
+     "id": "244:362",
+     "name": "설정 작업",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50446,
+     "ay": 910,
+     "w": 576.0,
+     "h": 43.2,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "244:363",
+       "name": "취소 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50446,
+       "ay": 910,
+       "w": 132.0,
+       "h": 43.2,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "244:364",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50498,
+         "ay": 923,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "취소",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "244:365",
+       "name": "세금 적용 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50588,
+       "ay": 910,
+       "w": 434.4,
+       "h": 43.2,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "244:366",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50761,
+         "ay": 923,
+         "w": 88.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "세율 15% 적용",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

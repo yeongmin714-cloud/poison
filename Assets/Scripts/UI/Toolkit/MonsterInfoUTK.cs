@@ -61,6 +61,9 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
+        // [144차 P8-REC] 매핑 정정: monster_hp__101:5 / monster_hp_ref__110:14는 오버헤드 이름표 목업이며
+        //   실 대응처는 NameplateOverlayUTK(144차 감사 hud.md §매핑). 본 클래스(400×440 전면 정보창)는
+        //   두 프레임과 직접 대응 요소 없음 → 대조 제외, 계약 무변경.
         private const float WinW = 400f;
         private const float WinH = 440f;
         private const long RefreshMs = 250L;   // HP/상태 실시간 폴링
@@ -75,12 +78,16 @@ namespace ProjectName.UI.Toolkit
         // ===== 상태 =====
         private AnimalAI _monster;
         private IVisualElementScheduledItem _refreshTask;
+        private IVisualElementScheduledItem _ghostTask;    // [고스트 체력바 78차] 16ms 추격 틱
+        private float _lastGhostTick;
 
         // ===== UI 참조 =====
         private Label _nameLabel;        // 이름 + 티어라벨 (티어색)
         private Label _levelLabel;       // Lv.
         private Label _hpValueLabel;     // 현재/최대
         private VisualElement _hpFill;   // HP 채움
+        private VisualElement _hpTrail;  // [고스트 체력바 78차] 뒷줄(타격 흔적)
+        private GhostHpDisplay _ghost = new GhostHpDisplay();
         private Label _atkLabel;
         private Label _speedLabel;
         private Label _tierLabel;
@@ -166,6 +173,16 @@ namespace ProjectName.UI.Toolkit
             barFrame.style.borderBottomLeftRadius = 4f;
             barFrame.style.borderBottomRightRadius = 4f;   // 작은배지 r4
             hpWrap.Add(barFrame);
+
+            // [고스트 체력바 78차] 뒷줄 — 절대 배치(레이아웃 비개입), 채움 아래 페인트, 오른쪽 갭으로 가시
+            _hpTrail = new VisualElement();
+            _hpTrail.name = "MonsterHpTrail";
+            _hpTrail.style.position = Position.Absolute;
+            _hpTrail.style.left = 0f; _hpTrail.style.top = 0f; _hpTrail.style.bottom = 0f;
+            _hpTrail.style.width = new Length(0f, LengthUnit.Percent);
+            _hpTrail.style.backgroundColor = new StyleColor(new Color(1f, 0.72f, 0.35f, 1f));
+            _hpTrail.pickingMode = PickingMode.Ignore;
+            barFrame.Add(_hpTrail);
 
             _hpFill = new VisualElement();
             _hpFill.name = "MonsterHpFill";
@@ -277,6 +294,7 @@ namespace ProjectName.UI.Toolkit
         {
             if (monster == null) return;
             _monster = monster;
+            _ghost.Reset(1f);   // [고스트 체력바 78차] 대상 교체 — 흔적 리셋(다른 몬스터의 흔적 유출 방지)
             if (IsOpen)
             {
                 RefreshAll();
@@ -297,6 +315,9 @@ namespace ProjectName.UI.Toolkit
         protected override void OnWindowOpen()
         {
             _refreshTask = schedule.Execute(RefreshAll).Every(RefreshMs);
+            // [고스트 체력바 78차] 16ms 추격 틱 — 250ms 폴링만으로는 뒷줄이 계단처럼 줄어든다
+            if (_ghostTask == null)
+                _ghostTask = schedule.Execute(TickGhost).Every(16);
             RefreshAll();
             Debug.Log("[MonsterInfoUTK] 몬스터 정보창 열림: " + DisplayName());
         }
@@ -309,8 +330,32 @@ namespace ProjectName.UI.Toolkit
                 _refreshTask.Pause();
                 _refreshTask = null;
             }
+            if (_ghostTask != null)
+            {
+                _ghostTask.Pause();
+                _ghostTask = null;
+            }
             _monster = null;
             Debug.Log("[MonsterInfoUTK] 몬스터 정보창 닫힘");
+        }
+
+        /// <summary>[고스트 체력바 78차] 뒷줄 추격 틱 — 채움 폭은 RefreshAll(250ms)이 아닌 이 틱이 매 프레임 구동.</summary>
+        private void TickGhost()
+        {
+            if (!IsOpen || _monster == null || !_monster.IsAlive || _hpFill == null) return;
+
+            float now = Time.unscaledTime;
+            float dt = Mathf.Clamp(now - _lastGhostTick, 0f, 0.1f);
+            _lastGhostTick = now;
+
+            float max = _monster.MaxHP;
+            float ratio = max > 0f ? Mathf.Clamp01(_monster.CurrentHP / max) : 0f;
+            _ghost.Tick(ratio, dt);
+
+            float frontPct = Mathf.Max(_ghost.Front * 100f, 0f);
+            float trailPct = Mathf.Max(_ghost.Trail * 100f, 0f);
+            _hpFill.style.width = new Length(frontPct, LengthUnit.Percent);
+            if (_hpTrail != null) _hpTrail.style.width = new Length(trailPct, LengthUnit.Percent);
         }
 
         // =====================================================================

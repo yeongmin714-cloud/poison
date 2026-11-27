@@ -76,6 +76,12 @@ namespace ProjectName.UI
             float distSq = (transform.position - _player.position).sqrMagnitude;
             _isPlayerNearby = distSq <= _interactRange * _interactRange;
 
+            // [43차] 공용 E 월드 프롬프트 — 근접 시 등록, 이탈 시 해제(창 열림 시 UI가 자동 숨김).
+            if (_isPlayerNearby)
+                EInteractionPromptBridge.RaiseRegister(transform, $"E - {_stationName}", _interactRange);
+            else
+                EInteractionPromptBridge.RaiseUnregister(transform);
+
             if (_isPlayerNearby && WasInteractPressed())
             {
                 OpenAlchemyUI();

@@ -1,0 +1,1222 @@
+{
+ "id": "72:80",
+ "name": "gathering-result-ui",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 17259,
+ "ay": 1322,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "IMAGE",
+  "#0B0E14/1.0@0.82"
+ ],
+ "strokeW": 1.2,
+ "layout": "VERTICAL",
+ "gap": 57.60000228881836,
+ "pl": 76.80000305175781,
+ "pr": 76.80000305175781,
+ "pt": 88.80000305175781,
+ "pb": 12.0,
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "72:81",
+   "name": "HUDHeader",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 17259,
+   "ay": 1322,
+   "w": 1920.0,
+   "h": 76.8,
+   "d": 1,
+   "fills": [
+    "#0D1117/1.0@0.502"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "pl": 48.0,
+   "pr": 48.0,
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "72:82",
+     "name": "LeftInfo",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17307,
+     "ay": 1350,
+     "w": 297.6,
+     "h": 20.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 14.40000057220459,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:83",
+       "name": "gathering-leaves",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17307,
+       "ay": 1351,
+       "w": 19.2,
+       "h": 19.2,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "72:84",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 17308,
+         "ay": 1355,
+         "w": 16.0,
+         "h": 10.4,
+         "d": 4,
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 2.4
+        }
+       ]
+      },
+      {
+       "id": "72:85",
+       "name": "엘프하임 숲의 동부 경계 - 야생림 지대",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17340,
+       "ay": 1350,
+       "w": 264.0,
+       "h": 20.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "엘프하임 숲의 동부 경계 - 야생림 지대",
+       "fontSize": 16.80000114440918,
+       "font": "Roboto 700 Bold",
+       "lineH": 19.7
+      }
+     ]
+    },
+    {
+     "id": "72:86",
+     "name": "RightStats",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 18733,
+     "ay": 1350,
+     "w": 397.8,
+     "h": 20.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 28.80000114440918,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:87",
+       "name": "Stamina",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18733,
+       "ay": 1350,
+       "w": 176.4,
+       "h": 20.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:88",
+         "name": "zap",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 18733,
+         "ay": 1352,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "72:89",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 18735,
+           "ay": 1353,
+           "w": 12.6,
+           "h": 14.0,
+           "d": 5,
+           "strokes": [
+            "#FF7300/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        },
+        {
+         "id": "72:90",
+         "name": "ENERGY: 76 / 100",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18759,
+         "ay": 1350,
+         "w": 150.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#FF7300/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "ENERGY: 76 / 100",
+         "fontSize": 15.600000381469727,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 20.3
+        }
+       ]
+      },
+      {
+       "id": "72:91",
+       "name": "XP",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18938,
+       "ay": 1351,
+       "w": 192.6,
+       "h": 18.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:92",
+         "name": "생활 레벨. 18",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18938,
+         "ay": 1351,
+         "w": 87.0,
+         "h": 18.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "생활 레벨. 18",
+         "fontSize": 15.600000381469727,
+         "font": "Roboto 400 Regular",
+         "lineH": 18.3
+        },
+        {
+         "id": "72:93",
+         "name": "XPBar",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 19035,
+         "ay": 1358,
+         "w": 96.0,
+         "h": 4.8,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.059"
+         ],
+         "strokeW": 1.2,
+         "r": 2.4,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "72:94",
+           "name": "XPFill",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 19035,
+           "ay": 1358,
+           "w": 76.8,
+           "h": 4.8,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "r": 2.4
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "72:95",
+   "name": "ResultPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 17931,
+   "ay": 1431,
+   "w": 576.0,
+   "h": 862.8,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.502"
+   ],
+   "layout": "VERTICAL",
+   "gap": 24.0,
+   "pl": 28.80000114440918,
+   "pr": 28.80000114440918,
+   "pt": 28.80000114440918,
+   "pb": 28.80000114440918,
+   "c": [
+    {
+     "id": "72:96",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17931,
+     "ay": 1431,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:97",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 17931,
+       "ay": 1431,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "72:98",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 17931,
+       "ay": 1431,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "72:99",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 18492,
+     "ay": 1431,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:100",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 18480,
+       "ay": 1431,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "72:101",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 18492,
+       "ay": 1431,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "72:102",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17931,
+     "ay": 2280,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:103",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 17931,
+       "ay": 2280,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "72:104",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 17931,
+       "ay": 2268,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "72:105",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 18492,
+     "ay": 2280,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:106",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 18480,
+       "ay": 2280,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "72:107",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 18492,
+       "ay": 2268,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "72:108",
+     "name": "PanelHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17960,
+     "ay": 1460,
+     "w": 518.4,
+     "h": 39.0,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 14.40000057220459,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:109",
+       "name": "TitleGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17960,
+       "ay": 1463,
+       "w": 150.0,
+       "h": 20.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "72:110",
+         "name": "GATHERING RESULT",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 17960,
+         "ay": 1463,
+         "w": 150.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "GATHERING RESULT",
+         "fontSize": 15.600000381469727,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 20.3
+        }
+       ]
+      },
+      {
+       "id": "72:111",
+       "name": "Badge",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18407,
+       "ay": 1460,
+       "w": 71.2,
+       "h": 24.6,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0@0.082"
+       ],
+       "strokes": [
+        "#58A6FF/1.0@0.2"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 4.800000190734863,
+       "pb": 4.800000190734863,
+       "c": [
+        {
+         "id": "72:112",
+         "name": "채집 성공",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18416,
+         "ay": 1465,
+         "w": 52.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "채집 성공",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "72:113",
+     "name": "NotificationTitle",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17960,
+     "ay": 1523,
+     "w": 518.4,
+     "h": 59.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 4.800000190734863,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:114",
+       "name": "영험한 기운의 약초 채집 성공!",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 18108,
+       "ay": 1523,
+       "w": 222.0,
+       "h": 21.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "영험한 기운의 약초 채집 성공!",
+       "fontSize": 18.0,
+       "font": "Roboto 500 Medium",
+       "lineH": 21.1
+      },
+      {
+       "id": "72:115",
+       "name": "황혼의 서리꽃 약초을(를) 채집했습니다!",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17960,
+       "ay": 1549,
+       "w": 518.4,
+       "h": 34.0,
+       "d": 3,
+       "fills": [
+        "#D4AF37/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "황혼의 서리꽃 약초을(를) 채집했습니다!",
+       "fontSize": 28.80000114440918,
+       "font": "Roboto 800 ExtraBold",
+       "lineH": 33.8,
+       "align": "CENTER"
+      }
+     ]
+    },
+    {
+     "id": "72:116",
+     "name": "ItemImageSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17960,
+     "ay": 1607,
+     "w": 518.4,
+     "h": 312.0,
+     "d": 2,
+     "fills": [
+      "#1C2128/1.0@0.502"
+     ],
+     "strokes": [
+      "#D4AF37/1.0"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:117",
+       "name": "TierStrip",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 17960,
+       "ay": 1607,
+       "w": 516.0,
+       "h": 4.8,
+       "d": 3,
+       "fills": [
+        "#D4AF37/1.0"
+       ],
+       "strokeW": 1.2
+      },
+      {
+       "id": "72:118",
+       "name": "LEGENDARY CLASS",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17974,
+       "ay": 1621,
+       "w": 119.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#D4AF37/1.0"
+       ],
+       "strokeW": 1.2,
+       "op": 0.8,
+       "text": "LEGENDARY CLASS",
+       "fontSize": 13.200000762939453,
+       "font": "Geist Mono 700 Bold",
+       "lineH": 17.2
+      },
+      {
+       "id": "72:119",
+       "name": "ItemImage",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 17960,
+       "ay": 1607,
+       "w": 518.4,
+       "h": 312.0,
+       "d": 3,
+       "fills": [
+        "IMAGE"
+       ],
+       "strokeW": 1.2
+      }
+     ]
+    },
+    {
+     "id": "72:120",
+     "name": "ItemSpecs",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17960,
+     "ay": 1943,
+     "w": 518.4,
+     "h": 70.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "72:121",
+       "name": "SpecBox",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17960,
+       "ay": 1943,
+       "w": 166.4,
+       "h": 68.6,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:122",
+         "name": "희귀도",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18024,
+         "ay": 1957,
+         "w": 37.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "희귀도",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 400 Regular",
+         "lineH": 15.5
+        },
+        {
+         "id": "72:123",
+         "name": "전설 등급",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18009,
+         "ay": 1977,
+         "w": 67.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#D4AF37/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "전설 등급",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        }
+       ]
+      },
+      {
+       "id": "72:124",
+       "name": "SpecBox",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18136,
+       "ay": 1943,
+       "w": 166.4,
+       "h": 70.6,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:125",
+         "name": "약성 수치",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18193,
+         "ay": 1957,
+         "w": 52.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "약성 수치",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 400 Regular",
+         "lineH": 15.5
+        },
+        {
+         "id": "72:126",
+         "name": "94.2 %",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18188,
+         "ay": 1977,
+         "w": 61.0,
+         "h": 22.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "94.2 %",
+         "fontSize": 16.80000114440918,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 21.8
+        }
+       ]
+      },
+      {
+       "id": "72:127",
+       "name": "SpecBox",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18312,
+       "ay": 1943,
+       "w": 166.4,
+       "h": 70.6,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:128",
+         "name": "무게",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18382,
+         "ay": 1957,
+         "w": 25.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "무게",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 400 Regular",
+         "lineH": 15.5
+        },
+        {
+         "id": "72:129",
+         "name": "0.8 kg",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18364,
+         "ay": 1977,
+         "w": 61.0,
+         "h": 22.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "0.8 kg",
+         "fontSize": 16.80000114440918,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 21.8
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "72:130",
+     "name": "DescriptionSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17960,
+     "ay": 2038,
+     "w": 518.4,
+     "h": 155.0,
+     "d": 2,
+     "fills": [
+      "#1C2128/1.0@0.502"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "pl": 19.200000762939453,
+     "pr": 19.200000762939453,
+     "pt": 19.200000762939453,
+     "pb": 19.200000762939453,
+     "c": [
+      {
+       "id": "72:131",
+       "name": "약초 특징",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17979,
+       "ay": 2057,
+       "w": 67.0,
+       "h": 20.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "약초 특징",
+       "fontSize": 16.80000114440918,
+       "font": "Roboto 700 Bold",
+       "lineH": 19.7
+      },
+      {
+       "id": "72:132",
+       "name": "서리가 가시지 않는 고산 지대의 습한 음지에서만 제한적으로 자라는 영초입니다. 푸르게 빛나는 꽃잎은 마력 정화력이 지극히 높아 최고급 엘릭서 및 정신 각성 비약 제조 시 필수 불가결한 가공 재료로 손꼽힙니다. 가방에 품고 있는 것만으로 소폭의 마법 저항력 보너스를 부여합니다.",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17979,
+       "ay": 2086,
+       "w": 480.0,
+       "h": 87.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "서리가 가시지 않는 고산 지대의 습한 음지에서만 제한적으로 자라는 영초입니다. 푸르게 빛나는 꽃잎은 마력 정",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 400 Regular",
+       "lineH": 21.6
+      }
+     ]
+    },
+    {
+     "id": "72:133",
+     "name": "ActionButtons",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17960,
+     "ay": 2217,
+     "w": 518.4,
+     "h": 48.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "72:134",
+       "name": "KeepButton",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17960,
+       "ay": 2217,
+       "w": 253.2,
+       "h": 48.8,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:135",
+         "name": "인벤토리에 놓기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18030,
+         "ay": 2231,
+         "w": 113.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "인벤토리에 놓기",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        }
+       ]
+      },
+      {
+       "id": "72:136",
+       "name": "DiscardButton",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18222,
+       "ay": 2217,
+       "w": 255.6,
+       "h": 48.8,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.059"
+       ],
+       "strokes": [
+        "#F85149/1.0@0.2"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:137",
+         "name": "버리기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18327,
+         "ay": 2231,
+         "w": 47.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F85149/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "버리기",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "72:138",
+   "name": "SystemTip",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 17934,
+   "ay": 2352,
+   "w": 569.4,
+   "h": 17.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "op": 0.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.600000381469727,
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "72:139",
+     "name": "info",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17934,
+     "ay": 2352,
+     "w": 16.8,
+     "h": 16.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:140",
+       "name": "Vector",
+       "type": "VECTOR",
+       "x": null,
+       "y": null,
+       "ax": 17936,
+       "ay": 2353,
+       "w": 14.0,
+       "h": 14.0,
+       "d": 3,
+       "strokes": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 2.4
+      }
+     ]
+    },
+    {
+     "id": "72:141",
+     "name": "인벤토리에 빈 공간이 충분한지 확인하십시오. 보관 시 0.8kg의 무게가 적재량에 추가됩니다.",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 17961,
+     "ay": 2352,
+     "w": 543.0,
+     "h": 17.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "인벤토리에 빈 공간이 충분한지 확인하십시오. 보관 시 0.8kg의 무게가 적재량에 추가됩니다.",
+     "fontSize": 14.40000057220459,
+     "font": "Roboto 400 Regular",
+     "lineH": 16.9
+    }
+   ]
+  }
+ ]
+}

@@ -17,6 +17,11 @@ namespace ProjectName.Core
     {
         public static PlayerHealth Instance { get; private set; }
 
+        /// <summary>[156차 P5] 이계 카드 피해 감쇠 훅 — Systems(AfterlifeCardSystem) 정적 생성자가 주입(Core→Systems 역참조 회피). null=게이트 없음.</summary>
+        public static System.Func<float, float> IncomingDamageModifier;
+        /// <summary>[156차 P5] 뼈 방패 1회 완전 차단 훅 — true 반환 시 이번 타격 소멸(패링 성공 시 미소비).</summary>
+        public static System.Func<bool> TryBlockOnce;
+
         [Header("Health Settings")]
         [SerializeField] private float _maxHP = 100f;
         [SerializeField] private float _currentHP;
@@ -64,6 +69,13 @@ namespace ProjectName.Core
         /// TakeDamage의 HP 감소 확정 시점에만 발화 — 폴링 엣지(회복 동시 발생 엣지 흡수 등) 결함 제거용.
         /// </summary>
         public static event System.Action<Vector3, float> OnPlayerDamaged;
+
+        /// <summary>
+        /// [80차] 플레이어 넉백 요청 — (피격 방향, 무기 타입별 강도). Systems 이동 스크립트
+        /// (PlayerMovement)가 구독해 감속 커브 임펄스로 적용한다(구 실내 전용 컨트롤러는 [이동통일 B1]로 PM 통합 폐기).
+        /// 구독자가 없으면 기존 CharacterController 즉시 Move 폴백(기존 폭탄/가스 동작 유지).
+        /// </summary>
+        public static event System.Action<Vector3, float> KnockbackRequested;
 
         private void Awake()
         {
@@ -118,6 +130,15 @@ namespace ProjectName.Core
                 Debug.Log($"[PlayerHealth] 🛡️ 패링으로 공격 흡수 ({damage} 데미지 차단)");
                 return;
             }
+
+            // [156차 P5] 뼈 방패 — 1회 완전 차단 (패링 성공 시 미소비)
+            if (TryBlockOnce != null && TryBlockOnce())
+            {
+                Debug.Log("[PlayerHealth] 🦴 뼈 방패가 타격을 완전히 막았다");
+                return;
+            }
+            if (IncomingDamageModifier != null)
+                damage = IncomingDamageModifier(damage); // [156차 P5] 강철 방패 감쇠 — 런 외부 1f
 
             ApplyDamage(damage);
         }
@@ -202,20 +223,41 @@ namespace ProjectName.Core
                 return;
             }
 
+            // [156차 P5] 뼈 방패 — 1회 완전 차단 (패링 성공 시 미소비)
+            if (TryBlockOnce != null && TryBlockOnce())
+            {
+                Debug.Log("[PlayerHealth] 🦴 뼈 방패가 타격을 완전히 막았다");
+                return;
+            }
+            if (IncomingDamageModifier != null)
+                amount = IncomingDamageModifier(amount); // [156차 P5] 강철 방패 감쇠 — 런 외부 1f
+
             // 공통 피해 처리 (방어력/무적 처리 포함), 패링은 위에서만 판정한다.
             ApplyDamage(amount);
+
+            // [63-B] 피격 상태이상 발동 — DOT("status") 재귀 가드 포함(계획서 §4#1)
+            TriggerHitStatusEffects(weaponType, amount);
 
             // hitDirection 기반 넉백 효과 (무기 타입별 강도)
             if (_playerTransform != null && hitDirection != Vector3.zero)
             {
-                // CharacterController가 있다면 넉백 적용
-                var controller = _playerTransform.GetComponent<CharacterController>();
-                if (controller != null)
+                // [2026-10-08] 폭탄(Explosion)은 강한 넉백, 가스류(Poison/Gas*)는 중간 넉백, 기타는 기존.
+                float force = GetKnockbackForce(weaponType);
+                var kbHandler = KnockbackRequested;
+                if (kbHandler != null)
                 {
-                    // [2026-10-08] 폭탄(Explosion)은 강한 넉백, 가스류(Poison/Gas*)는 중간 넉백, 기타는 기존.
-                    float force = GetKnockbackForce(weaponType);
-                    Vector3 knockback = hitDirection.normalized * force;
-                    controller.Move(knockback);
+                    // [80차] 임펄스 경로 — 이동 스크립트가 0.25s 감속 커브로 밀어낸다(즉시 텔레포트 튐 제거).
+                    kbHandler.Invoke(hitDirection.normalized, force);
+                }
+                else
+                {
+                    // 폴백 — 구독자 없음: 기존 즉시 이동 유지
+                    var controller = _playerTransform.GetComponent<CharacterController>();
+                    if (controller != null)
+                    {
+                        Vector3 knockback = hitDirection.normalized * force;
+                        controller.Move(knockback);
+                    }
                 }
                 Debug.Log($"[PlayerHealth] 넉백 방향: {hitDirection}, 무기 타입: {weaponType}");
             }
@@ -250,6 +292,9 @@ namespace ProjectName.Core
                 && !tag.StartsWith("gas", System.StringComparison.OrdinalIgnoreCase);
         }
 
+        /// <summary>[171차 E2] TryParry MethodInfo 캐시 — 리플렉션 조회 1회 한정(핫패스 비용 제거). 도메인 리로드 시 static 초기화로 자동 갱신.</summary>
+        private static System.Reflection.MethodInfo _tryParryMethodCache;
+
         /// <summary>[Phase 1-2] 리플렉션 안전 패링 판정 — Systems.PlayerCombat.TryParry() 호출.</summary>
         private bool TryParryReflection()
         {
@@ -264,7 +309,10 @@ namespace ProjectName.Core
                 if (inst == null)
                     inst = cls.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null);
                 if (inst == null) return false;
-                var m = cls.GetMethod("TryParry", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                // [171차 E2] MethodInfo 캐시 — 최초 1회만 GetMethod 조회, 이후 캐시 재사용(null 반환 계약 유지).
+                if (_tryParryMethodCache == null)
+                    _tryParryMethodCache = cls.GetMethod("TryParry", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                var m = _tryParryMethodCache;
                 if (m == null) return false;
                 object result = m.Invoke(inst, null);
                 return result is bool && (bool)result;
@@ -298,6 +346,15 @@ namespace ProjectName.Core
             Heal(_maxHP);
         }
 
+        /// <summary>[156차 P5] 두 번째 목숨 — 사망 상태 해제 + 비율 부활 (이계 카드 전용 경로).</summary>
+        public void ReviveAtRatio(float ratio)
+        {
+            _isDead = false;
+            _currentHP = Mathf.Clamp(_maxHP * ratio, 1f, _maxHP);
+            OnHPChanged?.Invoke(_currentHP, _maxHP);
+            Debug.Log($"[PlayerHealth] 🕯️ 부활 — HP {_currentHP}/{_maxHP}");
+        }
+
         private void Die()
         {
             if (_isDead) return;
@@ -323,10 +380,37 @@ namespace ProjectName.Core
                 if (collider != null) collider.enabled = false;
             }
 
-            StartCoroutine(RespawnCoroutine());
-
-            // 사망 이벤트 발생 (DeathEffectController 등에서 처리)
+            // 사망 이벤트 발생 (DeathEffectController/GuardManager 등에서 처리) — 이계 진입 여부와 무관 항상 발화
             OnPlayerDied?.Invoke();
+
+            // [A2 이계] 사망 라우팅 — 이계 시스템이 가로채면 즉시 리스폰을 시작하지 않음
+            if (TryRouteDeathToAfterlife())
+                return;
+
+            StartCoroutine(RespawnCoroutine());
+        }
+
+        /// <summary>
+        /// [A2 이계] 사망을 이계 생존으로 라우팅 — Systems.AfterlifeSurvivalSystem.TryInterceptDeath() 결과.
+        /// true면 기존 RespawnCoroutine을 시작하지 않고 이계 시스템이 귀환/퍼머데스를 처리한다.
+        /// Core→Systems 리플렉션 (순환 참조 회피 — TryGetBedSpawnPoint 동일 패턴).
+        /// </summary>
+        private bool TryRouteDeathToAfterlife()
+        {
+            try
+            {
+                var t = System.Type.GetType("ProjectName.Systems.AfterlifeSurvivalSystem, ProjectName.Systems");
+                if (t == null) return false;
+                var m = t.GetMethod("TryInterceptDeath", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                if (m == null) return false;
+                var result = m.Invoke(null, null);
+                return result is bool && (bool)result;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[PlayerHealth] 이계 라우팅 판정 실패(기존 부활로 진행): {e.Message}");
+                return false;
+            }
         }
 
         private System.Collections.IEnumerator RespawnCoroutine()
@@ -337,10 +421,18 @@ namespace ProjectName.Core
             Respawn();
         }
 
-        private void Respawn()
+        private void Respawn() => Respawn(-1f);
+
+        /// <summary>
+        /// 부활 — hpPercentOverride가 0~1이면 그 비율로 부활(기존 _respawnHPPercent 대체).
+        /// [A2 이계] 귀환 성공 시 시스템이 0.5(50%)로 호출 — 이계 귀환 보상 체감.
+        /// </summary>
+        private void Respawn(float hpPercentOverride)
         {
             _isDead = false;
-            _currentHP = _maxHP * _respawnHPPercent; // 최대체력의 10%로 부활
+            float respawnPercent = (hpPercentOverride >= 0f && hpPercentOverride <= 1f)
+                ? hpPercentOverride : _respawnHPPercent;
+            _currentHP = _maxHP * respawnPercent;
             _currentHP = Mathf.Max(1f, _currentHP);   // 최소 1은 유지
 
             // Time.timeScale 복원 (DeathEffectController에서 슬로우 모션 사용 후)
@@ -433,6 +525,41 @@ namespace ProjectName.Core
         }
 
         /// <summary>
+        /// [A2 이계] 이계 귀환 정산용 공개 부활 — private Respawn(hpPercentOverride)의 시스템 경로.
+        /// 위치 우선순위(스폰핀>자기 영지)+페이드 인 이벤트 포함 정식 부활.
+        /// </summary>
+        public void RespawnPublic(float hpPercentOverride) => Respawn(hpPercentOverride);
+
+        /// <summary>
+        /// [A2 이계] 이계 진입용 현장 부활 — 위치 이동/Respawned 이벤트 없이 살아있는 상태로 복귀
+        /// (이계 시스템이 EnterBuilding 흐름으로 플레이어를 이계 씬에 이동시키고, HP/조작이 즉시 가능해야 함).
+        /// 귀환 시의 정식 Respawn(0.5)과 달리 OnPlayerRespawned(페이드 인)를 발화하지 않는다.
+        /// </summary>
+        public void ReviveInPlace(float hpPercent)
+        {
+            float pct = Mathf.Clamp(hpPercent, 0.05f, 1f);
+            _isDead = false;
+            _currentHP = Mathf.Max(1f, _maxHP * pct);
+
+            if (_playerTransform != null)
+            {
+                var behaviours = _playerTransform.GetComponents<MonoBehaviour>();
+                foreach (var b in behaviours)
+                {
+                    if (b != this)
+                        b.enabled = true;
+                }
+                var renderer = _playerTransform.GetComponent<Renderer>();
+                if (renderer != null) renderer.enabled = true;
+                var collider = _playerTransform.GetComponent<Collider>();
+                if (collider != null) collider.enabled = true;
+            }
+
+            OnHPChanged?.Invoke(_currentHP, _maxHP);
+            Debug.Log($"[PlayerHealth] 🔮 이계 현장 부활 — HP {_currentHP:F0}/{_maxHP:F0} ({pct:P0})");
+        }
+
+        /// <summary>
         /// 최근 지정된 시간(초) 이내에 피격되었는지 확인합니다.
         /// </summary>
         /// <param name="seconds">확인할 시간 범위 (초)</param>
@@ -474,6 +601,48 @@ namespace ProjectName.Core
                 return true;
             }
             return false;
+        }
+
+        // ── [63-B] 피격 상태이상 발동 (Core→Systems 참조 제약 — 리플렉션, TryParryReflection 선례) ──
+        private static System.Type _statusSysType;
+        private static System.Reflection.MethodInfo _statusAdd;
+        private static System.Type _statusIdType;
+        private static object _bleedingId, _fractureId, _brittleId;
+
+        /// <summary>
+        /// [63-B] 피격 상태이상 발동 — ①근접/화살 피격 25% → 출혈(10s) ②단발 피해 ≥HP30% → 골절(90s)
+        /// ③≥HP20% → 방어 취약(10s). weaponType=="status"(DOT 자기발동)는 스킵 — 재귀 가드.
+        /// </summary>
+        private void TriggerHitStatusEffects(string weaponType, float amount)
+        {
+            try
+            {
+                if (string.Equals(weaponType, "status", System.StringComparison.OrdinalIgnoreCase)) return;
+                if (_statusAdd == null)
+                {
+                    _statusSysType = FindSystemType("PlayerStatusEffectSystem");
+                    if (_statusSysType == null) return;
+                    _statusAdd = _statusSysType.GetMethod("AddEffect", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                    _statusIdType = FindSystemType("StatusEffectId");
+                    if (_statusAdd == null || _statusIdType == null) return;
+                    _bleedingId = System.Enum.Parse(_statusIdType, "Bleeding");
+                    _fractureId = System.Enum.Parse(_statusIdType, "Fracture");
+                    _brittleId = System.Enum.Parse(_statusIdType, "BrittleDefense");
+                }
+
+                string wt = (weaponType ?? "").ToLowerInvariant();
+                bool meleeish = wt.Contains("melee") || wt.Contains("arrow");
+                if (meleeish && UnityEngine.Random.value < 0.25f)
+                    _statusAdd.Invoke(null, new object[] { _bleedingId, 10f });
+                if (amount >= MaxHP * 0.3f)
+                    _statusAdd.Invoke(null, new object[] { _fractureId, 90f });
+                else if (amount >= MaxHP * 0.2f)
+                    _statusAdd.Invoke(null, new object[] { _brittleId, 10f });
+            }
+            catch (System.Exception)
+            {
+                // 상태이상 시스템 미부트/리플렉션 실패 — 전투 흐름 보호(무음 흡수, 선례 TryParryReflection)
+            }
         }
 
         /// <summary>

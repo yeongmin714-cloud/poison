@@ -67,6 +67,8 @@ namespace ProjectName.Core.Data
             }
 
             ApplyEffect(dish.Effect);
+            StatusInvoke("CureMeal");        // [63-B] 식사 — 허기 해제
+            StatusInvoke("MarkMealTime");    // [63-B] 허기 24h 적산 리셋
             Debug.Log($"[ConsumableSystem] Consumed {item.displayName}. Effect: {dish.Effect}");
             PlayDrinkAnimation();
         }
@@ -83,6 +85,22 @@ namespace ProjectName.Core.Data
             Debug.Log($"[ConsumableSystem] Consumed potion: {itemName}");
             PlayDrinkAnimation();
 
+            // [63-B] 붕대 — 출혈/감염 치료(문자열 매칭 선배선 — 아이템 정의 부재 실측)
+            if (itemName.Contains("붕대") || effect.Contains("붕대"))
+            {
+                StatusInvoke("RemoveEffect", ParseStatusId("Bleeding"));
+                StatusInvoke("RemoveEffect", ParseStatusId("Infection"));
+                StatusInvoke("RemoveEffect", ParseStatusId("Fracture"));   // [63-C] 부목(붕대 재사용) — 골절 해제 정합(계획서 §2)
+                return;
+            }
+
+            // [63-B] 술/취기 — 트레이드오프(공격+ / 이속−·콤보 누락)
+            if (itemName.Contains("술") || itemName.Contains("취기") || effect.Contains("취기"))
+            {
+                StatusInvoke("AddEffect", ParseStatusId("Drunkenness"), 25f);
+                return;
+            }
+
             // 은신 물약: 10초 반투명 + 발소음 제로
             if (itemName.Contains("은신") || effect.Contains("은신"))
             {
@@ -94,6 +112,7 @@ namespace ProjectName.Core.Data
             if (itemName.Contains("진정제") || effect.Contains("진정제"))
             {
                 ApplySedative();
+                StatusInvoke("RemoveEffect", ParseStatusId("Terror"));   // [63-B] 공포 해제
                 return;
             }
 
@@ -255,21 +274,63 @@ namespace ProjectName.Core.Data
             // Detox
             if (effect.Contains("해독") || effect.Contains("독 제거"))
             {
-                // Remove poison etc.; placeholder.
-                Debug.Log("[ConsumableSystem] Detox effect applied (placeholder).");
+                StatusInvoke("RemoveEffect", ParseStatusId("Poisoning"));   // [63-B] 중독 해제 — 구 placeholder 실체화
+                Debug.Log("[ConsumableSystem] Detox effect applied.");
                 return;
             }
 
             // Status cure
             if (effect.Contains("상태이상 방지") || effect.Contains("상태 이상"))
             {
-                // Cure status effects; placeholder.
-                Debug.Log("[ConsumableSystem] Status cure effect applied (placeholder).");
+                StatusInvoke("RemoveAllEffects");   // [63-B] 전체 상태이상 해제 — 구 placeholder 실체화
+                Debug.Log("[ConsumableSystem] Status cure effect applied.");
                 return;
             }
 
             // Default: just log
             Debug.Log($"[ConsumableSystem] Effect '{effect}' applied (no specific gameplay change).");
+        }
+
+        // ── [63-B] 상태이상 시스템 브리지 (Core.Data→Systems 참조 제약 — 리플렉션, PlayerHealth.FindSystemType 선례) ──
+        private static System.Type _sesType;      // PlayerStatusEffectSystem
+        private static System.Type _seIdType;     // StatusEffectId
+
+        private static System.Type FindStatusType(string typeName)
+        {
+            string full = "ProjectName.Systems." + typeName;
+            var t = System.Type.GetType(full);
+            if (t != null) return t;
+            foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())
+            {
+                t = asm.GetType(full);
+                if (t != null) return t;
+                t = asm.GetType(typeName);
+                if (t != null) return t;
+            }
+            return null;
+        }
+
+        /// <summary>[63-B] 상태이상 시스템 정적 메서드 호출 — 브리지 실패는 무음 흡수(소비 흐름 보호).</summary>
+        private static void StatusInvoke(string methodName, params object[] args)
+        {
+            try
+            {
+                if (_sesType == null || _seIdType == null)
+                {
+                    _sesType = FindStatusType("PlayerStatusEffectSystem");
+                    _seIdType = FindStatusType("StatusEffectId");
+                }
+                if (_sesType == null) return;
+                var m = _sesType.GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                m?.Invoke(null, args);
+            }
+            catch (System.Exception) { /* 브리지 실패 무음 — 소비 흐름 보호 */ }
+        }
+
+        private static object ParseStatusId(string name)
+        {
+            if (_seIdType == null) _seIdType = FindStatusType("StatusEffectId");
+            return _seIdType != null ? System.Enum.Parse(_seIdType, name) : null;
         }
 
         private static void HealPlayer(float amount)

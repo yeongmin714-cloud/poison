@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 00:14:57Z" end-time="2026-10-05 00:14:57Z" duration="0.0987094">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="469" result="Passed" start-time="2026-10-05 00:14:57Z" end-time="2026-10-05 00:14:57Z" duration="0.098709" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1524" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="460" result="Passed" start-time="2026-10-05 00:14:57Z" end-time="2026-10-05 00:14:57Z" duration="0.083843" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="7064" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1525" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="460" result="Passed" start-time="2026-10-05 00:14:57Z" end-time="2026-10-05 00:14:57Z" duration="0.078674" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1526" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="460" result="Passed" start-time="2026-10-05 00:14:57Z" end-time="2026-10-05 00:14:57Z" duration="0.073330" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1527" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="445" result="Passed" start-time="2026-10-05 00:14:57Z" end-time="2026-10-05 00:14:57Z" duration="0.067379" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1183" name="FigmaCanvasLayoutTests" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-10-05 00:14:57Z" end-time="2026-10-05 00:14:57Z" duration="0.050109" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1188" name="InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" methodname="InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="202069863" result="Passed" start-time="2026-10-05 00:14:57Z" end-time="2026-10-05 00:14:57Z" duration="0.028597" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

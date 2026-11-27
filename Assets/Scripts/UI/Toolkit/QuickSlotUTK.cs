@@ -33,6 +33,9 @@ namespace ProjectName.UI.Toolkit
         private static void Bootstrap()
         {
             if (ProjectName.Core.UITransitionState.UtkActive) return; // [U8 은퇴] 퀵슬롯 잔재 — 사용자 지정 제거
+            // [144차 P8-REC] QuickSlotUTK ↔ hud__23_6 (QuickSlotsHUD 23:68) 대조 기록: Figma 8슬롯 96px 그리드
+            //   vs 본 창 6슬롯 56px 카드형 — 체계 불일치(P0 2건)이나 실 런타임 핫바=HotbarUIUTK(23:68 대응)이며
+            //   본 창은 [U8 은퇴] 게이트로 런타임 비부착(사용자 지정 제거 계약) → 수리 대상 아님, 대조 기록만.
             if (_instance != null) return;
             _instance = new QuickSlotUTK();
             var go = new GameObject("QuickSlotUTK");

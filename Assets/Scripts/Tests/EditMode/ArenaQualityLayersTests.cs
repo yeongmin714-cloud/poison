@@ -84,8 +84,8 @@ namespace ProjectName.Tests.EditMode
             Assert.That(room, Is.Not.Null);
             try
             {
-                Transform blob = room.transform.Find("BlobShadow_-6.0_26.0");
-                Assert.That(blob, Is.Not.Null, "베팅 데스크 위치(-6,26) 접지 블롭이 존재해야 한다.");
+                Transform blob = room.transform.Find("BlobShadow_0.0_-15.0");
+                Assert.That(blob, Is.Not.Null, "베팅 데스크(바 카운터 0,-15 — 120차 여관 설계도) 접지 블롭이 존재해야 한다.");
                 Assert.That(blob.GetComponent<Collider>(), Is.Null, "블롭은 콜라이더 없음(시각 전용).");
             }
             finally
@@ -108,8 +108,9 @@ namespace ProjectName.Tests.EditMode
                     if (t.name == "ArenaBettingDesk" || t.name.StartsWith("ArenaPit_Seat_"))
                         Assert.That(t.GetComponent<MeshRenderer>(), Is.Not.Null);
                 }
-                Assert.That(blobs, Is.EqualTo(12),
-                    "관중석 발판 12개(3링×4면) 접지 블롭 — 떠 있는 판이 아니라 놓인 발판으로 읽히게.");
+                // [125차 후속24] 기둥 12(원계약 유지) + 게이트 6/왕가 1 추가 → 하한 계약으로 승계.
+                Assert.That(blobs, Is.GreaterThanOrEqualTo(12),
+                    "기둥 접지 블롭 12개(원계약) — [125차 후속24] 게이트 6/왕가 1 블롭 추가로 하한 승계.");
             }
             finally
             {

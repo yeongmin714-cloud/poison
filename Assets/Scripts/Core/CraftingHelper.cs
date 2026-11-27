@@ -318,7 +318,7 @@ namespace ProjectName.Core
 
             return new PlayerInventory.ItemData
             {
-                id = $"combo_{result.resultName ?? "unknown"}",
+                id = result.resultId,
                 displayName = result.resultName ?? "Unknown",
                 description = result.effect ?? string.Empty,
                 category = category,

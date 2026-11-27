@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: a181ce3b7a17af04cb05b97407daab36
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Example/Time Profiles/Zone 1 - Bullets Slow
+    Motion.asset
+  uploadId: 898796

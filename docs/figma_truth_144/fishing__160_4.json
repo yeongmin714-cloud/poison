@@ -1,0 +1,1052 @@
+{
+ "id": "160:4",
+ "name": "fishing-panel",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 40790,
+ "ay": 3,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "IMAGE",
+  "#07090E/1.0@0.75"
+ ],
+ "strokeW": 1.2,
+ "layout": "VERTICAL",
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "160:5",
+   "name": "game-header-bar",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 40790,
+   "ay": 3,
+   "w": 1920.0,
+   "h": 76.8,
+   "d": 1,
+   "fills": [
+    "#0D1117/1.0@0.502"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "pl": 48.0,
+   "pr": 48.0,
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "160:6",
+     "name": "header-left",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 40838,
+     "ay": 31,
+     "w": 263.0,
+     "h": 21.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 14.40000057220459,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "160:57",
+       "name": "anchor",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 40838,
+       "ay": 31,
+       "w": 21.6,
+       "h": 21.6,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "160:58",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 40841,
+         "ay": 32,
+         "w": 16.2,
+         "h": 18.0,
+         "d": 4,
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 2.4
+        }
+       ]
+      },
+      {
+       "id": "160:8",
+       "name": "quest-title",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 40874,
+       "ay": 31,
+       "w": 227.0,
+       "h": 20.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "[돌발 임무] 신비로운 물고기 낚시",
+       "fontSize": 16.80000114440918,
+       "font": "Roboto 700 Bold",
+       "lineH": 19.7
+      }
+     ]
+    },
+    {
+     "id": "160:9",
+     "name": "header-right",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 42516,
+     "ay": 32,
+     "w": 146.0,
+     "h": 18.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 28.80000114440918,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "160:10",
+       "name": "fishing-spot",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 42516,
+       "ay": 32,
+       "w": 146.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "지역: 고요한 푸른 호수",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 700 Bold",
+       "lineH": 18.3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "160:11",
+   "name": "fishing-hud-panel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 41582,
+   "ay": 370,
+   "w": 336.0,
+   "h": 345.6,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:24.0:None",
+    "DROP_SHADOW:19.200000762939453:#000000/0.4"
+   ],
+   "layout": "VERTICAL",
+   "gap": 24.0,
+   "pl": 24.0,
+   "pr": 24.0,
+   "pt": 24.0,
+   "pb": 24.0,
+   "c": [
+    {
+     "id": "160:12",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41582,
+     "ay": 370,
+     "w": 9.6,
+     "h": 9.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "160:13",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 41582,
+       "ay": 370,
+       "w": 7.2,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "160:14",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 41582,
+       "ay": 370,
+       "w": 0.0,
+       "h": 7.2,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "160:15",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41908,
+     "ay": 370,
+     "w": 9.6,
+     "h": 9.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "160:16",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 41908,
+       "ay": 370,
+       "w": 7.2,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "160:17",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 41908,
+       "ay": 370,
+       "w": 0.0,
+       "h": 7.2,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "160:18",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41582,
+     "ay": 706,
+     "w": 9.6,
+     "h": 9.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "160:19",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 41582,
+       "ay": 706,
+       "w": 7.2,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "160:20",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 41582,
+       "ay": 706,
+       "w": 0.0,
+       "h": 7.2,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "160:21",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41908,
+     "ay": 706,
+     "w": 9.6,
+     "h": 9.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "160:22",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 41908,
+       "ay": 706,
+       "w": 7.2,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "160:23",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 41908,
+       "ay": 706,
+       "w": 0.0,
+       "h": 7.2,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "160:24",
+     "name": "TitleRow",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41606,
+     "ay": 394,
+     "w": 288.0,
+     "h": 18.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "160:25",
+       "name": "Frame",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 41606,
+       "ay": 394,
+       "w": 82.0,
+       "h": 18.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 7.200000286102295,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "160:63",
+         "name": "fishing-hook",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 41606,
+         "ay": 395,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "160:64",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 41607,
+           "ay": 399,
+           "w": 14.0,
+           "h": 9.1,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        },
+        {
+         "id": "160:27",
+         "name": "낚시하기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 41630,
+         "ay": 394,
+         "w": 58.0,
+         "h": 18.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "낚시하기",
+         "fontSize": 15.600000381469727,
+         "font": "Roboto 700 Bold",
+         "lineH": 18.3
+        }
+       ]
+      },
+      {
+       "id": "160:28",
+       "name": "ACTIVE",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 41848,
+       "ay": 396,
+       "w": 46.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "ACTIVE",
+       "fontSize": 13.200000762939453,
+       "font": "Roboto 700 Bold",
+       "lineH": 15.5
+      }
+     ]
+    },
+    {
+     "id": "160:29",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 41606,
+     "ay": 436,
+     "w": 288.0,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2
+    },
+    {
+     "id": "160:30",
+     "name": "ProgressSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41606,
+     "ay": 460,
+     "w": 288.0,
+     "h": 34.2,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "160:31",
+       "name": "LabelRow",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 41606,
+       "ay": 460,
+       "w": 288.0,
+       "h": 15.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "c": [
+        {
+         "id": "160:32",
+         "name": "물고기를 당기는 중...",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 41606,
+         "ay": 460,
+         "w": 116.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#C9D1D9/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "물고기를 당기는 중...",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        },
+        {
+         "id": "160:33",
+         "name": "65%",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 41869,
+         "ay": 460,
+         "w": 25.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "65%",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      },
+      {
+       "id": "160:34",
+       "name": "progress-bar-bg",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 41606,
+       "ay": 485,
+       "w": 288.0,
+       "h": 9.6,
+       "d": 3,
+       "fills": [
+        "#161B22/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "c": [
+        {
+         "id": "160:35",
+         "name": "progress-fill",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 41606,
+         "ay": 485,
+         "w": 187.2,
+         "h": 9.6,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#58A6FF/0.4"
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "160:36",
+     "name": "TensionSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41606,
+     "ay": 518,
+     "w": 288.0,
+     "h": 34.2,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "160:37",
+       "name": "TensionLabels",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 41606,
+       "ay": 518,
+       "w": 288.0,
+       "h": 15.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "c": [
+        {
+         "id": "160:38",
+         "name": "라인 장력 (Tension)",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 41606,
+         "ay": 518,
+         "w": 112.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#C9D1D9/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "라인 장력 (Tension)",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        },
+        {
+         "id": "160:39",
+         "name": "위험!",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 41866,
+         "ay": 518,
+         "w": 28.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#FFB703/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "위험!",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      },
+      {
+       "id": "160:40",
+       "name": "tension-bar-bg",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 41606,
+       "ay": 543,
+       "w": 288.0,
+       "h": 9.6,
+       "d": 3,
+       "fills": [
+        "#161B22/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "c": [
+        {
+         "id": "160:41",
+         "name": "tension-fill",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 41606,
+         "ay": 543,
+         "w": 230.4,
+         "h": 9.6,
+         "d": 4,
+         "fills": [
+          "#FFB703/1.0"
+         ],
+         "strokeW": 1.2,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#FFB703/0.4"
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "160:42",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 41606,
+     "ay": 577,
+     "w": 288.0,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2
+    },
+    {
+     "id": "160:43",
+     "name": "ActionGrid",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41606,
+     "ay": 601,
+     "w": 288.0,
+     "h": 91.2,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "160:44",
+       "name": "ActionReel",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 41606,
+       "ay": 601,
+       "w": 288.0,
+       "h": 40.8,
+       "d": 3,
+       "fills": [
+        "#30363D/1.0@0.8"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "160:45",
+         "name": "keycap-SPACE",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 41616,
+         "ay": 610,
+         "w": 57.6,
+         "h": 21.6,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:7.200000286102295:#58A6FF/0.4"
+         ],
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "160:46",
+           "name": "SPACE",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 41627,
+           "ay": 614,
+           "w": 34.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#161B22/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "SPACE",
+           "fontSize": 10.800000190734863,
+           "font": "Roboto 700 Bold",
+           "lineH": 12.7
+          }
+         ]
+        },
+        {
+         "id": "160:47",
+         "name": "LabelReel",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 41683,
+         "ay": 614,
+         "w": 201.6,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "릴 감기 (물고기 저항)",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      },
+      {
+       "id": "160:48",
+       "name": "ActionCancel",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 41606,
+       "ay": 651,
+       "w": 288.0,
+       "h": 40.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.8"
+       ],
+       "strokes": [
+        "#30363D/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "160:49",
+         "name": "keycap-Q",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 41616,
+         "ay": 661,
+         "w": 21.6,
+         "h": 21.6,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokes": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 4.8,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "160:50",
+           "name": "Q",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 41622,
+           "ay": 664,
+           "w": 9.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#161B22/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "Q",
+           "fontSize": 12.0,
+           "font": "Roboto 700 Bold",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "160:51",
+         "name": "LabelCancel",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 41647,
+         "ay": 664,
+         "w": 237.6,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "낚시 취소하기",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "160:52",
+   "name": "HUD-tip-bar",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 40790,
+   "ay": 1009,
+   "w": 1920.0,
+   "h": 36.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "mainAlign": "CENTER",
+   "c": [
+    {
+     "id": "160:53",
+     "name": "tip-container",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 41564,
+     "ay": 1009,
+     "w": 372.8,
+     "h": 36.0,
+     "d": 2,
+     "fills": [
+      "#161B22/1.0@0.702"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "op": 0.8,
+     "layout": "HORIZONTAL",
+     "gap": 9.600000381469727,
+     "pl": 19.200000762939453,
+     "pr": 19.200000762939453,
+     "pt": 9.600000381469727,
+     "pb": 9.600000381469727,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "160:60",
+       "name": "info",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 41583,
+       "ay": 1018,
+       "w": 16.8,
+       "h": 16.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "160:61",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 41584,
+         "ay": 1020,
+         "w": 14.0,
+         "h": 14.0,
+         "d": 4,
+         "strokes": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 2.4
+        }
+       ]
+      },
+      {
+       "id": "160:55",
+       "name": "장력이 100%에 도달하면 라인이 끊어지니 주의하십시오.",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 41609,
+       "ay": 1019,
+       "w": 308.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "장력이 100%에 도달하면 라인이 끊어지니 주의하십시오.",
+       "fontSize": 13.200000762939453,
+       "font": "Roboto 700 Bold",
+       "lineH": 15.5
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

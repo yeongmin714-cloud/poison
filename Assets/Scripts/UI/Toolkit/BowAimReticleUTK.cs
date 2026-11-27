@@ -255,11 +255,20 @@ namespace ProjectName.UI.Toolkit
 
         private void PositionAtScreenPoint(VisualElement root, Vector2 screen)
         {
-            var panelPoint = RuntimePanelUtils.ScreenToPanel(root.panel, screen);
-            // Absolute offsets are relative to this root, which may itself be transformed/scaled.
-            var rootPoint = root.WorldToLocal(panelPoint);
+            if (root == null || root.panel == null) return;
+            // [176차] 조준 3자 정합 수리 — 기존 ScreenToPanel(마우스 바텀-레프트 원점을 그대로 투입)은
+            // 패널(탑-레프트) 좌표로의 Y 플립이 빠져 수직 미러가 됐고, 드로 중 오버레이 강제 정렬
+            // (AlignCenterToScreenPoint)까지 겹쳐 "조준선=커서≠실제 커서 레이"가 됐다(사용자 리포트:
+            // 조준선·커서 불일치 + 화살 한방향). UTKCursorOverlay·UTKDragDrop.GetPanelPointerPos와 동일한
+            // Play 검증 수식(스케일+Y 플립)으로 단일화한다. 릴리즈 픽셀→ScreenPointToRay(바텀-레프트 원점)
+            // 솔버 경로는 무수정 — 수리 후 화살=커서=조준선 3자 일치.
+            float scale = root.worldBound.width / (float)Screen.width;
+            if (scale <= 0f) scale = 1f;
+            var rootPoint = new Vector2(screen.x * scale, root.worldBound.height - screen.y * scale);
             style.left = rootPoint.x - RootSize * 0.5f;   // 리티클 중심 = 마우스(조준점)
             style.top = rootPoint.y - RootSize * 0.5f;
+            // [168-P2] 활 조준 정합 — 같은 루트로컬 조준점을 커서 오버레이에도 위임(두 요소가 같은 픽셀에 겹침).
+            UTKCursorOverlay.AlignCenterToScreenPoint(rootPoint);
             BringToFront();
         }
 

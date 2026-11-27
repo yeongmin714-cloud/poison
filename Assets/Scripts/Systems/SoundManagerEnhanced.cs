@@ -342,7 +342,9 @@ namespace ProjectName.Systems
         /// </summary>
         /// <param name="clipName">SFX 클립 이름 (예: "SFX_Footstep")</param>
         /// <param name="volume">재생 볼륨 (0-1, 기본 1.0)</param>
-        public void PlaySFX(string clipName, float volume = 1.0f)
+        /// <param name="pitch">재생 피치 (기본 1.0 — 기존 호출부 전부 무영향). [무번호 72-W3] 선택 파라미터 확장 —
+        /// 매 호출마다 소스 단위 재대입이라 이전 변조 잔존 없음(자기 치유). 재생 경로는 PlaySFX 단 하나 계약 유지.</param>
+        public void PlaySFX(string clipName, float volume = 1.0f, float pitch = 1.0f)   // [무번호 72-W3] pitch 선택 파라미터 — 기본값 1.0
         {
             if (string.IsNullOrEmpty(clipName))
             {
@@ -364,6 +366,7 @@ namespace ProjectName.Systems
             }
 
             float vol = Mathf.Clamp01(volume) * (_isMuted ? 0f : 1f);
+            _sfxSource.pitch = pitch;   // [무번호 72-W3] 피치 변조 진입점 — 매 호출 재대입(잔존 없음)
             _sfxSource.PlayOneShot(clip, vol);
         }
 

@@ -66,3 +66,10 @@ compile.log
 # 대용량 GLB 에셋 — 에디터 AssetDatabase 직접 로드(빌드 불포함), 로컬 유지
 새로운 glb/
 새로운 glb.meta
+
+# [211차+] Play 프로브 스크린샷 산출물 — 1.7GB. git 제외, Drive 백업 소관
+/Screenshots/
+
+# [211차+] 대형 소스 아카이브 — GitHub 100MB 한도 초과. git 제외, Drive 백업 소관
+"Assets/Medieval Megapack - Low Poly.zip"
+"Assets/DUNGEON EXPORT (1).zip"

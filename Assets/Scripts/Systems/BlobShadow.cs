@@ -108,10 +108,21 @@ namespace ProjectName.Systems
             }
             var mat = new Material(shader);
             mat.name = "BlobShadow_Mat";
+
             mat.SetTexture("_BaseMap", tex);
             mat.color = new Color(0f, 0f, 0f, 1f);          // 검정
             mat.SetFloat("_Surface", 1f);                   // Transparent
             mat.SetFloat("_Blend", 0f);                     // Alpha
+            // [무번호 67-P1] 투명 키워드 누락 수리 — _Surface=1 플로트만으로는 URP Unlit이 투명 변형으로
+            //   컴파일되지 않아 **캐릭터마다 불투명 검정 사각**으로 렌더(테스트 14 영상 실측: 전화면 산포
+            //   10,000~15,000px 검정 = 캐릭터 수 × 블롭 박스, 비전 "투명해야 할 영역이 검게 칠해지는
+            //   그림자 오류" 정합). 39차 EnsureUnlitTransparent 표준 세트 적용(키워드+태그+큐 통일).
+            FxMaterialLibrary.EnsureUnlitTransparent(mat);
+            // [무번호 54-P0] URP 투명 정규화 — _SURFACE_TYPE_TRANSPARENT 키워드+RenderType 태그 부재 시
+            //   URP/Unlit이 불투명 변형으로 컴파일되어 알파 그라디언트가 무시될 수 있다(52-b 데칼 정규화 선례).
+            //   11-16 공격씬 8 실측: 캐릭터 발밑 검은 원형 블롭 그림자 부재(비전 판독) — 투명 변형 강제로 복귀시킨다.
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.SetOverrideTag("RenderType", "Transparent");
             mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
             mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
             mat.SetInt("_ZWrite", 0);                       // ZWrite off

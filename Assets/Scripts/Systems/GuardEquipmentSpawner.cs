@@ -26,7 +26,9 @@ namespace ProjectName.Systems
         /// <param name="guardLevel">병사 레벨</param>
         public static void SpawnEquipment(GameObject guard, int guardLevel)
         {
-            // GuardEquipmentSystem 인스턴스가 없으면 동작하지 않음
+            // [201차] 런타임 부트 보장 — Instance 부재 시 자가 생성(기존은 조용히 스킵 = 전 병사 무장비 원인).
+            //   장비 시각(GuardVisualAttachSystem)과 사망 전리품(DropEquippedItems)이 모두 이 착용을 따라온다.
+            GuardEquipmentSystem.BootIfMissing();
             if (GuardEquipmentSystem.Instance == null)
             {
                 Debug.Log("[GuardEquipmentSpawner] GuardEquipmentSystem.Instance가 없습니다. 장비 생성을 건너뜁니다.");
@@ -89,6 +91,16 @@ namespace ProjectName.Systems
             // ===== [후속22] 실착 플레이어 방어구(GLB 비주얼) 로드아웃 =====
             // GuardPlaceholder 장비 필드에 저장 → GuardVisualAttachSystem(시각)과 DropEquippedItems(전리품)가 동일 소스로 사용.
             SpawnPlayerLoadout(gp, guardLevel, gp.GearDifficultyBonus);
+
+            // [201차] 시각 부착 시스템 부트 보장 — 부착 시스템이 씬에 없으면 착용 데이터가 시각화되지 않음.
+            //   RequestRefreshFor 자가힐 패턴 준용(부재 시 자가 생성). 폴링 동기화가 다음 틱에 부착 수행.
+            if (GuardVisualAttachSystem.Instance == null && Application.isPlaying
+                && Object.FindAnyObjectByType<GuardVisualAttachSystem>(FindObjectsInactive.Include) == null)
+            {
+                var go = new GameObject("GuardVisualAttachSystem");
+                go.AddComponent<GuardVisualAttachSystem>();
+                Debug.Log("[GuardEquipmentSpawner] GuardVisualAttachSystem 자가 생성(장비 GLB 부착 보장)");
+            }
         }
 
         /// <summary>
@@ -208,6 +220,9 @@ namespace ProjectName.Systems
             float glovesChance = 0.45f;
             float shieldChance = 0.25f;
 
+            // [201차] 무기 100% 착용 — 병사는 무장이 기본. kind(검/창/활/단검) 랜덤, 티어는 레벨 기반 등급 밴드.
+            //   WeaponItem → GuardVisualAttachSystem(손 GLB 부착) + DropEquippedItems(사망 전리품) 동시 충족.
+            gp.WeaponItem = RollWeaponLoadout(level, gearBonus);
             if (Random.value < helmetChance) gp.HelmetItem = RollLoadoutItem("helmet", level, gearBonus);
             if (Random.value < armorChance)  gp.ArmorItem  = RollLoadoutItem("armor",  level, gearBonus);
             if (Random.value < bootsChance)  gp.BootsItem  = RollLoadoutItem("boot",   level, gearBonus);
@@ -236,15 +251,7 @@ namespace ProjectName.Systems
                 rarity = boosted;
             }
 
-            // 등급 → 티어 접두 (Epic+는 crystal GLB만 존재)
-            string tier;
-            switch (rarity)
-            {
-                case ItemRarity.Common:    tier = "wood";    break;
-                case ItemRarity.Uncommon:  tier = "steel";   break;
-                case ItemRarity.Rare:      tier = "stone";   break;
-                default:                   tier = "crystal"; break; // Epic / Legendary / Unique → crystal
-            }
+            string tier = TierFromRarity(rarity);
 
             string itemId;
             if (string.Equals(part, "shield", System.StringComparison.OrdinalIgnoreCase))
@@ -253,6 +260,44 @@ namespace ProjectName.Systems
                 itemId = tier + "_" + part; // helmet/armor/boot/glove
 
             return PlayerInventory.GetItemById(itemId);
+        }
+
+        /// <summary>[201차] 등급 → GLB 티어 접두 (Epic+는 crystal GLB만 존재). 무기/방어구 롤 공용.</summary>
+        static string TierFromRarity(ItemRarity rarity)
+        {
+            switch (rarity)
+            {
+                case ItemRarity.Common:    return "wood";
+                case ItemRarity.Uncommon:  return "steel";
+                case ItemRarity.Rare:      return "stone";
+                default:                   return "crystal"; // Epic / Legendary / Unique → crystal
+            }
+        }
+
+        /// <summary>
+        /// [201차] 병사 무기 롤 — 등급(RarityProbabilityTable·럭키·난이도 승격)에 따른 티어 밴드 + kind 랜덤.
+        /// "레벨 높을수록 고급": 티어는 등급 밴드(wood→steel→stone→crystal)로 결정되고 등급은 레벨 인자로 롤.
+        /// kind는 검/창/활/단검 4종 랜덤(UserProvided GLB 16종 전종 실존 — 무기 16종 맵).
+        /// id = weapon_{kind}_{tier}(인벤 무기 16종 id 규약) — ResolveWeaponVisualId가 {tier}_{kind} GLB로 해석.
+        /// </summary>
+        public static PlayerInventory.ItemData RollWeaponLoadout(int level, int gearBonus = 0)
+        {
+            ItemRarity rarity = RarityProbabilityTable.Roll(level);
+            rarity = LuckyRollSystem.TryLuck(rarity);
+            if (gearBonus > 0)
+                rarity = (ItemRarity)Mathf.Min((int)rarity + gearBonus, (int)ItemRarity.Legendary);
+
+            string tier = TierFromRarity(rarity);
+            string[] kinds = { "sword", "spear", "bow", "dagger" };
+            string kind = kinds[Random.Range(0, kinds.Length)];
+            string itemId = $"weapon_{kind}_{tier}";
+            var item = PlayerInventory.GetItemById(itemId);
+            if (item == null)
+            {
+                // 폴백 — DB 부재 시 검 규약 id(전종 실존) 1회 폴백
+                item = PlayerInventory.GetItemById($"weapon_sword_{tier}");
+            }
+            return item;
         }
     }
 }

@@ -23,6 +23,10 @@ namespace ProjectName.Systems
         public static readonly Color Edge = new Color(1f, 0.55f, 0.2f);
         /// <summary>블러드 붉은색 — 출혈/암살 계열(순수 Color.red 대체).</summary>
         public static readonly Color Blood = new Color(0.75f, 0.08f, 0.08f);
+        /// <summary>[79-R20] 공격 이펙트 통일색 — 웜 골드화이트. 공격 VFX 전 계층(슬래시 아크·스파크·데브리·
+        /// 라이트·실루엣·디스토션·무기글로우·스파클 버스트) 단일 소스. 강도 구분은 색이 아닌 크기/앰프 위계
+        /// (38→39-T3 선례). 데미지 숫자(Accent)·패리(ParryGold)·출혈(Blood)·사망 불티(Edge)·명령(MoveCommand)은 계층별 유지.</summary>
+        public static readonly Color AttackPrimary = new Color(1f, 0.92f, 0.72f);
 
         // ================================================================
         // 정규화 파티클 머티리얼 (지연 캐시)
@@ -85,7 +89,52 @@ namespace ProjectName.Systems
             if (rnd == null) return;
             var mat = ParticleMaterial;
             if (mat == null) return;
-            rnd.sharedMaterial = mat;
+            // [무번호 47-b] 정규화 가드 경로 — 단일 세터 NRE(사용자 세션 실측) 시 무음 삼켜져 마젠타 빌보드가
+            //   됐던 경로(FxEmberRise 실측)를 가드로 전환: 실패 시 원본 복원+1급 로그, 호출부 무음 삼킴 제거.
+            FxMaterialLibrary.TryAssignSharedMaterials(rnd, new Material[] { mat }, "FXPalette.ApplyTo");
         }
+
+        // ================================================================
+        // [무번호 28-U1] 명령/전투 팔레트 진입점 — 28 계획 U-1: 신규 FX(M/S/P)의 단일 참조 소스.
+        //   기존 단일 소스가 있는 색은 프로퍼티 위임(값 복제 금지 — 소스 이원화 방지),
+        //   단일 소스가 없는 색만 리터럴 선언(출처 좌표 주석 필수).
+        //   기존 잠긴 상수(BOTW 4색·CombatFx 계약색)는 28 계획 U-1에 따라 이 라운드 이관 금지(계약 보호).
+        // ================================================================
+
+        /// <summary>[무번호 19-C2] 이동 명령 청록 — 위임: CommandRingPresentation 단일 소스.</summary>
+        public static Color MoveCommand => CommandRingPresentation.MoveTargetColor;
+
+        /// <summary>[무번호 19-C2] 선택 링 청록 — 위임: CommandRingPresentation 단일 소스.</summary>
+        public static Color SelectedGuard => CommandRingPresentation.SelectedGuardColor;
+
+        /// <summary>[무번호 19-C2] 공격 명령 주황 — 위임: CommandRingPresentation 단일 소스.</summary>
+        public static Color AttackCommand => CommandRingPresentation.ExplicitTargetColor;
+
+        /// <summary>[무번호 19-C2] 집결 금(발령 미구현 — 상수만 준비, 위조 배선 금지) — 위임: CommandRingPresentation.</summary>
+        public static Color RallyCommand => CommandRingPresentation.RallyColor;
+
+        /// <summary>[무번호 18-B3] 몬스터 위험 적색 — 텔레그래프 계약 리터럴(AttackTelegraphIndicator NormalColor).</summary>
+        public static readonly Color MonsterDanger = new Color(1f, 0.30f, 0.16f, 0.45f);
+
+        /// <summary>[무번호 19-F1] 이동 먼지 흙색 — ShockwaveRingFX.cs:367 TrailDustColor 리터럴 미러.</summary>
+        public static readonly Color Dust = new Color(0.78f, 0.72f, 0.62f, 0.30f);
+
+        /// <summary>[무번호 20-J1] 패망 PERFECT 금 지면 링 — PlayerCombat.cs:770 리터럴 미러.</summary>
+        public static readonly Color ParryGold = new Color(1f, 0.95f, 0.55f, 0.70f);
+
+        /// <summary>[171차 6-A] 패막 흰 팔레트 — 사용자 확정(171차 §6: 패막 전 채널 흰색 단일, 알파는 용도별 조정 전제). 리터럴 신설.</summary>
+        public static readonly Color ParryWhite = new Color(1f, 1f, 1f, 0.85f);
+
+        /// <summary>[무번호 20-J1] 패망 청 큐 링 — PlayerCombat.cs:443 리터럴 미러.</summary>
+        public static readonly Color ParryCyan = new Color(0.55f, 0.8f, 1f, 0.50f);
+
+        /// <summary>[무번호 26-ST1] 병사 스윙 리본 청백 — SoldierSwingTrail.cs:34 StartColorPaleBlue 리터럴 미러(알파 1 고정).</summary>
+        public static readonly Color SoldierRibbon = new Color(0.75f, 0.92f, 1f, 1f);
+
+        /// <summary>[무번호 25-IN] 몬스터 명중 액센트(적색 우세) — AnimalAI.cs:974 리터럴 미러.</summary>
+        public static readonly Color MonsterAccent = new Color(1f, 0.25f, 0.2f, 0.8f);
+
+        /// <summary>[무번호 28-M4] 정예 리듬 오라 — [무번호 18-B3 EliteColor 미러 — AttackTelegraphIndicator.cs:34] (ALPHA 0.45 실측 미러). 기존 멤버 무손상.</summary>
+        public static readonly Color ElitAura = new Color(1f, 0.30f, 0.16f, 0.45f);
     }
 }

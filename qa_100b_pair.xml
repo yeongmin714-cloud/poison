@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.1629949">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="1327" result="Passed" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.162995" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="2495" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="1318" result="Passed" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.149377" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="3960" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="2496" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="1315" result="Passed" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.144700" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2497" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="1315" result="Passed" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.140682" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2498" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="1300" result="Passed" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.136974" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1287" name="DialogueFeedbackTests" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.084985" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1296" name="DialogueCameraDirector_Contract_FixedFrameH_DiagBoundsY_EndLogOrder_92Followup" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Contract_FixedFrameH_DiagBoundsY_EndLogOrder_92Followup" methodname="DialogueCameraDirector_Contract_FixedFrameH_DiagBoundsY_EndLogOrder_92Followup" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1368397810" result="Passed" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.037906" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1305" name="DialogueCameraDirector_FootMeasure_And_OcclusionProbe_100F2" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_FootMeasure_And_OcclusionProbe_100F2" methodname="DialogueCameraDirector_FootMeasure_And_OcclusionProbe_100F2" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="227402325" result="Passed" start-time="2026-10-18 09:55:31Z" end-time="2026-10-18 09:55:31Z" duration="0.020120" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

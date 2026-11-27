@@ -57,6 +57,11 @@ namespace ProjectName.Systems
         const int CROP_ATTEMPTS = 700;
         const float CROP_MIN_DIST = 10f;           // 농작물 간격
 
+        // 들꽃 노드 ([126차] — 허브와 동일 수준 목표 수, 전 국가 균등 배치 — 사용자 설계 계약)
+        const int FLOWER_TARGET = 50;
+        const int FLOWER_ATTEMPTS = 700;
+        const float FLOWER_MIN_DIST = 7f;          // 꽃 군락 간격(허브와 동일 — 자연 군락)
+
         // 벌목 나무 (사용자 확정 200그루) — 국가당 ~50, 전 국가 균등 배치
         const int WOOD_TARGET = 200;
         const int WOOD_ATTEMPTS = 3500;
@@ -84,6 +89,15 @@ namespace ProjectName.Systems
         {
             GLB_DIR + "angular-common-nature-broad-fern-clump-streamline-normal.glb",
             GLB_DIR + "angular-common-nature-bluebell-flower-cluster-streamline-normal.glb",
+        };
+
+        // 들꽃([126차]) — 허브의 bluebell과 구분되는 개화 GLB 3종(결정론 순환). 전용 GLB 부재 시
+        // 절차적 시각(줄기 실린더 + 꽃잎 쿼드, 파스텔 3색 순환)으로 폴백 — 배치 생략 금지 계약.
+        static readonly string[] FlowerGlbPaths =
+        {
+            GLB_DIR + "angular-common-nature-flowering-daisy-clump-streamline-normal.glb",
+            GLB_DIR + "angular-common-nature-tulip-flower-clump-streamline-normal.glb",
+            GLB_DIR + "angular-common-nature-flowering-hydrangea-bush-streamline-normal.glb",
         };
 
         // 벌목 나무(일반 나무) — 파일명으로 과일나무(*fruit-tree*)와 구분. birch/broadleaf/pine 등.
@@ -171,12 +185,20 @@ namespace ProjectName.Systems
                 CROP_TARGET, CROP_ATTEMPTS, CROP_MIN_DIST, CropAcceptance,
                 0.7f, 1.4f, "NaturalResource_Crop", CreateCropNode);
 
+            // ── 들꽃(Flower_Wild) [126차] — 전 국가 균등, 기존 카테고리 배치 순서 보존(최후 배치로 결정론 유지).
+            //    GLB 부재 시 절차적 시각 폴백(proceduralVisual) — 프리팹 부재로 배치가 생략되지 않는다.
+            int flowers = PlaceCategory(container.transform, rng, hash,
+                LoadVisualPrefabs(FlowerGlbPaths, "IdyllicPrefabs/Flowers", "Flower_"),
+                FLOWER_TARGET, FLOWER_ATTEMPTS, FLOWER_MIN_DIST, FlowerAcceptance,
+                0.8f, 1.2f, "NaturalResource_Flower", CreateFlowerNode,
+                BuildProceduralFlowerVisual);
+
             // 배치 마커 (중복 실행 방지)
             var marker = new GameObject(MARKER_NAME);
             marker.transform.SetParent(container.transform, false);
             marker.SetActive(false);
 
-            Debug.Log($"[NaturalResourceSpawner] ✅ 자원 노드 배치 완료 — 돌(Stone) {rocks}/{ROCK_TARGET}, 과일나무(Gather) {fruits}/{FRUIT_TARGET}, 허브(Gather) {herbs}/{HERB_TARGET}, crops(Gather) {crops}/{CROP_TARGET}");
+            Debug.Log($"[NaturalResourceSpawner] ✅ 자원 노드 배치 완료 — 돌(Stone) {rocks}/{ROCK_TARGET}, 과일나무(Gather) {fruits}/{FRUIT_TARGET}, 허브(Gather) {herbs}/{HERB_TARGET}, crops(Gather) {crops}/{CROP_TARGET}, 들꽃(Gather) {flowers}/{FLOWER_TARGET}");
             Debug.Log($"[NaturalResourceSpawner] 🌳 벌목 나무(Wood) {woods}/{WOOD_TARGET} 그루 배치 — 전 국가 균등, 크기 idyllic({TREES_TARGET_HEIGHT}m) 정합.");
         }
 
@@ -239,6 +261,21 @@ namespace ProjectName.Systems
             }
         }
 
+        // 들꽃: 전 국가 균등(동/서/남/북 모두) — [126차] 사용자 설계 계약(선물 재료가 특정 지역에 몰리지 않게).
+        static float FlowerAcceptance(NationType n)
+        {
+            switch (n)
+            {
+                case NationType.East:
+                case NationType.West:
+                case NationType.South:
+                case NationType.North:
+                    return 1.0f;
+                default:
+                    return 0f;
+            }
+        }
+
         /// <summary>
         /// crops 노드: HerbPickup 부착(Gather 분류) — CropCatalog 100종 결정론 순환.
         /// index % CropCatalog.TotalCount 로 _cropKey 지정 → 수확/씨앗 모두 CropCatalog 아이템.
@@ -276,9 +313,12 @@ namespace ProjectName.Systems
         static int PlaceCategory(Transform parent, DetRng rng, SpatialHash hash,
             GameObject[] visualPrefabs, int target, int attempts, float minDist,
             System.Func<NationType, float> acceptance, float scaleMin, float scaleMax,
-            string goNamePrefix, NodeConfigurer configure)
+            string goNamePrefix, NodeConfigurer configure,
+            System.Func<int, GameObject> proceduralVisual = null)   // [126차] GLB 전용 프리팹 부재 시 절차적 시각 폴백
         {
-            if (visualPrefabs == null || visualPrefabs.Length == 0 || target <= 0)
+            // [126차] 시각 프리팹 부재 + 절차적 시각 빌더가 있으면 배치를 계속한다(배치 생략 금지 계약).
+            bool procedural = visualPrefabs == null || visualPrefabs.Length == 0;
+            if (procedural && proceduralVisual == null)
             {
                 Debug.LogWarning($"[NaturalResourceSpawner] ⚠️ {goNamePrefix} 시각 프리팹 부재/목표 0 — 배치 생략");
                 return 0;
@@ -304,10 +344,12 @@ namespace ProjectName.Systems
                 if (!hash.IsFree(new Vector2(x, z), minDist)) continue;
 
                 // === 노드 생성 ===
-                var prefab = visualPrefabs[placed % visualPrefabs.Length];   // 결정론 순환 선택
+                GameObject prefab = procedural ? null : visualPrefabs[placed % visualPrefabs.Length];   // 결정론 순환 선택
                 float scale = rng.Range(scaleMin, scaleMax);
                 float yaw = rng.Range(0f, 360f);
-                var go = SpawnNode(parent, $"{goNamePrefix}_{placed + 1:D2}", prefab, x, z, scale, yaw);
+                var go = procedural
+                    ? SpawnProceduralNode(parent, $"{goNamePrefix}_{placed + 1:D2}", proceduralVisual(placed), x, z, scale, yaw)
+                    : SpawnNode(parent, $"{goNamePrefix}_{placed + 1:D2}", prefab, x, z, scale, yaw);
 
                 var setup = configure(placed, rng, prefab != null ? prefab.name : null);
                 if (setup != null) setup(go);
@@ -366,6 +408,93 @@ namespace ProjectName.Systems
                 }
             }
             return go;
+        }
+
+        /// <summary>
+        /// [126차] 절차적 시각 노드 스폰 — SpawnNodeAt과 동일 지표면 계약(GROUND_BASE + GetHeightAt)/
+        /// 밑면 정렬/바운즈 BoxCollider를 공용 헬퍼(AlignBottomToGround/AddBoundsBoxCollider)로 재사용.
+        /// GLB 전용 프리팹이 없어도 배치가 생략되지 않게 하는 최종 폴백 경로(들꽃 계약).
+        /// </summary>
+        static GameObject SpawnProceduralNode(Transform parent, string goName, GameObject visualInstance,
+            float x, float z, float scale, float yawDeg)
+        {
+            float y = GROUND_BASE + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, HEIGHT_SEED);
+            var go = new GameObject(goName);
+            go.layer = 0;
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, y, z);
+            go.transform.rotation = Quaternion.Euler(0f, yawDeg, 0f);
+
+            if (visualInstance != null)
+            {
+                visualInstance.name = "Visual";
+                visualInstance.layer = 0;
+                visualInstance.transform.SetParent(go.transform, false);
+                visualInstance.transform.localScale = Vector3.one * scale;
+                AlignBottomToGround(go.transform, visualInstance);
+                AddBoundsBoxCollider(go, visualInstance);
+            }
+            return go;
+        }
+
+        // [126차] 들꽃 절차적 시각 파스텔 3색 — 결정론 순환(index % 3)
+        static readonly Color[] FlowerPalette =
+        {
+            new Color(0.98f, 0.80f, 0.86f, 1f),   // 파스텔 핑크
+            new Color(0.84f, 0.90f, 0.98f, 1f),   // 파스텔 블루
+            new Color(0.98f, 0.93f, 0.76f, 1f),   // 파스텔 옐로
+        };
+
+        /// <summary>
+        /// [126차] 들꽃 절차적 시각 빌더 — 줄기 실린더(녹색) + 꽃잎 쿼드 2교차(파스텔 3색 결정론 순환).
+        /// 파편 콜라이더는 제거하고 루트 바운즈 BoxCollider만 둔다(호버 Gather 판정 단일화).
+        /// </summary>
+        static GameObject BuildProceduralFlowerVisual(int index)
+        {
+            var visual = new GameObject("Visual");
+            visual.layer = 0;
+            Color petalColor = FlowerPalette[index % FlowerPalette.Length];
+
+            var stem = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            stem.name = "Stem";
+            stem.layer = 0;
+            stem.transform.SetParent(visual.transform, false);
+            stem.transform.localPosition = new Vector3(0f, 0.16f, 0f);
+            stem.transform.localScale = new Vector3(0.05f, 0.16f, 0.05f);
+            SetPrimitiveColor(stem, new Color(0.36f, 0.60f, 0.32f, 1f));   // 줄기 녹색
+            DestroyPrimitiveCollider(stem);
+
+            // 꽃잎 쿼드 2교차(90°) — 위에서 봤을 때 십자 꽃 형태
+            for (int i = 0; i < 2; i++)
+            {
+                var petal = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                petal.name = "Petal_" + i;
+                petal.layer = 0;
+                petal.transform.SetParent(visual.transform, false);
+                petal.transform.localPosition = new Vector3(0f, 0.34f, 0f);
+                petal.transform.localRotation = Quaternion.Euler(0f, i * 90f, 0f);
+                petal.transform.localScale = new Vector3(0.30f, 0.30f, 1f);
+                SetPrimitiveColor(petal, petalColor);
+                DestroyPrimitiveCollider(petal);
+            }
+            return visual;
+        }
+
+        /// <summary>절차적 시각 파편에 URP Lit 단색 머티리얼 적용(SpawnNodeAt 폴백 큐브 선례).</summary>
+        static void SetPrimitiveColor(GameObject primitive, Color color)
+        {
+            var renderer = primitive.GetComponent<Renderer>();
+            if (renderer == null) return;
+            var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            mat.color = color;
+            renderer.material = mat;
+        }
+
+        /// <summary>절차적 시각 파편의 프리미티브 콜라이더 제거 — 루트 바운즈 BoxCollider만 유지.</summary>
+        static void DestroyPrimitiveCollider(GameObject primitive)
+        {
+            var col = primitive.GetComponent<Collider>();
+            if (col != null) Object.Destroy(col);
         }
 
         /// <summary>시각 모델 렌더러 bounds 밑면을 노드 루트(지표면) 높이로 정렬 — 지형에 안 박히게.</summary>
@@ -502,6 +631,19 @@ namespace ProjectName.Systems
             {
                 var herb = go.AddComponent<HerbPickup>();
                 SetPrivateField(herb, "_herbDatabaseId", herbId);
+            };
+        }
+
+        /// <summary>
+        /// 들꽃 노드: HerbPickup(Flower_Wild) — [126차] 영주 딸 선물 재료.
+        /// 꽃은 씨앗이 없다(HerbPickup.TryRollSeedDrop에서 Flower_Wild 선제 차단).
+        /// </summary>
+        static System.Action<GameObject> CreateFlowerNode(int index, DetRng rng, string visualName)
+        {
+            return go =>
+            {
+                var herb = go.AddComponent<HerbPickup>();
+                SetPrivateField(herb, "_herbType", HerbPickup.HerbType.Flower_Wild);
             };
         }
 

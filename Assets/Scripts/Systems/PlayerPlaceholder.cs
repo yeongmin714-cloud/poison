@@ -67,6 +67,7 @@ namespace ProjectName.Systems
             }
 
             // RuntimeModelLoader에서 플레이어 모델을 찾음
+            // [125차 후속11] 경로 진단 로그 — GLB 성공/실패(프리미티브 폴백)를 Play에서 즉별(기존 무음).
             if (RuntimeModelLoader.TryGetModel("player", out var playerModel))
             {
                 // 플레이어 모델을 인스턴스화하고 자식으로 붙임
@@ -80,6 +81,23 @@ namespace ProjectName.Systems
                 var assigner = playerInstance.AddComponent<ProjectName.Systems.Animation.ModelAnimatorAssigner>();
                 assigner.ForceBiped(true);
 
+                // [125차 후속11] 절차 애니 속도 공급 — GLB 자식은 스스로 움직이지 않고 루트(PlayerMovement)가
+                //   이동하므로, 루트 변위를 공급자로 연결해야 보행 애니가 재생된다(메인씬 배치 프리팹과의 차이 —
+                //   테스트씬 T포즈 근본 수리). RigAnimationController(레거시 리그)가 있으면 그쪽이 구동 주체
+                //   (기존 계약 유지) — 이중 구동 방지 가드.
+                if (GetComponent<RigAnimationController>() == null)
+                {
+                    var procAnim = playerInstance.GetComponentInChildren<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>();
+                    if (procAnim != null)
+                    {
+                        var provider = GetComponent<ProjectName.Systems.Animation.TransformVelocityProvider>();
+                        if (provider == null) provider = gameObject.AddComponent<ProjectName.Systems.Animation.TransformVelocityProvider>();
+                        provider.Track(transform);
+                        procAnim.SetVelocityProvider(provider);
+                        Debug.Log("[PlayerPlaceholder] [125차 후속11] 절차 애니 속도 공급 연결 — 루트 변위 → 보행 구동");
+                    }
+                }
+
                 // 기존 도형들 제거
                 Destroy(_body);
                 Destroy(_head);
@@ -90,6 +108,11 @@ namespace ProjectName.Systems
                 _body = _head = _leftArm = _rightArm = _leftLeg = _rightLeg = null;
 
                 // Main player model: GLB 자식의 콜라이더/리지드바디 제거 (부모 CharacterController가 처리)
+                // [125차 후속12] rb 제거 생략 조건 — ModelAnimatorAssigner가 추가한 ProceduralAnimationController는
+                //   Rigidbody를 RequireComponent로 요구한다(Play 실측: "Can't remove Rigidbody because
+                //   ProceduralAnimationController (Script) depends on it"). 존재 시 제거 시도 자체를 생략하고
+                //   kinematic 무중력 상태를 유지한다(부작용 없음 — 에러 로그 노이즈만 제거).
+                bool hasProcAnim = playerInstance.GetComponentInChildren<ProjectName.Systems.Animation.Procedural.ProceduralAnimationController>() != null;
                 var colliders = playerInstance.GetComponentsInChildren<Collider>(true);
                 foreach (var col in colliders)
                 {
@@ -99,19 +122,47 @@ namespace ProjectName.Systems
                 var rb = playerInstance.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
-                    // RequireComponent 의존성(ProceduralAnimationController, QuadrupedProceduralAnimation) 때문에
-                    // DestroyImmediate가 차단될 수 있으므로, 제거 시도 전에 무해한 관성 상태로 만든다.
-                    // (제거에 실패해도 중력 낙하로 모델이 땅 밖으로 떨어져 사라지는 것을 방지)
+                    // [125차 후속12] kinematic 경화는 항상 먼저 — hasProcAnim이어도 rb가 남으므로 중력을
+                    //   받지 않게 해야 한다(경화가 조건 안에 있으면 GLB가 중력 낙하하는 결함).
                     rb.isKinematic = true;
                     rb.useGravity = false;
                     rb.detectCollisions = false;
-                    // [TEST21-FOLLOWUP] 의존 컴포넌트(ProceduralAnimationController 등)가 RequireComponent로
-                    // 붙어 있으면 DestroyImmediate가 'Can't remove Rigidbody because ... depends on it'으로
-                    // **흐와 전체 중단**시킬 수 있다 → try-catch로 격리, 실패해도 중립 상태 유지로 계속 진행.
+                }
+                if (rb != null && !hasProcAnim)
+                {
+                    // RequireComponent 의존성(QuadrupedProceduralAnimation 등) 때문에 DestroyImmediate가
+                    // 차단될 수 있다 → try-catch로 격리, 실패해도 중립 상태 유지로 계속 진행.
+                    // [125차 후속12] ProceduralAnimationController 의존(rb 필수) 시에는 시도 자체를 생략
+                    // (에러 로그 노이즈 제거 — 위 kinematic 경화로 안전 유지).
                     try { DestroyImmediate(rb); }
                     catch (System.Exception e)
                     {
                         Debug.LogWarning($"[PlayerPlaceholder] GLB 리지드바디 제거 무시(의존 컴포넌트): {e.GetType().Name} — isKinematic으로 중력 낙하 차단 유지");
+                    }
+                }
+                else if (rb != null && hasProcAnim)
+                {
+                    Debug.Log("[PlayerPlaceholder] [125차 후속12] GLB Rigidbody 유지 — ProceduralAnimationController 의존(RequireComponent), kinematic 무중력 상태");
+                }
+
+                // [51차 키 1.8m 통일 → 54차 측정 모드] 플레이어 GLB 비주얼도 표준 인간 키 1.8m로 정규화(병사와 동일 상수) —
+                //   플레이어 모델은 골격 스케일 구조라 localBounds 오측(0.61m) → **월드 bounds 측정(skinnedLocalBounds=false)**.
+                TerritoryBuilder.NormalizeSoldierHeight(playerInstance, TerritoryBuilder.SoldierTargetHeight, skinnedLocalBounds: false);
+
+                // [125차 후속11] GLB 발-접지 보정 — NormalizeSoldierHeight는 발을 "스케일 전 위치"로 복원만
+                //   하므로 프리팹 내부 피벗 오프셋(모델 중심 피벗 GLB)이 유지돼 발이 플레이어 루트 지면 위에
+                //   떠 있었다(아레나 테스트 2 영상 5s/17s 실측: 0.5~1m 부유+그림자 분리). 월드 bounds 최하단을
+                //   플레이어 루트 Y(지면 기준)로 하강 정렬 — 상대 정렬이므로 루트 접지 상태와 무관하게 성립.
+                var footRends = playerInstance.GetComponentsInChildren<Renderer>();
+                if (footRends != null && footRends.Length > 0)
+                {
+                    Bounds footBounds = footRends[0].bounds;
+                    foreach (var r in footRends) footBounds.Encapsulate(r.bounds);
+                    float drop = footBounds.min.y - transform.position.y;
+                    if (drop > 0.005f)
+                    {
+                        playerInstance.transform.position += Vector3.down * drop;
+                        Debug.Log($"[PlayerPlaceholder] [125차 후속11] GLB 발-접지 보정 — {drop:F2}m 하강(프리팹 피벗 오프셋 상쇄)");
                     }
                 }
 
@@ -123,9 +174,11 @@ namespace ProjectName.Systems
                     child.gameObject.layer = ignoreLayer;
                 }
 
+                Debug.Log("[PlayerPlaceholder] [125차 후속11] 플레이어 GLB 로드 성공 — Player_Rigged 부착");
                 return true;
             }
 
+            Debug.LogWarning("[PlayerPlaceholder] [125차 후속11] 플레이어 GLB 미로드 — 프리미티브 폴백 외형 유지(RigAnimationController 조건 충족 시 구동)");
             return false;
         }
 

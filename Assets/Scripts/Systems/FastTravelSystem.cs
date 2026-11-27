@@ -105,12 +105,8 @@ namespace ProjectName.Systems
         /// </summary>
         public bool CanAffordTravel(int cost)
         {
-            if (PlayerInventory.Instance == null)
-            {
-                Debug.LogWarning("[FastTravelSystem] PlayerInventory.Instance가 null입니다.");
-                return false;
-            }
-            return PlayerInventory.Instance.GetItemCount("gold") >= cost;
+            // [70차] 지갑 단일소스 — 인벤 골드 아이템 조회 폐지, PlayerStats 원장 직접 조회.
+            return PlayerStats.Instance != null && PlayerStats.Instance.Gold >= cost;
         }
 
         /// <summary>
@@ -161,8 +157,8 @@ namespace ProjectName.Systems
             // 골드 확인
             if (!CanAffordTravel(cost))
             {
-                int currentGold = PlayerInventory.Instance != null
-                    ? PlayerInventory.Instance.GetItemCount("gold")
+                int currentGold = PlayerStats.Instance != null
+                    ? PlayerStats.Instance.Gold
                     : 0;
                 Debug.Log($"[FastTravelSystem] ⚠️ 골드 부족! 필요: {cost}G, 보유: {currentGold}G");
                 return;
@@ -172,9 +168,13 @@ namespace ProjectName.Systems
             OnFastTravelStart?.Invoke();
             Debug.Log($"[FastTravelSystem] 🚀 빠른 이동 시작: {def.territoryName} (비용: {cost}G, Ring: {def.difficulty})");
 
-            // 골드 차감
-            if (PlayerInventory.Instance != null)
-                PlayerInventory.Instance.RemoveItem("gold", cost);
+            // 골드 차감 — [70차] 인벤 RemoveItem("gold") 폐지 → 지갑(PlayerStats) 원장 지출.
+            bool paid = PlayerStats.Instance != null && PlayerStats.Instance.SpendGold(cost, "fast_travel");
+            if (!paid)
+            {
+                Debug.LogWarning("[FastTravelSystem] [70차] 지갑 골드 차감 실패 — 빠른 이동 중단.");
+                return;
+            }
 
             // 로딩 화면 후 텔레포트 코루틴 시작
             if (gameObject.activeInHierarchy)

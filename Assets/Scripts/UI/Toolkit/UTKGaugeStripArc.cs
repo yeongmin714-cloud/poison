@@ -18,7 +18,7 @@ namespace ProjectName.UI.Toolkit
     /// </summary>
     public class UTKGaugeStripArc : VisualElement
     {
-        public const int FrameSize = 128;
+        public const int FrameSize = 126;   // [84차] 프레임 126px — 65×126=8190 ≤ maxTextureSize 8192(상향 실측)로 다운스케일 0
         public const int FrameCount = 65;
 
         private static Texture2D _strip;

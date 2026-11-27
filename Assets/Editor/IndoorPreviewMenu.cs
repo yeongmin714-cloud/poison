@@ -62,6 +62,24 @@ namespace ProjectName.EditorTools
             RunPreview("영주 성-Northern", () => BuildLordCastle("Northern", 4));
         }
 
+        // ── [2026-10-14 Phase 4] 레이아웃 계열별 프리뷰 — 명시 정의 오버로드 경유 ──
+        //   런타임 배정(SelectForTerritory)과 동일한 3인자 빌더 경로로, 정의는 인자로만 전달되고
+        //   전역 상태로 남지 않는다. 기존 메뉴/흐름은 변경 없음.
+
+        [MenuItem("Tools/Indoor/미리보기/영주 성-원형 중앙홀형 (RoundKeep)", priority = 16)]
+        public static void PreviewLordCastleRoundKeep()
+        {
+            RunPreview("영주 성-원형 중앙홀형 (RoundKeep)",
+                () => BuildLordCastle("Empire", 0, InteriorLayoutDefinition.RoundKeep));
+        }
+
+        [MenuItem("Tools/Indoor/미리보기/영주 성-비대칭 영주관형 (AsymmetricManor)", priority = 17)]
+        public static void PreviewLordCastleAsymmetricManor()
+        {
+            RunPreview("영주 성-비대칭 영주관형 (AsymmetricManor)",
+                () => BuildLordCastle("Empire", 0, InteriorLayoutDefinition.AsymmetricManor));
+        }
+
         // ── 일반 건물 ─────────────────────────────────────────
 
         [MenuItem("Tools/Indoor/미리보기/여관", priority = 21)]
@@ -109,10 +127,19 @@ namespace ProjectName.EditorTools
         // ── 공통 처리 ─────────────────────────────────────────
 
         /// <summary>영주 성 내부 생성 + 런타임과 동일한 실내 fixture 후처리.
-        /// [2026-10-10 J1] 통일 빌더(플레이어 성 표준) + 잠긴 문 재정착 — 런타임 진입 흐름과 동일.</summary>
+        /// [2026-10-10 J1] 통일 빌더(플레이어 성 표준) + 잠긴 문 재정착 — 런타임 진입 흐름과 동일.
+        /// [2026-10-14 Phase 4] 기존 2인자 메뉴 계약 보존 — 기준형(KeepOctagon) 명시 호출과 동일 결과.</summary>
         private static GameObject BuildLordCastle(string nation, int variant)
         {
-            var interior = PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, variant);
+            return BuildLordCastle(nation, variant, InteriorLayoutDefinition.KeepOctagon);
+        }
+
+        /// <summary>[2026-10-14 Phase 4] 명시 레이아웃 정의로 영주 성 내부 생성 — 런타임과 동일한
+        /// 3인자 오버로드 경로. 정의는 인자로만 전달(전역 상태 없음), 미리보기 결과는 기존 관행대로
+        /// IndoorScene 에셋에 저장하지 않는 의도적 비영속 동작을 유지한다.</summary>
+        private static GameObject BuildLordCastle(string nation, int variant, InteriorLayoutDefinition layout)
+        {
+            var interior = PlayerCastleInteriorBuilder.BuildPlayerCastleInterior(nation, variant, layout);
             if (interior != null)
             {
                 CastleInteriorBuilder.AddLordLockedDoors(interior);

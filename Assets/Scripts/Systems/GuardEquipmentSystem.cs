@@ -124,6 +124,27 @@ namespace ProjectName.Systems
             public PlayerInventory.ItemData itemData;
         }
 
+        /// <summary>
+        /// [201차] 런타임 부트 보장 — 씬 어디에도 컴포넌트가 없어 Instance null이면 생성(DontDestroyOnLoad).
+        /// 기존 무장비 원인: SpawnEquipment가 Instance null 시 조용히 스킵(장비 시각·전리품 드롭 전부 공백).
+        /// Play 전용 — EditMode에서는 Awake 미실행으로 바인딩이 안 되므로 기존 테스트 경로(직접 AddComponent) 유지.
+        /// 멱등 — Instance 존재/비-Play면 무동작.
+        /// </summary>
+        public static void BootIfMissing()
+        {
+            if (Instance != null || !Application.isPlaying) return;
+            var existing = Object.FindAnyObjectByType<GuardEquipmentSystem>(FindObjectsInactive.Include);
+            if (existing != null)
+            {
+                // 씬에 있으나 Awake 미실행 등으로 바인딩만 지연된 경우 — 재사용(중복 생성 금지)
+                return;
+            }
+            var go = new GameObject("GuardEquipmentSystem");
+            Object.DontDestroyOnLoad(go);
+            go.AddComponent<GuardEquipmentSystem>();   // Awake가 Instance 바인딩
+            Debug.Log("[GuardEquipmentSystem] 런타임 부트 — Instance 부재로 자가 생성(장비 착용/드롭 배선 보장)");
+        }
+
         private void Awake()
         {
             if (Instance != null && Instance != this)

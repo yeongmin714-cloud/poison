@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Passed" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.2166594">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="789" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.216659" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1893" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="780" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.196050" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="12844" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1894" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="777" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.189532" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1895" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="777" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.182472" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1896" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="762" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.175029" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1449" name="IndoorFurnitureFallbackQualityTests" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.149513" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1451" name="Fallback_Bed_InteractionContract_Unchanged_WithClothDetail" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_Bed_InteractionContract_Unchanged_WithClothDetail" methodname="Fallback_Bed_InteractionContract_Unchanged_WithClothDetail" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="98695828" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.101241" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1453" name="Fallback_Chair_SeatCushion_RendererOnly" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_Chair_SeatCushion_RendererOnly" methodname="Fallback_Chair_SeatCushion_RendererOnly" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="1350979083" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.002920" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1452" name="Fallback_DetailOptOut_CrateAndMirrorSilhouettes" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_DetailOptOut_CrateAndMirrorSilhouettes" methodname="Fallback_DetailOptOut_CrateAndMirrorSilhouettes" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="1193807930" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.004542" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1454" name="Fallback_MaterialDifferentiation_AtLeastThreeDistinctMaterials" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_MaterialDifferentiation_AtLeastThreeDistinctMaterials" methodname="Fallback_MaterialDifferentiation_AtLeastThreeDistinctMaterials" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="1306732412" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.016609" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1450" name="Fallback_Table_RefinedDetails_WithinFootprint_RendererOnlyDecor" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_Table_RefinedDetails_WithinFootprint_RendererOnlyDecor" methodname="Fallback_Table_RefinedDetails_WithinFootprint_RendererOnlyDecor" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="1555122614" result="Passed" start-time="2026-10-14 09:06:13Z" end-time="2026-10-14 09:06:13Z" duration="0.002859" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

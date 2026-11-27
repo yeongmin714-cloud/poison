@@ -22,6 +22,13 @@ namespace ProjectName.Systems
         private Transform _fill;
         private Material _fillMat;
         private float _trackW = 0.9f;
+        private bool _manual;          // [142차 F] 외부 진행 구동 모드(건설 게이지 — 관리자가 매 틱 progress 대입)
+        private float _manualProgress;
+        private float _lastProbe;      // [150차 P3] 가시성 프로브 1초 스로틀
+
+        /// <summary>[150차 P3] 건설 게이지(manual 모드) 바 확대 배율 — 원거리 관측 픽셀 미달 실측
+        /// (트랙 0.9m×0.11m → 실효 약 2.34m×0.29m). 채널링 Show 경로는 기존 크기 유지(벌목/채광 계약).</summary>
+        private const float ManualBarScale = 2.6f;
 
         /// <summary>작업 유닛 위에 진행 바 생성(부모=worker, 발 위 2.5m).</summary>
         public static WorkProgressBar Show(Transform worker, float duration, Color color)
@@ -40,6 +47,31 @@ namespace ProjectName.Systems
         {
             if (this != null && gameObject != null)
                 Destroy(gameObject);
+        }
+
+        /// <summary>[142차 F] 외부 진행 구동 바 생성 — 건설 게이지(ConstructionManager가 매 틱 progress 대입).
+        /// 시간 자체 완주가 아니라 관리자 진행값을 그대로 반영(병사 지원 배율 등 가변 속도 정합).
+        /// 채널링 바(Show)와 동일 어휘/크기/빌보딩 — 사용자 지시 "벌목·채광처럼 위에 게이지바".</summary>
+        public static WorkProgressBar ShowManual(Transform anchor, Color color)
+        {
+            var go = new GameObject("WorkProgressBar_Manual");
+            go.transform.SetParent(anchor, false);
+            go.transform.localPosition = new Vector3(0f, 2.5f, 0f);
+            // [150차 P3] 바 스케일 확대 — manual(건설) 모드에서만 루트 스케일 배율 적용.
+            // 자식 트랙/채움 로컬 크기는 그대로(트랙 종횡비 8:1 유지)라 좌정렬·빌보딩 수학 무영향.
+            go.transform.localScale = new Vector3(ManualBarScale, ManualBarScale, 1f);
+            var bar = go.AddComponent<WorkProgressBar>();
+            bar.duration = float.MaxValue;   // 시간 완주 미사용 — SetProgress01 외부 구동
+            bar.fillColor = color;
+            bar._manual = true;
+            bar.Build();
+            return bar;
+        }
+
+        /// <summary>[142차 F] 외부 진행 대입(0~1) — 1 도달 시 자동 Close 없음(관리자가 Close 책임).</summary>
+        public void SetProgress01(float p)
+        {
+            _manualProgress = Mathf.Clamp01(p);
         }
 
         private void Build()
@@ -92,7 +124,23 @@ namespace ProjectName.Systems
 
         private void LateUpdate()
         {
-            float p = Mathf.Clamp01((Time.time - _start) / duration);
+            // [150차 P3] 가시성 프로브 — 1초 스로틀(미표출 원인 판별: 거리/가림/모드 구분 근거 수집).
+            //   isVisible은 프레임 렌더 반영값(참고용 — 가림 여부 판별 근거).
+            if (Time.time - _lastProbe >= 1f)
+            {
+                _lastProbe = Time.time;
+                Camera probeCam = Camera.main;
+                float dist = probeCam != null ? Vector3.Distance(probeCam.transform.position, transform.position) : -1f;
+                bool visible = false;
+                var rends = GetComponentsInChildren<Renderer>();
+                for (int i = 0; i < rends.Length; i++)
+                    if (rends[i].isVisible) { visible = true; break; }
+                Debug.Log($"[150차 P3] 게이지 가시성 프로브 — pos=({transform.position.x:F1},{transform.position.y:F1},{transform.position.z:F1}) " +
+                          $"카메라거리={dist:F1} isVisible={visible} manual={_manual}");
+            }
+
+            // [142차 F] 외부 구동 모드 — 관리자 대입 progress 사용(시간 자체 진행 폐기).
+            float p = _manual ? _manualProgress : Mathf.Clamp01((Time.time - _start) / duration);
 
             // 좌단 고정 채움 — Quad는 중앙 피벗이라 위치를 함께 밀어 좌정렬 성장 구현.
             if (_fill != null)
@@ -112,8 +160,8 @@ namespace ProjectName.Systems
                 transform.rotation = Quaternion.LookRotation(fwd);
             }
 
-            if (p >= 1f)
-                Close();
+            if (!_manual && p >= 1f)
+                Close();   // [142차 F] 수동 모드는 관리자가 Close(완료/제거 경로) — 자동 소멸 없음
         }
 
         private void OnDestroy()

@@ -44,6 +44,22 @@ namespace ProjectName.Tests.EditMode
         }
 
         // ======================================================================
+        // [무번호 89] 실내 시설 동일화 — 소유 무관 상점/크래프트하우스 배치
+        // ======================================================================
+
+        [Test]
+        public void J3_InteriorFixtures_PlacedForAllCastleOwnerships()
+        {
+            string src = System.IO.File.ReadAllText(TransitionPath);
+            // 배치 호출이 소유 분기(if (_pendingIsPlayerOwned))보다 앞서 단독 실행 — 전 영지 동일 시설.
+            int fixturesAt = src.IndexOf("SpawnInteriorFixtures(hqRoom.transform.position", System.StringComparison.Ordinal);
+            int ownershipAt = src.IndexOf("if (_pendingIsPlayerOwned)", System.StringComparison.Ordinal);
+            Assert.That(fixturesAt, Is.GreaterThanOrEqualTo(0), "[89] 실내 시설 배치 호출 존재.");
+            Assert.That(ownershipAt, Is.GreaterThan(fixturesAt),
+                "[89] 상점/크래프트하우스는 소유 분기 밖(전 영지 공통)으로 배치 — 실내 완전 동일 계약.");
+        }
+
+        // ======================================================================
         // J2 — 잠긴 문 재정착
         // ======================================================================
 

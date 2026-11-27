@@ -660,7 +660,7 @@ namespace ProjectName.Systems
                 soldier.name = goName + "_Body";
                 soldier.transform.localPosition = Vector3.zero;
                 soldier.transform.localRotation = Quaternion.identity;
-                float soldierScale = GuardManager.NormalizeSoldierScaleToPlayer(soldier);
+                float soldierScale = TerritoryBuilder.NormalizeSoldierHeightFactor(soldier, TerritoryBuilder.SoldierTargetHeight);
                 soldierScale *= GuardManager.GetSoldierSizeMultiplier(level);
                 soldier.transform.localScale = Vector3.one * soldierScale;
 
@@ -701,7 +701,7 @@ namespace ProjectName.Systems
                     soldier.name = goName + "_Body";
                     soldier.transform.localPosition = Vector3.zero;
                     soldier.transform.localRotation = Quaternion.identity;
-                    float soldierScaleGlb = GuardManager.NormalizeSoldierScaleToPlayer(soldier);
+                    float soldierScaleGlb = TerritoryBuilder.NormalizeSoldierHeightFactor(soldier, TerritoryBuilder.SoldierTargetHeight);
                     soldierScaleGlb *= GuardManager.GetSoldierSizeMultiplier(level);
                     soldier.transform.localScale = Vector3.one * soldierScaleGlb;
 

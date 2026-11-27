@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Failed(Child)" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.4078977">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="471" result="Failed" site="Child" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.407898" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1527" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="462" result="Failed" site="Child" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.388263" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2756" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1528" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="462" result="Failed" site="Child" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.380392" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1529" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="462" result="Failed" site="Child" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.373363" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1530" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="447" result="Failed" site="Child" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.365249" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1524" name="WarehouseWindowUTKStorageTests" fullname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests" classname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests" runstate="Runnable" testcasecount="2" result="Failed" site="Child" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.353145" total="2" passed="1" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1526" name="DepositFromInventory_FullWarehouseFailureConservesTotalCount" fullname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests.DepositFromInventory_FullWarehouseFailureConservesTotalCount" methodname="DepositFromInventory_FullWarehouseFailureConservesTotalCount" classname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests" runstate="Runnable" seed="1769205033" result="Passed" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.291749" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[WarehouseUTK] 창고 가득 — 입고 취소(인벤 롤백): blocked-deposit
+[WarehouseUTK] 창고 가득 — 인벤 롤백
+]]></output>
+              </test-case>
+              <test-case id="1525" name="DepositFromInventory_MovesExactlyOneAndRemovesExactlyOne" fullname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests.DepositFromInventory_MovesExactlyOneAndRemovesExactlyOne" methodname="DepositFromInventory_MovesExactlyOneAndRemovesExactlyOne" classname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests" runstate="Runnable" seed="1924673804" result="Failed" start-time="2026-10-05 00:21:29Z" end-time="2026-10-05 00:21:29Z" duration="0.044588" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  The transfer removes one item, not one in the wrapper plus another in DepositItem.
+  Expected: 1
+  But was:  0
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests.DepositFromInventory_MovesExactlyOneAndRemovesExactlyOne () [0x00039] in C:\Unity\code\Assets\Scripts\Tests\EditMode\WarehouseWindowUTKStorageTests.cs:60
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[[WarehouseUTK] 입고(우클릭): deposit-one
+Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

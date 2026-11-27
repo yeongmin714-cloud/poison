@@ -69,7 +69,13 @@ namespace ProjectName.Core
         private void LoadEffects(string monsterId)
         {
             hitEffectPrefab = Resources.Load<GameObject>($"Effects/{monsterId}_hit");
-            deathEffectPrefab = Resources.Load<GameObject>($"Effects/{monsterId}_death");
+            // [무번호 25-EA2] 사망 FX 배선 — Resources 실측 경로 FX/Death/ 교체. per-monster 프리팹({id}_death) 부재 시
+            // 공용 폴백 DeathSmoke(실존: Assets/Resources/FX/Death/DeathSmoke.prefab) — 1단 if/else, 랜덤 0건.
+            deathEffectPrefab = Resources.Load<GameObject>($"FX/Death/{monsterId}_death");
+            if (deathEffectPrefab == null)
+            {
+                deathEffectPrefab = Resources.Load<GameObject>("FX/Death/DeathSmoke");
+            }
             hitSound = Resources.Load<AudioClip>($"Effects/{monsterId}_hit");
             deathSound = Resources.Load<AudioClip>($"Effects/{monsterId}_death");
         }

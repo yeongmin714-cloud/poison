@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -70,6 +71,10 @@ namespace ProjectName.Systems
         [Tooltip("UI 사운드 전용 AudioSource")]
         private AudioSource _uiAudioSource;
 
+        // ===== [133차-P2] UI 클립 캐시 =====
+        /// <summary>UISFXType → AudioClip 캐시(1회 로드 — Resources.Load 반복 호출 방지). 부재 결과(null)도 캐시.</summary>
+        private readonly Dictionary<UISFXType, AudioClip> _uiClipCache = new Dictionary<UISFXType, AudioClip>();
+
         /// <summary>현재 볼륨 값 (0-1)</summary>
         public float Volume
         {
@@ -129,14 +134,42 @@ namespace ProjectName.Systems
             }
 
             string sfxName = GetUISFXName(type);
-            Debug.Log($"[UISoundManager] 🔊 UI 사운드 재생: {sfxName} (플레이스홀더 — 실제 오디오 없음)");
 
+            // [133차-P2] 실재생 경로 — Resources/Sounds/UI 클립을 캐시로 1회 로드해 UI 전용 소스로 출력.
             if (_uiAudioSource != null)
             {
-                // 플레이스홀더: clip이 null이므로 재생되지 않음
-                _uiAudioSource.volume = _volume;
-                _uiAudioSource.Play();
+                AudioClip clip = LoadCachedUIClip(type);
+                if (clip != null)
+                {
+                    _uiAudioSource.clip = clip;
+                    _uiAudioSource.volume = _volume;
+                    _uiAudioSource.Play();
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    Debug.Log($"[UISoundManager] 🔊 UI 사운드 재생: {clip.name}");
+#endif
+                    return;
+                }
+
+                // 클립 부재 — 무해 폴백(clip=null 무음). 로그는 개발빌드 전용으로 축소 [133차-P2]
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"[UISoundManager] UI 클립 부재: Sounds/UI/{sfxName} (무음 폴백)");
+#endif
             }
+        }
+
+        /// <summary>
+        /// [133차-P2] UI 클립 로드 — Resources/Sounds/UI/{이름}을 캐시 딕셔너리로 1회 로드합니다.
+        /// 클립이 없으면 null 반환(호출부는 기존 무음 폴백 유지).
+        /// </summary>
+        private AudioClip LoadCachedUIClip(UISFXType type)
+        {
+            if (_uiClipCache.TryGetValue(type, out AudioClip cached))
+                return cached;
+
+            AudioClip clip = Resources.Load<AudioClip>($"Sounds/UI/{GetUISFXName(type)}");
+            _uiClipCache[type] = clip; // 부재 결과도 캐시 — 반복 로드 시도 방지
+            return clip;
         }
 
         /// <summary>

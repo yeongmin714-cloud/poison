@@ -13,7 +13,13 @@ namespace ProjectName.Systems
     ///   - 창: 찌르기 관통감(좁고 깊은 흔들림)
     ///   - 활: 원거리 약함(가벼운 진동)
     ///   - 맨손: 경쾌한 연타(짧고 빠른)
+    /// [무번호 80-P5] 셰이크는 코루틴(Update 후) 대신 LateUpdate(order 1000) 지배로 전환:
+    ///   TopDownCameraController.LateUpdate가 매 프레임 transform.position을 팔로우 재기록해
+    ///   기존 코루틴 경로의 localPosition 쓰기가 매 프레임 클로버링되어 셰이크가 실질 소멸(80-P5 포렌식).
+    ///   additive 방식: 팔로우 출력 위에 마지막 오프셋을 strip 후 신규 노이즈를 얹는다 —
+    ///   팔로우와 무간섭, 종료 시 오프셋 제거로 원복(포즈 덮어쓰기 없음 — 계획 Task 5.2 계약).
     /// </summary>
+    [DefaultExecutionOrder(1000)]
     public class CombatCameraEffects : MonoBehaviour
     {
         public static CombatCameraEffects Instance { get; private set; }
@@ -48,9 +54,15 @@ namespace ProjectName.Systems
         private const float HighSpecKillSlowTimeScale = 0.4f;   // 킬 슬로우모션: 0.5 → 0.4 (살짝 더 깊게)
 
         private Camera _mainCamera;
-        private Vector3 _originalCamLocalPos;
-        private Coroutine _activeShake;
         private Coroutine _activeTimeScale;
+        // [무번호 80-P5] additive 셰이크 상태 — 코루틴(ShakeRoutine) 대체. LateUpdate 지배.
+        private bool _shakeActive;
+        private float _shakeElapsed;
+        private float _shakeDuration;
+        private float _shakeRestoreDuration;
+        private float _shakeIntensity;
+        private float _shakeFrequency;
+        private Vector3 _shakeLastOffset;   // 마지막 프레임 적용 오프셋(strip용 — 팔로우 출력 위 additive)
         /// <summary>
         /// 효과가 시작되기 전의 원본 Time.timeScale.
         /// 중첩 호출 시 덮어쓰지 않도록 보존한다.
@@ -74,12 +86,6 @@ namespace ProjectName.Systems
             // Camera.main을 Awake에서 미리 캐싱 (Start보다 빠름)
             _mainCamera = Camera.main;
             _baseTimeScale = Time.timeScale;
-        }
-
-        private void Start()
-        {
-            if (_mainCamera != null)
-                _originalCamLocalPos = _mainCamera.transform.localPosition;
         }
 
         /// <summary>
@@ -116,8 +122,11 @@ namespace ProjectName.Systems
         /// <summary>적 처치 효과: 슬로우모션</summary>
         public static void PlayKill()
         {
+            // [무번호 71-W1] 전투 잔상 비네트 — 처치 진입 단일 관문 훅(AnimalAI:1513 직접 · PlayKillVFX:825 수렴).
+            //   연출 보조 — Application.isPlaying 가드 + try/catch 예외 격리(CombatFXGate 선례 — 전투 방해 금지).
+            if (Application.isPlaying) { try { FxCombatResidueFX.Pulse(); } catch (System.Exception) { } }
             if (Instance == null) return;
-            Instance.PlayKillSlowMotion();
+            // [212차] 킬 슬로우모션 호출 폐지 — 사용자 지시(몬스터 처치 급슬로우 불필요; 패막 히트스톱·크리티컬 불릿타임은 유지). 메서드/상수는 재활용 대비 보존.
         }
 
         /// <summary>치명타/백어택 효과: Shake 2배 + HitStop</summary>
@@ -135,6 +144,44 @@ namespace ProjectName.Systems
             if (Instance == null) return;
             Instance.PlayHitShake(Instance._hitShakeIntensity * 0.4f);
         }
+
+        /// <summary>[무번호 28-M2] 피격 리코일 — 피격 방향 반대로 카메라가 움찔했다 복귀(위치 기반 — FOV 계약 무손상).
+        ///   ScreenVignetteFX 23-V1 피격 비네트와 짝을 이루는 카메라 반응. Core 무수정 — OnPlayerDamaged 구독만.
+        ///   강도는 피해량 비례(클램프) — 등급/무기 계약 무관.</summary>
+        public static void PlayDamageRecoil(Vector3 hitWorldPos, float amount)
+        {
+            if (Instance == null || Instance._mainCamera == null) return;
+            // 피격원→카메라 방향(XZ) — 카메라가 뒤로 움찔(-forward 성분 우세)하게 로컬 바이어스 환산
+            Vector3 away = Instance._mainCamera.transform.position - hitWorldPos; away.y = 0f;
+            if (away.sqrMagnitude < 1e-6f) away = -Instance._mainCamera.transform.forward;
+            Vector3 dir = away.normalized;
+            Vector3 bias = new Vector3(
+                Vector3.Dot(dir, Instance._mainCamera.transform.right),
+                0f,
+                Vector3.Dot(dir, Instance._mainCamera.transform.forward));
+            var profile = new CameraImpulseProfile
+            {
+                intensity = Mathf.Clamp(0.02f + amount * 0.004f, 0.02f, 0.08f),
+                duration = 0.18f,
+                frequency = 18f,
+                directionBias = bias,
+                useImpulseSource = false,   // Cinemachine 임펄스 미사용 — 기존 ShakeRoutine 경로만(예측 가능성)
+            };
+            Instance.PlayWeaponShake(profile);
+        }
+
+        /// <summary>[무번호 28-M2] 피격 리코일 부트스트랩 — Core 이벤트 구독(Systems→Core 허용 방향,
+        ///   Core 무수정 계약). ScreenVignetteFX 23-V1 선례(중복 구독 방지 정적 플래그) 그대로 복제.</summary>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void SubscribeDamageRecoil()
+        {
+            // [무번호 28-M2] Core 무수정 계약 — OnPlayerDamaged 구독만(23-V1 선례). 이중 구독 방지 정적 가드.
+            if (_damageRecoilHooked) return;
+            _damageRecoilHooked = true;
+            ProjectName.Core.PlayerHealth.OnPlayerDamaged += (hitPos, amount) => PlayDamageRecoil(hitPos, amount);
+        }
+
+        private static bool _damageRecoilHooked;   // [무번호 28-M2] 이중 구독 방지 가드(ScreenVignetteFX _damageHooked 선례)
 
         // ===== Instance Methods =====
 
@@ -168,15 +215,12 @@ namespace ProjectName.Systems
                 impulseSource.GenerateImpulse(impulseDir * profile.intensity);
             }
 
-            // 2. 기존 셰이크 루틴도 병행 (호환성)
-            if (_activeShake != null)
-                StopCoroutine(_activeShake);
-
+            // 2. 기존 셰이크 루틴도 병행 (호환성) — [무번호 80-P5] additive LateUpdate 경로.
             float intensity = profile.intensity;
             if (ActionFeel.HighSpec)
                 intensity *= HighSpecShakeMultiplier;
 
-            _activeShake = StartCoroutine(ShakeRoutine(intensity, profile.duration, profile.frequency));
+            StartShake(intensity, profile.duration, profile.frequency);
         }
 
         // ===== Instance Methods =====
@@ -184,13 +228,10 @@ namespace ProjectName.Systems
         /// <summary>카메라 위치 랜덤 오프셋 + 원복 (주파수 파라미터 추가)</summary>
         public void PlayHitShake(float intensity)
         {
-            if (_activeShake != null)
-                StopCoroutine(_activeShake);
-
             if (ActionFeel.HighSpec)
                 intensity *= HighSpecShakeMultiplier;
 
-            _activeShake = StartCoroutine(ShakeRoutine(intensity, _hitShakeDuration, 25f));
+            StartShake(intensity, _hitShakeDuration, 25f);
         }
 
         /// <summary>Time.timeScale=0.5 (0.1s) → Lerp 복구</summary>
@@ -242,42 +283,67 @@ namespace ProjectName.Systems
 
         // ===== Coroutines =====
 
-        /// <summary>주파수 파라미터 추가된 셰이크 루틴</summary>
-        private IEnumerator ShakeRoutine(float intensity, float duration, float frequency = 25f)
+        /// <summary>[무번호 80-P5] additive 셰이크 개시 — 코루틴(ShakeRoutine) 대체.
+        ///   LateUpdate(order 1000)에서 팔로우 출력 위에 노이즈를 얹는다(클로버링 방지).</summary>
+        private void StartShake(float intensity, float duration, float frequency)
         {
-            if (_mainCamera == null) yield break;
+            if (_mainCamera == null) return;
+            _shakeIntensity = intensity;
+            _shakeDuration = duration;
+            _shakeRestoreDuration = duration * 0.5f;
+            _shakeFrequency = frequency;
+            _shakeElapsed = 0f;
+            _shakeActive = true;
+        }
 
-            float elapsed = 0f;
-            while (elapsed < duration)
+        /// <summary>[무번호 80-P5] additive 셰이크 — LateUpdate 지배(order 1000).
+        ///   팔로우(TopDownCameraController.LateUpdate)가 쓴 출력 위에 마지막 오프셋을 strip 후
+        ///   신규 노이즈를 얹는다 → 팔로우와 무간섭, 종료 시 오프셋 제거로 원복(덮어쓰기 없음).
+        ///   수식은 기존 ShakeRoutine과 동일(Perlin 3축 + z 감쇠) — 체감 연속성 유지.</summary>
+        private void LateUpdate()
+        {
+            if (_mainCamera == null) return;
+            if (!_shakeActive)
             {
-                // 주파수 기반 진동 (더 자연스러운 카메라 흔들림)
-                float noise = Mathf.PerlinNoise(Time.unscaledTime * frequency, 0f) * 2f - 1f;
-                float noise2 = Mathf.PerlinNoise(0f, Time.unscaledTime * frequency) * 2f - 1f;
-                float noise3 = Mathf.PerlinNoise(Time.unscaledTime * frequency * 0.7f, Time.unscaledTime * frequency * 0.7f) * 2f - 1f;
-
-                Vector3 randomOffset = new Vector3(noise, noise2, noise3 * 0.3f) * intensity;
-                randomOffset.z = randomOffset.z * 0.3f; // Z축은 덜 흔들림 (클리핑 방지)
-
-                _mainCamera.transform.localPosition = _originalCamLocalPos + randomOffset;
-
-                elapsed += Time.unscaledDeltaTime;
-                yield return null;
+                if (_shakeLastOffset != Vector3.zero)
+                {
+                    _mainCamera.transform.localPosition -= _shakeLastOffset;
+                    _shakeLastOffset = Vector3.zero;
+                }
+                return;
             }
 
-            // Restore original position with smooth lerp
-            float restoreDuration = duration * 0.5f;
-            float restoreElapsed = 0f;
-            Vector3 startPos = _mainCamera.transform.localPosition;
-            while (restoreElapsed < restoreDuration)
+            _shakeElapsed += Time.unscaledDeltaTime;
+            float amp;
+            if (_shakeElapsed < _shakeDuration)
             {
-                float t = restoreElapsed / restoreDuration;
-                _mainCamera.transform.localPosition = Vector3.Lerp(startPos, _originalCamLocalPos, t);
-                restoreElapsed += Time.unscaledDeltaTime;
-                yield return null;
+                amp = _shakeIntensity;
+            }
+            else
+            {
+                // 감쇠 램프 — 기존 restore lerp(duration*0.5)를 진폭 감쇠로 대체(체감 연속성).
+                float rt = _shakeElapsed - _shakeDuration;
+                amp = _shakeIntensity * Mathf.Clamp01(1f - rt / _shakeRestoreDuration);
+                if (amp <= 0f)
+                {
+                    _mainCamera.transform.localPosition -= _shakeLastOffset;
+                    _shakeLastOffset = Vector3.zero;
+                    _shakeActive = false;
+                    return;
+                }
             }
 
-            _mainCamera.transform.localPosition = _originalCamLocalPos;
-            _activeShake = null;
+            // 주파수 기반 진동 (기존 ShakeRoutine 수식 동일 — 체감 연속성)
+            float noise = Mathf.PerlinNoise(Time.unscaledTime * _shakeFrequency, 0f) * 2f - 1f;
+            float noise2 = Mathf.PerlinNoise(0f, Time.unscaledTime * _shakeFrequency) * 2f - 1f;
+            float noise3 = Mathf.PerlinNoise(Time.unscaledTime * _shakeFrequency * 0.7f, Time.unscaledTime * _shakeFrequency * 0.7f) * 2f - 1f;
+            Vector3 randomOffset = new Vector3(noise, noise2, noise3 * 0.3f) * amp;
+            randomOffset.z = randomOffset.z * 0.3f; // Z축은 덜 흔들림 (클리핑 방지)
+
+            // additive: 현재 localPosition에서 마지막 적용분을 strip 후 신규 오프셋 얹기
+            Vector3 basePos = _mainCamera.transform.localPosition - _shakeLastOffset;
+            _mainCamera.transform.localPosition = basePos + randomOffset;
+            _shakeLastOffset = randomOffset;
         }
 
         private IEnumerator HitStopRoutine(float timeScale, float holdDuration, float recoveryDuration)

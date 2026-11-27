@@ -51,6 +51,16 @@ namespace ProjectName.Systems
         private Vector3 _baseVisualEuler;
         private bool _baseEulerSet;
 
+        // [133차] 타격 피드백 구독 플래그 — GatherChannelSystem.OnImpact 구독 상태(중복 구독/누수 방지).
+        private bool _impactSubscribed;
+
+        // [무번호 74-G1] 채널 리듬 확산 링 — 타격점 소형 확산 파장(반경 0.35m·0.4s, 기존 파티클 위 가시화).
+        //   링 예산(동시 상한 24)은 ShockwaveRingFX.Spawn 경유 공유 — 예산 카운터 직접 접촉 없음(X2 계약 무손상).
+        private static readonly Color WoodRippleColor = new Color(0.78f, 0.62f, 0.42f, 0.5f);   // 따뜻한 목재 톤
+        private static readonly Color MineRippleColor = new Color(0.75f, 0.75f, 0.78f, 0.5f);   // 차가운 광맥 톤
+        private static float _lastRippleTime;   // 마지막 링 스폰 — 정적(전 노드 공유 결정론 쿨다운)
+        private const float RippleIntervalSec = 0.5f;   // 리듬 간격 하한 — 타격 몰림 시 링 스팸 방지
+
         /// <summary>고갈되지 않아 채광 가능한 상태인지 여부</summary>
         public bool IsAvailable => !_isDepleted;
         /// <summary>이 노드의 자원 종류</summary>
@@ -86,6 +96,20 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // [133차] 타격 이벤트 구독 관리 — 싱글턴 생성 타이밍 문제(OnEnable 구독 회피)로 Update 매 프레임 판정.
+            //   이 노드가 채널 대상일 때만 구독, 벗어나면 해제(_isDepleted 이른 반환보다 앞에 둬 해제 누락 방지).
+            bool isChannelTarget = GatherChannelSystem.Instance.ActiveTarget == transform;
+            if (isChannelTarget && !_impactSubscribed)
+            {
+                GatherChannelSystem.Instance.OnImpact += OnChannelImpact;
+                _impactSubscribed = true;
+            }
+            else if (!isChannelTarget && _impactSubscribed)
+            {
+                GatherChannelSystem.Instance.OnImpact -= OnChannelImpact;
+                _impactSubscribed = false;
+            }
+
             if (_isDepleted) return;
 
             RefreshPlayer();
@@ -108,10 +132,32 @@ namespace ProjectName.Systems
             if (Input.GetKeyDown(KeyCode.E)
                 && Vector3.Distance(transform.position, _player.position) <= _playerInteractRange)
             {
-                GatherChannelSystem.Instance.Begin(
+                // [158차 P2] 시작·거부 피드백 — 채널 시작=벌목/채광 시작 문구, 거부(다른 채집 진행 중)=피드백 계약.
+                bool started = GatherChannelSystem.Instance.Begin(
                     transform,
                     HarvestForPlayer,
                     GatherChannelSystem.DefaultChannelSeconds);
+                if (started)
+                    PlayerNotify.Notify(_resourceType == ResourceType.Wood ? "벌목을 시작한다." : "채광을 시작한다.");
+                else
+                    PlayerNotify.Notify("다른 채집이 진행 중이다.");
+            }
+        }
+
+        /// <summary>[133차] 채널 타격 이벤트 핸들러 — 채널 진행 중 리듬 타격마다 사운드+파티클 피드백.</summary>
+        private void OnChannelImpact()
+        {
+            if (this == null || _isDepleted) return;   // [133차] 파괴/고갈 방어(Unity fake-null 포함).
+            GatherFeedbackSystem.PlayImpact(
+                _isWood ? GatherFeedbackKind.Wood : GatherFeedbackKind.Mine,
+                transform.position + Vector3.up * 1f);
+
+            // [무번호 74-G1] 채널 리듬 확산 링 — PlayImpact 직후 타격점에 확산 파장 가시화.
+            //   쿨다운 가드: 리듬 타격이 몰려도 링은 0.5s 간격 제한(X2 링 예산 침범 방지 — 결정론).
+            if (Time.unscaledTime - _lastRippleTime >= RippleIntervalSec)
+            {
+                _lastRippleTime = Time.unscaledTime;
+                ShockwaveRingFX.Spawn(transform.position + Vector3.up * 1f, 0.35f, _isWood ? WoodRippleColor : MineRippleColor, 0.4f);
             }
         }
 
@@ -168,6 +214,30 @@ namespace ProjectName.Systems
                     _isWood ? "통나무는 크래프트(제작소)에서 무기·공구 재료로 쓰인다."
                             : "석재는 크래프트(제작소)에서 공구·석재 티어 장비 재료로 쓰인다.",
                     item, immediate: true);
+
+                // [133차] 마지막 타격감 — 성공 지점(Publish 직후)에 완료 타격 피드백(셰이크 포함) + 히트스톱.
+                //   본 메서드는 플레이어 채널 완료 콜백 전용이므로 수영/낚시 중 호출될 수 없어 안전.
+                GatherFeedbackSystem.PlayImpact(
+                    _isWood ? GatherFeedbackKind.Wood : GatherFeedbackKind.Mine,
+                    transform.position + Vector3.up * 1f,
+                    shake: true,
+                    intensity: 1.6f);   // [무번호 74-G3] 완료 파편 폭산 — 1.6배 강화 버스트(채널 리듬 타격은 기본값 1f)
+                BulletTime.Get().Apply(0.05f, 0.01f, 0.06f);   // [133차] 히트스톱 — 0.05배 디핑 0.01s + 홀드 0.06s.
+
+                // [130차] 벌목/채광 마무리 애니(플레이어 경로 전용 — 병사 TryAutoMine 미경유).
+                //   카메라/손 GLB/대화 패널은 AcquisitionCinema가 publish 소비로 오케스트레이션.
+                // [156차 P5] 채굴(석재/철 — _isWood=false) 성공 → 곡갱이질 애니 발화(TriggerMine — 153차
+                //   FarmPlot 채널 패턴 준용, 드라이버 취득 GetComponent→자식 폴백 선례 동일).
+                //   같은 프레임 환호(Cheer)와 동시 발화하면 AnyState 전이 경합으로 한쪽이 무시·지연되므로
+                //   분기 단일화: 벌목(_isWood=true)은 기존 환호 유지(130차 계약), 채굴은 곡갱이질 마무리 타격.
+                var cheerDriver = _player != null
+                    ? (_player.GetComponent<HumanoidClipDriver>() ?? _player.GetComponentInChildren<HumanoidClipDriver>())
+                    : null;
+                if (cheerDriver != null)
+                {
+                    if (_isWood) cheerDriver.TriggerCheer();   // 벌목 — 기존 유지(130차)
+                    else cheerDriver.TriggerMine();            // 채굴 — 곡갱이질(Mine 상태, [156차 P5] 신설)
+                }
             }
 
             // 희귀 보너스 광물 (확률 0이면 안 뜸) — 인벤 직접 지급.
@@ -176,11 +246,19 @@ namespace ProjectName.Systems
 
             PlayerStats.Instance?.AddEXP(3);
 
-            EnsureStump();   // [28차] 벌목 → 그루터기(나무만 — 시각 GLB 없으면 스킵)
-            if (_renderer) _renderer.enabled = false;
-            if (_collider) _collider.enabled = false;
-            SetChildRenderersVisible(false);
-            Invoke(nameof(Respawn), _respawnTime);
+            // [무번호 74-G2] 벌목 완료 쓰러짐 시퀀스 — 본체 숨김·리스폰을 쓰러짐 완료 콜백으로 이동
+            //   (그루터기 잔존 계약 유지 — 콜백 내 EnsureStump → 숨김 → Invoke(Respawn) 순서 그대로).
+            //   쓰러짐 = 플레이어 반대 방향 절차 회전 0.9s(FxDeathRelax 선례 — 물리엔진 미사용).
+            //   시각 부재(채광 노드 등 _visual==null)면 즉시 콜백 → 기존 즉시 숨김 동작 보존.
+            FellTreeSequence.Trigger(_visual, _player != null ? _player.position : transform.position, onComplete: () =>
+            {
+                if (this == null) return;   // 쓰러짐 0.9s 중 노드 파괴 방어(Unity fake-null).
+                EnsureStump();   // [28차] 벌목 → 그루터기(나무만 — 시각 GLB 없으면 스킵)
+                if (_renderer) _renderer.enabled = false;
+                if (_collider) _collider.enabled = false;
+                SetChildRenderersVisible(false);
+                Invoke(nameof(Respawn), _respawnTime);
+            });
         }
 
         /// <summary>[2026-10-11 28차] 그루터기 자식 생성(지연) — 종별 cut-stump GLB(에디터 로드),
@@ -236,6 +314,12 @@ namespace ProjectName.Systems
 
         private void OnDestroy()
         {
+            // [133차] 이벤트 구독 해제 — static 싱글턴 이벤트에 파괴된 노드 핸들러 잔존(메모리 누수) 방지.
+            if (_impactSubscribed)
+            {
+                GatherChannelSystem.Instance.OnImpact -= OnChannelImpact;
+                _impactSubscribed = false;
+            }
             CancelInvoke();
         }
 

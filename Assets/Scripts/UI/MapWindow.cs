@@ -753,6 +753,22 @@ namespace ProjectName.UI
         }
 
         /// <summary>
+        /// [2026-10-21 사용자 요구] 소유주별 맵 셀 배경색 계약 — 난이도색보다 우선 적용.
+        /// 내 영지(PlayerOwned)=초록, 적 영지(LordOwned)=빨강, 전쟁 중(Contested)=주황.
+        /// Unoccupied/알 수 없음 → null (기존 난이도 배경색 유지 — 모든 영지는 계속 표시됨).
+        /// </summary>
+        public static Color? GetOwnershipBackgroundColor(TerritoryOwnership ownership)
+        {
+            switch (ownership)
+            {
+                case TerritoryOwnership.PlayerOwned: return new Color(0.15f, 0.7f, 0.2f);   // 🟢 내 소속 영지 — 초록
+                case TerritoryOwnership.LordOwned:   return new Color(0.75f, 0.12f, 0.12f); // 🔴 적대적(영주 소유) — 빨강
+                case TerritoryOwnership.Contested:   return new Color(0.75f, 0.55f, 0.1f);  // 🟡 전쟁 중 — 주황
+                default: return null;
+            }
+        }
+
+        /// <summary>
         /// 단일 영지 셀을 그립니다.
         /// </summary>
         private void DrawTerritoryCell(Rect rect, TerritoryDefinition def)
@@ -867,6 +883,18 @@ namespace ProjectName.UI
             bool isPlayerHere = _playerTerritoryId.HasValue &&
                                 _playerTerritoryId.Value.nation == def.nation &&
                                 _playerTerritoryId.Value.index == def.id.index;
+
+            // [2026-10-21 사용자 요구] 소유주 기반 배경색 구분 — 난이도색보다 우선.
+            // 계약은 GetOwnershipBackgroundColor에서 단일 관리 (EditMode 색상 계약 테스트로 동결).
+            // Unoccupied/무상태는 기존 난이도 배경색 유지 (모든 영지는 계속 표시됨).
+            if (state != null)
+            {
+                Color? ownershipBg = GetOwnershipBackgroundColor(state.ownership);
+                if (ownershipBg.HasValue)
+                {
+                    bgColor = ownershipBg.Value;
+                }
+            }
 
             // Draw cell background
             Color origBg = GUI.backgroundColor;
@@ -1180,7 +1208,8 @@ namespace ProjectName.UI
                 {
                     TerritoryOwnership.Unoccupied => $"미점령 ({def.nation} 영토)",
                     TerritoryOwnership.PlayerOwned => "👤 플레이어",
-                    TerritoryOwnership.LordOwned => $"🔴 {def.lord.lordName}",
+                    TerritoryOwnership.LordOwned when !string.IsNullOrEmpty(def.lord.preferredFood) => $"🔴 {def.lord.lordName}\n선호 음식: {def.lord.preferredFood}",
+                    TerritoryOwnership.LordOwned => $"🔴 {def.lord.lordName}\n충성도: {def.lord.loyalty}\n성격: {def.lord.personality}",
                     TerritoryOwnership.Contested => "⚔️ 전쟁 중",
                     _ => "알 수 없음"
                 };
@@ -1219,7 +1248,24 @@ namespace ProjectName.UI
                     statusIcons += " 🎪";
             }
 
-            return $"{name} ({nationStr})\n{difficultyStr}\n소유주: {ownerStr}\n병사: {guardSummary}{statusIcons}";
+            // [툴팁 1차] 플레이어 소유 영지 — 저장고 상태 + 배치 현황 요약 라인 추가.
+            // 포맷/경고 기준은 TerritoryTooltipContent 단일 계약(순수 함수, 계약 테스트 대상).
+            string playerOwnedLines = "";
+            if (state != null && state.ownership == TerritoryOwnership.PlayerOwned)
+            {
+                if (WarehouseSystem.Instance != null)
+                {
+                    string tid = def.id.ToString();
+                    playerOwnedLines += $"\n{TerritoryTooltipContent.BuildStorageLine(WarehouseSystem.Instance.GetItemCount(tid), WarehouseSystem.Instance.GetSlotCapacity(tid))}";
+                }
+                if (GuardTaskSystem.Instance != null)
+                {
+                    var counts = GuardTaskSystem.Instance.GetTaskCountsByTerritory(def.id);
+                    playerOwnedLines += $"\n{TerritoryTooltipContent.BuildDeploymentLine(counts)}";
+                }
+            }
+
+            return $"{name} ({nationStr})\n{difficultyStr}\n소유주: {ownerStr}\n병사: {guardSummary}{statusIcons}{playerOwnedLines}";
         }
 
         /// <summary>

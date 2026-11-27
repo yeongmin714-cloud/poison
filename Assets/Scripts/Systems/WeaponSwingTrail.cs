@@ -318,12 +318,14 @@ namespace ProjectName.Systems
             if (urpUnlit != null)
             {
                 var mat = new Material(urpUnlit);
-                // URP Particles Unlit — Surface=Transparent, Blend=Additive(=2) + 실제 블렌드 패스 상태
+                // URP Particles Unlit — Surface=Transparent + 실제 블렌드 패스 상태
+                // [무번호 54-P1] Additive → Alpha 블렌드 계약 진화 — 밝은 지면 위 additive 흰 스트릭 포화 실측
+                //   (공격씬 7·8) → Alpha 블렌드 전환. AttackArcVFX.CreateFallbackMaterial과 동일 사양 동기.
                 if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1f);
-                if (mat.HasProperty("_Blend")) mat.SetFloat("_Blend", 2f);
+                if (mat.HasProperty("_Blend")) mat.SetFloat("_Blend", 0f);
                 mat.SetOverrideTag("RenderType", "Transparent");
                 if (mat.HasProperty("_SrcBlend")) mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                 if (mat.HasProperty("_ZWrite")) mat.SetFloat("_ZWrite", 0f);
                 // Emission 설정
                 if (mat.HasProperty("_EmissionColor"))
@@ -334,6 +336,7 @@ namespace ProjectName.Systems
                 }
                 mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                AttackArcVFX.BindSlashTexture(mat);   // [무번호 53-P2] 슬래시 텍스처 바인딩(_BaseMap/_MainTex) — 트레일/아크 리본 공용 질감(구조·width 곡선 계약 무변경)
                 return mat;
             }
 
@@ -343,8 +346,13 @@ namespace ProjectName.Systems
                 _shaderWarned = true;
                 Debug.LogWarning("[Weapon] URP Particles/Unlit 미발견 — 스윙 트레일 Sprites/Default 폴백(알파 블렌드)");
             }
-            return spriteDefault != null ? new Material(spriteDefault) : null;
+            var fallbackMat = spriteDefault != null ? new Material(spriteDefault) : null;
+            AttackArcVFX.BindSlashTexture(fallbackMat);   // [53-P2] 폴백도 텍스처 바인딩(_MainTex) — 텍스처 없어도 마젠타 아님(계약 유지)
+            return fallbackMat;
         }
+
+        /// <summary>[무번호 26-ST2] 인스턴스형 트레일(병사용)용 공개 머티리얼 팩토리 위임 — 사양 동일 보장.</summary>
+        public static Material CreateTrailMaterialShared(float emissionIntensity = 1f) { return CreateTrailMaterial(emissionIntensity); }
 
         // ================================================================
         // 내부: 경로 문자열

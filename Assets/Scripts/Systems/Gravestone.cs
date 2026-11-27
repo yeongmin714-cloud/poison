@@ -191,6 +191,22 @@ namespace ProjectName.Systems
             _gravestoneData = data;
         }
 
+        /// <summary>
+        /// [155차 P1] 빌더 런타임 주입 — 묘비 4요소(이름/생몰/에피타프)를 코드에서 설정.
+        /// 기존 SerializeField 데이터와 동작(TryReadGravestone/AmbientDialogueManager 결합) 무손상 — 설정 시에만 새 데이터 인스턴스.
+        /// </summary>
+        internal void Configure(string personName, string birth, string death, string epitaph)
+        {
+            var data = new GravestoneData
+            {
+                personName = personName,
+                birthYear = birth,
+                deathYear = death,
+                epitaph = epitaph,
+            };
+            _gravestoneData = data;
+        }
+
         // ================================================================
         // Gizmos
         // ================================================================

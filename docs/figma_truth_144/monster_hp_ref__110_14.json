@@ -1,0 +1,532 @@
+{
+ "id": "110:14",
+ "name": "reference-monster-health-bar",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 38487,
+ "ay": 3,
+ "w": 150.0,
+ "h": 85.4,
+ "d": 0,
+ "strokeW": 0.6,
+ "r": 7.2,
+ "layout": "VERTICAL",
+ "pl": 14.40000057220459,
+ "pr": 14.40000057220459,
+ "pt": 14.40000057220459,
+ "pb": 14.40000057220459,
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "110:132",
+   "name": "hud-cluster",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 38501,
+   "ay": 17,
+   "w": 121.2,
+   "h": 56.6,
+   "d": 1,
+   "strokeW": 0.6,
+   "layout": "HORIZONTAL",
+   "gap": 4.800000190734863,
+   "c": [
+    {
+     "id": "110:133",
+     "name": "hud-main",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 38501,
+     "ay": 17,
+     "w": 121.2,
+     "h": 25.6,
+     "d": 2,
+     "strokeW": 0.6,
+     "layout": "HORIZONTAL",
+     "gap": 7.200000286102295,
+     "crossAlign": "MAX",
+     "c": [
+      {
+       "id": "110:135",
+       "name": "level-badge",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 38501,
+       "ay": 24,
+       "w": 15.6,
+       "h": 19.2,
+       "d": 3,
+       "strokes": [
+        "#FFFFFF/1.0@0.502"
+       ],
+       "strokeW": 0.6,
+       "layout": "HORIZONTAL",
+       "pl": 4.800000190734863,
+       "pr": 4.800000190734863,
+       "pt": 1.2000000476837158,
+       "pb": 1.2000000476837158,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "110:136",
+         "name": "level-text",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 38506,
+         "ay": 26,
+         "w": 6.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0"
+         ],
+         "strokeW": 0.6,
+         "text": "1",
+         "fontSize": 12.0,
+         "font": "Inter 800 Extra Bold",
+         "lineH": 14.5
+        }
+       ]
+      },
+      {
+       "id": "110:137",
+       "name": "identity-and-bar",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 38524,
+       "ay": 17,
+       "w": 98.4,
+       "h": 25.6,
+       "d": 3,
+       "strokeW": 0.6,
+       "layout": "VERTICAL",
+       "gap": 3.6000001430511475,
+       "c": [
+        {
+         "id": "110:138",
+         "name": "name-row",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 38524,
+         "ay": 17,
+         "w": 51.0,
+         "h": 16.0,
+         "d": 4,
+         "strokeW": 0.6,
+         "layout": "HORIZONTAL",
+         "gap": 3.6000001430511475,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "110:139",
+           "name": "monster-name",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 38524,
+           "ay": 17,
+           "w": 51.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0"
+           ],
+           "strokeW": 0.6,
+           "text": "Lamball",
+           "fontSize": 13.200000762939453,
+           "font": "Inter 700 Bold",
+           "lineH": 16.0
+          }
+         ]
+        },
+        {
+         "id": "110:141",
+         "name": "hp-bar-track",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 38524,
+         "ay": 37,
+         "w": 98.4,
+         "h": 6.0,
+         "d": 4,
+         "fills": [
+          "#451212/1.0"
+         ],
+         "strokeW": 0.6,
+         "r": 1.2,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "110:142",
+           "name": "hp-bar-fill",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 38524,
+           "ay": 37,
+           "w": 32.4,
+           "h": 6.0,
+           "d": 5,
+           "fills": [
+            "#E53E3E/1.0"
+           ],
+           "strokeW": 0.6
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "110:143",
+     "name": "floating-stats-panel",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 38592,
+     "ay": 47,
+     "w": 30.6,
+     "h": 27.2,
+     "d": 2,
+     "fills": [
+      "#10151C/1.0@0.22"
+     ],
+     "strokes": [
+      "#7CE2FE/1.0@0.4"
+     ],
+     "strokeW": 0.46,
+     "r": 1.8,
+     "fx": [
+      "DROP_SHADOW:2.448000431060791:#000000/0.502"
+     ],
+     "layout": "VERTICAL",
+     "gap": 2.448000431060791,
+     "pl": 3.6720006465911865,
+     "pr": 3.6720006465911865,
+     "pt": 3.6720006465911865,
+     "pb": 3.6720006465911865,
+     "c": [
+      {
+       "id": "110:144",
+       "name": "stat-row-hp",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 38596,
+       "ay": 51,
+       "w": 23.3,
+       "h": 5.0,
+       "d": 3,
+       "strokeW": 0.31,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "110:145",
+         "name": "icon-attack",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 38596,
+         "ay": 51,
+         "w": 4.3,
+         "h": 4.3,
+         "d": 4,
+         "strokeW": 0.31,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "115:8",
+           "name": "attack",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 38596,
+           "ay": 51,
+           "w": 4.3,
+           "h": 4.3,
+           "d": 5,
+           "strokeW": 0.31,
+           "c": [
+            {
+             "id": "115:9",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 38596,
+             "ay": 52,
+             "w": 3.1,
+             "h": 3.1,
+             "d": 6,
+             "strokes": [
+              "#7CE2FE/1.0"
+             ],
+             "strokeW": 0.55
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "110:147",
+         "name": "hp-value",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 38613,
+         "ay": 51,
+         "w": 6.0,
+         "h": 5.0,
+         "d": 4,
+         "fills": [
+          "#7CE2FE/1.0"
+         ],
+         "strokeW": 0.31,
+         "text": "66",
+         "fontSize": 4.284000873565674,
+         "font": "Inter 800 Extra Bold",
+         "lineH": 5.2
+        }
+       ]
+      },
+      {
+       "id": "110:148",
+       "name": "stat-row-atk",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 38596,
+       "ay": 59,
+       "w": 23.3,
+       "h": 5.0,
+       "d": 3,
+       "strokeW": 0.31,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "110:149",
+         "name": "icon-defense",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 38596,
+         "ay": 59,
+         "w": 4.3,
+         "h": 4.3,
+         "d": 4,
+         "strokeW": 0.31,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "115:10",
+           "name": "defense",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 38596,
+           "ay": 59,
+           "w": 4.3,
+           "h": 4.3,
+           "d": 5,
+           "strokeW": 0.31,
+           "c": [
+            {
+             "id": "115:11",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 38596,
+             "ay": 59,
+             "w": 2.8,
+             "h": 3.4,
+             "d": 6,
+             "strokes": [
+              "#4EFEAA/1.0"
+             ],
+             "strokeW": 0.55
+            },
+            {
+             "id": "115:12",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 38598,
+             "ay": 60,
+             "w": 0.0,
+             "h": 1.5,
+             "d": 6,
+             "strokes": [
+              "#4EFEAA/1.0"
+             ],
+             "strokeW": 0.46
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "110:151",
+         "name": "atk-value",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 38613,
+         "ay": 59,
+         "w": 6.0,
+         "h": 5.0,
+         "d": 4,
+         "fills": [
+          "#4EFEAA/1.0"
+         ],
+         "strokeW": 0.31,
+         "text": "96",
+         "fontSize": 4.284000873565674,
+         "font": "Inter 800 Extra Bold",
+         "lineH": 5.2
+        }
+       ]
+      },
+      {
+       "id": "110:152",
+       "name": "stat-row-medicine",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 38596,
+       "ay": 66,
+       "w": 23.3,
+       "h": 5.0,
+       "d": 3,
+       "strokeW": 0.31,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "110:153",
+         "name": "icon-medicine",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 38596,
+         "ay": 66,
+         "w": 4.3,
+         "h": 4.3,
+         "d": 4,
+         "strokeW": 0.31,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "115:4",
+           "name": "medicine",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 38596,
+           "ay": 66,
+           "w": 4.3,
+           "h": 4.3,
+           "d": 5,
+           "strokeW": 0.31,
+           "c": [
+            {
+             "id": "115:5",
+             "name": "Group",
+             "type": "GROUP",
+             "x": null,
+             "y": null,
+             "ax": 38596,
+             "ay": 67,
+             "w": 3.7,
+             "h": 3.7,
+             "d": 6,
+             "strokeW": 0.31,
+             "c": [
+              {
+               "id": "115:6",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 38596,
+               "ay": 67,
+               "w": 3.7,
+               "h": 3.7,
+               "d": 7,
+               "strokes": [
+                "#4EFEAA/1.0"
+               ],
+               "strokeW": 0.61
+              },
+              {
+               "id": "115:7",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 38597,
+               "ay": 68,
+               "w": 1.1,
+               "h": 1.1,
+               "d": 7,
+               "strokes": [
+                "#4EFEAA/1.0"
+               ],
+               "strokeW": 0.61
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "110:155",
+         "name": "medicine-value",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 38613,
+         "ay": 66,
+         "w": 6.0,
+         "h": 5.0,
+         "d": 4,
+         "fills": [
+          "#4EFEAA/1.0"
+         ],
+         "strokeW": 0.31,
+         "text": "23",
+         "fontSize": 4.284000873565674,
+         "font": "Inter 800 Extra Bold",
+         "lineH": 5.2
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

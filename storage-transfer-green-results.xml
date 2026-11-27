@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 00:23:07Z" end-time="2026-10-05 00:23:08Z" duration="0.5000837">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="471" result="Passed" start-time="2026-10-05 00:23:07Z" end-time="2026-10-05 00:23:08Z" duration="0.500084" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1527" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="462" result="Passed" start-time="2026-10-05 00:23:07Z" end-time="2026-10-05 00:23:08Z" duration="0.475669" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="13656" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1528" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="462" result="Passed" start-time="2026-10-05 00:23:07Z" end-time="2026-10-05 00:23:08Z" duration="0.459878" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1529" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="462" result="Passed" start-time="2026-10-05 00:23:07Z" end-time="2026-10-05 00:23:08Z" duration="0.449038" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1530" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="447" result="Passed" start-time="2026-10-05 00:23:07Z" end-time="2026-10-05 00:23:08Z" duration="0.439727" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1524" name="WarehouseWindowUTKStorageTests" fullname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests" classname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-05 00:23:07Z" end-time="2026-10-05 00:23:08Z" duration="0.425439" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1526" name="DepositFromInventory_FullWarehouseFailureConservesTotalCount" fullname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests.DepositFromInventory_FullWarehouseFailureConservesTotalCount" methodname="DepositFromInventory_FullWarehouseFailureConservesTotalCount" classname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests" runstate="Runnable" seed="1528269249" result="Passed" start-time="2026-10-05 00:23:07Z" end-time="2026-10-05 00:23:08Z" duration="0.302365" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[WarehouseUTK] 창고 가득 — 입고 취소(인벤 롤백): blocked-deposit
+]]></output>
+              </test-case>
+              <test-case id="1525" name="DepositFromInventory_MovesExactlyOneAndRemovesExactlyOne" fullname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests.DepositFromInventory_MovesExactlyOneAndRemovesExactlyOne" methodname="DepositFromInventory_MovesExactlyOneAndRemovesExactlyOne" classname="ProjectName.Tests.EditMode.WarehouseWindowUTKStorageTests" runstate="Runnable" seed="1353958399" result="Passed" start-time="2026-10-05 00:23:08Z" end-time="2026-10-05 00:23:08Z" duration="0.080058" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[WarehouseUTK] 입고(우클릭): deposit-one
+Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

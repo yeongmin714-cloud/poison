@@ -13,7 +13,7 @@ namespace ProjectName.Systems
     public class ArrowProjectile : MonoBehaviour
     {
         /// <summary>Shared bow-flight tuning used by firing and trajectory consumers.</summary>
-        public const float BaseSpeed = 84f;
+        public const float BaseSpeed = 100f;   // [168-P2] 사거리 상향(11-21 사용자 요구, ×1.19)
         public const float GravityScale = 0.15f;
         public const float FlightLifetime = 10f;
         public static float GetSpeedForPower(float power) => BaseSpeed * (0.7f + 0.5f * Mathf.Clamp01(power));
@@ -177,6 +177,14 @@ namespace ProjectName.Systems
             // The cylinder's local +Y shaft axis is aligned to velocity, matching its launch orientation.
             if (!_stuck && _rb != null && _rb.linearVelocity.magnitude > 0.1f)
             {
+                // [무번호 37-G1] 속도 비례 트레일 — FXMotion.Afterglow(빠를수록 길고 선명). 티어 그래디언트(25-C3) 무손상.
+                if (_trail != null)
+                {
+                    float glow = FXMotion.Afterglow(Mathf.Clamp01(_rb.linearVelocity.magnitude / 24f));
+                    _trail.time = Mathf.Lerp(0.06f, 0.18f, glow);
+                    var sc = _trail.startColor;
+                    _trail.startColor = new Color(sc.r, sc.g, sc.b, Mathf.Lerp(0.45f, 1f, glow));
+                }
                 transform.rotation = Quaternion.LookRotation(_rb.linearVelocity.normalized) * Quaternion.Euler(90f, 0f, 0f);
             }
         }
@@ -287,10 +295,13 @@ namespace ProjectName.Systems
                 var mr = go.GetComponent<MeshRenderer>();
                 if (mr != null)
                 {
-                    var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                    mat.mainTexture = tex;
-                    mat.color = new Color(1f, 1f, 0.95f, 1f);
-                    mr.material = mat;
+                    // [무번호 16-A4 수리] 별섬광 실카메라 판독(cfx_08/09) — "검은 사각형+흰 별" 발각.
+                    //   URP/Lit 불투명 머티리얼은 텍스처의 투명 배경을 검은 사각형으로 렌더(알파 블렌딩 부재).
+                    //   프로젝트 표준 투명 스프라이트 셰이더 Sprites/Default(PoisonVFX·ArrowProjectile 트레일 선례).
+                    var flareMat = new Material(Shader.Find("Sprites/Default"));
+                    flareMat.mainTexture = tex;
+                    flareMat.color = new Color(1f, 1f, 0.95f, 1f);
+                    mr.material = flareMat;
                 }
                 go.AddComponent<StarFlareAnim>();
             }

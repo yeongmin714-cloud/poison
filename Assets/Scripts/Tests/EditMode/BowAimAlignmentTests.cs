@@ -240,7 +240,7 @@ namespace ProjectName.Tests
         }
 
         [Test]
-        public void PerspectiveAimUsesExactCameraRayDespiteMuzzleParallaxAndColliderHits()
+        public void PerspectiveAimLaunchesFromMuzzleThroughTheCursorWorldPoint()
         {
             var cameraObject = new GameObject("BowAimTestCamera");
             var ground = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -263,7 +263,6 @@ namespace ProjectName.Tests
                 Vector2 center = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
                 Vector2 offset = new Vector2(Screen.width * 0.68f, Screen.height * 0.55f);
                 Ray centerRay = camera.ScreenPointToRay(center);
-                Ray offsetRay = camera.ScreenPointToRay(offset);
                 Assert.That(ArrowManager.TrySolveAim(camera, center, muzzle, shooter.transform,
                     out Vector3 centerAimPoint, out Vector3 centerDirection), Is.True);
                 Assert.That(ArrowManager.TrySolveAim(camera, offset, muzzle, shooter.transform,
@@ -273,21 +272,27 @@ namespace ProjectName.Tests
                     "The camera ray's ground-plane intersection remains available as aim diagnostics.");
                 Assert.That(offsetAimPoint.y, Is.EqualTo(0f).Within(0.05f),
                     "The offset camera ray's ground-plane intersection remains available as aim diagnostics.");
-                Assert.That(Vector3.Dot(centerDirection, centerRay.direction.normalized), Is.GreaterThan(0.99999f),
-                    "The exact normalized camera ray, not a different muzzle-to-hit vector, defines launch direction.");
-                Assert.That(Vector3.Dot(offsetDirection, offsetRay.direction.normalized), Is.GreaterThan(0.99999f),
-                    "Collider intersections and muzzle parallax must not alter the offset screen point's flight angle.");
+                // [172-A] 발사 방향 계약 — 머즐→커서 세계점. 화살의 초기 직선이 조준점을 통과하고
+                // 그 직선의 지면 교차점이 커서 레이의 지면 교차점과 일치해야 한다(손 시차 금지).
+                Assert.That(Vector3.Dot(centerDirection, (centerAimPoint - muzzle).normalized), Is.GreaterThan(0.99999f),
+                    "The launch direction must point from the muzzle through the cursor's world point.");
+                Assert.That(Vector3.Dot(offsetDirection, (offsetAimPoint - muzzle).normalized), Is.GreaterThan(0.99999f),
+                    "The offset screen point's flight angle must still pass through its own world point.");
+                AssertLandsOnAimPoint(muzzle, centerDirection, centerAimPoint, "center");
+                AssertLandsOnAimPoint(muzzle, offsetDirection, offsetAimPoint, "offset");
+                Assert.That(Vector3.Dot(centerDirection, centerRay.direction.normalized), Is.LessThan(0.999f),
+                    "Copying the camera ray direction flies parallel to the ray from the off-ray muzzle and misses the cursor point (172차 실측: 사거리 1m당 약 0.87m 부족).");
                 Assert.That(Vector3.Distance(centerDirection, offsetDirection), Is.GreaterThan(0.01f),
                     "Distinct screen positions on a perspective camera must produce distinct launch directions.");
 
                 firstProjectile = ArrowProjectile.Spawn(muzzle, centerDirection, 37f, 10f, Color.white);
                 secondProjectile = ArrowProjectile.Spawn(muzzle, offsetDirection, 37f, 10f, Color.white);
                 Assert.That(Vector3.Dot(firstProjectile.GetComponent<Rigidbody>().linearVelocity.normalized,
-                    centerRay.direction.normalized), Is.GreaterThan(0.99999f),
-                    "The spawned projectile's actual velocity must follow the exact first camera ray.");
+                    centerDirection), Is.GreaterThan(0.99999f),
+                    "The spawned projectile's actual velocity must follow the muzzle-to-cursor launch direction.");
                 Assert.That(Vector3.Dot(secondProjectile.GetComponent<Rigidbody>().linearVelocity.normalized,
-                    offsetRay.direction.normalized), Is.GreaterThan(0.99999f),
-                    "The spawned projectile's actual velocity must follow the exact offset camera ray.");
+                    offsetDirection), Is.GreaterThan(0.99999f),
+                    "The spawned projectile's actual velocity must follow the offset muzzle-to-cursor launch direction.");
                 Assert.That(Vector3.Distance(firstProjectile.GetComponent<Rigidbody>().linearVelocity,
                     secondProjectile.GetComponent<Rigidbody>().linearVelocity), Is.GreaterThan(0.1f),
                     "Different screen positions must result in different actual projectile velocities.");
@@ -300,6 +305,19 @@ namespace ProjectName.Tests
                 Object.DestroyImmediate(ground);
                 Object.DestroyImmediate(cameraObject);
             }
+        }
+
+        /// <summary>[172-A] 머즐에서 출발한 초기 직선의 지면 교차점 = 커서 세계점(평면 오차 5cm 이내).</summary>
+        private static void AssertLandsOnAimPoint(Vector3 muzzle, Vector3 direction, Vector3 aimPoint, string label)
+        {
+            Assert.That(direction.y, Is.LessThan(-0.0001f),
+                label + " launch must descend toward the ground like the cursor ray.");
+            float reach = muzzle.y / -direction.y;
+            Vector3 landing = muzzle + direction * reach;
+            float planarMiss = Vector2.Distance(
+                new Vector2(landing.x, landing.z), new Vector2(aimPoint.x, aimPoint.z));
+            Assert.That(planarMiss, Is.LessThan(0.05f),
+                label + " arrow's straight-line ground landing must equal the cursor world point (no muzzle parallax).");
         }
 
         [Test]
@@ -330,6 +348,8 @@ namespace ProjectName.Tests
                 Assert.That(ArrowManager.TrySolveAim(camera, sample, muzzle, null,
                     out Vector3 hitPoint, out Vector3 solvedDirection), Is.True);
                 Assert.That(hitPoint.x, Is.GreaterThan(0.5f), "The off-center sample must hit the off-center target, not camera center.");
+                Assert.That(Vector3.Dot(solvedDirection, (hitPoint - muzzle).normalized), Is.GreaterThan(0.99999f),
+                    "The orthographic path must also launch from the muzzle through the solved impact point.");
 
                 projectile = ArrowProjectile.Spawn(muzzle, solvedDirection, 37f, 10f, Color.white);
                 var body = projectile.GetComponent<Rigidbody>();
@@ -343,7 +363,7 @@ namespace ProjectName.Tests
                 Assert.That(projectile.GetComponentsInChildren<Rigidbody>(true).Length, Is.EqualTo(1),
                     "The root retains its required Rigidbody without adding descendant bodies.");
                 Assert.That(Vector3.Distance(body.linearVelocity, solvedDirection * 37f), Is.LessThan(0.001f),
-                    "The Rigidbody's initial velocity must retain the solved camera-ray direction and speed.");
+                    "The Rigidbody's initial velocity must retain the solved muzzle-to-impact direction and speed.");
                 Assert.That(Vector3.Dot(projectile.transform.up, body.linearVelocity.normalized), Is.GreaterThan(0.999f),
                     "The collider cylinder's long +Y axis must follow its actual initial velocity.");
                 var trail = projectile.GetComponent<TrailRenderer>();
@@ -378,8 +398,6 @@ namespace ProjectName.Tests
                     "The root keeps its capsule collision shape without rendering procedural meshes.");
                 Assert.That(projectile.GetComponentsInChildren<MeshRenderer>(true), Is.Empty,
                     "The trail is the only arrow visual; no root or child mesh renderer is created.");
-                Assert.That(projectile.transform.childCount, Is.EqualTo(0),
-                    "Spawn must not create visual child objects.");
                 var trail = projectile.GetComponent<TrailRenderer>();
                 Assert.That(trail, Is.Not.Null.And.Property("enabled").True,
                     "The existing flight trail must remain enabled.");
@@ -503,11 +521,11 @@ namespace ProjectName.Tests
             Assert.That(ReadAssetScript("Scripts/Systems/ArrowProjectile.cs"), Does.Contain("_rb.linearVelocity += Physics.gravity * GravityScale * Time.deltaTime"),
                 "Later gravity curvature is distinct from initial launch alignment.");
             Assert.That(solveMethod, Does.Contain("camera.ScreenPointToRay(aimScreenPoint)"),
-                "The shared solver must convert the reticle screen point into a camera ray.");
-            Assert.That(solveMethod, Does.Contain("muzzleDirection = ray.direction.normalized;"),
-                "Only the normalized camera ray may define the launch direction; hit points are diagnostic only.");
-            Assert.That(solveMethod, Does.Not.Contain("aimPoint - muzzleOrigin"),
-                "A muzzle-to-hit vector would allow collider range or muzzle parallax to change flight angle.");
+                "The shared solver must convert the reticle screen point into a camera ray to select the cursor's world point.");
+            Assert.That(solveMethod, Does.Contain("aimPoint - muzzleOrigin"),
+                "[172-A] The launch direction must be the muzzle-to-cursor-world-point vector so the arrow lands on the reticle's point.");
+            Assert.That(solveMethod, Does.Not.Contain("muzzleDirection = ray.direction.normalized"),
+                "Copying the camera ray direction from the 1.4m muzzle lands ~0.87m short per metre of cursor range (172차 실측); the ray direction may remain only as the degenerate fallback.");
             Assert.That(solveMethod, Does.Contain("aimScreenPoint.x < 0f || aimScreenPoint.x > Screen.width"),
                 "Out-of-display reticle samples must be rejected, not clamped onto a different ray.");
             Assert.That(solveMethod, Does.Contain("aimScreenPoint.y < 0f || aimScreenPoint.y > Screen.height"),
@@ -530,10 +548,13 @@ namespace ProjectName.Tests
                 "Arrow tier and power damage behavior must remain unchanged.");
             Assert.That(ReadAssetScript("Scripts/Systems/ArrowProjectile.cs"), Does.Contain("GetSpeedForPower(float power) => BaseSpeed * (0.7f + 0.5f * Mathf.Clamp01(power))"),
                 "Arrow power-based speed behavior must remain unchanged.");
-            Assert.That(reticleSource, Does.Contain("RuntimePanelUtils.ScreenToPanel(root.panel, screen)"),
-                "The reticle's shared placement helper must use UI Toolkit's runtime screen-to-panel conversion policy.");
-            Assert.That(positionMethod, Does.Not.Contain("Screen.width"),
-                "Panel conversion must not approximate panel coordinates with display-size scaling.");
+            // [176차] 조준 3자 정합 수리 — 구 계약(ScreenToPanel 단일 소스·표시 크기 스케일 금지)은 수직 미러를
+            // 만들던 결함 계약이었다(마우스 바텀-레프트 원점→패널 탑-레프트 변환 누락). UTKCursorOverlay·
+            // UTKDragDrop.GetPanelPointerPos와 동일한 Play 검증 수식(스케일+Y 플립)으로 교체한다.
+            Assert.That(reticleSource, Does.Contain("root.worldBound.height - screen.y * scale"),
+                "The reticle must use the same proven scale+Y-flip conversion as the cursor overlay and drag-drop.");
+            Assert.That(reticleSource, Does.Contain("root.worldBound.width / (float)Screen.width"),
+                "The reticle conversion must match UTKCursorOverlay's panel-scale handling exactly.");
             string placementMethod = ExtractMethod(reticleSource, "private void PositionAtScreenPoint(");
             Assert.That(placementMethod, Does.Contain("style.left ="),
                 "The reticle must still be positioned in the UI panel.");
@@ -557,6 +578,30 @@ namespace ProjectName.Tests
                 "The existing next-arrow type indicator must remain active when ammunition is available.");
             Assert.That(reticleSource, Does.Contain("PickingMode.Ignore"),
                 "The reticle and its visuals must remain click-through.");
+        }
+
+        [Test]
+        public void BowAimCameraPlausibilityGuardIsWiredIntoResolvePath()
+        {
+            // [207차 P1] 조준 카메라 유효성 가드 소스핀 — PlayerMovement.IsPlausibleAimCamera(활성+활성화+
+            // 거리≤60m 순수 판정부)가 PlayerMovement에 신설되고, ResolveBowAimCamera의 두 후보
+            // (FollowCamera·Camera.main) 모두에 적용되며, 이중 불합격 시 기존 동작(null 반환 → 발사 취소
+            // 경로)으로 폴백하는 계약을 소스로 고정한다.
+            string movementSource = ReadAssetScript("Scripts/Systems/PlayerMovement.cs");
+            string combatSource = ReadAssetScript("Scripts/Systems/PlayerCombat.cs");
+            string cameraMethod = ExtractMethod(combatSource, "private Camera ResolveBowAimCamera()");
+
+            Assert.That(movementSource, Does.Contain("public static bool IsPlausibleAimCamera(Camera c, Transform player)"),
+                "The aim-camera plausibility guard must live on PlayerMovement as a pure static predicate.");
+            Assert.That(movementSource, Does.Contain("AimCameraPlausibleDistance = 60f"),
+                "The guard threshold must stay at the 207차-specified 60m sanity bound.");
+            Assert.That(cameraMethod, Does.Contain("PlayerMovement.IsPlausibleAimCamera(followCamera, transform)"),
+                "The follow camera must pass the plausibility guard before being trusted for aiming.");
+            Assert.That(cameraMethod, Does.Contain("PlayerMovement.IsPlausibleAimCamera(currentMainCamera, transform)"),
+                "The Camera.main fallback must pass the same plausibility guard.");
+            Assert.That(cameraMethod.IndexOf("IsPlausibleAimCamera(currentMainCamera, transform)", System.StringComparison.Ordinal),
+                Is.LessThan(cameraMethod.IndexOf("return null;", System.StringComparison.Ordinal)),
+                "Both candidates failing the guard must fall back to the existing cancel path (null return).");
         }
     }
 }

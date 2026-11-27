@@ -1,0 +1,20 @@
+{
+    "name": "TimeWarp.UI.Editor",
+    "rootNamespace": "TimeWarp.Modules.UI.EditorTools",
+    "references": [
+        "TimeWarp.Runtime",
+        "TimeWarp.UI",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

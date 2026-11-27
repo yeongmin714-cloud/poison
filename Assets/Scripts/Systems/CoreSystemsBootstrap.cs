@@ -61,6 +61,10 @@ public class CoreSystemsBootstrap : MonoBehaviour
             BuildAllTerritories();
         }
 
+        // [무번호 80-P1] 참격 아크 플립북 부팅 선생성 — 크리 전용 512px 아틀라스(2048×1024)를 전투 중
+        //   첫 크리 히치 없이 흡수(FxSlashFlipbookFlash.Warmup — 결정론 캐시, EditMode 무해).
+        FxSlashFlipbookFlash.Warmup();
+
         Debug.Log("[CoreSystemsBootstrap] 핵심 시스템 초기화 완료");
     }
 
@@ -269,5 +273,7 @@ public class CoreSystemsBootstrap : MonoBehaviour
         VillageBuilder.BuildAllVillages();
         // [P31-D] 마을 주민 NPC 10~15명/마을 배치 (건물 완성 후)
         VillageNpcSpawner.BuildAllVillageNPCs();
+        // [133차-P3] 나비 앰비얼트 스포너 — 자연 앵커 지연 수집 후 낮/밤 게이트 스폰(빌드 순서 비의존, 멱등)
+        ButterflyAmbientSpawner.SpawnAmbientButterflies();
     }
 }

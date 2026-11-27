@@ -1,0 +1,34 @@
+[
+ {
+  "src": "Assets/Resources/Models/UserProvided/steel_gas_mask.glb",
+  "dst": "TestOutput/tmp_162_5/gas_mask_crystal.glb",
+  "note": "crystal 틴트",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.55,
+     1.0,
+     0.95
+    ],
+    "alpha": 1.0
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/steel_chemical_pack.glb",
+  "dst": "TestOutput/tmp_162_5/chemical_pack_crystal.glb",
+  "note": "crystal 틴트",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.55,
+     1.0,
+     0.95
+    ],
+    "alpha": 1.0
+   }
+  ]
+ }
+]

@@ -88,7 +88,8 @@ namespace ProjectName.Systems
         /// </summary>
         /// <param name="territoryId">점령된 영지 ID</param>
         /// <param name="newOwner">새 소유주 (NationType)</param>
-        public static void OnTerritoryCaptured(TerritoryId territoryId, NationType newOwner)
+        /// <param name="isPlayerCapture">플레이어 점령 경로 여부 — true면 문장 시스템 색상 사용 (F1)</param>
+        public static void OnTerritoryCaptured(TerritoryId territoryId, NationType newOwner, bool isPlayerCapture = false)
         {
             var db = TerritoryDatabase.Instance;
             var def = db.GetDefinition(territoryId);
@@ -98,22 +99,187 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // F1: 색상 1회 산정 — 플레이어 점령은 문장 주색, 그 외는 국가색
+            Color captureColor = isPlayerCapture ? GetPlayerFlagColor() : GetOwnerColor(newOwner);
+
+            // [F4] 실내 경계 — 실내 씬 좌표계 오염 방지. 월드 시각 요소(깃발/파티클/야외 스테이션)는
+            //   월드 복귀 시 FlushPendingVisuals로 일괄 적용. 경계색/상태는 데이터라 즉시 반영.
+            if (IsIndoorScene())
+            {
+                SetBorderColor(territoryId, captureColor);
+                var indoorState = db.GetState(territoryId);
+                if (indoorState != null)
+                    indoorState.flagRaised = true;
+                _pendingVisuals.Add(new PendingCaptureVisual { id = territoryId, playerCapture = isPlayerCapture });
+                Debug.Log($"[TerritoryCaptureSystem] 🏁 영지 점령 효과 (실내 — 월드 복귀 후 게양 예정): {def.territoryName} → {(isPlayerCapture ? "플레이어(문장색)" : newOwner.ToString())}");
+                OnVisualsUpdated?.Invoke(territoryId);
+                return;
+            }
+
             // a) 깃발 교체
-            SpawnFlag(territoryId, GetOwnerColor(newOwner));
+            SpawnFlag(territoryId, captureColor, isPlayerCapture);
 
             // b) 경계선 색상 변경
-            SetBorderColor(territoryId, GetOwnerColor(newOwner));
+            SetBorderColor(territoryId, captureColor);
 
             // c) 파티클 효과
-            SpawnCaptureParticles(territoryId, GetOwnerColor(newOwner));
+            SpawnCaptureParticles(territoryId, captureColor);
+
+            // [F4] 야외 크래프트 스테이션 — 플레이어 점령 시 성 앞 즉석 제작 배치 (멱등)
+            if (isPlayerCapture)
+                SpawnOutdoorCraftStationIfMissing(territoryId);
 
             // d) TerritoryState 동기화
             var state = db.GetState(territoryId);
             if (state != null)
                 state.flagRaised = true;
 
-            Debug.Log($"[TerritoryCaptureSystem] 🏁 영지 점령 효과: {def.territoryName} → {newOwner}");
+            Debug.Log($"[TerritoryCaptureSystem] 🏁 영지 점령 효과: {def.territoryName} → {(isPlayerCapture ? "플레이어(문장색)" : newOwner.ToString())}");
 
+            OnVisualsUpdated?.Invoke(territoryId);
+        }
+
+        // ===== [F4] 실내 펜딩 시각 요소 + 야외 크래프트 =====
+
+        private struct PendingCaptureVisual
+        {
+            public TerritoryId id;
+            public bool playerCapture;
+        }
+
+        /// <summary>실내에서 점령/상실된 영지의 월드 시각 요소 대기열 (월드 복귀 시 일괄 적용).</summary>
+        private static readonly List<PendingCaptureVisual> _pendingVisuals = new List<PendingCaptureVisual>();
+        /// <summary>야외 크래프트 스테이션 이미 배치된 영지 키 (멱등 가드 — TerritoryBuilder 레지스트리와 이중 보험).</summary>
+        private static readonly HashSet<string> _outdoorStationsSpawned = new HashSet<string>();
+
+        /// <summary>현재 실내 씬 여부 — IndoorSceneTransition.IsIndoor 리플렉션 조회 (Systems→UI 순환 회피).</summary>
+        private static bool IsIndoorScene()
+        {
+            var t = System.Type.GetType("ProjectName.UI.IndoorSceneTransition, ProjectName.UI");
+            if (t == null) return false;
+            try
+            {
+                return (bool)t.GetProperty("IsIndoor")?.GetValue(null);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>[F4] 야외 크래프트 스테이션 1회 배치 (영지 정의 worldPosition 기준 — 성 앞 슬롯).</summary>
+        private static void SpawnOutdoorCraftStationIfMissing(TerritoryId territoryId)
+        {
+            string key = territoryId.ToString();
+            if (_outdoorStationsSpawned.Contains(key)) return;
+
+            var def = TerritoryDatabase.Instance.GetDefinition(territoryId);
+            var station = TerritoryBuilder.SpawnOutdoorCraftStation(def.worldPosition + Vector3.forward * 4f, key);
+            if (station != null)
+                _outdoorStationsSpawned.Add(key);
+        }
+
+        /// <summary>
+        /// [F4] 실내에서 대기 중인 시각 요소 일괄 적용 — 월드 복귀 시점(IndoorSceneTransition.FinishExit)에서 호출.
+        /// 점령 항목 = 깃발+파티클+야외 스테이션, 상실 항목 = 깃발 회수+야외 스테이션 제거.
+        /// </summary>
+        public static void FlushPendingVisuals()
+        {
+            if (_pendingVisuals.Count == 0) return;
+
+            var items = new List<PendingCaptureVisual>(_pendingVisuals);
+            _pendingVisuals.Clear();
+
+            var db = TerritoryDatabase.Instance;
+            foreach (var item in items)
+            {
+                var def = db.GetDefinition(item.id);
+                if (string.IsNullOrEmpty(def.territoryName)) continue;
+
+                if (item.playerCapture)
+                {
+                    Color captureColor = GetPlayerFlagColor();
+                    SpawnFlag(item.id, captureColor, true);
+                    SetBorderColor(item.id, captureColor);
+                    SpawnCaptureParticles(item.id, captureColor);
+                    SpawnOutdoorCraftStationIfMissing(item.id);
+                    var state = db.GetState(item.id);
+                    if (state != null) state.flagRaised = true;
+                    Debug.Log($"[TerritoryCaptureSystem] 🏁 (월드 복귀 플러시) 깃발 게양: {def.territoryName}");
+                }
+                else
+                {
+                    Color ownerColor = GetOwnerColor(def.nation);
+                    SpawnFlag(item.id, ownerColor, false);
+                    SetBorderColor(item.id, ownerColor);
+                    TerritoryBuilder.RemoveOutdoorCraftStation(item.id.ToString());
+                    _outdoorStationsSpawned.Remove(item.id.ToString());
+                    var state = db.GetState(item.id);
+                    if (state != null) state.flagRaised = false;
+                    Debug.Log($"[TerritoryCaptureSystem] 🏴 (월드 복귀 플러시) 깃발 회수: {def.territoryName}");
+                }
+                OnVisualsUpdated?.Invoke(item.id);
+            }
+        }
+
+        /// <summary>
+        /// [F1] 플레이어 깃발 색 — 문장 시스템 주색 (국가색 하드코딩 대체).
+        /// EmblemManager 부재 시 기존 East=blue 폴백 (제외가드).
+        /// </summary>
+        public static Color GetPlayerFlagColor()
+        {
+            var emblem = EmblemManager.Instance;
+            if (emblem == null)
+            {
+                Debug.LogWarning("[TerritoryCaptureSystem] EmblemManager 부재 — East 파랑 폴백");
+                return Color.blue;
+            }
+            return EmblemManager.GetEmblemColor(emblem.CurrentEmblem.primaryColor);
+        }
+
+        /// <summary>[F1] 플레이어 문양 유니코드 (문장 부재 시 null).</summary>
+        public static string GetPlayerFlagSymbol()
+        {
+            var emblem = EmblemManager.Instance;
+            if (emblem == null) return null;
+            return EmblemManager.GetEmblemSymbol(emblem.CurrentEmblem.shape);
+        }
+
+        /// <summary>
+        /// [F3] 영지 상실 — 배신/AI 재탈환으로 플레이어 소유를 잃었을 때 호출.
+        /// 깃발을 원래 국가색으로 되돌리고(문양 제거) 경계색을 갱신한다. 점령 축하 파티클은 없음.
+        /// </summary>
+        public static void OnTerritoryLost(TerritoryId territoryId)
+        {
+            var db = TerritoryDatabase.Instance;
+            var def = db.GetDefinition(territoryId);
+            if (string.IsNullOrEmpty(def.territoryName))
+            {
+                Debug.LogWarning($"[TerritoryCaptureSystem] 영지 정의 없음: {territoryId}");
+                return;
+            }
+
+            Color ownerColor = GetOwnerColor(def.nation);
+            SetBorderColor(territoryId, ownerColor);
+
+            var state = db.GetState(territoryId);
+            if (state != null)
+                state.flagRaised = false;
+
+            // [F4] 실내 경계 — 깃발 회수/야외 스테이션 제거는 월드 복귀 후 일괄 적용
+            if (IsIndoorScene())
+            {
+                _pendingVisuals.Add(new PendingCaptureVisual { id = territoryId, playerCapture = false });
+                Debug.Log($"[TerritoryCaptureSystem] 🏴 영지 상실 (실내 — 월드 복귀 후 회수 예정): {def.territoryName}");
+                OnVisualsUpdated?.Invoke(territoryId);
+                return;
+            }
+
+            SpawnFlag(territoryId, ownerColor, isPlayerCapture: false);
+            TerritoryBuilder.RemoveOutdoorCraftStation(territoryId.ToString());
+            _outdoorStationsSpawned.Remove(territoryId.ToString());
+
+            Debug.Log($"[TerritoryCaptureSystem] 🏴 영지 상실: {def.territoryName} — 깃발 {def.nation}색 회수");
             OnVisualsUpdated?.Invoke(territoryId);
         }
 
@@ -167,7 +333,11 @@ namespace ProjectName.Systems
             foreach (var go in _activeParticles)
             {
                 if (go != null)
-                    Object.Destroy(go);
+                {
+                    // [QA 수리] 편집 모드 Destroy 금지 에러 방지 — ResetAll 경유로 테스트에서도 호출됨
+                    if (Application.isPlaying) Object.Destroy(go);
+                    else Object.DestroyImmediate(go);
+                }
             }
             _activeParticles.Clear();
         }
@@ -203,12 +373,16 @@ namespace ProjectName.Systems
         /// <summary>
         /// 영지 중심에 깃발을 생성합니다.
         /// </summary>
-        private static void SpawnFlag(TerritoryId territoryId, Color color)
+        /// <param name="territoryId">영지 ID</param>
+        /// <param name="color">깃발 색상</param>
+        /// <param name="isPlayerCapture">플레이어 점령 여부 — true면 문양 이름표 부착 (F1)</param>
+        private static void SpawnFlag(TerritoryId territoryId, Color color, bool isPlayerCapture = false)
         {
-            // 기존 깃발 제거
+            // 기존 깃발 제거 — [QA 수리] 편집 모드 Destroy 금지 에러 방지(ResetAll DestroyImmediate 선례)
             if (_flags.TryGetValue(territoryId, out TerritoryFlag existing) && existing.flagObject != null)
             {
-                Object.Destroy(existing.flagObject);
+                if (Application.isPlaying) Object.Destroy(existing.flagObject);
+                else Object.DestroyImmediate(existing.flagObject);
             }
 
             Vector3 center = GetTerritoryCenterPosition(territoryId);
@@ -223,7 +397,9 @@ namespace ProjectName.Systems
             var poleRenderer = poleGo.AddComponent<MeshRenderer>();
             var poleFilter = poleGo.AddComponent<MeshFilter>();
             poleFilter.sharedMesh = GetCubeMesh();
-            poleRenderer.material.color = Color.gray;
+            // [QA 수리] 편집 모드 "renderer.material 인스턴스화" 에러 + 플래그별 소재 누수 제거 —
+            // TerritoryBuilder.TrySpawnModelOrPlaceholder 선례(CreateLitMaterial) 패턴으로 통일.
+            poleRenderer.material = MaterialHelper.CreateLitMaterial(Color.gray, $"{flagGo.name}_Pole");
             poleGo.transform.localScale = new Vector3(0.1f, FLAG_POLE_HEIGHT, 0.1f);
 
             // 깃발 (색상 큐브)
@@ -233,11 +409,20 @@ namespace ProjectName.Systems
             var flagRenderer = flagCubeGo.AddComponent<MeshRenderer>();
             var flagFilter = flagCubeGo.AddComponent<MeshFilter>();
             flagFilter.sharedMesh = GetCubeMesh();
-            flagRenderer.material.color = color;
+            flagRenderer.material = MaterialHelper.CreateLitMaterial(color, $"{flagGo.name}_Flag");
             flagCubeGo.transform.localScale = new Vector3(FLAG_CUBE_SIZE, FLAG_CUBE_SIZE * 0.6f, 0.1f);
 
             // 깃발 위치 설정
             flagGo.transform.position = center + Vector3.up * FLAG_HEIGHT;
+
+            // [F1] 플레이어 문양 이름표 — 접근 시 문양 식별
+            // (NameplateDisplay OnGUI 이모지 선례: 영주 👑 이름표 — TMP 미지원 이모지의 검증된 렌더 경로)
+            string symbol = isPlayerCapture ? GetPlayerFlagSymbol() : null;
+            if (!string.IsNullOrEmpty(symbol))
+            {
+                var plate = flagGo.AddComponent<NameplateDisplay>();
+                plate.DisplayName = symbol;
+            }
 
             // 데이터 저장
             _flags[territoryId] = new TerritoryFlag
@@ -248,7 +433,7 @@ namespace ProjectName.Systems
                 flagObject = flagGo
             };
 
-            Debug.Log($"[TerritoryCaptureSystem] 🚩 깃발 생성: {territoryId} 색상:{color}");
+            Debug.Log($"[TerritoryCaptureSystem] 🚩 깃발 생성: {territoryId} 색상:{color}{(symbol != null ? $" 문양:{symbol}" : "")}");
         }
 
         /// <summary>
@@ -278,7 +463,8 @@ namespace ProjectName.Systems
                 var renderer = particleGo.AddComponent<MeshRenderer>();
                 var filter = particleGo.AddComponent<MeshFilter>();
                 filter.sharedMesh = GetCubeMesh();
-                renderer.material.color = color;
+                // [QA 수리] 편집 모드 소재 인스턴스화 에러 방지 — SpawnFlag 동일 패턴
+                renderer.material = MaterialHelper.CreateLitMaterial(color, particleGo.name + "_Mat");
 
                 particleGo.transform.localScale = Vector3.one * PARTICLE_CUBE_SIZE;
 

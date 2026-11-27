@@ -158,6 +158,9 @@ namespace ProjectName.Systems
             // Update animator parameters each frame
             if (_animator != null && _animator.isActiveAndEnabled && _animator.runtimeAnimatorController != null)
             {
+                // [59차] HumanoidClipDriver가 있는 오브젝트(Player/Soldier)는 드라이버가 Speed를 전담 —
+                //   RC의 고정값(0.5/0)과의 이중 서술 충돌 제거(드라이버 부재 경로는 기존 동작 유지).
+                if (HumanoidClipDriver.HasActiveDriverOn(gameObject)) return;
                 if (HasParameter(_animator, _speedParam))
                     _animator.SetFloat(_speedParam, _currentSpeed);
                 if (HasParameter(_animator, _stateParam))
@@ -320,6 +323,11 @@ namespace ProjectName.Systems
         {
             if (_animator == null || !_animator.isActiveAndEnabled || _animator.runtimeAnimatorController == null)
                 return;
+
+            // [64차 P1] HumanoidClipDriver가 있는 오브젝트(Player/Soldier)는 드라이버가 Speed 전담 —
+            //   RC SetState 경로(Idle 등)의 SetFloat 직접 호출도 차단(63차 Update 게이트의 확장 —
+            //   도착 시 Idle 전환이 Speed를 0으로 튀게 해 Idle↔Move 전이 진동(걷기 끊김)의 뿌리).
+            if (HumanoidClipDriver.HasActiveDriverOn(gameObject)) return;
 
             // Reset all triggers first
             ResetAllTriggers();

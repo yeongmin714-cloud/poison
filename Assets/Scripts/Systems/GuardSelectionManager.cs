@@ -36,6 +36,11 @@ namespace ProjectName.Systems
         private readonly Dictionary<GuardPlaceholder, GameObject> _selectionAuras =
             new Dictionary<GuardPlaceholder, GameObject>();
 
+        // [67차] 푸른 링 1회 표시 게이트 — 링이 수명 종료로 자동 소멸한 병사는 재선택 전까지 링 재생성 금지.
+        // (동기화 루프가 매 LateUpdate 링을 재살리는 무한 재생성 차단. 해제/사망 시 해제되어 재선택 시 재표시.)
+        private readonly HashSet<GuardPlaceholder> _ringShown =
+            new HashSet<GuardPlaceholder>();
+
         private void LateUpdate()
         {
             CleanupStaleSelectedGuards();
@@ -56,6 +61,7 @@ namespace ProjectName.Systems
 
                 if (guard != null) guard.SetSelected(false);
                 _selectedGuards.RemoveAt(i);
+                _ringShown.Remove(guard);   // [67차] 사망/비활성 — 재선택 시 링 재표시 허용
                 changed = true;
             }
 
@@ -88,11 +94,14 @@ namespace ProjectName.Systems
                 GuardHighlightUtility.SetHighlight(g, false);   // [15차 B1] 하이라이트 해제
                 if (_selectionAuras[g] != null) Destroy(_selectionAuras[g]);
                 _selectionAuras.Remove(g);
+                _ringShown.Remove(g);   // [67차] 선택 이탈 = 재선택 시 링 재표시 허용
             }
 
             foreach (var g in _selectedGuards)
             {
                 if (g == null) continue;
+                // [67차] 링 자동 소멸 후 재생성 금지 — 선택 유지 중엔 링 없음(하이라이트는 유지)
+                if (_ringShown.Contains(g)) continue;
                 // Defend against direct SetSelected(true) users outside AddToSelection: the
                 // legacy SpecialEffectsController cylinder is never allowed to duplicate our blue ring.
                 if (SpecialEffectsController.Instance != null)
@@ -119,8 +128,26 @@ namespace ProjectName.Systems
             go.transform.localRotation = Quaternion.identity;
             go.transform.localScale = Vector3.one * CommandRingPresentation.BaseScale;
             var ring = go.AddComponent<SelectionRingController>();
-            ring.SetColor(GetNationSelectionColor(g.Nation));
+            // [무번호 19-C4] 다중 선택 링 겹침 밀도/알파 조절 — 선택 병사 수에 따라 링 알파 완화.
+            var tint = GetNationSelectionColor(g.Nation);
+            tint.a = CommandRingPresentation.GetOverlapAlpha(_selectedGuards.Count);
+            ring.SetColor(tint);
+            // [67차→68차] 선택 링 자동 소멸 — 처음 표시 후 1초 유지 → 0.3s 축소 페이드 → 소멸.
+            //   [68차 P2] "5s 유지" 폐기 — 링 잔상 최소화(1초 규약). 공격 타겟 링
+            //   (AttackTargetRingManager)은 autoFadeOut=false 기본값으로 상시 유지된다(무영향).
+            ring.autoFadeOut = true;
+            ring.lifetimeSeconds = 1f;
+            ring.fadeSeconds = 0.3f;
+            ring.Expired += () => OnSelectionRingExpired(g);
             return go;
+        }
+
+        /// <summary>[67차] 링 자동 소멸 수신 — aura 추적 제거 + 재선택 전 재생성 게이트 등록.</summary>
+        private void OnSelectionRingExpired(GuardPlaceholder g)
+        {
+            if (_selectionAuras.TryGetValue(g, out var aura) && aura != null)
+                _selectionAuras.Remove(g);
+            _ringShown.Add(g);
         }
 
         /// <summary>선택 강조는 국가와 무관하게 Fluent blue로 통일.</summary>
@@ -138,6 +165,7 @@ namespace ProjectName.Systems
                 if (kv.Value != null) Destroy(kv.Value);
             }
             _selectionAuras.Clear();
+            _ringShown.Clear();   // [67차]
             if (Instance == this) Instance = null;
         }
 
@@ -473,6 +501,7 @@ namespace ProjectName.Systems
         {
             if (guard == null || _selectedGuards.Contains(guard)) return;
             _selectedGuards.Add(guard);
+            _ringShown.Remove(guard);   // [67차] 신규 선택 — 링 재표시 보장
             guard.SetSelected(true);
             // SetSelected(true) creates the legacy solid-cylinder outline synchronously.
             // Remove it immediately rather than waiting until the next LateUpdate sync.
@@ -492,6 +521,7 @@ namespace ProjectName.Systems
                     guard.SetSelected(false);
             }
             _selectedGuards.Clear();
+            _ringShown.Clear();   // [67차] 전체 해제 — 재선택 시 링 재표시 허용
             NotifySelectionChanged();
         }
 

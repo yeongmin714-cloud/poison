@@ -33,7 +33,12 @@ namespace ProjectName.Systems
             Cook,        // 요리 스테이션(ProjectName.UI.CookingStation 계열, 리플렉션 판정) — 불
             Shop,        // 상점 건물(ProjectName.UI.ShopPlaceholder, 리플렉션 판정) — 돈
             ShopNPC,     // 상점 NPC
-            Lord         // 영주
+            Lord,        // 영주
+            LordDaughter, // [126차] 영주 딸(LordDaughterNPC) — 컴포넌트 기반(태그 없음), Enemy 폴백보다 먼저
+            ArenaManager, // 아레나 베팅 관리인(로비 — 121차 ArenaBetManager) — 대화하기/베팅하기(피그마 261:3)
+            TrainingHall, // [125차] 훈련소 시설(FacilityStationInteractable training_hall) — E키 훈련소 UI
+            Fishing,      // [144차 D2-FISH] 낚시 스팟(물가 근접 — FishingSystem 근접 판정) — 낚시하기(피그마 163:4)
+            Bed           // [144차 D2-SLEEP] 침대(Bed 컴포넌트) — 잠자기(피그마 163:45)
         }
 
         private const float MaxDistance = 200f;
@@ -108,6 +113,8 @@ namespace ProjectName.Systems
 
             // 2) Door — LockedDoor(부모 체인 포함 — 문 프리팹 하위 콜라이더 히트 커버)
             if (go.GetComponentInParent<LockedDoor>() != null) return TargetKind.Door;
+            // [144차 D2-SLEEP] Bed — 침대(부모 체인 포함). Door와 상호 배타(가구/문).
+            if (go.GetComponentInParent<Bed>() != null) return TargetKind.Bed;
 
             // 3) Cook / Shop — ProjectName.UI 컴포넌트는 리플렉션으로만 판정(asmdef 순환 회피).
             //    GetComponentInParent(Type) 비제네릭 오버로드로 부모 체인 검색.
@@ -127,8 +134,15 @@ namespace ProjectName.Systems
             // 6) Lord — Lord 계열 태그/컴포넌트는 Enemy 태그 폴백보다 먼저 판정.
             if (tag == "Lord" || tag == "DraculaLord"
                 || go.GetComponentInParent<DraculaLord>() != null
-                || go.GetComponentInParent<LordFeedTarget>() != null)
+                || go.GetComponentInParent<LordFeedTarget>() != null
+                || go.GetComponentInParent<InvadedLordEncounter>() != null)
                 return TargetKind.Lord;
+
+            // 6.2) [126차] 영주 딸 — LordDaughterNPC(태그 없음)를 Enemy 태그 폴백보다 먼저 판정.
+            if (go.GetComponentInParent<LordDaughterNPC>() != null) return TargetKind.LordDaughter;
+
+            // 6.5) ArenaManager — 아레나 베팅 관리인(같은 어셈블리 컴포넌트 — 직접 판정, 121차).
+            if (go.GetComponentInParent<ArenaBetManager>() != null) return TargetKind.ArenaManager;
 
             // 7) NPC — 상점 여부를 먼저 확인하고, 비상점은 기존 대화 마커 경로를 유지.
             //    TerritoryNPCBehaviour는 UI 어셈블리 타입이므로 리플렉션으로 부모 체인을 검색.
@@ -142,6 +156,12 @@ namespace ProjectName.Systems
             // 8) (폴백) 적 태그 — AnimalAI/GuardPlaceholder 없는 태그 적(보스/드라큘라 등).
             //    기존 Enemy 경로 유지 — ContextCommandRouter의 공격 폴백 스위치와 호환.
             if (IsEnemyTag(tag)) return TargetKind.Enemy;
+
+            // 7.5) [125차] 훈련소 — FacilityStationInteractable(training_hall) 직접 판정(같은 어셈블리).
+            //      기존 시설 4종은 분류 없음(기존 계약 유지) — 훈련소만 신규 kind(호버 커서 피드백 계약).
+            var trainingFacility = go.GetComponentInParent<FacilityStationInteractable>();
+            if (trainingFacility != null && trainingFacility.EffectId == FacilityPropBuilder.TrainingHallEffectId)
+                return TargetKind.TrainingHall;
 
             // 8) Farm — FarmPlot 컴포넌트 보유 시만. 이름 매칭 제거 — 비인터랙티브 환경
             //    오브젝트까지 밭으로 오분류되는 것 방지(테스트 40).
@@ -164,7 +184,7 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// [Phase D] 영주/NPC/상점NPC의 실제 대상 컴포넌트를 반환(리플렉션 포함).
+        /// [Phase D] 영주/영주딸/NPC/상점NPC/아레나 관리인의 실제 대상 컴포넌트를 반환(리플렉션 포함).
         /// InteractionPanelUTK(ProjectName.UI)가 이 컴포넌트에서 NPCInstance(NPCData 프로퍼티)를 꺼낸다.
         /// 해당 종류가 아니면 kind=None, target=null을 반환.
         /// </summary>
@@ -173,21 +193,54 @@ namespace ProjectName.Systems
             kind = ClassifyOne(go);   // 같은 클래스 내 private 호출 — 단일 객체 분류 재사용
             if (kind == TargetKind.Lord)
             {
+                var invadedLord = go.GetComponentInParent<InvadedLordEncounter>();
+                if (invadedLord != null) return invadedLord;
                 var lordFeed = go.GetComponentInParent<LordFeedTarget>();
                 if (lordFeed != null) return lordFeed;
                 var draculaLord = go.GetComponentInParent<DraculaLord>();
                 if (draculaLord != null) return draculaLord;
                 return go;   // 태그(Lord)만으로 분류된 경우 폴백 — 게임오브젝트 반환
             }
+            // [126차] 영주 딸 — LordDaughterNPC 컴포넌트를 반환(패널 인터랙션 진입 타겟 계약).
+            if (kind == TargetKind.LordDaughter)
+            {
+                var daughter = go.GetComponentInParent<LordDaughterNPC>();
+                if (daughter != null) return daughter;
+            }
+            // [125차 후속8] 아레나 관리인 — ArenaBetManager 컴포넌트를 반환(같은 어셈블리 직접 판정).
+            //   ClassifyOne은 ArenaManager 분류를 이미 제공하나(6.5단계) 본 리졸버가 소비하지 않아
+            //   좌클릭 라우팅(TryRoutePlainNpcInteraction)이 대상 획득에 실패했다 → 소비 경로 회복.
+            //   InteractionPanelUTK 아레나 패널(대화하기/베팅하기, 피그마 261:3)은 target을
+            //   ArenaBetManager로 캐스트 — 컴포넌트 그대로 전달한다.
+            if (kind == TargetKind.ArenaManager)
+            {
+                var arenaManager = go.GetComponentInParent<ArenaBetManager>();
+                if (arenaManager != null) return arenaManager;
+            }
             if (kind == TargetKind.NPC || kind == TargetKind.ShopNPC)
                 return go.GetComponentInParent(TerritoryNpcType);
+
+            // [144차 D2-SLEEP] Bed — Bed 컴포넌트 반환(패널 액션 타겟 계약).
+            if (kind == TargetKind.Bed)
+            {
+                var bed = go.GetComponentInParent<Bed>();
+                if (bed != null) return bed;
+            }
+            // [144차 D2-LOCK] Door — LockedDoor 컴포넌트 반환(구: 리졸버 미소비 → 패널 개방 경로 부재).
+            //   영주실 문(house_lord_room) 포함 전 잠긴 문 공통 — 163:64/163:83 라벨은 LocationId 분기.
+            if (kind == TargetKind.Door)
+            {
+                var door = go.GetComponentInParent<LockedDoor>();
+                if (door != null) return door;
+            }
 
             kind = TargetKind.None;
             return null;
         }
 
         /// <summary>TerritoryNPCBehaviour와 해당 NPCData에서 상점 플래그를 리플렉션으로 확인.</summary>
-        private static bool IsShopTerritoryNpc(GameObject go)
+        // [116차 R2] public 노출 — PlayerMovement F키 경로가 좌클릭 경로와 동일 분류를 재사용(단일소스).
+        public static bool IsShopTerritoryNpc(GameObject go)
         {
             if (TerritoryNpcType == null) return false;
             Component component = go.GetComponentInParent(TerritoryNpcType);

@@ -91,6 +91,12 @@ namespace ProjectName.Systems
         /// </summary>
         public static float GetHeightAt(float worldX, float worldZ, BiomeType biome, int seed = 42)
         {
+            // [147차] Test_15(Livelihood) 평지 게이트 — 수식 굴곡 제거, 상수 높이 단일 반환(계획 §1-1/§6-1).
+            // 단일소스 전파: SurfaceY(=1+GetHeightAt)/ClampToGroundByHeight/BlobShadow/SetupGround·
+            // BuildVillageGroundPatch 정점/마을 건물 접지(GetHeightAt+GROUND_BASE) 전부 자동 정합 — 호출부 무수정.
+            if (IsTest15FlatScene())
+                return Test15FlatHeight;
+
             BiomeDefinition def = BiomeData.GetDefinition(biome);
             return GetHeightAtWithDefinition(worldX, worldZ, def, seed);
         }
@@ -109,6 +115,34 @@ namespace ProjectName.Systems
             }
             
             return height;
+        }
+
+        // ═══════════════ [147차] Test_15(Livelihood) 평지 게이트 (계획 §1-1/§6-1) ═══════════════
+
+        /// <summary>
+        /// [147차] Test_15 평지 상수 — 해당 씬에서 GetHeightAt가 반환하는 유일 높이.
+        /// 0 → 표면 y = 1 + 0 = GROUND_BASE(1f, VillageBuilder/Village5DesignRenderer 지면 계약)과 동일 기준.
+        /// </summary>
+        public const float Test15FlatHeight = 0f;
+
+        // 씬 판정 캐시 — GetHeightAt는 메시 정점 생성(수만 회)/BlobShadow 프레임당 다발 호출이므로
+        // GetActiveScene().name(문자열 할당)을 매 호출하지 않는다(활성 씬 핸들 불일치 시에만 재판정).
+        private static bool _flatGateInit;
+        private static UnityEngine.SceneManagement.Scene _flatGateScene;
+        private static bool _flatGateResult;
+
+        /// <summary>현재 활성 씬이 Livelihood 계열(Test_15_Livelihood·Test_20_LivelihoodResources)이면 true.
+        /// TestTerritoryCombatSetup 씬 게이트와 동일 Contains("Livelihood") 판정 — 단일소스(계약 일치).</summary>
+        private static bool IsTest15FlatScene()
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (!_flatGateInit || _flatGateScene.handle != scene.handle)
+            {
+                _flatGateInit = true;
+                _flatGateScene = scene;
+                _flatGateResult = scene.IsValid() && scene.name.Contains("Livelihood");
+            }
+            return _flatGateResult;
         }
 
         /// <summary>

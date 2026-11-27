@@ -56,6 +56,10 @@ namespace ProjectName.Systems
             try { GuardSalarySystem.TryPayDailyWages(day); }
             catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] 급료 청구 실패: {ex.Message}"); }
 
+            // 용병 계약 due 알림 (청구/해고 없음 — 승인은 SoldierWageSystem.TryApproveMercenaryContract)
+            try { SoldierWageSystem.NotifyDueMercenaryContracts(day); }
+            catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] 용병 계약 due 알림 실패: {ex.Message}"); }
+
             // [AI 경제] 세수 → AI 유지비(부족 시 감축) → AI 고용(재화 연동)
             try { AITerritoryEconomySystem.ApplyDailyTax(day); }
             catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] AI 세수 처리 실패: {ex.Message}"); }
@@ -70,6 +74,10 @@ namespace ProjectName.Systems
             catch (System.Exception ex) { Debug.LogError($"[GuardSalaryManager] AI 전쟁 틱 실패: {ex.Message}"); }
 
             TryTriggerPayRaiseRequests();
+
+            // [119차 4단계] 충성도 탈영 — 임계(-70) 이하 병사가 소속을 떠나 방랑자로 전환
+            try { WandererDesertionSystem.ProcessDesertions(); }
+            catch (System.Exception ex) { Debug.LogWarning($"[탈영] 처리 실패 — {ex.Message}"); }
 
             // [Phase H] 하루 전쟁 전보(전투 로그) 요약 표시
             DailyWarLogSystem.FlushDayLog();

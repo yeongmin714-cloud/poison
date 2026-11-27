@@ -180,6 +180,8 @@ namespace ProjectName.Systems
         /// 4방위국(동/서/남/북) 아레나를 메인씬에 배치 — 영지와 무관한 국별 방향 특정 지점.
         /// 각 아레나는 국가 기준 각도 방향, 링 사이 중간 거리(1150m)에 놓아 영지 밀집과 분리.
         /// 문(BuildingTrigger TYPE_ARENA) = E키 상호작용 → ArenaInteriorBuilder 실내 진입.
+        /// [125차 후속7] 문 트리거만 있던 기존 구성에 외관(임시 경기장)을 추가 배치 —
+        ///   월드맵 아레나 핀(WorldMapWindowUTK)과 좌표 산식을 GetArenaWorldPosition으로 공유(단일 진실원).
         /// </summary>
         public void BuildArenaRegions()
         {
@@ -187,7 +189,7 @@ namespace ProjectName.Systems
             BuildArenaRegion(NationType.North, "Northern", 90f);
             BuildArenaRegion(NationType.West,  "Western",  180f);
             BuildArenaRegion(NationType.South, "Southern", 270f);
-            Debug.Log("[TerritoryBuilder] 4방위국 아레나 4곳 배치 완료");
+            Debug.Log("[125차 후속7][TerritoryBuilder] 4방위국 아레나 4곳 배치 완료 (외관 임시 건물 + 문 트리거)");
         }
 
         /// <summary>국가 방향 각도(도)와 링 중간 거리로 아레나 1곳 생성.</summary>
@@ -196,10 +198,9 @@ namespace ProjectName.Systems
             string rootName = $"Arena_{nationStyle}";
             if (GameObject.Find(rootName) != null) return; // 중복 방지
 
-            // 링1(1450)과 링2(1000) 사이 중간 거리 → 영지 밀집과 분리된 국가 영역 내 지점
-            const float arenaDistance = 1150f;
-            float rad = angleDeg * Mathf.Deg2Rad;
-            Vector3 pos = new Vector3(Mathf.Cos(rad) * arenaDistance, 0f, Mathf.Sin(rad) * arenaDistance);
+            // [125차 후속7] 링1(1450)과 링2(1000) 사이 중간 거리 → 영지 밀집과 분리된 국가 영역 내 지점.
+            //   좌표 산식은 GetArenaWorldPosition(공용 상수 ArenaRingDistance)로 단일화 — 월드맵 아레나 핀과 동일 좌표 보장.
+            Vector3 pos = GetArenaWorldPosition(nation);
 
             var root = new GameObject(rootName);
             root.transform.position = pos;
@@ -209,10 +210,191 @@ namespace ProjectName.Systems
             root.transform.position = new Vector3(pos.x, groundY, pos.z);
 
             // 아레나 출입문(BuildingTrigger) — E키로 실내 진입. 문은 루트 중심 남쪽(World 방향은 일괄 +Z)에 배치.
+            //   [125차 후속7] 기존 검증본 트리거 — 위치/동작 무수정.
             Vector3 doorPos = new Vector3(pos.x, groundY, pos.z + 6f);
             IndoorTransitionSetup.CreateArenaTrigger(doorPos, nationStyle, root.transform);
 
+            // [125차 후속7] 아레나 외관(임시 건물) — 사장님 GLB 제공 전까지 프리미티브 임시 경기장 배치.
+            //   기존 문 트리거는 건드리지 않는다(문은 링 반경 20m 내부 남측 +6m — 개구부 방향과 정렬).
+            BuildArenaExteriorPlaceholder(root.transform, nation, nationStyle, groundY);
+
             Debug.Log($"[TerritoryBuilder] 아레나 배치: {rootName} @ {pos} (angle {angleDeg}°, style {nationStyle})");
+        }
+
+        // ===== [125차 후속7] 4방위국 아레나 외관(임시 건물) + 월드맵 핀 공용 좌표 =====
+
+        /// <summary>[125차 후속7] 아레나 링 거리(m) — 링1(1450)/링2(1000) 중간. 월드맵 핀과 공용 상수.</summary>
+        public const float ArenaRingDistance = 1150f;
+
+        /// <summary>[125차 후속7] 국가 → 아레나 방위 각도(도). 동 0°(+X) / 북 90°(+Z) / 서 180°(−X) / 남 270°(−Z).</summary>
+        public static float GetArenaAngleDeg(NationType nation)
+        {
+            switch (nation)
+            {
+                case NationType.East: return 0f;
+                case NationType.North: return 90f;
+                case NationType.West: return 180f;
+                case NationType.South: return 270f;
+                default: return 0f;
+            }
+        }
+
+        /// <summary>
+        /// [125차 후속7] 국가 아레나 월드 좌표(XZ 평면, y=0) — 메인씬 배치(BuildArenaRegion)와
+        ///   월드맵 아레나 핀(WorldMapWindowUTK)이 동일 산식을 공유하는 단일 진실원.
+        /// </summary>
+        public static Vector3 GetArenaWorldPosition(NationType nation)
+        {
+            float rad = GetArenaAngleDeg(nation) * Mathf.Deg2Rad;
+            return new Vector3(Mathf.Cos(rad) * ArenaRingDistance, 0f, Mathf.Sin(rad) * ArenaRingDistance);
+        }
+
+        /// <summary>
+        /// [125차 후속7] 아레나 외관(임시 건물) — '사장님 GLB 제공 전까지 임시 건물' 선례(BuildingPlaceholder)에 따라
+        ///   arena 루트 자식으로 임시 경기장을 배치한다. GLB 규약
+        ///   (Assets/Resources/Models/UserProvided/arena_exterior_&lt;nation&gt;.glb — 실내 arena_&lt;nation&gt;.glb와 구별 접두사)
+        ///   이 존재하면 우선 사용, 없으면 프리미티브 폴백(모래 바닥 + 국가색 외벽 링 + 남측 출입문 개구부 + 깃대 2본).
+        ///   문 트리거(CreateArenaTrigger, 중심+6m)는 수정하지 않는다 — 개구부가 문 방향(+Z)과 정렬될 뿐.
+        /// </summary>
+        private void BuildArenaExteriorPlaceholder(Transform parent, NationType nation, string nationStyle, float groundY)
+        {
+            var exterior = new GameObject($"ArenaExterior_{nationStyle}");
+            exterior.transform.SetParent(parent, false);
+            exterior.transform.localPosition = Vector3.zero;
+
+            // GLB 우선(외관 전용 규약 키) — 없으면 프리미티브 임시 경기장 폴백
+            string glbKey = $"arena_exterior_{NationGlbKey(nation)}";
+            if (RuntimeModelLoader.TryGetModel(glbKey, out var modelPrefab) && modelPrefab != null)
+            {
+                var inst = Object.Instantiate(modelPrefab, exterior.transform, false);
+                inst.name = "ArenaExteriorModel";
+                inst.transform.localPosition = new Vector3(0f, 0.05f, 0f); // GLB 피벗 바닥 기준 가정 → 지면 겹침 방지 소량 부양
+                NormalizeArenaExteriorScale(inst, 20f);                     // XZ 최대 반경 → 20m 정규화(성 25m 정규화 동일 기법)
+                Debug.Log($"[125차 후속7][TerritoryBuilder] {parent.name} 외관 GLB '{glbKey}' 사용 — 반경 {GetCastleRadius(inst):F1}m");
+            }
+            else
+            {
+                BuildArenaExteriorPrimitives(exterior.transform, nation);
+                Debug.Log($"[125차 후속7][TerritoryBuilder] {parent.name} 외관 GLB '{glbKey}' 없음 — 프리미티브 임시 경기장 폴백 (arena_exterior_{NationGlbKey(nation)}.glb 추가 시 자동 전환)");
+            }
+
+            // BuildingPlaceholder 부착 — 임시 건물 등록 선례(상점/크래프트하우스 등)와 동일. GLB 교체 시에도 컴포넌트 유지.
+            var ph = exterior.AddComponent<BuildingPlaceholder>();
+            ph.buildingType = BuildingPlaceholder.BuildingType.Arena;
+            ph.buildingName = $"{GetNationKoreanName(nation)} 아레나";
+        }
+
+        /// <summary>
+        /// [125차 후속7] 아레나 외관 프리미티브 폴백 — 모래 바닥 원판 + 외벽 링 16분할(남측 +Z 출입문 1분할 개구부) + 깃대 2본.
+        ///   바닥은 콜라이더 제거(지형 보행 유지 — 계단 단차 방지, 시각 플레이트만),
+        ///   외벽/깃대는 충돌 유지(외벽은 실물 장애물). 모든 y는 루트 기저(월드 지표면 = GetHeightAt + 1f) 기준.
+        /// </summary>
+        private static void BuildArenaExteriorPrimitives(Transform parent, NationType nation)
+        {
+            const float ringRadius = 20f;   // 외벽 링 반경(m) — 문 트리거(중심+6m)가 링 내부에 위치
+            const int wallSegments = 16;    // 외벽 분할 수 (1분할 ≈ 7.85m 호)
+
+            // 모래 바닥 — Cylinder 반경 20m. 콜라이더 제거(지형 보행 그대로).
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            floor.name = "ArenaFloor";
+            floor.tag = "Untagged";
+            floor.transform.SetParent(parent, false);
+            floor.transform.localPosition = new Vector3(0f, -0.05f, 0f);
+            floor.transform.localScale = new Vector3(ringRadius * 2f, 0.4f, ringRadius * 2f);
+            var floorCol = floor.GetComponent<Collider>();
+            if (floorCol != null) Object.Destroy(floorCol);
+            var floorRend = floor.GetComponent<MeshRenderer>();
+            if (floorRend != null)
+                floorRend.material = MaterialHelper.CreateLitMaterial(new Color(0.78f, 0.70f, 0.52f), "ArenaFloor_Mat");
+
+            // 외벽 링 — Cube 16분할, +Z(방위각 90°) 1분할 개구부가 문 트리거 방향과 정렬.
+            Color castleColor = GetCastleFallbackColor(nation);
+            Color wallColor = new Color(castleColor.r * 0.55f, castleColor.g * 0.55f, castleColor.b * 0.55f, 1f); // 국가색 암배합(석벽 톤)
+            for (int i = 0; i < wallSegments; i++)
+            {
+                float angle = i * 360f / wallSegments; // 방위각(도) — 90°가 +Z(북국 배치 관례와 동일 좌표계)
+                if (Mathf.Abs(Mathf.DeltaAngle(angle, 90f)) < 1f) continue; // +Z 출입문 개구부(문 트리거 정렬)
+
+                var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                wall.name = $"ArenaWall_{i:00}";
+                wall.tag = "Untagged";
+                wall.transform.SetParent(parent, false);
+                float rad = angle * Mathf.Deg2Rad;
+                wall.transform.localPosition = new Vector3(Mathf.Cos(rad) * ringRadius, 3f, Mathf.Sin(rad) * ringRadius);
+                // 접선 정렬 yaw = -(방위각 + 90°) — Cube 로컬 +X를 원주 접선 방향에 정렬(θ=90°에서 -180° 검증 완료)
+                wall.transform.localRotation = Quaternion.Euler(0f, -(angle + 90f), 0f);
+                wall.transform.localScale = new Vector3(7.6f, 6f, 2.2f); // 접선 길이 × 높이 × 두께
+                var wallRend = wall.GetComponent<MeshRenderer>();
+                if (wallRend != null)
+                    wallRend.material = MaterialHelper.CreateLitMaterial(wallColor, $"ArenaWall_{i:00}_Mat");
+            }
+
+            // 깃대 2본 + 국가색 깃발 — 출입문(90°) 좌우 ±13.5° 외벽선 위. 콜라이더 제거(장식물 — 통행 방해 없음).
+            Color poleColor = new Color(0.45f, 0.42f, 0.40f, 1f); // 석재 회색
+            for (int side = 0; side < 2; side++)
+            {
+                float flagAngle = 90f + (side == 0 ? -13.5f : 13.5f);
+                float rad = flagAngle * Mathf.Deg2Rad;
+
+                var pole = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                pole.name = $"ArenaFlagPole_{side}";
+                pole.tag = "Untagged";
+                pole.transform.SetParent(parent, false);
+                pole.transform.localPosition = new Vector3(Mathf.Cos(rad) * ringRadius, 3f, Mathf.Sin(rad) * ringRadius);
+                pole.transform.localScale = new Vector3(0.4f, 3f, 0.4f); // Cylinder 기본 높이 2 × 3 = 6m
+                var poleCol = pole.GetComponent<Collider>();
+                if (poleCol != null) Object.Destroy(poleCol);
+                var poleRend = pole.GetComponent<MeshRenderer>();
+                if (poleRend != null)
+                    poleRend.material = MaterialHelper.CreateLitMaterial(poleColor, $"ArenaFlagPole_{side}_Mat");
+
+                var flag = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                flag.name = $"ArenaFlag_{side}";
+                flag.tag = "Untagged";
+                flag.transform.SetParent(pole.transform, false);
+                flag.transform.localPosition = new Vector3(0.9f, 2.3f, 0f); // 깃대 상단 측면
+                flag.transform.localScale = new Vector3(1.8f, 1.2f, 0.12f);
+                var flagCol = flag.GetComponent<Collider>();
+                if (flagCol != null) Object.Destroy(flagCol);
+                var flagRend = flag.GetComponent<MeshRenderer>();
+                if (flagRend != null)
+                    flagRend.material = MaterialHelper.CreateLitMaterial(castleColor, $"ArenaFlag_{side}_Mat");
+            }
+        }
+
+        /// <summary>[125차 후속7] NationType → 외관 GLB 키 접미사(east/west/south/north) — 실내 arena_&lt;nation&gt;.glb 규약과 동일 국가 접미사.</summary>
+        private static string NationGlbKey(NationType nation)
+        {
+            switch (nation)
+            {
+                case NationType.East: return "east";
+                case NationType.West: return "west";
+                case NationType.South: return "south";
+                case NationType.North: return "north";
+                default: return "empire";
+            }
+        }
+
+        /// <summary>[125차 후속7] NationType → 한국어 국가명(임시 건물 표기/로그용).</summary>
+        private static string GetNationKoreanName(NationType nation)
+        {
+            switch (nation)
+            {
+                case NationType.East: return "동국";
+                case NationType.West: return "서국";
+                case NationType.South: return "남국";
+                case NationType.North: return "북국";
+                default: return "제국";
+            }
+        }
+
+        /// <summary>[125차 후속7] 외관 GLB XZ 최대 반경을 targetRadius로 균일 스케일 정규화(성 NormalizeCastleScale 동일 기법).</summary>
+        private static void NormalizeArenaExteriorScale(GameObject exteriorModel, float targetRadius)
+        {
+            float sourceRadius = GetCastleRadius(exteriorModel);
+            if (sourceRadius <= 0.01f) return;
+            float factor = targetRadius / sourceRadius;
+            exteriorModel.transform.localScale *= factor;
         }
 
         /// <summary>단일 영지 생성</summary>
@@ -385,6 +567,89 @@ namespace ProjectName.Systems
             go.transform.position = new Vector3(pos.x, floorY, pos.z);
         }
 
+        // ===== [F4] 야외 크래프트 스테이션 — 점령 영지 성 앞 즉석 제작 =====
+
+        /// <summary>영지별 야외 크래프트 스테이션 레지스트리 (key = territoryId.ToString()). 멱등 가드용.</summary>
+        private static readonly Dictionary<string, GameObject> _outdoorCraftStations =
+            new Dictionary<string, GameObject>();
+
+        /// <summary>
+        /// [F4] 야외 크래프트 박스 스폰 — 점령 완료 시 영지 중심 근처(성 앞)에 즉석 제작 스테이션 배치.
+        /// TerritoryCraftingStation(ProjectName.UI)을 리플렉션 부착(asmdef 순환 회피 —
+        /// PlayerCastleInteriorBuilder.AttachUiComponent 선례). 멱등 — 이미 있으면 기존 객체 반환.
+        /// </summary>
+        /// <param name="nearCenter">영지 중심 근처 기준 위치 (호출자가 오프셋 적용)</param>
+        /// <param name="territoryKey">영지 키 (예: "East_01") — 스테이션 귀속</param>
+        /// <returns>스테이션 GameObject (실패 시 null)</returns>
+        public static GameObject SpawnOutdoorCraftStation(Vector3 nearCenter, string territoryKey)
+        {
+            if (string.IsNullOrEmpty(territoryKey))
+            {
+                Debug.LogWarning("[TerritoryBuilder] 야외 크래프트 스폰 실패 — territoryKey 없음");
+                return null;
+            }
+
+            // 멱등 가드 — 이미 살아있으면 재스폰 없이 반환
+            if (_outdoorCraftStations.TryGetValue(territoryKey, out var existing) && existing != null)
+                return existing;
+            _outdoorCraftStations.Remove(territoryKey);
+
+            // 성 앞 슬롯 — 크래프트하우스 GLB(선례 "craft_blend"), 없으면 초록 큐브 Placeholder
+            GameObject station = TrySpawnModelOrPlaceholder("craft_blend", $"Outdoor_CraftStation_{territoryKey}",
+                nearCenter, new Vector3(1.6f, 1.4f, 1.6f), new Color(0.6f, 0.8f, 0.2f), PrimitiveType.Cube);
+            if (station == null)
+            {
+                Debug.LogWarning($"[TerritoryBuilder] 야외 크래프트 스테이션 생성 실패: {territoryKey}");
+                return null;
+            }
+
+            // TerritoryCraftingStation 리플렉션 부착 + Configure(territoryKey, 표시명)
+            const string stationTypeName = "ProjectName.UI.TerritoryCraftingStation, ProjectName.UI";
+            System.Type uiType = System.Type.GetType(stationTypeName);
+            if (uiType == null)
+            {
+                Debug.LogWarning("[TerritoryBuilder] TerritoryCraftingStation 타입 미발견 — 상호작용 없는 박스만 배치");
+                _outdoorCraftStations[territoryKey] = station;
+                return station;
+            }
+
+            var component = station.AddComponent(uiType);
+            var configure = uiType.GetMethod("Configure");
+            if (component != null && configure != null)
+            {
+                try
+                {
+                    // Configure(territoryId, stationName, interactRange) — 3인자 전체 전달(Invoke는 기본값 미보충)
+                    configure.Invoke(component, new object[] { territoryKey, "영지 작업대 (야외)", null });
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"[TerritoryBuilder] 스테이션 Configure 실패: {e.Message}");
+                }
+            }
+
+            _outdoorCraftStations[territoryKey] = station;
+            Debug.Log($"[TerritoryBuilder] 🛠️ 야외 크래프트 스테이션 배치: {territoryKey} at {station.transform.position}");
+            return station;
+        }
+
+        /// <summary>[F4] 야외 크래프트 스테이션 제거 — 영지 상실(배신/AI 탈환) 시. 없으면 무시(멱등).</summary>
+        public static void RemoveOutdoorCraftStation(string territoryKey)
+        {
+            if (string.IsNullOrEmpty(territoryKey)) return;
+            if (!_outdoorCraftStations.Remove(territoryKey, out var station)) return;
+            if (station != null)
+            {
+                // [QA 수리] 편집 모드 Destroy 금지 에러 방지
+                if (Application.isPlaying) Object.Destroy(station);
+                else Object.DestroyImmediate(station);
+            }
+            Debug.Log($"[TerritoryBuilder] 야외 크래프트 스테이션 회수: {territoryKey}");
+        }
+
+        /// <summary>실내 수비병 soldier-index 오프셋 — 같은 영지의 실외 문지기/주둔군 인덱스(0..)와 레벨 스트림을 분리.</summary>
+        private const int INTERIOR_SOLDIER_INDEX_BASE = 1000;
+
         /// <summary>
         /// [Phase F-1] 영주 성 실내 수비 병사 스폰 — Phase A 성향 배분(interiorDefenseSoldiers)만큼
         /// roomCenter 주변에 병사를 배치하고 플레이어 적대 설정. 소프트 게이트(야외 문지기 전원 포섭)를
@@ -410,13 +675,16 @@ namespace ProjectName.Systems
                 int count = LordPersonalitySystem.GetDeploymentPlan(def.id).interiorDefenseSoldiers;
                 if (count <= 0) return;
 
-                int baseLevel = GetBaseGuardLevel(def.difficulty);
+                // 영지 난이도 프로필(국가+Ring 범위 · 영지별 Tier) — 실내 수비병 레벨 = 안정적 soldier-index 기반.
+                // 실외 문지기/주둔군 인덱스(0..)와 스트림이 겹치지 않도록 실내는 INTERIOR_SOLDIER_INDEX_BASE 오프셋.
+                var profile = TerritoryDifficultyProfileSystem.Resolve(def.id.index, def.id.nation, def.difficulty);
                 for (int i = 0; i < count; i++)
                 {
                     float lat = ((i % 2) == 0 ? 1f : -1f) * (2f + (i / 2) * 2f); // ±2, ∓2, ±4, ∓4 ...
                     float dep = 2f + (i / 2) * 3f; // 왕좌 앞쪽으로 깊이 배치
                     Vector3 pos = new Vector3(roomCenter.x + lat, roomCenter.y, roomCenter.z + dep);
-                    var go = CreateGuard($"InteriorGuard_{i + 1}", pos, GetGuardName(def.nation), baseLevel + (i % 3), def.nation, null, default, def.difficulty);
+                    int level = profile.SelectGuardLevel(INTERIOR_SOLDIER_INDEX_BASE + i);
+                    var go = CreateGuard($"InteriorGuard_{i + 1}", pos, GetGuardName(def.nation), level, def.nation, null, default, def.difficulty);
                     if (go == null) continue;
 
                     // 실내 바닥 y 고정(월드 지형 높이 오염 방지 — CreateGuard는 GetHeightAt 보정함)
@@ -428,7 +696,7 @@ namespace ProjectName.Systems
                         ph.SetInCombat(true);
                         ph.HostileToPlayerFaction = true; // 실내 진입자 플레이어 공격 대상(실외 영지 기반 GuardHostilitySystem은 실내 미적용)
                     }
-                    Debug.Log($"[TerritoryBuilder] 영주 성 실내 수비 병사 배치: {go.name} (Lv.{baseLevel + (i % 3)})");
+                    Debug.Log($"[TerritoryBuilder] 영주 성 실내 수비 병사 배치: {go.name} (Lv.{level})");
                 }
                 Debug.Log($"[TerritoryBuilder] 영주 성 실내 수비 병사 {count}명 배치 완료 (style: {nationStyle}, {territoryKey})");
             }
@@ -500,6 +768,9 @@ namespace ProjectName.Systems
                 // [38차] "영지 소속 모든 병사는 침대에 누워있게" — 침대 미배치 아군(외부에서
                 //   등록된 포섭 병사 포함)을 빈 침대에 순차 배치(BarrackBed_1..20, 1명/침대).
                 AssignBedsToAllIndoorAllies(room);
+
+                // [43차] 침대 휴식 자가수리 스윕 — 실내 진입 3s 후 검증 + 이후 지속(누움 계약 보장).
+                BedRestSelfRepair.Ensure(room);
 
                 Debug.Log($"[TerritoryBuilder] 아군 막사 병사 {count}명 배치 완료 — 침대 휴식 (style: {nationStyle})");
             }
@@ -592,7 +863,9 @@ namespace ProjectName.Systems
                     Bounds bb = GetBedBounds(bedGo.transform);
                     Vector3 c = bb.size.sqrMagnitude > 0.0001f ? bb.center : bedGo.transform.position;
                     // 침대 루트 y = 바닥 — 서 있는 발 위치로 옆으로 내려선다
-                    guard.transform.position = new Vector3(c.x + 0.9f, bedGo.transform.position.y + 0.05f, c.z);
+                    // [46차] x 오프셋 0.9 → 0.7 — 침대 열 간격 1.4m에서 0.9는 옆침대(반폭 0.6, 시작 +0.8)
+                    //   영역에 반쯤 서는 것 → 기상 직후 옆침대와 겹침. 0.7 = 두 침대 사이 통로.
+                    guard.transform.position = new Vector3(c.x + 0.7f, bedGo.transform.position.y + 0.05f, c.z);
                 }
                 guard.transform.rotation = Quaternion.Euler(0f, 180f, 0f);   // 침대 쪽 보고 서기
                 Debug.Log($"[TerritoryBuilder] 🪖 {guard.GuardName} 기상 (침대 {bedNumber} → 출동 준비)");
@@ -602,17 +875,21 @@ namespace ProjectName.Systems
 
         /// <summary>[39차] 실내 기준점 — 로비 중앙(출구 방향)과 막사 앞(수비 근무지).
         ///   IndoorScene은 월드가 언로드된 별도 씬이므로 출동=로비(문 앞)까지 보행이
-        ///   실내에서 확인 가능한 이동이고, 월드 복귀 시점의 문밖 배치는 배치 시스템 몫.</summary>
+        ///   실내에서 확인 가능한 이동이고, 월드 복귀 시점의 문밖 출동/게이트 복귀는 TerritoryDeploymentSystem(gateFront/영지 중앙)과 연결.
+        ///   [45차 근원 수리 — "배치 병사가 기상 후 서 있기만"] 플레이어 성 실내 루트 이름은
+        ///   "PlayerCastleRoom"(빌더 362행)인데 GameObject.Find("Room")만 찾아 목적지 실패 →
+        ///   보행 명령이 아예 안 나갔다. 양쪽 이름 모두 지원(구 빌더 호환).</summary>
         public static bool TryGetIndoorPost(GuardPlaceholder guard, GuardTaskSystem.GuardTask task, out Vector3 post)
         {
             post = default;
             var room = GameObject.Find("Room");
+            if (room == null) room = GameObject.Find("PlayerCastleRoom");   // [45차] 실제 루트 이름
             if (room == null) return false;
             Vector3 roomBase = room.transform.position;
-            // 출동(공격/농사/채집/광물/수색/특사) = 로비 중앙(문 앞) — 수비 = 막사 앞 영지 안 근무지
-            post = task == GuardTaskSystem.GuardTask.Defend
-                ? roomBase + new Vector3(-15f, 0f, -20f)
-                : roomBase + new Vector3(0f, 0f, 0f);
+            // [49차 사용자 요구 — "한명은 끝까지 남아있는" 수리] Defend만 막사 앞(-15,-20)이었는데
+            //   침대에서 이미 가까워(≈5m) 화면상 '안 움직임'으로 보였다. 요구 = "모두 중앙 집결" —
+            //   역할 무관 로비 중앙(문 앞)으로 통일(월드 루틴은 퇴출 시 역할별 수행 — 실내 목적지만 통일).
+            post = roomBase + new Vector3(0f, 0f, 0f);
             return true;
         }
 
@@ -641,7 +918,7 @@ namespace ProjectName.Systems
             if (gm != null)
             {
                 foreach (var g in gm.GetAllPlayerGuards())
-                    if (g != null && g.IsRecruited)
+                    if (g != null && g.IsRecruited && IsIndoorResident(g))
                         allies.Add(g);
             }
 
@@ -655,12 +932,29 @@ namespace ProjectName.Systems
 
             // 침대 오브젝트 프리캐시(1..20)
             var beds = new Dictionary<int, Transform>();
+            int bedsFound = 0;
             for (int n = 1; n <= 20; n++)
             {
                 var bed = room.transform.Find($"BarrackBed_{n}");
-                if (bed != null) beds[n] = bed;
+                if (bed != null) { beds[n] = bed; bedsFound++; }
             }
 
+            // [43차 진단] 침대 0개 발견 = 스윕 무동작의 즉시 원인 — 로그로 노출(조용한 실패 차단).
+            if (bedsFound == 0)
+            {
+                Debug.LogWarning($"[TerritoryBuilder][침대진단] BarrackBed_* 0개 발견 — room 자식에서 침대 스캔 폴백 시도");
+                for (int n = 1; n <= 20; n++)
+                {
+                    var bed = GameObject.Find($"BarrackBed_{n}");
+                    if (bed != null) { beds[n] = bed.transform; bedsFound++; }
+                }
+                if (bedsFound == 0)
+                {
+                    Debug.LogWarning("[TerritoryBuilder][침대진단] 전역 스캔에도 0개 — 배럭 침대가 이 씬에 없음. 빌더 확인 필요");
+                }
+            }
+
+            int placed = 0;
             foreach (var g in allies)
             {
                 if (g.IndoorBedIndex > 0) continue;   // 이미 누워 있음 — 유지
@@ -671,9 +965,82 @@ namespace ProjectName.Systems
                     if (PlaceAllyOnBed(g.gameObject, bed, n))
                     {
                         used.Add(n);
+                        placed++;
                         break;
                     }
                 }
+            }
+            // [43차 진단] 스윕 결과 1회 요약 — "누움 자동화 작동 여부"를 로그로 즉명.
+            Debug.Log($"[TerritoryBuilder][침대진단] 스윕 완료 — 아군 {allies.Count}명 중 재취침 {placed}명, 침대 발견 {bedsFound}개");
+        }
+
+        /// <summary>[43차] 이 병사가 실내 침대 휴식 대상인가 — 출동 예약(역할 부여) 병사는 제외.</summary>
+        public static bool IsIndoorResident(GuardPlaceholder g)
+        {
+            if (g == null) return false;
+            var gts = GuardTaskSystem.Instance;
+            var task = gts != null ? gts.GetTask(g) : GuardTaskSystem.GuardTask.None;
+            return task == GuardTaskSystem.GuardTask.None;
+        }
+
+        /// <summary>
+        /// [43차] 침대 휴식 자가수리 스윕 — 실내 진입 3s 후 1회 + 이후 5s 간격 지속.
+        ///   누워 있지 않은(침대 미배치·기상 상태) 실내 아군을 자동 재취침시킨다.
+        ///   배치 UI의 의도 기상(IndoorMoveExempt) 병사는 제외 — "배치되면 움직일 수 있게" 보장.
+        ///   BedRestEnforcer 부재 = 누움 무효(누워 있다 해도 애니/AI가 덮어쓸 수 있음)로 간주해 재배치.
+        /// </summary>
+        private sealed class BedRestSelfRepair : MonoBehaviour
+        {
+            private GameObject _room;
+            private float _nextSweep;
+            private int _sweepCount;
+
+            public static void Ensure(GameObject room)
+            {
+                if (room == null) return;
+                var existing = room.GetComponent<BedRestSelfRepair>();
+                if (existing == null)
+                    existing = room.AddComponent<BedRestSelfRepair>();
+                existing._room = room;
+                existing._nextSweep = Time.time + 3f;   // 스윕·초기 배치 안착 후 1차 검증
+                Debug.Log("[TerritoryBuilder][침대진단] 자가수리 스윕 배선 — 3s 후 1차 검증, 이후 5s 간격");
+            }
+
+            private void Update()
+            {
+                // [44차] 플래그 게이트 제거 — 이 컴포넌트는 실내 Room 오브젝트에만 부착된다
+                //   (SpawnInteriorAlliedGuards 경로 보장). 전용 실내 테스트 씬(Test_PlayerCastleInterior)
+                //   처럼 IndoorActive를 세팅하지 않는 컨텍스트에서도 스윕이 누움 계약을 지킨다.
+                if (Time.time < _nextSweep) return;
+                _nextSweep = Time.time + 5f;
+                _sweepCount++;
+
+                int repaired = 0;
+                var gm = GuardManager.Instance;
+                if (gm == null) return;
+                foreach (var g in gm.GetAllPlayerGuards())
+                {
+                    if (g == null || !g.IsRecruited) continue;
+                    if (!IsIndoorResident(g)) continue;                    // 출동 예약/배지 병사 제외
+                    if (g.IndoorBedIndex > 0 && g.GetComponent<BedRestEnforcer>() != null) continue;   // 정상 누움
+
+                    // 누워 있지 않거나 강제자가 없음 → 재취침
+                    var bedGo = g.IndoorBedIndex > 0
+                        ? GameObject.Find($"BarrackBed_{g.IndoorBedIndex}")
+                        : null;
+                    bool done = false;
+                    if (bedGo != null)
+                        done = PlaceAllyOnBed(g.gameObject, bedGo.transform, g.IndoorBedIndex);
+                    if (!done)
+                    {
+                        // 침대 정보 유실 — 스윕으로 재배치(빈 침대 아무 데나)
+                        AssignBedsToAllIndoorAllies(_room);
+                        done = g.IndoorBedIndex > 0 && g.GetComponent<BedRestEnforcer>() != null;
+                    }
+                    if (done) repaired++;
+                }
+                if (repaired > 0)
+                    Debug.Log($"[TerritoryBuilder][침대진단] 자가수리 #{_sweepCount} — 재취침 {repaired}명");
             }
         }
 
@@ -739,7 +1106,8 @@ namespace ProjectName.Systems
         /// </summary>
         private void BuildGuardsAt(Transform parent, Vector3 center, TerritoryId territoryId, int guardCount, TerritoryDifficulty difficulty, NationType nation)
         {
-            int baseLevel = GetBaseGuardLevel(difficulty);
+            // 영지 난이도 프로필 — 문지기 레벨은 영지별 tier + 안정적 soldier-index(0..N-1)로 결정
+            var profile = TerritoryDifficultyProfileSystem.Resolve(territoryId.index, territoryId.nation, difficulty);
 
             // 성문 방향 (Empire 중심 0,0,0 기준 바깥쪽)
             Vector3 c2 = new Vector3(center.x, 0, center.z);
@@ -765,7 +1133,7 @@ namespace ProjectName.Systems
                 int tier = i / 2;
                 float lateral = 2f + tier * 2f;          // 2, 2, 4, 4 (문에서 ±2m, ±4m)
                 Vector3 p = gatePos + right * (sign * lateral);
-                int level = baseLevel + (i % 3);          // 레벨 분산
+                int level = profile.SelectGuardLevel(i);  // 프로필 레벨 (soldier-index 기반, 결정론)
                 // 성을 등지고 바깥(성문 바깥, 접근하는 전투원 방향)을 향함
                 CreateGuard($"GateGuard_{i + 1}", p, GetGuardName(nation), level, nation, parent, gateDir, difficulty);
             }
@@ -879,22 +1247,59 @@ namespace ProjectName.Systems
         /// 평시에는 문지기만 스폰되며, 이 API는 전쟁 시스템(TerritoryWarManager 등)이 호출할 목적으로 제공.
         /// </summary>
         public static System.Collections.Generic.List<GameObject> SpawnGarrison(TerritoryDefinition? def, Vector3 center)
+            => SpawnGarrisonCapped(def, center, int.MaxValue);
+
+        /// <summary>
+        /// 주둔군 스폰 — 최대 maxSpawn명만 실제 생성한다(영지 guardCount는 배치 원형 간격 계산에만 사용).
+        /// 같은 영지/같은 인덱스의 병사는 maxSpawn과 무관하게 동일 위치·레벨을 가진다(결정론).
+        /// </summary>
+        public static System.Collections.Generic.List<GameObject> SpawnGarrisonCapped(TerritoryDefinition? def, Vector3 center, int maxSpawn)
         {
             var spawned = new System.Collections.Generic.List<GameObject>();
-            if (def == null) return spawned;
+            if (def == null || maxSpawn <= 0) return spawned;
             var rng = new System.Random(def.Value.id.index + 7777); // 영지 인덱스 기반 고정 시드 (결정론)
             int count = Mathf.Max(1, def.Value.guardCount);
-            for (int i = 0; i < count; i++)
+            int toSpawn = Mathf.Min(count, maxSpawn);
+            var profile = TerritoryDifficultyProfileSystem.Resolve(def.Value.id.index, def.Value.id.nation, def.Value.difficulty);
+            for (int i = 0; i < toSpawn; i++)
             {
                 float angle = (i / (float)count) * Mathf.PI * 2f + (float)(rng.NextDouble() * 0.4 - 0.2);
                 float radius = 10f + (float)rng.NextDouble() * 10f;
                 Vector3 pos = center + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+                int level = profile.SelectGuardLevel(i);
                 var soldier = CreateGuard($"Garrison_{def.Value.nation}_{def.Value.id.index}_{i + 1}", pos,
-                    GetGuardName(def.Value.nation), GetBaseGuardLevel(def.Value.difficulty) + (i % 3), def.Value.nation, null, default, def.Value.difficulty);
+                    GetGuardName(def.Value.nation), level, def.Value.nation, null, default, def.Value.difficulty);
                 if (soldier != null) spawned.Add(soldier);
             }
-            Debug.Log($"[TerritoryBuilder] 주둔군 스폰: {def.Value.territoryName} {count}명");
+            Debug.Log($"[TerritoryBuilder] 주둔군 스폰: {def.Value.territoryName} {toSpawn}명 (정의 {count}명 중)");
             return spawned;
+        }
+
+        /// <summary>
+        /// AI 고용 병사 로스터 복원 전용: 영지 중심(def.worldPosition) 주변의 결정론 슬롯 위치에
+        /// 기존 CreateGuard 경로로 병사를 만들고, 저장 DTO(정체성/레벨/스탯)를 적용한다.
+        /// 전체 주둔군은 재생성하지 않는다. 생성 실패 시 null.
+        /// </summary>
+        public static GuardPlaceholder SpawnAIHiredGuard(TerritoryDefinition def, int slotIndex, AIHiredGuardSaveEntry entry)
+        {
+            if (entry == null) return null;
+
+            int slot = Mathf.Max(0, slotIndex);
+            float angle = slot * 2.39996323f;                 // 황금각 — 슬롯마다 고르게 분산 (결정론)
+            float radius = 10f + (slot % 5) * 2f;
+            Vector3 pos = def.worldPosition + new Vector3(Mathf.Cos(angle) * radius, 0f, Mathf.Sin(angle) * radius);
+
+            string goName = $"AIHire_{def.id}_{slot + 1}";
+            int level = Mathf.Max(1, entry.level);
+            string guardName = string.IsNullOrEmpty(entry.guardName) ? GetGuardName(def.nation) : entry.guardName;
+
+            GameObject go = CreateGuard(goName, pos, guardName, level, def.nation, null, default, def.difficulty);
+            if (go == null) return null;
+
+            var guard = go.GetComponent<GuardPlaceholder>();
+            if (guard == null) return null;
+            guard.ApplyPersistentRosterEntry(entry);   // 리롤 없이 정체성/스탯/HP 복원
+            return guard;
         }
 
         /// <summary>병사 클래스 랜덤 (레벨 무관): 40% 방패 / 30% 대검 / 30% 궁수</summary>
@@ -904,6 +1309,97 @@ namespace ProjectName.Systems
             if (r < 0.4) return "Shield";
             if (r < 0.7) return "GreatSword";
             return "Archer";
+        }
+
+        /// <summary>[51차] 표준 인간 키 — 병사+플레이어 전 씬 통일 목표(사용자 확정: 47차의 1.0m는 폐기,
+        ///   원래 크기인 1.8m로 모두 통일). 모든 정규화 호출부가 이 상수를 단일 사용.</summary>
+        public const float SoldierTargetHeight = 1.8f;
+
+        /// <summary>[47차→51차] 병사 높이를 목표치(SoldierTargetHeight=1.8m)로 등비 정규화 — 렌더러 bounds 실측 기반.
+        ///   스케일 경계: 피벗=발 가정 유지(발이 원점, 위로 성장 — 스케일 후 bounds.min.y가
+        ///   스케일된 만큼 하강하지 않는 피벗 구조지만, FBX에 따라 다를 수 있어 발 위치 재고정).
+        ///   3D 미리보기(RenderSoldierPreview)·플레이어 비주얼도 동일 헬퍼로 1.8m 확보.</summary>
+        public static void NormalizeSoldierHeight(GameObject go, float targetHeight, bool skinnedLocalBounds = true)
+        {
+            if (go == null || targetHeight <= 0.01f) return;
+            // [53차] 높이 실측을 포즈/FX 독립(MeasureStandingHeight)으로 교체 — 생성 직후 stale 월드 bounds와
+            //   트레일/파티클 렌더러 오염이 스케일을 왜곡한 뿌리 수리([키검증] 플레이어 4.01m 실측 근거).
+            //   [54차] 측정 모드 분리 — 병사 FBX는 localBounds(바인드 포즈)가 정밀(전원 1.80m 실측),
+            //   플레이어 모델은 localBounds가 골격 스케일 구조로 0.61m 오측(×2.95 폭발) → 플레이어 경로는
+            //   월드 bounds(FX 제외) 사용(검증된 1.16→×1.56→1.8m 체인 복원).
+            float h = MeasureStandingHeight(go, skinnedLocalBounds);
+            if (h <= 0.01f) return;
+            var rends = go.GetComponentsInChildren<Renderer>();
+            float prevFootY = 0f;
+            if (rends != null && rends.Length > 0)
+            {
+                Bounds b0 = rends[0].bounds;
+                foreach (var r in rends) b0.Encapsulate(r.bounds);
+                prevFootY = b0.min.y;                  // 스케일 전 발(최하점) 월드 y
+            }
+            float factor = targetHeight / h;
+            go.transform.localScale = go.transform.localScale * factor;
+            // 스케일 후 발 위치 재고정 — 월드 bounds 최하단을 스케일 전 값으로 복원(정밀 접지는 GroundModelToY 담당).
+            if (rends != null && rends.Length > 0)
+            {
+                Bounds b = rends[0].bounds;
+                foreach (var r in rends) b.Encapsulate(r.bounds);
+                go.transform.position += new Vector3(0f, prevFootY - b.min.y, 0f);
+            }
+            Debug.Log($"[TerritoryBuilder] 병사 크기 정규화 — {go.name} 높이 {h:F2}m → {targetHeight:F2}m (scale ×{factor:F2})");
+        }
+
+        /// <summary>[53차→54차] 포즈/FX 독립 키 실측 — SkinnedMeshRenderer는 localBounds(바인드 포즈)를
+        ///   localToWorldMatrix로 월드 변환해 합산(애니 포즈 무관), Trail/파티클/라인 렌더러는 제외
+        ///   (스윙 트레일 등 이펙트 AABB가 순간 수 미터로 부풀어 전체 측정을 오염).
+        ///   [54차] skinnedLocalBounds=false면 SkinnedMeshRenderer도 월드 bounds 사용 — 플레이어 모델은
+        ///   골격 스케일 구조 때문에 localBounds가 0.61m/7.91m로 오측되므로 월드 계열(1.16m 검증치)을 쓴다.</summary>
+        public static float MeasureStandingHeight(GameObject go, bool skinnedLocalBounds = true)
+        {
+            if (go == null) return 0f;
+            bool any = false;
+            float minY = float.MaxValue, maxY = float.MinValue;
+            foreach (var r in go.GetComponentsInChildren<Renderer>())
+            {
+                if (r is TrailRenderer || r is ParticleSystemRenderer || r is LineRenderer) continue;   // FX 렌더러 제외
+                if (skinnedLocalBounds && r is SkinnedMeshRenderer smr && smr.sharedMesh != null)
+                {
+                    var lb = smr.localBounds;                     // 바인드 포즈 로컬 AABB — 애니 포즈 무관
+                    var m = smr.transform.localToWorldMatrix;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        var corner = lb.center + new Vector3(((i & 1) == 0 ? 1 : -1) * lb.extents.x,
+                                                             ((i & 2) == 0 ? 1 : -1) * lb.extents.y,
+                                                             ((i & 4) == 0 ? 1 : -1) * lb.extents.z);
+                        var w = m.MultiplyPoint3x4(corner);
+                        if (w.y < minY) minY = w.y;
+                        if (w.y > maxY) maxY = w.y;
+                    }
+                    any = true;
+                }
+                else
+                {
+                    var b = r.bounds;                             // 일반 렌더러 — 월드 AABB
+                    if (b.min.y < minY) minY = b.min.y;
+                    if (b.max.y > maxY) maxY = b.max.y;
+                    any = true;
+                }
+            }
+            if (!any) return 0f;
+            return Mathf.Max(0f, maxY - minY);
+        }
+
+        /// <summary>[50차→51차] 1.8m 고정 계수만 반환하는 순수 함수형 래퍼 — 접지(위치)는 호출부 책임
+        ///   (TestTerritoryCombatSetup은 GroundModelToY를 이미 수행). NormalizeSoldierHeight와
+        ///   동일 측정(렌더러 bounds)이라 결과가 일치하며, 배율(GetSoldierSizeMultiplier)과 곱해 쓴다.</summary>
+        public static float NormalizeSoldierHeightFactor(GameObject go, float targetHeight)
+        {
+            if (go == null || targetHeight <= 0.01f) return 1f;
+            // [53차] 포즈/FX 독립 실측(MeasureStandingHeight) — stale 월드 bounds/이펙트 오염 배제.
+            float h = MeasureStandingHeight(go);
+            Debug.Log($"[117차 R4] 병사 키실측: {go.name} h={h:F2}m (목표 1.8m)");
+            if (h <= 0.01f) return 1f;
+            return targetHeight / h;
         }
 
         /// <summary>레벨 구간별 Humanoid FBX Resources 경로</summary>
@@ -937,7 +1433,12 @@ namespace ProjectName.Systems
                 // 피벗은 바닥 기준 가정 → 약간 띄워 지면 겹침 방지
                 float groundY = TerrainGenerator.GetHeightAt(position.x, position.z, BiomeType.Plains, 42) + 1f;
                 go.transform.position = new Vector3(position.x, groundY + 0.05f, position.z);
-                go.transform.localScale = Vector3.one;
+                // [51차 사용자 확정 — 키 1.8m 전 씬 통일] 47차의 1.0m 목표 폐기. 병사 FBX 원본 높이를 실측해
+                //   정확히 1.8m(표준 인간 키, SoldierTargetHeight)로 등비 스케일 — 임의 상수 스케일이 아니라
+                //   bounds 실측이라 어느 FBX 구간(lv1-20/20-40/40-50)이든 동일 결과. 플레이어 비주얼도
+                //   동일 상수로 1.8m 정규화(PlayerPlaceholder/TestPlayerAnimatorBoot/실내 테스트 씬) — 병사-플레이어 동일 키.
+                NormalizeSoldierHeight(go, targetHeight: SoldierTargetHeight);
+                go.transform.localScale = go.transform.localScale;   // (값 유지 — 위 헬퍼가 localScale 재계산)
                 Debug.Log($"[TerritoryBuilder] Humanoid FBX '{fbxKey}'로 '{name}' 생성 (클래스: {classKey}, Lv.{level})");
             }
 

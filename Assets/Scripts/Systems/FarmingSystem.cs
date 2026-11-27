@@ -207,6 +207,10 @@ namespace ProjectName.Systems
             int count = 1;
             inv.AddItem(PlayerInventory.Herb_Yakcho, count);
 
+            // [130차 후속] 이 메서드는 병사 자동 농경(GuardTaskSystem) 전용 경로 — 획득 연출(환호/카메라/GLB/패널)
+            //   미발동(사용자 확정 "병사 자동작업은 제외"). 플레이어 밭 수확은 FarmPlot 수확 채널 →
+            //   HerbPickup.Harvest 완료 콜백(환호+결과 publish) 경로로 연출 커버 — 이중 배선 금지.
+
             // 수확 후 밭 리셋 (soil ready) — 재파종 가능.
             comp.seedId = "";
             comp.plantTime = 0f;

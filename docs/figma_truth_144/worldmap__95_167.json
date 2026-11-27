@@ -1,0 +1,322 @@
+{
+ "id": "95:167",
+ "name": "medieval-world-map-ui",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 36226,
+ "ay": 3,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "#0B0E14/1.0"
+ ],
+ "strokeW": 1.2,
+ "layout": "VERTICAL",
+ "c": [
+  {
+   "id": "95:168",
+   "name": "MedievalWorldMapBackground",
+   "type": "RECTANGLE",
+   "x": null,
+   "y": null,
+   "ax": 36226,
+   "ay": 3,
+   "w": 1920.0,
+   "h": 1080.0,
+   "d": 1,
+   "fills": [
+    "IMAGE",
+    "#0B0E14/1.0@0.45"
+   ],
+   "strokeW": 1.2
+  },
+  {
+   "id": "97:5",
+   "name": "ParchmentTextureBackground",
+   "type": "RECTANGLE",
+   "x": null,
+   "y": null,
+   "ax": 36226,
+   "ay": 3,
+   "w": 1920.0,
+   "h": 1080.0,
+   "d": 1,
+   "fills": [
+    "IMAGE"
+   ],
+   "strokeW": 1.2,
+   "fx": [
+    "NOISE:0:#4D331A/0.149",
+    "TEXTURE:1.9200000762939453:None"
+   ]
+  },
+  {
+   "id": "95:169",
+   "name": "Line",
+   "type": "LINE",
+   "x": null,
+   "y": null,
+   "ax": 36730,
+   "ay": 483,
+   "w": 206.6,
+   "h": 96.4,
+   "d": 1,
+   "strokes": [
+    "#FF9E2C/1.0"
+   ],
+   "strokeW": 3.0
+  },
+  {
+   "id": "95:170",
+   "name": "Line",
+   "type": "LINE",
+   "x": null,
+   "y": null,
+   "ax": 36958,
+   "ay": 483,
+   "w": 244.8,
+   "h": 98.9,
+   "d": 1,
+   "strokes": [
+    "#58A6FF/1.0"
+   ],
+   "strokeW": 2.4
+  },
+  {
+   "id": "95:175",
+   "name": "HUDHeader",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36226,
+   "ay": 3,
+   "w": 1920.0,
+   "h": 76.8,
+   "d": 1,
+   "fills": [
+    "#0D1117/1.0@0.502"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "pl": 48.0,
+   "pr": 48.0,
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "95:176",
+     "name": "SystemGroup",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 36274,
+     "ay": 29,
+     "w": 298.6,
+     "h": 25.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 19.200000762939453,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "95:177",
+       "name": "세계 지도",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 36274,
+       "ay": 29,
+       "w": 85.0,
+       "h": 25.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "세계 지도",
+       "fontSize": 21.600000381469727,
+       "font": "Roboto 700 Bold",
+       "lineH": 25.3
+      },
+      {
+       "id": "95:178",
+       "name": "Divider",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 36378,
+       "ay": 32,
+       "w": 1.2,
+       "h": 19.2,
+       "d": 3,
+       "fills": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL"
+      },
+      {
+       "id": "95:179",
+       "name": "WORLD MAP SYSTEM",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 36399,
+       "ay": 32,
+       "w": 174.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "WORLD MAP SYSTEM",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 500 Medium",
+       "lineH": 18.3,
+       "letterSp": 1.2
+      }
+     ]
+    },
+    {
+     "id": "95:180",
+     "name": "CoordinatesGroup",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 37642,
+     "ay": 31,
+     "w": 456.0,
+     "h": 20.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 28.80000114440918,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "95:181",
+       "name": "CoordItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 37642,
+       "ay": 31,
+       "w": 190.6,
+       "h": 20.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "c": [
+        {
+         "id": "95:182",
+         "name": "현재 위치:",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 37642,
+         "ay": 31,
+         "w": 61.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "현재 위치:",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        },
+        {
+         "id": "95:183",
+         "name": "잊혀진 혹성 고원",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 37713,
+         "ay": 31,
+         "w": 120.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#39D353/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "잊혀진 혹성 고원",
+         "fontSize": 15.600000381469727,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 20.3
+        }
+       ]
+      },
+      {
+       "id": "95:184",
+       "name": "CoordItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 37861,
+       "ay": 31,
+       "w": 236.6,
+       "h": 20.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "c": [
+        {
+         "id": "95:185",
+         "name": "좌표:",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 37861,
+         "ay": 31,
+         "w": 30.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "좌표:",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        },
+        {
+         "id": "95:186",
+         "name": "X: 342.15 / Y: 890.41",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 37901,
+         "ay": 31,
+         "w": 197.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "X: 342.15 / Y: 890.41",
+         "fontSize": 15.600000381469727,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 20.3
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

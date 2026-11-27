@@ -22,6 +22,11 @@ namespace ProjectName.UI.Toolkit
         private int _segments = 96;
         private bool _dirty;
 
+        // [고스트 체력바 78차] 뒷줄(타격 흔적) 호 — opt-in: TrailFraction이 Fraction보다 클 때만 렌더
+        //   (미설정 사용처 BowAimReticleUTK는 1==1 → 픽셀 무변경).
+        private float _trailFraction = 1f;
+        private Color _trailColor = new Color(1f, 0.72f, 0.35f, 0.9f); // 따뜻한 주황 — 타격 흔적
+
         // [2026-10-10 opt-in 계약] 기본값 = P22-5 원형 — 기존 사용처(BowAimReticleUTK) 무변경.
         private float _thicknessFactor = 0.28f;                  // 링 두께(반지름 배수)
         private float _outerInset = 2f;                          // 링 외곽 → 엘리먼트 가장자리 여백(px)
@@ -72,6 +77,27 @@ namespace ProjectName.UI.Toolkit
             set { _fillColor = value; _dirty = true; }
         }
 
+        /// <summary>[고스트 체력바 78차→80차 정정] 뒷줄(타격 흔적) 호 값 — Fraction보다 클 때만 앞줄 뒤에 렌더.
+        /// 80차부터 앞줄과 동일 반지름/두께(구 ×1.22 돌출 폐기 — "원형에 맞지 않게 크기가 다르다" 사용자 지적).</summary>
+        public float TrailFraction
+        {
+            get => _trailFraction;
+            set
+            {
+                var v = Mathf.Clamp01(value);
+                if (Mathf.Abs(v - _trailFraction) < 0.001f) return;
+                _trailFraction = v;
+                _dirty = true;
+            }
+        }
+
+        /// <summary>[고스트 체력바 78차] 뒷줄 호 색 — 기본 따뜻한 주황(타격 흔적).</summary>
+        public Color TrailColor
+        {
+            get => _trailColor;
+            set { _trailColor = value; _dirty = true; }
+        }
+
         /// <summary>[Figma 23:6 opt-in] 링 두께 배수(반지름 기준). Figma donut innerRadius 0.8 → 0.2.</summary>
         public float ThicknessFactor
         {
@@ -117,6 +143,10 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
+        /// <summary>[84차] 크기 변경 통지 — resolvedStyle.width/height 변경만으로는 mesh가
+        /// 재생성되지 않으므로(렌더 캐시), 위치/크기 재배치 호출부가 dirty를 세팅한다.</summary>
+        public void NotifyResized() => _dirty = true;
+
         private void OnGenerateVisualContent(MeshGenerationContext mc)
         {
             float w = resolvedStyle.width, h = resolvedStyle.height;
@@ -128,6 +158,11 @@ namespace ProjectName.UI.Toolkit
             // 배경 링(전원) — 설정 색(기본 디머 / Figma 계약은 백색 저알파)
             if (_backgroundColor.a > 0.001f)
                 WriteRing(mc, midR, thickness, 1f, _backgroundColor);
+            // [고스트 체력바 78차→80차 정정] 뒷줄(타격 흔적) 호 — 앞줄과 동일 midR/두께(구 thickness×1.22 돌출 폐기:
+            // HUD 원형 게이지에서 주황 링이 앞 링보다 굵게 삐져나와 "두 줄 크기가 안맞다" 지적 — 2026-10-16 영상 실측).
+            // 같은 트랙 위 각도 갭(앞줄 끝~뒷줄 끝 사이 호)으로만 흔적을 표시하고, 겹친 구간은 아래 전경 링이 덮는다.
+            if (_trailFraction > _fraction + 0.001f)
+                WriteRing(mc, midR, thickness, _trailFraction, _trailColor);
             // 진행 arc 글로우 패스 — Figma DROP_SHADOW(오렌지 15.9px@0.5 + 5.3px@0.25) 모사
             if (_glowEnabled && _fraction > 0.001f)
             {

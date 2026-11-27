@@ -821,6 +821,9 @@ namespace ProjectName.UI
                         // Phase 8.3: 제작 성공 사운드
                         SoundManager.Instance?.PlaySFX("craft_success");
 
+                        // [133차-P2] 제작 성공 징글 — SFX_Acquire_Common(반2D). 실패 분기는 무음(추가 클립 없음).
+                        GatherFeedbackSystem.PlayAcquireJingle(0);
+
                         Debug.Log($"[CraftingUI] 조합 성공: {_slot1.displayName} + {_slot2.displayName} → {comboResult.resultName}");
 
                         // 슬롯 비우기
@@ -918,6 +921,9 @@ namespace ProjectName.UI
                                 // Phase 8.3: 제작 성공 사운드
                                 SoundManager.Instance?.PlaySFX("craft_success");
 
+                                // [133차-P2] 제작 성공 징글 — SFX_Acquire_Common(반2D). 실패 분기는 무음(추가 클립 없음).
+                                GatherFeedbackSystem.PlayAcquireJingle(0);
+
                                 Debug.Log($"[CraftingUI] 조합 성공 (displayName): {_slot1.displayName} + {_slot2.displayName} → {altCombo.resultName}");
 
                                 _slot1 = null;
@@ -1000,7 +1006,7 @@ namespace ProjectName.UI
 
             return new PlayerInventory.ItemData
             {
-                id = $"combo_{combo.resultName}",
+                id = combo.resultId,
                 displayName = combo.resultName,
                 description = combo.effect,
                 category = category,

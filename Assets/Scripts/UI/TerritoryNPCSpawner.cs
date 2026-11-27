@@ -110,6 +110,9 @@ namespace ProjectName.UI
             var behaviour = npcGO.AddComponent<TerritoryNPCBehaviour>();
             behaviour.Initialize(npc);
 
+            // [2026-10-15] 자율 판단 브레인 부착 — 신규 주민은 스폰 즉시 AI 보유(멱등, 병사/몬스터는 내부 가드로 제외).
+            ProjectName.Systems.NPCBrain.EnsureOn(npcGO);
+
             // Try to load real NPC GLB model
             string npcKey = GetNPCKey(npc);
             if (RuntimeModelLoader.TryGetModel(npcKey, out var npcModel))
@@ -279,6 +282,11 @@ namespace ProjectName.UI
         /// </summary>
         private static string GetNPCKey(NPCInstance npc)
         {
+            // [63차] 전용 GLB 우선 — 상점 NPC/영주 NPC는 타입 순환이 아니라 전용 GLB(NPC_Shop/Npc_Lord).
+            if (npc.IsShopNPC) return "npc_shop_rigged";
+            string idLower = (npc.NpcId ?? string.Empty).ToLowerInvariant();
+            if (idLower.Contains("lord") || idLower.Contains("king")) return "npc_lord_rigged";
+
             // Use npcIndex to cycle through NPC visual types
             string[] npcTypes = { "Man1", "Man2", "Girl1", "Girl2", "Girl3", "Oldman1", "Oldman2" };
             string npcType = npcTypes[npc.NpcIndex % npcTypes.Length];

@@ -114,7 +114,7 @@ namespace ProjectName.Core.Data
                             // Not checking ContainsKey — last combo for a pair wins, which is intentional
                             _combos[key] = new HerbComboResult
                             {
-                                resultId = $"combo_{info1.id}_{info2.id}", // placeholder
+                                resultId = MakeComboId(info1.id, info2.id),
                                 resultName = resultName,
                                 description = $"{herb1} + {herb2} 의 결과물",
                                 effect = effect
@@ -135,6 +135,14 @@ namespace ProjectName.Core.Data
         {
             // Order-independent key
             return string.CompareOrdinal(id1, id2) < 0 ? $"{id1}_{id2}" : $"{id2}_{id1}";
+        }
+
+        /// <summary>결정론 조합 아이템 id — 사전순 재료쌍 결합 (예: combo_A1_P2). 순서 무관.</summary>
+        public static string MakeComboId(string herbId1, string herbId2)
+        {
+            return string.CompareOrdinal(herbId1, herbId2) < 0
+                ? $"combo_{herbId1}_{herbId2}"
+                : $"combo_{herbId2}_{herbId1}";
         }
 
         /// <summary>

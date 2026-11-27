@@ -31,7 +31,10 @@ namespace ProjectName.Systems
             Crop_Carrot,    // 당근
             Crop_Corn,      // 옥수수
             Crop_Pumpkin,   // 호박
-            Crop_Radish     // 무
+            Crop_Radish,    // 무
+
+            // 야생 꽃 ([126차] 들꽃 — 영주 딸 선물 재료, 씨앗 없음)
+            Flower_Wild     // 들꽃
         }
 
         [Header("설정")]
@@ -54,6 +57,12 @@ namespace ProjectName.Systems
         private float _harvestTime = 0f;
         private Renderer _renderer;   // C5-17: 반투명 효과용
         private Material _materialCopy; // 렌더러 재질 복사본
+
+        // [133차] 타격 피드백 구독 플래그 — GatherChannelSystem.OnImpact 구독 상태(중복 구독/누수 방지).
+        private bool _impactSubscribed;
+
+        // [153차 P2] 채널 시작 시 캐시한 플레이어 클립 드라이버 — 타격 리듬마다 Gather 동작 재발화용.
+        private HumanoidClipDriver _gatherDriverCache;
 
         // Rig animation (플레이어의 RigAnimationController)
         private RigAnimationController _playerRigAnim;
@@ -86,6 +95,7 @@ namespace ProjectName.Systems
             (HerbType.Crop_Corn,   PlayerInventory.Crop_Corn),
             (HerbType.Crop_Pumpkin, PlayerInventory.Crop_Pumpkin),
             (HerbType.Crop_Radish,  PlayerInventory.Crop_Radish),
+            (HerbType.Flower_Wild,  PlayerInventory.Flower_Wild),   // [126차] 들꽃 — 꽃 노드 채집 아이템
         };
 
         private PlayerInventory.ItemData GetItemData()
@@ -133,6 +143,7 @@ namespace ProjectName.Systems
                 case HerbType.Crop_Corn:   return PlayerInventory.Crop_CornSeed;
                 case HerbType.Crop_Pumpkin: return PlayerInventory.Crop_PumpkinSeed;
                 case HerbType.Crop_Radish:  return PlayerInventory.Crop_RadishSeed;
+                case HerbType.Flower_Wild:  return null;   // [126차] 꽃은 씨앗 없음 — TryRollSeedDrop에서 선제 차단
                 default:              return PlayerInventory.Seed_Red;
             }
         }
@@ -143,6 +154,13 @@ namespace ProjectName.Systems
         /// </summary>
         private static bool TryRollSeedDrop(HerbType herbType, out PlayerInventory.ItemData seed, out float chance)
         {
+            // [126차] 들꽃은 씨앗이 없다 — 드랍 판정 자체를 생략(항상 false, 씨앗 지급 없음).
+            if (herbType == HerbType.Flower_Wild)
+            {
+                seed = null;
+                chance = 0f;
+                return false;
+            }
             bool isRare = herbType == HerbType.Silver || herbType == HerbType.Green;
             chance = isRare ? SeedDropChanceRare : SeedDropChanceCommon;
             seed = SeedItemForCrop(herbType);
@@ -236,6 +254,20 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // [133차] 타격 이벤트 구독 관리 — ResourceNode와 동일 패턴(싱글턴 생성 타이밍 회피 위해 Update 매 프레임 판정).
+            //   _isHarvested 이른 반환보다 앞에 둬 채널 종료 직후 해제 누락 방지.
+            bool isChannelTarget = GatherChannelSystem.Instance.ActiveTarget == transform;
+            if (isChannelTarget && !_impactSubscribed)
+            {
+                GatherChannelSystem.Instance.OnImpact += OnChannelImpact;
+                _impactSubscribed = true;
+            }
+            else if (!isChannelTarget && _impactSubscribed)
+            {
+                GatherChannelSystem.Instance.OnImpact -= OnChannelImpact;
+                _impactSubscribed = false;
+            }
+
             // C5-17: 채집 불가 상태일 때 반투명 표시
             if (_isHarvested)
             {
@@ -273,6 +305,16 @@ namespace ProjectName.Systems
             return GatherChannelSystem.Instance.IsActive;
         }
 
+        /// <summary>[133차] 채널 타격 이벤트 핸들러 — 채널 진행 중 리듬 타격마다 약초 채집 피드백(사운드+잎 파티클).</summary>
+        private void OnChannelImpact()
+        {
+            if (this == null || _isHarvested) return;   // [133차] 파괴/수확 완료 방어(Unity fake-null 포함).
+            // [153차 P2] 타격 리듬마다 Gather 동작 재시작 — 채널 리듬 동작 유지(상태 재발화, 가드 우회 목적 아님).
+            _gatherDriverCache?.ReplayAction("Gather");
+            GatherFeedbackSystem.PlayImpact(GatherFeedbackKind.Herb,
+                transform.position + Vector3.up * 1f);   // [133차] ResourceNode와 동일 오프셋 패턴.
+        }
+
         /// <summary>채널 시작 — 완료 시 Harvest() 호출. 이동 시 시스템이 취소해 습득 안 됨.</summary>
         private void BeginHarvestChannel()
         {
@@ -281,6 +323,10 @@ namespace ProjectName.Systems
                 transform,
                 Harvest,
                 GatherChannelSystem.DefaultChannelSeconds);
+            // [129차] 채널 시작 직후 채집 애니(Gather) 발화 — L309 선례 패턴
+            var gatherDriver = _player != null ? (_player.GetComponent<HumanoidClipDriver>() ?? _player.GetComponentInChildren<HumanoidClipDriver>()) : null;
+            gatherDriver?.TriggerGather();
+            _gatherDriverCache = gatherDriver;   // [153차 P2] 타격 리듬 재발화용 캐시(시작 시 1회).
         }
 
         private void Harvest()
@@ -301,6 +347,8 @@ namespace ProjectName.Systems
                 if (variant == 0) clipDriver.TriggerHarvest();
                 else if (variant == 1) clipDriver.TriggerHarvestObject();
                 else clipDriver.TriggerHarvestPickUp();
+                // [129차] 채널형 성공 — Gather→Cheer 즉시 전이
+                clipDriver.TriggerCheer();
             }
 
             int yield = UnityEngine.Random.Range(_minYield, _maxYield + 1);
@@ -451,6 +499,16 @@ namespace ProjectName.Systems
             Color c = _materialCopy.color;
             c.a = alpha;
             _renderer.material.color = c;
+        }
+
+        private void OnDestroy()
+        {
+            // [133차] 이벤트 구독 해제 — static 싱글턴 이벤트에 파괴된 약초 핸들러 잔존(메모리 누수) 방지.
+            if (_impactSubscribed)
+            {
+                GatherChannelSystem.Instance.OnImpact -= OnChannelImpact;
+                _impactSubscribed = false;
+            }
         }
 
         private void OnDrawGizmosSelected()

@@ -24,7 +24,9 @@ namespace ProjectName.Systems
             {
                 var go = new GameObject("[TimeManager]");
                 Instance = go.AddComponent<TimeManager>();
-                DontDestroyOnLoad(go);
+                // [QA 수리] EditMode 테스트 GetOrCreate 경로 DDOL 예외 방지 — Play 동작 불변
+                if (Application.isPlaying)
+                    DontDestroyOnLoad(go);
             }
             return Instance;
         }
@@ -40,7 +42,10 @@ namespace ProjectName.Systems
         [SerializeField] private bool _verbose;
 
         // ===== 상태 =====
-        private float _gameTime;
+        // [134차 B-2] 낮 시작(Hour 8) — 기본 0=자정은 밤이라 게임 시작 직후 [133차-P3] 밤 귀가
+        // 홀드가 즉시 발동(프로브 전원 "speed=0.0 state=Idle moved=0.00m" 실측 = 정상 동작의 밤 홀드).
+        // 걷기 코드 정상 — 문제는 "시작 시각이 밤"이라는 체감이므로 초기 시각만 낮으로 수리.
+        private float _gameTime = 8f * 3600f;
         private int _currentDay;
         private int _lastHour = -1;
         private int _lastMinute = -1;
@@ -152,6 +157,9 @@ namespace ProjectName.Systems
         public event Action OnNightStart;
         public event Action OnDayStart;
 
+        /// <summary>[A2 이계] 월드 시간 동결 — true 동안 Update 조기 반환(게임시간/일차/주야 이벤트 전부 정지). 귀환 시 false 복원.</summary>
+        public static bool IsTimeFrozen { get; set; }
+
         // ===== 싱글톤 =====
 
         private void Awake()
@@ -164,7 +172,13 @@ namespace ProjectName.Systems
             }
 
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            // [134차 B-2] 시작 시각 실측 로그(1회 — 생존 인스턴스 Awake에서만) — 밤 시작 여부 즉시 판별용.
+            Debug.Log($"[134차 B-2] 게임 시작 시각 — {Hour}시");
+
+            // [QA 수리] EditMode 테스트에서 GetOrCreate가 Awake를 실행 — DontDestroyOnLoad는 Play 전용이라
+            // 편집기에서 InvalidOperationException을 던져 테스트 전체가 OneTimeSetUp 실패. Play 동작 불변.
+            if (Application.isPlaying)
+                DontDestroyOnLoad(gameObject);
 
             _lastHour = Hour;
             _lastMinute = Minute;
@@ -183,7 +197,21 @@ namespace ProjectName.Systems
 
         private void Update()
         {
+            // [A2 이계] 시간 동결 게이트 — 이계 생존 중 월드 게임시간 완전 정지
+            // (OnDayStart 미발화 → 급료/공물/배신/자정 판정 전부 안전. 사용자 지시: 귀환 후 변동 없음)
+            if (IsTimeFrozen) return;
+
             GameTime = _gameTime + Time.deltaTime * _timeScale;
+
+            // [63-B] 환경 상태이상 — 밤+비+젖음 → 저체온(갱신형 15s).
+            // 허기는 PlayerStatusEffectSystem.TickHunger 내부 적산이 담당 — 이중 발동 금지(계획서 §4#6).
+            if (IsNight
+                && WeatherManager.Instance != null
+                && WeatherManager.Instance.CurrentWeather == WeatherManager.WeatherType.Rain   // [63-B] 내첩 enum 한정
+                && PlayerStatusEffectSystem.IsWet)
+            {
+                PlayerStatusEffectSystem.AddEffect(StatusEffectId.Hypothermia, 15f);
+            }
 
             // 시간/분 변경 감지
             int currentHour = Hour;

@@ -390,6 +390,21 @@ namespace ProjectName.Systems
         /// </summary>
         private void MoveNPCToShelter(GameObject npcGo, Transform shelter, string weatherKey)
         {
+            // [2026-10-15] NPCBrain 보유 시 이동 위임 — 텔레포트 폐지, 걸어서 은신(단일 이동 소유자 = 브레인).
+            var brain = npcGo.GetComponent<NPCBrain>();
+            if (brain != null)
+            {
+                Vector3 shelterEntrance = shelter.position + (shelter.forward * 2f);
+                if (brain.RequestExternalMove(shelterEntrance))
+                {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    Debug.Log($"[NPCWeatherBehavior] {npcGo.name} → {shelter.name} (브레인 위임, 날씨: {weatherKey})");
+#endif
+                    return;
+                }
+                // 위임 실패(비활성 등) → 아래 기존 경로 폴백
+            }
+
             UnityEngine.AI.NavMeshAgent agent = npcGo.GetComponent<UnityEngine.AI.NavMeshAgent>();
             if (agent != null && agent.isActiveAndEnabled && agent.isOnNavMesh)
             {

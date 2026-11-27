@@ -51,8 +51,12 @@ namespace ProjectName.Tests.EditMode
         public void F1_Builder_WiresQualityLayers_AfterScalePass()
         {
             string src = System.IO.File.ReadAllText(BuilderPath);
-            int timber = src.IndexOf("AddTimberWallFrame(room, GetTopologyWalls()", System.StringComparison.Ordinal);
-            int band = src.IndexOf("AddWallStoneLowerBands(room, GetTopologyWalls()", System.StringComparison.Ordinal);
+            // [2026-10-14 Phase 4] 레이아웃 인식 계약 — 토폴로지 벽은 선택 정의에서 한 번 얻은
+            //   로컬(topologyWalls)을 소비한다(기준형 정적 래퍼 GetTopologyWalls() 호출부 금지).
+            Assert.That(src, Does.Contain("WallLayout[] topologyWalls = layoutDefinition.GetWalls();"),
+                "토폴로지 벽은 선택 정의(InteriorLayoutDefinition)의 GetWalls에서 얻어야 한다.");
+            int timber = src.IndexOf("AddTimberWallFrame(room, topologyWalls,", System.StringComparison.Ordinal);
+            int band = src.IndexOf("AddWallStoneLowerBands(room, topologyWalls,", System.StringComparison.Ordinal);
             int straw = src.IndexOf("AddStrawFloorDecals(room)", System.StringComparison.Ordinal);
             Assert.That(timber, Is.GreaterThanOrEqualTo(0), "D3 팀버 호출부.");
             Assert.That(band, Is.GreaterThan(timber), "석재 밴드는 팀버(스케일 패스 후) 다음에 호출.");
@@ -250,8 +254,12 @@ namespace ProjectName.Tests.EditMode
         public void H1_Builder_WiresTopCaps_AfterStrawDecals()
         {
             string src = System.IO.File.ReadAllText(BuilderPath);
+            // [2026-10-14 Phase 4] 레이아웃 인식 계약 — 톱 캡도 선택 정의에서 한 번 얻은
+            //   로컬(topologyWalls)을 소비한다(기준형 정적 래퍼 GetTopologyWalls() 호출부 금지).
+            Assert.That(src, Does.Contain("WallLayout[] topologyWalls = layoutDefinition.GetWalls();"),
+                "토폴로지 벽은 선택 정의(InteriorLayoutDefinition)의 GetWalls에서 얻어야 한다.");
             int straw = src.IndexOf("AddStrawFloorDecals(room)", System.StringComparison.Ordinal);
-            int caps = src.IndexOf("AddWallTopCaps(room, GetTopologyWalls()", System.StringComparison.Ordinal);
+            int caps = src.IndexOf("AddWallTopCaps(room, topologyWalls,", System.StringComparison.Ordinal);
             int wear = src.IndexOf("AddFloorWearStamps(room)", System.StringComparison.Ordinal);
             Assert.That(caps, Is.GreaterThan(straw), "벽 캡은 스케일 패스 후(최종 좌표) 짚 데칼 다음 호출.");
             Assert.That(wear, Is.GreaterThan(caps), "마모 스탬프도 스케일 패스 후(최종 좌표) 호출.");
@@ -358,10 +366,13 @@ namespace ProjectName.Tests.EditMode
         public void H4_Lighting_PointLightShadows_Disabled()
         {
             string src = System.IO.File.ReadAllText(LightingPath);
-            Assert.That(src, Does.Contain("light.shadows = LightShadows.None"),
-                "포인트라이트 실시간 섀도우 OFF — 저해상도 큐브 섀도우 디더링 제거.");
-            Assert.That(src, Does.Not.Contain("light.shadows = LightShadows.Soft"),
-                "Soft 섀도우 잔존 금지(재추가 시 디더링 재발).");
+            // [125차 후속35-R] 계약 갱신 — 포인트라이트 기본 None 유지(H4 디더링 계약 존중).
+            //   선택적 Soft는 softShadows 파라미터 게이트로만 진입(기존 호출부 전부 None 유지).
+            //   아레나 방향광(ArenaFillSun/ArenaPit_Sun) Soft는 별도 계약(후속35-R P1) — 본 파일 범위 외.
+            Assert.That(src, Does.Contain("LightShadows.None"),
+                "포인트라이트 기본 섀도우 OFF — 저해상도 큐브 섀도우 디더링 제거.");
+            Assert.That(src, Does.Contain("softShadows ? LightShadows.Soft : LightShadows.None"),
+                "선택적 Soft는 파라미터 게이트 — 기본 None 계약 유지(기존 호출부 무영향).");
         }
 
         // ======================================================================

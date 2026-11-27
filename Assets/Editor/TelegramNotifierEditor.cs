@@ -22,13 +22,8 @@ namespace ProjectName.Editor
                             $"Unity: {Application.unityVersion}\n" +
                             $"플랫폼: {Application.platform}";
 
-            TelegramNotifier.SendMessage(message, (success, error) =>
-            {
-                if (success)
-                    Debug.Log("[Telegram] 테스트 메시지 전송 성공");
-                else
-                    Debug.LogError($"[Telegram] 테스트 메시지 전송 실패: {error}");
-            });
+            TelegramNotifier.SendMessage(message);
+            Debug.Log("[Telegram] 테스트 메시지 전송 요청 완료 (결과는 콘솔에서 확인)");
         }
 
         [MenuItem(MenuPath + "빌드 완료 알림 전송", false, 101)]
@@ -40,13 +35,8 @@ namespace ProjectName.Editor
                             $"빌드 타겟: {EditorUserBuildSettings.activeBuildTarget}\n" +
                             $"시간: {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
 
-            TelegramNotifier.SendMessage(message, (success, error) =>
-            {
-                if (success)
-                    Debug.Log("[Telegram] 빌드 완료 알림 전송 성공");
-                else
-                    Debug.LogError($"[Telegram] 빌드 완료 알림 실패: {error}");
-            });
+            TelegramNotifier.SendMessage(message);
+            Debug.Log("[Telegram] 빌드 완료 알림 전송 요청 완료 (결과는 콘솔에서 확인)");
         }
 
         [MenuItem(MenuPath + "에러 알림 테스트", false, 102)]
@@ -56,13 +46,8 @@ namespace ProjectName.Editor
                             $"이것은 테스트용 에러 알림입니다.\n" +
                             $"시간: {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
 
-            TelegramNotifier.SendMessage(message, (success, error) =>
-            {
-                if (success)
-                    Debug.Log("[Telegram] 에러 테스트 알림 전송 성공");
-                else
-                    Debug.LogError($"[Telegram] 에러 테스트 알림 실패: {error}");
-            });
+            TelegramNotifier.SendMessage(message);
+            Debug.Log("[Telegram] 에러 테스트 알림 전송 요청 완료 (결과는 콘솔에서 확인)");
         }
 
         [MenuItem(MenuPath + "설정 파일 열기", false, 200)]

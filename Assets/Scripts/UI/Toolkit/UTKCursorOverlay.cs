@@ -29,6 +29,11 @@ namespace ProjectName.UI.Toolkit
         private int _lastSelectionCount = -1;
         private bool _lastCtrlHeld;
 
+        // [168-P2] 활 조준 정합 — 리티클(BowAimReticleUTK)이 단일 소스로 위임한 구간 홀드.
+        //   리티클 표시/릴리즈 핀 동안 커서 자체 16ms 추적 쓰기를 억제해 두 경로의 차이가 노출되지 않게 함.
+        private static bool _alignHoldActive;
+        private static float _alignHoldUntil;
+
         public static UTKCursorOverlay Ensure()
         {
             var root = UIToolkitBootstrap.UIRoot;
@@ -93,6 +98,12 @@ namespace ProjectName.UI.Toolkit
             var screen = mouse.position.ReadValue();
             float scale = root.worldBound.width / (float)Screen.width;
             if (scale <= 0f) scale = 1f;
+
+            // [168-P2] 활 조준 정합 — 리티클(단일 소스: ScreenToPanel+WorldToLocal)이 AlignCenterToScreenPoint로
+            //   위치를 위임한 홀드 구간에서는 수동 스케일 수식 쓰기를 생략(경로 이중화 어긋남 방지).
+            if (_alignHoldActive && Time.unscaledTime < _alignHoldUntil) return;
+            _alignHoldActive = false;
+
             float px = screen.x * scale;
             float py = root.worldBound.height - screen.y * scale;
 
@@ -103,6 +114,22 @@ namespace ProjectName.UI.Toolkit
             // [P25-B] 기본 숨김 게이트 — 16ms(빠른 응답)로 갱신. Ctrl 홀드(컨텍스트 아이콘)
             //   또는 UI 호버(화살표 반투명)에서만 표시. 활 드로 중엔 리티클이 대체하므로 숨김.
             UpdateVisibility();
+        }
+
+        /// <summary>[168-P2] 활 조준 정합 — BowAimReticleUTK.PositionAtScreenPoint가 산출한 루트로컬
+        ///   조준점을 커서 오버레이 중심에도 적용해 두 요소가 같은 픽셀에 겹치게 한다. 리티클 경로
+        ///   (RuntimePanelUtils.ScreenToPanel + root.WorldToLocal)가 단일 소스; 커서의 수동 스케일 수식
+        ///   (worldBound.width/Screen.width + 수동 Y플립)은 루트 오프셋/비균등 스케일에서 드리프트하므로
+        ///   드로/릴리즈 핀 구간엔 리티클 값을 그대로 쓴다. UI.Toolkit 내부 호출이라 직접 호출 가능
+        ///   (Systems→UI 역전 없음). 홀드는 드로 16ms 틱마다 갱신 + 릴리즈 핀 1회 → 페이드 400ms 커버.</summary>
+        public static void AlignCenterToScreenPoint(Vector2 rootPoint)
+        {
+            if (_instance == null || _instance.panel == null) return;
+            _alignHoldActive = true;
+            _alignHoldUntil = Time.unscaledTime + 0.5f;   // [168-P2] 드로 틱 갱신 + 릴리즈 페이드(400ms) 커버
+            _instance.style.left = rootPoint.x - Size * 0.5f;   // 아이콘 중심 = 리티클 중심(동일 픽셀)
+            _instance.style.top = rootPoint.y - Size * 0.5f;
+            _instance.BringToFront();
         }
 
         /// <summary>[P25-B → 2026-10-11 수리] 표시 조건: ①Ctrl 홀드 or ②UI 호버 or ③상호작용 대상 호버
@@ -139,6 +166,7 @@ namespace ProjectName.UI.Toolkit
                 case HoverTargetClassifier.TargetKind.Monster:
                 case HoverTargetClassifier.TargetKind.EnemyGuard:
                 case HoverTargetClassifier.TargetKind.NPC:
+                case HoverTargetClassifier.TargetKind.TrainingHall:
                     return true;
                 default:
                     return false;
@@ -205,6 +233,7 @@ namespace ProjectName.UI.Toolkit
                 case HoverTargetClassifier.TargetKind.NPC:      SetIcon(_interact); break;
                 case HoverTargetClassifier.TargetKind.Door:     SetIcon(_door); break;
                 case HoverTargetClassifier.TargetKind.Cook:     SetIcon(_cook); break;
+                case HoverTargetClassifier.TargetKind.TrainingHall: SetIcon(_interact); break;   // [125차] 훈련소 — interact 아이콘 재사용
                 case HoverTargetClassifier.TargetKind.Shop:     SetIcon(_shop); break;
                 // 폴백 적 태그(보스 등) → 공격
                 case HoverTargetClassifier.TargetKind.Enemy:    SetIcon(_attack); break;

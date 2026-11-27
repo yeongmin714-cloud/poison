@@ -23,12 +23,41 @@ namespace ProjectName.Systems
         // 싱글톤
         public static FishingSystem Instance { get; private set; }
 
+        // [144차 D2-FISH] 상호작용 패널(UI) 폴링용 상태 — Systems→UI 역참조 금지(asmdef 단방향)라
+        //   InteractionPanelUTK 측 250ms 폴링이 읽는다. 물가 근접 && 낚시 중 아님 → 163:4 패널 개방.
+        public static bool ShouldShowFishingPanel { get; private set; }
+        public static Transform PanelAnchor { get; private set; }
+
+        /// <summary>[144차 D2-FISH] 패널 "낚시하기" 버튼 → 낚시 시작 요청.
+        /// 물가 근접을 여기서 재검증한다(이탈 후 클릭 방지 — 근접 판정 단일소스 IsNearWater).</summary>
+        public static void RequestStartFromPanel()
+        {
+            if (Instance == null)
+            {
+                Debug.LogWarning("[FishingSystem] 패널 시작 요청 — FishingSystem 인스턴스 부재");
+                return;
+            }
+            if (!Instance.IsNearWater())
+            {
+                Debug.Log("[FishingSystem] 패널 시작 요청 무시 — 물가 근접 상태 아님(이탈 후 클릭)");
+                return;
+            }
+            Instance.TryStartFishing();
+        }
+
         // 상태
         private bool _isFishing;
         private bool _isWaitingForBite;
         private bool _isMinigameActive;
         private Transform _player;
         private Coroutine _waitCoroutine;
+
+        // [133차] 낚시 사운드 3포인트(출조 착수/입질/리일 성공) 공용 발화 위치.
+        //         시스템에 물 좌표(보빙) 필드가 없어 플레이어 위치 + forward 1.5m 폴백 사용(계획문 계약 — 주석 명시).
+        private Vector3 _castPoint;
+
+        // [무번호 74-F1] 낚시 라인·찌 비주얼 — 훅 위임 전용(낚시 로직 무손상). 수명은 비주얼 자관리 + 훅에서 null 정리.
+        private FishingLineVisual _lineVisual;
 
         // 미니게임 내부 상태 (FishingUI에서 읽음 — 레거시 1바 핀 호환 유지)
         private float _pinPosition;
@@ -71,6 +100,7 @@ namespace ProjectName.Systems
         // 팝업
         private string _popupMessage = "";
         private float _popupTimer;
+        private bool _canHintShown;   // [158차 P2] 물가 진입 사전 힌트 1회 가드 — 물가 이탈 시 리셋
 
         // ===== 공개 프로퍼티 =====
 
@@ -147,27 +177,61 @@ namespace ProjectName.Systems
             {
                 bool nearWater = IsNearWater();
                 Transform anchor = _player != null ? _player : transform;
-                // 물가에서 낚시 가능 → 공용 E 프롬프트 표시(등록), 아니면 해제.
-                if (nearWater)
-                    EInteractionPromptBridge.RaiseRegister(anchor, "E키를 눌러 상호작용", _waterCheckRange);
-                else
-                    EInteractionPromptBridge.RaiseUnregister(anchor);
+                // [144차 D2-FISH] 피그마 163:4 — E 빌보드 대신 상호작용 패널(InteractionPanelUTK.Fishing) 사용.
+                //   Systems→UI 역참조 금지(asmdef 단방향)라 UI 측 250ms 폴링이 이 상태를 읽어 개방/해제한다.
+                //   E키 단축 경로는 유지(패널 버튼과 병행 — 기존 입력 계약 보존).
+                ShouldShowFishingPanel = nearWater;
+                PanelAnchor = anchor;
 
-                // 물가에서 E키 → 낚시 시작
+                // [158차 P2] 물가 진입 사전 힌트 — 물뿌리개 소지+물 부족 시 1회 안내(사용자 예시 문구 계약).
+                //   물가 이탈 시 가드 리셋 → 재진입 시 재표출. R키 안내 포함(패널 없이도 입력 경로 인지 가능).
+                if (nearWater)
+                {
+                    if (WateringCanSystem.HasCan() && !WateringCanSystem.HasWater(WateringCanSystem.Max))
+                    {
+                        if (!_canHintShown)
+                        {
+                            _canHintShown = true;
+                            PlayerNotify.Notify("물뿌리개에 물을 담으시오. (R키)");
+                        }
+                    }
+                }
+                else
+                {
+                    _canHintShown = false;
+                }
+
+                // [26차 Phase 4 → 158차 P2] 물뿌리개 소지 + 물 부족 → 물가에서 R키 물담기 채널 (낚시 E키 무영향).
+                //   [158차 P2] 3케이스 피드백 — 소지 무/가득/시작 전부 대화 패널 표출(상호작용불가=피드백 필수 계약).
+                if (nearWater && Input.GetKeyDown(KeyCode.R))
+                {
+                    if (!WateringCanSystem.HasCan())
+                        PlayerNotify.Notify("물뿌리개가 없다.");
+                    else if (WateringCanSystem.HasWater(WateringCanSystem.Max))
+                        PlayerNotify.Notify("물뿌리개가 가득 찼다.");
+                    else
+                    {
+                        BeginCanRefill();
+                        return;
+                    }
+                }
+
+                // 물가에서 E키 → 낚시 시작 (패널 "낚시하기" 버튼과 동일 동작)
                 if (Input.GetKeyDown(KeyCode.E) && nearWater)
                     TryStartFishing();
 
                 return;
             }
 
-            // 낚시 중 → 프롬프트 해제 (FishingUTK 창이 대신 표시)
-            EInteractionPromptBridge.RaiseUnregister(_player != null ? _player : transform);
+            // 낚시 중 → 근접 패널 해제 (FishingUTK 창이 대신 표시) [144차 D2-FISH]
+            ShouldShowFishingPanel = false;
 
             // 낚시 중: 미니게임 핀 업데이트
             if (_isMinigameActive)
             {
                 UpdatePinMovement();
                 UpdateReelSim();
+                _lineVisual?.UpdateTension(_reelTension, _reelProgress);   // [무번호 74-F2] 릴 긴장 시각화
             }
 
             // E키로 낚시 종료
@@ -202,6 +266,32 @@ namespace ProjectName.Systems
             return false;
         }
 
+        // ===== 물뿌리개 물담기 [26차 Phase 4 — docs/FARM_UPGRADE_PLAN.md] =====
+
+        /// <summary>물가에서 물뿌리개 물담기 채널 시작 — 완료 시 저장량 20/20 충전. UI 배치는 사용자 차후 수정.</summary>
+        private void BeginCanRefill()
+        {
+            bool ok = GatherChannelSystem.Instance.Begin(
+                _player, () =>
+                {
+                    WateringCanSystem.Refill();
+                    // [158차 P2] 충전 완료 피드백 — 대화 패널 표출(26차 계약 승계).
+                    PlayerNotify.Notify("물뿌리개에 물을 가득 담았다.");
+                }, WateringCanSystem.RefillChannelSeconds);
+            if (ok)
+            {
+                PlayerNotify.Notify("물뿌리개에 물을 담는 중…");
+                Debug.Log("[FishingSystem] 💧 물뿌리개 물담기 채널 시작 (2초)");
+            }
+        }
+
+        /// <summary>[133차] 낚시 사운드 발화 위치 폴백 — 플레이어 위치 + forward 1.5m(물 좌표 필드 부재).</summary>
+        private Vector3 ResolveCastPoint()
+        {
+            Transform t = _player != null ? _player : transform;
+            return t.position + t.forward * 1.5f;
+        }
+
         // ===== 낚시 시작/종료 =====
 
         /// <summary>낚시 시작 시도</summary>
@@ -222,6 +312,20 @@ namespace ProjectName.Systems
             _isFishing = true;
             _isWaitingForBite = true;
             _waitCoroutine = StartCoroutine(WaitForBite());
+
+            // [165b차] 낚싯대 손장착 — 출조 직후 오른손 GLB 홀드(무기 장착 중이면 Hold 내부 Unequip 위임, 기존 계약).
+            ItemHoldManager.Hold("fishing_rod", _player);
+
+            // [133차] ① 출조(캐스팅) 착수 순간 — 물 튐 사운드(shake 없음). 물가 E키 진입 직후이므로
+            //         착수 좌표는 물 좌표 필드가 없어 폴백 위치(플레이어 + forward 1.5m)로 발화.
+            _castPoint = ResolveCastPoint();
+            GatherFeedbackSystem.PlayImpact(GatherFeedbackKind.FishCast, _castPoint, shake: false);
+
+            // [무번호 74-F1] 출조 라인·찌 생성 — owner는 플레이어 우선(ResolveCastPoint·Update의 _player 폴백 선례 준용).
+            //   잔존 비주얼 선행 정리(레거시 TryCatch 인라인 경로의 미해제분 방어) 후 재생성.
+            _lineVisual?.Release();
+            _lineVisual = null;
+            _lineVisual = FishingLineVisual.BeginCast(_player != null ? _player : transform, _castPoint);
         }
 
         /// <summary>낚시 종료</summary>
@@ -236,6 +340,13 @@ namespace ProjectName.Systems
             _isFishing = false;
             _isWaitingForBite = false;
             _isMinigameActive = false;
+
+            // [무번호 74-F1] 낚시 종료 — 라인·찌 즉시 해제.
+            _lineVisual?.Release();
+            _lineVisual = null;
+
+            // [165b차] 낚시 종료 — 홀드 중 낚싯대만 해제(중간 무기 장착 등 타 홀드 보존).
+            UnholdRodIfHeld();
         }
 
         /// <summary>ESC 키 등 외부에서 낚시 취소 (FishingUI → 호출)</summary>
@@ -255,6 +366,11 @@ namespace ProjectName.Systems
 
             _isWaitingForBite = false;
             _isMinigameActive = true;
+
+            // [133차] ② 입질 순간 — 물 튐 + 졸음 방지 알림 역할(shake: true). 위치는 출조 착수 지점 재사용
+            //         (보빙이 그 자리에 떠 있다는 전제 — 실측 좌표 필드 부재).
+            GatherFeedbackSystem.PlayImpact(GatherFeedbackKind.FishBite, _castPoint, shake: true);
+            _lineVisual?.OnBite();   // [무번호 74-F1] 입질 — 찌 숨임 펄스 + 잔물결
 
             // 미니게임 초기화 — [32차] 입질 순간 등급 확정 → 난이도 파라미터 반영
             _pendingTier = RollFishingTier();
@@ -323,11 +439,18 @@ namespace ProjectName.Systems
             if (_reelTension >= 1f)
             {
                 // 라인 끊김 — 실패
+                _lineVisual?.PlaySnap();   // [무번호 74-F3] 라인 스냅 반동
+                _lineVisual = null;
                 FinishMinigame(false);
             }
             else if (_reelProgress >= 1f)
             {
                 // 다 당김 — 성공
+                // [133차] ③ 리일 100% 성공 — 물 튐 사운드(출조 착수와 같은 위치, shake 없음).
+                //         획득 징글은 HarvestResultBridge.Publish 경유(다른 브랜치)로 자동 재생 — 여기서 중복 배선 금지.
+                GatherFeedbackSystem.PlayImpact(GatherFeedbackKind.FishCast, _castPoint, shake: false);
+                _lineVisual?.PlayCatch();   // [무번호 74-F3] 물기둥 낚아올리기
+                _lineVisual = null;
                 FinishMinigame(true);
             }
         }
@@ -340,6 +463,13 @@ namespace ProjectName.Systems
             _isFishing = false;
             _reelProgress = 0f;
             _reelTension = 0f;
+
+            // [무번호 74-F1] 라인·찌 정리 — 성공/실패 소비 경로 외 잔존분(레거시 경로 등) 방어 해제.
+            _lineVisual?.Release();
+            _lineVisual = null;
+
+            // [165b차] 미니게임 종료 — 홀드 중 낚싯대만 해제(타 홀드 보존).
+            UnholdRodIfHeld();
 
             if (_waitCoroutine != null)
             {
@@ -355,6 +485,8 @@ namespace ProjectName.Systems
                 if (fish != null)
                 {
                     PlayerInventory.Instance.AddItem(fish, 1);
+                    // [130차] 낚시 성공 → 환호 애니(플레이어 전용). 카메라/손 GLB/대화 패널은 AcquisitionCinema.
+                    TriggerCheerIfPlayer();
                     ShowPopup($"{fish.displayName}(을)를 낚았습니다!");
                     // [F3] 공용 결과 팝업 — Figma fishing-result-ui 템플릿
                     HarvestResultBridge.Publish(
@@ -397,12 +529,17 @@ namespace ProjectName.Systems
                 _waitCoroutine = null;
             }
 
+            // [165b차] 잡기 종료 — 홀드 중 낚싯대만 해제(타 홀드 보존).
+            UnholdRodIfHeld();
+
             if (success)
             {
                 var fish = GetRandomFish();
                 if (fish != null)
                 {
                     PlayerInventory.Instance.AddItem(fish, 1);
+                    // [130차] 낚시 성공 → 환호 애니(플레이어 전용). 카메라/손 GLB/대화 패널은 AcquisitionCinema.
+                    TriggerCheerIfPlayer();
                     ShowPopup($"{fish.displayName}(을)를 낚았습니다!");
                     // [F3] 공용 결과 팝업 — Figma fishing-result-ui 템플릿
                     HarvestResultBridge.Publish(
@@ -421,6 +558,12 @@ namespace ProjectName.Systems
             {
                 ShowPopup("물고기가 도망갔습니다!");
             }
+        }
+
+        /// <summary>[165b차] 낚시 종료 — 홀드 중이 낚싯대일 때만 해제(중간 무기 장착 등 타 홀드 보존).</summary>
+        private static void UnholdRodIfHeld()
+        {
+            if (ItemHoldManager.HeldModelKey == "fishing_rod") ItemHoldManager.Unhold();
         }
 
         // ===== 확률 보정 아이템 획득 =====
@@ -466,6 +609,15 @@ namespace ProjectName.Systems
         }
 
         /// <summary>입질 시 확정된 등급의 물고기 반환 — [32차] 성공 시점 재추첨 폐지(난이도-보상 정합).</summary>
+        /// <summary>[130차] 낚시 성공 환호 — 플레이어 HumanoidClipDriver 탐색 후 TriggerCheer(발화 가드는 드라이버).</summary>
+        private static void TriggerCheerIfPlayer()
+        {
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null) return;
+            var driver = player.GetComponent<HumanoidClipDriver>() ?? player.GetComponentInChildren<HumanoidClipDriver>();
+            if (driver != null) driver.TriggerCheer();
+        }
+
         private PlayerInventory.ItemData GetRandomFish()
         {
             return FishCatalog.GetRandomFishItem(_pendingTier);

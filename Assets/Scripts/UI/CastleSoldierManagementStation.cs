@@ -26,6 +26,14 @@ namespace ProjectName.UI
 
             _isPlayerNearby = (transform.position - _player.transform.position).sqrMagnitude <=
                               _interactRange * _interactRange;
+
+            // [43차] 공용 E 월드 프롬프트 — 기존 IMGUI OnGUI 박스(GUI.Box)를 월드 빌보드로 대체
+            //   (33차 프롬프트와 동일 메커니즘 — 임의 등록 경로 사용).
+            if (_isPlayerNearby)
+                ProjectName.Systems.EInteractionPromptBridge.RaiseRegister(transform, $"[E] {_stationName}", _interactRange);
+            else
+                ProjectName.Systems.EInteractionPromptBridge.RaiseUnregister(transform);
+
             if (_isPlayerNearby && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
                 OpenSoldierManagement();
         }

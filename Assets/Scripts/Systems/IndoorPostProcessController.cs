@@ -30,6 +30,7 @@ namespace ProjectName.Systems
         public const float WhiteBalanceTemperature = 15f;  // 상한 18 — 웜 쉬프트
         public const float ColorSaturation = 6f;        // 상한 8
         public const float ColorContrast = 8f;          // 상한 8
+        public const float PostExposure = 0.15f;        // [125차 후속36 A2] 로비 노출 미세 상향(영상15 판독)
 
         private Volume _volume;
         private bool _gateIndoor;
@@ -77,7 +78,15 @@ namespace ProjectName.Systems
             var color = profile.Add<ColorAdjustments>(true);
             color.saturation.Override(ColorSaturation);
             color.contrast.Override(ColorContrast);
-            color.postExposure.Override(0f);
+            // [125차 후속36 A2] 노출 +0.15 — 로비 다소 어둠(영상15 f_002 판독) 미세 상향.
+            //   앰비언트/광원 강도는 후속7/8 계약 유지 — 후처리 노출만. 톤 상한 계약 갱신 문서화.
+            color.postExposure.Override(PostExposure);
+
+            // [125차 후속35-R P2-1] ACES 토너매핑 — 하이라이트 롤오프로 촛불/횃불 글로가 자연화.
+            //   톤 상한 계약(F4) 확장: 기존 Bloom/Vignette/WhiteBalance/ColorAdjustments 값 불변,
+            //   ACES 모드 고정만 추가(강도 파라미터 없음 — 상한 영향 0).
+            var tonemapping = profile.Add<Tonemapping>(true);
+            tonemapping.mode.Override(TonemappingMode.ACES);
 
             return profile;
         }

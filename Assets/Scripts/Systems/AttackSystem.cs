@@ -69,13 +69,16 @@ namespace ProjectName.Systems
             // [폭탄] 이번 프레임 이미 폭탄 투척 → 일반 공격 금지 (PlayerCombat과 순서 무관)
             if (BombArmController.BombThrowIssuedThisFrame)
                 return;
-            // [폭탄] 무장 상태 — 일반 공격 대신 좌클릭으로 폭탄 투척 (게이트)
+            // [폭탄] 무장 상태 — [189차] 투척은 PlayerCombat 릴리즈 경로로 이관(press=조준/release=투척).
+            //   여기서는 무장 중 일반 공격 차단만 유지(GetKeyDown 즉발 투척 제거 — 이중 투척 방지).
             if (BombArmController.Instance != null && BombArmController.Instance.IsArmed)
             {
-                if (Input.GetKeyDown(_attackKey))
-                    BombArmController.Instance.ThrowTowardCursor();
                 return;
             }
+
+            // [무번호 86-P3] 승마 중 — 좌클릭은 말 발길질(HorseMountSystem)이 소비, 검격 억제
+            if (HorseMountSystem.IsMounted)
+                return;
 
             // 공격 키 확인 (설정 가능)
             if (!Input.GetKeyDown(_attackKey))

@@ -117,6 +117,7 @@ namespace ProjectName.UI.Toolkit
             public static readonly Color Danger   = Hex(0xF85149);   // danger 톤
             public static readonly Color RankEpic = Hex(0xA371F7);   // epic 퍼플 — 중독/상태 라인
             public static readonly Color Health   = Hex(0x3FB950);   // GitHub success green — HP 게이지(건강색)
+            public static readonly Color SysStable = Hex(0x56E39F);  // [Figma 84:73] SYS_EQ_STABLE — [144차 P1-EQ B11] #3FB950→#56E39F
 
             private static Color Hex(uint rgb) =>
                 new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
@@ -155,12 +156,13 @@ namespace ProjectName.UI.Toolkit
             EquipmentManager.EquipmentSlot.Ring, EquipmentManager.EquipmentSlot.Necklace
         };
         private static readonly string[] _equipNames = { "투구", "갑옷", "무기", "신발", "장갑", "방패", "방독면", "가방", "반지", "목걸이" };
-        private readonly Label[] _inventoryCellLabels = new Label[40];
+        private VisualElement[] _equippedIconHosts = new VisualElement[10];   // [144차 P1-EQ B27] EP 셀 아이콘 호스트(38.4 중앙 — 툴팁=아이템명)
+        private readonly UTKSlot[] _inventoryPackCells = new UTKSlot[25];     // [144차 P0-② B37] 전술 배낭 25셀 — UTKSlot(TierStrip/Count 내장)
         private VisualElement _inventoryPackGrid;
         private VisualElement _inventoryPackScroll;
 
-        // [P3 Figma] CoreStatsGrid 4행 라벨 — 값은 FinalAttackDamage/FinalDefense/HPBase/FinalMoveSpeed
-        private static readonly string[] _coreStatNames = { "공격", "방어", "최대체력", "민첩" };
+        // [144차 P1-CSP #34] Figma 83:45 라벨 문구 — 괄호 단위 표기 포함.
+        private static readonly string[] _coreStatNames = { "공격력 (ATK)", "방어력 (DEF)", "최대 체력 (HP)", "민첩성 (AGI)" };
 
         // ===== 갱신 대상 레퍼런스 =====
         private Label _pendingLabel;
@@ -289,6 +291,9 @@ namespace ProjectName.UI.Toolkit
 
             _equipmentPanel = BuildPanel("EquipmentPanel", EquipmentPanelLocalBounds);
             _content.Add(_equipmentPanel);
+            // [144차 P0-① B7] EP 코너 데칼 4개(84:56~67) — 14.4×14.4 L자 #58A6FF 1.8, [144차 P0 V1] 공용 어휘.
+            //   인벤 창(144차 P1-INV)·아이템 설명창 선례와 동일 outsideCorner:false(코너 안쪽 걸침) — EP 임베드 패널 전용, CSP 본체 무관.
+            UTKTheme.AddCornerDecals(_equipmentPanel, 14.4f, 1.8f, "#58A6FF", outsideCorner: false);
             var equipmentScroll = new ScrollView(ScrollViewMode.Vertical);
             equipmentScroll.name = "EquipmentScrollView";
             equipmentScroll.style.width = new Length(100f, LengthUnit.Percent);
@@ -314,7 +319,7 @@ namespace ProjectName.UI.Toolkit
             panel.style.height = bounds.height;
             panel.style.flexDirection = FlexDirection.Column;
             panel.style.overflow = Overflow.Hidden;
-            UTKTheme.ApplyFigmaGlass(panel);   // [Figma 글래스] #161B22@0.85(사용자 조정) + #30363D@0.5 1.2px + r14.4
+            UTKTheme.ApplyFigmaGlass(panel);   // [Figma 글래스] #161B22@0.702([144차 P0 V8] D1 전 창 통일) + #30363D@0.5 1.2px + r14.4 — [144차 P1-EQ B4] EP 글래스 실효앰파 0.702 정합(주석 갱신)
             panel.style.paddingLeft = panel.style.paddingRight = 24f;
             panel.style.paddingTop = panel.style.paddingBottom = 24f;   // [Figma] 패널 pad 24
             return panel;
@@ -356,28 +361,46 @@ namespace ProjectName.UI.Toolkit
             left.style.flexDirection = FlexDirection.Column;
             _statusContent.Add(left);
 
-            // ── [Figma] IdentityRow: live title/level badges; no character-name source is mapped ──
-                        var identity = new VisualElement();
-            identity.name = "IdentityRow";
-            identity.style.flexDirection = FlexDirection.Row;
-            identity.style.alignItems = Align.Center;
-            identity.style.height = 85f;   // [Figma Identity 528×85] 흐름 체인 유지 — Portrait 200.2 착좌
+            // ── [144차 P0-CSP #14] CharacterIdentitySection 카드 83:28 — 528×84, #FFFFFF@0.02, r9.6, pad 14.4, gap 7.2 ──
+            //   RarityText 83:30(14.4/700 #BC8CFF) + ClassType 83:31(14.4/400 #8B949E 우측). CharacterName 83:32은
+            //   데이터 위조 금지 계약으로 의도 생략 유지(주석 L387). Lv.- 배지는 게임 전용 요소(보존, 기록).
+            var identity = new VisualElement();
+            identity.name = "CharacterIdentitySection";
+            identity.style.height = 84f;
+            identity.style.flexShrink = 0;
+            identity.style.flexDirection = FlexDirection.Column;
+            identity.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.02f));
+            identity.style.borderTopLeftRadius = identity.style.borderTopRightRadius = 9.6f;
+            identity.style.borderBottomLeftRadius = identity.style.borderBottomRightRadius = 9.6f;
+            identity.style.paddingLeft = identity.style.paddingRight = 14.4f;
+            identity.style.paddingTop = identity.style.paddingBottom = 14.4f;
             left.Add(identity);
 
-            _identityTitleLabel = MkLabel(GetTitleDisplay(), UTKTheme.FontRowLabel, GitHubDark.Gold, TextAnchor.MiddleLeft);   // [Figma] 15.6/700(등급색 유지)
-            _identityTitleLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            StyleBadge(_identityTitleLabel);
-            identity.Add(_identityTitleLabel);
+            var identityRow1 = new VisualElement { name = "IdentityRow" };
+            identityRow1.style.flexDirection = FlexDirection.Row;
+            identityRow1.style.alignItems = Align.Center;
+            identity.Add(identityRow1);
 
-            _identityLevelLabel = MkLabel("Lv.-", UTKTheme.FontRowLabel, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [Figma] 15.6/700
+            _identityTitleLabel = MkLabel(GetTitleDisplay(), 14.4f, new Color32(0xBC, 0x8C, 0xFF, 0xFF), TextAnchor.MiddleLeft);   // [144차 P1-CSP #15] 14.4/700 #BC8CFF(등급 퍼플)
+            _identityTitleLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            identityRow1.Add(_identityTitleLabel);
+
+            _identityLevelLabel = MkLabel("Lv.-", UTKTheme.FontRowLabel, GitHubDark.Accent, TextAnchor.MiddleLeft);   // 게임 전용 배지(Figma 부재 — 보존)
             _identityLevelLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _identityLevelLabel.style.marginLeft = 6f;
             StyleBadge(_identityLevelLabel);
-            identity.Add(_identityLevelLabel);
+            identityRow1.Add(_identityLevelLabel);
 
             var identitySpacer = new VisualElement();
             identitySpacer.style.flexGrow = 1f;
-            identity.Add(identitySpacer);
+            identityRow1.Add(identitySpacer);
+
+            // [144차 P0-CSP #16] ClassType 83:31 — 14.4/400 #8B949E 우측 배치. 플레이어 클래스 데이터 소스 부재 →
+            //   실데이터 바인딩 불가(데이터 위조 금지) — 플레이스홀더 "클래스: —" 표기(기록).
+            var classType = MkLabel("클래스: —", 14.4f, GitHubDark.TextSub, TextAnchor.MiddleRight);
+            classType.name = "ClassType";
+            classType.style.marginTop = 7.2f;
+            identity.Add(classType);
 
             // No character-name source exists in this owner; do not invent an identity value.
 
@@ -387,6 +410,8 @@ namespace ProjectName.UI.Toolkit
             viewport.AddToClassList("utk-slot");
             ApplyDarkSlotStyle(viewport);   // [GitHub-dark] 우드 배경 제거 → 다크 인셋 패널
             viewport.style.height = 312f;   // [Figma Portrait 528×312]
+            viewport.style.borderTopLeftRadius = viewport.style.borderTopRightRadius = 9.6f;   // [144차 P1-CSP #19] r6→9.6 (공용 ApplyDarkSlotStyle 무수정 — 요소 단위 override)
+            viewport.style.borderBottomLeftRadius = viewport.style.borderBottomRightRadius = 9.6f;
             var vpLabel = MkLabel("3D 미리보기", UTKTheme.FontBody, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [Figma] 14.4/400
             viewport.Add(vpLabel);
             left.Add(viewport);
@@ -399,18 +424,18 @@ namespace ProjectName.UI.Toolkit
             hpOverlay.style.right = 1f;
             hpOverlay.style.top = 1f;
             hpOverlay.style.height = 44.8f;
-            hpOverlay.style.backgroundColor = new StyleColor(new Color32(0x0B, 0x0E, 0x14, 0xD9));   // 반투명 최배경
+            // [144차 P1-CSP #21] HudOvelay 83:35 — fills 없음(투명). 추가 배경판 제거.
             hpOverlay.style.flexDirection = FlexDirection.Row;
             hpOverlay.style.alignItems = Align.Center;
             hpOverlay.style.paddingLeft = 14.4f;
             hpOverlay.style.paddingRight = 14.4f;
             viewport.Add(hpOverlay);
 
-            var portraitHint = MkLabel("3D 미리보기", 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var portraitHint = MkLabel("3D 미리보기", 12, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [144차 P1-CSP #22] 색 #58A6FF (텍스트는 실데이터 힌트 유지)
             portraitHint.style.flexGrow = 1f;
             hpOverlay.Add(portraitHint);
 
-            _portraitHpLabel = MkLabel("-", 12, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            _portraitHpLabel = MkLabel("-", 12, GitHubDark.Accent, TextAnchor.MiddleRight);   // [144차 P1-CSP #23] 색 #58A6FF (텍스트는 실데이터 — 위조 금지)
             hpOverlay.Add(_portraitHpLabel);
 
             var portraitHpTrack = new VisualElement();
@@ -437,10 +462,16 @@ namespace ProjectName.UI.Toolkit
             portraitHpTrack.Add(_portraitHpFill);
 
             // ── [Figma Stats 528×157.8] 좌 LevelBlock 120(세로: LEVEL/레벨/EXP) + 우 CoreStatsGrid ──
+            // ── [144차 P0-CSP #25] StatsSection 카드 83:38 — 528×174.4, #FFFFFF@0.012, r9.6, pad 14.4, gap 19.2 ──
             var statsRow = new VisualElement { name = "StatsSection" };
             statsRow.style.flexDirection = FlexDirection.Row;
             statsRow.style.marginTop = 19.2f;
             statsRow.style.flexShrink = 0f;
+            statsRow.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.012f));
+            statsRow.style.borderTopLeftRadius = statsRow.style.borderTopRightRadius = 9.6f;
+            statsRow.style.borderBottomLeftRadius = statsRow.style.borderBottomRightRadius = 9.6f;
+            statsRow.style.paddingLeft = statsRow.style.paddingRight = 14.4f;
+            statsRow.style.paddingTop = statsRow.style.paddingBottom = 14.4f;
             left.Add(statsRow);
 
             var levelBlock = new VisualElement { name = "LevelBlock" };
@@ -449,35 +480,36 @@ namespace ProjectName.UI.Toolkit
             levelBlock.style.flexDirection = FlexDirection.Column;
             levelBlock.style.alignItems = Align.Center;
             levelBlock.style.justifyContent = Justify.Center;
-            levelBlock.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
-            levelBlock.style.borderTopLeftRadius = 8f;
-            levelBlock.style.borderTopRightRadius = 8f;
-            levelBlock.style.borderBottomLeftRadius = 8f;
-            levelBlock.style.borderBottomRightRadius = 8f;
-            levelBlock.style.marginRight = 24f;
+            levelBlock.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.02f));   // [144차 P1-CSP #27] #21262D→#FFFFFF@0.02
+            levelBlock.style.borderTopLeftRadius = levelBlock.style.borderTopRightRadius = 7.2f;   // [144차 P1-CSP #27] r8→7.2
+            levelBlock.style.borderBottomLeftRadius = levelBlock.style.borderBottomRightRadius = 7.2f;
+            levelBlock.style.marginRight = 19.2f;   // [144차 P1-CSP #25] 카드 내부 gap 19.2
             statsRow.Add(levelBlock);
 
-            var lvCaption = MkLabel("LEVEL", UTKTheme.FontBadge, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [Figma] 12/400
+            var lvCaption = MkLabel("LEVEL", 13.2f, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [144차 P1-CSP #28] 12→13.2/500근사
             lvCaption.style.unityFontStyleAndWeight = FontStyle.Normal;
             levelBlock.Add(lvCaption);
             _levelBlockValueLabel = MkLabel("1", UTKTheme.FontBigNumber, GitHubDark.Accent, TextAnchor.MiddleCenter);   // [Figma] 38.4/800 #58A6FF
             _levelBlockValueLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             levelBlock.Add(_levelBlockValueLabel);
-            _expPercentLabel = MkLabel("EXP 0%", UTKTheme.FontSubtitle, GitHubDark.Gold, TextAnchor.MiddleCenter);   // [Figma] 13.2/500
+            _expPercentLabel = MkLabel("EXP 0%", 12f, GitHubDark.SysStable, TextAnchor.MiddleCenter);   // [144차 P1-CSP #30] 13.2/500 Gold→12/400 #56E39F
+            _expPercentLabel.style.unityFontStyleAndWeight = FontStyle.Normal;
             _expPercentLabel.style.marginTop = 6f;
             levelBlock.Add(_expPercentLabel);
 
             var coreGrid = new VisualElement { name = "CoreStatsGrid" };
             coreGrid.style.flexGrow = 1f;
-            coreGrid.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
-            coreGrid.style.borderTopLeftRadius = 8f;
-            coreGrid.style.borderTopRightRadius = 8f;
-            coreGrid.style.borderBottomLeftRadius = 8f;
-            coreGrid.style.borderBottomRightRadius = 8f;
-            coreGrid.style.paddingLeft = coreGrid.style.paddingRight = 14.4f;
-            coreGrid.style.paddingTop = coreGrid.style.paddingBottom = 12f;
+            // [144차 P1-CSP #31] CoreStatsGrid 83:43 — pad 없음·배경 없음 (추가 배경판/패딩 제거, 카드는 StatsSection이 담당)
             statsRow.Add(coreGrid);
 
+            // [144차 P1-CSP #36] 값 색 다색 — Figma 83:46/50/54/58: ATK #58A6FF / DEF #F0F6FC / HP #FF7B72 / AGI #F2C94C
+            var coreValueColors = new Color32[]
+            {
+                GitHubDark.Accent,                                   // 공격력
+                GitHubDark.TextMain,                                 // 방어력
+                new Color32(0xFF, 0x7B, 0x72, 0xFF),                 // 최대 체력
+                new Color32(0xF2, 0xC9, 0x4C, 0xFF),                 // 민첩성
+            };
             for (int i = 0; i < _coreStatNames.Length; i++)
             {
                 var row = new VisualElement();
@@ -487,19 +519,13 @@ namespace ProjectName.UI.Toolkit
 
                 var name = MkLabel(_coreStatNames[i], UTKTheme.FontRowLabel, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 15.6/500
                 name.name = "CoreStat_" + new[] { "Attack", "Defense", "MaxHealth", "Agility" }[i];
-                name.style.width = 72f;
+                // [144차 P1-CSP #37] 라벨 폭 자동(고정 72 제거) + 세로 구분선 제거(Figma에 없음)
+                name.style.flexGrow = 1f;
                 row.Add(name);
 
-                var vsep = new VisualElement();   // 이름 | 값 세로 구분선
-                vsep.style.width = 1f;
-                vsep.style.height = 12f;
-                vsep.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
-                vsep.style.marginRight = 10f;
-                row.Add(vsep);
-
-                _coreValueLabels[i] = MkLabel("-", UTKTheme.FontRowValue, GitHubDark.Accent, TextAnchor.MiddleRight);   // [Figma] 16.8/700 #58A6FF
+                _coreValueLabels[i] = MkLabel("-", UTKTheme.FontRowValue, coreValueColors[i], TextAnchor.MiddleRight);   // [Figma] 16.8/700 다색
                 _coreValueLabels[i].style.unityFontStyleAndWeight = FontStyle.Bold;
-                _coreValueLabels[i].style.flexGrow = 1f;
+                _coreValueLabels[i].style.flexGrow = 1.2f;
                 row.Add(_coreValueLabels[i]);
 
                 coreGrid.Add(row);
@@ -507,7 +533,7 @@ namespace ProjectName.UI.Toolkit
                 {
                     var hsep = new VisualElement();   // [Figma] 행 사이 라인(전후 gap 9.6)
                     hsep.style.height = 1f;
-                    hsep.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
+                    hsep.style.backgroundColor = new StyleColor(UTKTheme.GlassPanelStroke);   // [144차 P1-CSP #38] #2E343D→#30363D@0.502
                     hsep.style.marginTop = 9.6f;
                     hsep.style.marginBottom = 9.6f;
                     coreGrid.Add(hsep);
@@ -517,6 +543,7 @@ namespace ProjectName.UI.Toolkit
             // ── [Figma] SpecialStatsSection "특수 상태" 게이지 2개 ──
             AddSep(left, 12f, 10f);
             _figSpecialSection = new VisualElement { name = "SpecialStatsSection" };
+            _figSpecialSection.AddToClassList("special-gauge-root");   // [144차] Q 조회 경로 확보 — 클래스 미부여 시 폴백 워크가 _statusContent를 반환하는 잠재버그 수리
             _figSpecialSection.style.flexDirection = FlexDirection.Column;
             var specialTitle = MkLabel("특수 상태", UTKTheme.FontTab, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 14.4/700 #8B949E
             specialTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -543,13 +570,10 @@ namespace ProjectName.UI.Toolkit
             _statusPanel.style.top = 72f;
             _statusPanel.style.width = 576f;
             _statusPanel.style.height = 936f;
-            _statusPanel.style.backgroundColor = new StyleColor(UTKTheme.GlassPanelFill);   // [Figma 글래스 0.85]
-            _statusPanel.style.borderTopWidth = _statusPanel.style.borderBottomWidth = 1.2f;
-            _statusPanel.style.borderLeftWidth = _statusPanel.style.borderRightWidth = 1f;
-            _statusPanel.style.borderTopColor = _statusPanel.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
-            _statusPanel.style.borderLeftColor = _statusPanel.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            // [144차 P1-CSP #2/#3/#5] 패널 크롬은 BuildPanel의 Figma 글래스(#161B22@0.702 + #30363D@0.502 1.2 4면 균일 + r14.4)와
+            //   pad 24 전면을 그대로 상속 — 구체 override(0.85·좌우 1.0·pt/pb 18) 제거.
             _statusPanel.style.paddingLeft = _statusPanel.style.paddingRight = 24f;
-            _statusPanel.style.paddingTop = _statusPanel.style.paddingBottom = 18f;
+            _statusPanel.style.paddingTop = _statusPanel.style.paddingBottom = 24f;
 
             if (_statusCloseButton != null) _statusCloseButton.RemoveFromHierarchy();
             var title = new VisualElement { name = "CharacterStatusTitleGroup" };
@@ -560,9 +584,9 @@ namespace ProjectName.UI.Toolkit
             title.style.height = 52.8f;
             title.style.flexDirection = FlexDirection.Row;
             title.style.alignItems = Align.Center;
-            var titleText = MkLabel("상태 정보", 21.6f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            var titleText = MkLabel("상태 정보", 24f, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [144차 P1-CSP #9] 21.6→24
             title.Add(titleText);
-            var subtitle = MkLabel("CHARACTER STATUS", 12f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            var subtitle = MkLabel("CHARACTER STATUS", 13.2f, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [144차 P1-CSP #10] 12→13.2
             subtitle.style.marginLeft = 12f;
             title.Add(subtitle);
             var close = new Button(Close) { name = "StatusCloseButton", text = "×" };
@@ -571,13 +595,27 @@ namespace ProjectName.UI.Toolkit
             close.style.top = 10f;
             close.style.width = 31.2f;
             close.style.height = 31.2f;
-            StyleButton(close, UTKButton.Variant.Secondary);
+            // [144차 P1-CSP #12] CloseBtn 83:25 — fill #FFFFFF@0.059, r7.2, stroke #30363D@0.502, pad 7.2 (StyleButton Secondary 대체)
+            close.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.059f));
+            close.style.borderTopLeftRadius = close.style.borderTopRightRadius = 7.2f;
+            close.style.borderBottomLeftRadius = close.style.borderBottomRightRadius = 7.2f;
+            close.style.borderTopWidth = close.style.borderBottomWidth = 1.2f;
+            close.style.borderLeftWidth = close.style.borderRightWidth = 1.2f;
+            close.style.borderTopColor = close.style.borderBottomColor = new StyleColor(UTKTheme.GlassPanelStroke);
+            close.style.borderLeftColor = close.style.borderRightColor = new StyleColor(UTKTheme.GlassPanelStroke);
+            close.style.paddingLeft = close.style.paddingRight = 7.2f;
+            close.style.paddingTop = close.style.paddingBottom = 7.2f;
+            _statusCloseButton = close;   // 필드 갱신 — 리프레시 경로가 살아있는 요소를 참조하도록
             title.Add(close);
             _statusPanel.Add(title);
 
-            var vitalsHeading = MkLabel("특수 상태 게이지   SPECIAL VITALS", 13.2f, GitHubDark.Gold, TextAnchor.MiddleLeft);
-            vitalsHeading.name = "SpecialVitalsHeading";
-            vitalsHeading.style.marginTop = 8f;
+            // [144차 P0-CSP #7] CSP 코너 데칼 4개 83:9~20 — 14.4×14.4, Line #58A6FF w1.8, 코너 밖(공용 어휘 기본 모드).
+            UTKTheme.AddCornerDecals(_statusPanel, 14.4f, 1.8f);
+
+            // [144차 P1-CSP #41] 특수헤더 2분할 83:61/62 — 좌 14.4/700 #8B949E + 우 12/400 #484F58 우측정렬.
+            var vitalsHeaderLeft = MkLabel("특수 상태 게이지", 14.4f, GitHubDark.TextSub, TextAnchor.MiddleLeft);
+            vitalsHeaderLeft.style.unityFontStyleAndWeight = FontStyle.Bold;
+            var vitalsHeaderRight = MkLabel("SPECIAL VITALS", 12f, new Color32(0x48, 0x4F, 0x58, 0xFF), TextAnchor.MiddleRight);
             var special = _statusContent.Q<VisualElement>(className: "special-gauge-root");
             if (_figHungerFill != null)
             {
@@ -587,42 +625,32 @@ namespace ProjectName.UI.Toolkit
             }
             if (special != null)
             {
+                // [144차 P1-CSP #39+#40] SpecialStatsSection 83:59 — 패널 내부 (24,724) 528×157, 카드 #FFFFFF@0.012 r9.6 pad 16.8.
                 special.style.marginTop = 0f;
                 special.style.position = Position.Absolute;
-                special.style.left = 40.8f;
-                special.style.top = 708.4f;
-                special.style.width = 494.4f;
+                special.style.left = 24f;
+                special.style.top = 724f;
+                special.style.width = 528f;
                 special.style.height = 157f;
-                if (special.childCount > 0) special[0].style.display = DisplayStyle.None;
-                if (special.childCount > 1)
-                {
-                    VisualElement firstGauge = special[1];
-                    firstGauge.style.position = Position.Absolute;
-                    firstGauge.style.left = 0f;
-                    firstGauge.style.top = 33.8f;
-                    firstGauge.style.width = 494.4f;
-                    firstGauge.style.height = 36.4f;
-                }
-                if (special.childCount > 2)
-                {
-                    VisualElement secondGauge = special[2];
-                    secondGauge.style.position = Position.Absolute;
-                    secondGauge.style.left = 0f;
-                    secondGauge.style.top = 87f;
-                    secondGauge.style.width = 494.4f;
-                    secondGauge.style.height = 36.4f;
-                }
+                special.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.012f));
+                special.style.borderTopLeftRadius = special.style.borderTopRightRadius = 9.6f;
+                special.style.borderBottomLeftRadius = special.style.borderBottomRightRadius = 9.6f;
+                special.style.paddingLeft = special.style.paddingRight = 16.8f;
+                special.style.paddingTop = special.style.paddingBottom = 16.8f;
+                if (special.childCount > 0) special[0].style.display = DisplayStyle.None;   // 구 타이틀 숨김 유지
+                if (special.childCount > 1) special[1].style.marginTop = 10.2f;   // 헤더→게이지1 간격 (pad16.8+헤더17+10.2=44)
+                if (special.childCount > 2) special[2].style.marginTop = 7.2f;    // 게이지 간 gap 7.2
                 var specialHeading = new VisualElement { name = "SpecialVitalsHeader" };
-                specialHeading.style.position = Position.Absolute;
-                specialHeading.style.left = 0f;
-                specialHeading.style.top = 17f;
-                specialHeading.style.width = 494.4f;
+                specialHeading.style.flexDirection = FlexDirection.Row;
+                specialHeading.style.alignItems = Align.Center;
                 specialHeading.style.height = 17f;
-                special.Add(specialHeading);
-                specialHeading.Add(vitalsHeading);
+                specialHeading.Add(vitalsHeaderLeft);
+                vitalsHeaderRight.style.flexGrow = 1f;
+                specialHeading.Add(vitalsHeaderRight);
+                special.Insert(1, specialHeading);   // 숨긴 타이틀 다음, 게이지1 위
             }
 
-            _statusContent.style.paddingTop = 80f;
+            _statusContent.style.paddingTop = 74f;   // [144차 P1-CSP #5] pt 18→24 보상 재계산(80−6) — 첫 컨텐츠 절대 y 불변
             _statusContent.style.paddingBottom = 0f;
             _statusContent.style.paddingLeft = 0f;
             _statusContent.style.paddingRight = 0f;
@@ -648,33 +676,35 @@ namespace ProjectName.UI.Toolkit
             subtitle.style.unityFontStyleAndWeight = FontStyle.Normal;
             subtitle.style.marginLeft = 10f;
             header.Add(subtitle);
-            var stable = MkLabel("SYS_EQ_STABLE", UTKTheme.FontBadge, GitHubDark.Health, TextAnchor.MiddleRight);   // [Figma] 12/500
+            var stable = MkLabel("SYS_EQ_STABLE", UTKTheme.FontBadge, GitHubDark.SysStable, TextAnchor.MiddleRight);   // [Figma 84:73] 12/400 — [144차 P1-EQ B11] 색 #56E39F 정합
             stable.style.unityFontStyleAndWeight = FontStyle.Normal;
             stable.style.flexGrow = 1f;
             header.Add(stable);
             content.Add(header);
 
             var equipped = new VisualElement { name = "EquippedSection" };
-            equipped.style.marginTop = 24f;
+            equipped.style.marginTop = 19.2f;   // [144차 P1-EQ B12] 24→19.2 — 84:68 gap 진실치(섹션 y=24+52.8+19.2=96)
+            equipped.style.height = 230.4f;     // [144차 P1-EQ B29] 진실치 고정(93:4 483.6×230.4) — 전술 배낭 y 345.6 정합
             equipped.style.paddingLeft = 14.4f;
             equipped.style.paddingRight = 14.4f;
             equipped.style.paddingTop = 14.4f;
             equipped.style.paddingBottom = 14.4f;
-            equipped.style.borderTopWidth = equipped.style.borderBottomWidth = 1f;
-            equipped.style.borderLeftWidth = equipped.style.borderRightWidth = 1f;
-            equipped.style.borderTopColor = equipped.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
-            equipped.style.borderLeftColor = equipped.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-            var equippedTitle = MkLabel("장착 중인 장비", UTKTheme.FontTitleLarge, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [Figma] 19.2/700 #58A6FF
+            // [144차 P1-EQ B13] 섹션 카드(93:4) — fill #FFFFFF@0.02 저알파 화이트 글래스 + 크롬 테두리(#30363D@0.502 1.2) + r9.6
+            equipped.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.02f));
+            UTKTheme.ApplyElementBorder(equipped);   // [144차 P0 V2] 공용 어휘
+            UTKTheme.ApplyRadius(equipped, 9.6f);
+            var equippedTitle = MkLabel("장착 중인 장비", 19.2f, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [144차 P1-EQ B15] 24→19.2/700 #58A6FF(93:5)
             equippedTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             equipped.Add(equippedTitle);
             content.Add(equipped);
 
-            // [Figma 84:4] EquipGrid 427.2×172.8 — ItemSlot 81.6×81.6 ×10(5열×2행), gap 4.8(양축).
+            // [Figma 84:4] EquipGrid 427.2×172.8 — ItemSlot 81.6×81.6 ×10(5열×2행), gap 4.8(열)·9.6(행).
             var grid = new VisualElement { name = "EquipGrid" };
             grid.style.flexDirection = FlexDirection.Row;
             grid.style.flexWrap = Wrap.Wrap;
             grid.style.justifyContent = Justify.FlexStart;
             grid.style.width = 427.2f;
+            grid.style.alignSelf = Align.Center;   // [144차 P1-EQ B16] 섹션 내 중앙정렬 — Figma x=28(내여백 (454.8−427.2)/2=13.8)
             grid.style.marginTop = 12f;
             equipped.Add(grid);
             for (int i = 0; i < _equipOrder.Length && i < _equipNames.Length; i++)
@@ -686,17 +716,18 @@ namespace ProjectName.UI.Toolkit
             pack.style.paddingRight = 19.2f;
             pack.style.paddingTop = 14.4f;
             pack.style.paddingBottom = 14.4f;
-            pack.style.borderTopWidth = pack.style.borderBottomWidth = 1f;
-            pack.style.borderLeftWidth = pack.style.borderRightWidth = 1f;
-            pack.style.borderTopColor = pack.style.borderBottomColor = new StyleColor(GitHubDark.Stroke);
-            pack.style.borderLeftColor = pack.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
+            // [144차 P1-EQ B36 동일계열] 섹션 카드(93:88) — fill #FFFFFF@0.012 저알파 화이트 글래스 + 크롬 테두리 + r9.6
+            //   (93:4와 동일 계열 괴리 — 감사 보고서 '참고 기록' 행, EquippedSection B13 수리와 쌍 수리)
+            pack.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.012f));
+            UTKTheme.ApplyElementBorder(pack);
+            UTKTheme.ApplyRadius(pack, 9.6f);
             var packHeader = new VisualElement { name = "TacticalPackHeader" };
             packHeader.style.height = 58.2f;
             packHeader.style.flexDirection = FlexDirection.Column;
-            var packTitle = MkLabel("전술 배낭", UTKTheme.FontTitleLarge, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 19.2/700
+            var packTitle = MkLabel("전술 배낭", 19.2f, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [144차 P1-EQ B33] 24→19.2/700 #F0F6FC(93:90)
             packTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             packHeader.Add(packTitle);
-            var packSub = MkLabel("TACTICAL PACK", UTKTheme.FontSubtitle, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 13.2/500
+            var packSub = MkLabel("TACTICAL PACK", 12f, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [144차 P1-EQ B34] 13.2→12/400 #8B949E(93:91)
             packHeader.Add(packSub);
             pack.Add(packHeader);
             var packScroll = new ScrollView(ScrollViewMode.Vertical) { name = "InventoryGridScroll" };
@@ -715,29 +746,41 @@ namespace ProjectName.UI.Toolkit
         }
 
         /// <summary>
-        /// [Figma 84:4 ItemSlot 정합] 81.6×81.6 슬롯 — EQ배지(4.8,4.8) + TierStrip(81.6×3.6, 장착 시 희귀색,
-        /// 빈 슬롯은 숨김 — 데이터 위조 금지) + 중앙 장착 아이템명 + 하단 슬롯명 라벨. 간격 4.8, 5열×2행.
+        /// [Figma 84:4 ItemSlot 정합] 81.6×81.6 슬롯 — EQ 배지 박스(4.8,4.8 · 반지·목걸이 제외 8슬롯) +
+        /// TierStrip(81.6×3.6, 장착 시 희귀색 — 빈 슬롯 숨김: 데이터 위조 금지) + 아이콘 38.4 중앙(툴팁=아이템명) +
+        /// 하단 슬롯명 라벨. 간격 4.8(열)·9.6(행), 5열×2행.
+        /// [144차 P1-EQ] B17 행갭 · B20 셀 스타일 · B22 배지 박스 · B23 배지 부착집합 · B27 아이콘 수리.
         /// </summary>
         private VisualElement BuildFigmaEquipSlotBox(EquipmentManager.EquipmentSlot slot, string label, int orderIndex)
         {
             var cell = new VisualElement { name = "EquipSlot_" + slot };
             cell.AddToClassList("utk-slot");
-            ApplyDarkSlotStyle(cell);
+            ApplyFigmaSlotStyle(cell);   // [144차 P1-EQ B20] bg #21262D@0.6 · 크롬 테두리(#30363D@0.502 1.2) · r9.6
             cell.style.width = 81.6f;
             cell.style.height = 81.6f;
             cell.style.flexShrink = 0f;
             int column = orderIndex % 5;
             int row = orderIndex / 5;
             cell.style.marginRight = column == 4 ? 0f : 4.8f;
-            cell.style.marginBottom = row == 1 ? 0f : 4.8f;
+            cell.style.marginBottom = row == 1 ? 0f : 9.6f;   // [144차 P1-EQ B17] 행갭 4.8→9.6(행 피치 91.2)
 
-            var equip = MkLabel("EQ", 9.6f, GitHubDark.Accent, TextAnchor.UpperLeft);   // [Figma] 9.6/700
-            equip.style.unityFontStyleAndWeight = FontStyle.Bold;
-            equip.name = "EquipBadge_" + slot;
-            equip.style.position = Position.Absolute;
-            equip.style.left = 4.8f;
-            equip.style.top = 4.8f;
-            cell.Add(equip);
+            // [144차 P1-EQ B22·B23] EQ 배지 박스 22.6×15.8 r3.6 fill #58A6FF + "EQ" 9.6/700 #0B0E14 @(4.8,4.8) — 반지·목걸이 제외 8슬롯(93:8)
+            if (slot != EquipmentManager.EquipmentSlot.Ring && slot != EquipmentManager.EquipmentSlot.Necklace)
+            {
+                var badge = new VisualElement { name = "EquipBadge_" + slot };
+                badge.style.position = Position.Absolute;
+                badge.style.left = 4.8f;
+                badge.style.top = 4.8f;
+                badge.style.width = 22.6f;
+                badge.style.height = 15.8f;
+                badge.style.backgroundColor = new StyleColor(GitHubDark.Accent);
+                UTKTheme.ApplyRadius(badge, 3.6f);
+                badge.pickingMode = PickingMode.Ignore;
+                var equip = MkLabel("EQ", 9.6f, GitHubDark.BgBase, TextAnchor.MiddleCenter);   // [Figma 93:9] #0B0E14
+                equip.style.unityFontStyleAndWeight = FontStyle.Bold;
+                badge.Add(equip);
+                cell.Add(badge);
+            }
 
             var strip = new VisualElement { name = "EquipTierStrip_" + slot };
             strip.style.position = Position.Absolute;
@@ -749,18 +792,20 @@ namespace ProjectName.UI.Toolkit
             _equipTierStrips[(int)slot] = strip;
             cell.Add(strip);
 
-            // 중앙 — 장착 아이템명(실존 데이터). [Figma] 13.2/500 규격 계열
-            var center = MkLabel("—", UTKTheme.FontSubtitle, GitHubDark.TextMain, TextAnchor.MiddleCenter);
-            center.name = "EquippedName_" + slot;
-            center.style.position = Position.Absolute;
-            center.style.left = 3.8f;
-            center.style.top = 30f;
-            center.style.width = 74f;
-            center.style.whiteSpace = WhiteSpace.Normal;
-            _equipSlotLabels[(int)slot] = center;
-            cell.Add(center);
+            // [144차 P1-EQ B27] 아이콘 38.4×38.4 중앙(93:11) — 실아이콘(ItemIconDatabase)+툴팁(아이템명).
+            //   기존 중앙 아이템명 라벨(텍스트 대체)은 인벤 장비 임베드 PASS 선례([P20-5])에 따라 폐지 — 표현 수단 정합.
+            var icon = new VisualElement { name = "EquippedIcon_" + slot };
+            icon.style.position = Position.Absolute;
+            icon.style.left = 21.6f;
+            icon.style.top = 21.6f;
+            icon.style.width = 38.4f;
+            icon.style.height = 38.4f;
+            icon.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+            icon.pickingMode = PickingMode.Ignore;
+            _equippedIconHosts[(int)slot] = icon;
+            cell.Add(icon);
 
-            // 하단 슬롯명 — Figma '투구' 9.6/500 @(하단 중앙)
+            // 하단 슬롯명 — Figma '투구' 9.6/500 @(하단 중앙) — [B28 PASS 유지]
             var slotName = MkLabel(label, 9.6f, GitHubDark.TextSub, TextAnchor.MiddleCenter);
             slotName.style.unityFontStyleAndWeight = FontStyle.Normal;
             slotName.name = "EquipSlotName_" + slot;
@@ -777,11 +822,16 @@ namespace ProjectName.UI.Toolkit
             // Replaced by BuildMiddleZone's Figma Tactical Pack composition.
         }
 
+        /// <summary>
+        /// [144차 P0-② B37] 전술 배낭 셀 — UTKSlot 전환(25셀 전부): 상단 TierStrip h3.6(93:92 — [144차 P0 V3]
+        /// SetTierStrip 어휘), 아이콘 38.4 중앙(85:104 — 실아이콘·툴팁), Count 우하단 13.2/500 #8B949E
+        /// Geist Mono(93:93 — 우 7.6/하 4.6). 셀 스타일 bg #21262D@0.6 · 크롬 1.2 · r9.6(B36).
+        /// 표시 조건은 실데이터 전용 — 빈 셀은 프레임만(데이터 위조 금지 — B26 정책 승계).
+        /// </summary>
         private VisualElement BuildInventoryCell(int index)
         {
-            var cell = new VisualElement { name = "InventoryCell_" + index };
-            cell.AddToClassList("utk-slot");
-            ApplyDarkSlotStyle(cell);
+            var cell = new UTKSlot { name = "InventoryCell_" + index };   // [144차 P0-② B37] V3 어휘 — TierStrip/Count 내장
+            ApplyFigmaSlotStyle(cell);   // [144차 P1-EQ B36] bg #21262D@0.6 · 크롬 테두리 1.2 · r9.6
             cell.style.width = 81.6f;
             cell.style.height = 81.6f;
             cell.style.flexShrink = 0f;
@@ -791,14 +841,41 @@ namespace ProjectName.UI.Toolkit
             int row = index / 5;
             cell.style.marginRight = column == 4 ? 0f : 9.6f;
             cell.style.marginBottom = row == 4 ? 0f : 14.4f;
-            cell.style.alignItems = Align.Center;
-            cell.style.justifyContent = Justify.Center;
-            cell.pickingMode = PickingMode.Ignore;
-            var label = MkLabel("—", UTKTheme.FontSubtitle, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [Figma] 13.2/500
-            label.name = "InventoryCellLabel_" + index;
-            label.style.whiteSpace = WhiteSpace.Normal;
-            cell.Add(label);
-            _inventoryCellLabels[index] = label;
+            cell.pickingMode = PickingMode.Ignore;   // 호버 강조 미사용(현행 유지)
+
+            // [144차 P1-EQ B39] 아이콘 38.4×38.4 중앙(85:104) — 인벤 장비 카드 선례와 동일 기하
+            var icon = cell.Q<VisualElement>("Icon");
+            if (icon != null)
+            {
+                icon.style.position = Position.Absolute;
+                icon.style.left = 21.6f;
+                icon.style.top = 21.6f;
+                icon.style.width = 38.4f;
+                icon.style.height = 38.4f;
+                icon.style.flexGrow = 0f;
+                icon.pickingMode = PickingMode.Ignore;
+            }
+
+            // [144차 P1-EQ B38] Count 우하단 (right 7.6, bottom 4.6) — 13.2/500 #8B949E Geist Mono(93:93, 에셋 미보유 → UIFont 폴백)
+            var count = cell.Q<Label>("Count");
+            if (count != null)
+            {
+                count.style.position = Position.Absolute;
+                count.style.right = 7.6f;
+                count.style.bottom = 4.6f;
+                count.style.height = 17f;
+                count.style.fontSize = 13.2f;
+                count.style.unityFontStyleAndWeight = FontStyle.Normal;
+                count.style.color = new StyleColor(UTKTheme.TextSub);
+                count.style.unityFont = GetGeistMonoFont();
+                count.style.marginRight = 0f;
+                count.style.marginBottom = 0f;
+                count.style.unityTextAlign = TextAnchor.MiddleRight;
+            }
+
+            // [144차 P0-② B37] TierStrip 상시 존재(25셀 전부) — 표시/등급색은 갱신 루프에서 실데이터로 판정
+            cell.SetTierStrip(true, UTKTheme.Accent);
+            _inventoryPackCells[index] = cell;
             return cell;
         }
 
@@ -806,15 +883,31 @@ namespace ProjectName.UI.Toolkit
         {
             PlayerInventory inventory = PlayerInventory.Instance;
             PlayerInventory.ItemSlot[] slots = inventory != null ? inventory.GetAllSlots() : null;
-            for (int i = 0; i < _inventoryCellLabels.Length; i++)
+            for (int i = 0; i < _inventoryPackCells.Length; i++)
             {
-                Label label = _inventoryCellLabels[i];
-                if (label == null) continue;
+                var cell = _inventoryPackCells[i];
+                if (cell == null) continue;
                 PlayerInventory.ItemSlot slot = slots != null && i < slots.Length ? slots[i] : null;
-                label.text = slot != null && slot.item != null
-                    ? (slot.item.displayName ?? slot.item.id ?? "?") + (slot.count > 1 ? " ×" + slot.count : "")
-                    : "—";
-                label.style.color = new StyleColor(slot != null && slot.item != null ? GitHubDark.TextMain : GitHubDark.TextSub);
+                var item = slot != null ? slot.item : null;
+                if (item != null)
+                {
+                    // [144차 P1-EQ B39] 실아이콘(ItemIconDatabase) + 툴팁(아이템명 — 인벤 [P20-5] 선례)
+                    cell.SetEmpty(false);
+                    cell.SetIcon(ItemIconDatabase.GetOrCreateIcon(item));
+                    cell.tooltip = item.displayName ?? item.id ?? "?";
+                    cell.SetCount(slot.count);
+                    // [144차 P0-② B37] TierStrip — 등급 실데이터색(RarityColor, B25 매핑 유지)
+                    cell.SetTierStrip(true, RarityColor(item.rarity));
+                }
+                else
+                {
+                    // 빈 셀 — 프레임만(아이콘/카운트/스트립 비표시 — 데이터 위조 금지 계약, B26 정책 승계)
+                    cell.SetEmpty(true);
+                    cell.SetIcon(null);
+                    cell.tooltip = null;
+                    cell.SetCount(0);
+                    cell.SetTierStrip(false, Color.clear);
+                }
             }
         }
 
@@ -1120,39 +1213,51 @@ namespace ProjectName.UI.Toolkit
         {
             var parts = new GaugeParts();
 
+            // [144차 P0-CSP #42] GaugeContainer 83:63/73 — VERTICAL 2단(라벨행 위 + BarBg 아래) gap 7.2, h36.4.
+            //   기존 가로 1행(라벨 52|트랙|값 122) 체계 폐기. [#43] 도트 7.2×7.2 — 색은 [O10] 치환 계약(허기=Accent, 중독도=RankEpic).
             var root = new VisualElement();
-            root.style.flexDirection = FlexDirection.Row;
-            root.style.alignItems = Align.Center;
-            root.style.marginTop = 8f;
+            root.style.flexDirection = FlexDirection.Column;
             parts.root = root;
 
-            var name = MkLabel(labelName, 12, GitHubDark.TextSub, TextAnchor.MiddleLeft);
-            name.style.width = 52f;
-            root.Add(name);
+            var labelRow = new VisualElement();
+            labelRow.style.flexDirection = FlexDirection.Row;
+            labelRow.style.alignItems = Align.Center;
+            labelRow.style.height = 22f;
+            root.Add(labelRow);
 
-            var track = new VisualElement();
-            track.style.flexGrow = 1f;
-            track.style.height = 8f;
-            track.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
-            track.style.borderTopLeftRadius = 4f;
-            track.style.borderTopRightRadius = 4f;
-            track.style.borderBottomLeftRadius = 4f;
-            track.style.borderBottomRightRadius = 4f;
+            var dot = new VisualElement();
+            dot.name = "GaugeDot";
+            dot.style.width = 7.2f;
+            dot.style.height = 7.2f;
+            dot.style.backgroundColor = new StyleColor(fillColor);
+            dot.style.borderTopLeftRadius = dot.style.borderTopRightRadius = 3.6f;
+            dot.style.borderBottomLeftRadius = dot.style.borderBottomRightRadius = 3.6f;
+            dot.style.marginRight = 7.2f;
+            labelRow.Add(dot);
+
+            var name = MkLabel(labelName, 15.6f, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [144차 P1-CSP #44] 12/TextSub→15.6/700 #F0F6FC
+            name.style.unityFontStyleAndWeight = FontStyle.Bold;
+            name.style.flexGrow = 1f;
+            labelRow.Add(name);
+
+            parts.value = MkLabel("-", 16.8f, GitHubDark.TextMain, TextAnchor.MiddleRight);   // [144차 P0-CSP #45] 값 16.8/700 — 괄호 상태 서브라벨(83:68-70)은 상태 문자열 실데이터 소스 부재로 생략(기록)
+            parts.value.style.unityFontStyleAndWeight = FontStyle.Bold;
+            labelRow.Add(parts.value);
+
+            var track = new VisualElement();   // [144차 P1-CSP #46] BarBg 83:71/81 — 494.4×7.2, #FFFFFF@0.059, r3.6
+            track.style.height = 7.2f;
+            track.style.marginTop = 7.2f;
+            track.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.059f));
+            track.style.borderTopLeftRadius = track.style.borderTopRightRadius = 3.6f;
+            track.style.borderBottomLeftRadius = track.style.borderBottomRightRadius = 3.6f;
             parts.fill = new VisualElement();
             parts.fill.style.height = new Length(100f, LengthUnit.Percent);
             parts.fill.style.width = new Length(0f, LengthUnit.Percent);
-            parts.fill.style.backgroundColor = new StyleColor(fillColor);   // 허기=Accent, 중독도=RankEpic
-            parts.fill.style.borderTopLeftRadius = 4f;
-            parts.fill.style.borderTopRightRadius = 4f;
-            parts.fill.style.borderBottomLeftRadius = 4f;
-            parts.fill.style.borderBottomRightRadius = 4f;
+            parts.fill.style.backgroundColor = new StyleColor(fillColor);   // 허기=Accent, 중독도=RankEpic([O10] 치환 계약)
+            parts.fill.style.borderTopLeftRadius = parts.fill.style.borderTopRightRadius = 3.6f;
+            parts.fill.style.borderBottomLeftRadius = parts.fill.style.borderBottomRightRadius = 3.6f;
             track.Add(parts.fill);
             root.Add(track);
-
-            parts.value = MkLabel("-", 12, GitHubDark.TextMain, TextAnchor.MiddleRight);
-            parts.value.style.width = 122f;
-            parts.value.style.marginLeft = 8f;
-            root.Add(parts.value);
 
             return parts;
         }
@@ -1249,6 +1354,29 @@ namespace ProjectName.UI.Toolkit
             slot.style.borderTopRightRadius = 6f;
             slot.style.borderBottomLeftRadius = 6f;
             slot.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+        }
+
+        /// <summary>[144차 P1-EQ B20/B36] EP 셀 Figma 진실 스타일 — bg #21262D@0.6(93:7/85:102 실효앰파) ·
+        /// 테두리 #30363D@0.502 1.2([144차 P0 V2] 어휘) · r9.6. ApplyDarkSlotStyle(CSP Portrait·레거시 공유)과
+        /// 분리 — CSP 본체 무수정(Phase 1-② 소관).</summary>
+        private static void ApplyFigmaSlotStyle(VisualElement slot)
+        {
+            if (slot == null) return;
+            slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            slot.style.backgroundColor = new StyleColor(new Color(0x21 / 255f, 0x26 / 255f, 0x2D / 255f, 0.6f));   // #21262D@0.6
+            UTKTheme.ApplyElementBorder(slot);   // [144차 P0 V2] #30363D@0.502 · 1.2
+            UTKTheme.ApplyRadius(slot, 9.6f);
+        }
+
+        // [144차 P1-EQ B38] Geist Mono 로드(Figma 패밀리 계약) — 에셋 미보유 실측(2026-10-24) → UIFont 폴백
+        // (LootWindowUTK/ItemDescriptionWindowUTK 선례). Resources/Fonts/GeistMono 추가 시 자동 적용.
+        private static Font _geistMono;
+
+        private static Font GetGeistMonoFont()
+        {
+            if (_geistMono == null)
+                _geistMono = Resources.Load<Font>("Fonts/GeistMono");
+            return _geistMono != null ? _geistMono : UIFont.Load();
         }
 
         // =====================================================================
@@ -1495,28 +1623,31 @@ namespace ProjectName.UI.Toolkit
             SetBonusNote(6, $"레벨 보정 공+{level * 0.5f:F0} 방+{level * 0.2f:F0}");
             SetBonusNote(7, $"전투 보너스 +{stats.CombatDamageBonus * 100f:F0}%");
 
-            // --- 장비 슬롯 아이템명 (EquipmentSlot enum 전체) ---
+            // --- 장비 슬롯 갱신 (EquipmentSlot enum 전체) ---
             var em = EquipmentManager.Instance;
             for (int i = 0; i < System.Enum.GetValues(typeof(EquipmentManager.EquipmentSlot)).Length; i++)
             {
                 EquipmentManager.EquipmentSlot slot = (EquipmentManager.EquipmentSlot)i;
-                Label label = _equipSlotLabels[(int)slot];
-                if (label == null) continue;
-                string itemId = null;
-                if (em != null)
+                var data = em != null ? em.GetSlotData(slot) : null;
+                var item = data != null ? data.itemData : null;
+                bool hasItem = item != null && !string.IsNullOrEmpty(data.itemId);
+                // [144차 P1-EQ B27] 아이콘 38.4 중앙 — 실아이콘(ItemIconDatabase)·툴팁(아이템명). 빈 슬롯 아이콘 제거([P20-5] 선례).
+                var icon = _equippedIconHosts[(int)slot];
+                if (icon != null)
                 {
-                    var data = em.GetSlotData(slot);
-                    if (data != null) itemId = data.itemId;
+                    icon.style.backgroundImage = UTKTextureSafe.ToBackground(hasItem ? ItemIconDatabase.GetOrCreateIcon(item) : null);
+                    icon.tooltip = hasItem ? (item.displayName ?? data.itemId) : null;
                 }
-                label.text = string.IsNullOrEmpty(itemId) ? "—" : EquipmentStatBonusApplier.DisplayName(itemId);
+                // 레거시 상태전용 라벨(존재 시 유지 — 컴포지션 루트는 아이콘+툴팁으로 대체)
+                Label label = _equipSlotLabels[(int)slot];
+                if (label != null)
+                    label.text = hasItem ? EquipmentStatBonusApplier.DisplayName(data.itemId) : "—";
+                // [Figma 93:10 / B24·B26] TierStrip — 장착 시 등급색, 빈 슬롯 숨김(데이터 위조 금지 계약)
                 var strip = _equipTierStrips[(int)slot];
                 if (strip != null)
                 {
-                    var data = em != null ? em.GetSlotData(slot) : null;
-                    var item = data != null ? data.itemData : null;
-                    bool show = item != null && !string.IsNullOrEmpty(itemId);
-                    strip.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-                    if (show) strip.style.backgroundColor = new StyleColor(RarityColor(item.rarity));
+                    strip.style.display = hasItem ? DisplayStyle.Flex : DisplayStyle.None;
+                    if (hasItem) strip.style.backgroundColor = new StyleColor(RarityColor(item.rarity));
                 }
             }
 

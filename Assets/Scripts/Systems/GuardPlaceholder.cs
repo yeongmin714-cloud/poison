@@ -75,7 +75,7 @@ namespace ProjectName.Systems
         // ===== 사망 이벤트 (GuardResurrectionSystem 연동) =====
         public static event System.Action<GuardPlaceholder> OnAnyGuardDied;
 
-        private enum SelectionMode { None, SelectingFood, SelectingDrug }
+        private enum SelectionMode { None, SelectingFood, SelectingDrug, SelectingEquipment }   // [202차] 장비 착용 모드
         private SelectionMode _selectionMode = SelectionMode.None;
 
         private bool _playerNearby = false;
@@ -132,7 +132,8 @@ namespace ProjectName.Systems
 
         private void Start()
         {
-            _currentHP = _maxHP;
+            // [AI 고용 복원] 저장본에서 복원된 병사는 HP를 만피로 덮어쓰지 않는다.
+            if (!_restoredFromRoster) _currentHP = _maxHP;
 
             // 플레이어 캐싱
             _playerCache = GameObject.FindGameObjectWithTag("Player");
@@ -144,7 +145,14 @@ namespace ProjectName.Systems
             GuardEquipmentSpawner.SpawnEquipment(gameObject, level);
 
             // [2026-09-17] 랜덤 스탯 배분 — 먼저 롤된 장비와 무관하게, 레벨 기반 총합을 4개 능력치로 분배.
-            RollStats();
+            // 저장본 복원 병사는 리롤하지 않는다(ApplyPersistentRosterEntry 값 유지).
+            if (!_restoredFromRoster) RollStats();
+        }
+
+        /// <summary>공격 쿨다운 감소(0 하한). 순수 함수 — 테스트 가능한 시간 입력(delta) 분리.</summary>
+        private static float TickAttackCooldown(float cooldown, float delta)
+        {
+            return cooldown > 0f ? Mathf.Max(0f, cooldown - delta) : cooldown;
         }
 
         private void Update()
@@ -156,6 +164,9 @@ namespace ProjectName.Systems
             if (_playerCache == null || !_playerCache.activeInHierarchy)
                 _playerCache = GameObject.FindGameObjectWithTag("Player");
             var player = _playerCache;
+
+            // 홀드 등 명령 없음 상태 — ExecuteMovement가 !_hasCommand에서 조기 반환하므로 여기서 쿨다운을 감소시킨다(명령 보유 시는 ExecuteMovement가 1회만 감소).
+            if (!_hasCommand) _attackCooldown = TickAttackCooldown(_attackCooldown, Time.deltaTime);
 
             // C9-20/C9-21: 명령 실행 루프 — 플레이어 부재와 무관하게 RTS/전투 명령(이동·공격)을 수행한다
             ExecuteMovement();
@@ -222,6 +233,9 @@ namespace ProjectName.Systems
                 if (slot == null || slot.item == null || slot.count <= 0) continue;
                 bool matches = _selectionMode == SelectionMode.SelectingFood
                     ? slot.item.category == PlayerInventory.ItemCategory.Food
+                    : _selectionMode == SelectionMode.SelectingEquipment
+                    ? slot.item.category == PlayerInventory.ItemCategory.Weapon
+                      || slot.item.category == PlayerInventory.ItemCategory.Armor   // [202차] 무기 16종+투구/갑옷/신발/장갑/방패(shield=Armor)
                     : slot.item.category == PlayerInventory.ItemCategory.Potion
                       || slot.item.category == PlayerInventory.ItemCategory.Drug;
                 if (matches) result.Add(new KeyValuePair<PlayerInventory.ItemData, int>(slot.item, slot.count));
@@ -234,7 +248,7 @@ namespace ProjectName.Systems
         {
             if (PlayerInventory.Instance == null || !PlayerInventory.Instance.HasItem(item.id))
             {
-                _statusMessage = "아이템이 부족합니다.";
+                SetStatusMessage("아이템이 부족합니다.");
                 return;
             }
 
@@ -246,18 +260,18 @@ namespace ProjectName.Systems
                     float heal = 5f + item.displayName.Length * 0.5f;
                     _currentHP = Mathf.Min(_maxHP, _currentHP + heal);
                     GuardLoyaltySystem.GiveGift(this, 30);
-                    _statusMessage = $"{guardName}: \\\"음식 고맙다!\\\" ❤️ 호감도 UP";
+                    SetStatusMessage($"{guardName}: \\\"음식 고맙다!\\\" ❤️ 호감도 UP");
                     break;
 
                 case PlayerInventory.ItemCategory.Potion:
                     _currentHP = Mathf.Min(_maxHP, _currentHP + 10f);
                     GuardLoyaltySystem.GiveGift(this, 50);
-                    _statusMessage = $"{guardName}: \\\"약을 주다니 고맙군!\\\" ❤️ 호감도 UP";
+                    SetStatusMessage($"{guardName}: \\\"약을 주다니 고맙군!\\\" ❤️ 호감도 UP");
                     break;
 
                 case PlayerInventory.ItemCategory.Drug:
                     GuardLoyaltySystem.GiveDrug(this, 2);
-                    _statusMessage = $"{guardName}: \\\"어.. 뭔가 이상한 기분이...\\\" 💊 중독+10";
+                    SetStatusMessage($"{guardName}: \\\"어.. 뭔가 이상한 기분이...\\\" 💊 중독+10");
                     break;
             }
         }
@@ -265,6 +279,20 @@ namespace ProjectName.Systems
         // ===== [P13] UTK 상호작용 창용 public 래퍼 — 기존 private 로직 재사용(데이터/규칙 불변) =====
         /// <summary>병사 상태 메시지 (SoldierInteractUTK 표시용 — 말걸기/지급/포섭 응답 등).</summary>
         public string StatusMessage => _statusMessage;
+
+        // ===== [73차 Phase B] 상태 메시지 이벤트 + 세터 래핑 — 월드 말풍선(GuardTalkBubble) 피드백 경로 =====
+        /// <summary>
+        /// [73차 Phase B] 상태 메시지 변경 이벤트 — SetStatusMessage 경유 변경마다 발화.
+        /// GuardTalkBubble(월드 말풍선)가 구독해 대상 머리 위에 4초 표시한다(기존 로직 무변경 — 대입 방식만 교체).
+        /// </summary>
+        public event System.Action<string> StatusMessageChanged;
+
+        /// <summary>[73차 Phase B] _statusMessage 대입 유일 경로 — 직접 대입 금지. 변경 시 StatusMessageChanged 발화.</summary>
+        private void SetStatusMessage(string message)
+        {
+            _statusMessage = message ?? string.Empty;
+            StatusMessageChanged?.Invoke(_statusMessage);
+        }
 
         /// <summary>🗣️ 말걸기 — 기존 OnTalk 경로.</summary>
         public void BeginTalk() { OnTalk(); }
@@ -277,6 +305,9 @@ namespace ProjectName.Systems
 
         /// <summary>💊 약 선택 모드 진입 — 기존 _selectionMode 세팅만 수행 (UTK 창이 호출).</summary>
         public void BeginDrugSelection() { _selectionMode = SelectionMode.SelectingDrug; }
+
+        /// <summary>[202차] 🛡️ 장비 선택 모드 진입 — EquipAllyItem(P30-C) UI 배선용. 아군 전용(UTK가 IsAlly 게이트).</summary>
+        public void BeginEquipmentSelection() { _selectionMode = SelectionMode.SelectingEquipment; }
 
         /// <summary>아이템 선택 모드 해제 (UTK 창 취소/닫기 시 호출).</summary>
         public void CancelItemSelection() { _selectionMode = SelectionMode.None; }
@@ -311,7 +342,7 @@ namespace ProjectName.Systems
                 _allyAttackBuff = 0f;
                 _allyDefenseBuff = 0f;
                 _allyAgilityBuff = 0f;
-                _statusMessage = $"{guardName}: 버프 효과가 사라졌다.";
+                SetStatusMessage($"{guardName}: 버프 효과가 사라졌다.");
             }
         }
 
@@ -338,10 +369,10 @@ namespace ProjectName.Systems
         /// </summary>
         public void ApplyAllyPotion(PlayerInventory.ItemData item)
         {
-            if (!IsAlly) { _statusMessage = "아군병사에게만 물약 버프를 줄 수 있습니다."; return; }
+            if (!IsAlly) { SetStatusMessage("아군병사에게만 물약 버프를 줄 수 있습니다."); return; }
             if (item == null) return;
             var inv = PlayerInventory.Instance;
-            if (inv == null || !inv.HasItem(item.id)) { _statusMessage = "아이템이 부족합니다."; return; }
+            if (inv == null || !inv.HasItem(item.id)) { SetStatusMessage("아이템이 부족합니다."); return; }
             inv.RemoveItem(item.id);
 
             if (item.category == PlayerInventory.ItemCategory.Drug)
@@ -349,7 +380,7 @@ namespace ProjectName.Systems
                 // 아군에게 마약 — 중독 금지(적병사 전용 규칙). 소량 회복만.
                 _currentHP = Mathf.Min(_maxHP, _currentHP + 10f);
                 GuardLoyaltySystem.GiveGift(this, 30);
-                _statusMessage = $"{guardName}: \"이런 건 좀... 그래도 고맙군.\"";
+                SetStatusMessage($"{guardName}: \"이런 건 좀... 그래도 고맙군.\"");
                 return;
             }
 
@@ -364,14 +395,14 @@ namespace ProjectName.Systems
                     _allyBuffRemaining += eff.buffSeconds;
                     if (eff.healFlat > 0f || eff.healPercent > 0f)
                         _currentHP = Mathf.Min(_maxHP, _currentHP + eff.healFlat + _maxHP * eff.healPercent);
-                    _statusMessage = $"{guardName}: \"몸에 힘이 넘치는군!\" ⚡ 버프 ON ({eff.buffSeconds:0}초)";
+                    SetStatusMessage($"{guardName}: \"몸에 힘이 넘치는군!\" ⚡ 버프 ON ({eff.buffSeconds:0}초)");
                 }
                 else
                 {
                     // 즉효 물약 — 즉시 회복만 (potion_hp_small/big)
                     _currentHP = Mathf.Min(_maxHP, _currentHP + eff.healFlat + _maxHP * eff.healPercent);
                     GuardLoyaltySystem.GiveGift(this, 50);
-                    _statusMessage = $"{guardName}: \"약을 주다니 고맙군!\" ❤️ 호감도 UP";
+                    SetStatusMessage($"{guardName}: \"약을 주다니 고맙군!\" ❤️ 호감도 UP");
                 }
                 return;
             }
@@ -379,7 +410,7 @@ namespace ProjectName.Systems
             // 미등록 물약 — 기존 GiveItemToGuard.Potion 케이스와 동일 소량 회복 폴백
             _currentHP = Mathf.Min(_maxHP, _currentHP + 10f);
             GuardLoyaltySystem.GiveGift(this, 50);
-            _statusMessage = $"{guardName}: \"약을 주다니 고맙군!\" ❤️ 호감도 UP";
+            SetStatusMessage($"{guardName}: \"약을 주다니 고맙군!\" ❤️ 호감도 UP");
         }
 
         /// <summary>
@@ -391,11 +422,11 @@ namespace ProjectName.Systems
         /// </summary>
         public bool EquipAllyItem(PlayerInventory.ItemData item)
         {
-            if (!IsAlly) { _statusMessage = "적병사에게는 장비를 직접 등록할 수 없습니다."; return false; }
+            if (!IsAlly) { SetStatusMessage("적병사에게는 장비를 직접 등록할 수 없습니다."); return false; }
             if (item == null) return false;
 
             var inv = PlayerInventory.Instance;
-            if (inv == null || !inv.HasItem(item.id)) { _statusMessage = "아이템이 부족합니다."; return false; }
+            if (inv == null || !inv.HasItem(item.id)) { SetStatusMessage("아이템이 부족합니다."); return false; }
 
             PlayerInventory.ItemData prev;
             string slotLabel;
@@ -410,13 +441,13 @@ namespace ProjectName.Systems
                     break;
 
                 default:
-                    _statusMessage = $"{item.displayName}: 병사가 착용할 수 있는 장비가 아닙니다.";
+                    SetStatusMessage($"{item.displayName}: 병사가 착용할 수 있는 장비가 아닙니다.");
                     return false;
             }
 
             inv.RemoveItem(item.id);
             if (prev != null) inv.AddItem(prev);   // 교체된 이전 장비 반환(GuardEquipmentSystem.ReturnToInventory 동일 규칙)
-            _statusMessage = $"{guardName}: {item.displayName} 장착 완료!";
+            SetStatusMessage($"{guardName}: {item.displayName} 장착 완료!");
             UpdateVisual();   // 장비 외형 갱신 훅(현행 no-op — 호출 규약 유지)
             // [P30 후속②] 씬(월드 rig) 시각 연동 — 즉시 재부착 트리거 + 확인 로그(멱등)
             Debug.Log($"[GuardEquip] {guardName} {slotLabel} 장착 → {item.displayName} (시각 갱신 요청)");
@@ -444,7 +475,7 @@ namespace ProjectName.Systems
                 // 중독 임계(60) 이상 — 중독 대화 1종 (강제 포섭 임계 RECRUIT_FORCE_THRESHOLD와 동일 경계값)
                 if (Addiction >= GuardAddictionSystem.RECRUIT_FORCE_THRESHOLD)
                 {
-                    _statusMessage = $"{guardName}: '낯... 머리가 아득하다... 네가 뭐래도 따르겠다...'";
+                    SetStatusMessage($"{guardName}: '낯... 머리가 아득하다... 네가 뭐래도 따르겠다...'");
                     return;
                 }
 
@@ -452,21 +483,21 @@ namespace ProjectName.Systems
                 switch (GuardLoyaltySystem.GetAffinityGrade(_loyalty))
                 {
                     case AffinityGrade.Friendly:
-                        _statusMessage = $"{guardName}: 호의적인 미소로 '어서 오게, 잘 지내고 있소.'";
+                        SetStatusMessage($"{guardName}: 호의적인 미소로 '어서 오게, 잘 지내고 있소.'");
                         return;
                     case AffinityGrade.Normal:
-                        _statusMessage = $"{guardName}: '무슨 일이냐? 말해 보게.'";
+                        SetStatusMessage($"{guardName}: '무슨 일이냐? 말해 보게.'");
                         return;
                     case AffinityGrade.Cautious:
-                        _statusMessage = $"{guardName}: 경계하며 '...멀리서 말하게.'";
+                        SetStatusMessage($"{guardName}: 경계하며 '...멀리서 말하게.'");
                         return;
                     case AffinityGrade.Danger:
-                        _statusMessage = $"{guardName}: 노려보며 '가까이 오지 마라!'";
+                        SetStatusMessage($"{guardName}: 노려보며 '가까이 오지 마라!'");
                         return;
                 }
             }
 
-            _statusMessage = guardName + ": \\\"무슨 일이냐?\\\"";
+            SetStatusMessage(guardName + ": \\\"무슨 일이냐?\\\"");
         }
 
         // ===== P30-B: 뇌물 (적병사 전용 — 아군 금지) =====
@@ -479,7 +510,7 @@ namespace ProjectName.Systems
             if (IsAlly) return false;   // 아군 뇌물 금지 — TryBribe의 IsRecruited 게이트와 이중 방어
             int cost = GuardLoyaltySystem.GetBribeCost(Level);
             if (!GuardLoyaltySystem.TryBribe(this, cost)) return false;   // 골드 부족/시스템 부재
-            _statusMessage = $"{guardName}: '똑똑하군...' 💰 뇌물 {cost}골드 → 호감도 {Loyalty:F0}";
+            SetStatusMessage($"{guardName}: '똑똑하군...' 💰 뇌물 {cost}골드 → 호감도 {Loyalty:F0}");
             return true;
         }
 
@@ -488,24 +519,33 @@ namespace ProjectName.Systems
         {
             if (_isRecruited)
             {
-                _statusMessage = $"{guardName}: \\\"이미 영지에 소속되어 있네.\"";
+                SetStatusMessage($"{guardName}: \\\"이미 영지에 소속되어 있네.\"");
                 return;
             }
 
             var result = GuardRecruitSystem.AttemptRecruit(this);
             if (result.success)
             {
+                // 입단비 결제 성공 시에만 편입 확정 (결제 실패 → 상태 불변)
+                if (!SoldierWageSystem.TryChargeGuardAdmissionFee(this, result.method, out _))
+                {
+                    SetStatusMessage($"{guardName}: 입단비가 부족하오.");
+                    return;
+                }
                 _isRecruited = true;
+
+                // [119차] 방랑자 포섭 — 방랑 상태 해제(제자리에서 아군 복귀)
+                if (IsWanderer) EndWanderer(transform.position);
 
                 // P30-A: 중독 임계 포섭(method="addiction") → 호감도 MAX — 중독으로 절대복종
                 if (result.method == "addiction")
                     Loyalty = GuardLoyaltySystem.MAX_LOYALTY;
 
-                _statusMessage = result.message;
+                SetStatusMessage(result.message);
             }
             else
             {
-                _statusMessage = result.message;
+                SetStatusMessage(result.message);
             }
         }
 
@@ -546,7 +586,8 @@ namespace ProjectName.Systems
 
             // [Phase G] 파견 공격부대 노획 — 전투에서 패배해도 전멸하지 않고 아군이 된다.
             // (AI 자동 전쟁의 가시/수치 파견부대가 전투에서 쓰러지는 순간, 사망 처리 대신 포섭)
-            if (IsWartimeCapturable && !_isRecruited)
+            // 입단비 결제 실패(골드 부족) 시 포획 보류 → 일반 사망 처리로 진행(상태 불변).
+            if (IsWartimeCapturable && !_isRecruited && SoldierWageSystem.TryChargeGuardAdmissionFee(this, "capture", out _))
             {
                 SetRecruited(true);
                 SetHP(Mathf.Max(1f, _maxHP * 0.1f));
@@ -781,6 +822,11 @@ namespace ProjectName.Systems
 
         // ===== 퍼블릭 API =====
         public string GuardName => guardName;
+
+        /// <summary>입단비 변동 해시용 개체 ID — 생성 순서 기반 결정론(세션 내). 영속 저장은 미구현.</summary>
+        private static int _stableIdSeq;
+        private string _stableId;
+        public string StableId => _stableId ??= "G" + (++_stableIdSeq).ToString("D6");
         public int Level => level;
         public string Nation => nation;
         public string JobTitle { get => jobTitle; set => jobTitle = value; }
@@ -791,6 +837,81 @@ namespace ProjectName.Systems
         // 0=Ring1, 1=Ring2, 2=Ring3, 3=Ring4, 4=Empire. 장비 등급 승격 용도.
         private int _gearDifficultyBonus = 0;
         public int GearDifficultyBonus { get => _gearDifficultyBonus; set => _gearDifficultyBonus = Mathf.Clamp(value, 0, 4); }
+
+        // ===== [AI 고용 영속화] AI 고용 병사 식별/스탯 복원 API =====
+        /// <summary>AI 고용 시장이 고용한 병사 여부 — true인 병사만 ToPersistentRosterEntry로 내보낸다.</summary>
+        private bool _isAIHired;
+        public bool IsAIHired { get => _isAIHired; set => _isAIHired = value; }
+
+        /// <summary>Start()의 HP 초기화/스탯 리롤을 건너뛰게 하는 플래그 (ApplyPersistentRosterEntry로 복원된 병사).</summary>
+        private bool _restoredFromRoster;
+
+        /// <summary>
+        /// AI 고용 병사의 현재 상태를 로스터 DTO로 내보낸다. AI 고용 병사가 아니면 null.
+        /// 스탯은 장비/버프 보정 전 순수 롤 값(ATK/DEF/VIT/AGI)으로 저장해 재로드 시 이중 가산을 막는다.
+        /// </summary>
+        public AIHiredGuardSaveEntry ToPersistentRosterEntry(string territoryId)
+        {
+            if (!_isAIHired) return null;
+            return new AIHiredGuardSaveEntry
+            {
+                stableId = StableId,
+                territoryId = territoryId ?? string.Empty,
+                guardName = guardName,
+                level = level,
+                nation = nation,
+                hp = _currentHP,
+                maxHP = GetMaxHP(),
+                loyalty = _loyalty,
+                atk = GetStatAttack(),
+                def = GetStatDefense(),
+                vit = GetStatVitality(),
+                agi = GetStatAgility(),
+                isAlive = !_isDead,
+                gearDifficulty = _gearDifficultyBonus
+            };
+        }
+
+        /// <summary>
+        /// 저장된 AI 고용 병사 DTO를 이 병사에 적용한다(리롤 없이 정체성/스탯/HP 복원).
+        /// Start 전/후 어느 쪽에서 호출해도 안전하다. 복원된 StableId 번호만큼 _stableIdSeq를 끌어올려
+        /// 이후 신규 발급 ID가 복원 ID와 겹치지 않게 한다.
+        /// </summary>
+        public void ApplyPersistentRosterEntry(AIHiredGuardSaveEntry e)
+        {
+            if (e == null) return;
+
+            _restoredFromRoster = true;
+            _isAIHired = true;
+
+            // 정체성 + ID 충돌 방지 (seq bump)
+            if (!string.IsNullOrEmpty(e.stableId))
+            {
+                _stableId = e.stableId;
+                if (e.stableId.Length > 1 && e.stableId[0] == 'G'
+                    && int.TryParse(e.stableId.Substring(1), out int n) && n > _stableIdSeq)
+                    _stableIdSeq = n;
+            }
+            if (!string.IsNullOrEmpty(e.guardName)) guardName = e.guardName;
+            if (!string.IsNullOrEmpty(e.nation)) nation = e.nation;
+            level = Mathf.Max(1, e.level);
+            _loyalty = Mathf.Clamp(e.loyalty, -100f, 100f);
+            _gearDifficultyBonus = Mathf.Clamp(e.gearDifficulty, 0, 4);
+
+            // 스탯 — 리롤 금지, 롤 완료 상태로 표시
+            _statAttack = Mathf.Max(0, e.atk);
+            _statDefense = Mathf.Max(0, e.def);
+            _statVitality = Mathf.Max(0, e.vit);
+            _statAgility = Mathf.Max(0, e.agi);
+            _statsRolled = true;
+
+            // GetMaxHP() = _maxHP + vit*2 역산
+            _maxHP = Mathf.Max(1f, e.maxHP - _statVitality * 2f);
+
+            // HP / 생존
+            _isDead = !e.isAlive;
+            _currentHP = _isDead ? 0f : Mathf.Clamp(e.hp, 0f, GetMaxHP());
+        }
 
         // ===== [2026-09-17] 랜덤 스탯 (관/방/체력/민첩) =====
 
@@ -842,6 +963,20 @@ namespace ProjectName.Systems
         public int GetStatDefense() { EnsureStatsRolled(); return _statDefense; }
         /// <summary>장비 보정 전 순수 체력 보너스 (롤된 값).</summary>
         public int GetStatVitality() { EnsureStatsRolled(); return _statVitality; }
+
+        /// <summary>[125차] 훈련 완료 적용 — 레벨 +1 및 능력치 가산(TrainingHallSystem 전용 진입점).
+        /// MaxHP는 기존 산식(e.maxHP - _statVitality*2f, L903)과 등가로 _maxHP += vitGain*2f 가산(기저 유지).</summary>
+        public void ApplyTrainingLevelUp(int atkGain, int defGain, int vitGain)
+        {
+            EnsureStatsRolled();
+            level++;
+            _statAttack += Mathf.Max(0, atkGain);
+            _statDefense += Mathf.Max(0, defGain);
+            _statVitality += Mathf.Max(0, vitGain);
+            _maxHP += Mathf.Max(0, vitGain) * 2f;
+            _currentHP = Mathf.Min(_currentHP + Mathf.Max(0, vitGain) * 2f, _maxHP);
+        }
+
         /// <summary>장비 보정 전 순수 민첩 스탯 (롤된 값).</summary>
         public int GetStatAgility() { EnsureStatsRolled(); return _statAgility; }
 
@@ -925,11 +1060,30 @@ namespace ProjectName.Systems
             _commandTargetPos = t;
             _isAttackCommand = a;
             _hasCommand = true;
+            _lastCommandTarget = t;   // [53차] 새 명령 = 새 정체 관측 창
+            // [무번호 28-S2] 이동 시작 킥 — 이동 명령 수락 순간 발밑 퍼프 1회(도착 퍼프와 대칭 완성).
+            //   20-Q2 플레이어 선례 준용: 이동 명령 전용(a==false) + 1.5m 거리 게이트(제자리 재명령 스팸 방지).
+            //   거리 게이트 = 1.5f * 1.5f(제곱 거리) — [무번호 22-Q2] 배선 원형 보존(아래 기존 블록 유지).
+            // [무번호 22-Q2] 이동 시작 킥 — 새 **이동** 명령(공격 제외)이 1.5m 이상 떨어진 목표면
+            //   발밑 먼지 킥 1회(도착 퍼프 20-I2와 대칭 — 출발/도착 프레임 완성). 런타임 전용.
+            if (!a)
+            {
+                Vector3 here = transform.position;
+                if ((t - here).sqrMagnitude >= 2.25f)
+                {
+                    Vector3 gp = here;
+                    gp.y = TryGetGroundY(gp.x, gp.z, gp.y);
+                    // [무번호 29-S2-2] 시작 킥 강도 = 목표 거리 비례(가속 연동) — 슬롯 선행 설정(잠금 호출 문자열 보존).
+                    ShockwaveRingFX.SetNextPuffIntensity(Mathf.Clamp(0.8f + (t - here).sqrMagnitude / 36f, 0.8f, 1.5f));
+                    try { ShockwaveRingFX.SpawnMoveTrailPuff(new Vector3(gp.x, gp.y + 0.06f, gp.z)); } catch (System.Exception) { }
+                }
+            }
             // A new order designates a new target. Do not briefly display an old resolved
             // combat target while this order waits for its first execution update.
             _attackTarget = null;
             _attackTargetOffset = Vector3.zero;
             _hasResolvedAttackTarget = false;
+            _explicitAttackTarget = null;   // An ordinary command drops any explicit entity focus.
         }
         public void ClearCommand()
         {
@@ -940,6 +1094,19 @@ namespace ProjectName.Systems
             _attackTarget = null;
             _attackTargetOffset = Vector3.zero;
             _hasResolvedAttackTarget = false;
+            _explicitAttackTarget = null;
+        }
+
+        /// <summary>
+        /// Phase 2C explicit focus — attack command anchored at <paramref name="anchor"/> that pins the given
+        /// entity as the attack target (not the nearest enemy). Non-Component targets fall back to a plain
+        /// attack command at the anchor. The entity is re-validated by the normal attack rules each resolve;
+        /// if it dies or becomes invalid the explicit identity is dropped and nearest-enemy retarget resumes.
+        /// </summary>
+        public void SetExplicitAttackTarget(IDamageable target, Vector3 anchor)
+        {
+            SetCommandTarget(anchor, true);
+            _explicitAttackTarget = target as Component;
         }
         public bool HasCommand => _hasCommand;
         public Vector3 CommandTarget => _commandTargetPos;
@@ -947,6 +1114,9 @@ namespace ProjectName.Systems
         // ===== [15차 사용자 확정] 지휘 핫키 — H=홀드(제자리 방어) / X=스톱(선택 시만) =====
         private bool _isHolding;
         private float _holdScanTimer;
+        private Vector3 _lastCommandTarget;   // [53차] 정체 오탐 방지 — 명령 목표 이동 추적
+        private float _holdNewTargetDelay;    // [61차] 홀드 반격 초기 딜레이 잔여 시간(초) — 새 타겟 최초 감지 시 0.4s
+        private Component _holdLastTarget;    // [61차] 직전 홀드 반격 타겟 — 동일 타겟 재감지 시 딜레이 재무장 방지
 
         /// <summary>홀드 — 제자리 고정 + 사정거리 내 적 자동 반격(후퇴/추격 금지). 새 명령이 홀드를 해제한다.</summary>
         public bool IsHolding => _isHolding;
@@ -959,6 +1129,10 @@ namespace ProjectName.Systems
                 ClearCommand();
                 SetInCombat(false);
                 if (_rigAnim != null) _rigAnim.SetState(AnimationState.Idle);
+                // [61차] 재홀드 시 반격 초기 딜레이 재적용 — 이전 홀드의 타겟 기억/잔여 딜레이를 제거해
+                //   홀드 해제 후 재홀드해도 새 타겟 관찰 딜레이가 정상 적용된다.
+                _holdLastTarget = null;
+                _holdNewTargetDelay = 0f;
             }
         }
 
@@ -972,8 +1146,19 @@ namespace ProjectName.Systems
         }
 
         /// <summary>홀드 자동 반격 — 제자리에서 근접 사거리 내 적만 쿨다운 게이트 교전(이동 없음).</summary>
+        // [64차 P1-B] 수비병 반격 0건 판별 계측 — 같은 병사×같은 태그 1회만(경고 스팸 방지).
+        private static readonly System.Collections.Generic.HashSet<int> _holdDiagLogged = new System.Collections.Generic.HashSet<int>();
+        private void HoldDiagOnce(string tag)
+        {
+            int key = (GetInstanceID() * 17 + tag.Length) & 0x3FFFFFFF;
+            if (_holdDiagLogged.Contains(key)) return;
+            _holdDiagLogged.Add(key);
+            Debug.Log($"[홀드계측] {guardName} {tag}");
+        }
+
         private void TryHoldEngage()
         {
+            HoldDiagOnce(_attackCooldown > 0f ? "스캔 — cooldown>0 대기" : "스캔 — 준비");
             if (_attackCooldown > 0f) return;
             Collider[] hits = Physics.OverlapSphere(transform.position, ATTACK_MELEE_RANGE);
             Component best = null;
@@ -986,12 +1171,20 @@ namespace ProjectName.Systems
                 var comp = dmg as Component;
                 if (comp == null || comp.gameObject == gameObject) continue;
                 var otherGuard = comp.GetComponentInParent<GuardPlaceholder>();
-                if (otherGuard != null && !HostileToPlayerFaction) continue;   // 아군 병사 제외(적대 정책은 허용)
+                // 홀드 반격은 현재 병사의 전투 진영과 다른 국가의 병사에게만 허용한다.
+                // HostileToPlayerFaction은 플레이어 관계 플래그이지 동국가 아군 공격 허가가 아니다.
+                if (otherGuard != null && !IsEnemyGuard(otherGuard)) continue;
                 float d = Vector3.Distance(transform.position, comp.transform.position);
                 if (d < bestDist) { bestDist = d; best = comp; }
             }
+            if (best == null) HoldDiagOnce("적 미감지 — OverlapSphere 사거리 내 대상 없음");
             if (best == null) return;
             FaceToward(best.transform.position - transform.position, Time.deltaTime);
+            // [61차] 홀드 반격 초기 딜레이 — 새 타겟은 0.4s 관찰 후 반격(도착 정렬 시간 확보 — Test_16 실측 밸런스:
+            //   병사 도착 ≤0.2s 반격 선공으로 3타 전 사망). FaceToward는 유지(적 방향 바라보기는 즉시), 공격만 딜레이.
+            if (_holdLastTarget != best) { _holdLastTarget = best; _holdNewTargetDelay = 0.4f; HoldDiagOnce("새 타겟 감지 — 0.4s 관찰 딜레이 진입"); }
+            if (_holdNewTargetDelay > 0f) { _holdNewTargetDelay -= Time.deltaTime; return; }
+            HoldDiagOnce("딜레이 경과 — 반격 실행 시도");
             if (_attackCooldown <= 0f) PerformAttack((IDamageable)best);
         }
         public bool IsAttackCommand => _isAttackCommand;
@@ -1001,8 +1194,16 @@ namespace ProjectName.Systems
         // ===== C9-20/C9-21: 명령 실행 루프 =====
         // [2026-10-11 사용자 요구 — 지정 포인트 정확 도착] 기존 1.0/0.6m는 지정점 0.6~1.0m 손전 정지의 원인.
         private const float MOVE_CLEAR_RADIUS = 0.25f;      // 이동 명령 해제 반경(m) — 지정점 ±0.25m 이내 도착
+        // [무번호 20-I1] 트레일 먼지 간격 — 이동 거리 0.6m마다 1회 스폰(프레임마다 스폰 폐기 — 연속 자취+동시 스폰 수 급감)
+        private const float TrailDustGap = 0.6f;
+        private const float TrailDustGapSq = TrailDustGap * TrailDustGap;
+        private Vector3 _lastTrailDustPos;
+        private bool _hasTrailDustPos;
+        private bool _stepFlip;        // [무번호 28-S1] 스텝 좌우 교차(발자국 리듬 — 결정론)
+        private float _lastFrameSpeed;   // [무번호 29-S2-2] 직전 프레임 이동 속도(m/s) — 기동/정지 강도 연동
         private const float MOVE_STOP_RADIUS = 0.15f;       // 이동 정지 판정 반경(m) — 이내 접근 금지(목표 넘어감 방지)
         private const float MOVE_STUCK_CLEAR_SECONDS = 0.6f; // 이동 진행 정체 해제 시간(초) — collider 막힘 대비
+        private int _stuckRetries;                     // [47차] 정체 우회 재시도 횟수(최대 2 — 실패 시 해제)
         private const float ATTACK_ARRIVE_RADIUS = 1.5f;    // 공격 명령 도달 반경(m) — 공격 모션 개시
         private const float ATTACK_MELEE_RANGE = 2.2f;      // 근접 공격 유효 거리(m)
         private const float ATTACK_COOLDOWN_SECONDS = 1.2f; // 공격 쿨다운(초)
@@ -1010,6 +1211,8 @@ namespace ProjectName.Systems
         private const float TARGET_SEARCH_RADIUS = 2.5f;    // 명령 지점 주변 적 탐색 반경(m)
 
         private Component _attackTarget;                    // 공격 명령 대상 (IDamageable 구현 컴포넌트 캐시)
+        private Component _explicitAttackTarget;            // 명시적 집중 대상(SetExplicitAttackTarget) — null이면 최근접 적 탐색
+        private readonly List<Component> _attackCandidates = new List<Component>(); // Phase 2C.3 후보 버퍼(재사용, 할당 없음)
         private float _lastMoveDistXZ = float.MaxValue;     // [2026-10-11] 이동 정체 감지 — 직전 프레임 목표 거리
         private float _moveStuckTimer;                      // [2026-10-11] 거리 무감소 누적 시간
         private Vector3 _attackTargetOffset;                 // 이동 타겟의 현재 위치 기준 공격 접근점 오프셋
@@ -1049,10 +1252,11 @@ namespace ProjectName.Systems
                 {
                     if (_hasResolvedAttackTarget)
                     {
-                        // 이미 지정된 타겟이 사망/무효화된 경우에만 명령을 끝낸다.
-                        Debug.Log($"[GuardPlaceholder] {guardName} 공격 대상 사망/상실 → 명령 해제");
-                        ClearCommand();
-                        return;
+                        // 지정 타겟이 사망/무효화되어도 공격 명령은 유지한다. 현재 대상 참조만 비우고
+                        // 명령 지점 주변에서 다음 유효한 적을 재탐색한다(없으면 명령 지점에서 대기).
+                        Debug.Log($"[GuardPlaceholder] {guardName} 공격 대상 사망/상실 → 명령 유지, 주변 재탐색");
+                        _attackTargetOffset = Vector3.zero;
+                        _hasResolvedAttackTarget = false;
                     }
 
                     // 타겟이 아직 검색되지 않은 명시적 공격 명령은 버리지 않는다.
@@ -1100,23 +1304,74 @@ namespace ProjectName.Systems
                 if (distXZ <= MOVE_CLEAR_RADIUS)
                 {
                     ClearCommand();
+                    ClearIndoorMoveExemptOnArrival();   // [43차] 실내 예외 플래그 정리(도착 시)
+                    // [무번호 20-I2] 도착 먼지 퍼프 — 이동 명령 완료 순간 1회 소형 확산(F1 트레일과 별개 신규 FX).
+                    //   트레일 간격 플래그 리셋 — 다음 이동 첫 걸음부터 즉시 자취 시작.
+                    _hasTrailDustPos = false;
+                    {
+                        Vector3 gp = transform.position;
+                        gp.y = TryGetGroundY(gp.x, gp.z, gp.y);
+                        // [무번호 29-S2-2] 도착 강도 = 도착 직전 속도 비례(감속 연동 — approach 감속 변수 계승).
+                        ShockwaveRingFX.SetNextPuffIntensity(Mathf.Clamp(0.7f + _lastFrameSpeed / 3.5f, 0.7f, 1.5f));
+                        try { ShockwaveRingFX.SpawnArrivalPuff(new Vector3(gp.x, gp.y + 0.02f, gp.z)); } catch (System.Exception) { }
+                    }
                     if (_rigAnim != null) _rigAnim.SetState(AnimationState.Idle);
+                    // [59차] 도착 즉시 정지 — 드라이버 스무딩/홀드 스냅(제자리걸음 잔상 제거).
+                    //   도착 1회 실행이라 GetComponent 캐시 불필요.
+                    var driver = GetComponent<HumanoidClipDriver>();
+                    if (driver != null) driver.NotifyStop();
                 }
                 else
                 {
                     StepToward(current, target, distXZ, delta);
                     // [2026-10-11 이동 정확도] 진행 정체 감지 — collider 막힘 등으로 목표 거리가 줄지 않으면
                     // 명령을 해제한다(영구 멈춤/잔존 지속 마커 방지). 도착 판정은 기존 XZ 반경 계약 유지.
-                    if (distXZ < _lastMoveDistXZ - 0.001f)
+                    // [47차 수리 — "여전히 안 움직이는 병사"] 기존 0.6s 정체 → 즉시 명령 해제는
+                    //   침대 열 사이/가구 옆에 집결 슬롯이 걸린 병사가 그대로 서 있게 만든 원인.
+                    //   수리: 해제 전 **우회 재시도 2회**(목표를 ±90° 측면 0.8m 밀어 재명령) —
+                    //   둘 다 실패 시에만 해제(기존 동작). 실내 배치 이동(IndoorMoveExempt)은
+                    //   사용자 의도 명령이라 포기 금지 — 무한 재시도 대신 마지막에 로그로 남긴다.
+                    // [53차 수리 — "이동이 자꾸 끊긴다"] 명령 목표가 이동 중(플레이어 추종 재발행·타겟 추적)이면
+                    //   distXZ 기준점이 매번 바뀌어 정체 오탐 → 우회 반복 → 끊김의 뿌리. 목표가 전 프레임 대비
+                    //   0.5m 이상 이동했으면 정체가 아니라 추적이므로 타이머 리셋.
+                    if ((target - _lastCommandTarget).sqrMagnitude > 0.25f)
+                    {
                         _moveStuckTimer = 0f;
+                        _stuckRetries = 0;
+                        _lastCommandTarget = target;
+                    }
+                    if (distXZ < _lastMoveDistXZ - 0.001f)
+                    {
+                        _moveStuckTimer = 0f;
+                        _stuckRetries = 0;
+                    }
                     else
                         _moveStuckTimer += delta;
                     _lastMoveDistXZ = distXZ;
                     if (_moveStuckTimer >= MOVE_STUCK_CLEAR_SECONDS)
                     {
-                        Debug.Log($"[GuardPlaceholder] {guardName} 이동 진행 정체({MOVE_STUCK_CLEAR_SECONDS:0.0}s) → 명령 해제");
-                        ClearCommand();
-                        if (_rigAnim != null) _rigAnim.SetState(AnimationState.Idle);
+                        if (_stuckRetries < 2)
+                        {
+                            _stuckRetries++;
+                            // 우회 목표 — 진행 방향 기준 좌/우 교대로 90° 측면 0.8m
+                            Vector3 dirXZ = (target - current); dirXZ.y = 0f;
+                            if (dirXZ.sqrMagnitude > 0.0001f)
+                            {
+                                dirXZ.Normalize();
+                                float sign = _stuckRetries % 2 == 1 ? 1f : -1f;
+                                Vector3 side = new Vector3(-dirXZ.z, 0f, dirXZ.x) * sign;   // 진행 방향의 측면
+                                _commandTargetPos = target + side * 0.8f;
+                                _moveStuckTimer = 0f;
+                                Debug.Log($"[GuardPlaceholder] {guardName} 이동 정체 → 우회 재시도 {_stuckRetries}/2 (측면 {0.8f:0.0}m)");
+                            }
+                        }
+                        else
+                        {
+                            _stuckRetries = 0;
+                            Debug.Log($"[GuardPlaceholder] {guardName} 이동 정체(우회 2회 실패) → 명령 해제 (목적지 {target.x:0.0},{target.z:0.0})");
+                            ClearCommand();
+                            if (_rigAnim != null) _rigAnim.SetState(AnimationState.Idle);
+                        }
                     }
                 }
             }
@@ -1129,9 +1384,15 @@ namespace ProjectName.Systems
             if (dirXZ.sqrMagnitude < 0.0001f) return;
             dirXZ.Normalize();
 
+            // [59차] 도착 감속 — 마지막 0.6m에서 선형 감속(도착 하드스톱 → 0.5s 제자리걸음의 뿌리 제거).
+            // MOVE_STOP_RADIUS(0.15) 계약 유지, 공격 명령은 ATTACK_ARRIVE_RADIUS(1.5)에서 먼저 분기하므로 영향 없음.
+            float approach = Mathf.Clamp01((distXZ - MOVE_STOP_RADIUS) / 0.6f);
             // 이동량 = _moveSpeed * delta, 목표를 넘어가지 않도록 클램프 (정지 반경 0.6m 유지)
-            float step = Mathf.Min(_moveSpeed * delta, Mathf.Max(0f, distXZ - MOVE_STOP_RADIUS));
+            float step = Mathf.Min(_moveSpeed * delta * approach, Mathf.Max(0f, distXZ - MOVE_STOP_RADIUS));
             if (step <= 0f) return;
+
+            // [무번호 29-S2-2] 속도 추적 — 기동/정지 강도 연동용(감속(approach) 재사용 계약).
+            _lastFrameSpeed = delta > 0.0001f ? step / delta : 0f;
 
             Vector3 next = current + dirXZ * step;
             // 지형 계약: 이동 y는 표면(1 + GetHeightAt)으로 보정 (FarmPlot.TryGetSurfaceY와 동일 수식)
@@ -1140,6 +1401,31 @@ namespace ProjectName.Systems
             // Rigidbody가 있으면 MovePosition, 없으면 transform 직접 이동
             if (_rb != null && !_rb.isKinematic) _rb.MovePosition(next);
             else transform.position = next;
+
+            // [무번호 19-F1 + 20-I1] 이동 먼지 트레일 — 이동 중 발밑 흙색 먼지. 20-I1: 프레임마다 스폰 →
+            //   **거리 간격(0.6m) 게이팅** — 연속 자취 연출 + 동시 스폰 수 급감(성능/가독). 실패 시 무음 스킵 유지.
+            if (!_hasTrailDustPos || (next - _lastTrailDustPos).sqrMagnitude >= TrailDustGapSq)
+            {
+                _lastTrailDustPos = next;
+                _hasTrailDustPos = true;
+                // [무번호 19-F1 + 20-I1 + 21-K2] 지면 링(스윕) + 공기 입자 퍼프(부양) 2레이어 — 젤다식 먼지.
+                //   0.6m 게이팅 유지 — 스폰 수 증가 없음(링 1 + 입자 5/지점).
+                // [무번호 28-S1] 스텝 리듬 — 발자국 좌우 교차(이동 방향의 횡축 오프셋, 결정론).
+                //   거리 게이팅(0.6m)·2레이어 구조 무손상 — 스폰 위치만 좌우로 벗겨 "걸음" 리듬을 만든다.
+                Vector3 stepSide = new Vector3(-dirXZ.z, 0f, dirXZ.x) * (_stepFlip ? 0.12f : -0.12f);
+                _stepFlip = !_stepFlip;
+                // [무번호 29-S1-2] 스텝 페이즈 동기 — 드라이버 CurrentSpeed 조회만(애니 시스템 무수정 — 계획 계약).
+                //   걷기 사이클 속도비를 먼지 강도에 반영: 애니가 빠를수록(발자국 촘촘) 강도 상승 — 결정론.
+                float animSpeed = _rigAnim != null ? _rigAnim.CurrentSpeed : 0f;
+                float speedRatio = _moveSpeed > 0.01f ? animSpeed / _moveSpeed : 1f;
+                ShockwaveRingFX.SetNextPuffIntensity(Mathf.Clamp(0.7f + 0.6f * speedRatio, 0.7f, 1.5f));   // [무번호 29-S2-2]
+                try
+                {
+                    ShockwaveRingFX.SpawnMoveTrailDust(new Vector3(next.x, next.y + 0.02f, next.z) + stepSide);
+                    ShockwaveRingFX.SpawnMoveTrailPuff(new Vector3(next.x, next.y + 0.06f, next.z) + stepSide);
+                }
+                catch (System.Exception) { }
+            }
 
             // 이동 방향으로 회전 (Slerp 8f * delta)
             FaceToward(dirXZ, delta);
@@ -1167,13 +1453,65 @@ namespace ProjectName.Systems
             if (_clipDriver != null) _clipDriver.TriggerAttack();
             else if (_rigAnim != null) _rigAnim.SetState(AnimationState.Attack);
 
+            // [169-P6] 호 텔레그래프 + 2페이즈 — 예고 0.5s 표시 후 부채꼴 재판정 타격(95차 F5 몬스터 선례).
+            //   회피: 예고 중 이탈(거리/호 밖) 시 빈 스윙, 타격 순간 구르기(C21-02 무적).
+            Component arcTargetComp = target as Component ?? _attackTarget as Component;
+            Vector3 arcDir = transform.forward;
+            if (arcTargetComp != null)
+            {
+                Vector3 d = arcTargetComp.transform.position - transform.position; d.y = 0f;
+                if (d.sqrMagnitude > 0.0001f) arcDir = d.normalized;
+            }
+            // [193차 제거] 몬스터 적색링(공격 텔레그래프 호) 폐지 — 사용자 지시("여전히 몬스터 적색링 남아있고").
+            //   190차(AnimalAI·AfterlifeEnemy)에 이어 병사형(GuardPlaceholder) 잔존 스폰 삭제 — 시각만 제거.
+            //   [169-P6] 호 판정(부채꼴 재판정)은 유지 — arcDir는 PerformAttackStrike 재판정 입력으로 그대로 사용.
+            _attackCooldown = ATTACK_COOLDOWN_SECONDS + TelegraphArcIndicator.TelegraphSeconds;   // 예고 중 재발동 차단(타격 시 쿨다운 재설정)
+
+            StartCoroutine(PerformAttackStrike(target, arcTargetComp, arcDir));
+        }
+
+        /// <summary>[169-P6] 병사 타격 2페이즈 — 예고 종료 후 거리/부채꼴 재판정 타격(빈 스윙) 또는 피해 적용.</summary>
+        private System.Collections.IEnumerator PerformAttackStrike(IDamageable target, Component targetComp, Vector3 arcDir)
+        {
+            float elapsed = 0f;
+            while (elapsed < TelegraphArcIndicator.TelegraphSeconds)
+            {
+                if (target is Component lt && !lt.gameObject.activeInHierarchy) yield break;
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // 타격 순간 재판정 — 이탈(거리/호 밖) 시 빈 스윙 [169-P6]
+            if (targetComp == null || !targetComp.gameObject.activeInHierarchy) yield break;
+            if (target != null && !target.IsAlive) yield break;   // [169-P6] 예고 중 사망 타겟 무타격
+            Vector3 flatTo = targetComp.transform.position - transform.position; flatTo.y = 0f;
+            if (flatTo.magnitude > ATTACK_MELEE_RANGE)
+            {
+                Debug.Log($"[GuardPlaceholder] 빈 스윙 — 예고 중 이탈 (거리 {flatTo.magnitude:F2} > 사정거리 {ATTACK_MELEE_RANGE:F2}) [169-P6]");
+                yield break;
+            }
+            if (!TelegraphArcIndicator.IsInFrontArc(transform.position, arcDir, targetComp.transform.position, ATTACK_MELEE_RANGE))
+            {
+                Debug.Log($"[GuardPlaceholder] 빈 스윙 — 예고 중 호 밖 이탈 [169-P6]");
+                yield break;
+            }
             // 데미지 적용 (대상은 ValidateAttackTarget에서 유효성 검증 완료 상태)
             // [2026-09-17] 기존 level × 1.5 → 장착 무기를 반영한 GetAttack() 사용.
-            float damage = GetAttack();
+            // [56차 후속 — "적 체력이 안 준다" 실측 수리] 무장비(테스트 씬 GuardEquipmentSystem 미부팅)
+            //   + 스탯 롤 하한 붕괴(Lv8 롤 1~5 — Editor.log 실측 dmg=1.0) → 타당 체력바 4%라 가시
+            //   데미지가 성립하지 않았다. 하한 = level 복원: 롤/무기 보너스가 level을 넘으면 그대로,
+            //   못 넘으면 level 보장(Lv8→최소 8, Lv9→9 — 상호 교전 양측 가시화).
+            float damage = Mathf.Max(GetAttack(), level);
+            // [163차 선수리] 구 지역 선언 삭제 — targetComp는 PerformAttackStrike 파라미터(L1466)로
+            //   호출부가 target as Component ?? _attackTarget as Component를 주입(동일 의미).
+            //   잔존 시 CS0136/CS0841 15건으로 전체 배치컴파일 차단. [169-P6] 로직 무변경.
+            // [56차 후속] 홀드 반격(TryHoldEngage)은 로컬 타겟을 인자로 넘겨 _attackTarget 필드가 null —
+            //   기존은 필드에서 방향/이름을 읽어 반격 로그 "대상=?" + 방향 폴백(transform.forward)이었다.
+            //   인자로 받은 타겟 우선으로 방향·이름을 정확화(동작 변경 없음).
             Vector3 dir = transform.forward;
-            if (_attackTarget is Component at)
+            if (targetComp != null)
             {
-                Vector3 toTarget = at.transform.position - transform.position; toTarget.y = 0f;
+                Vector3 toTarget = targetComp.transform.position - transform.position; toTarget.y = 0f;
                 if (toTarget.sqrMagnitude > 0.0001f) dir = toTarget.normalized;
             }
 
@@ -1207,7 +1545,7 @@ namespace ProjectName.Systems
                 if (monsterAI != null) monsterAI.NotifyAttacker(gameObject);
             }
 
-            string targetName = (_attackTarget as Component) != null ? (_attackTarget as Component).name : "?";
+            string targetName = targetComp != null ? targetComp.name : "?";
             Debug.Log($"[GuardPlaceholder] {guardName} 근접 공격! 대상={targetName} dmg={damage:F1}");
 
             // [TEST28-69차] 킬 크레딧 → 병사 경험치/레벨업 — 내 타격으로 대상이 사망하면 EXP 획득(몬스터/병사 공통)
@@ -1272,17 +1610,35 @@ namespace ProjectName.Systems
             }
 
             GameObject go = _attackTarget.gameObject;
-            // 자기 자신 또는 다른 병사(GuardPlaceholder)는 공격 금지
-            if (go == gameObject || go.GetComponentInParent<GuardPlaceholder>() != null)
+            // 자기 자신은 공격 금지
+            if (go == gameObject)
             {
                 _attackTarget = null;
                 return false;
             }
-            // 플레이어(및 플레이어 하위 오브젝트)는 공격 금지
-            if (_playerCache != null && go.transform.IsChildOf(_playerCache.transform))
+            // [54차 근원 수리 — "남부 침공군이 한 걸음도 못 감"] 병사 대 병사 판정을 51차 국가 간
+            //   교전 규칙(ResolveAttackTarget.IsEnemyGuard)과 **정합**시킨다. 기존: 모든
+            //   GuardPlaceholder를 무조건 거부 → ResolveAttackTarget이 허용한 이국 병사 타겟이
+            //   다음 프레임 여기서 즉시 무효화 → "공격 대상 사망/상실 → 명령 해제" 루프
+            //   (이동진단 실측: 타겟 확정 후 pos 덤프 0회 = 이동 0의 뿌리).
+            var otherGuard = go.GetComponentInParent<GuardPlaceholder>();
+            if (otherGuard != null)
             {
-                _attackTarget = null;
-                return false;
+                // [119차] 아웃로(방랑자)도 동국가 병사의 공격 대상으로 유효
+                if (!IsEnemyGuard(otherGuard) && !otherGuard.HostileToPlayerFaction && !otherGuard.IsOutlawWanderer)
+                {
+                    _attackTarget = null;
+                    return false;
+                }
+            }
+            else
+            {
+                // 플레이어(및 플레이어 하위 오브젝트)는 공격 금지
+                if (_playerCache != null && go.transform.IsChildOf(_playerCache.transform))
+                {
+                    _attackTarget = null;
+                    return false;
+                }
             }
             return true;
         }
@@ -1291,14 +1647,84 @@ namespace ProjectName.Systems
         ///   인정한다(ResolveAttackTarget 게이트). GuardHostilitySystem 적대 전환 시 true 세팅.</summary>
         public bool HostileToPlayerFaction { get; set; }
 
+        // ===== [119차] 방랑자(아웃로) 상태 — 방출·감축·탈영으로 소속을 잃고 세계를 배회하는 병사 =====
+        /// <summary>[119차] 방랑자 상태 — 소속 상실 병사가 세계를 배회하며 플레이어·영지를 공격한다(WandererDriver 구동).</summary>
+        public bool IsWanderer { get; private set; }
+        /// <summary>[119차] 아웃로 판정 — 방랑자는 모든 진영의 유효 공격 대상이며 스스로도 전 진영을 공격한다(국가 게이트 우회).</summary>
+        public bool IsOutlawWanderer => IsWanderer;
+
+        /// <summary>
+        /// [119차] 방랑자 전환 — 소속 상실(방출/AI 감축/탈영) 병사를 세계 배회 상태로 전환.
+        ///  · Territory_ 계층 → 씬 루트 재부모(영지 재구축 파괴·AI 경제 계층 스캔 이탈 방지)
+        ///  · 문지기 해제 + 플레이어 아군 해제(이중 방어) + 기존 명령/전투 정리
+        ///  · WandererDriver 부착(멱등) + Begin 구동. 사망 병사·이미 방랑자는 무시(멱등).
+        ///  · EditMode(비 Play) 안전 — 물리/코루틴 미사용, 드라이버 제거는 Application.isPlaying 분기
+        /// </summary>
+        public void BecomeWanderer(string reason)
+        {
+            if (_isDead) return;
+            if (IsWanderer) { Debug.Log($"[Wanderer] {guardName} 이미 방랑자 — 스킵(멱등)"); return; }
+            IsWanderer = true;
+            SetRecruited(false);
+            IsGatekeeper = false;
+            ClearCommand();
+            SetInCombat(false);
+            try { transform.SetParent(null, true); }
+            catch (System.Exception ex) { Debug.LogWarning($"[Wanderer] 재부모 실패 — {name}: {ex.Message}"); }
+            var driver = GetComponent<WandererDriver>();
+            if (driver == null) driver = gameObject.AddComponent<WandererDriver>();
+            driver.Begin(this, string.IsNullOrEmpty(reason) ? "방랑자 전환" : reason);
+            Debug.Log($"[Wanderer] {guardName} 방랑자 전환 — {reason} (국가={nation}, Lv.{level})");
+        }
+
+        /// <summary>[119차] 방랑 해제 — AI 재고용/플레이어 포섭 시. 드라이버 제거 후 지정 지점 보행 명령(멱등).</summary>
+        public void EndWanderer(Vector3 gotoPosition)
+        {
+            if (!IsWanderer) return;
+            IsWanderer = false;
+            var driver = GetComponent<WandererDriver>();
+            if (driver != null)
+            {
+                if (Application.isPlaying) Object.Destroy(driver); else Object.DestroyImmediate(driver);
+            }
+            ClearCommand();
+            SetInCombat(false);
+            HostileToPlayerFaction = false;
+            SetCommandTarget(gotoPosition, false);
+            Debug.Log($"[Wanderer] {guardName} 방랑 해제 → ({gotoPosition.x:0.0},{gotoPosition.z:0.0}) 보행");
+        }
+
+        /// <summary>[51차] 병사 간 적대 판정 — 국가 문자열 상이면 서로 적(영주 간 전쟁의 가시 교전:
+        ///   서부 침공군 ↔ 남부/내 문지기). 무소속(null/빈 값)은 중립. 기존 HostileToPlayerFaction
+        ///   (플레이어 진영 적대) 정책은 그대로 유지 — 이 헬퍼는 "병사 대 병사" 국가 차원의 추가.</summary>
+        public bool IsEnemyGuard(GuardPlaceholder other)
+        {
+            if (other == null || other == this) return false;
+            if (string.IsNullOrEmpty(Nation) || string.IsNullOrEmpty(other.Nation)) return false;
+            return !string.Equals(Nation, other.Nation, System.StringComparison.Ordinal);
+        }
+
         /// <summary>명령 지점 주변(TARGET_SEARCH_RADIUS)에서 가장 가까운 유효한 적 IDamageable을 탐색해 캐싱한다.</summary>
         private void ResolveAttackTarget()
         {
+            // Explicit focus: pin the clicked entity while it passes the same rules as nearest-enemy
+            // resolution (ValidateAttackTarget). If it is dead/invalid, drop the identity and search normally.
+            if (_explicitAttackTarget != null)
+            {
+                _attackTarget = _explicitAttackTarget;
+                if (ValidateAttackTarget())
+                {
+                    _attackTargetOffset = _commandTargetPos - _attackTarget.transform.position;
+                    _hasResolvedAttackTarget = true;
+                    return;
+                }
+                _explicitAttackTarget = null;
+            }
+
             _attackTarget = null;
 
             Collider[] hits = Physics.OverlapSphere(_commandTargetPos, TARGET_SEARCH_RADIUS);
-            float bestDist = float.MaxValue;
-            Component bestComp = null;
+            _attackCandidates.Clear();
 
             foreach (var hit in hits)
             {
@@ -1315,13 +1741,13 @@ namespace ProjectName.Systems
                 var otherGuard = go.GetComponentInParent<GuardPlaceholder>();
                 if (otherGuard != null)
                 {
-                    // [69차 후속15] 병사 대 병사 — 적대 정책 가드는 내(포섭) 병사만 공격 대상으로 허용
-                    //   (기존: 모든 GuardPlaceholder 제외 → 적대 병사가 내 병사를 공격하지 못하는 뿌리).
-                    if (HostileToPlayerFaction)
-                    {
-                        if (!otherGuard.CompareTag("RecruitedSoldier")) continue;
-                    }
-                    else continue;
+                    if (otherGuard == this) continue;   // 자기 자신(자식 콜라이더가 부모로 자신을 반환하는 케이스)
+                    // [51차] 병사 대 병사 — **국가가 다르면 서로 적**(영주 간 전쟁의 가시 교전: 서부 침공군 ↔
+                    //   남부/내 문지기). 기존: HostileToPlayerFaction 병사는 내(포섭) 병사만 공격 가능 +
+                    //   비적대 병사는 병사 대상 전부 제외 → 서부 침공군이 남부 문지기 앞에 도달해도 교전 불가(무교전 원인).
+                    //   같은 국가(또는 무소속)는 계속 제외. HostileToPlayerFaction 정책(내 병사 공격)은 그대로 유효.
+                    // [119차] 아웃로(방랑자)는 동국가라도 유효 공격 후보 — 무소속 적대
+                    if (!IsEnemyGuard(otherGuard) && !otherGuard.IsOutlawWanderer) continue;
                 }
                 else
                 {
@@ -1330,28 +1756,75 @@ namespace ProjectName.Systems
                         && go.transform.IsChildOf(_playerCache.transform)) continue;
                 }
 
-                float d = Vector3.Distance(_commandTargetPos, comp.transform.position);
-                if (d < bestDist)
-                {
-                    bestDist = d;
-                    bestComp = comp;
-                }
+                _attackCandidates.Add(comp);
             }
 
+            Component bestComp = PickGroupAttackCandidate();
             _attackTarget = bestComp;
             if (_attackTarget != null)
             {
                 _attackTargetOffset = _commandTargetPos - _attackTarget.transform.position;
                 _hasResolvedAttackTarget = true;
+                // [53차] 진단 — 공격 명령이 실제 적을 붙잡았는지 즉명(남부 침공군 교전 성립 검증용).
+                Debug.Log($"[이동진단] {guardName} 공격 타겟 확정 → {bestComp.name} ({bestComp.transform.position.x:0.0},{bestComp.transform.position.z:0.0})");
             }
+        }
+
+        /// <summary>
+        /// Phase 2C.3 group load balancing: among the eligible candidates collected by ResolveAttackTarget,
+        /// prefer the enemy with the fewest OTHER living guards already attacking it; ties go to the candidate
+        /// nearest the shared attack anchor, then to ordinal name order. Runs only on initial resolution or
+        /// after the resolved target dies (ExecuteMovement keeps a valid _attackTarget), so it is never per-frame.
+        /// A single candidate skips the guard scan entirely.
+        /// </summary>
+        private Component PickGroupAttackCandidate()
+        {
+            int count = _attackCandidates.Count;
+            if (count == 0) return null;
+            if (count == 1) return _attackCandidates[0];
+
+            GuardPlaceholder[] guards = Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None);
+            Component best = null;
+            int bestLoad = int.MaxValue;
+            float bestDist = float.MaxValue;
+
+            for (int i = 0; i < count; i++)
+            {
+                Component candidate = _attackCandidates[i];
+                int load = 0;
+                for (int g = 0; g < guards.Length; g++)
+                {
+                    GuardPlaceholder other = guards[g];
+                    if (other == null || other == this || other.IsDead) continue;
+                    if (other.CurrentAttackTarget == candidate) load++;
+                }
+
+                float dist = Vector3.Distance(_commandTargetPos, candidate.transform.position);
+                bool better;
+                if (best == null) better = true;
+                else if (load != bestLoad) better = load < bestLoad;
+                else if (dist != bestDist) better = dist < bestDist;
+                else better = string.CompareOrdinal(candidate.name, best.name) < 0;
+
+                if (better)
+                {
+                    best = candidate;
+                    bestLoad = load;
+                    bestDist = dist;
+                }
+            }
+            return best;
         }
 
         /// <summary>
         /// 지형 계약 (FarmPlot.TryGetSurfaceY와 동일 수식): 월드 표면 y = 1 + GetHeightAt(x, z, Plains, 42).
         /// TerrainGenerator 미초기화 등 예외 시 fallbackY(현재 y)를 유지해 텔레포트를 방지한다.
+        /// [43차] 실내(IndoorActive)는 월드 지형 y 보정을 스킵 — IndoorScene은 월드 언로드 별도 씬이라
+        ///   GetHeightAt가 존재하지 않는 표면을 반환해 병사가 실내 바닥 y에서 이탈하는 원인이었다.
         /// </summary>
         private static float TryGetGroundY(float x, float z, float fallbackY)
         {
+            if (ProjectName.Core.UITransitionState.IndoorActive) return fallbackY;   // [43차] 실내 y 보정 금지
             try { return 1f + TerrainGenerator.GetHeightAt(x, z, BiomeType.Plains, 42); }
             catch { return fallbackY; }
         }
@@ -1373,6 +1846,14 @@ namespace ProjectName.Systems
 
         /// <summary>[39차] 배치 UI가 의도한 실내 이동 명령 허용 플래그(출동/수비 보행) — P14 게이트 예외.</summary>
         public bool IndoorMoveExempt { get; set; }
+
+        /// <summary>[43차] 실내 목적지 도착 시 예외 해제 — 예외 플래그 잔존으로 무명령 이동이 열리는 것 차단.
+        ///   ExecuteMovement의 이동 명령 도착(ClearCommand) 시점에 호출.</summary>
+        public void ClearIndoorMoveExemptOnArrival()
+        {
+            if (_hasCommand) return;     // 아직 명령 진행 중 — 해제 금지(도착 시점에만)
+            IndoorMoveExempt = false;
+        }
         /// <summary>방독면 착용 여부 — 착용 시 가스 경직 반응을 받지 않는다.</summary>
         public bool IsGasMaskEquipped => _isGasMaskEquipped;
         public GuardRole Role { get => _role; set => _role = value; }

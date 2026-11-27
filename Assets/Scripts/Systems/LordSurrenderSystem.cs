@@ -61,6 +61,44 @@ namespace ProjectName.Systems
         private static readonly Dictionary<TerritoryId, GameObject> _lordObjects = new Dictionary<TerritoryId, GameObject>();
 
         /// <summary>
+        /// 침략 영지 내부의 미제압 영주 encounter 등록. 항복/처형/소유권 상태는 바꾸지 않는다.
+        /// </summary>
+        public static bool RegisterInvadedLord(TerritoryId territoryId, LordData lord, GameObject lordObject)
+        {
+            if (lordObject == null || !lord.isAlive || lord.hasSurrendered) return false;
+            var db = TerritoryDatabase.Instance;
+            if (db == null) return false;
+            TerritoryState state = db.GetState(territoryId);
+            if (state == null || state.ownership != TerritoryOwnership.LordOwned) return false;
+            lord.territoryId = territoryId;
+            lord.hasSurrendered = false;
+            _lords[territoryId] = lord;
+            _lordObjects[territoryId] = lordObject;
+            return true;
+        }
+
+        /// <summary>등록된 침략 영주의 전투 HP/생존 상태를 갱신한다. 소유권/항복은 변경하지 않는다.</summary>
+        public static void UpdateInvadedLord(TerritoryId territoryId, LordData lord)
+        {
+            if (!_lords.ContainsKey(territoryId)) return;
+            lord.territoryId = territoryId;
+            _lords[territoryId] = lord;
+        }
+
+        /// <summary>
+        /// [F3] 영주 배신 처리 — 항복 상태를 해제해 재탈환 흐름에서 다시 항복 대화가 가능하도록 한다.
+        /// 등록된 영주가 없으면 무시 (실내 재진입 시 SpawnForInvadedTerritory가 신규 등록).
+        /// </summary>
+        public static void MarkLordBetrayed(TerritoryId territoryId)
+        {
+            if (!_lords.TryGetValue(territoryId, out var lord)) return;
+            lord.hasSurrendered = false;
+            lord.isAlive = true;
+            _lords[territoryId] = lord;
+            Debug.Log($"[LordSurrenderSystem] 🐍 영주 배신 반영: {lord.lordName} 항복 상태 해제 — 재탈환 흐름 준비");
+        }
+
+        /// <summary>
         /// 특정 영지의 LordData 반환
         /// </summary>
         public static LordData GetLordData(TerritoryId territoryId)
@@ -297,6 +335,12 @@ namespace ProjectName.Systems
             TerritoryLootSystem.EnsureTerritoryGold(territoryId);
             TerritoryLootSystem.ConfiscateOnCapture(territoryId);
 
+            // [F1] 플레이어 깃발 게양 — 처형 경로
+            TerritoryCaptureSystem.OnTerritoryCaptured(territoryId, NationType.East, true);
+
+            // [F2] 처형된 영주는 공물 대상에서 제외 (배신 후 재탈환 → 처형 경로 커버)
+            SparedLordTributeSystem.UnregisterSparedLord(territoryId, "영주 처형");
+
             // Lord Placeholder 제거
             DestroyLordObject(territoryId);
 
@@ -323,20 +367,28 @@ namespace ProjectName.Systems
             _lords[territoryId] = lord;
 
             // 영지 상태 업데이트 — 높은 충성도 보너스 — [P1] SetOwnership 경유
+            // [F3] 반복 배신 영주는 불신 반영 — 첫 살려주기 +30, 배신 이력 있으면 +15
             db.SetOwnership(territoryId, TerritoryOwnership.PlayerOwned);
             state = db.GetState(territoryId);
+            float spareLoyaltyBonus = state.betrayalCount >= 1 ? 15f : 30f;
             state.lordSpared = true;
             state.lordSurrendered = true;
-            state.loyaltyToPlayer = Mathf.Clamp(state.loyaltyToPlayer + 30f, 0f, 100f);
+            state.loyaltyToPlayer = Mathf.Clamp(state.loyaltyToPlayer + spareLoyaltyBonus, 0f, 100f);
 
             // [Phase D] 점령 몰수 — 살려주기 경로도 PlayerOwned 점령이므로 몰수(멱등 가드로 중복 지급 없음)
             TerritoryLootSystem.EnsureTerritoryGold(territoryId);
             TerritoryLootSystem.ConfiscateOnCapture(territoryId);
 
+            // [F1] 플레이어 깃발 게양 — 살려주기 경로 (깃발은 게양, 공물/배신은 F2/F3)
+            TerritoryCaptureSystem.OnTerritoryCaptured(territoryId, NationType.East, true);
+
+            // [F2] 살려준 영주 공물 등록 — 매주 골드 바침 (F2: SparedLordTributeSystem)
+            SparedLordTributeSystem.RegisterSparedLord(territoryId, lord.personality, db.GetDefinition(territoryId).difficulty);
+
             // Lord Placeholder 제거 (또는 유지 — 영주가 영지에 남음)
             DestroyLordObject(territoryId);
 
-            Debug.Log($"[LordSurrenderSystem] 🤝 영주 살려줌: {lord.lordName} — 영지 {territoryId} 플레이어 소유 (충성도 +30)");
+            Debug.Log($"[LordSurrenderSystem] 🤝 영주 살려줌: {lord.lordName} — 영지 {territoryId} 플레이어 소유 (충성도 +{spareLoyaltyBonus:F0})");
 
             OnLordSpared?.Invoke(territoryId, lord);
         }

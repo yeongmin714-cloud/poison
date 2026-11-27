@@ -5,7 +5,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using ProjectName.Core;
-using ProjectName.Core.Data;   // EconomyPricing
+using ProjectName.Core.Data;   // [144차 P3-RESULT #35] EconomyPricing(판매가) 스펙 표기 제거 — Figma 진실 체계 전환(게임 전용 역반영 후보 기록)
 using ProjectName.Systems;   // HarvestResultBridge
 
 namespace ProjectName.UI.Toolkit
@@ -33,7 +33,8 @@ namespace ProjectName.UI.Toolkit
             public static readonly Color Sub      = Hex(0x21262D);   // 보조 패널(SpecBox/버튼)
             public static readonly Color Inset    = Hex(0x1C2128);   // 아이템 이미지/설명 내부
             public static readonly Color Accent   = Hex(0x58A6FF);   // 액센트(파랑)
-            public static readonly Color Gold     = Hex(0xE3B341);   // 골드(희귀/아이템명)
+            public static readonly Color Gold     = Hex(0xE3B341);   // 골드(구 #E3B341 — #21/#26 수리로 미사용 잔존, Figma 진실은 GoldDeep)
+            public static readonly Color GoldDeep = Hex(0xD4AF37);   // [144차 P3-RESULT #21/#23/#26] Figma 진실 골드 — 아이템명 72:38/TierClass 72:41/이미지섹션 스트로크 72:39
             public static readonly Color TextMain = Hex(0xF0F6FC);
             public static readonly Color TextSub  = Hex(0x8B949E);
             public static readonly Color Stroke   = Hex(0x2E343D);
@@ -98,7 +99,8 @@ namespace ProjectName.UI.Toolkit
             _staminaLabel.style.color = Hex(0xFF7300);   // STA 주황
             header.Add(_staminaLabel);
 
-            // ── ResultPanel ── [32차 Fluent] 유리 배경(α0.88) — 뒷 배경이 희미하게 비침
+            // ── ResultPanel ── [32차 Fluent] 유리 배경 — 뒷 배경이 희미하게 비침.
+            //    [144차 P3-RESULT #6] fill α0.878(0xE0) → 0.702 = Figma 72:17 진실(#161B22@0.702) — 32차 α0.88 주석 계약 폐기(D1 확정).
             // [33차] .utk-window-shadow(다른 UTK 창과 동일 소프트 섀도) — 플루언트 크롬 일치
             var panelShadow = new VisualElement { name = "ResultPanelShadow" };
             panelShadow.AddToClassList("utk-window-shadow");
@@ -109,11 +111,11 @@ namespace ProjectName.UI.Toolkit
 
             var panel = new VisualElement();
             _resultPanel = panel;
-            panel.style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xE0));
+            panel.style.backgroundColor = UTKTheme.GlassPanelFill;   // [144차 P3-RESULT #6] #161B22@0.702(72:17) — UTKTheme 어휘(B3=0.702)
             panel.style.borderTopWidth = panel.style.borderBottomWidth = panel.style.borderLeftWidth = panel.style.borderRightWidth = 2f;   // [33차] .utk-window 2px 계약
-            panel.style.borderTopColor = panel.style.borderBottomColor = panel.style.borderLeftColor = panel.style.borderRightColor = new StyleColor(Dark.Stroke);
-            panel.style.borderTopLeftRadius = 8f; panel.style.borderTopRightRadius = 8f;
-            panel.style.borderBottomLeftRadius = 8f; panel.style.borderBottomRightRadius = 8f;
+            // [144차 P3-RESULT #7] 스트로크 색 #2E343D 불투명 → #30363D@0.502(UTKTheme.BorderChrome, 72:17) — 두께 2f는 33차 .utk-window 2px 계약 유지(Figma 1.2와의 계약 편차는 기록 유지)
+            panel.style.borderTopColor = panel.style.borderBottomColor = panel.style.borderLeftColor = panel.style.borderRightColor = new StyleColor(UTKTheme.BorderChrome);
+            UTKTheme.ApplyRadius(panel, 14.4f);   // [144차 P3-RESULT #8] r8→14.4(72:17)
             panel.style.paddingTop = 28.8f; panel.style.paddingBottom = 28.8f;   // [Figma 72:80 실측] pad28.8(31차)
             panel.style.paddingLeft = 28.8f; panel.style.paddingRight = 28.8f;
             Content.Add(panel);
@@ -122,11 +124,13 @@ namespace ProjectName.UI.Toolkit
             var head = new VisualElement();
             head.style.flexDirection = FlexDirection.Row;
             head.style.alignItems = Align.Center;
-            head.style.marginBottom = 20f;   // [Figma 72:17] gap20
+            head.style.height = 39f;   // [144차 P3-RESULT #14] Figma 72:30 PanelHeader h39 = Badge 24.6 + pb 14.4
+            head.style.paddingBottom = 14.4f;   // [#14] pb — 콘텐트박스 24.6 = Badge 높이, alignItems Center로 정렬 귀결
+            head.style.marginBottom = 24f;   // [#11/#12] gap24(72:17) — verb 측 mt20 제거로 이중마진 40 → 단일 24
             panel.Add(head);
 
             _subtitle = new Label("FISHING RESULT");
-            _subtitle.style.fontSize = 16.8f;                                   // [Figma 72:80] fs16.8 fw700(31차)
+            _subtitle.style.fontSize = 15.6f;   // [144차 P3-RESULT #15] 채집·채굴 15.6(72:110/173) — 낚시 14.4(72:33)는 ApplyLatest 판본 스위치. 구 16.8 고정 폐기
             _subtitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             _subtitle.style.color = Dark.TextSub;
             _subtitle.style.flexGrow = 1f;
@@ -135,35 +139,38 @@ namespace ProjectName.UI.Toolkit
             _badge = new Label("SUCCESS");
             _badge.style.fontSize = 13.2f;
             _badge.style.unityFontStyleAndWeight = FontStyle.Bold;   // [Figma 72:80] fw700(31차)
-            _badge.style.color = Dark.Accent;
-            _badge.style.backgroundColor = Dark.Accent;
-            _badge.style.borderTopLeftRadius = 4f; _badge.style.borderTopRightRadius = 4f;
-            _badge.style.borderBottomLeftRadius = 4f; _badge.style.borderBottomRightRadius = 4f;
-            _badge.style.paddingTop = 2f; _badge.style.paddingBottom = 2f;
-            _badge.style.paddingLeft = 8f; _badge.style.paddingRight = 8f;
-            // 배지 배경은 액센트, 글자는 대비 — 별도 인라인
-            _badge.style.color = Dark.Bg;   // 액센트 배경 위 어두운 글자
+            _badge.style.height = 24.6f;   // [144차 P3-RESULT #16] Figma 72:34 Badge 24.6
+            _badge.style.unityTextAlign = TextAnchor.MiddleCenter;   // [#16] 고정 높이 수직 중앙
+            _badge.style.color = Dark.Accent;   // [#17] 텍스트 #58A6FF(72:35) — 구 Dark.Bg 반전 교정
+            _badge.style.backgroundColor = new Color(0x58 / 255f, 0xA6 / 255f, 0xFF / 255f, 0.082f);   // [#16] #58A6FF@0.082 — 구 불투명 Accent 배지
+            UTKTheme.ApplyElementBorder(_badge, new Color(0x58 / 255f, 0xA6 / 255f, 0xFF / 255f, 0.2f));   // [#16] 스트로크 #58A6FF@0.2 w1.2(72:34)
+            UTKTheme.ApplyRadius(_badge, 4.8f);   // [#16] r4→4.8(72:34)
+            _badge.style.paddingTop = 4.8f; _badge.style.paddingBottom = 4.8f;   // [#16] pad 세로 4.8 — 구 2
+            _badge.style.paddingLeft = 9.6f; _badge.style.paddingRight = 9.6f;   // [#16] pad 가로 9.6 — 구 8
             head.Add(_badge);
 
             // NotificationTitle
             _verb = new Label("");
             _verb.style.fontSize = 18f;      // [Figma 72:80] fs18 fw500(31차)
             _verb.style.color = Dark.Accent;
-            _verb.style.marginTop = 20f;   // [Figma] gap20
+            // [144차 P3-RESULT #12] 구 marginTop 20 — head mb24와 이중마진 40 형성 → 제거(head 측 단일 gap24)
+            _verb.style.marginBottom = 4.8f;   // [#13] NotificationTitle 내부 gap4.8(72:36) — verb→아이템명
+            _verb.style.alignSelf = Align.Center;   // [#20] crossAlign CENTER — verb 중앙(x203, 72:36-38)
             _verb.style.whiteSpace = WhiteSpace.Normal;
             panel.Add(_verb);
 
             _itemName = new Label("");
             _itemName.style.fontSize = 28.8f;   // [Figma 72:80 실측] fs28.8 fw800 — 메인 타이틀 대형(31차, 기존 15.6)
             _itemName.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _itemName.style.color = Dark.Gold;
+            _itemName.style.color = Dark.GoldDeep;   // [144차 P3-RESULT #21] #D4AF37(72:38) — 구 Gold #E3B341
+            _itemName.style.unityTextAlign = TextAnchor.MiddleCenter;   // [#20] align CENTER w518.4(72:38 — 좌측정렬 교정)
             _itemName.style.whiteSpace = WhiteSpace.Normal;
-            _itemName.style.marginBottom = 20f;   // [Figma] gap20
+            _itemName.style.marginBottom = 24f;   // [144차 P3-RESULT #11] gap20→24
             panel.Add(_itemName);
 
             // ItemImageSection — TierStrip(상단 4px) + 클래스 + 이미지
             var imageSec = new VisualElement();
-            imageSec.style.marginBottom = 20f;   // [Figma] gap20
+            imageSec.style.marginBottom = 24f;   // [#11] gap24(72:17) — 구 gap20
             imageSec.style.paddingTop = 0f; imageSec.style.paddingBottom = 0f;
             imageSec.style.paddingLeft = 0f; imageSec.style.paddingRight = 0f;
             panel.Add(imageSec);
@@ -175,9 +182,9 @@ namespace ProjectName.UI.Toolkit
 
             var imageRow = new VisualElement();
             imageRow.style.height = 312f;         // [Figma 72:80 실측] ItemImage 518.4×312 대형 영역(31차)
-            imageRow.style.backgroundColor = Dark.Inset;
-            imageRow.style.borderTopLeftRadius = 6f; imageRow.style.borderTopRightRadius = 6f;
-            imageRow.style.borderBottomLeftRadius = 6f; imageRow.style.borderBottomRightRadius = 6f;
+            imageRow.style.backgroundColor = new Color(0x1C / 255f, 0x21 / 255f, 0x28 / 255f, 0.502f);   // [#22] #1C2128@0.502(72:39) — 구 Dark.Inset 불투명
+            UTKTheme.ApplyElementBorder(imageRow, new Color(0xD4 / 255f, 0xAF / 255f, 0x37 / 255f, 1f));   // [#23] #D4AF37 1.2(72:39)
+            UTKTheme.ApplyRadius(imageRow, 9.6f);   // [#24] r6→9.6(72:39)
             imageRow.style.paddingTop = 0f; imageRow.style.paddingBottom = 0f;
             imageRow.style.paddingLeft = 0f; imageRow.style.paddingRight = 0f;
             imageSec.Add(imageRow);
@@ -185,7 +192,8 @@ namespace ProjectName.UI.Toolkit
             _tierClass = new Label("LEGENDARY CLASS");
             _tierClass.style.fontSize = 13.2f;    // [Figma 72:80] fs13.2 fw700 — 이미지 좌상단 오버레이
             _tierClass.style.unityFontStyleAndWeight = FontStyle.Bold;
-            _tierClass.style.color = Dark.Gold;
+            _tierClass.style.color = new Color(0xD4 / 255f, 0xAF / 255f, 0x37 / 255f, 1f);   // [#26] #D4AF37(72:41) — 구 Dark.Gold #E3B341
+            _tierClass.style.opacity = 0.8f;   // [#26] op0.8(72:41)
             _tierClass.style.position = Position.Absolute;   // [Figma] 이미지 위 오버레이(14.4,14.4)
             _tierClass.style.left = 14.4f;
             _tierClass.style.top = 14.4f;
@@ -205,7 +213,7 @@ namespace ProjectName.UI.Toolkit
             // ItemSpecs — 3칸 SpecBox
             var specs = new VisualElement();
             specs.style.flexDirection = FlexDirection.Row;
-            specs.style.marginBottom = 20f;   // [Figma] gap20
+            specs.style.marginBottom = 24f;   // [#11] gap24(72:17) — 구 gap20
             panel.Add(specs);
 
             BuildSpecBox(specs, out _spec1Label, out _spec1Val);
@@ -214,17 +222,17 @@ namespace ProjectName.UI.Toolkit
 
             // DescriptionSection — [Figma 72:80 실측] 518.4×155, pad 19.2, 제목 fs16.8/본문 fs15.6(31차)
             var descSec = new VisualElement();
-            descSec.style.backgroundColor = Dark.Inset;
-            descSec.style.borderTopLeftRadius = 6f; descSec.style.borderTopRightRadius = 6f;
-            descSec.style.borderBottomLeftRadius = 6f; descSec.style.borderBottomRightRadius = 6f;
+            descSec.style.backgroundColor = new Color(0x1C / 255f, 0x21 / 255f, 0x28 / 255f, 0.502f);   // [#36] #1C2128@0.502(72:53) — 구 Dark.Inset 불투명
+            UTKTheme.ApplyRadius(descSec, 9.6f);   // [#37] r6→9.6(72:53)
+            UTKTheme.ApplyElementBorder(descSec);   // [#38] 스트로크 #30363D@0.502 1.2(72:53) — 구 누락
             descSec.style.paddingTop = 19.2f; descSec.style.paddingBottom = 19.2f;
             descSec.style.paddingLeft = 19.2f; descSec.style.paddingRight = 19.2f;
             descSec.style.minHeight = 155f;
-            descSec.style.marginBottom = 20f;   // [Figma] gap20
+            descSec.style.marginBottom = 24f;   // [#11] gap24(72:17) — 구 gap20
             panel.Add(descSec);
 
             _descHeader = new Label("물고기 특징");
-            _descHeader.style.fontSize = 16.8f;
+            // _descHeader fs는 ApplyLatest 판본 스위치에서 설정(#40 — 낚시 14.4/채집·채굴 16.8, 72:54/131/194)
             _descHeader.style.unityFontStyleAndWeight = FontStyle.Bold;
             _descHeader.style.color = Dark.Accent;
             _descHeader.style.marginBottom = 9.6f;
@@ -245,11 +253,13 @@ namespace ProjectName.UI.Toolkit
 
             // [33차] 버튼 = 실제 동작(피그마 KeepButton/DiscardButton 계약) — 습득 유지 또는
             //   인벤토리에서 제거 후 닫기. 기존 "확인·이미 획득됨/닫기·인벤토리 유지" 무동작 표기 폐지.
-            var keepBtn = UTKButton.Create("습득하기", () => Close(), UTKButton.Variant.Primary);
+            // [144차 P3-RESULT #46/D7] 라벨 Figma 72:60 "인벤토리에 놓기"로 교체(D7 확정) + r7.2(72:59).
+            var keepBtn = UTKButton.Create("인벤토리에 놓기", () => Close(), UTKButton.Variant.Primary);
             keepBtn.style.flexGrow = 1f;
             keepBtn.style.marginRight = 9.6f;   // [Figma 72:80] 버튼 간격 9.6(31차)
             keepBtn.style.height = 48.8f;       // [Figma] 48.8
             keepBtn.style.fontSize = 16.8f;
+            UTKTheme.ApplyRadius(keepBtn, 7.2f);   // [#46] r7.2(72:59) — UTKButton 기본 r3 교체
             keepBtn.style.unityFontStyleAndWeight = FontStyle.Bold;
             StyleKeepButton(keepBtn);
             actions.Add(keepBtn);
@@ -281,6 +291,14 @@ namespace ProjectName.UI.Toolkit
             _tipLabel.style.fontSize = 14.4f;   // [Figma 72:80] SystemTip fs14.4(31차)
             _tipLabel.style.color = Dark.TextSub;
             _tipLabel.style.whiteSpace = WhiteSpace.Normal;
+            // [144차 P3-RESULT P0] SystemTip info 아이콘 16.8(72:61 — stroke #8B949E w2.4) — 벡터→글리프 근사(ⓘ).
+            // 아이콘 누락이 텍스트 x 26.1 괴리의 원인이었음 — Row+Center 컨테이너에 아이콘 선행 부착.
+            var tipIcon = new Label("ⓘ");
+            tipIcon.style.fontSize = 16.8f;
+            tipIcon.style.color = Dark.TextSub;
+            tipIcon.style.marginRight = 9.6f;
+            tipIcon.style.unityTextAlign = TextAnchor.MiddleCenter;
+            tip.Add(tipIcon);
             tip.Add(_tipLabel);
 
             style.display = DisplayStyle.None;
@@ -359,16 +377,18 @@ namespace ProjectName.UI.Toolkit
             box.style.flexShrink = 0f;
             box.style.height = 70.6f;
             box.style.marginRight = last ? 0f : 9.6f;
-            box.style.backgroundColor = Dark.Sub;
-            box.style.borderTopLeftRadius = 6f; box.style.borderTopRightRadius = 6f;
-            box.style.borderBottomLeftRadius = 6f; box.style.borderBottomRightRadius = 6f;
-            box.style.paddingTop = 14.4f; box.style.paddingBottom = 6f;
+            box.style.backgroundColor = new Color(0x21 / 255f, 0x26 / 255f, 0x2D / 255f, 0.6f);   // [#29] #21262D@0.6(72:44) — 구 Dark.Sub 불투명
+            UTKTheme.ApplyElementBorder(box);   // [#30] #30363D@0.502 1.2(72:44)
+            UTKTheme.ApplyRadius(box, 7.2f);   // [#31] r6→7.2(72:44)
+            box.style.paddingTop = 14.4f; box.style.paddingBottom = 14.4f;   // [#32] pad 전면 14.4(72:44) — 구 pt14.4/pb6
+            box.style.paddingLeft = 14.4f; box.style.paddingRight = 14.4f;   // [#32] pl/pr 0→14.4
             parent.Add(box);
 
             lbl = new Label("—");
             lbl.style.fontSize = 13.2f;
             lbl.style.color = Dark.TextSub;
             lbl.style.unityTextAlign = TextAnchor.MiddleCenter;
+            lbl.style.marginBottom = 4.8f;   // [#32] 라벨-값 gap 4.8(72:44)
             box.Add(lbl);
 
             val = new Label("—");
@@ -385,8 +405,9 @@ namespace ProjectName.UI.Toolkit
         /// <summary>[2026-10-11 29차 수리] 전 씬 자가부트 — publish는 이미 호출되고 있었으나(로그 실측:
         /// "🧺 치유초 x1 획득 — 결과 창 표시") Ensure가 어디서도 불리지 않아 Updater(LatestToken 폴링)
         /// 가 부재 → 창이 영구 미오픈이었다. FishingUTK 선례와 동일.</summary>
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void Bootstrap() => Ensure();
+        // [130차] 자가부트 폐기 — 획득 연출 소비자를 AcquisitionCinema로 교체(동물의 숲식 연출 — 상반신 카메라/
+        // 손끝 GLB/대화 패널). 클래스·Ensure 코드는 잔존(Play 검증 후 삭제는 별도 승인 — 미동작 경로 잔존 선례).
+        // [구 130차 이전] 런타임 자가부트 어트리뷰트+Bootstrap→Ensure 한 쌍이 여기에 있었다(폐기).
 
         public static void Ensure()
         {
@@ -520,6 +541,8 @@ namespace ProjectName.UI.Toolkit
                 HarvestResultBridge.HarvestKind.Woodcutting => "통나무 특징",           // [28차]
                 _ => "광석 특징",
             };
+            // [#40] 설명 제목 fs — 낚시 14.4(72:54)/채집·채굴 16.8(72:131/194) — 구 16.8 고정 폐기
+            _descHeader.style.fontSize = HarvestResultBridge.LatestKind == HarvestResultBridge.HarvestKind.Fishing ? 14.4f : 16.8f;
             _descBody.text = string.IsNullOrEmpty(HarvestResultBridge.LatestDescription)
                 ? "설명이 없습니다."
                 : HarvestResultBridge.LatestDescription;
@@ -566,8 +589,8 @@ namespace ProjectName.UI.Toolkit
             btn.style.color = Dark.Bg;
             btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
             btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(Dark.Accent);
-            btn.style.borderTopLeftRadius = 6f; btn.style.borderTopRightRadius = 6f;
-            btn.style.borderBottomLeftRadius = 6f; btn.style.borderBottomRightRadius = 6f;
+            btn.style.borderTopLeftRadius = 7.2f; btn.style.borderTopRightRadius = 7.2f;   // [#46] r6→7.2(72:57/59)
+            btn.style.borderBottomLeftRadius = 7.2f; btn.style.borderBottomRightRadius = 7.2f;
             btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = Hex(0x79C0FF));
             btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = Dark.Accent);
         }
@@ -580,8 +603,8 @@ namespace ProjectName.UI.Toolkit
             btn.style.color = Dark.Danger;
             btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
             btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(Dark.WhiteBg);
-            btn.style.borderTopLeftRadius = 6f; btn.style.borderTopRightRadius = 6f;
-            btn.style.borderBottomLeftRadius = 6f; btn.style.borderBottomRightRadius = 6f;
+            btn.style.borderTopLeftRadius = 7.2f; btn.style.borderTopRightRadius = 7.2f;   // [#46] r6→7.2(72:57/59)
+            btn.style.borderBottomLeftRadius = 7.2f; btn.style.borderBottomRightRadius = 7.2f;
             btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = Hex(0xE6E6E6));
             btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = Dark.WhiteBg);
         }

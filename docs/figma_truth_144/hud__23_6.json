@@ -1,0 +1,1563 @@
+{
+ "id": "23:6",
+ "name": "HUD_Canvas",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 3965,
+ "ay": 208,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "#0B0E14/1.0"
+ ],
+ "strokeW": 1.2,
+ "layout": "VERTICAL",
+ "gap": 57.60000228881836,
+ "pl": 76.80000305175781,
+ "pr": 76.80000305175781,
+ "pt": 76.80000305175781,
+ "pb": 76.80000305175781,
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "23:7",
+   "name": "Rectangle",
+   "type": "RECTANGLE",
+   "x": null,
+   "y": null,
+   "ax": 3965,
+   "ay": 208,
+   "w": 1920.0,
+   "h": 1080.0,
+   "d": 1,
+   "fills": [
+    "IMAGE",
+    "#0B0E14/1.0@0.85"
+   ],
+   "strokeW": 1.2
+  },
+  {
+   "id": "39:2",
+   "name": "stamina-gauge",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 4271,
+   "ay": 1063,
+   "w": 137.6,
+   "h": 137.6,
+   "d": 1,
+   "fills": [
+    "#FFFFFF/1.0@0.0"
+   ],
+   "strokeW": 1.2,
+   "layout": "VERTICAL",
+   "mainAlign": "CENTER",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "39:3",
+     "name": "bg-radial-glow",
+     "type": "ELLIPSE",
+     "x": null,
+     "y": null,
+     "ax": 4208,
+     "ay": 988,
+     "w": 264.0,
+     "h": 264.0,
+     "d": 2,
+     "fills": [
+      "RADIAL:(#FF7300/0.094@0.0,#FF7300/0.0@1.0)"
+     ],
+     "strokeW": 1.2,
+     "fx": [
+      "LAYER_BLUR:48.0:None"
+     ]
+    },
+    {
+     "id": "39:4",
+     "name": "gauge-widget",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 4271,
+     "ay": 1063,
+     "w": 137.6,
+     "h": 137.6,
+     "d": 2,
+     "strokeW": 1.32,
+     "layout": "VERTICAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "39:5",
+       "name": "outer-track",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4271,
+       "ay": 1063,
+       "w": 137.6,
+       "h": 137.6,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.078"
+       ],
+       "strokes": [
+        "#FFFFFF/1.0@0.102"
+       ],
+       "strokeW": 1.32
+      },
+      {
+       "id": "39:6",
+       "name": "outer-progress-glow",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4271,
+       "ay": 1063,
+       "w": 137.6,
+       "h": 137.6,
+       "d": 3,
+       "strokeW": 1.32,
+       "fx": [
+        "DROP_SHADOW:15.876923561096191:#FF8C00/0.502",
+        "DROP_SHADOW:5.2923078536987305:#FF3700/0.251"
+       ]
+      },
+      {
+       "id": "39:7",
+       "name": "progress-tip",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4271,
+       "ay": 1063,
+       "w": 137.6,
+       "h": 137.6,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0"
+       ],
+       "strokeW": 1.32,
+       "fx": [
+        "DROP_SHADOW:7.938461780548096:#FFFFFF/1.0"
+       ]
+      },
+      {
+       "id": "39:8",
+       "name": "inner-plate",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4292,
+       "ay": 1084,
+       "w": 96.8,
+       "h": 96.8,
+       "d": 3,
+       "fills": [
+        "LINEAR:(#FFFFFF/0.8@0.0,#FFFFFF/0.4@1.0)"
+       ],
+       "strokes": [
+        "#FFFFFF/1.0@0.2"
+       ],
+       "strokeW": 1.32,
+       "fx": [
+        "BACKGROUND_BLUR:31.753847122192383:None",
+        "INNER_SHADOW:15.876923561096191:#FFFFFF/0.251"
+       ]
+      },
+      {
+       "id": "39:9",
+       "name": "inner-plate-rim-highlight",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4296,
+       "ay": 1088,
+       "w": 88.9,
+       "h": 88.9,
+       "d": 3,
+       "strokes": [
+        "LINEAR:(#FFFFFF/0.502@0.0,#FFFFFF/0.0@0.5,#FFFFFF/0.078@1.0)"
+       ],
+       "strokeW": 1.98
+      },
+      {
+       "id": "39:10",
+       "name": "center-light",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4306,
+       "ay": 1098,
+       "w": 68.8,
+       "h": 68.8,
+       "d": 3,
+       "fills": [
+        "RADIAL:(#FFFFFF/0.149@0.0,#FFFFFF/0.0@0.8)"
+       ],
+       "strokeW": 1.32
+      },
+      {
+       "id": "39:11",
+       "name": "icon-wrapper",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 4289,
+       "ay": 1081,
+       "w": 101.6,
+       "h": 101.6,
+       "d": 3,
+       "strokeW": 1.32,
+       "layout": "VERTICAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "59:4",
+         "name": "3d-heart-icon",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 4306,
+         "ay": 1092,
+         "w": 68.8,
+         "h": 68.8,
+         "d": 4,
+         "fills": [
+          "IMAGE"
+         ],
+         "strokeW": 1.32,
+         "fx": [
+          "DROP_SHADOW:21.169231414794922:#CC1A2E/0.376"
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "35:4",
+   "name": "stamina-gauge",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 4433,
+   "ay": 1063,
+   "w": 137.6,
+   "h": 137.6,
+   "d": 1,
+   "fills": [
+    "#FFFFFF/1.0@0.0"
+   ],
+   "strokeW": 1.2,
+   "layout": "VERTICAL",
+   "mainAlign": "CENTER",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "35:5",
+     "name": "bg-radial-glow",
+     "type": "ELLIPSE",
+     "x": null,
+     "y": null,
+     "ax": 4370,
+     "ay": 988,
+     "w": 264.0,
+     "h": 264.0,
+     "d": 2,
+     "fills": [
+      "RADIAL:(#FF7300/0.094@0.0,#FF7300/0.0@1.0)"
+     ],
+     "strokeW": 1.2,
+     "fx": [
+      "LAYER_BLUR:48.0:None"
+     ]
+    },
+    {
+     "id": "35:6",
+     "name": "gauge-widget",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 4433,
+     "ay": 1063,
+     "w": 137.6,
+     "h": 137.6,
+     "d": 2,
+     "strokeW": 1.32,
+     "layout": "VERTICAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "35:7",
+       "name": "outer-track",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4433,
+       "ay": 1063,
+       "w": 137.6,
+       "h": 137.6,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.078"
+       ],
+       "strokes": [
+        "#FFFFFF/1.0@0.102"
+       ],
+       "strokeW": 1.32
+      },
+      {
+       "id": "35:8",
+       "name": "outer-progress-glow",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4433,
+       "ay": 1063,
+       "w": 137.6,
+       "h": 137.6,
+       "d": 3,
+       "strokeW": 1.32,
+       "fx": [
+        "DROP_SHADOW:15.876923561096191:#FF8C00/0.502",
+        "DROP_SHADOW:5.2923078536987305:#FF3700/0.251"
+       ]
+      },
+      {
+       "id": "35:9",
+       "name": "progress-tip",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4433,
+       "ay": 1063,
+       "w": 137.6,
+       "h": 137.6,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0"
+       ],
+       "strokeW": 1.32,
+       "fx": [
+        "DROP_SHADOW:7.938461780548096:#FFFFFF/1.0"
+       ]
+      },
+      {
+       "id": "35:10",
+       "name": "inner-plate",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4453,
+       "ay": 1084,
+       "w": 96.8,
+       "h": 96.8,
+       "d": 3,
+       "fills": [
+        "LINEAR:(#FFFFFF/0.8@0.0,#FFFFFF/0.4@1.0)"
+       ],
+       "strokes": [
+        "#FFFFFF/1.0@0.2"
+       ],
+       "strokeW": 1.32,
+       "fx": [
+        "BACKGROUND_BLUR:31.753847122192383:None",
+        "INNER_SHADOW:15.876923561096191:#FFFFFF/0.251"
+       ]
+      },
+      {
+       "id": "35:11",
+       "name": "inner-plate-rim-highlight",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4457,
+       "ay": 1088,
+       "w": 88.9,
+       "h": 88.9,
+       "d": 3,
+       "strokes": [
+        "LINEAR:(#FFFFFF/0.502@0.0,#FFFFFF/0.0@0.5,#FFFFFF/0.078@1.0)"
+       ],
+       "strokeW": 1.98
+      },
+      {
+       "id": "35:12",
+       "name": "center-light",
+       "type": "ELLIPSE",
+       "x": null,
+       "y": null,
+       "ax": 4467,
+       "ay": 1098,
+       "w": 68.8,
+       "h": 68.8,
+       "d": 3,
+       "fills": [
+        "RADIAL:(#FFFFFF/0.149@0.0,#FFFFFF/0.0@0.8)"
+       ],
+       "strokeW": 1.32
+      },
+      {
+       "id": "35:13",
+       "name": "icon-wrapper",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 4451,
+       "ay": 1081,
+       "w": 101.6,
+       "h": 101.6,
+       "d": 3,
+       "strokeW": 1.32,
+       "layout": "VERTICAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "35:22",
+         "name": "zap-glow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4456,
+         "ay": 1086,
+         "w": 92.1,
+         "h": 92.1,
+         "d": 4,
+         "strokeW": 1.32,
+         "op": 0.35,
+         "fx": [
+          "LAYER_BLUR:18.52307891845703:None"
+         ],
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "59:7",
+           "name": "Rectangle",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 4470,
+           "ay": 1100,
+           "w": 64.6,
+           "h": 64.6,
+           "d": 5,
+           "fills": [
+            "IMAGE"
+           ],
+           "strokeW": 1.32
+          }
+         ]
+        },
+        {
+         "id": "35:25",
+         "name": "zap-main",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4458,
+         "ay": 1088,
+         "w": 87.6,
+         "h": 87.6,
+         "d": 4,
+         "strokeW": 1.32,
+         "fx": [
+          "DROP_SHADOW:13.230769157409668:#FF5E03/1.0"
+         ],
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "59:8",
+           "name": "Rectangle",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 4471,
+           "ay": 1101,
+           "w": 62.4,
+           "h": 62.4,
+           "d": 5,
+           "fills": [
+            "IMAGE"
+           ],
+           "strokeW": 1.32
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "23:68",
+   "name": "QuickSlotsHUD",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 4595,
+   "ay": 1070,
+   "w": 902.4,
+   "h": 124.8,
+   "d": 1,
+   "fills": [
+    "#000000/1.0@0.0"
+   ],
+   "strokes": [
+    "#000000/1.0@0.0"
+   ],
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "gap": 19.200000762939453,
+   "mainAlign": "CENTER",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "23:69",
+     "name": "corner-brackets",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 4595,
+     "ay": 1070,
+     "w": 1080.0,
+     "h": 216.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "23:70",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 4595,
+       "ay": 1070,
+       "w": 9.6,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#8C734B/1.0@0.251"
+       ],
+       "strokeW": 2.4
+      },
+      {
+       "id": "23:71",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 4595,
+       "ay": 1070,
+       "w": 0.0,
+       "h": 9.6,
+       "d": 3,
+       "strokes": [
+        "#8C734B/1.0@0.251"
+       ],
+       "strokeW": 2.4
+      },
+      {
+       "id": "23:72",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 5665,
+       "ay": 1070,
+       "w": 9.6,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#8C734B/1.0@0.251"
+       ],
+       "strokeW": 2.4
+      },
+      {
+       "id": "23:73",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 5675,
+       "ay": 1070,
+       "w": 0.0,
+       "h": 9.6,
+       "d": 3,
+       "strokes": [
+        "#8C734B/1.0@0.251"
+       ],
+       "strokeW": 2.4
+      },
+      {
+       "id": "23:74",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 4595,
+       "ay": 1286,
+       "w": 9.6,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#8C734B/1.0@0.251"
+       ],
+       "strokeW": 2.4
+      },
+      {
+       "id": "23:75",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 4595,
+       "ay": 1276,
+       "w": 0.0,
+       "h": 9.6,
+       "d": 3,
+       "strokes": [
+        "#8C734B/1.0@0.251"
+       ],
+       "strokeW": 2.4
+      },
+      {
+       "id": "23:76",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 5665,
+       "ay": 1286,
+       "w": 9.6,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#8C734B/1.0@0.251"
+       ],
+       "strokeW": 2.4
+      },
+      {
+       "id": "23:77",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 5675,
+       "ay": 1276,
+       "w": 0.0,
+       "h": 9.6,
+       "d": 3,
+       "strokes": [
+        "#8C734B/1.0@0.251"
+       ],
+       "strokeW": 2.4
+      }
+     ]
+    },
+    {
+     "id": "23:78",
+     "name": "SlotsRow",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 4595,
+     "ay": 1070,
+     "w": 902.4,
+     "h": 124.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 19.200000762939453,
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "23:79",
+       "name": "QuickSlot-1",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 4595,
+       "ay": 1070,
+       "w": 96.0,
+       "h": 124.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "23:80",
+         "name": "SlotBox",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4595,
+         "ay": 1070,
+         "w": 96.0,
+         "h": 96.0,
+         "d": 4,
+         "fills": [
+          "#0D1015/1.0@0.902"
+         ],
+         "strokes": [
+          "#2E343D/1.0@0.6"
+         ],
+         "strokeW": 1.8,
+         "r": 9.6,
+         "fx": [
+          "INNER_SHADOW:2.4000000953674316:#FFFFFF/0.031"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER"
+        },
+        {
+         "id": "23:87",
+         "name": "HotkeyBadge",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4631,
+         "ay": 1154,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "fills": [
+          "#F0F3F5/1.0"
+         ],
+         "strokes": [
+          "#0D1015/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#000000/0.4"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "23:88",
+           "name": "1",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 4639,
+           "ay": 1157,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#1A1D20/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "1",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 900 Black",
+           "lineH": 17.2,
+           "align": "CENTER"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "23:89",
+       "name": "QuickSlot-2",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 4710,
+       "ay": 1070,
+       "w": 96.0,
+       "h": 124.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "23:90",
+         "name": "SlotBox",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4710,
+         "ay": 1070,
+         "w": 96.0,
+         "h": 96.0,
+         "d": 4,
+         "fills": [
+          "#0D1015/1.0@0.902"
+         ],
+         "strokes": [
+          "#2E343D/1.0@0.6"
+         ],
+         "strokeW": 1.8,
+         "r": 9.6,
+         "fx": [
+          "INNER_SHADOW:2.4000000953674316:#FFFFFF/0.031"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER"
+        },
+        {
+         "id": "23:95",
+         "name": "HotkeyBadge",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4746,
+         "ay": 1154,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "fills": [
+          "#F0F3F5/1.0"
+         ],
+         "strokes": [
+          "#0D1015/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#000000/0.4"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "23:96",
+           "name": "2",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 4754,
+           "ay": 1157,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#1A1D20/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "2",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 900 Black",
+           "lineH": 17.2,
+           "align": "CENTER"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "23:97",
+       "name": "QuickSlot-3",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 4825,
+       "ay": 1070,
+       "w": 96.0,
+       "h": 124.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "23:98",
+         "name": "SlotBox",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4825,
+         "ay": 1070,
+         "w": 96.0,
+         "h": 96.0,
+         "d": 4,
+         "fills": [
+          "#1D2430/1.0@0.902"
+         ],
+         "strokes": [
+          "#D4AF37/1.0"
+         ],
+         "strokeW": 2.4,
+         "r": 9.6,
+         "fx": [
+          "DROP_SHADOW:14.40000057220459:#D4AF37/0.251",
+          "INNER_SHADOW:2.4000000953674316:#FFFFFF/0.125"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER"
+        },
+        {
+         "id": "23:105",
+         "name": "HotkeyBadge",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4861,
+         "ay": 1154,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "fills": [
+          "#D4AF37/1.0"
+         ],
+         "strokes": [
+          "#0D1015/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#000000/0.4"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "23:106",
+           "name": "3",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 4869,
+           "ay": 1157,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#000000/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "3",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 900 Black",
+           "lineH": 17.2,
+           "align": "CENTER"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "23:107",
+       "name": "QuickSlot-4",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 4940,
+       "ay": 1070,
+       "w": 96.0,
+       "h": 124.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "23:108",
+         "name": "SlotBox",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4940,
+         "ay": 1070,
+         "w": 96.0,
+         "h": 96.0,
+         "d": 4,
+         "fills": [
+          "#0D1015/1.0@0.902"
+         ],
+         "strokes": [
+          "#2E343D/1.0@0.6"
+         ],
+         "strokeW": 1.8,
+         "r": 9.6,
+         "fx": [
+          "INNER_SHADOW:2.4000000953674316:#FFFFFF/0.031"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER"
+        },
+        {
+         "id": "23:110",
+         "name": "HotkeyBadge",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 4976,
+         "ay": 1154,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "fills": [
+          "#F0F3F5/1.0"
+         ],
+         "strokes": [
+          "#0D1015/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#000000/0.4"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "23:111",
+           "name": "4",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 4984,
+           "ay": 1157,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#1A1D20/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "4",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 900 Black",
+           "lineH": 17.2,
+           "align": "CENTER"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "23:112",
+       "name": "QuickSlot-5",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 5055,
+       "ay": 1070,
+       "w": 96.0,
+       "h": 124.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "23:113",
+         "name": "SlotBox",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 5055,
+         "ay": 1070,
+         "w": 96.0,
+         "h": 96.0,
+         "d": 4,
+         "fills": [
+          "#0D1015/1.0@0.902"
+         ],
+         "strokes": [
+          "#2E343D/1.0@0.6"
+         ],
+         "strokeW": 1.8,
+         "r": 9.6,
+         "fx": [
+          "INNER_SHADOW:2.4000000953674316:#FFFFFF/0.031"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER"
+        },
+        {
+         "id": "23:120",
+         "name": "HotkeyBadge",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 5091,
+         "ay": 1154,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "fills": [
+          "#F0F3F5/1.0"
+         ],
+         "strokes": [
+          "#0D1015/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#000000/0.4"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "23:121",
+           "name": "5",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 5099,
+           "ay": 1157,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#1A1D20/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "5",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 900 Black",
+           "lineH": 17.2,
+           "align": "CENTER"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "23:122",
+       "name": "QuickSlot-6",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 5171,
+       "ay": 1070,
+       "w": 96.0,
+       "h": 124.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "23:123",
+         "name": "SlotBox",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 5171,
+         "ay": 1070,
+         "w": 96.0,
+         "h": 96.0,
+         "d": 4,
+         "fills": [
+          "#0D1015/1.0@0.902"
+         ],
+         "strokes": [
+          "#2E343D/1.0@0.6"
+         ],
+         "strokeW": 1.8,
+         "r": 9.6,
+         "fx": [
+          "INNER_SHADOW:2.4000000953674316:#FFFFFF/0.031"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER"
+        },
+        {
+         "id": "23:125",
+         "name": "HotkeyBadge",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 5207,
+         "ay": 1154,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "fills": [
+          "#F0F3F5/1.0"
+         ],
+         "strokes": [
+          "#0D1015/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#000000/0.4"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "23:126",
+           "name": "6",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 5215,
+           "ay": 1157,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#1A1D20/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "6",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 900 Black",
+           "lineH": 17.2,
+           "align": "CENTER"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "23:127",
+       "name": "QuickSlot-7",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 5286,
+       "ay": 1070,
+       "w": 96.0,
+       "h": 124.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "23:128",
+         "name": "SlotBox",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 5286,
+         "ay": 1070,
+         "w": 96.0,
+         "h": 96.0,
+         "d": 4,
+         "fills": [
+          "#0D1015/1.0@0.902"
+         ],
+         "strokes": [
+          "#2E343D/1.0@0.6"
+         ],
+         "strokeW": 1.8,
+         "r": 9.6,
+         "fx": [
+          "INNER_SHADOW:2.4000000953674316:#FFFFFF/0.031"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER"
+        },
+        {
+         "id": "23:135",
+         "name": "HotkeyBadge",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 5322,
+         "ay": 1154,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "fills": [
+          "#F0F3F5/1.0"
+         ],
+         "strokes": [
+          "#0D1015/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#000000/0.4"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "23:136",
+           "name": "7",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 5330,
+           "ay": 1157,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#1A1D20/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "7",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 900 Black",
+           "lineH": 17.2,
+           "align": "CENTER"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "23:137",
+       "name": "QuickSlot-8",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 5401,
+       "ay": 1070,
+       "w": 96.0,
+       "h": 124.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "23:138",
+         "name": "SlotBox",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 5401,
+         "ay": 1070,
+         "w": 96.0,
+         "h": 96.0,
+         "d": 4,
+         "fills": [
+          "#0D1015/1.0@0.902"
+         ],
+         "strokes": [
+          "#2E343D/1.0@0.6"
+         ],
+         "strokeW": 1.8,
+         "r": 9.6,
+         "fx": [
+          "INNER_SHADOW:2.4000000953674316:#FFFFFF/0.031"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER"
+        },
+        {
+         "id": "23:140",
+         "name": "HotkeyBadge",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 5437,
+         "ay": 1154,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "fills": [
+          "#F0F3F5/1.0"
+         ],
+         "strokes": [
+          "#0D1015/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 4.8,
+         "fx": [
+          "DROP_SHADOW:4.800000190734863:#000000/0.4"
+         ],
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "23:141",
+           "name": "8",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 5445,
+           "ay": 1157,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#1A1D20/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "8",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 900 Black",
+           "lineH": 17.2,
+           "align": "CENTER"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "23:142",
+     "name": "HOTKEY QUICK SLOTS · ACTIVE COMBAT MODE",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 4989,
+     "ay": 1186,
+     "w": 292.0,
+     "h": 17.0,
+     "d": 2,
+     "fills": [
+      "#626A73/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "HOTKEY QUICK SLOTS · ACTIVE COMBAT MODE",
+     "fontSize": 13.200000762939453,
+     "font": "Geist 500 Medium",
+     "lineH": 17.2
+    }
+   ]
+  },
+  {
+   "id": "39:30",
+   "name": "TabRotationHint",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 5521,
+   "ay": 1098,
+   "w": 57.6,
+   "h": 67.2,
+   "d": 1,
+   "strokeW": 1.8,
+   "layout": "VERTICAL",
+   "mainAlign": "CENTER",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "39:31",
+     "name": "HintIcon",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 5532,
+     "ay": 1114,
+     "w": 36.0,
+     "h": 36.0,
+     "d": 2,
+     "fills": [
+      "#F0F3F5/1.0"
+     ],
+     "strokes": [
+      "#0D1015/1.0"
+     ],
+     "strokeW": 1.8,
+     "r": 9.6,
+     "fx": [
+      "DROP_SHADOW:4.800000190734863:#000000/0.4"
+     ],
+     "layout": "VERTICAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "39:36",
+       "name": "rotate-cw",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 5540,
+       "ay": 1122,
+       "w": 19.2,
+       "h": 19.2,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "39:37",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 5543,
+         "ay": 1125,
+         "w": 14.4,
+         "h": 14.4,
+         "d": 4,
+         "strokes": [
+          "#1A1D20/1.0"
+         ],
+         "strokeW": 2.4
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "39:33",
+     "name": "TabBadge",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 5535,
+     "ay": 1144,
+     "w": 28.8,
+     "h": 21.6,
+     "d": 2,
+     "fills": [
+      "#D4AF37/1.0"
+     ],
+     "strokes": [
+      "#0D1015/1.0"
+     ],
+     "strokeW": 1.8,
+     "r": 4.8,
+     "fx": [
+      "DROP_SHADOW:4.800000190734863:#000000/0.4"
+     ],
+     "layout": "VERTICAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "39:34",
+       "name": "TAB",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 5539,
+       "ay": 1147,
+       "w": 22.0,
+       "h": 16.0,
+       "d": 3,
+       "fills": [
+        "#0D1015/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "TAB",
+       "fontSize": 12.0,
+       "font": "Geist Mono 900 Black",
+       "lineH": 15.6,
+       "align": "CENTER"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

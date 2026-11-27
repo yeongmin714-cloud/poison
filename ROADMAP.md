@@ -1088,7 +1088,7 @@ WorldEventManager (싱글톤)
 | 8 | `Soldier_Lv10_20.glb` | 병사 10~20레벨 모델 | ❌ 없음 | 🟡 중 |
 | 9 | `Soldier_Lv20_30.glb` | 병사 20~30레벨 모델 | ❌ 없음 | 🟡 중 |
 | 10 | `Arena_Building.glb` | 아레나 건물 모델 | ❌ 없음 | 🟢 하 |
-| 11 | `Fishing_Rod.glb` | 낚싯대 3D 모델 | ❌ 없음 | 🟢 하 |
+| 11 | `Fishing_Rod.glb` | 낚싯대 3D 모델 | ✅ Polyfork 수용(propped-fishing-rod-072978 — 정점컬러 788tri) | 🟢 하 |
 | 12 | `Fish_Common/Rare/Legendary.glb` | 물고기 3D 모델 (3종) | ❌ 없음 | 🟢 하 |
 
 > **참고:** 기존 GLB 170+개 이미 존재 (몬스터22/NPC12/병사3/건물9/무기방어구60+/지형20+).
@@ -3169,7 +3169,7 @@ Unity batchmode 컴파일 재확인 (직접 실행)
 | 물가 없음? | (사실 **이미 있음** — GameSetup가 LakeGenerator.GenerateAllLakes로 Water 태그 호수 생성) | 물 배치 불필요 — 메인 씬 호수에서 낚시 발동 | ✅ |
 | UI 표시 | FishingUTK Open 호출 0 | 자체 50ms Updater에 낚시 상태 폴링 추가 → 대기/미니게임 자동 Open, 종료 CloseUI(순환참조 회피) | ✅ |
 | 낚시대 정합 | 상점이 tool_fishing_rod 파는데 시스템은 fishing_rod 체크 → 구매해도 낚시 불가 | 상점 2곳 FishingRodItem으로 통일 + 중복 FishingRod 정의 제거 + 스타터 지급 | ✅ |
-| 낚시대 GLB | (미제작) | docs/ASSET_LIST.md 낚시대 추가 — 후속 제작 | ⬜ |
+| 낚시대 GLB | (미제작) | Polyfork "Propped Fishing Rod" 수용 — Models/Polyfork 원본 + UserProvided/fishing_rod 복제(아이콘 관례후보1 자동해결, 손장착 배선 별도 Phase) | ✅ |
 | 낚시대 크래프트 | (레시피 없음) | WeaponCraftDatabase Wood 티어 제작 레시피(통나무2+토끼털1, Lv2) → WeaponForgeUTK 표시 | ✅ |
 | 미니게임 고품질화 | 프리미티브(회색바/초록사각/빨강핀) | 베이크 PNG 4종(FishingBarFrame/Sweetspot/Pin/Bite) + UTKTextureSafe.ScaleToFit + 대기 찌 표시 | ✅ |
 

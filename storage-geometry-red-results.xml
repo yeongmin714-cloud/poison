@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 00:14:16Z" end-time="2026-10-05 00:14:16Z" duration="0.1161268">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="469" result="Failed" site="Child" start-time="2026-10-05 00:14:16Z" end-time="2026-10-05 00:14:16Z" duration="0.116127" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1524" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="460" result="Failed" site="Child" start-time="2026-10-05 00:14:16Z" end-time="2026-10-05 00:14:16Z" duration="0.069350" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2060" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1525" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="460" result="Failed" site="Child" start-time="2026-10-05 00:14:16Z" end-time="2026-10-05 00:14:16Z" duration="0.065580" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1526" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="460" result="Failed" site="Child" start-time="2026-10-05 00:14:16Z" end-time="2026-10-05 00:14:16Z" duration="0.062078" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1527" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="445" result="Failed" site="Child" start-time="2026-10-05 00:14:16Z" end-time="2026-10-05 00:14:16Z" duration="0.058663" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1183" name="FigmaCanvasLayoutTests" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" testcasecount="13" result="Failed" site="Child" start-time="2026-10-05 00:14:16Z" end-time="2026-10-05 00:14:16Z" duration="0.046192" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1188" name="InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" methodname="InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="648446024" result="Failed" start-time="2026-10-05 00:14:16Z" end-time="2026-10-05 00:14:16Z" duration="0.026614" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Expected: 18.0f +/- 0.00100000005f
+  But was:  24.0f
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.AssertRect (UnityEngine.Rect expected, UnityEngine.Rect actual) [0x00000] in C:\Unity\code\Assets\Scripts\Tests\EditMode\FigmaCanvasLayoutTests.cs:326
+at ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot () [0x00284] in C:\Unity\code\Assets\Scripts\Tests\EditMode\FigmaCanvasLayoutTests.cs:164
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

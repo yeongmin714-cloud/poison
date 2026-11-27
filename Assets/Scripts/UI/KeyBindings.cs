@@ -24,6 +24,7 @@ namespace ProjectName.UI
         [SerializeField] private KeyCode _inventoryKey = KeyCode.I;
         [SerializeField] private KeyCode _mapKey = KeyCode.M;
         [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
+        [SerializeField] private KeyCode _parryKey = KeyCode.V; // [171차 A] 패막 키 등록 — PlayerCombat._parryKey 기본값(KeyCode.V)과 동일. 소비 배선은 후속 라운드.
 
         [Header("Status Window")]
         [SerializeField] private KeyCode _statusKey = KeyCode.P; // BUGFIX: KeyCode.C was conflicting with 은신(PlayerMovement cKey) → 미사용 키 P로 이동
@@ -70,7 +71,8 @@ namespace ProjectName.UI
                     { "RevengeList", _revengeListKey },
                     { "Crafting", _craftingKey },
                     { "Equipment", _equipmentKey },
-                    { "Warehouse", _warehouseKey }
+                    { "Warehouse", _warehouseKey },
+                    { "Parry", _parryKey } // [171차 A] 패막 액션 등록
                 };
                 _bindingsDirty = false;
             }
@@ -100,6 +102,7 @@ namespace ProjectName.UI
                     case "Crafting": _craftingKey = newKey; break;
                     case "Equipment": _equipmentKey = newKey; break;
                     case "Warehouse": _warehouseKey = newKey; break;
+                    case "Parry": _parryKey = newKey; break; // [171차 A]
                 }
             }
             else
@@ -122,7 +125,7 @@ namespace ProjectName.UI
         /// </summary>
         public static string[] GetActionNames()
         {
-            return new[] { "Quest", "Recipe", "Inventory", "Map", "Close", "Status", "RevengeList", "Crafting", "Equipment", "Warehouse" };
+            return new[] { "Quest", "Recipe", "Inventory", "Map", "Close", "Status", "RevengeList", "Crafting", "Equipment", "Warehouse", "Parry" };
         }
     }
 }

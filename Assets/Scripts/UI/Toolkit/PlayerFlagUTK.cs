@@ -422,10 +422,9 @@ namespace ProjectName.UI.Toolkit
 
         private static int GetPlayerGold()
         {
+            // [70차] 지갑 단일소스 — 인벤 골드 아이템 폴백 제거.
             if (PlayerStats.Instance != null)
                 return PlayerStats.Instance.Gold;
-            if (PlayerInventory.Instance != null)
-                return PlayerInventory.Instance.GetItemCount("gold");
             return 0;
         }
     }

@@ -1,0 +1,22 @@
+{
+ "UserProvided/wood_sword": {
+  "verts": 4044,
+  "prims": 1,
+  "prims_skipped_collision": 0,
+  "edges": 398,
+  "radius": 0.05,
+  "ao_min": 0.6,
+  "ao_p05": 0.6,
+  "ao_p50": 0.999,
+  "edge_deg": 55.0,
+  "edge_mult": 0.84,
+  "bin_len": 4987160,
+  "bin_len_new": 5035688,
+  "md5_before": "b47240722766b7fc9a142fee7e5a9e2c",
+  "md5_after": "e16a7307fe7789fdf273c5726b2fe6e1",
+  "md5_backup": "b47240722766b7fc9a142fee7e5a9e2c",
+  "backup": "Tools/ao_prebake_backup208/wood_sword.glb",
+  "color0_count": 1,
+  "images_verified": 2
+ }
+}

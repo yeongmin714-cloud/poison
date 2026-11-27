@@ -48,7 +48,8 @@ namespace ProjectName.UI.Toolkit
 
         // [Figma 23:6] 캔버스 내 게이지 bounds와 아이콘 중심 크기 — 계약 단정용 public const(계획 v2 Phase 2 승격).
         public  const float GaugeSize     = 137.6f; // Figma 23:6 gauge bounds
-        public  const float GaugeGap      = 24f;    // Figma gauge-to-gauge gap (게이지 간격 24 raw 유지)
+        // [144차 P8-HUD #3] 게이지 간격 정밀화: Figma 4433−(4271+137.6)=24.4 — raw 24 → 24.4
+        public  const float GaugeGap      = 24.4f;  // Figma gauge-to-gauge gap (4433−(4271+137.6)=24.4)
         public  const float GaugeIconSize = 68.8f;  // Figma center icon bounds
 
         // [계획 v2 Phase 2] 화면 하단 고정 앵커 여백 — 스케일 후 게이지 시각 하단이 화면 하단에서 24px 위에 고정.
@@ -62,19 +63,27 @@ namespace ProjectName.UI.Toolkit
         private VisualElement    _gaugeHost;      // 핫바 옆 호스트
         private VisualElement    _hpRoot;         // 하트 게이지 루트 (7층 스택)
         private VisualElement    _stRoot;         // 번개 게이지 루트
-        // [2026-10-11 27차] arc = 베이크 스트립 게이지(UTKGaugeStripArc) — 벡터 메시의
-        //   transform.scale/재생성 불안정(26차 실측)을 규약대로 베이크 PNG로 대체.
+        // [84차→85차 정정] 벡터 메시 복귀 시도가 Play에서 게이지 완전 소실(메시 미생성 — 26차 실측 재발)로
+        //   실패 실측 → **베이크 스트립 확정 복귀**. 품질은 ①임포트 maxTextureSize 2048→8192(구: 8320×128이
+        //   2048×31로 강제 다운스케일 — 프레임 실효 31px가 저품질 근본 원인) ②고품질 리베이크(65×126px,
+        //   9샘플 슈퍼샘플 AA + 내외곽 소프트 글로우 + 수직 그라데이션 + 드레인 에지 백색 팁)로 해소한다.
         private UTKGaugeStripArc _hpGauge;        // 하트 arc 레이어 (체력)
         private UTKGaugeStripArc _staminaGauge;   // 번개 arc 레이어 (스태미나)
-        // [2026-10-11 26차 arc 수리] arc 레퍼런스 — 스택(스케일 서브트리)에서 호스트 직속으로 이동.
-        private UTKGaugeStripArc _hpArc;
-        private UTKGaugeStripArc _stArc;
         // [2026-10-11 28차] 하트 링 아래 남은/전체 체력 라벨(Fluent 수치 배지 — 사용자 제안 채택, 스타미나 제외 확정).
         private Label _hpValueLabel;
         private Texture2D        _ringTex;        // UI/HudGaugeRing
         private Texture2D        _heartTex;       // UI/GaugeHeart
         private Texture2D        _boltTex;        // UI/GaugeBolt
         private IVisualElementScheduledItem _pollTask;
+        private UTKGaugeStripArc _parryGauge;                          // [무번호 61] 패망 창 잔여시간 아크 게이지(P3 창 아크 게이지 계약)
+        private IVisualElementScheduledItem _parryPollTask;            // [무번호 61] 50ms 고빈도 폴링(창 0.45s — 250ms 폴링으로는 2틱뿐)
+        private PlayerCombat _pcFallback;                              // [무번호 61] 패망 창 상태 소스 폴백(18차 확립 패턴)
+        private bool _parryGaugePerfectPhase;                          // [무번호 61] 색 틱 상태(골드→청)
+        private static bool _pcMissingLogged;
+        private const int ParryPollMs = 50;
+        private GhostHpDisplay _hpGhost = new GhostHpDisplay();  // [고스트 체력바 78차] — 앞줄 즉시/뒷줄 추격
+        private PlayerHealth _phFallback;
+        private UTKGaugeStripArc _hpTrailArc;                    // [85차] 뒷줄 아크 복원 — 앞 아크와 동일 프레임/슬롯(83차 계약)
 
         private HUDUTK()
         {
@@ -126,12 +135,43 @@ namespace ProjectName.UI.Toolkit
             //   transform.scale 아래의 generateVisualContent 메시가 좌표를 스케일에 맞춰 그리지 않아
             //   링 일부만 렌더되거나 어긋난다(테스트 15 영상 실측: 링이 하단 짧은 호만 표시).
             //   메시는 무스케일 서브트리에서 레이아웃 등비 크기로 스스로 그린다(resolvedStyle 기반).
-            _hpArc = _hpGauge;
-            _stArc = _staminaGauge;
-            _hpArc.RemoveFromHierarchy();
-            _stArc.RemoveFromHierarchy();
-            _gaugeHost.Add(_hpArc);
-            _gaugeHost.Add(_stArc);
+            _hpGauge.RemoveFromHierarchy();
+            _staminaGauge.RemoveFromHierarchy();
+            _gaugeHost.Add(_hpGauge);
+            _gaugeHost.Add(_staminaGauge);
+
+            // [85차] 뒷줄(타격 흔적) 아크 복원 — 앞 아크와 동일 프레임/동일 슬롯(83차 수리 계약 유지:
+            //  PositionHost가 매 폴링 동일 기하 재배치). 겹친 구간은 앞줄이 덮고 각도 갭으로만 보인다.
+            _hpTrailArc = new UTKGaugeStripArc();
+            _hpTrailArc.name = "HpGaugeTrailArc";
+            _hpTrailArc.style.position = Position.Absolute;
+            _hpTrailArc.style.left = 0f;
+            _hpTrailArc.style.top = 0f;
+            _hpTrailArc.style.width = GaugeSize;
+            _hpTrailArc.style.height = GaugeSize;
+            _hpTrailArc.style.unityBackgroundImageTintColor =
+                new StyleColor(new Color(1f, 0.72f, 0.35f, 0.9f)); // 따뜻한 주황 — 타격 흔적
+            _hpTrailArc.pickingMode = PickingMode.Ignore;
+            _hpTrailArc.Fraction = 1f;
+            _hpTrailArc.CommitIfDirty();
+            _hpTrailArc.style.display = DisplayStyle.None;   // 초기 — 흔적 없음
+
+            // [무번호 61] 패망 창 아크 게이지 — P3 창 아크 게이지 계약(UTKGaugeStripArc·벡터메시 금지 84차).
+            //   HUD 루트 직속 — PositionHost가 게이지 호스트와 동일 등비 k 시스템으로 기하 배치.
+            //   색 = unityBackgroundImageTintColor(스트립 아크 색 규약) — 흰 단일(171차 — 등급=강도).
+            _parryGauge = new UTKGaugeStripArc();
+            _parryGauge.name = "ParryWindowArc";
+            _parryGauge.style.position = Position.Absolute;
+            _parryGauge.style.width = GaugeSize * 0.72f;   // 초기 raw — PositionHost가 k로 갱신
+            _parryGauge.style.height = GaugeSize * 0.72f;
+            _parryGauge.style.unityBackgroundImageTintColor =
+                new StyleColor(new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.95f));
+            _parryGauge.pickingMode = PickingMode.Ignore;
+            _parryGauge.Fraction = 1f;
+            _parryGauge.CommitIfDirty();
+            _parryGauge.style.display = DisplayStyle.None;   // 초기 — 창 비활성
+            Add(_parryGauge);
+            _gaugeHost.Insert(_gaugeHost.IndexOf(_hpGauge), _hpTrailArc);
 
             // 폴링 첫 틱 전 기본값 (가득 찬 오표시 방지)
             // [19차] 초기값 = 만원(가득 참) — 폴링 실패/시스템 부재와 무관하게 "빈 링=고장"으로 읽히지 않게.
@@ -178,7 +218,7 @@ namespace ProjectName.UI.Toolkit
             {
                 glow.style.backgroundImage = UTKTextureSafe.ToBackground(radialTex);
                 glow.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
-                var glowTint = fill; glowTint.a = 0.30f;
+                var glowTint = fill; glowTint.a = 0.094f; // [144차 P8-HUD #6] 39:3 RADIAL 실효 앰파 0.094 (틴트색 시맨틱 유지, 알파만)
                 glow.style.unityBackgroundImageTintColor = new StyleColor(glowTint);
             }
             else
@@ -202,17 +242,16 @@ namespace ProjectName.UI.Toolkit
             track.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0f));
             track.style.borderTopWidth = track.style.borderBottomWidth = 1.32f;
             track.style.borderLeftWidth = track.style.borderRightWidth = 1.32f;
-            var trackStroke = new StyleColor(new Color(1f, 1f, 1f, 0.28f));
+            var trackStroke = new StyleColor(new Color(1f, 1f, 1f, 0.102f)); // [144차 P8-HUD #8] 39:5 stroke #FFFFFF@0.102
             track.style.borderTopColor = track.style.borderBottomColor = trackStroke;
             track.style.borderLeftColor = track.style.borderRightColor = trackStroke;
             SetCircleRadius(track);
             track.pickingMode = PickingMode.Ignore;
             gauge.Add(track);
 
-            // ③ 진행 arc — [2026-10-11 27차] 베이크 스트립(UTKGaugeArcStrip 65프레임) —
-            //   시계방향 소모 프레임 굽힘 + 흰 코어에 틴트(fill)로 HP 레드/스타미나 옐로.
-            //   Figma donut 스펙(0.2×r 밴드·tip)은 스트립 프레임에 반영. 트랙 링은 스택의
-            //   HudGaugeRing 텍스처/외곽 스트로크 층이 담당(기존 유지).
+            // ③ 진행 arc — [85차] 베이크 스트립 확정(벡터 메시 복귀는 Play 소실 재발로 폐기) + 고품질 리베이크
+            //   (임포트 상향 8192 + 126px 슈퍼샘플 AA/글로우/그라데이션/팁 — UTKGaugeArcStrip 참조).
+            //   시계방향 소모 프레임 + 흰 코어 틴트(HP 레드/스타미나 옐로) 계약 유지.
             arcGauge = new UTKGaugeStripArc();
             arcGauge.DrainClockwise = true;
             arcGauge.name = gaugeName + "Arc";
@@ -227,6 +266,7 @@ namespace ProjectName.UI.Toolkit
             // (메시 무스케일 서브트리 계약: transform.scale 아래 벡터 메시 어긋남 방지).
 
             // ⑤ inner-plate — 세로 그라데이션 원판(Figma stops 0.8→0.4) + 스트로크 백색(Figma stroke white INSIDE 1.32)
+            // [144차 P8-HUD #15] 39:8 BACKGROUND_BLUR 31.75·INNER_SHADOW는 UTK 미지원 — 미근사 기록(세로 그라데이션+스트로크만 구현).
             var plate = new VisualElement();
             plate.name = gaugeName + "InnerPlate";
             plate.style.position = Position.Absolute;
@@ -248,7 +288,7 @@ namespace ProjectName.UI.Toolkit
             }
             plate.style.borderTopWidth = plate.style.borderBottomWidth = 1.32f;
             plate.style.borderLeftWidth = plate.style.borderRightWidth = 1.32f;
-            var plateStroke = new StyleColor(new Color(1f, 1f, 1f, 0.92f));
+            var plateStroke = new StyleColor(new Color(1f, 1f, 1f, 0.2f)); // [144차 P8-HUD #14] 39:8 stroke #FFFFFF@0.2
             plate.style.borderTopColor = plate.style.borderBottomColor = plateStroke;
             plate.style.borderLeftColor = plate.style.borderRightColor = plateStroke;
             SetCircleRadius(plate);
@@ -256,6 +296,7 @@ namespace ProjectName.UI.Toolkit
             gauge.Add(plate);
 
             // ⑥ inner-plate-rim-highlight — 88.9 스트로크 링
+            // [144차 P8-HUD #17] 각도 그라데이션 미지원 → 단색 근사 유지(빌드요약 :164 판단 기록, 변경 없음).
             var rim = new VisualElement();
             rim.name = gaugeName + "RimHighlight";
             rim.style.position = Position.Absolute;
@@ -287,7 +328,7 @@ namespace ProjectName.UI.Toolkit
             {
                 centerLight.style.backgroundImage = UTKTextureSafe.ToBackground(radialTex);
                 centerLight.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
-                centerLight.style.unityBackgroundImageTintColor = new StyleColor(new Color(1f, 1f, 1f, 0.62f));
+                centerLight.style.unityBackgroundImageTintColor = new StyleColor(new Color(1f, 1f, 1f, 0.149f)); // [144차 P8-HUD #18] 39:10 RADIAL 실효 0.149
             }
             else
             {
@@ -409,8 +450,21 @@ namespace ProjectName.UI.Toolkit
             _gaugeHost.style.height = GaugeSize * k + 20f * k;
             ScaleStack(_hpRoot, 0f, k);
             ScaleStack(_stRoot, GaugeSize + GaugeGap, k);
-            PositionArc(_hpArc, 0f, k);
-            PositionArc(_stArc, GaugeSize + GaugeGap, k);
+            PositionArc(_hpGauge, 0f, k);
+            PositionArc(_staminaGauge, GaugeSize + GaugeGap, k);
+            // [85차] 뒷줄 아크도 매 폴링 동일 기하 재배치(83차 수리 계약 — raw 고정 소실 방지)
+            PositionArc(_hpTrailArc, 0f, k);
+            // [무번호 61] 패망 창 아크 게이지 기하 — 화면 하단 중앙(X=50%), 핫바 게이지 행 위(32px 갭).
+            //   게이지 호스트와 동일 등비 k 시스템(종횡비 왜곡 제거 계약 승계). 표시 여부는 50ms 폴링이 담당.
+            if (_parryGauge != null)
+            {
+                float psize = GaugeSize * 0.72f;
+                _parryGauge.style.left = rootSize.x * 0.5f - psize * k * 0.5f;
+                _parryGauge.style.top = rootSize.y - GaugeSize * k - GaugeBottomMarginPx - psize * k - 32f;
+                _parryGauge.style.width = psize * k;
+                _parryGauge.style.height = psize * k;
+                _parryGauge.Refresh();   // 크기 변경 → 슬라이싱 재계산(PositionArc 선례)
+            }
             if (_hpValueLabel != null)
             {
                 _hpValueLabel.style.top = GaugeSize * k;
@@ -443,9 +497,8 @@ namespace ProjectName.UI.Toolkit
             gauge.style.scale = new StyleScale(new Scale(new Vector2(k, k)));
         }
 
-        /// <summary>arc(벡터 메시) 배치 — 무스케일 서브트리: 레이아웃 크기를 등비로 두고
-        /// 메시는 resolvedStyle로 스스로 계산(조상 transform.scale 의존 제거).
-        /// [2026-10-11 26차 신설].</summary>
+        /// <summary>arc(스트립) 배치 — 무스케일 서브트리: 레이아웃 크기를 등비로 두고
+        /// 슬라이싱은 Refresh로 재계산(리사이즈 안전). [2026-10-11 26차 신설][85차 스트립 복귀].</summary>
         private void PositionArc(UTKGaugeStripArc arc, float slotLeft, float k)
         {
             if (arc == null) return;
@@ -485,10 +538,43 @@ namespace ProjectName.UI.Toolkit
             {
                 if (parent != null) RefreshAll();
             }).Every(PollMs);
+            // [무번호 61] 패망 창 게이지 전용 고빈도 폴링 — 창 0.45s를 250ms 폴링으로는 2틱뿐(단계 감지 불가).
+            _parryPollTask = schedule.Execute(UpdateParryGauge).Every(ParryPollMs);
+        }
+
+        /// <summary>[무번호 61] 패망 창 아크 게이지 갱신(50ms) — 창 활성 시에만 표시.
+        ///  Fraction = 창 잔여 비율, 색 틱 = PERFECT 골드 → GOOD 청색(36-PW3 림 틱과 동일 위계 — FXPalette 단일 소스).
+        ///  시스템 부재 씬 — 게이지 숨김(빈 아크는 고장처럼 읽힘 — 19차 HP 폴백 시맨틱 계승).</summary>
+        private void UpdateParryGauge()
+        {
+            if (_parryGauge == null || parent == null) return;
+            if (_pcFallback == null) _pcFallback = Object.FindAnyObjectByType<PlayerCombat>();
+            if (_pcFallback == null || !_pcFallback.ParryWindowActive)
+            {
+                if (_parryGauge.style.display != DisplayStyle.None) _parryGauge.style.display = DisplayStyle.None;
+                return;
+            }
+            if (_parryGauge.style.display != DisplayStyle.Flex) _parryGauge.style.display = DisplayStyle.Flex;
+            _parryGauge.Fraction = _pcFallback.ParryWindowRemaining01;
+            bool perfect = _pcFallback.ParryInPerfectPhase;
+            if (perfect != _parryGaugePerfectPhase)
+            {
+                _parryGaugePerfectPhase = perfect;
+                Color c = perfect
+                    ? new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.95f)
+                    : new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.95f);
+                _parryGauge.style.unityBackgroundImageTintColor = new StyleColor(c);
+            }
+            _parryGauge.CommitIfDirty();
         }
 
         private void StopPolling()
         {
+            if (_parryPollTask != null)   // [무번호 61] 패망 폴링 짝 정리
+            {
+                _parryPollTask.Pause();
+                _parryPollTask = null;
+            }
             if (_pollTask != null)
             {
                 _pollTask.Pause();
@@ -565,6 +651,31 @@ namespace ProjectName.UI.Toolkit
         private static bool _polledOnce;
         private static float _diagTimer;
 
+        /// <summary>[고스트 체력바 78차] 매 프레임 — 앞줄(실제) 즉시, 뒷줄(흔적) 지연 후 서서히 추격.
+        ///   MonoKeeper.Update에서 호출. 250ms 폴링의 RefreshAll도 Fraction을 실제값으로 씀 — 앞줄과 동일값이라 무충돌.</summary>
+        public void TickGhost()
+        {
+            if (_hpGauge == null) return;
+            var ph = PlayerHealth.Instance ?? _phFallback;
+            if (ph == null) { _phFallback = Object.FindAnyObjectByType<PlayerHealth>(); ph = _phFallback; }
+            float ratio = ph != null && ph.MaxHP > 0f ? Mathf.Clamp01(ph.CurrentHP / ph.MaxHP) : 1f;
+            _hpGhost.Tick(ratio, Time.deltaTime);
+            _hpGauge.Fraction = _hpGhost.Front;        // 게이지 내부 dirty 게이트 — 동일값 무비용
+            _hpGauge.CommitIfDirty();
+
+            // [85차] 뒷줄(타격 흔적) 아크 복원 — 흔적이 앞줄보다 클 때만 표시(겹침 숨김)
+            if (_hpTrailArc != null)
+            {
+                bool showTrail = _hpGhost.Trail > _hpGhost.Front + 0.005f;
+                _hpTrailArc.style.display = showTrail ? DisplayStyle.Flex : DisplayStyle.None;
+                if (showTrail)
+                {
+                    _hpTrailArc.Fraction = _hpGhost.Trail;
+                    _hpTrailArc.CommitIfDirty();
+                }
+            }
+        }
+
         /// <summary>[17차 게이지 수리] MonoKeeper 직접 폴링 — 스케줄러(부착 전 생성) 미실행 환경 대비
         ///   이중 보험. 부착 상태에서만 RefreshAll을 수행하고, 첫 1회는 진단 로그를 남긴다.
         ///   [19차] 2s마다 게이지 실측 진단(값/부착/데이터 원천) — 채움 공백 원인을 Play에서 즉시 판별.</summary>
@@ -615,6 +726,8 @@ namespace ProjectName.UI.Toolkit
                     _pollAccum = 0f;
                     if (hud != null) hud.PollTick();
                 }
+                // [고스트 체력바 78차] 매 프레임 — 뒷줄(흔적) 추격 애니메이션
+                if (hud != null && hud.parent != null) hud.TickGhost();
             }
         }
     }

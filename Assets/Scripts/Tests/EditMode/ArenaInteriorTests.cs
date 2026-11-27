@@ -41,7 +41,11 @@ namespace ProjectName.Tests.EditMode
             Assert.That(room.transform.Find("ArenaSouthEntry_Right"), Is.Not.Null, "진입로 오른쪽 경간 존재");
             Assert.That(room.transform.Find("ArenaBettingDesk"), Is.Not.Null, "베팅 데스크 존재");
             Assert.That(room.transform.Find("ArenaNpc"), Is.Not.Null, "아레나 관리자 NPC 존재");
-            Assert.That(room.transform.Find("ArenaPit_Trigger"), Is.Not.Null, "투기장 출입문 트리거 존재");
+            // [125차 후속36 C] 계약 갱신 — 로비→투기장 수동 트리거 폐기(베팅 확정 시 자동 전환만).
+            //   북벽 문 자리는 장식 문(ArenaPit_Door_Decor)으로 유지.
+            Assert.That(room.transform.Find("ArenaPit_Trigger"), Is.Null,
+                "로비→투기장 수동 트리거 부재 — 베팅 자동 전환 계약(후속36).");
+            Assert.That(room.transform.Find("ArenaPit_Door_Decor"), Is.Not.Null, "투기장 문 장식 유지");
         }
 
         [Test]

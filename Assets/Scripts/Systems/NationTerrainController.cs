@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using ProjectName.Core;
 using ProjectName.Core.Data;
+using ProjectName.Core.Utils;
 using UnityEngine;
 #pragma warning disable 0414
 
@@ -568,12 +569,12 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 결정론적 흙길 네트워크 세그먼트(월드 XZ, static 캐시 — 재생성 시 항상 동일):
-        ///  - 4개 방사형 스포크: 각 방위(East 0°/North 90°/West 180°/South 270°, atan2(z,x) 체계)로
-        ///    원점에서 반경 100m → 1500m까지 직선 세그먼트
-        ///  - 링 도로 2개: 반경 550m(Ring3), 1000m(Ring2) — 각 방위 스포크 끝단을 잇는
-        ///    원호를 15° 간격 폴리라인으로 근사(링당 24 세그먼트)
-        ///  - 스폰 연결: PlayerSpawnConfig.SpawnPosition(약 (728, -529))에서 가장 가까운
-        ///    스포크의 수선 발 지점까지 1개 세그먼트
+        /// [T2-2] 하드코딩 스포크/링 폐기 → 결정론 MST(최소 신장 트리) 네트워크:
+        ///  - 노드(순서 고정): ①허브 (0,0) ②스폰(PlayerSpawnConfig.SpawnPosition) — 기존 스포크
+        ///    수선발 계산은 폐기된 하드코딩 스포크에 의존하므로 스폰 좌표 자체를 노드로 사용
+        ///    ③TerritoryDatabase 전 영지 worldPosition(동적 — Empire/Dracula 포함)
+        ///    ④VillagePlacementSystem 전 마을 좌표(동적)
+        ///  - PathNetworkMath.BuildMst(Kruskal, 결정론 tie-break) → n-1개 간선 → 직선 PathSegment
         /// </summary>
         private static readonly PathSegment[] DirtPathSegments = BuildDirtPathSegments();
 
@@ -598,103 +599,75 @@ namespace ProjectName.Systems
             }
         }
 
-        private static PathSegment[] BuildDirtPathSegments()
-        {
-            var list = new List<PathSegment>(64);
-
-            const float spokeInner = 100f;
-            const float spokeOuter = 1500f;
-            const float ring3Radius = 550f;
-            const float ring2Radius = 1000f;
-            const float ringStepDeg = 15f;
-
-            // 1) 방사형 스포크 — East 0° / North 90° / West 180° / South 270°
-            //    (GetNationFromPosition과 동일한 atan2(z, x) 각도 체계)
-            var spokes = new PathSegment[4];
-            for (int i = 0; i < 4; i++)
-            {
-                float rad = (i * 90f) * Mathf.Deg2Rad;
-                float cx = Mathf.Cos(rad);
-                float cz = Mathf.Sin(rad);
-                spokes[i] = new PathSegment(
-                    cx * spokeInner, cz * spokeInner,
-                    cx * spokeOuter, cz * spokeOuter);
-                list.Add(spokes[i]);
-            }
-
-            // 2) 링 도로 — Ring3(550m) / Ring2(1000m), 15° 간격 폴리라인 원호 근사
-            AppendRing(list, ring3Radius, ringStepDeg);
-            AppendRing(list, ring2Radius, ringStepDeg);
-
-            // 3) 스폰 연결 — 스폰에서 가장 가까운 스포크의 수선 발 지점까지 1개 세그먼트
-            Vector3 spawn = PlayerSpawnConfig.SpawnPosition;
-            int bestSpoke = -1;
-            float bestDist = float.MaxValue;
-            Vector2 bestFoot = Vector2.zero;
-            for (int i = 0; i < spokes.Length; i++)
-            {
-                Vector2 foot = ClosestPointOnSegment(spawn.x, spawn.z, spokes[i]);
-                float d = Mathf.Sqrt((foot.x - spawn.x) * (foot.x - spawn.x)
-                                   + (foot.y - spawn.z) * (foot.y - spawn.z));
-                if (d < bestDist)
-                {
-                    bestDist = d;
-                    bestSpoke = i;
-                    bestFoot = foot;
-                }
-            }
-            if (bestSpoke >= 0 && bestDist > 0.5f)
-            {
-                list.Add(new PathSegment(spawn.x, spawn.z, bestFoot.x, bestFoot.y));
-            }
-
-            // 4) [P31-A] 마을 연결 — 24개 마을(VillagePlacementSystem) 각각을
-            //    현재 네트워크(스포크/링)의 최근접 세그먼트의 수선 발 지점에 수직 접속.
-            //    마을 중심에서 도로까지 1개 세그먼트씩 추가 → 마을이 도로망과 이어진다.
-            AppendVillageConnections(list, spokes);
-
-            return list.ToArray();
-        }
-
         /// <summary>
-        /// [P31-A] 24개 마을(VillagePlacementSystem) 각각을 도로 네트워크에 접속한다.
-        /// 마을 중심에서 모든 기존 세그먼트(스포크 + 링) 중 최근접 수선 발 지점까지 1개 세그먼트 추가.
+        /// 흙길 네트워크를 결정론 MST로 구성한다([T2-2] 하드코딩 스포크/링 → MST 교체).
+        /// public(static 유지): EditMode 테스트(DirtPathNetworkTests)가 세그먼트 배열을 직접 검증하기 위함.
+        /// 노드(순서 고정): 허브(0,0) → 스폰 → TerritoryDatabase 전 영지 → VillagePlacementSystem 전 마을.
+        /// PathNetworkMath.BuildMst(Kruskal, 결정론)로 n-1개 간선을 뽑아 직선 PathSegment로 변환한다.
+        /// 실패 시(예외) 빈 배열 + 경고 로그 — 캐시 폴백 없음(기존 마을 접속 가드 준용).
         /// </summary>
-        private static void AppendVillageConnections(List<PathSegment> list, PathSegment[] spokes)
+        public static PathSegment[] BuildDirtPathSegments()
         {
             try
             {
-                var all = VillagePlacementSystem.GetAllVillages();
-                foreach (var v in all)
-                {
-                    // 후보: 스포크 4개 + 이미 추가된 링/연결 세그먼트 — 이 중 최근접 수선 발을 찾는다.
-                    var candidates = new List<PathSegment>(list);
-                    foreach (var s in spokes)
-                        if (!candidates.Contains(s))
-                            candidates.Add(s);
+                var nodes = new List<Vector2>(96);
 
-                    Vector3 c = v.center;
-                    float bestDist = float.MaxValue;
-                    Vector2 bestFoot = Vector2.zero;
-                    bool found = false;
-                    for (int i = 0; i < candidates.Count; i++)
+                // ① 허브 — 세계 중심 (0,0)
+                nodes.Add(Vector2.zero);
+
+                // ② 스폰 — 기존 수선발 계산은 폐기된 하드코딩 스포크에 의존하므로
+                //    스폰 좌표 자체를 노드로 사용(스폰 접속은 MST 간선이 흡수)
+                Vector3 spawn = PlayerSpawnConfig.SpawnPosition;
+                nodes.Add(new Vector2(spawn.x, spawn.z));
+
+                // ③ 전 영지 worldPosition — TerritoryDatabase(동적, Empire/Dracula 포함).
+                //    Dictionary 열거 순서는 계약상 무보장 → (x, z) 오름차순 정렬로 노드 순서 결정론 고정
+                var db = TerritoryDatabase.Instance;
+                if (db != null)
+                {
+                    var territoryNodes = new List<Vector2>(96);
+                    foreach (var def in db.GetAllDefinitions())
                     {
-                        Vector2 foot = ClosestPointOnSegment(c.x, c.z, candidates[i]);
-                        float dx = foot.x - c.x;
-                        float dz = foot.y - c.z;
-                        float d = Mathf.Sqrt(dx * dx + dz * dz);
-                        if (d < bestDist) { bestDist = d; bestFoot = foot; found = true; }
+                        Vector3 p = def.worldPosition;
+                        territoryNodes.Add(new Vector2(p.x, p.z));
                     }
-                    // 마을이 이미 도로망 위(2m 이내)면 별도 접속 불필요
-                    if (found && bestDist > 2f)
+                    territoryNodes.Sort((a, b) =>
                     {
-                        list.Add(new PathSegment(c.x, c.z, bestFoot.x, bestFoot.y));
-                    }
+                        if (a.x < b.x) return -1;
+                        if (a.x > b.x) return 1;
+                        return a.y.CompareTo(b.y);
+                    });
+                    nodes.AddRange(territoryNodes);
                 }
+
+                // ④ 전 마을 좌표 — VillagePlacementSystem(동적, 하드코드 금지)
+                var villages = VillagePlacementSystem.GetAllVillages();
+                foreach (var v in villages)
+                {
+                    Vector3 c = v.center;
+                    nodes.Add(new Vector2(c.x, c.z));
+                }
+
+                // MST 구성 — Kruskal(결정론 tie-break): n≥2이면 정확히 n-1개 간선
+                var edges = PathNetworkMath.BuildMst(nodes);
+
+                // 기존 PathSegment 생성 규약 그대로: 간선 (a,b) → 직선 세그먼트(AABB는 생성자가 계산)
+                var list = new List<PathSegment>(edges.Count);
+                foreach (var e in edges)
+                {
+                    Vector2 pa = nodes[e.a];
+                    Vector2 pb = nodes[e.b];
+                    list.Add(new PathSegment(pa.x, pa.y, pb.x, pb.y));
+                }
+
+                Debug.Log($"[NationTerrainController] 흙길 MST: 세그먼트 {list.Count}개 (노드 {nodes.Count}개)");
+                return list.ToArray();
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning($"[NationTerrainController] AppendVillageConnections 예외 — 마을 도로 생략: {e.Message}");
+                // 정적 캐시 초기화가 예외로 깨지는 것을 막는 가드 — 실패 시 빈 배열(폴백 없음)
+                Debug.LogWarning($"[NationTerrainController] BuildDirtPathSegments 예외 — 흙길 네트워크 생략: {e.Message}");
+                return System.Array.Empty<PathSegment>();
             }
         }
 

@@ -22,11 +22,11 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
-        public void OneAcceptedClick_AuthorizesOnlyFirstThirdAndOneHitMarker()
+        public void OneAcceptedClick_AuthorizesOnlyFirstHalfAndOneHitMarker()
         {
             var combo = StartCombo();
 
-            Assert.That(GetPlaybackLimit(combo.AcceptedClicks), Is.EqualTo(1f / 3f).Within(0.0001f));
+            Assert.That(GetPlaybackLimit(combo.AcceptedClicks), Is.EqualTo(0.5f).Within(0.0001f));   // [168-P1] 1클릭=클립 1/2
             Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.32f), Is.EqualTo(new[] { 1 }));
             Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.70f), Is.EqualTo(new[] { 1 }));
             Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.34f), Is.EqualTo(new[] { 1 }),
@@ -34,30 +34,29 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
-        public void TimelyFollowup_AuthorizesSecondThirdAndSecondHitMarker()
+        public void TimelyFollowup_AuthorizesSecondHalfAndSecondHitMarker()
         {
             var combo = StartCombo();
 
             Assert.That(combo.TryAcceptFollowup(5.2f, 0.6f), Is.True);
-            Assert.That(GetPlaybackLimit(combo.AcceptedClicks), Is.EqualTo(2f / 3f).Within(0.0001f));
+            Assert.That(GetPlaybackLimit(combo.AcceptedClicks), Is.EqualTo(1f).Within(0.0001f));   // [168-P1] 클릭2=클립 전체
             Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.32f), Is.EqualTo(new[] { 1 }));
-            Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.45f), Is.EqualTo(new[] { 1, 2 }));
+            Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.67f), Is.EqualTo(new[] { 1, 2 }));   // [168-P1] 세그2 마커 0.66=(1+0.32)/2 통과 시점
             Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.70f), Is.EqualTo(new[] { 1, 2 }));
             Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.68f), Is.EqualTo(new[] { 1, 2 }),
-                "Crossing later animation time still grants no segment-three hit without its click.");
+                "Crossing later animation time grants no further segments — the two-click contract ends at segment two.");
         }
 
         [Test]
-        public void ThirdTimelyClick_AuthorizesAllThreeMarkersAndNoFourthClick()
+        public void SecondTimelyClick_AuthorizesBothMarkersAndNoThirdClick()
         {
             var combo = StartCombo();
             Assert.That(combo.TryAcceptFollowup(5.1f, 0.6f), Is.True);
-            Assert.That(combo.TryAcceptFollowup(5.2f, 0.6f), Is.True);
 
             Assert.That(GetPlaybackLimit(combo.AcceptedClicks), Is.EqualTo(1f));
-            Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.99f), Is.EqualTo(new[] { 1, 2, 3 }));
+            Assert.That(EligibleHitSegments(combo.AcceptedClicks, 0.99f), Is.EqualTo(new[] { 1, 2 }));
             Assert.That(combo.TryAcceptFollowup(5.25f, 0.6f), Is.False,
-                "The three-click capacity must not authorize a fourth swing.");
+                "The two-click capacity must not authorize a third swing.");
         }
 
         [Test]
@@ -70,11 +69,11 @@ namespace ProjectName.Tests.EditMode
                 @"(?m)^  m_Name: WeaponCombo\r?\n  m_Speed: ([0-9.]+)$");
             Assert.That(state.Success, Is.True, "The controller must define the WeaponCombo playback speed.");
             Assert.That(float.Parse(state.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture),
-                Is.EqualTo(2.5f), "WeaponCombo should play at 2.5x.");
+                Is.EqualTo(4f), "WeaponCombo should play at 4x ([206차] 4.53s 클립 ×4 = 1.13s 풀콤보).");
 
             float clickWindow = GetClickWindow();
             Assert.That(clickWindow, Is.EqualTo(0.85f).Within(0.0001f),
-                "At 2.5x, a 0.85s window adds a small post-segment input grace to the ~0.60s segment.");
+                "At 1.2x, a 0.85s window keeps the follow-up input inside the click-1 hold boundary (half of the 4.53s clip).");
 
             var timelyCombo = StartCombo();
             Assert.That(timelyCombo.TryAcceptFollowup(5.84f, clickWindow), Is.True,
@@ -89,22 +88,21 @@ namespace ProjectName.Tests.EditMode
         {
             float clickWindow = GetClickWindow();
             var combo = StartCombo();
-            Assert.That(combo.Evaluate(5.1f, 1f / 3f, clickWindow), Is.EqualTo(MeleeComboStateMachine.Decision.Hold));
+            Assert.That(combo.Evaluate(5.1f, 0.5f, clickWindow), Is.EqualTo(MeleeComboStateMachine.Decision.Hold));
             float timelyFollowupTime = 5f + clickWindow - 0.01f;
             Assert.That(combo.TryAcceptFollowup(timelyFollowupTime, clickWindow), Is.True);
-            Assert.That(combo.Evaluate(timelyFollowupTime, 1f / 3f, clickWindow), Is.EqualTo(MeleeComboStateMachine.Decision.Resume));
+            Assert.That(combo.Evaluate(timelyFollowupTime, 0.5f, clickWindow), Is.EqualTo(MeleeComboStateMachine.Decision.Resume));
 
             var expired = StartCombo();
             float expiryTime = 5f + clickWindow + 0.01f;
-            Assert.That(expired.Evaluate(expiryTime, 1f / 3f, clickWindow), Is.EqualTo(MeleeComboStateMachine.Decision.Exit));
+            Assert.That(expired.Evaluate(expiryTime, 0.5f, clickWindow), Is.EqualTo(MeleeComboStateMachine.Decision.Exit));
             Assert.That(expired.DidExitBecauseFollowupWindowExpired, Is.True);
             Assert.That(expired.TryAcceptFollowup(expiryTime + 0.01f, clickWindow), Is.False);
         }
 
-        [TestCase(1, 1f / 3f, new[] { 1 })]
-        [TestCase(2, 2f / 3f, new[] { 1, 2 })]
-        [TestCase(3, 1f, new[] { 1, 2, 3 })]
-        public void ClickCount_AuthorizesExistingOneTwoOrThreeSegmentMapping(int clicks, float playbackLimit, int[] expectedSegments)
+        [TestCase(1, 0.5f, new[] { 1 })]
+        [TestCase(2, 1f, new[] { 1, 2 })]
+        public void ClickCount_AuthorizesExistingOneOrTwoSegmentMapping(int clicks, float playbackLimit, int[] expectedSegments)
         {
             Assert.That(GetPlaybackLimit(clicks), Is.EqualTo(playbackLimit).Within(0.0001f));
             Assert.That(EligibleHitSegments(clicks, 0.99f), Is.EqualTo(expectedSegments));
@@ -118,16 +116,14 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
-        public void ThreeStrikeMarkers_AreDistinctAndOrderedWithinWeaponCombo()
+        public void TwoStrikeMarkers_AreDistinctAndOrderedWithinWeaponCombo()
         {
             float first = GetStrikeMarker(1);
             float second = GetStrikeMarker(2);
-            float third = GetStrikeMarker(3);
 
             Assert.That(first, Is.GreaterThan(0f));
             Assert.That(second, Is.GreaterThan(first));
-            Assert.That(third, Is.GreaterThan(second));
-            Assert.That(third, Is.LessThan(1f));
+            Assert.That(second, Is.LessThan(1f));
         }
 
         [Test]
@@ -197,11 +193,26 @@ namespace ProjectName.Tests.EditMode
 
             Assert.That((bool)resolve.Invoke(null, new object[] { false, 0.8f, false }), Is.False,
                 "An unrelated legacy AttackThrust must not be claimed as a spear opener hit.");
-            Assert.That((bool)resolve.Invoke(null, new object[] { true, 0.49f, false }), Is.False,
-                "The opener must not hit before its thrust strike marker.");
-            Assert.That((bool)resolve.Invoke(null, new object[] { true, 0.5f, false }), Is.True);
+            // [166-B] 스윙 1 정점 마커 0.50 → 0.30(무기별 스윙 임팩트 테이블 단일 소스 — 스윙 2 판정은 별도 게이트).
+            Assert.That((bool)resolve.Invoke(null, new object[] { true, 0.29f, false }), Is.False,
+                "The opener must not hit before its swing-1 strike marker (0.30).");
+            Assert.That((bool)resolve.Invoke(null, new object[] { true, 0.30f, false }), Is.True);
             Assert.That((bool)resolve.Invoke(null, new object[] { true, 0.8f, true }), Is.False,
                 "Crossing later frames must not repeat the opener hit.");
+        }
+
+        [Test]
+        public void SpearOpenerSwing2_ResolvesOnceAfterItsSecondSwingMarker()
+        {
+            // [166-B] 오프너 스윙 2 판정 게이트 — 스윙 1과 동형 이중 가드 중 상태 게이트(45차 계약 동형).
+            var resolve = typeof(HumanoidClipDriver).GetMethod("ShouldResolveSpearOpenerSwing2", PrivateStatic);
+            Assert.That(resolve, Is.Not.Null,
+                "The opener's second swing needs its own one-shot normalized-time policy (0.75 marker).");
+            Assert.That((bool)resolve.Invoke(null, new object[] { 0.74f, false }), Is.False,
+                "The opener's second swing must not hit before its strike marker (0.75).");
+            Assert.That((bool)resolve.Invoke(null, new object[] { 0.75f, false }), Is.True);
+            Assert.That((bool)resolve.Invoke(null, new object[] { 0.9f, true }), Is.False,
+                "Crossing later frames must not repeat the second swing hit.");
         }
 
         [Test]

@@ -20,7 +20,8 @@ namespace ProjectName.Systems
             Gift,           // 선물 전달 (+5~15 호감도)
             Friendship,     // 우호 제안 (+20 호감도, 일시적 휴전)
             Alliance,       // 동맹 제안 (국가 단위)
-            Assassinate     // 독살 선물 (영주 암살)
+            Assassinate,    // 독살 선물 (영주 암살)
+            Intel           // 📋 정보 수집 — 7일 주기 정보 스크롤 보고 (병사 수 + 영주 입맛)
         }
 
         // 임무별 필요 레벨
@@ -28,6 +29,10 @@ namespace ProjectName.Systems
         public const int FRIENDSHIP_REQUIRED_LEVEL = 10;
         public const int ALLIANCE_REQUIRED_LEVEL = 20;
         public const int ASSASSINATE_REQUIRED_LEVEL = 15;
+
+        // 📋 정보 수집 (Intel) — 7일 주기 정보 스크롤 보고 [2026-10-21 사용자 요구]
+        public const int INTEL_REQUIRED_LEVEL = 5;       // 필요 레벨 (영주 정보 Lv.5와 동일 — SpySystem.LordInfo 기준)
+        public const int INTEL_REPORT_INTERVAL_DAYS = 7; // 보고 주기 (게임 일차)
 
         // 발각 확률 관련
         public const float BASE_DETECT_CHANCE = 0.2f;
@@ -75,6 +80,8 @@ namespace ProjectName.Systems
                     return ExecuteAllianceMission(envoy, targetTerritory, def);
                 case EnvoyMission.Assassinate:
                     return ExecuteAssassinateMission(envoy, targetTerritory, def);
+                case EnvoyMission.Intel:
+                    return ExecuteIntelMission(envoy, targetTerritory, def);
                 default:
                     return Fail("알 수 없는 임무입니다.");
             }
@@ -152,6 +159,147 @@ namespace ProjectName.Systems
             }
         }
 
+        // ===== 📋 정보 수집 (Intel) — 7일 주기 정보 스크롤 보고 [2026-10-21] =====
+
+        /// <summary>
+        /// 정보 특사 배정 — 대상 영지별 활성 특사 추적.
+        /// [2026-10-21 사용자 요구] 특사 파견 후 7일 주기로 대상 영지의 병사 수 + 영주 입맛을
+        /// 정보 스크롤로 창고에 전달한다. 특사 사망 시 보고 중단.
+        /// </summary>
+        private sealed class IntelAssignment
+        {
+            public GuardPlaceholder envoy;  // 파견된 정보 특사
+            public TerritoryId target;      // 정찰 대상 영지
+            public int startDay;            // 마지막 보고 기준일 (TimeManager.CurrentDay)
+        }
+
+        /// <summary>활성 정보 특사 목록 — 같은 대상 영지에 재파견 시 기존 배정 교체.</summary>
+        private static readonly System.Collections.Generic.List<IntelAssignment> _intelAssignments =
+            new System.Collections.Generic.List<IntelAssignment>();
+
+        /// <summary>OnDayStart 구독 여부 — 1회만 구독 (멱등).</summary>
+        private static bool _intelDayHookInstalled;
+
+        /// <summary>OnDayStart 구독 보장. TimeManager가 씬에 없으면(EditMode 등) 다음 파견 시 재시도.</summary>
+        private static void EnsureIntelDayHook()
+        {
+            if (_intelDayHookInstalled) return;
+            var tm = TimeManager.GetOrCreate();
+            if (tm == null) return;
+            tm.OnDayStart += OnIntelDayStart;
+            _intelDayHookInstalled = true;
+        }
+
+        private static void OnIntelDayStart()
+        {
+            TickIntelReports();
+        }
+
+        /// <summary>
+        /// 정보 특사 주기 점검 — 자정(OnDayStart)마다 호출되며, 보고 주기(7일) 경과 시
+        /// 대상 영지 정보 스크롤을 창고에 전달한다. [테스트 훅] EditMode에서 직접 호출 가능.
+        /// </summary>
+        public static void TickIntelReports()
+        {
+            var tm = TimeManager.Instance;
+            if (tm == null || _intelAssignments.Count == 0) return;
+            int today = tm.CurrentDay;
+
+            // 역순 순회 — 사망/소멸 제거에 대응
+            for (int i = _intelAssignments.Count - 1; i >= 0; i--)
+            {
+                var a = _intelAssignments[i];
+                if (a.envoy == null || !a.envoy.IsAlive)
+                {
+                    _intelAssignments.RemoveAt(i);
+                    continue;
+                }
+                if (today - a.startDay >= INTEL_REPORT_INTERVAL_DAYS)
+                {
+                    DeliverIntelReport(a, today);
+                    a.startDay = today; // 다음 주기 기준 갱신
+                }
+            }
+        }
+
+        /// <summary>
+        /// 정보 스크롤 생성 → 플레이어 현재 영지 창고에 전달 → 알림.
+        /// 스크롤: 유니크 id(스택 불가), description에 병사 수 + 영주 입맛 기록. 창고 가득 시 다음 주기 재시도.
+        /// </summary>
+        private static void DeliverIntelReport(IntelAssignment a, int today)
+        {
+            var def = TerritoryDatabase.Instance.GetDefinition(a.target);
+            if (string.IsNullOrEmpty(def.territoryName))
+            {
+                _intelAssignments.Remove(a); // 대상 소멸 → 배정 해제
+                return;
+            }
+
+            string food = string.IsNullOrEmpty(def.lord.preferredFood) ? "알 수 없음" : def.lord.preferredFood;
+            // [113차 B] 재료 힌트 — 선호 음식의 주재료·획득처를 LordFoodCatalog 단일소스에서 조립 (기존 라인 불변 + 라인 추가)
+            string foodHint = LordFoodCatalog.BuildSourceHint(def.lord.preferredFood);
+            string info = $"📋 {def.territoryName} 정찰 보고 ({today}일차)\n" +
+                          $"병력: {def.guardCount}명\n" +
+                          $"영주: {def.lord.lordName}\n" +
+                          $"영주 입맛: {food}\n" +
+                          $"🥄 {foodHint}";
+
+            // 보고서마다 고유 id → 스택 안 됨 (보고 일차별 별도 슬롯)
+            var scroll = new PlayerInventory.ItemData
+            {
+                id = $"intel_scroll_{a.target}_{today}",
+                displayName = $"정보 스크롤 — {def.territoryName}",
+                description = info,
+                category = PlayerInventory.ItemCategory.Quest,
+                rarity = ItemRarity.Uncommon,
+                maxStack = 1
+            };
+
+            string warehouseKey = TerritoryManager.Instance != null
+                ? TerritoryManager.Instance.CurrentTerritoryId.ToString()
+                : "East_01";
+            var warehouse = WarehouseSystem.GetOrCreate(); // [EditMode 대응] Instance는 Awake 의존 → EditMode에서 null. GetOrCreate로 보장.
+            if (warehouse != null && warehouse.AddItem(warehouseKey, scroll, 1))
+            {
+                WarNotificationUI.ShowNotification(
+                    $"📬 특사 보고서 도착: {def.territoryName} (창고에서 확인)",
+                    WarNotificationUI.NotificationType.Info);
+                Debug.Log($"[EnvoySystem] 📋 정보 스크롤 전달: {warehouseKey} ← {scroll.id}");
+            }
+            else
+            {
+                // 창고 가득/시스템 부재 — 배정 유지, 다음 주기 재시도
+                Debug.LogWarning($"[EnvoySystem] 정보 스크롤 미전달 (창고 가득?) — {def.territoryName}, 다음 주기 재시도");
+            }
+        }
+
+        /// <summary>
+        /// 📋 정보 수집 임무 — 파견 성공 시 7일 주기 정보 스크롤 보고 시작.
+        /// 발각 시 특사 처형 + 배정 실패 (기존 CalculateDetectChance 재사용).
+        /// </summary>
+        private static EnvoyResult ExecuteIntelMission(GuardPlaceholder envoy, TerritoryId targetId, TerritoryDefinition def)
+        {
+            var state = TerritoryDatabase.Instance.GetState(targetId);
+            if (state == null)
+                return Fail("영지 상태를 찾을 수 없습니다.");
+
+            // 파견 시점 발각 판정 — 기존 CalculateDetectChance 재사용
+            float detectChance = CalculateDetectChance(envoy, targetId);
+            if (Random.value < detectChance)
+            {
+                envoy.TakeDamage(9999f, Vector3.zero, "Executed");
+                return Fail($"💀 발각! {envoy.GuardName} 처형됨. 정보 수집 취소");
+            }
+
+            // 배정 등록 — 같은 대상에 재파견 시 기존 배정 교체 (특사 1명 유지)
+            _intelAssignments.RemoveAll(a => a.target.Equals(targetId));
+            int startDay = TimeManager.GetOrCreate().CurrentDay;
+            _intelAssignments.Add(new IntelAssignment { envoy = envoy, target = targetId, startDay = startDay });
+            EnsureIntelDayHook();
+
+            return Success($"📋 {def.territoryName} 정보 특사 파견! 7일 후부터 창고에 보고서 도착", 0, false);
+        }
+
         // ===== 헬퍼 =====
 
         public static string GetMissionName(EnvoyMission mission)
@@ -162,6 +310,7 @@ namespace ProjectName.Systems
                 case EnvoyMission.Friendship: return "🤝 우호 제안";
                 case EnvoyMission.Alliance: return "🕊️ 동맹 제안";
                 case EnvoyMission.Assassinate: return "☠️ 독살 선물";
+                case EnvoyMission.Intel: return "📋 정보 수집";
                 default: return "알 수 없음";
             }
         }
@@ -174,6 +323,7 @@ namespace ProjectName.Systems
                 case EnvoyMission.Friendship: return "우호 관계를 제안하여 일시적 휴전을 얻습니다";
                 case EnvoyMission.Alliance: return "국가 단위 동맹을 제안합니다";
                 case EnvoyMission.Assassinate: return "음식에 독을 넣어 영주를 암살합니다 (발각 위험)";
+                case EnvoyMission.Intel: return "대상 영지의 병력 수와 영주 입맛을 수집하여 7일마다 창고에 정보 스크롤을 전달합니다";
                 default: return "";
             }
         }
@@ -186,6 +336,7 @@ namespace ProjectName.Systems
                 case EnvoyMission.Friendship: return FRIENDSHIP_REQUIRED_LEVEL;
                 case EnvoyMission.Alliance: return ALLIANCE_REQUIRED_LEVEL;
                 case EnvoyMission.Assassinate: return ASSASSINATE_REQUIRED_LEVEL;
+                case EnvoyMission.Intel: return INTEL_REQUIRED_LEVEL;
                 default: return 99;
             }
         }

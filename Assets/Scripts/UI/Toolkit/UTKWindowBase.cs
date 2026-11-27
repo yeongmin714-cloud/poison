@@ -34,6 +34,8 @@ namespace ProjectName.UI.Toolkit
         private const float ShadowPad = 12f;
         /// <summary>떠 보이도록 아래로 살짝 처지는 오프셋 (px).</summary>
         private const float ShadowDropY = 4f;
+        /// <summary>[112차 F-A] 창 단위 그림자 활성 플래그 — Figma에 프레임 drop shadow가 없는 전면 화면에서 off.</summary>
+        private bool _shadowEnabled = true;
 
         public bool IsOpen => _isOpen;
         public string Title => _titleLabel.text;
@@ -156,6 +158,11 @@ namespace ProjectName.UI.Toolkit
         {
             if (_shadow.parent == null)
                 return;
+            if (!_shadowEnabled)
+            {
+                _shadow.style.display = DisplayStyle.None;   // [112차 F-A] 창 단위 그림자 비활성 — rim 미표출
+                return;
+            }
             if (style.display == DisplayStyle.None)
             {
                 // 닫힘/숨김 시 화면에 그림자가 남지 않도록 반드시 숨김
@@ -167,6 +174,15 @@ namespace ProjectName.UI.Toolkit
             _shadow.style.top    = resolvedStyle.top    - ShadowPad + ShadowDropY;
             _shadow.style.width  = resolvedStyle.width  + ShadowPad * 2;
             _shadow.style.height = resolvedStyle.height + ShadowPad * 2 - ShadowDropY;
+        }
+
+        /// <summary>[112차 F-A] 창 단위 그림자 비활성화 — Figma 프레임에 drop shadow가 없는
+        /// 전면 화면(건설 관리 등)에서 12px rim 음영이 생기지 않도록 한다(멱등, Show 이후에도 유지).</summary>
+        protected void DisableWindowShadow()
+        {
+            _shadowEnabled = false;
+            if (_shadow != null && _shadow.parent != null)
+                _shadow.style.display = DisplayStyle.None;
         }
 
         // ─────────────────────────── 공개 API ───────────────────────────

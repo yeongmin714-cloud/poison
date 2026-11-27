@@ -60,47 +60,35 @@ namespace ProjectName.Systems
             { WallName = wallName; From = from; To = to; }
         }
 
-        private static readonly string[] ZoneNames = { "Bedroom", "Craft", "Storage", "Barracks", "Alchemy" };
         private static readonly Dictionary<string, WarehouseSystem> SeededCookingPantries =
             new Dictionary<string, WarehouseSystem>();
 
+        // [2026-10-14 Phase 1 — 레이아웃 정의 추출] 기준형(팔각 중앙 로비) 토폴로지의 단일 소스는
+        //   InteriorLayoutDefinition.KeepOctagon이다. 아래 고정 토폴로지 API들은 테스트·외부 호출자
+        //   (CastleInteriorBuilder.AddLordLockedDoors, InvadedLordEncounter 등)를 위한 호환 래퍼이며,
+        //   정의로부터 동일 기하/존 결과를 방어 복사본으로 반환한다. 런타임 출력은 이전과 동일 유지.
+
         /// <summary>North is +Z. Vertices are final room-local XZ coordinates in meters.</summary>
         // The entry opening is on the south-east chamfer, aimed into a real walkable central corridor.
-        public static Vector2[] GetLobbyVertices() => new[]
-        {
-            new Vector2(-18f, 14f), new Vector2(18f, 14f), new Vector2(30f, 8f), new Vector2(30f, -8f),
-            new Vector2(18f, -14f), new Vector2(-18f, -14f), new Vector2(-30f, -8f), new Vector2(-30f, 8f)
-        };
+        public static Vector2[] GetLobbyVertices() => InteriorLayoutDefinition.KeepOctagon.GetLobbyVertices();
 
-        private static bool IsInsideLobby(Vector2 point)
-        {
-            Vector2[] vertices = GetLobbyVertices();
-            bool inside = false;
-            for (int i = 0, j = vertices.Length - 1; i < vertices.Length; j = i++)
-            {
-                Vector2 a = vertices[i], b = vertices[j];
-                bool crosses = (a.y > point.y) != (b.y > point.y) &&
-                    point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x;
-                if (crosses) inside = !inside;
-            }
-            return inside;
-        }
+        public static string[] GetTopologyZoneNames() => InteriorLayoutDefinition.KeepOctagon.GetZoneNames();
 
-        public static string[] GetTopologyZoneNames() => (string[])ZoneNames.Clone();
-        public static Vector2 GetAnchorPosition(string anchorName)
-        {
-            switch (anchorName)
-            {
-                case "Workbench": return new Vector2(-40f, 25f);
-                case "StorageShelf_2": return new Vector2(40f, 25f);
-                case "WeaponStand_0": return new Vector2(-40f, -25f);
-                case "AlchemyTable": return new Vector2(40f, -25f);
-                case "LordBed": return new Vector2(0f, 29f);
-                case "CookingTable": return new Vector2(40f, 34f);
-                case "CookingIngredientWarehouse": return new Vector2(45.5f, 34f);
-                default: return Vector2.zero;
-            }
-        }
+        public static Vector2 GetAnchorPosition(string anchorName) =>
+            InteriorLayoutDefinition.KeepOctagon.GetAnchorPosition(anchorName);
+
+        // ==================================================================================================
+        // [122차 R3] 빈 실내 규칙 — 시설 자동 구성 게이트.
+        //   false(기본): 작업대/저장고/무기고/요리/연금 스테이션의 실물+상호작용 자동 생성을 전부 스킵한다.
+        //     실물이 없으면 해당 위치는 빈 공간(장식 가구/이름표는 유지)이 되고, 시설은 건설 경로
+        //     (ConstructionManager 설계도)로만 확보한다.
+        //   true(레거시): 121차 이전 동작 복원 — 기존 테스트/기존 세이브 복원 검증용 정적 게이트.
+        //   정적 플래그 방식을 채택한 이유: 122차는 "기존 코드 제거"가 아니라 "기본 비활성"이므로
+        //     레거시 경로와 신규 건설 경로를 한 파일에서 전환 가능해야 하며, EditMode 테스트가
+        //     시설 부착을 검사하는 경우 부모에서 플래그를 true로 띄워 회귀 검증을 유지할 수 있다.
+        // ==================================================================================================
+        public static bool FurnishStations = false;
+
 
         private static void SetAnchorPosition(GameObject room, string name, Vector2 position)
         {
@@ -112,83 +100,19 @@ namespace ProjectName.Systems
             anchor.localPosition = local;
         }
 
-        public static PortalConnection[] GetPortalConnections()
-        {
-            var portals = new List<PortalConnection>();
-            foreach (WallLayout wall in GetTopologyWalls())
-                if (wall.DoorwayWidth > 0f && !string.IsNullOrEmpty(wall.ConnectedFrom) &&
-                    !string.IsNullOrEmpty(wall.ConnectedTo))
-                    portals.Add(new PortalConnection(wall.Name, wall.ConnectedFrom, wall.ConnectedTo));
-            return portals.ToArray();
-        }
+        public static PortalConnection[] GetPortalConnections() =>
+            InteriorLayoutDefinition.KeepOctagon.GetPortalConnections();
 
         /// <summary>Returns the named room occupied by a final room-local XZ point, or null in the exterior.</summary>
-        public static string GetTopologyZoneAt(Vector2 point)
-        {
-            if (Mathf.Abs(point.x) > RoomWidth * 0.5f || Mathf.Abs(point.y) > RoomDepth * 0.5f)
-                return "Exterior";
-            if (IsInsideLobby(point)) return "Lobby";
-            if (Mathf.Abs(point.x) < 18f && point.y > 14f) return "Bedroom";
-            if (point.x < -18f && point.y > 8f) return "Craft";
-            if (point.x < -30f && point.y >= -8f && point.y <= 8f) return "Craft";
-            if (point.x > 18f && point.y > 8f) return "Storage";
-            if (point.x > 30f && point.y >= -8f && point.y <= 8f) return "Storage";
-            if (point.x < -2.1f && point.y < -14f) return "Barracks";
-            if (point.x > 2.1f && point.y < -14f) return "Alchemy";
-            if (Mathf.Abs(point.x) <= 2.1f && point.y < -14f) return "EntryHall";
-            return null;
-        }
+        public static string GetTopologyZoneAt(Vector2 point) =>
+            InteriorLayoutDefinition.KeepOctagon.GetZoneAt(point);
 
         /// <summary>
         /// Named, floor-level XZ wall spans for the connected room ring around the central octagonal lobby.
         /// A portal is a real cut in its named wall, and carries the two spaces it joins.
+        /// [2026-10-14 Phase 1] 데이터 소스는 InteriorLayoutDefinition.KeepOctagon이며 방어 복사본을 반환한다.
         /// </summary>
-        public static WallLayout[] GetTopologyWalls()
-        {
-            float x = RoomWidth * 0.5f, z = RoomDepth * 0.5f;
-            Vector2[] lobby = GetLobbyVertices();
-            WallLayout S(string name, Vector2 a, Vector2 b, float doorwayWidth = 0f,
-                float doorwayHeight = 0f, float offset = 0f, string from = null, string to = null) =>
-                new WallLayout(name, a, b, doorwayWidth, doorwayHeight, offset, from, to);
-
-            return new[]
-            {
-                // Solid outer shell; the south entry opens into the dedicated central entry hall.
-                S("Exterior_North", new Vector2(-x, z), new Vector2(x, z)),
-                S("Exterior_West", new Vector2(-x, -z), new Vector2(-x, z)),
-                S("Exterior_East", new Vector2(x, -z), new Vector2(x, z)),
-                S("Entrance_South", new Vector2(-x, -z), new Vector2(x, -z), 4f, PortalHeight, 0f, "EntryHall", "Exterior"),
-
-                // Actual octagon openings: N Bedroom; NW/W Craft; NE/E Storage; SW Barracks; SE Alchemy;
-                // S is the entry hall. No portal directly joins two named rooms.
-                S("Lobby_North", lobby[0], lobby[1], PortalWidth, PortalHeight, 0f, "Lobby", "Bedroom"),
-                S("Lobby_NorthEast", lobby[1], lobby[2], PortalWidth, PortalHeight, 0f, "Lobby", "Storage"),
-                S("Lobby_East", lobby[2], lobby[3], PortalWidth, PortalHeight, 0f, "Lobby", "Storage"),
-                S("Lobby_SouthEast", lobby[3], lobby[4], PortalWidth, PortalHeight, 0f, "Lobby", "Alchemy"),
-                S("Lobby_South", lobby[4], lobby[5], 4f, PortalHeight, 0f, "Lobby", "EntryHall"),
-                S("Lobby_SouthWest", lobby[5], lobby[6], PortalWidth, PortalHeight, 0f, "Lobby", "Barracks"),
-                S("Lobby_West", lobby[6], lobby[7], PortalWidth, PortalHeight, 0f, "Lobby", "Craft"),
-                S("Lobby_NorthWest", lobby[7], lobby[0], PortalWidth, PortalHeight, 0f, "Lobby", "Craft"),
-
-                // N bedroom and uninterrupted NW/W and NE/E wings (each pair is one connected room).
-                S("Bedroom_West", new Vector2(-18f, 14f), new Vector2(-18f, z)),
-                S("Bedroom_East", new Vector2(18f, 14f), new Vector2(18f, z)),
-                S("Craft_NorthBoundary", new Vector2(-x, 8f), new Vector2(-30f, 8f)),
-                S("Craft_SouthBoundary", new Vector2(-x, -8f), new Vector2(-30f, -8f)),
-                S("Storage_NorthBoundary", new Vector2(30f, 8f), new Vector2(x, 8f)),
-                S("Storage_SouthBoundary", new Vector2(30f, -8f), new Vector2(x, -8f)),
-
-                // South rooms are separated by a walkable 4 m entry corridor from lobby to exterior.
-                S("EntryHall_West", new Vector2(-2f, -14f), new Vector2(-2f, -z)),
-                S("EntryHall_East", new Vector2(2f, -14f), new Vector2(2f, -z)),
-                S("EntryHall_NorthWest", new Vector2(-18f, -14f), new Vector2(-2f, -14f)),
-                S("EntryHall_NorthEast", new Vector2(2f, -14f), new Vector2(18f, -14f)),
-                // The lobby's SW/SE portal already defines the south room entrances. Extra vertical
-                // dividers here would sit directly behind those portals and seal the quadrant anchors.
-                // South rooms remain separated by the continuous entry-hall walls at x=±2.
-
-            };
-        }
+        public static WallLayout[] GetTopologyWalls() => InteriorLayoutDefinition.KeepOctagon.GetWalls();
 
         /// <summary>
         /// 국가 스타일에 맞는 플레이어 소유 중세 판타지 성 내부 생성.
@@ -209,11 +133,42 @@ namespace ProjectName.Systems
         /// 모든 variant에서 작업대/저장고/무기고 상호작용 앵커가 존재하며
         /// (이름 기반 조회되는 WeaponStand_0, AttachUiComponent로 부착되는 workbench/
         ///  storageShelf2 — 위치만 variant에 따라 변경) Nameplate 라벨도 유지됨.
+        /// [2026-10-14 Phase 4] 구(舊) 2인자 계약 보존 — 토폴로지는 기준형 KeepOctagon 고정.
+        /// 영지별 레이아웃 배정은 InteriorLayoutDefinition.SelectForTerritory + 3인자
+        /// 명시 오버로드로만 경유한다.
         /// </summary>
         /// <param name="nationStyle">"Eastern"/"Western"/"Southern"/"Northern"/"Empire"</param>
         /// <param name="layoutVariant">0~7 (범위 밖 값은 8로 나눈 나머지로 정규화)</param>
         public static GameObject BuildPlayerCastleInterior(string nationStyle, int layoutVariant)
         {
+            // 기존 2인자 호출 100% 보존: 토폴로지는 기준형(팔각) 유지.
+            return BuildPlayerCastleInterior(nationStyle, layoutVariant,
+                InteriorLayoutDefinition.KeepOctagon);
+        }
+
+        /// <summary>
+        /// [2026-10-14 Phase 4 — 레이아웃 인식 실내 빌드] 국가 스타일 + 가구 변형(0~7) +
+        /// 명시 레이아웃 정의로 성 내부 생성. shell/벽/포탈 석공/팀버 골조/벽 밴드/톱 캡/
+        /// 존 판정(TintForZone)/기능 앵커 배치가 모두 전달된 정의를 따른다(기준형 하드코딩
+        /// 없음). 외곽 치수·포탈 규격은 3종 정의가 공유하는 공통 계약을 정의에서 직접 읽는다.
+        /// definition이 null이면 KeepOctagon 폴백(구 호출자 안전망). 방에는 어떤 정의로
+        /// 지어졌는지 기록하는 InteriorLayoutContext가 부착된다(정적 전역 없음).
+        /// </summary>
+        /// <param name="nationStyle">"Eastern"/"Western"/"Southern"/"Northern"/"Empire"</param>
+        /// <param name="layoutVariant">0~7 (범위 밖 값은 8로 나눈 나머지로 정규화)</param>
+        /// <param name="layout">
+        /// 선택된 레이아웃 정의(SelectForTerritory 결과 또는 명시 정의). null은 KeepOctagon.
+        /// </param>
+        /// <param name="explicitTerritoryKey">
+        /// [F4] 실제 영지 키(예: "West_03") — 점령 영지 실내 작업대/저장고가 해당 영지에 귀속된다.
+        /// null/빈값은 기존 국가 스타일 매핑 폴백(GetTerritoryKeyForNationStyle) — 구 호출자 호환.
+        /// </param>
+        public static GameObject BuildPlayerCastleInterior(string nationStyle, int layoutVariant,
+            InteriorLayoutDefinition layout, string explicitTerritoryKey = null)
+        {
+            // null 정의 폴백 — 배정 실패/구 호출자에서도 기준형으로 안정 동작.
+            InteriorLayoutDefinition layoutDefinition = layout ?? InteriorLayoutDefinition.KeepOctagon;
+
             const int variantCount = 8;
             layoutVariant = ((layoutVariant % variantCount) + variantCount) % variantCount;
 
@@ -230,42 +185,41 @@ namespace ProjectName.Systems
             float mx = mirrorX ? 1f : -1f;
 
             // Geometry and anchors are authored directly in final room-local meters.
-            const float roomWidth = RoomWidth;
-            const float roomHeight = RoomHeight;
-            const float roomDepth = RoomDepth;
+            // [2026-10-14 Phase 4] 외곽 치수는 3종 정의가 공유하는 공통 계약 — 기준형 상수와
+            //   동일 값이므로 구 호출 출력 불변. (정의에서 읽어 레이아웃 단일 소스를 유지.)
+            float roomWidth = layoutDefinition.RoomWidth;
+            float roomHeight = layoutDefinition.RoomHeight;
+            float roomDepth = layoutDefinition.RoomDepth;
 
-            // 영지 고유 키 (작업대/저장고 상호작용 컴포넌트 설정용 — 국가 스타일 기반 매핑)
-            string territoryKey = GetTerritoryKeyForNationStyle(nationStyle);
+            // 영지 고유 키 (작업대/저장고 상호작용 컴포넌트 설정용)
+            // [F4] 명시 영지 키 우선 — 점령 영지 실내 기능이 실제 영지에 귀속. 없으면 기존 국가 매핑 폴백.
+            string territoryKey = string.IsNullOrEmpty(explicitTerritoryKey)
+                ? GetTerritoryKeyForNationStyle(nationStyle)
+                : explicitTerritoryKey;
 
             // ===== 국가별 텍스처 생성 (CastleInteriorBuilder와 동일) =====
-            Texture2D floorTex;
+            // [무번호 32] 국가별 바닥 텍스처 폐기 — 전 실내 공통 석타일(씬 통일 계약). 벽 텍스처는 국가 계약 유지.
             Texture2D wallTex;
 
             switch (nationStyle?.ToLower())
             {
                 case "eastern":
-                    floorTex = IndoorTextureGenerator.GenerateCastleFloorEastern();
                     wallTex = IndoorTextureGenerator.GenerateCastleWallEastern();
                     break;
                 case "western":
-                    floorTex = IndoorTextureGenerator.GenerateCastleFloorWestern();
                     wallTex = IndoorTextureGenerator.GenerateCastleWallWestern();
                     break;
                 case "southern":
-                    floorTex = IndoorTextureGenerator.GenerateCastleFloorSouthern();
                     wallTex = IndoorTextureGenerator.GenerateCastleWallSouthern();
                     break;
                 case "northern":
-                    floorTex = IndoorTextureGenerator.GenerateCastleFloorNorthern();
                     wallTex = IndoorTextureGenerator.GenerateCastleWallNorthern();
                     break;
                 case "empire":
-                    floorTex = IndoorTextureGenerator.GenerateCastleFloorEmpire();
                     wallTex = IndoorTextureGenerator.GenerateCastleWallEmpire();
                     break;
                 default:
                     Debug.LogWarning($"[PlayerCastleInteriorBuilder] 알 수 없는 국가 스타일: '{nationStyle}'. 기본(Empire) 사용.");
-                    floorTex = IndoorTextureGenerator.GenerateCastleFloorEmpire();
                     wallTex = IndoorTextureGenerator.GenerateCastleWallEmpire();
                     break;
             }
@@ -287,9 +241,8 @@ namespace ProjectName.Systems
                 shader = Shader.Find("Universal Render Pipeline/Lit");
             }
 
-            Material floorMat = new Material(shader) { name = $"PlayerCastle_FloorMat_{nationStyle}" };
-            floorMat.mainTexture = floorTex;
-            floorMat.color = Color.white;
+            // [무번호 32] 영지 실내 공통 석타일 — 국가 무관 단일 바닥(1m 타일, UV 0..1 쿼드 스케일 정합).
+            Material floorMat = InteriorQualityBaseline.CreateCommonInteriorFloorMat(roomWidth, roomDepth, "PlayerCastle");
 
             Material wallMat = new Material(shader) { name = $"PlayerCastle_WallMat_{nationStyle}" };
             wallMat.mainTexture = wallTex;
@@ -325,8 +278,7 @@ namespace ProjectName.Systems
             Material trimMat = IndoorMaterialFactory.CreateWoodFrame();
             trimMat.name = "PlayerCastle_TrimMat";
 
-            Material paperMat = new Material(shader) { name = "PlayerCastle_PaperMat" };
-            paperMat.color = new Color(0.92f, 0.90f, 0.82f); // 문서 용지
+
 
             // 요리/연금 스테이션 재질 (Phase 1 — 기존 가구와 톤 구분)
             Material cookingMat = new Material(shader) { name = "PlayerCastle_CookingMat" };
@@ -361,6 +313,10 @@ namespace ProjectName.Systems
 
             room.name = "PlayerCastleRoom";
 
+            // [2026-10-14 Phase 4] 소비 통합(문/영주/깃발/에디터 미리보기)이 읽을 레이아웃
+            //   컨텍스트 — AddComponent 직후 즉시 Configure. 정적 전역/싱글턴 없음.
+            room.AddComponent<InteriorLayoutContext>().Configure(layoutDefinition);
+
             // Replace the old rectangular shell; retain the walkable floor and ceiling at final dimensions.
             room.transform.localScale = Vector3.one;
             foreach (string legacyWall in new[] { "Wall_Front", "Wall_Back", "Wall_Left", "Wall_Right" })
@@ -368,70 +324,39 @@ namespace ProjectName.Systems
                 Transform oldWall = room.transform.Find(legacyWall);
                 if (oldWall != null) UnityEngine.Object.DestroyImmediate(oldWall.gameObject);
             }
-            foreach (WallLayout wall in GetTopologyWalls())
+            // [2026-10-14 Phase 4] 셸 벽은 선택 정의의 GetWalls를 소비한다(기준형 하드코딩 없음).
+            WallLayout[] topologyWalls = layoutDefinition.GetWalls();
+            foreach (WallLayout wall in topologyWalls)
             {
                 IndoorBuilder.CreateSolidInteriorWall(room, wall.Name, wall.Start, wall.End,
-                    RoomHeight, WallThickness, wall.DoorwayOffset, wall.DoorwayWidth,
-                    wall.DoorwayHeight, wallMat);
+                    layoutDefinition.RoomHeight, layoutDefinition.WallThickness, wall.DoorwayOffset,
+                    wall.DoorwayWidth, wall.DoorwayHeight, wallMat);
             }
             // The old procedural country wall texture is not appropriate for exposed masonry topology.
             // Keep its floor override, and apply the provider's stone+normal material to topology meshes.
-            IndoorMaterialFactory.ApplyFloorToRoom(room, RoomWidth, RoomDepth);
-            IndoorMaterialFactory.ApplyToTopologyWalls(room, RoomWidth, RoomHeight);
+            IndoorMaterialFactory.ApplyFloorToRoom(room, roomWidth, roomDepth);
+            IndoorMaterialFactory.ApplyToTopologyWalls(room, roomWidth, roomHeight);
 
             // ===================================================================
             // 1. 지휘 책상 + 관리용 책상/문서 (왕좌 대체 — 뒷벽 중앙, +z 방향)
             // ===================================================================
-            GameObject commandDesk = IndoorFurnitureCatalog.CreateTable(3.2f, 1.2f, 1.1f, deskMat);
+            // [무번호 88] 지휘 책상 — 설계도 침실 북동 책상 자리(앵커 스냅 최종 (12.8, 39.3)).
+            //   authored ×2.45 스케일 패스 통과 → 최종 ~5.4×2.2×0.95m(설계 격자 실측치).
+            GameObject commandDesk = IndoorFurnitureCatalog.CreateTable(2.2f, 0.9f, 0.39f, deskMat);
             commandDesk.name = "CommandDesk";
             commandDesk.transform.SetParent(room.transform);
             commandDesk.transform.localPosition = new Vector3(0f, 0f, 15f);
             AddNameplate(commandDesk, "🪑 지휘 책상");
 
             // 지휘관 의자 (책상 뒤에서 방 중앙을 향함)
-            GameObject commandChair = IndoorFurnitureCatalog.CreateChair(1.1f, deskMat);
+            GameObject commandChair = IndoorFurnitureCatalog.CreateChair(0.43f, deskMat);   // [무번호 88] 최종 ~1.05m
             commandChair.name = "CommandChair";
             commandChair.transform.SetParent(room.transform);
             commandChair.transform.localPosition = new Vector3(0f, 0f, 13.5f);
 
-            // 책상 위 문서들 (책상 x 시프트 추종)
-            CreateBoxPrimitive(room, "DeskDocument_1", new Vector3(0.35f, 0.02f, 0.25f),
-                new Vector3(-19.1f, 1.12f, 0.7f), paperMat);
-            CreateBoxPrimitive(room, "DeskDocument_2", new Vector3(0.35f, 0.02f, 0.25f),
-                new Vector3(-18.7f, 1.12f, 0.9f), paperMat);
-            CreateBoxPrimitive(room, "DeskInkwell", new Vector3(0.08f, 0.12f, 0.08f),
-                new Vector3(-17.9f, 1.17f, 0.6f), standMat);
-
-            // 관리용 사이드 책상 (집무실 보조) + 문서 더미 — 좌우 대칭(mx) 적용
-            GameObject adminDesk = IndoorFurnitureCatalog.CreateTable(1.8f, 0.9f, 1.0f, deskMat);
-            adminDesk.name = "AdminDesk";
-            adminDesk.transform.SetParent(room.transform);
-            adminDesk.transform.localPosition = new Vector3(-15.5f, 0f, -0.5f);
-            AddNameplate(adminDesk, "📜 관리 사무소");
-
-            CreateBoxPrimitive(room, "AdminPaperStack_1", new Vector3(0.30f, 0.06f, 0.22f),
-                new Vector3(-15.8f, 1.04f, -0.3f), paperMat);
-            CreateBoxPrimitive(room, "AdminPaperStack_2", new Vector3(0.30f, 0.06f, 0.22f),
-                new Vector3(-15.2f, 1.04f, -0.7f), paperMat);
-
-            // 중앙 작전 회의 테이블 + 의자 2개
-            GameObject planningTable = IndoorFurnitureCatalog.CreateTable(3.0f, 1.6f, 1.0f, deskMat);
-            planningTable.name = "PlanningTable";
-            planningTable.transform.SetParent(room.transform);
-            planningTable.transform.localPosition = new Vector3(2f, 0f, 0f);
-
-            CreateBoxPrimitive(room, "PlanningMap", new Vector3(0.8f, 0.02f, 0.6f),
-                new Vector3(2f, 1.02f, 0f), bannerMat); // 작전 지도
-
-            for (int side = -1; side <= 1; side += 2)
-            {
-                GameObject planChair = IndoorFurnitureCatalog.CreateChair(1.0f, deskMat);
-                planChair.name = $"PlanningChair_{side}";
-                planChair.transform.SetParent(room.transform);
-                planChair.transform.localPosition = new Vector3(side * 1.0f, 0f, meetingZ);
-                // 테이블 중앙을 향하도록 회전
-                planChair.transform.localRotation = Quaternion.Euler(0f, side > 0 ? -90f : 90f, 0f);
-            }
+            // [무번호 88] 설계도 외 제거 — 책상 위 문서/잉크·관리 사무소(AdminDesk+문서 더미)·중앙 작전 회의 테이블
+            //   (PlanningTable+지도+의자 2 — 로비 중앙): 설계도 로비는 벽난로/벤치/카펫/석판만, 침실 집무는 북동+동벽 2세트.
+            //   작전 기능은 병영 작전 테이블 2(Barracks_WarTable_W/E — InteriorFurnishingPass)가 담당.
 
             // ===================================================================
             // 1b. 침대 (성주 침실 — E키 상호작용: 수면/💾세이브, 사망 시 스폰핀 부활)
@@ -440,10 +365,11 @@ namespace ProjectName.Systems
             //     석재 기둥열(6번, z=-5..5)과는 z 간격으로 분리 — 8개 variant 전부 무충돌.
             //     CreateBed가 root에 Bed 컴포넌트를 부착하므로 E키 상호작용 즉시 동작.
             // ===================================================================
-            GameObject lordBed = IndoorFurnitureCatalog.CreateBed(1.2f, 2.0f, bedMat);
+            GameObject lordBed = IndoorFurnitureCatalog.CreateBed(3.67f, 4.49f, bedMat);   // [무번호 88] 설계도 캐노피 침대 — authored(×2.45 스케일 패스) → 최종 ~9×11m
             lordBed.name = "LordBed";
             lordBed.transform.SetParent(room.transform);
-            lordBed.transform.localPosition = new Vector3(-16f, 0f, 12f);
+            lordBed.transform.localPosition = new Vector3(0f, 0f, 14.5f);   // [무번호 88] 최종 (0, 35.5) = authored(0,14.5)×2.45 — 북벽 밀착(침실)
+            lordBed.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);   // [무번호 88] 머리(베개) 북벽 향함
             AddNameplate(lordBed, "🛏️ 성주의 침대 (세이브)");
 
             // ===================================================================
@@ -476,8 +402,11 @@ namespace ProjectName.Systems
             AddNameplate(bannerRoot, "🚩 플레이어 영지");
 
             // ===================================================================
-            // 3. 저장고 (왼쪽 벽 — 선반 + 상자)
+            // 3. 저장고 (왼쪽 벽 — 선반 + 상자) — [122차 빈 실내 규칙] FurnishStations=false 시 미구성
+            //    (저장고는 건설 관리 UI로 직접 건설 — WarehouseSystem.MarkWarehouseBuilt 연동)
             // ===================================================================
+            if (FurnishStations)
+            {
             GameObject storageShelf1 = IndoorFurnitureCatalog.CreateShelf(2.2f, 2.2f, 0.6f, shelfMat, 3);
             storageShelf1.name = "StorageShelf_1";
             storageShelf1.transform.SetParent(room.transform);
@@ -515,10 +444,14 @@ namespace ProjectName.Systems
             GameObject storageSign = CreateBoxPrimitive(room, "StorageSign", new Vector3(0.05f, 0.7f, 2.4f),
                 new Vector3(8.5f, 2.5f, 3f), bannerMat);
             AddNameplate(storageSign, "🎒 저장고");
+            }   // FurnishStations — 저장고 섹션 종료
 
             // ===================================================================
             // 4. 무기고 (오른쪽 벽 — 무기 스탠드 3개 + 벽걸이 무기고) — 좌우 대칭(mx) 적용
+            //    [122차 빈 실내 규칙] FurnishStations=false 시 미구성(무기고 창고 포함)
             // ===================================================================
+            if (FurnishStations)
+            {
             for (int i = 0; i < 3; i++)
             {
                 float zPos = 3.0f - i * 3.0f;
@@ -560,10 +493,13 @@ namespace ProjectName.Systems
             // 실제 데이터는 WarehouseSystem(무기고 전용 영지 키)에 위임.
             // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
             AttachUiComponent(armoryAnchor, TerritoryWarehouseTypeName, territoryKey + "_armory");
+            }   // FurnishStations — 무기고 섹션 종료
 
             // ===================================================================
-            // 5. 작업대 (앞벽 왼쪽 — 제작/수리 공간)
+            // 5. 작업대 (앞벽 왼쪽 — 제작/수리 공간) — [122차 빈 실내 규칙] FurnishStations=false 시 미구성
             // ===================================================================
+            if (FurnishStations)
+            {
             GameObject workbench = IndoorFurnitureCatalog.CreateCounter(2.6f, 1.0f, 1.0f, workbenchMat);
             workbench.name = "Workbench";
             workbench.transform.SetParent(room.transform);
@@ -585,6 +521,7 @@ namespace ProjectName.Systems
                 new Vector3(0.4f, 1.07f, 0.1f), standMat);
             CreateBoxPrimitive(workbench, "WorkbenchTool_2", new Vector3(0.12f, 0.12f, 0.30f),
                 new Vector3(0.6f, 1.07f, -0.2f), standMat);
+            }   // FurnishStations — 작업대 섹션 종료
 
             // Barracks map table: position it inside the expanded Barracks after the uniform
             // 2.45 furniture scale, with enough clearance from the WeaponStand_0 armory station.
@@ -628,13 +565,17 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 작업대 안내 팻말 (앞벽) — 좌우 대칭(mx) 적용
+            // 작업대 안내 팻말 (앞벽) — 좌우 대칭(mx) 적용 — [122차] 작업대 미구성 시 팻말도 생략
+            if (FurnishStations)
+            {
             GameObject workbenchSign = CreateBoxPrimitive(room, "WorkbenchSign", new Vector3(1.6f, 0.6f, 0.05f),
                 new Vector3(-16f, 2.4f, -17.5f), bannerMat);
             AddNameplate(workbenchSign, "🛠️ 작업대");
+            }   // FurnishStations — 작업대 팻말 종료
 
             // ===================================================================
             // 5b. 요리/연금 스테이션 (CRAFTING_WAREHOUSE_PLAN Phase 1)
+            //     [122차 빈 실내 규칙] FurnishStations=false 시 미구성(요리/연금/주방 창고 포함)
             //     기존 장비 작업대(5번)에 더해 요리·연금 상호작용 앵커를 추가.
             //     요리 카운터/연금대와 pantry는 Storage 구역에 배치되어 서로 간섭하지 않는다.
             //     작업대(앞벽 x=mx*-5)·장식탁자(extraDecor, x=mx*5, z=-7.4)는 반대편
@@ -643,6 +584,8 @@ namespace ProjectName.Systems
             //     AttachUiComponent가 AddComponent 후 경고 1회를 남기고 정상 진행
             //     (컴포넌트는 부착됨 — 기본 직렬화 값으로 E키 상호작용 동작).
             // ===================================================================
+            if (FurnishStations)
+            {
             GameObject cookingTable = IndoorFurnitureCatalog.CreateCounter(1.4f, 0.95f, 0.9f, cookingMat);
             cookingTable.name = "CookingTable";
             cookingTable.transform.SetParent(room.transform);
@@ -679,6 +622,7 @@ namespace ProjectName.Systems
 
             // Systems asmdef는 UI asmdef를 참조할 수 없으므로(순환 참조) 리플렉션으로 부착.
             AttachUiComponent(alchemyTable, AlchemyStationTypeName);
+            }   // FurnishStations — 요리/연금 섹션 종료
 
             // ===================================================================
             // 6. 중세 석재 기둥 2열 (대전당 느낌 — 중앙 복도 양쪽)
@@ -731,8 +675,8 @@ namespace ProjectName.Systems
             // Subtle warm bounce near the front pillars; keep the central volume subdued.
             // [2026-10-11 19차] 기둥 옆 웜 바운스 0.8 → 1.15.
             // [2026-10-10 H3] 존별 색온도 틴트 — authored×2.45(최종 좌표) 기준.
-            IndoorLighting.AddPointLight(room, new Vector3(-pillarX - 0.55f, 4.5f, -5f), TintForZone(new Color(1f, 0.48f, 0.24f), new Vector2((-pillarX - 0.55f) * TopologyFurnitureScale, -5f * TopologyFurnitureScale)), 4.5f, 2.3f);
-            IndoorLighting.AddPointLight(room, new Vector3(pillarX + 0.55f, 4.5f, -5f), TintForZone(new Color(1f, 0.48f, 0.24f), new Vector2((pillarX + 0.55f) * TopologyFurnitureScale, -5f * TopologyFurnitureScale)), 4.5f, 2.3f);
+            IndoorLighting.AddPointLight(room, new Vector3(-pillarX - 0.55f, 4.5f, -5f), TintForZone(layoutDefinition, new Color(1f, 0.48f, 0.24f), new Vector2((-pillarX - 0.55f) * TopologyFurnitureScale, -5f * TopologyFurnitureScale)), 4.5f, 2.3f);
+            IndoorLighting.AddPointLight(room, new Vector3(pillarX + 0.55f, 4.5f, -5f), TintForZone(layoutDefinition, new Color(1f, 0.48f, 0.24f), new Vector2((pillarX + 0.55f) * TopologyFurnitureScale, -5f * TopologyFurnitureScale)), 4.5f, 2.3f);
 
             // ===================================================================
             // 8. 중세 장식 — 왕실 문장 방패 + 붉은 러그 (기존 청색 배너는 유지)
@@ -803,33 +747,36 @@ namespace ProjectName.Systems
             //   앰비언트 ×0.65→×1.0(base 색 그대로)·중앙 0.65→0.9.
             // [2026-10-11 18차] 앰비언트 ×0.65·중앙 0.65 단계.
             // [2026-10-11 20차 예시 정합 ×2 점프] 앰비언트 ×1.0→×2.0·중앙 0.9→1.8 (Warehouse ambient 단정도 0.20/0.15/0.11로 동행 갱신).
-            IndoorLighting.SetupIndoorLighting(room, ambient, 2.0f, true, 1.8f, 6f);
-            RenderSettings.ambientLight = new Color(ambient.r * 2.0f, ambient.g * 2.0f, ambient.b * 2.0f);
+            // [2026-10-12 46차 사용자 요구 — "실내씬도 조금 더 밝게"] 앰비언트 ×2.0→×2.6·중앙 1.8→2.4·반경 6→7.
+            IndoorLighting.SetupIndoorLighting(room, ambient, 2.6f, true, 2.4f, 7f);
+            RenderSettings.ambientLight = new Color(ambient.r * 2.6f, ambient.g * 2.6f, ambient.b * 2.6f);
 
             // A subdued ceiling lantern leaves the room legible without flattening the candlelit mood.
             // [2026-10-11 19차] 천장 랜턴 0.85 → 1.2.
+            // [2026-10-12 46차] 천장 랜턴 4.5 → 5.2 (밝기 상향 동행).
             IndoorLighting.AddPointLight(room,
                 new Vector3(0f, roomHeight - 0.6f, 0f),
-                new Color(1f, 0.72f, 0.46f), 4.5f, 2.4f);
+                new Color(1f, 0.72f, 0.46f), 5.2f, 2.4f);
             // [2026-10-11 횃불 은은한 글로우] 천장 랜턴 바닥 부드러운 웜 풀(렌더러 전용·무콜라이더).
             AddFlameGlowPool(room.transform, "FlameGlow_Center", 0f, 0f, 2.6f);
 
             // Small warm pools keep work areas readable while the aisles remain dimmer.
             // [2026-10-10 H3] 존별 색온도 틴트 — Craft/Barracks/Alchemy 존 광원이 미세하게 쿨/딥웜으로 변주.
+            // [2026-10-12 46차] 존 광원 5.5/6 → 6.3/6.8 (밝기 상향 동행).
             IndoorLighting.AddPointLight(room,
                 new Vector3(commandZX, 4.2f, roomDepth * 0.5f - 1.8f),
-                TintForZone(new Color(1f, 0.78f, 0.5f), new Vector2(commandZX * TopologyFurnitureScale, (roomDepth * 0.5f - 1.8f) * TopologyFurnitureScale)), 5.5f, 2.3f);
+                TintForZone(layoutDefinition, new Color(1f, 0.78f, 0.5f), new Vector2(commandZX * TopologyFurnitureScale, (roomDepth * 0.5f - 1.8f) * TopologyFurnitureScale)), 6.3f, 2.5f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * -5f, 3.8f, -roomDepth * 0.5f + 0.8f),
-                TintForZone(new Color(1f, 0.82f, 0.58f), new Vector2(mx * -5f * TopologyFurnitureScale, (-roomDepth * 0.5f + 0.8f) * TopologyFurnitureScale)), 5.5f, 2.3f);
+                TintForZone(layoutDefinition, new Color(1f, 0.82f, 0.58f), new Vector2(mx * -5f * TopologyFurnitureScale, (-roomDepth * 0.5f + 0.8f) * TopologyFurnitureScale)), 6.3f, 2.5f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * -9.5f, 3.8f, 0.5f),
-                TintForZone(new Color(1f, 0.78f, 0.5f), new Vector2(mx * -9.5f * TopologyFurnitureScale, 0.5f * TopologyFurnitureScale)), 6f, 2.4f);
+                TintForZone(layoutDefinition, new Color(1f, 0.78f, 0.5f), new Vector2(mx * -9.5f * TopologyFurnitureScale, 0.5f * TopologyFurnitureScale)), 6.8f, 2.6f);
             IndoorLighting.AddPointLight(room,
                 new Vector3(mx * 9.5f, 3.8f, 0.5f),
-                TintForZone(new Color(1f, 0.78f, 0.5f), new Vector2(mx * 9.5f * TopologyFurnitureScale, 0.5f * TopologyFurnitureScale)), 6f, 2.4f);
+                TintForZone(layoutDefinition, new Color(1f, 0.78f, 0.5f), new Vector2(mx * 9.5f * TopologyFurnitureScale, 0.5f * TopologyFurnitureScale)), 6.8f, 2.6f);
 
-            Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}, 레이아웃 변형: {layoutVariant}) — 석재 기둥 2열·따뜻한 조명·문장 방패·러그 장식 포함");
+            Debug.Log($"[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: {nationStyle}, 레이아웃 변형: {layoutVariant}, 레이아웃: {layoutDefinition.LayoutId}) — 석재 기둥 2열·따뜻한 조명·문장 방패·러그 장식 포함");
 
             // ===================================================================
             // 9b. 방 표지판 (각 방 입구 근처 스탠드 — 자연스러운 실내 안내) + 방별 보조 조명
@@ -844,11 +791,15 @@ namespace ProjectName.Systems
             // 은은한 방별 보조 조명 — 실내 어둠을 유지하고 각 기능 구역만 살짝 비춘다.
             // [2026-10-11 19차] 보조 광원 완화(0.65→0.9 / 0.62→0.85).
             // [2026-10-10 H3] 사인 보조조명도 존 틴트 — (16,-9)→Alchemy 쿨, (-16,12)→Craft 쿨.
-            IndoorLighting.AddPointLight(room, new Vector3(16f, 4f, -9f), TintForZone(new Color(1f, 0.82f, 0.58f), new Vector2(16f * TopologyFurnitureScale, -9f * TopologyFurnitureScale)), 5.5f, 1.8f);
-            IndoorLighting.AddPointLight(room, new Vector3(-16f, 4f, 12f), TintForZone(new Color(1f, 0.78f, 0.5f), new Vector2(-16f * TopologyFurnitureScale, 12f * TopologyFurnitureScale)), 5.5f, 1.7f);
+            // [2026-10-12 46차] 사인 보조광 5.5 → 6.2 (밝기 상향 동행).
+            IndoorLighting.AddPointLight(room, new Vector3(16f, 4f, -9f), TintForZone(layoutDefinition, new Color(1f, 0.82f, 0.58f), new Vector2(16f * TopologyFurnitureScale, -9f * TopologyFurnitureScale)), 6.2f, 1.9f);
+            IndoorLighting.AddPointLight(room, new Vector3(-16f, 4f, 12f), TintForZone(layoutDefinition, new Color(1f, 0.78f, 0.5f), new Vector2(-16f * TopologyFurnitureScale, 12f * TopologyFurnitureScale)), 6.2f, 1.9f);
 
             // Scale furniture/decor uniformly into the expanded walkable footprint. The shell, floor,
             // ceiling and topology walls are already authored in final meters and remain untouched.
+            // [2026-10-14 Phase 4] Skip the selected layout's wall-name families too: RoundKeep's
+            // radial spokes ("Spoke_") and ring walls ("Lobby_Ring_", already covered by "Lobby_")
+            // must not ride the ×2.45 furniture scale. KeepOctagon has no such walls — no change.
             foreach (Transform child in room.transform)
             {
                 if (child.name == "Floor" || child.name == "Ceiling" ||
@@ -856,7 +807,7 @@ namespace ProjectName.Systems
                     child.name.StartsWith("Lobby_") || child.name.Contains("Boundary") ||
                     child.name.Contains("Divider") || child.name.StartsWith("Bedroom_") ||
                     child.name.StartsWith("EntryHall_") || child.name.StartsWith("Barracks_") ||
-                    child.name.StartsWith("Alchemy_")) continue;
+                    child.name.StartsWith("Alchemy_") || child.name.StartsWith("Spoke_")) continue;
                 Vector3 position = child.localPosition;
                 position.x *= TopologyFurnitureScale;
                 position.z *= TopologyFurnitureScale;
@@ -865,19 +816,22 @@ namespace ProjectName.Systems
             }
 
             // Add after legacy furniture scaling so portal trim remains in wall-local meters.
-            AddNonCollidingPortalStonework(room, GetTopologyWalls(), RoomHeight, WallThickness, shader);
+            // [2026-10-14 Phase 4] 토폴로지 의존 장식(포탈 석공/팀버 골조/밴드/톱 캡)은 선택
+            //   정의의 벽 목록을 그대로 소비한다(기준형 정적 래퍼 미사용).
+            AddNonCollidingPortalStonework(room, topologyWalls, roomHeight,
+                layoutDefinition.WallThickness, shader);
 
             // [2026-10-10 Phase D3 — 사용자 승인("d3도 진행이 안되었으면 진행해주고")] 하프팀버 벽 골조 —
             //   벽 중간 수직 기둥 + 천장 연결 상단 보 + 대각 지지대. 렌더러 전용(무충돌)·벽 로컬 미터
             //   (포탈 트림과 동일 스케일 패스 후 호출 — 문설주 선례 패턴).
-            AddTimberWallFrame(room, GetTopologyWalls(), RoomHeight, WallThickness);
+            AddTimberWallFrame(room, topologyWalls, roomHeight, layoutDefinition.WallThickness);
 
             // [2026-10-10 F1] 벽 하부 석재 밴드 — 옵션(기본 OFF, IncludeWallStoneLower).
-            AddWallStoneLowerBands(room, GetTopologyWalls(), WallThickness);
+            AddWallStoneLowerBands(room, topologyWalls, layoutDefinition.WallThickness);
             // [2026-10-10 F1] 짚단 바닥 데칼 — 엔트리홀/부엌(렌더러 전용, 최종 좌표).
             AddStrawFloorDecals(room);
             // [2026-10-10 H1] 벽 톱면 돌 캡 — 탑다운에서 벽이 "짙은 돌 선"으로 읽히게(방 구조 가독성).
-            AddWallTopCaps(room, GetTopologyWalls(), WallThickness);
+            AddWallTopCaps(room, topologyWalls, layoutDefinition.WallThickness);
             // [2026-10-10 H5] 바닥 마모 스탬프 — 색 변화 없는 낡음 디테일(소량 12장).
             AddFloorWearStamps(room);
             // [2026-10-10 (8차) 걸레받이 제거] 탑다운에서 벽 자체가 거의 안 보여(얇은 톱면+면 컬링)
@@ -888,14 +842,17 @@ namespace ProjectName.Systems
             //   천장 요소는 저각도 뷰 도입 시 별도 계획으로만 재검토.
 
             // Interaction anchors are explicitly assigned to their intended player-owned zones.
-            SetAnchorPosition(room, "Workbench", GetAnchorPosition("Workbench"));
-            SetAnchorPosition(room, "StorageShelf_2", GetAnchorPosition("StorageShelf_2"));
-            SetAnchorPosition(room, "WeaponStand_0", GetAnchorPosition("WeaponStand_0"));
-            SetAnchorPosition(room, "AlchemyTable", GetAnchorPosition("AlchemyTable"));
-            SetAnchorPosition(room, "LordBed", GetAnchorPosition("LordBed"));
+            // [2026-10-14 Phase 4] 기능 앵커는 선택 정의의 좌표를 소비한다(기준형 정적 래퍼
+            //   GetAnchorPosition는 구 호출자용 KeepOctagon 래퍼로 유지 — 본문에서 미사용).
+            SetAnchorPosition(room, "Workbench", layoutDefinition.GetAnchorPosition("Workbench"));
+            SetAnchorPosition(room, "StorageShelf_2", layoutDefinition.GetAnchorPosition("StorageShelf_2"));
+            SetAnchorPosition(room, "WeaponStand_0", layoutDefinition.GetAnchorPosition("WeaponStand_0"));
+            SetAnchorPosition(room, "AlchemyTable", layoutDefinition.GetAnchorPosition("AlchemyTable"));
+            SetAnchorPosition(room, "LordBed", new Vector2(0f, 35.5f));   // [무번호 88] 설계도 북벽 밀착(침실 최종 좌표 — 침략 영주 스폰 앵커는 정의값 유지)
             SetAnchorPosition(room, "StorageShelf_1", new Vector2(40f, 18f));
-            SetAnchorPosition(room, "CookingTable", GetAnchorPosition("CookingTable"));
-            SetAnchorPosition(room, "CookingIngredientWarehouse", GetAnchorPosition("CookingIngredientWarehouse"));
+            SetAnchorPosition(room, "CookingTable", layoutDefinition.GetAnchorPosition("CookingTable"));
+            SetAnchorPosition(room, "CookingIngredientWarehouse",
+                layoutDefinition.GetAnchorPosition("CookingIngredientWarehouse"));
 
             // Keep legacy scenery beside the topology zone and stations it identifies.
             SetAnchorPosition(room, "WeaponStand_1", new Vector2(-45f, -25f));
@@ -912,14 +869,31 @@ namespace ProjectName.Systems
             SetAnchorPosition(room, "ArmorySign", new Vector2(-45f, -18f));
             for (int i = 0; i < 4; i++)
                 SetAnchorPosition(room, $"WallWeapon_{i}", new Vector2(-40f, -20f + i * 0.5f));
-            SetAnchorPosition(room, "CommandDesk", new Vector2(0f, 36.75f));
-            SetAnchorPosition(room, "CommandChair", new Vector2(0f, 33.075f));
+            SetAnchorPosition(room, "CommandDesk", new Vector2(12.8f, 39.3f));   // [무번호 88] 침실 북동 책상 자리(설계도)
+            SetAnchorPosition(room, "CommandChair", new Vector2(12.8f, 37.6f));   // [무번호 88]
             SetAnchorPosition(room, "Sign_Craft", new Vector2(-43f, 24f));
             SetAnchorPosition(room, "Sign_Storage", new Vector2(45f, 22f));
             SetAnchorPosition(room, "Sign_Armory", new Vector2(-45f, -22f));
             SetAnchorPosition(room, "Sign_Bedroom", new Vector2(0f, 25f));
             SetAnchorPosition(room, "Sign_Kitchen", new Vector2(45f, 34f));
             room.transform.localScale = Vector3.one;
+            // 실내 소속 깃발 — 이 성의 소속 국가를 로비(지휘책상 옆)에 표시. 실패해도 빌드는 계속됨.
+            InteriorNationFlagSystem.PlaceFlag(room, nationStyle);
+
+            // [122차 R1b] 빈 실내 시설 배치 훅 — 시설 미구성(FurnishStations=false, 빈 실내 규칙) 시
+            // 플레이어가 실내에서 저장고/작업대/요리/연금 4종을 직접 배치하는 프롬프트를 부착.
+            // 저장고 배치 시 WarehouseSystem.MarkWarehouseBuilt → 병사 원정 수확물 게이트 해제.
+            // 테스트 오염 방지: 복원은 프롬프트 Start(런타임 전용)에서 수행, 본 훅은 프롬프트 부착만.
+            if (!FurnishStations)
+                InteriorStationPlacer.OnEmptyInteriorBuilt(room, territoryKey);
+
+            // [수조 통일] 천장 제거+남측(카메라 측) 벽 시각 절단(콜라이더 유지) — 9/20 실내씬 예시 기준
+            //   미니맵 CaptureFor(L417) 이전 실행 — 평면도가 수조와 자연 정합. 던전/이계/관중석/여관 미호출(제외 계약)
+            IndoorDioramaKit.Apply(room);
+
+            // [실내 고품질화 P1] 가구/조명/소품 가산 패스 — 토폴로지·앵커 무수정(렌더러 전용 장식).
+            //   기존 지오메트리 뒤에서 실내 골격 계약(InteriorQualityBaseline)의 방별 구성을 부착한다.
+            InteriorFurnishingPass.ApplyCastle(room, layoutDefinition, nationStyle);
             return room;
         }
 
@@ -1426,10 +1400,13 @@ namespace ProjectName.Systems
         }
 
         /// <summary>[2026-10-10 H3] 존별 조명 색온도 틴트 — 색 바닥 없이 방 무드 구분(강도 불변).
-        /// Alchemy/Craft=쿨 화백, Barracks=딥 웜, Bedroom=캔들 웜, Storage=중립 쿨, Lobby/EntryHall=원본 유지.</summary>
-        private static Color TintForZone(Color warm, Vector2 finalPos)
+        /// Alchemy/Craft=쿨 화백, Barracks=딥 웜, Bedroom=캔들 웜, Storage=중립 쿨, Lobby/EntryHall=원본 유지.
+        /// 틴트는 존 판정 기반(최종 좌표) — 기준형 시절 GetTopologyZoneAt(finalPos) 계약을
+        /// [2026-10-14 Phase 4] 정의 명시 인자로 일반화하여 layout.GetZoneAt(finalPos)로 판정한다.
+        /// 전역 상태 없음: 구 호출 경로(1/2인자 오버로드)는 KeepOctagon을 전달받아 동일 결과.</summary>
+        private static Color TintForZone(InteriorLayoutDefinition layout, Color warm, Vector2 finalPos)
         {
-            string zone = GetTopologyZoneAt(finalPos) ?? "Lobby";
+            string zone = layout.GetZoneAt(finalPos) ?? "Lobby";
             switch (zone)
             {
                 case "Alchemy":

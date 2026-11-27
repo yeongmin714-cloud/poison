@@ -117,6 +117,9 @@ namespace ProjectName.Systems
 
             var ring = ringObject.AddComponent<SelectionRingController>();
             ring.SetColor(CommandRingPresentation.ExplicitTargetColor);
+            // [무번호 82] 타겟 링 단일화 — 회전 세그먼트/이중 링/중앙 필/대시 해제 + 알파 절제(사용자 요구: 단일색·더 투명).
+            //   이동/선택 링(CommandMarker/GuardSelectionManager)은 무변경 — 타겟 링 전용 계약. 렌더러는 자식 쿼드(Awake 생성).
+            CommandRingPresentation.PlainifyTargetRing(ringObject.GetComponentInChildren<Renderer>());
             return ringObject;
         }
 

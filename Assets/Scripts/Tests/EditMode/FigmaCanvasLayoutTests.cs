@@ -188,14 +188,16 @@ namespace ProjectName.Tests.EditMode
         {
             AssertRect(new Rect(24f, 24f, 456f, 52.8f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.InventoryHeader, InventoryClusterFigmaLayout.InventoryBounds));
             AssertRect(new Rect(24f, 84f, 456f, 36.2f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.InventoryTabs, InventoryClusterFigmaLayout.InventoryBounds));
-            AssertRect(new Rect(38.4f, 170.8f, 427.2f, 172.8f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.EquipGrid, InventoryClusterFigmaLayout.InventoryBounds));
-            AssertRect(new Rect(24f, 373.4f, 456f, 446.4f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagGrid, InventoryClusterFigmaLayout.InventoryBounds));
-            AssertRect(new Rect(24f, 373.4f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow1, InventoryClusterFigmaLayout.InventoryBounds));
-            AssertRect(new Rect(24f, 464.6f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow2, InventoryClusterFigmaLayout.InventoryBounds));
-            AssertRect(new Rect(24f, 555.8f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow3, InventoryClusterFigmaLayout.InventoryBounds));
-            AssertRect(new Rect(24f, 647f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow4, InventoryClusterFigmaLayout.InventoryBounds));
-            AssertRect(new Rect(24f, 738.2f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow5, InventoryClusterFigmaLayout.InventoryBounds));
-            AssertRect(new Rect(24f, 827f, 456f, 56f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.InventoryFooter, InventoryClusterFigmaLayout.InventoryBounds));
+            // [136차 B1] Figma 15:5 재실측 — EquipGrid/BagGrid·Row1~5 패널-로컬 y +16.6(187.4/390/481.2/572.4/663.6/754.8).
+            AssertRect(new Rect(38.4f, 187.4f, 427.2f, 172.8f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.EquipGrid, InventoryClusterFigmaLayout.InventoryBounds));
+            AssertRect(new Rect(24f, 390f, 456f, 446.4f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagGrid, InventoryClusterFigmaLayout.InventoryBounds));
+            AssertRect(new Rect(24f, 390f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow1, InventoryClusterFigmaLayout.InventoryBounds));
+            AssertRect(new Rect(24f, 481.2f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow2, InventoryClusterFigmaLayout.InventoryBounds));
+            AssertRect(new Rect(24f, 572.4f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow3, InventoryClusterFigmaLayout.InventoryBounds));
+            AssertRect(new Rect(24f, 663.6f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow4, InventoryClusterFigmaLayout.InventoryBounds));
+            AssertRect(new Rect(24f, 754.8f, 456f, 81.6f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.BagRow5, InventoryClusterFigmaLayout.InventoryBounds));
+            // [144차 P0 V7] Figma 15:133 재실측 진실치 — 패널-로컬 (24,844) 456×48.2(구 (24,827,456,56) stale치 폐기, inventory.md A51).
+            AssertRect(new Rect(24f, 844f, 456f, 48.2f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.InventoryFooter, InventoryClusterFigmaLayout.InventoryBounds));
 
             AssertRect(new Rect(24f, 24f, 528f, 52.8f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.DetailHeader, InventoryClusterFigmaLayout.DetailBounds));
             AssertRect(new Rect(24f, 96f, 528f, 67.2f), InventoryClusterPanelRegions.ToPanelLocal(InventoryClusterPanelRegions.DetailItemName, InventoryClusterFigmaLayout.DetailBounds));
@@ -384,12 +386,14 @@ namespace ProjectName.Tests.EditMode
                 "Inventory body regions need a production helper that scales panel-local geometry from UIRoot.");
 
             Vector2 rootSize = new Vector2(1440f, 900f);
-            AssertRect(new Rect(18f, 106.1667f, 342f, 192f),
-                (Rect)scalePanelLocal.Invoke(null, new object[] { new Rect(24f, 127.4f, 456f, 230.4f), rootSize }));
-            AssertRect(new Rect(18f, 311.1667f, 342f, 372f),
-                (Rect)scalePanelLocal.Invoke(null, new object[] { new Rect(24f, 373.4f, 456f, 446.4f), rootSize }));
-            AssertRect(new Rect(18f, 689.1667f, 342f, 46.6667f),
-                (Rect)scalePanelLocal.Invoke(null, new object[] { new Rect(24f, 827f, 456f, 56f), rootSize }));
+            // [136차 B1] Figma 15:5 진실치 — EquipmentBody y 144 / BagViewport y 390(root 1440×900 scale 5/6 기대값 동반 갱신).
+            AssertRect(new Rect(18f, 120f, 342f, 192f),
+                (Rect)scalePanelLocal.Invoke(null, new object[] { new Rect(24f, 144f, 456f, 230.4f), rootSize }));
+            AssertRect(new Rect(18f, 325f, 342f, 372f),
+                (Rect)scalePanelLocal.Invoke(null, new object[] { new Rect(24f, 390f, 456f, 446.4f), rootSize }));
+            // [144차 P0 V7] 샘플 리전도 15:133 진실치 (24,844,456,48.2)로 갱신 — 스케일 기대값 (sx 0.75 / sy 0.8333).
+            AssertRect(new Rect(18f, 703.3333f, 342f, 40.1667f),
+                (Rect)scalePanelLocal.Invoke(null, new object[] { new Rect(24f, 844f, 456f, 48.2f), rootSize }));
         }
 
         [Test]

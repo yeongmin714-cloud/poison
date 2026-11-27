@@ -166,6 +166,8 @@ namespace ProjectName.UI.Toolkit
         private readonly Button _retrieveAllButton;
         private readonly Label _territoryButton;
         private readonly Label _capacityLabel;
+        private Label _goldValueWh;            // [71차] 창고 GoldBalance 값 라벨(지갑 단일소스)
+        private bool _goldSubscribedWh;        // [71차] GoldChanged 구독 수명(Show/Hide 동기)
         private readonly VisualElement _territoryMenu;
         private Label _statusLabel;
         private UnityEngine.UIElements.IVisualElementScheduledItem _refreshTask;
@@ -236,8 +238,9 @@ namespace ProjectName.UI.Toolkit
             _closeButton.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.05882353f));
             _closeButton.style.color = new StyleColor(PanelMuted);
             _closeButton.style.fontSize = 21.6f;
-            _closeButton.style.borderTopWidth = _closeButton.style.borderBottomWidth = _closeButton.style.borderLeftWidth = _closeButton.style.borderRightWidth = 1f;
-            _closeButton.style.borderTopColor = _closeButton.style.borderBottomColor = _closeButton.style.borderLeftColor = _closeButton.style.borderRightColor = new StyleColor(Stroke);
+            // [144차 P1-INV D4] Figma 15:197 CloseBtn 테두리 체계 — #30363D@0.502 1.2 + r7.2 (fill white@0.0588은 기존값이 진실치 일치)
+            UTKTheme.ApplyElementBorder(_closeButton);
+            UTKTheme.ApplyRadius(_closeButton, 7.2f);
             headerRow.Add(_closeButton);
             _content.Add(headerRow);
 
@@ -247,8 +250,8 @@ namespace ProjectName.UI.Toolkit
             _availabilityLabel.style.top = 4.8f;
             _availabilityLabel.style.width = 57f;
             _availabilityLabel.style.height = 17f;
-            _availabilityLabel.style.fontSize = UTKTheme.FontBadge;
-            _availabilityLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _availabilityLabel.style.fontSize = UTKTheme.FontBody;   // [144차 P1-INV D8] Figma 15:218 — 14.4/400 (FontBadge 12/Bold 폐기)
+            _availabilityLabel.style.unityFontStyleAndWeight = FontStyle.Normal;
             _availabilityLabel.style.color = new StyleColor(PanelText);
             _capacityLabel = new Label("") { name = "storage-capacity" };
             _capacityLabel.style.fontSize = UTKTheme.FontBody;   // [Figma] 14.4/400
@@ -260,7 +263,24 @@ namespace ProjectName.UI.Toolkit
             _storageStats.style.backgroundColor = StyleKeyword.None;
             _storageStats.style.borderTopWidth = _storageStats.style.borderBottomWidth = _storageStats.style.borderLeftWidth = _storageStats.style.borderRightWidth = 0f;
             _storageStats.Add(_availabilityLabel);
+            // [144차 P1-INV D7] Figma 15:218 BadgeItem — pill 래퍼 (absolute (0,0) 76.2×26.6, bg white@0.039, r4.8)
+            var storageBadgePill = new VisualElement { name = "StorageBadgeItem" };
+            storageBadgePill.style.position = Position.Absolute;
+            storageBadgePill.style.left = 0f; storageBadgePill.style.top = 0f;
+            storageBadgePill.style.width = 76.2f; storageBadgePill.style.height = 26.6f;
+            storageBadgePill.style.backgroundColor = new Color(1f, 1f, 1f, 0.039f);
+            UTKTheme.ApplyRadius(storageBadgePill, 4.8f);
+            storageBadgePill.pickingMode = PickingMode.Ignore;
+            storageBadgePill.Add(_availabilityLabel);   // 라벨 pill-로컬 (9.6,4.8) = 진실치 (10,5) 반올림권 — 렌더 위치 동일
+            _storageStats.Add(storageBadgePill);
             _storageStats.Add(_capacityLabel);
+            // [71차] 피그마 225:8~11 GoldBalance — 인벤과 동일 공용 위젯, storageStats-로컬 (147.4,0) 삽입.
+            var storageGoldBalance = UTKGoldBalance.Build(out _goldValueWh);
+            storageGoldBalance.name = "StorageGoldBalance";
+            storageGoldBalance.style.position = Position.Absolute;
+            storageGoldBalance.style.left = InventoryClusterPanelRegions.StorageGoldBalanceBody.x;   // 147.4
+            storageGoldBalance.style.top = InventoryClusterPanelRegions.StorageGoldBalanceBody.y;    // 0
+            _storageStats.Add(storageGoldBalance);
             _content.Add(_storageStats);
 
             _cornerDecals[0] = AddCornerDecal("StorageCornerTL", 0f, 0f, false, false);
@@ -422,6 +442,7 @@ namespace ProjectName.UI.Toolkit
             RegisterRootGeometryCallback(root);
             ApplyStorageBodyLayout();
             StartRefreshLoop();
+            EnsureGoldSubscriptionWh();   // [71차] 골드 표시 실시간 구독
             RefreshGrid();
             Debug.Log($"[WarehouseUTK] 창고 창 열림 (영지: {_territoryId})");
         }
@@ -431,6 +452,7 @@ namespace ProjectName.UI.Toolkit
             base.Hide();
             UnregisterRootGeometryCallback();
             StopRefreshLoop();
+            UnsubscribeGoldWh();   // [71차] 구독 해제
             CloseTerritoryMenu();
             _lastWithdrawMsPerSlot.Clear();   // [P10 보강] 재오피 시 가드 초기화
             Debug.Log($"[WarehouseUTK] 창고 창 닫힘 (영지: {_territoryId})");
@@ -763,7 +785,33 @@ namespace ProjectName.UI.Toolkit
                 ? WarehouseSystem.Instance.GetSlotCapacity(_territoryId)
                 : MaxSlots;
             _capacityLabel.text = $"사용 슬롯: {used} / {capacity}";
+            // [71차] 골드 라벨 갱신 — 지갑 단일소스(전리품 수령 반영).
+            UTKGoldBalance.Refresh(_goldValueWh);
 
+        }
+
+        // ── [71차] GoldChanged 구독 수명 — Show 시 구독, Hide 시 해제(중복·누수 방지). ──
+
+        private void EnsureGoldSubscriptionWh()
+        {
+            if (_goldSubscribedWh) return;
+            if (ProjectName.Core.PlayerStats.Instance == null) return;
+            ProjectName.Core.PlayerStats.GoldChanged -= OnGoldChangedForWarehouse;   // 안전 — 중복 방지
+            ProjectName.Core.PlayerStats.GoldChanged += OnGoldChangedForWarehouse;
+            _goldSubscribedWh = true;
+        }
+
+        private void UnsubscribeGoldWh()
+        {
+            if (!_goldSubscribedWh) return;
+            if (ProjectName.Core.PlayerStats.Instance != null)
+                ProjectName.Core.PlayerStats.GoldChanged -= OnGoldChangedForWarehouse;
+            _goldSubscribedWh = false;
+        }
+
+        private void OnGoldChangedForWarehouse(ProjectName.Core.PlayerStats.GoldLedgerEntry entry)
+        {
+            UTKGoldBalance.Refresh(_goldValueWh);   // 창 개방 중 골드 변동 즉시 반영
         }
 
         private void RefreshInventoryGrid()
@@ -1183,6 +1231,7 @@ namespace ProjectName.UI.Toolkit
             if (!warehouse.AddItem(tid, item, 1))
             {
                 bool rolledBack = inventory.AddItem(item, 1);
+                UTKToastService.Show($"⚠️ 저장고 가득 — 입고 취소 ({item.displayName} 인벤 유지)", 2.5f); // [Phase 3] 경고 이벤트
                 Debug.LogWarning($"[WarehouseUTK] 창고 가득 — 입고 취소(롤백={rolledBack}): {item.displayName}");
                 return false;
             }

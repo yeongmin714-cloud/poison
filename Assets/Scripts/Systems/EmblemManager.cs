@@ -72,6 +72,20 @@ namespace ProjectName.Systems
             DontDestroyOnLoad(gameObject);
         }
 
+        /// <summary>
+        /// [F1 봉합] 자가 부트스트랩 — 씬/프리팹에 EmblemManager가 전무해 Instance가 항상 null이던
+        /// 유령 상태 해소 (PlayerFlagUTK 창 자체가 못 열리던 문제). GuardManager 재생성 선례 패턴.
+        /// 씬 전환마다 호출되지만 Instance 체크로 멱등.
+        /// </summary>
+        [UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Bootstrap()
+        {
+            if (Instance != null) return;
+            var go = new GameObject("EmblemManager");
+            go.AddComponent<EmblemManager>();
+            Debug.Log("[EmblemManager] 자가 부트스트랩 — 문장 매니저 생성 (기본 Shield/Gold)");
+        }
+
         /// <summary>문장 변경 (비용 소모)</summary>
         public bool ChangeEmblem(PlayerEmblemData newEmblem, int playerGold)
         {

@@ -95,12 +95,16 @@ namespace ProjectName.Tests.EditMode
 
             // Exercise accepted-call streak accounting directly; this does not simulate Mouse0, arrows,
             // Animator clips, or live input. Seed once outside the streak window; before later calls,
-            // set the prior timestamp to 0.1s ago to satisfy cooldown and stay inside the 0.6s streak window.
+            // set the prior timestamp 0.2s back. Note: WeaponData's ctor clamps attackSpeed to a 0.1s
+            // minimum (Mathf.Max(0.1f, speed)), so this bow's real cooldown is 0.1s — seeding exactly
+            // 0.1s back makes elapsed==cooldown a float-ULP knife edge (Time.time-(Time.time-0.1f)
+            // lands below 0.1f for some t) and made this test order-flaky. 0.2s clears it
+            // deterministically while staying inside the 0.6s streak window.
             lastAttackField.SetValue(combat, Time.time - 10f);
             for (int click = 1; click <= clickCount; click++)
             {
                 if (click > 1)
-                    lastAttackField.SetValue(combat, Time.time - 0.1f);
+                    lastAttackField.SetValue(combat, Time.time - 0.2f);
 
                 Assert.That(tryAttack.Invoke(combat, null), Is.EqualTo(true),
                     $"Attack call {click} should be accepted when its cooldown is ready.");

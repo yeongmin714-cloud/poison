@@ -23,7 +23,7 @@ namespace ProjectName.Systems
     public class IndoorAeroFogController : MonoBehaviour
     {
         public const string IndoorSceneName = "IndoorScene";
-        public const float IndoorDensity = 0.12f;      // 실내 목표 밀도(캡처 피드백: 0.35→0.2→0.12 — 10-10 완전 암전 요구, 흰 포그 밝기 축소)
+        public const float IndoorDensity = 0.09f;      // 실내 목표 밀도(캡처 피드백: 0.35→0.2→0.12→0.09 — 157차 사용자 지시 추가 축소, Play 판정 후 재조정)
         public const float FadeSpeed = 1.2f;           // _Density 단위/초
         public const int MaxAdditionalLights = 8;      // 포그 광구 상한 캡(URP per-object limit 4와 무관한 셰이더 루프 캡)
         private const float LightScanInterval = 0.5f;

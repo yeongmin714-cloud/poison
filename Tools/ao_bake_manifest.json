@@ -1,0 +1,1377 @@
+{
+ "Polyfork/adobe-colonial-farmhouse-cf13d8": {
+  "skipped": "rigged"
+ },
+ "Polyfork/alchemy-flask-b1b4fb": {
+  "verts": 1104,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/alchemy-workbench-117b73": {
+  "verts": 1974,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/alcove-bookcase-83894d": {
+  "verts": 1560,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/alpine-hay-barn-3965e5": {
+  "verts": 6222,
+  "radius": 0.05,
+  "ao_p05": 0.837,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/an-hourglass-with-sand-ec9f11": {
+  "skipped": "rigged"
+ },
+ "Polyfork/ancestral-shrine-de7ed2": {
+  "verts": 5922,
+  "radius": 0.05,
+  "ao_p05": 0.718,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/anvil-1286cb": {
+  "verts": 2058,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/arch-gatehouse-f4391b": {
+  "verts": 5199,
+  "radius": 0.05,
+  "ao_p05": 1.0,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/arched-passage-56393e": {
+  "verts": 3006,
+  "radius": 0.05,
+  "ao_p05": 0.916,
+  "ao_min": 0.862,
+  "prims": 1
+ },
+ "Polyfork/archery-target-762034": {
+  "verts": 2040,
+  "radius": 0.05,
+  "ao_p05": 0.917,
+  "ao_min": 0.794,
+  "prims": 3
+ },
+ "Polyfork/area-rug-5c56e2": {
+  "verts": 1176,
+  "radius": 0.05,
+  "ao_p05": 1.0,
+  "ao_min": 0.849,
+  "prims": 1
+ },
+ "Polyfork/armchair-980c7c": {
+  "verts": 828,
+  "radius": 0.05,
+  "ao_p05": 0.783,
+  "ao_min": 0.638,
+  "prims": 1
+ },
+ "Polyfork/armour-stand-3d77c4": {
+  "verts": 2814,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/azalea-bush-7bb14d": {
+  "skipped": "rigged"
+ },
+ "Polyfork/back-bar-shelf-and-f5f279": {
+  "verts": 1872,
+  "radius": 0.05,
+  "ao_p05": 0.744,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/baroque-panelled-wall-8658ed": {
+  "verts": 4968,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/barred-cell-door-571e9c": {
+  "verts": 1710,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/barrel-organ-cart-30799d": {
+  "verts": 2814,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 5
+ },
+ "Polyfork/basil-pot-125949": {
+  "skipped": "rigged"
+ },
+ "Polyfork/basket-of-produce-7420cf": {
+  "verts": 2298,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/bathhouse-4ac41a": {
+  "verts": 6639,
+  "radius": 0.05,
+  "ao_p05": 0.948,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/battle-map-tile-69e0b1": {
+  "verts": 2883,
+  "radius": 0.05,
+  "ao_p05": 0.996,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/blacksmith-forge-09fa85": {
+  "verts": 5004,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/bow-9a225d": {
+  "verts": 2535,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 5
+ },
+ "Polyfork/brass-candelabra-89ab76": {
+  "skipped": "rigged"
+ },
+ "Polyfork/bread-loaf-0e0ab5": {
+  "verts": 840,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/brick-church-322885": {
+  "verts": 8856,
+  "radius": 0.05,
+  "ao_p05": 0.896,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/bubbling-retort-4f9721": {
+  "skipped": "rigged"
+ },
+ "Polyfork/bubbling-tripod-cauldron-124e15": {
+  "skipped": "rigged"
+ },
+ "Polyfork/camp-canoe-c65d2a": {
+  "verts": 6666,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/camp-gate-2de13f": {
+  "skipped": "rigged"
+ },
+ "Polyfork/campaign-map-scroll-d4a382": {
+  "verts": 2277,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/campfire-parent-b1c0d5": {
+  "skipped": "rigged"
+ },
+ "Polyfork/candle-spike-cluster-d7c566": {
+  "verts": 1983,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/cemetery-lantern-post-fed352": {
+  "verts": 2442,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/chained-book-lectern-381597": {
+  "verts": 2172,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/charred-meat-haunch-be1ea2": {
+  "verts": 2304,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/chest-of-drawers-cbe3e7": {
+  "verts": 1176,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/chicha-barrel-77037f": {
+  "skipped": "rigged"
+ },
+ "Polyfork/chicken-coop-371f97": {
+  "verts": 3156,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 8
+ },
+ "Polyfork/clay-bread-oven-860b06": {
+  "verts": 1692,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/clay-storage-pot-626452": {
+  "verts": 1218,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/clay-wine-jug-b4ebd3": {
+  "verts": 1986,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/coin-pouch-be4dd8": {
+  "verts": 1020,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/commander-s-camp-stool-d7fa4c": {
+  "verts": 1683,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/concert-grand-piano-85c5b1": {
+  "verts": 4281,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 7
+ },
+ "Polyfork/concert-pedal-harp-eb1a21": {
+  "verts": 2532,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 9
+ },
+ "Polyfork/controllable-food-smoker-aac206": {
+  "verts": 2607,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 6
+ },
+ "Polyfork/copper-ore-chunk-258509": {
+  "verts": 1581,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/country-well-8feec8": {
+  "verts": 2592,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/cove-tavern-5861a6": {
+  "verts": 5286,
+  "radius": 0.05,
+  "ao_p05": 0.797,
+  "ao_min": 0.6,
+  "prims": 6
+ },
+ "Polyfork/crystal-shard-9e0a83": {
+  "verts": 624,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/curtain-panel-ee2ed9": {
+  "verts": 1860,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/divination-orb-115d77": {
+  "skipped": "rigged"
+ },
+ "Polyfork/dock-cargo-barge-69dc4b": {
+  "verts": 12210,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/dock-warehouse-bf0967": {
+  "verts": 4290,
+  "radius": 0.05,
+  "ao_p05": 0.783,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/dragonfire-brazier-6bc2ce": {
+  "verts": 2130,
+  "radius": 0.05,
+  "ao_p05": 0.755,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/dressing-mirror-7c0871": {
+  "verts": 1056,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/faculty-office-book-wall-c2d532": {
+  "verts": 2439,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/farm-lantern-747dc8": {
+  "verts": 1932,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/fern-plant-1559b8": {
+  "verts": 2406,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/firewood-stack-8a2899": {
+  "verts": 2256,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/flame-brazier-bbf74a": {
+  "skipped": "rigged"
+ },
+ "Polyfork/flower-seller-s-hand-d617f9": {
+  "skipped": "rigged"
+ },
+ "Polyfork/four-wheel-wagon-adb946": {
+  "verts": 6210,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 6
+ },
+ "Polyfork/framed-wall-art-d2c8a2": {
+  "verts": 603,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/gabled-farmhouse-c7534f": {
+  "verts": 2724,
+  "radius": 0.05,
+  "ao_p05": 0.812,
+  "ao_min": 0.623,
+  "prims": 2
+ },
+ "Polyfork/giant-mushroom-cluster-868de6": {
+  "verts": 2415,
+  "radius": 0.05,
+  "ao_p05": 0.648,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/gilded-harp-f32566": {
+  "verts": 2445,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/gold-coin-29afc1": {
+  "verts": 870,
+  "radius": 0.0428,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/gold-coin-stack-a9ef52": {
+  "verts": 1914,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/gold-ore-chunk-6f1d9e": {
+  "verts": 1011,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/governor-s-audience-hall-a4d777": {
+  "verts": 6996,
+  "radius": 0.05,
+  "ao_p05": 1.0,
+  "ao_min": 0.792,
+  "prims": 1
+ },
+ "Polyfork/grain-sack-401d96": {
+  "verts": 1344,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/great-helm-2551bc": {
+  "verts": 2274,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/greatsword-a956f3": {
+  "verts": 1440,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/halloween-yard-scarecrow-cb0ffb": {
+  "skipped": "rigged"
+ },
+ "Polyfork/hand-axe-cee9e7": {
+  "verts": 1596,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/hand-lantern-cdbe1a": {
+  "verts": 3672,
+  "radius": 0.0349,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/hanga-roa-fishing-boat-f09534": {
+  "verts": 6390,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/hanging-plant-basket-66a002": {
+  "skipped": "rigged"
+ },
+ "Polyfork/harpsichord-ac1869": {
+  "verts": 4932,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/hayride-wagon-1641de": {
+  "skipped": "rigged"
+ },
+ "Polyfork/healing-herb-bundle-4d9724": {
+  "verts": 2310,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/hide-rain-catchment-funnel-e41d94": {
+  "verts": 2712,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/iron-banded-strongbox-698383": {
+  "verts": 2070,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/iron-bound-door-e0e953": {
+  "verts": 2304,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/iron-chandelier-1337dc": {
+  "verts": 2262,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/iron-ingot-36697d": {
+  "verts": 324,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/iron-ore-chunk-1df386": {
+  "verts": 1998,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/jewel-casket-975ecc": {
+  "verts": 2124,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/kite-shield-343e62": {
+  "verts": 2292,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/knuckle-ring-529610": {
+  "verts": 2556,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/kura-storehouse-5c9631": {
+  "verts": 5088,
+  "radius": 0.05,
+  "ao_p05": 1.0,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/laced-hide-stretching-rack-8152a1": {
+  "verts": 2508,
+  "radius": 0.05,
+  "ao_p05": 0.623,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/leather-forge-bellows-7f6d42": {
+  "verts": 2616,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/legendary-chest-4abed4": {
+  "verts": 2892,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 8
+ },
+ "Polyfork/library-book-stack-double-ce8d7f": {
+  "verts": 3822,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/live-rock-piece-6c7bdf": {
+  "verts": 1032,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/livery-stable-c01ee0": {
+  "skipped": "rigged"
+ },
+ "Polyfork/log-cabin-4fac3b": {
+  "verts": 3978,
+  "radius": 0.05,
+  "ao_p05": 0.998,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/loot-sack-4762f5": {
+  "verts": 2370,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/looted-gilded-throne-008fc3": {
+  "verts": 2520,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/machiya-townhouse-8ef64e": {
+  "verts": 4596,
+  "radius": 0.05,
+  "ao_p05": 0.842,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/milk-churn-895735": {
+  "verts": 1608,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/milk-churn-stand-130fe2": {
+  "skipped": "rigged"
+ },
+ "Polyfork/mimic-chest-57e440": {
+  "verts": 2412,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/mine-cart-21d7f0": {
+  "skipped": "rigged"
+ },
+ "Polyfork/mine-headframe-735cf4": {
+  "verts": 5067,
+  "radius": 0.05,
+  "ao_p05": 0.738,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/mineral-geode-cluster-299927": {
+  "verts": 2073,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/mining-pickaxe-90bdf6": {
+  "verts": 2130,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/minka-farmhouse-680475": {
+  "verts": 4680,
+  "radius": 0.05,
+  "ao_p05": 0.935,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/modular-doorstep-bridge-df54e1": {
+  "verts": 5712,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/mushroom-679e55": {
+  "verts": 336,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/mushroom-cluster-18dc1d": {
+  "verts": 1761,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/mushroom-cluster-f2e3ba": {
+  "verts": 1593,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/oak-barrel-b65311": {
+  "verts": 1998,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/old-lighthouse-48ca6c": {
+  "verts": 8541,
+  "radius": 0.05,
+  "ao_p05": 0.672,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/open-stable-dbf2d5": {
+  "verts": 3336,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/opera-box-tier-d7fdd1": {
+  "verts": 4524,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/orongo-house-run-e35d16": {
+  "verts": 6678,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/ossuary-skull-shelf-a8fdf0": {
+  "verts": 2292,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/overflowing-treasure-chest-3d6ee0": {
+  "verts": 4191,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/palisade-wall-621e29": {
+  "verts": 4536,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/pante-n-chapel-62dccd": {
+  "skipped": "rigged"
+ },
+ "Polyfork/parish-church-543cf8": {
+  "skipped": "rigged"
+ },
+ "Polyfork/pastel-flowering-plant-d16a03": {
+  "skipped": "rigged"
+ },
+ "Polyfork/pigeon-base": {
+  "skipped": "rigged"
+ },
+ "Polyfork/pipe-organ-36e035": {
+  "verts": 6591,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/porch-log-cabin-d2f3ef": {
+  "verts": 6180,
+  "radius": 0.05,
+  "ao_p05": 0.771,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/potion-bottle-099ad7": {
+  "verts": 1884,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 5
+ },
+ "Polyfork/potted-olive-tree-7eee05": {
+  "skipped": "rigged"
+ },
+ "Polyfork/potting-bench-3a85ec": {
+  "verts": 1182,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/prayer-bead-strand-e18d9a": {
+  "verts": 2160,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/propped-fishing-rod-072978": {
+  "verts": 2364,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/quench-barrel-0c78fd": {
+  "verts": 1728,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/quiver-722a40": {
+  "verts": 1974,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/rope-bridge-span-159f8c": {
+  "verts": 4620,
+  "radius": 0.05,
+  "ao_p05": 0.879,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/saddle-on-a-rack-f034cd": {
+  "skipped": "rigged"
+ },
+ "Polyfork/saddle-quern-food-mill-8e3657": {
+  "verts": 1980,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/saloon-upright-piano-4b9c64": {
+  "verts": 1986,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/salvage-hand-cart-222304": {
+  "verts": 7191,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/scroll-rack-f465dd": {
+  "verts": 2322,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/shield-24b9f0": {
+  "verts": 2340,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/ship-s-longboat-f159fd": {
+  "verts": 10878,
+  "radius": 0.05,
+  "ao_p05": 0.785,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/shopfront-house-43d94d": {
+  "skipped": "rigged"
+ },
+ "Polyfork/shovel-997c4d": {
+  "verts": 546,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/signal-beacon-tower-9c0d1a": {
+  "skipped": "rigged"
+ },
+ "Polyfork/signet-ring-efa0ee": {
+  "verts": 2109,
+  "radius": 0.0225,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/silver-cloche-platter-25dd3e": {
+  "verts": 2316,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/silver-coin-64ab27": {
+  "verts": 1032,
+  "radius": 0.043,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/silver-ore-chunk-1e440c": {
+  "verts": 2100,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/simple-band-ring-929543": {
+  "verts": 2136,
+  "radius": 0.0213,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/small-fishing-boat-4ac0e3": {
+  "skipped": "rigged"
+ },
+ "Polyfork/smelting-furnace-3209f1": {
+  "skipped": "rigged"
+ },
+ "Polyfork/spear-e9824e": {
+  "verts": 1308,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/spellbook-1e8dfe": {
+  "verts": 1974,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 5
+ },
+ "Polyfork/spilled-coin-pile-caccf6": {
+  "verts": 2412,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/splay-leg-lookout-tower-6fae7e": {
+  "verts": 5730,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/standing-brazier-c9e4ee": {
+  "verts": 2040,
+  "radius": 0.05,
+  "ao_p05": 0.876,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/standing-knight-statue-8bdcc9": {
+  "verts": 2280,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/stilted-granary-3e7d7d": {
+  "verts": 4272,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/stone-chapel-03e774": {
+  "verts": 5847,
+  "radius": 0.05,
+  "ao_p05": 0.645,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/stone-farmhouse-billet-2dbbf2": {
+  "verts": 5532,
+  "radius": 0.05,
+  "ao_p05": 1.0,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/stone-sarcophagus-cc96a4": {
+  "verts": 1992,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/straw-training-dummy-64eeb4": {
+  "verts": 2103,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/sunflower-seed-b4fbbd": {
+  "verts": 1320,
+  "radius": 0.05,
+  "ao_p05": 0.82,
+  "ao_min": 0.688,
+  "prims": 1
+ },
+ "Polyfork/table-candle-lantern-a7b5af": {
+  "skipped": "rigged"
+ },
+ "Polyfork/table-herb-pot-3c0cf4": {
+  "skipped": "rigged"
+ },
+ "Polyfork/taheta-stone-basin-336021": {
+  "skipped": "rigged"
+ },
+ "Polyfork/temple-bell-tower-745387": {
+  "skipped": "rigged"
+ },
+ "Polyfork/tenshu-keep-2ff636": {
+  "verts": 8670,
+  "radius": 0.05,
+  "ao_p05": 1.0,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/thatched-cottage-0e63f5": {
+  "verts": 5292,
+  "radius": 0.05,
+  "ao_p05": 0.797,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/timber-crate-ba0739": {
+  "verts": 1764,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/timber-trestle-table-024d88": {
+  "verts": 1620,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/timber-wash-house-c7e7d5": {
+  "skipped": "rigged"
+ },
+ "Polyfork/tool-rack-f77b81": {
+  "skipped": "rigged"
+ },
+ "Polyfork/town-welcome-arch-d2af7d": {
+  "skipped": "rigged"
+ },
+ "Polyfork/trailhead-sign-aa29e1": {
+  "skipped": "rigged"
+ },
+ "Polyfork/travelling-trunk-2616ab": {
+  "verts": 2868,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/treasure-chest-373a2e": {
+  "verts": 2196,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/tupa-stone-tower-801c13": {
+  "verts": 5358,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/turning-stair-landing-066019": {
+  "verts": 3180,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/upgradeable-assembly-workbench-a18ff3": {
+  "verts": 2652,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/velvet-mat-tile-0ccce3": {
+  "verts": 1278,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/ventilated-hide-food-larder-f53174": {
+  "skipped": "rigged"
+ },
+ "Polyfork/village-gatehouse-181a9e": {
+  "verts": 4884,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/village-hall-c6d3c8": {
+  "verts": 33468,
+  "radius": 0.05,
+  "ao_p05": 0.721,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/village-tavern-4e94e3": {
+  "verts": 5988,
+  "radius": 0.05,
+  "ao_p05": 1.0,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/wall-torch-bracket-f5ad14": {
+  "skipped": "rigged"
+ },
+ "Polyfork/wardrobe-f3b2f2": {
+  "verts": 1092,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 4
+ },
+ "Polyfork/watchtower-140f78": {
+  "verts": 5208,
+  "radius": 0.05,
+  "ao_p05": 0.811,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/water-mill-b31972": {
+  "skipped": "rigged"
+ },
+ "Polyfork/water-pump-house-121270": {
+  "skipped": "rigged"
+ },
+ "Polyfork/water-tower-dd6200": {
+  "skipped": "rigged"
+ },
+ "Polyfork/watering-can-b22758": {
+  "verts": 1476,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/weapon-rack-082d7f": {
+  "verts": 1890,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 2
+ },
+ "Polyfork/wheelbarrow-13f422": {
+  "verts": 3396,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/whiskey-bottle-and-glass-fa24b4": {
+  "verts": 1392,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 5
+ },
+ "Polyfork/windmill-3aad49": {
+  "verts": 5526,
+  "radius": 0.05,
+  "ao_p05": 0.763,
+  "ao_min": 0.6,
+  "prims": 3
+ },
+ "Polyfork/wooden-bench-02e2c8": {
+  "verts": 1692,
+  "radius": 0.05,
+  "ao_p05": 0.943,
+  "ao_min": 0.627,
+  "prims": 1
+ },
+ "Polyfork/wool-rug-ab2bd1": {
+  "verts": 2004,
+  "radius": 0.05,
+  "ao_p05": 0.913,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "Polyfork/woven-storage-basket-983d80": {
+  "verts": 2016,
+  "radius": 0.05,
+  "ao_p05": 0.6,
+  "ao_min": 0.6,
+  "prims": 1
+ },
+ "DungeonFloor/Floor_1_1A": {
+  "verts": 642,
+  "prims": 2,
+  "edges": 481,
+  "radius": 0.05,
+  "ao_min": 0.6,
+  "ao_p05": 0.6,
+  "edge_deg": 55.0,
+  "edge_mult": 0.84,
+  "speckle_low": 0.035,
+  "speckle_fine": 0.012,
+  "images": "img0:586323->637093B",
+  "bin_len": 608896,
+  "bin_len_new": 667372
+ },
+ "DungeonFloor/Floor_1_2A": {
+  "verts": 745,
+  "prims": 2,
+  "edges": 529,
+  "radius": 0.05,
+  "ao_min": 0.6,
+  "ao_p05": 0.6,
+  "edge_deg": 55.0,
+  "edge_mult": 0.84,
+  "speckle_low": 0.035,
+  "speckle_fine": 0.012,
+  "images": "img0:586323->636891B",
+  "bin_len": 612672,
+  "bin_len_new": 672180
+ },
+ "DungeonFloor/Floor_1_3A": {
+  "verts": 842,
+  "prims": 1,
+  "edges": 604,
+  "radius": 0.05,
+  "ao_min": 0.6,
+  "ao_p05": 0.6,
+  "edge_deg": 55.0,
+  "edge_mult": 0.84,
+  "speckle_low": 0.035,
+  "speckle_fine": 0.012,
+  "images": "img0:586323->636883B",
+  "bin_len": 616172,
+  "bin_len_new": 676836
+ },
+ "DungeonFloor/Floor_1_4A": {
+  "verts": 798,
+  "prims": 2,
+  "edges": 524,
+  "radius": 0.05,
+  "ao_min": 0.6,
+  "ao_p05": 0.6,
+  "edge_deg": 55.0,
+  "edge_mult": 0.84,
+  "speckle_low": 0.035,
+  "speckle_fine": 0.012,
+  "images": "img0:586323->636928B",
+  "bin_len": 614548,
+  "bin_len_new": 674728
+ },
+ "DungeonFloor/Floor_1_5A": {
+  "verts": 746,
+  "prims": 2,
+  "edges": 536,
+  "radius": 0.05,
+  "ao_min": 0.6,
+  "ao_p05": 0.6,
+  "edge_deg": 55.0,
+  "edge_mult": 0.84,
+  "speckle_low": 0.035,
+  "speckle_fine": 0.012,
+  "images": "img0:586323->637400B",
+  "bin_len": 612644,
+  "bin_len_new": 672672
+ },
+ "DungeonFloor/Floor_1_6A": {
+  "verts": 1294,
+  "prims": 2,
+  "edges": 936,
+  "radius": 0.05,
+  "ao_min": 0.6,
+  "ao_p05": 0.6,
+  "edge_deg": 55.0,
+  "edge_mult": 0.84,
+  "speckle_low": 0.035,
+  "speckle_fine": 0.012,
+  "images": "img0:586323->636876B",
+  "bin_len": 631932,
+  "bin_len_new": 698012
+ },
+ "DungeonFloorGrout196/Floor_1_1A.glb": {
+  "md5": "411e7d760d5b60028eb72c81bd3b7fc4",
+  "backup": "/mnt/c/Unity/code/Tools/ao_prebake_backup/DungeonFloorGrout196/Floor_1_1A.glb",
+  "round": "196차"
+ },
+ "DungeonFloorGrout196/Floor_1_2A.glb": {
+  "md5": "dbc8e4cbc70cb56f6e6aa6bccebf8e78",
+  "backup": "/mnt/c/Unity/code/Tools/ao_prebake_backup/DungeonFloorGrout196/Floor_1_2A.glb",
+  "round": "196차"
+ },
+ "DungeonFloorGrout196/Floor_1_4A.glb": {
+  "md5": "019396807c3e322f45528151a141e60a",
+  "backup": "/mnt/c/Unity/code/Tools/ao_prebake_backup/DungeonFloorGrout196/Floor_1_4A.glb",
+  "round": "196차"
+ },
+ "DungeonFloorGrout196/Floor_1_5A.glb": {
+  "md5": "c63a6cbcb3fcb275de52a02dca6521da",
+  "backup": "/mnt/c/Unity/code/Tools/ao_prebake_backup/DungeonFloorGrout196/Floor_1_5A.glb",
+  "round": "196차"
+ },
+ "DungeonFloorGrout196/Floor_1_6A.glb": {
+  "md5": "93d3214deaf140d4486c45fb25e1b4f5",
+  "backup": "/mnt/c/Unity/code/Tools/ao_prebake_backup/DungeonFloorGrout196/Floor_1_6A.glb",
+  "round": "196차"
+ }
+}

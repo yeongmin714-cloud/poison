@@ -58,6 +58,8 @@ namespace ProjectName.UI.Toolkit
             public static readonly Color MissionSelectedFill = new Color(0x58 / 255f, 0xA6 / 255f, 0xFF / 255f, 0.12f);
             public static readonly Color StatusGreen = Hex(0x39D353);   // 배치 활성(피그마 상태 그린)
             public static readonly Color StatusOrange = Hex(0xFF9E2C);  // 외교 특사
+            // [144차 P6-SOL #47] [Figma 69:138] 등급 배지 fill #BC8CFF 솔리드 — CSP Rarity 선례(144차 배지 어휘 체계)
+            public static readonly Color RarityPurple = new Color32(0xBC, 0x8C, 0xFF, 0xFF);
             private static Color Hex(uint rgb) =>
                 new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
         }
@@ -99,6 +101,7 @@ namespace ProjectName.UI.Toolkit
         private readonly List<VisualElement> _deploymentCards = new List<VisualElement>(8);
         private readonly List<Label> _deploymentCounts = new List<Label>(8);
         private Button _applyDeploymentButton;
+        private Label _deployTip;        // [122차 R2] 배치 패널 상태 라벨 — 거부 사유 표시용(기존 SetStatus 계약 부재 → tip 라벨 준용)
         private GuardTaskSystem.GuardTask _pendingTask;
         private FilterCat _filter = FilterCat.All;
         private GuardPlaceholder _selected;
@@ -141,7 +144,12 @@ namespace ProjectName.UI.Toolkit
                 b.style.fontSize = UTKTheme.FontTab;                 // [Figma] 14.4/700
                 b.style.unityFontStyleAndWeight = FontStyle.Bold;
                 b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = 7.2f;
-                StyleButton(b, false);
+                // [144차 P6-SOL #21] [Figma 69:25/27] 비활성 탭 — fill 없음(투명) + stroke #30363D@0.5 1.2.
+                //   StyleButton 비사용(공용 스타일 — 닫기/적용 버튼 계약 무변경) · hover 콜백 미등록(피그마 상태계 준수).
+                b.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+                b.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+                b.style.borderTopWidth = b.style.borderBottomWidth = b.style.borderLeftWidth = b.style.borderRightWidth = 1.2f;
+                b.style.borderTopColor = b.style.borderBottomColor = b.style.borderLeftColor = b.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
                 _filterTabs.Add(b);
                 filterRow.Add(b);
             }
@@ -152,13 +160,17 @@ namespace ProjectName.UI.Toolkit
             _listScroll.style.flexGrow = 1f;
             left.Add(_listScroll);
 
-            // [Figma SummaryFooter] 좌 라벨 + 우 값 (병사 N/N명 · 임무 배치 N명 — 실존 데이터)
+            // [Figma SummaryFooter 69:114] 좌 라벨 + 우 값
+            // [144차 P6-SOL #41] 상단 테두리 #30363D@0.5 1.2 + paddingTop 14.4
             var summaryRow = new VisualElement { name = "SummaryFooter" };
             summaryRow.style.flexDirection = FlexDirection.Row;
             summaryRow.style.alignItems = Align.Center;
             summaryRow.style.height = 34.4f;
             summaryRow.style.minHeight = 34.4f;
-            var summaryLeft = MkLabel("총원 · 임무 배치", UTKTheme.FontRowLabel, GitHubDark.TextSub);   // [Figma] 15.6/400
+            summaryRow.style.paddingTop = 14.4f;
+            summaryRow.style.borderTopWidth = 1.2f;
+            summaryRow.style.borderTopColor = new StyleColor(GitHubDark.GlassStroke);
+            var summaryLeft = MkLabel("총원 / 최대 수용력", UTKTheme.FontRowLabel, GitHubDark.TextSub);   // [Figma 69:116] 15.6/400 #8B949E
             summaryLeft.style.flexGrow = 1f;
             summaryRow.Add(summaryLeft);
             _summaryLabel = MkLabel("", UTKTheme.FontRowLabel, GitHubDark.Accent);   // [Figma] 15.6/700 #58A6FF
@@ -202,40 +214,26 @@ namespace ProjectName.UI.Toolkit
             panelRoot.style.flexDirection = FlexDirection.Column;
             panelRoot.style.flexShrink = 0f;
             UTKTheme.ApplyFigmaGlass(panelRoot);   // [Figma 69:4 글래스] #161B22@0.7 + #30363D@0.5 1.2px + r14.4
-            // [Figma 69:4] 패널 pad 24 + 세로 gap 19.2 + 모서리 L 데칼(14.4, 선 12)
+            // [144차 P6-SOL #8] [Figma 69:5/118/171 fills] 패널 글래스 fill #161B22@0.702 — 이 창 개별 재적용.
+            //   UTKTheme.GlassPanelFill 전역 상수 무수정 계약(D1 확정 0.702 전 창 통일 — 동일값이나 계약 명시).
+            panelRoot.style.backgroundColor = new StyleColor(new Color32(0x16, 0x1B, 0x22, 0xB3));   // 0xB3=179 → α0.702
+            // [Figma 69:4] 패널 pad 24 + 세로 gap 19.2
             panelRoot.style.paddingLeft = panelRoot.style.paddingRight = 24f;
             panelRoot.style.paddingTop = panelRoot.style.paddingBottom = 24f;
             panelRoot.style.justifyContent = Justify.FlexStart;
-            AddCornerDecals(panelRoot);
+            // [144차 P6-SOL #75 P0 / #76 P1] [Figma 69:6~17] 모서리 데칼 — 구 AddL(0,0)/(12,0)/(0,11)/(12,11) 4개가
+            //   좌상단 12px 박스에 몰리던 오배치(진실치: TR/BL/BR 각 모서리, ax13506/ay1021 실측)를
+            //   144차 P0 V1 공용 헬퍼로 전환 + 색 Stroke(#2E343D)→#58A6FF · 두께 1→1.8 동시 수리.
+            //   코너 밖 기본 모드(InteractionPanelUTK #42 승계 선례). Δ 기록: 진실치 L 12 코너 내부 기점 vs
+            //   헬퍼 9.6 코너 중심(밖 걸침 −4.8) — .utk-window overflow:hidden으로 좌패널 TL/BL·우패널
+            //   TR/BR의 바깥 절반은 클립(중앙 패널 4코너·좌 TR·우 BL은 온전). 시각 근사는 어휘 계약 우선.
+            UTKTheme.AddCornerDecals(panelRoot, 9.6f, 1.8f, "#58A6FF");
             _content.Add(panelRoot);
             return panelRoot;
         }
 
-        /// <summary>[Figma] 패널 4모서리 L자 데칼 — 시각 전용(pickingMode Ignore).</summary>
-        private static void AddCornerDecals(VisualElement panel)
-        {
-            void AddL(float left, float top, float hLine, float vLine, bool verticalFirst)
-            {
-                var l1 = new VisualElement();
-                l1.style.position = Position.Absolute;
-                l1.style.left = left; l1.style.top = top;
-                l1.style.width = hLine; l1.style.height = 1f;
-                l1.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
-                l1.pickingMode = PickingMode.Ignore;
-                var l2 = new VisualElement();
-                l2.style.position = Position.Absolute;
-                l2.style.left = left; l2.style.top = top;
-                l2.style.width = 1f; l2.style.height = vLine;
-                l2.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
-                l2.pickingMode = PickingMode.Ignore;
-                panel.Add(verticalFirst ? l2 : l1);
-                panel.Add(verticalFirst ? l1 : l2);
-            }
-            AddL(0f, 0f, 12f, 12f, false);                 // TL
-            AddL(12f, 0f, 12f, 12f, false);                // TR (두 번째 선이 right에 붙도록 위치 보정)
-            AddL(0f, 11f, 12f, 12f, false);                // BL
-            AddL(12f, 11f, 12f, 12f, false);               // BR
-        }
+        // [144차 P6-SOL #75] 구 로컬 AddCornerDecals(좌상단 몰림 오배치 원인) 삭제 —
+        //   UTKTheme.AddCornerDecals 공용 어휘(144차 P0 V1)로 대체. CreatePanelRoot 참조.
 
         private void CreateCloseButton(VisualElement parent)
         {
@@ -295,6 +293,11 @@ namespace ProjectName.UI.Toolkit
             heroRow.style.height = 31f;
             _dName = MkLabel("병사를 선택하세요", UTKTheme.FontDisplayName, GitHubDark.TextMain);   // [Figma] 26.4/700
             _dName.style.unityFontStyleAndWeight = FontStyle.Bold;
+            // [43차 수리 — 부대 명부 ui3.PNG "이름/Lv 줄 겹침"] 폰트 자연 행높이(~36px)가 heroRow 31을
+            //   넘어 아래 Lv 줄과 충돌 — [Figma 69:137 실측] 라벨 행박스 31 고정 + 수직 중앙 정렬로
+            //   레이아웃 박스를 피그마와 동일하게 고정(글자 초과분은 시각만 ±2.5px 중앙 수용).
+            _dName.style.height = 31f;
+            _dName.style.unityTextAlign = TextAnchor.MiddleLeft;
             heroRow.Add(_dName);
             var heroSpacer = new VisualElement();
             heroSpacer.style.flexGrow = 1f;
@@ -310,6 +313,9 @@ namespace ProjectName.UI.Toolkit
             hero.Add(heroRow);
             _dLevel = MkLabel("", UTKTheme.FontRowValue, GitHubDark.TextSub);   // [Figma] 16.8/400
             _dLevel.style.unityFontStyleAndWeight = FontStyle.Normal;
+            // [43차] [Figma 69:140 실측] Lv 줄 행박스 20 고정(이름 줄과 충돌 방지)
+            _dLevel.style.height = 20f;
+            _dLevel.style.unityTextAlign = TextAnchor.MiddleLeft;
             _dLevel.style.marginTop = 4.8f;
             hero.Add(_dLevel);
 
@@ -348,7 +354,8 @@ namespace ProjectName.UI.Toolkit
             stats.style.borderTopLeftRadius = stats.style.borderTopRightRadius = stats.style.borderBottomLeftRadius = stats.style.borderBottomRightRadius = 9.6f;
             stats.style.paddingLeft = stats.style.paddingRight = stats.style.paddingTop = stats.style.paddingBottom = 19.2f;
             parent.Add(stats);
-            string[] statNames = { "공격력", "방어력", "체력", "민첩" };
+            // [144차 P6-SOL #53 Figma 69:146/152/158/164] Stat 라벨 영문 접미 원문
+            string[] statNames = { "공격력 (Attack Power)", "방어력 (Defense)", "체력 (Vitality)", "민첩 (Agility)" };
             for (int i = 0; i < 4; i++)
             {
                 var row = new VisualElement();
@@ -415,24 +422,38 @@ namespace ProjectName.UI.Toolkit
         {
             ("군사 공격 조", GuardTaskSystem.GuardTask.Attack),
             ("요새 수비대",  GuardTaskSystem.GuardTask.Defend),
-            ("농사 투입",    GuardTaskSystem.GuardTask.Farm),
-            ("채집 작전대",  GuardTaskSystem.GuardTask.Gather),
+            ("경작지 농사단", GuardTaskSystem.GuardTask.Farm),
+            ("자원 야외 채집", GuardTaskSystem.GuardTask.Gather),
             ("외교 특사",    GuardTaskSystem.GuardTask.Envoy),
-            ("광물 채굴대",  GuardTaskSystem.GuardTask.Mine),
-            ("수색 정찰단",  GuardTaskSystem.GuardTask.Hunt),
+            ("광산 광부",     GuardTaskSystem.GuardTask.Mine),
+            ("야생 사냥 헌터", GuardTaskSystem.GuardTask.Hunt),
             ("대기(해제)",   GuardTaskSystem.GuardTask.None),
+        };
+
+        /// <summary>[144차 P6-SOL #66 Figma MissionText 2행] 영문 부제 원문(JSON 69:196/205/213/221/229/237/245).
+        ///   8번째 "대기(해제)"(None)는 게임 전용 계약 카드 — Figma 부제 없음(표기 생략).</summary>
+        private static readonly string[] _deploySubtitles =
+        {
+            "Assault Squad",
+            "Fortress Guard",
+            "Farming Core",
+            "Resource Gathering",
+            "Diplomatic Envoy",
+            "Ore Mining Team",
+            "Wild Hunting Group",
         };
 
         private void BuildDeployPanel(VisualElement parent)
         {
             parent.Add(MkPanelHeader("임무 배치 및 제어", "DEPLOYMENT OPTIONS"));
 
-            // [Figma SectionDescription 432×48.8]
-            var tip = MkLabel("병사를 목록에서 선택하고 우측 역할로 배치합니다.", UTKTheme.FontRowLabel, GitHubDark.TextSub);   // [Figma] 15.6/400
-            tip.style.whiteSpace = WhiteSpace.Normal;
-            tip.style.height = 48.8f;
-            tip.style.flexShrink = 0f;
-            parent.Add(tip);
+            // [Figma SectionDescription 432×48.8] — [122차 R2] 상태 라벨로 격상: 배치 거부 사유 표시용 필드 보관
+            _deployTip = MkLabel("병사를 목록에서 선택하고 우측 역할로 배치합니다.", UTKTheme.FontRowLabel, GitHubDark.TextSub);   // [Figma] 15.6/400
+            _deployTip.style.whiteSpace = WhiteSpace.Normal;
+            _deployTip.style.height = 48.8f;
+            _deployTip.style.paddingBottom = 4.8f;   // [144차 P6-SOL #61 Figma SectionDescription pb 4.8]
+            _deployTip.style.flexShrink = 0f;
+            parent.Add(_deployTip);
 
             var list = new ScrollView(ScrollViewMode.Vertical) { name = "DeploymentOptionsList" };
             list.style.flexGrow = 1f;
@@ -446,7 +467,7 @@ namespace ProjectName.UI.Toolkit
                 row.style.minHeight = 67.2f;
                 row.style.flexShrink = 0f;
                 row.style.marginBottom = 9.6f;
-                row.style.paddingLeft = row.style.paddingRight = 14.4f;
+                row.style.paddingLeft = row.style.paddingRight = row.style.paddingTop = row.style.paddingBottom = 14.4f;   // [144차 P6-SOL #63 Figma pad 14.4 전측]
                 row.style.alignItems = Align.Center;
                 // [Figma MissionOption] 기본 #FFFFFF@0.02 + #30363D@0.5 1.2 / 선택 #58A6FF@0.12 + #58A6FF 1.2 / r9.6
                 row.style.backgroundColor = new StyleColor(GitHubDark.CardFill);
@@ -456,20 +477,45 @@ namespace ProjectName.UI.Toolkit
                 row.RegisterCallback<PointerDownEvent>(_ => SelectDeploymentTask(_deployDefs[idx].Item2));
 
                 // [39차 사용자 요구] 라디오 파란 점 제거 — 선택 상태는 카드 테두리 색만으로 표시.
+                // [144차 P6-SOL #66 Figma MissionText 2행] 한국명 16.8/700 + 영문 부제 12/400 #8B949E, 세로 gap 2.4
+                var missionText = new VisualElement { name = "MissionText_" + idx };
+                missionText.style.flexDirection = FlexDirection.Column;
+                missionText.style.flexGrow = 1f;
                 var name = MkLabel(_deployDefs[idx].Item1, UTKTheme.FontCardName, GitHubDark.TextMain);   // [Figma] 16.8/700
                 name.style.unityFontStyleAndWeight = FontStyle.Bold;
-                name.style.flexGrow = 1f;
-                row.Add(name);
+                missionText.Add(name);
+                string subtitle = idx < _deploySubtitles.Length ? _deploySubtitles[idx] : null;
+                if (!string.IsNullOrEmpty(subtitle))
+                {
+                    var sub = MkLabel(subtitle, 12f, GitHubDark.TextSub);   // [Figma] 12/400 #8B949E
+                    sub.style.marginTop = 2.4f;                             // [Figma 69:194 MissionText 세로 gap 2.4]
+                    missionText.Add(sub);
+                }
+                row.Add(missionText);
+
+                // [122차 R2] 채집/채광/사냥 행 — 저장고 선행 조건 표시(작은 접미 라벨, 피그마 신규 없음).
+                //   missionText가 flexGrow=1이므로 힌트는 카운트 배지 좌측에 유연 부착 — 레이아웃 파손 없음.
+                var hintTask = _deployDefs[idx].Item2;
+                if (hintTask == GuardTaskSystem.GuardTask.Gather ||
+                    hintTask == GuardTaskSystem.GuardTask.Mine ||
+                    hintTask == GuardTaskSystem.GuardTask.Hunt)
+                {
+                    var whHint = MkLabel("※저장고", UTKTheme.FontBadge, GitHubDark.StatusOrange);
+                    whHint.style.flexShrink = 0f;
+                    whHint.style.marginRight = 6f;
+                    row.Add(whHint);
+                }
 
                 var count = MkLabel("0명 활성", UTKTheme.FontTab, GitHubDark.TextSub);   // [Figma] 14.4/700 (활성 시 Accent — Refresh에서 갱신)
                 count.style.unityFontStyleAndWeight = FontStyle.Bold;
                 count.name = "DeploymentCount_" + idx;
                 count.style.minWidth = 77.2f;
                 count.style.height = 28.6f;
-                count.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
-                count.style.borderTopWidth = count.style.borderBottomWidth = count.style.borderLeftWidth = count.style.borderRightWidth = 1f;
-                count.style.borderTopColor = count.style.borderBottomColor = count.style.borderLeftColor = count.style.borderRightColor = new StyleColor(GitHubDark.Stroke);
-                count.style.borderTopLeftRadius = count.style.borderTopRightRadius = count.style.borderBottomLeftRadius = count.style.borderBottomRightRadius = 4f;
+                // [144차 P6-SOL #69 Figma CountBadge] fill #000000@0.251 + stroke #30363D@0.5 1.2 + r 7.2
+                count.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.251f));
+                count.style.borderTopWidth = count.style.borderBottomWidth = count.style.borderLeftWidth = count.style.borderRightWidth = 1.2f;
+                count.style.borderTopColor = count.style.borderBottomColor = count.style.borderLeftColor = count.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
+                count.style.borderTopLeftRadius = count.style.borderTopRightRadius = count.style.borderBottomLeftRadius = count.style.borderBottomRightRadius = 7.2f;
                 count.style.unityTextAlign = TextAnchor.MiddleCenter;
                 row.Add(count);
 
@@ -510,9 +556,59 @@ namespace ProjectName.UI.Toolkit
             if (_selected == null) return;
             var gts = GuardTaskSystem.Instance;
             if (gts == null) { Debug.LogWarning("[SoldierMgmt] GuardTaskSystem 없음"); return; }
+
+            // [122차 R2] 채집/채광/사냥 배치 선행 게이트 — 해당 영지에 저장고(건설 완료)가 있어야 배치 가능.
+            if (_pendingTask == GuardTaskSystem.GuardTask.Gather ||
+                _pendingTask == GuardTaskSystem.GuardTask.Mine ||
+                _pendingTask == GuardTaskSystem.GuardTask.Hunt)
+            {
+                string territoryKey = ResolveSelectedTerritoryKey();
+                if (!WarehouseSystem.HasWarehouse(territoryKey))
+                {
+                    // 배치 거부 — 토스트 + 상태 라벨 사유 표시, AssignTask 호출 스킵.
+                    UTKToastService.Show("저장고를 먼저 건설하세요", 2.5f);
+                    if (_deployTip != null)
+                    {
+                        _deployTip.text = $"저장고를 먼저 건설하세요 — [{(string.IsNullOrEmpty(territoryKey) ? "영지 미식별" : territoryKey)}]";
+                        _deployTip.style.color = new StyleColor(GitHubDark.StatusOrange);
+                    }
+                    Debug.Log($"[SoldierMgmt] 배치 거부 — {_selected.GuardName} → {_pendingTask} (저장고 부재: {territoryKey ?? "영지 미식별"})");
+                    return;
+                }
+            }
+            RestoreDeployTip();   // 게이트 통과 — 상태 라벨 기본 안내 복원
             gts.AssignTask(_selected, _pendingTask);
             Debug.Log($"[SoldierMgmt] {_selected.GuardName} → {_pendingTask}");
             RefreshAll();
+        }
+
+        /// <summary>[122차 R2] 선택 병사의 소속 영지 키(TerritoryId.ToString() — "Nation_XX") 판정.
+        ///   SoldierManagementUTK에 영지 컨텍스트 필드가 없으므로 GuardTaskSystem.ResolveGuardTerritory와
+        ///   동일 경로(플레이어 소유 영지 순회 → GuardManager.GetGuardsInTerritory 멤버십)를 UI측에서 재현.
+        ///   미식별 시 null 반환 — WarehouseSystem.HasWarehouse(null)=false → 게이트 fail-safe(거부).</summary>
+        private string ResolveSelectedTerritoryKey()
+        {
+            var guard = _selected;
+            if (guard == null) return null;
+            var db = ProjectName.Core.Data.TerritoryDatabase.Instance;
+            var gm = GuardManager.Instance;
+            if (db == null || gm == null) return null;
+            foreach (var def in db.GetAllDefinitions())
+            {
+                var st = db.GetState(def.id);
+                if (st == null || st.ownership != ProjectName.Core.Data.TerritoryOwnership.PlayerOwned) continue;
+                foreach (var cand in gm.GetGuardsInTerritory(def.id))
+                    if (cand == guard) return def.id.ToString();
+            }
+            return null;
+        }
+
+        /// <summary>[122차 R2] 배치 패널 상태 라벨(_deployTip) 기본 안내 문구 복원 — null 가드 포함.</summary>
+        private void RestoreDeployTip()
+        {
+            if (_deployTip == null) return;
+            _deployTip.text = "병사를 목록에서 선택하고 우측 역할로 배치합니다.";
+            _deployTip.style.color = new StyleColor(GitHubDark.TextSub);
         }
 
         private void RefreshDeploymentOptions()
@@ -607,7 +703,10 @@ namespace ProjectName.UI.Toolkit
             {
                 bool active = (FilterCat)i == _filter;
                 var b = _filterTabs[i];
-                b.style.backgroundColor = active ? GitHubDark.Accent : GitHubDark.PanelSub;
+                // [144차 P6-SOL #21] [Figma 69:23/25] 활성 fill #58A6FF / 비활성 fill 없음(투명)+스트로크 유지
+                b.style.backgroundColor = new StyleColor(active ? GitHubDark.Accent : new Color(0f, 0f, 0f, 0f));
+                b.style.borderTopColor = b.style.borderBottomColor = b.style.borderLeftColor = b.style.borderRightColor =
+                    new StyleColor(active ? GitHubDark.Accent : GitHubDark.GlassStroke);   // 활성=fill 동색 근사(피그마 활성 스트로크 없음)
                 b.style.color = active ? GitHubDark.BgBase : GitHubDark.TextSub;   // [Figma] 활성 #0B0E14 / 비활성 #8B949E
             }
         }
@@ -685,18 +784,32 @@ namespace ProjectName.UI.Toolkit
                 }
             }
 
-            _summaryLabel.text = $"병사 {recruited}/{totalRegistered}명 · 임무 배치 {assigned}명";
+            // [144차 P6-SOL #43 Figma 69:117] 우 값 "N / M 명" — 총원=모집 병사 수(실데이터).
+            //   기록: 최대 수용력(침대 수용력) 데이터 소스가 코드베이스에 존재하지 않음(grep 실측) →
+            //   위조 수치 대신 totalRegistered를 임시 상한으로 사용(37차 위조임금 계약 준용 — 실데이터 부재 시 기록).
+            _summaryLabel.text = $"{recruited} / {totalRegistered} 명";
         }
 
         private VisualElement BuildGuardCard(GuardPlaceholder g)
         {
-            // [Figma SoldierSlot] 432×86.4 고정, pad 14.4, gap 9.6 — TierStrip 좌측 세로 4.8×86.4(중립 스트로크, 등급 데이터 미존재),
-            // AvatarFrame 52.8 원형, InfoGroup gap 4.8(이름 15/직책 12), 우측 Lv/임무.
+            // [43차 피그마 69:4 SoldierSlot 전수 실측 재정합 — 부대 명부 ui3.PNG 깨짐 근원 수리]
+            //   근원: 카드에 flexDirection 미설정 → 기본 Column(세로 쌓임) → 아바타/이름/직책/Lv가
+            //   카드 프레임을 뚫고 세로로 배치(ui3 실측). AttackFormationUTK 카드(정합 완성본)와
+            //   동일하게 Row 방향으로 재작성.
+            //   [Figma 69:30 SoldierSlot] dir=HORIZONTAL · pad 14.4(전측) · gap 14.4 · r9.6
+            //   ├─ TierStrip [ABS 좌측] 4.8×86.4 — 등급 컬러(피그마 7슬롯 실측 팔레트)
+            //   ├─ AvatarFrame 52.8×52.8 r26.4 (#21262D) — 수직 중앙(86.4−52.8)/2=16.8
+            //   ├─ InfoGroup [세로 gap 4.8, flexGrow]
+            //   │   ├─ NameRow [가로 space-between] 이름 16.8/700 #F0F6FC · Lv 14.4/700 #58A6FF
+            //   │   └─ RoleRow [가로 space-between] 직책 14.4/400 #8B949E · StatusAndSalary(세로 gap2.4)
+            //   │       └─ StatusPill pad(7.2/2.4) r4.8 #000000 — 상태 12/700
             var card = new VisualElement { name = "SoldierSlot" };
             card.style.height = 86.4f;
             card.style.minHeight = 86.4f;
             card.style.flexShrink = 0f;
-            card.style.marginBottom = 9.6f;
+            card.style.marginBottom = 9.6f;                       // [Figma SoldierSlotsContainer gap 9.6]
+            card.style.flexDirection = FlexDirection.Row;         // [43차 근원 수리] Column→Row
+            card.style.alignItems = Align.Center;                 // 아바타 수직 중앙(피그마 y16.8 실측)
             card.style.paddingTop = card.style.paddingBottom = 14.4f;
             card.style.paddingLeft = card.style.paddingRight = 14.4f;
             // [Figma SoldierSlot] 선택 #FFFFFF@0.08+#58A6FF 1.8 / 미선택 #FFFFFF@0.02+#30363D@0.5 1.2 / r9.6
@@ -715,18 +828,20 @@ namespace ProjectName.UI.Toolkit
             tierStrip.style.top = 0f;
             tierStrip.style.width = 4.8f;
             tierStrip.style.height = 86.4f;
-            tierStrip.style.backgroundColor = new StyleColor(GitHubDark.Stroke);
+            // [43차 Figma 69:29 7슬롯 TierStrip 실측 팔레트] Lv45=#BC8CFF(퍼플) / Lv 중간=#1F6FEB(딥블루)
+            //   / Lv 낮음=#58A6FF(액센트) / 최하=#8B949E(그레이) — 레벨 구간 매핑(실데이터 기반).
+            tierStrip.style.backgroundColor = new StyleColor(TierColorForLevel(g.Level));
             tierStrip.pickingMode = PickingMode.Ignore;
             card.Add(tierStrip);
 
-            // 아바타 (원형 — 사람 아이콘 [39차 사용자 요구: 글자 대신 사람 아이콘]) [Figma AvatarFrame 52.8×52.8]
+            // [43차 Figma 69:32 AvatarFrame] 52.8 원형 r26.4 — 사람 아이콘(39차 요구 유지)
             var avatar = new VisualElement { name = "SoldierAvatar" };
             avatar.style.width = 52.8f; avatar.style.height = 52.8f;
-            avatar.style.backgroundColor = GitHubDark.PanelSub;
+            avatar.style.backgroundColor = new StyleColor(new Color(GitHubDark.PanelSub.r, GitHubDark.PanelSub.g, GitHubDark.PanelSub.b, 0.6f));   // [144차 P6-SOL #30 Figma #21262D@0.6]
             avatar.style.borderTopWidth = avatar.style.borderBottomWidth = avatar.style.borderLeftWidth = avatar.style.borderRightWidth = 1.2f;
             avatar.style.borderTopColor = avatar.style.borderBottomColor = avatar.style.borderLeftColor = avatar.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
             avatar.style.borderTopLeftRadius = avatar.style.borderTopRightRadius = avatar.style.borderBottomLeftRadius = avatar.style.borderBottomRightRadius = 26.4f;
-            avatar.style.marginRight = 14.4f;
+            avatar.style.marginRight = 14.4f;                     // [Figma SoldierSlot gap 14.4]
             avatar.style.flexShrink = 0f;
             avatar.style.justifyContent = Justify.Center;
             avatar.style.alignItems = Align.Center;
@@ -734,43 +849,78 @@ namespace ProjectName.UI.Toolkit
             var avatarTex = Resources.Load<Texture2D>("UI/SoldierAvatarIcon");
             if (avatarTex != null)
                 personIcon.style.backgroundImage = UTKTextureSafe.ToBackground(avatarTex);
-            personIcon.style.width = 32f; personIcon.style.height = 32f;   // [42차] 30→32 — 카드 대비 아이콘 크기 보정
+            personIcon.style.width = 24f; personIcon.style.height = 24f;   // [144차 P6-SOL #31 Figma user-cog 24×24] (42차 32→24 복원)
             avatar.Add(personIcon);
             card.Add(avatar);
 
+            // [43차 Figma 69:34 InfoGroup] 세로 gap 4.8 · flexGrow 1(우측 끝까지, 실측 336w)
             var info = new VisualElement();
             info.style.flexGrow = 1f;
-            // [Figma 69:4 SoldierSlot 실측] 이름 y12.2(fs16.8/700) → 직책 y47.1(fs14.4/400) — 행간 리듬 고정.
-            // [42차] 이름/직책 겹침(부대 명부 ui2.PNG 실측) 수리: 이름 높이 고정 22 + 직책 상단 12.
+            info.style.flexDirection = FlexDirection.Column;
+            info.style.alignItems = Align.Stretch;
+
+            // [Figma NameRow] 이름 16.8/700 #F0F6FC(좌) · Lv 14.4/700 #58A6FF(우측 끝 — 실측 x373.6 우정렬)
+            var nameRow = new VisualElement { name = "NameRow" };
+            nameRow.style.flexDirection = FlexDirection.Row;
+            nameRow.style.alignItems = Align.Center;
             var name = MkLabel(g.GuardName, UTKTheme.FontCardName, GitHubDark.TextMain);
             name.style.unityFontStyleAndWeight = FontStyle.Bold;
-            name.style.height = 22f;
-            name.style.flexShrink = 0f;
-            info.Add(name);
-            // [37차] 직책 + 실내 침대 배치 표시(침대 n) — 각각 배치 현황이 목록에서 바로 보임.
-            string bedTag = g.IndoorBedIndex > 0 ? $" · 🛏️ 침대 {g.IndoorBedIndex}" : "";
-            var role = MkLabel((g.JobTitle ?? "병사") + bedTag, UTKTheme.FontBody, GitHubDark.TextSub);
-            role.style.unityFontStyleAndWeight = FontStyle.Normal;
-            role.style.marginTop = 12f;
-            info.Add(role);
-            card.Add(info);
-
-            var right = new VisualElement();
-            right.style.flexDirection = FlexDirection.Column;
-            right.style.alignItems = Align.FlexEnd;
-            // [Figma NameRow/StatusPill] Lv 14.4/700 #58A6FF · 상태 12/700(활성=그린/외교=주황/대기=보조)
-            var lv = MkLabel($"Lv.{g.Level}", UTKTheme.FontTab, GitHubDark.Accent);
+            name.style.flexGrow = 1f;
+            nameRow.Add(name);
+            var lv = MkLabel($"Lv.{g.Level}", UTKTheme.FontTab, GitHubDark.Accent);   // [Figma] 14.4/700 #58A6FF
             lv.style.unityFontStyleAndWeight = FontStyle.Bold;
             lv.style.unityTextAlign = TextAnchor.MiddleRight;
-            right.Add(lv);
+            nameRow.Add(lv);
+            info.Add(nameRow);
+
+            // [Figma RoleRow] 직책 14.4/400 #8B949E(좌·행 중앙) · 우측 상태필(세로 스택)
+            var roleRow = new VisualElement { name = "RoleRow" };
+            roleRow.style.flexDirection = FlexDirection.Row;
+            roleRow.style.alignItems = Align.Center;
+            roleRow.style.marginTop = 4.8f;                       // [Figma InfoGroup gap 4.8]
+            var role = MkLabel(g.JobTitle ?? "병사", UTKTheme.FontBody, GitHubDark.TextSub);
+            role.style.unityFontStyleAndWeight = FontStyle.Normal;
+            role.style.flexGrow = 1f;
+            roleRow.Add(role);
+            // [Figma StatusAndSalary] 세로 gap 2.4 — StatusPill(상태) + 침대 현황(실데이터 — 임금 데이터 미존재)
+            var statusStack = new VisualElement { name = "StatusAndSalary" };
+            statusStack.style.flexDirection = FlexDirection.Column;
+            statusStack.style.alignItems = Align.FlexEnd;
+            statusStack.style.flexShrink = 0f;
             var task = GetTaskName(g);
-            var st = MkLabel(task, UTKTheme.FontBadge, TaskStatusColor(task));
+            var pill = new VisualElement { name = "StatusPill" };
+            pill.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.251f));   // [144차 P6-SOL #37 Figma #000000@0.251]
+            pill.style.paddingLeft = pill.style.paddingRight = 7.2f;
+            pill.style.paddingTop = pill.style.paddingBottom = 2.4f;
+            pill.style.borderTopLeftRadius = pill.style.borderTopRightRadius = pill.style.borderBottomLeftRadius = pill.style.borderBottomRightRadius = 4.8f;
+            var st = MkLabel(task, UTKTheme.FontBadge, TaskStatusColor(task));          // [Figma] 12/700
             st.style.unityFontStyleAndWeight = FontStyle.Bold;
-            st.style.unityTextAlign = TextAnchor.MiddleRight;
-            right.Add(st);
-            card.Add(right);
+            pill.Add(st);
+            statusStack.Add(pill);
+            // [37차 침대 현황 유지 — Figma Salary 슬롯을 실데이터(침대 n)로 채움 — 위조 임금 금지]
+            string bedTag = g.IndoorBedIndex > 0 ? $"🛏️ 침대 {g.IndoorBedIndex}" : "";
+            if (!string.IsNullOrEmpty(bedTag))
+            {
+                var bed = MkLabel(bedTag, UTKTheme.FontBadge, GitHubDark.Accent);
+                bed.style.unityFontStyleAndWeight = FontStyle.Bold;
+                bed.style.marginTop = 2.4f;
+                statusStack.Add(bed);
+            }
+            roleRow.Add(statusStack);
+            info.Add(roleRow);
+            card.Add(info);
 
             return card;
+        }
+
+        /// <summary>[43차 Figma 69:29 TierStrip 실측 팔레트] 등급 컬러 — 레벨 구간 매핑.
+        ///   피그마 7슬롯: #BC8CFF(퍼플·최상) / #1F6FEB(딥블루) / #58A6FF(액센트) / #8B949E(그레이·최하).</summary>
+        private static Color TierColorForLevel(int level)
+        {
+            if (level >= 40) return new Color32(0xBC, 0x8C, 0xFF, 0xFF);   // 퍼플 — 정예
+            if (level >= 25) return new Color32(0x1F, 0x6F, 0xEB, 0xFF);   // 딥블루
+            if (level >= 10) return GitHubDark.Accent;                     // #58A6FF
+            return GitHubDark.TextSub;                                     // #8B949E
         }
 
         /// <summary>[Figma StatusPill 상태색] 활성 배치=#39D353, 외교 특사=#FF9E2C, 대기=#8B949E.</summary>
@@ -806,10 +956,11 @@ namespace ProjectName.UI.Toolkit
             {
                 CleanupPreviewRig();
 
-                const int size = 256;
+                // [47차 고품질] RT 256 → 512 + MSAA 8x — 피그마 528×384 프레임에 원본 이상 해상도.
+                const int size = 512;
                 if (_previewRT == null)
                 {
-                    _previewRT = new RenderTexture(size, size, 24, RenderTextureFormat.ARGB32);
+                    _previewRT = new RenderTexture(size, size, 24, RenderTextureFormat.ARGB32) { antiAliasing = 8 };
                     _previewRT.Create();
                 }
 
@@ -818,23 +969,39 @@ namespace ProjectName.UI.Toolkit
                 Vector3 remote = new Vector3(20000f, 2000f, 20000f);
                 _previewModel.transform.position = remote;
 
+                // [43차 수리 — 뒷모습/무텍스처/T포즈 3건 근원]
+                // ① 게임 CreateGuard와 동일 체인 적용: HumanoidClipDriver(Soldier 모드·이동 게이트로
+                //    T포즈 해소 — Start에서 Speed=0 → Idle 클립 상태) + GLB 텍스처 복사.
+                //    드라이버 Update는 실내에서도 Speed=0 Idle만 돌므로 미리보기에서 안전(이동 없음).
+                var anim = _previewModel.GetComponent<Animator>();
+                if (anim == null) anim = _previewModel.AddComponent<Animator>();
+                anim.runtimeAnimatorController =
+                    Resources.Load<RuntimeAnimatorController>("Animation/Controllers/SoldierShield_AC");
+                anim.applyRootMotion = false;
+                var driver = _previewModel.AddComponent<HumanoidClipDriver>();
+                driver.mode = HumanoidClipDriver.DriveMode.Soldier;
+                driver.enabled = false;          // Update 정지 — A-pose 정지 포즈만 확보(호흡 없음 = 프레임 안정)
+                var glbKey = fbxKey.Replace("/fbx/", "/");
+                HumanoidClipDriver.CopyMaterialsFromGlb(_previewModel, glbKey);
+
+                // [51차] 미리보기 병사도 게임과 동일 1.8m(SoldierTargetHeight) — 게임 병사와 동일 크기.
+                TerritoryBuilder.NormalizeSoldierHeight(_previewModel, TerritoryBuilder.SoldierTargetHeight);
+
                 // 프레이밍 — bounds 상면 기준 살짝 사선
                 var rends = _previewModel.GetComponentsInChildren<Renderer>();
                 if (rends.Length == 0) return;
                 Bounds b = rends[0].bounds;
                 foreach (var r in rends) b.Encapsulate(r.bounds);
-                float h = b.size.y;
-                if (h > 0.01f) _previewModel.transform.localScale *= 1.8f / h;
-                b = rends[0].bounds;
-                foreach (var r in rends) b.Encapsulate(r.bounds);
-                _previewModel.transform.position += new Vector3(0f, remote.y - b.min.y, 0f);
                 b = rends[0].bounds;
                 foreach (var r in rends) b.Encapsulate(r.bounds);
 
                 if (_previewCamGo == null)
                 {
                     _previewCamGo = new GameObject("SoldierPreviewCam");
-                    _previewCamGo.AddComponent<Camera>();
+                    var cam0 = _previewCamGo.AddComponent<Camera>();
+                    // [47차 고품질] MSAA 8x + HDR — 경계선/텍스처 디테일 선명화.
+                    cam0.allowMSAA = true;
+                    cam0.allowHDR = true;
                 }
                 var cam = _previewCamGo.GetComponent<Camera>();
                 cam.clearFlags = CameraClearFlags.SolidColor;
@@ -845,11 +1012,20 @@ namespace ProjectName.UI.Toolkit
                 cam.fieldOfView = 28f;
                 cam.targetTexture = _previewRT;
 
+                // [43차 ② 정면 카메라 — 뒷모습 근원 수리] [Figma 69:142 Soldier3DGraphic 정면 위주 뷰]
+                //   병사 FBX 피벗은 +Z(앞)를 보고 서 있으므로 카메라를 +Z 쪽에 두고 LookAt로 조준.
                 Vector3 center = b.center;
-                float halfH = Mathf.Max(0.5f, b.extents.y * 1.15f);
+                // [43차 ③ 발 잘림 수리] 수직 프레이밍 여유 — 절반 높이 1.30배+0.08 + 조준점=몸 수직 중앙.
+                float halfH = b.extents.y * 1.30f + 0.08f;
                 float dist = halfH / Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad);
-                cam.transform.position = center + new Vector3(dist * 0.30f, 0f, -dist);
-                cam.transform.LookAt(center + Vector3.up * 0.05f);
+                Vector3 aim = new Vector3(center.x, b.min.y + b.size.y * 0.5f, center.z);
+                cam.transform.position = aim + new Vector3(dist * 0.22f, dist * 0.10f, dist);   // +Z 정면·살짝 우측·상단 사선
+                cam.transform.LookAt(aim);
+
+                // [47차 고품질] 미리보기 전용 라이팅 — 키 라이트(우상단 주광)+필 라이트(좌측 보광)+림 라이트
+                //   (후방 윤곽)+앰비언트 게이트. 44차 실측처럼 무광 실루엣을 없애고 옷 텍스처/금속 광택이 읽힌다.
+                EnsurePreviewLighting(_previewModel.transform.position);
+
                 cam.Render();
 
                 var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
@@ -869,11 +1045,50 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
+        /// <summary>[47차 고품질 → 48차 근원 수리] 미리보기 전용 3점 라이팅.
+        ///   ⚠ Directional은 **위치가 무의미한 씬 전역 방향광** — 원격(20000)에 둬도 실내 전체가
+        ///   밝아지는 사고(사용자 실측). 수리: **Point 라이트로 전환**(모델 bounds 기준 상대 배치 —
+        ///   카메라 targetTexture에만 기여, 실내 씬 조명 무영향). Range를 모델 1.0m 스케일에 맞춤.</summary>
+        private Transform _previewLights;
+
+        private void EnsurePreviewLighting(Vector3 at)
+        {
+            if (_previewLights != null) DestroyPreviewLightsGameObject(_previewLights.gameObject);
+            var lights = new GameObject("SoldierPreviewLights");
+            _previewLights = lights.transform;
+            lights.transform.position = at;
+            void Add(string name, Vector3 offset, Color color, float intensity, float range)
+            {
+                var go = new GameObject(name);
+                go.transform.SetParent(lights.transform, false);
+                go.transform.localPosition = offset;
+                var l = go.AddComponent<Light>();
+                l.type = LightType.Point;                       // [48차] Directional 폐지 — 위치 유효 타입
+                l.color = color;
+                l.intensity = intensity;
+                l.range = range;
+            }
+            // 모델 1.0m — 카메라(전방 dist≈2.2m)에서 모델을 비추는 광원 배치(월드 오프셋 = 모델 중심 기준)
+            Add("KeyLight", new Vector3(0.8f, 1.1f, 1.2f), new Color(1f, 0.97f, 0.9f), 2.6f, 4f);     // 우상단 전방 주광
+            Add("FillLight", new Vector3(-1.1f, 0.4f, 0.6f), new Color(0.75f, 0.82f, 1f), 1.4f, 4f);  // 좌측 쿨 보광
+            Add("RimLight", new Vector3(0.2f, 0.9f, -1.4f), new Color(0.9f, 0.95f, 1f), 2.0f, 4f);    // 후방 윤곽
+        }
+
         private void CleanupPreviewRig()
         {
             if (_previewModel != null) { Object.Destroy(_previewModel); _previewModel = null; }
+            if (_previewLights != null) { DestroyPreviewLightsGameObject(_previewLights.gameObject); _previewLights = null; }
         }
 
+        /// <summary>[EditMode 호환] EditMode 테스트에서 Object.Destroy는 에러 로그를 내므로 재생/편집 모드 분기 정리.</summary>
+        private static void DestroyPreviewLightsGameObject(GameObject go)
+        {
+#if UNITY_EDITOR
+            if (Application.isPlaying) Object.Destroy(go); else Object.DestroyImmediate(go);
+#else
+            Object.Destroy(go);
+#endif
+        }
         private void CleanupPreviewAll()
         {
             CleanupPreviewRig();
@@ -929,10 +1144,11 @@ namespace ProjectName.UI.Toolkit
             float hp = g.MaxHP;
             int agi = g.GetAgility();
 
-            SetStat(0, atk, 300);
-            SetStat(1, def, 300);
+            // [144차 P6-SOL #57 Figma 69:147/153/159/165] Stat max 스펙 400/400/500/300 — 하드코딩 300/300/500/100 교정
+            SetStat(0, atk, 400);
+            SetStat(1, def, 400);
             SetStat(2, hp, 500);
-            SetStat(3, agi, 100);
+            SetStat(3, agi, 300);
         }
 
         private void SetStat(int idx, float val, float max)
@@ -942,7 +1158,7 @@ namespace ProjectName.UI.Toolkit
             _statVals[idx].text = $"{Mathf.RoundToInt(val)} / {Mathf.RoundToInt(max)}";   // [Figma] "284 / 400" 형식
         }
 
-        /// <summary>[Figma PanelHeader] 제목(20) + 영문 서브타이틀(11, gap12) — 3패널 공통.</summary>
+        /// <summary>[Figma PanelHeader 69:18] 제목 21.6/700 + 영문 부제 13.2/500(gap 12/세로 8) — 3패널 공통.</summary>
         private static VisualElement MkPanelHeader(string title, string subtitle)
         {
             var h = new VisualElement { name = "PanelHeader" };
@@ -951,13 +1167,16 @@ namespace ProjectName.UI.Toolkit
             h.style.paddingBottom = 14.4f;
             h.style.height = 52.8f;
             h.style.minHeight = 52.8f;
+            // [144차 P6-SOL #13] [Figma 69:18 strokes] PanelHeader 테두리 #30363D@0.502 1.2
+            h.style.borderTopWidth = h.style.borderBottomWidth = h.style.borderLeftWidth = h.style.borderRightWidth = 1.2f;
+            h.style.borderTopColor = h.style.borderBottomColor = h.style.borderLeftColor = h.style.borderRightColor = new StyleColor(GitHubDark.GlassStroke);
             var t = MkLabel(title, UTKTheme.FontTitle, GitHubDark.TextMain);   // [Figma] 21.6/700
             t.style.unityFontStyleAndWeight = FontStyle.Bold;
             h.Add(t);
             var s = MkLabel(subtitle, UTKTheme.FontSubtitle, GitHubDark.TextSub);   // [Figma] 13.2/500
             s.style.unityFontStyleAndWeight = FontStyle.Normal;
             s.style.marginLeft = 12f;
-            s.style.marginTop = 5f;
+            s.style.marginTop = 8f;   // [144차 P6-SOL #16] [Figma 69:19 ay82/69:21 ay90] Title↔Subtitle 세로 8 (구 5)
             h.Add(s);
             return h;
         }

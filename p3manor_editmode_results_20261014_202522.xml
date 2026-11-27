@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="22" result="Failed(Child)" total="22" passed="21" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-14 11:25:42Z" end-time="2026-10-14 11:25:43Z" duration="0.6335136">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="804" result="Failed" site="Child" start-time="2026-10-14 11:25:42Z" end-time="2026-10-14 11:25:43Z" duration="0.633514" total="22" passed="21" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1908" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="795" result="Failed" site="Child" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.513510" total="22" passed="21" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2992" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1909" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="792" result="Failed" site="Child" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.499940" total="22" passed="21" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1910" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="792" result="Failed" site="Child" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.486658" total="22" passed="21" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1911" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="777" result="Failed" site="Child" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.473639" total="22" passed="21" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1631" name="PlayerCastleInteriorTopologyTests" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" testcasecount="22" result="Failed" site="Child" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.446002" total="22" passed="21" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1649" name="AsymmetricManor_Lobby_IsOffCenterAsymmetricOctagon_DistinctFromBaselines" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.AsymmetricManor_Lobby_IsOffCenterAsymmetricOctagon_DistinctFromBaselines" methodname="AsymmetricManor_Lobby_IsOffCenterAsymmetricOctagon_DistinctFromBaselines" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1531831389" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.039458" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1651" name="AsymmetricManor_PortalGraph_ReachesEveryRoomFromExterior" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.AsymmetricManor_PortalGraph_ReachesEveryRoomFromExterior" methodname="AsymmetricManor_PortalGraph_ReachesEveryRoomFromExterior" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="98663391" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.004308" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1653" name="AsymmetricManor_SharesExteriorEnvelopeAndRoomContracts_WithKeepOctagon" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.AsymmetricManor_SharesExteriorEnvelopeAndRoomContracts_WithKeepOctagon" methodname="AsymmetricManor_SharesExteriorEnvelopeAndRoomContracts_WithKeepOctagon" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1759627156" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.000808" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1650" name="AsymmetricManor_Walls_AreUniqueNonDegenerate_AndPortalsAreConsistent" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.AsymmetricManor_Walls_AreUniqueNonDegenerate_AndPortalsAreConsistent" methodname="AsymmetricManor_Walls_AreUniqueNonDegenerate_AndPortalsAreConsistent" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="676021948" result="Failed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.009256" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  출입구 개구부 중심은 입구홀 축 x=3과 정렬된다
+  Expected: (3.00, -44.10) +/- 0.00999999978f
+  But was:  (3.00, -44.10)
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.AsymmetricManor_Walls_AreUniqueNonDegenerate_AndPortalsAreConsistent () [0x00446] in C:\Unity\code\Assets\Scripts\Tests\EditMode\PlayerCastleInteriorTopologyTests.cs:746
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1652" name="AsymmetricManor_ZonesTileInterior_AndRequiredAnchorsSitInCorrectRooms" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.AsymmetricManor_ZonesTileInterior_AndRequiredAnchorsSitInCorrectRooms" methodname="AsymmetricManor_ZonesTileInterior_AndRequiredAnchorsSitInCorrectRooms" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="636105354" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.006709" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1648" name="AsymmetricManorDefinition_HasStableId_AndIsResolvableViaTryGetLayout" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.AsymmetricManorDefinition_HasStableId_AndIsResolvableViaTryGetLayout" methodname="AsymmetricManorDefinition_HasStableId_AndIsResolvableViaTryGetLayout" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1435067506" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.000818" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1637" name="BuiltInterior_UsesFinalScale_HasCollidableWalls_AndKeepsAnchorsInsideZones" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.BuiltInterior_UsesFinalScale_HasCollidableWalls_AndKeepsAnchorsInsideZones" methodname="BuiltInterior_UsesFinalScale_HasCollidableWalls_AndKeepsAnchorsInsideZones" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="2069476730" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.241779" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[IndoorTextureLoader] 로드 — floor=True normal=True stone=True stoneN=True plaster=True wood=True straw=True
+[PlayerCastleInteriorBuilder] 'CookingStation'.Configure 메서드를 찾지 못함 — 기본값 상태로 부착만 진행.
+[PlayerCastleInteriorBuilder] WarehouseSystem is not initialized; kitchen pantry seeding skipped.
+[PlayerCastleInteriorBuilder] 'AlchemyStation'.Configure 메서드를 찾지 못함 — 기본값 상태로 부착만 진행.
+[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: Empire, 레이아웃 변형: 0) — 석재 기둥 2열·따뜻한 조명·문장 방패·러그 장식 포함
+[RuntimeModelLoader] 별칭 맵 초기화 완료 (모델 지연 로딩 모드)
+[RuntimeModelLoader] 지연 로드: 'kingdom_flag' (Static)
+[InteriorNationFlag] 배치 — Empire → kingdom_flag, 높이 3.5m @ (9, 36.75)
+]]></output>
+              </test-case>
+              <test-case id="1632" name="Footprint_IsSixTimesTheExistingArea_AndUsesUnitScale" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.Footprint_IsSixTimesTheExistingArea_AndUsesUnitScale" methodname="Footprint_IsSixTimesTheExistingArea_AndUsesUnitScale" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1504129518" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.000399" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1639" name="KeepOctagonDefinition_HasStableId_AndMatchesBuilderTopology" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.KeepOctagonDefinition_HasStableId_AndMatchesBuilderTopology" methodname="KeepOctagonDefinition_HasStableId_AndMatchesBuilderTopology" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1159866573" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.002629" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1640" name="LayoutDefinition_ExposedArrays_AreDefensiveCopies" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.LayoutDefinition_ExposedArrays_AreDefensiveCopies" methodname="LayoutDefinition_ExposedArrays_AreDefensiveCopies" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="2020783431" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.001018" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1635" name="PortalGraph_IsDerivedFromActualWallOpeningsAndMatchesRequiredWallFaces" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.PortalGraph_IsDerivedFromActualWallOpeningsAndMatchesRequiredWallFaces" methodname="PortalGraph_IsDerivedFromActualWallOpeningsAndMatchesRequiredWallFaces" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1363397673" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.002694" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1634" name="RequiredAnchors_ArePlacedInTheirCorrectRoomZones_AtWorldRoomScale" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RequiredAnchors_ArePlacedInTheirCorrectRoomZones_AtWorldRoomScale" methodname="RequiredAnchors_ArePlacedInTheirCorrectRoomZones_AtWorldRoomScale" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1039095558" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.001142" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1642" name="RoundKeep_Lobby_IsSixteenSegmentCircle_DistinctFromKeepOctagon" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RoundKeep_Lobby_IsSixteenSegmentCircle_DistinctFromKeepOctagon" methodname="RoundKeep_Lobby_IsSixteenSegmentCircle_DistinctFromKeepOctagon" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="663234843" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.001916" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1644" name="RoundKeep_PortalGraph_ReachesEveryRoomFromExterior" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RoundKeep_PortalGraph_ReachesEveryRoomFromExterior" methodname="RoundKeep_PortalGraph_ReachesEveryRoomFromExterior" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="144866630" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.001360" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1646" name="RoundKeep_RingAndSpokes_FormSixteenSegmentCircleWithSpacedPortals" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RoundKeep_RingAndSpokes_FormSixteenSegmentCircleWithSpacedPortals" methodname="RoundKeep_RingAndSpokes_FormSixteenSegmentCircleWithSpacedPortals" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1967517869" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.002795" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1647" name="RoundKeep_SharesExteriorEnvelopeAndRoomContracts_WithKeepOctagon" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RoundKeep_SharesExteriorEnvelopeAndRoomContracts_WithKeepOctagon" methodname="RoundKeep_SharesExteriorEnvelopeAndRoomContracts_WithKeepOctagon" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1907953208" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.000563" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1643" name="RoundKeep_Walls_AreUniqueNonDegenerate_AndPortalsAreConsistent" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RoundKeep_Walls_AreUniqueNonDegenerate_AndPortalsAreConsistent" methodname="RoundKeep_Walls_AreUniqueNonDegenerate_AndPortalsAreConsistent" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1848705757" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.002154" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1645" name="RoundKeep_ZonesTileInterior_AndRequiredAnchorsSitInCorrectRooms" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RoundKeep_ZonesTileInterior_AndRequiredAnchorsSitInCorrectRooms" methodname="RoundKeep_ZonesTileInterior_AndRequiredAnchorsSitInCorrectRooms" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="1082749015" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.004914" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1641" name="RoundKeepDefinition_HasStableId_AndIsResolvableViaTryGetLayout" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RoundKeepDefinition_HasStableId_AndIsResolvableViaTryGetLayout" methodname="RoundKeepDefinition_HasStableId_AndIsResolvableViaTryGetLayout" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="194250940" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.000524" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1638" name="RuntimePortalOpenings_AreNotBlockedByTheirOwnWallColliders" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RuntimePortalOpenings_AreNotBlockedByTheirOwnWallColliders" methodname="RuntimePortalOpenings_AreNotBlockedByTheirOwnWallColliders" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="945979154" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.094390" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[PlayerCastleInteriorBuilder] 'CookingStation'.Configure 메서드를 찾지 못함 — 기본값 상태로 부착만 진행.
+[PlayerCastleInteriorBuilder] WarehouseSystem is not initialized; kitchen pantry seeding skipped.
+[PlayerCastleInteriorBuilder] 'AlchemyStation'.Configure 메서드를 찾지 못함 — 기본값 상태로 부착만 진행.
+[PlayerCastleInteriorBuilder] 플레이어 소유 중세 판타지 성 내부 생성 완료! (스타일: Empire, 레이아웃 변형: 0) — 석재 기둥 2열·따뜻한 조명·문장 방패·러그 장식 포함
+[InteriorNationFlag] 배치 — Empire → kingdom_flag, 높이 3.5m @ (9, 36.75)
+]]></output>
+              </test-case>
+              <test-case id="1633" name="RuntimeZoneMapping_PlacesAllRequiredQuadrantsAndEntryHall" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.RuntimeZoneMapping_PlacesAllRequiredQuadrantsAndEntryHall" methodname="RuntimeZoneMapping_PlacesAllRequiredQuadrantsAndEntryHall" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="896849124" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.000681" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1636" name="Walls_AreNonDegenerateAndPortalsHaveRealWallRemainders" fullname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests.Walls_AreNonDegenerateAndPortalsHaveRealWallRemainders" methodname="Walls_AreNonDegenerateAndPortalsHaveRealWallRemainders" classname="ProjectName.Tests.EditMode.PlayerCastleInteriorTopologyTests" runstate="Runnable" seed="284268245" result="Passed" start-time="2026-10-14 11:25:43Z" end-time="2026-10-14 11:25:43Z" duration="0.002237" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,334 @@
+{
+ "id": "163:45",
+ "name": "interaction-panel-sleep",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 39776,
+ "ay": 3,
+ "w": 288.0,
+ "h": 60.0,
+ "d": 0,
+ "fills": [
+  "#161B22/1.0@0.7"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.5"
+ ],
+ "strokeW": 1.2,
+ "r": 9.6,
+ "fx": [
+  "BACKGROUND_BLUR:24.0:None",
+  "DROP_SHADOW:19.200000762939453:#000000/0.4"
+ ],
+ "layout": "VERTICAL",
+ "gap": 7.200000286102295,
+ "pl": 9.600000381469727,
+ "pr": 9.600000381469727,
+ "pt": 9.600000381469727,
+ "pb": 9.600000381469727,
+ "c": [
+  {
+   "id": "163:46",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39772,
+   "ay": -2,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "163:47",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39772,
+     "ay": -2,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "163:48",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39772,
+     "ay": -9,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "163:49",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 40060,
+   "ay": -2,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "163:50",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 40062,
+     "ay": -2,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "163:51",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 40069,
+     "ay": -9,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "163:52",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39772,
+   "ay": 58,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "163:53",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39772,
+     "ay": 68,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "163:54",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39772,
+     "ay": 53,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "163:55",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 40060,
+   "ay": 53,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "163:56",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 40062,
+     "ay": 63,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "163:57",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 40069,
+     "ay": 49,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "163:58",
+   "name": "ActionGrid",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39787,
+   "ay": 14,
+   "w": 266.4,
+   "h": 38.4,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "VERTICAL",
+   "gap": 7.200000286102295,
+   "c": [
+    {
+     "id": "163:59",
+     "name": "GridRow1",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 39787,
+     "ay": 14,
+     "w": 266.4,
+     "h": 38.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 7.200000286102295,
+     "c": [
+      {
+       "id": "163:60",
+       "name": "ActionSleep",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 39787,
+       "ay": 14,
+       "w": 266.4,
+       "h": 38.4,
+       "d": 3,
+       "fills": [
+        "#30363D/1.0@0.8"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 7.200000286102295,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "163:61",
+         "name": "sleep-icon",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 39798,
+         "ay": 25,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "163:62",
+           "name": "moon",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 39802,
+           "ay": 26,
+           "w": 9.6,
+           "h": 13.2,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2
+          }
+         ]
+        },
+        {
+         "id": "163:63",
+         "name": "Label",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 39822,
+         "ay": 26,
+         "w": 220.8,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "잠자기",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

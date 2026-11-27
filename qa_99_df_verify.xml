@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="27" result="Passed" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:04Z" duration="2.9140263">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="1299" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:04Z" duration="2.914026" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="2465" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="1290" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:04Z" duration="2.900087" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="13300" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="2466" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="1287" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:04Z" duration="2.895796" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2467" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="1287" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:04Z" duration="2.891803" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2468" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="1272" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:04Z" duration="2.887917" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1286" name="DialogueFeedbackTests" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:04Z" duration="2.856801" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1291" name="DialogueCameraDirector_Begin_DirectControl_End_Restores" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Begin_DirectControl_End_Restores" methodname="DialogueCameraDirector_Begin_DirectControl_End_Restores" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1351660208" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:01Z" duration="0.082007" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DialogueCameraDirector] 🔍 대화 카메라 시작 — 경비병 (fullBody=False — 스왑 폐기, 기존 카메라 직접 제어 / [97차 F2] fullBody=패널 수명 연동, 기존=5s 타이머·0.8s 유예)
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DFTest_MainCam:on] depth=[Main Camera:-1.0,DFTest_MainCam:0.0] pos=(0.8,2.0,1.8) boundsY=-1.00 (Begin)
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DFTest_MainCam:on] depth=[Main Camera:-1.0,DFTest_MainCam:0.0] pos=(0.0,5.0,-10.0) boundsY=-1.00 (End)
+[DialogueCameraDirector] 대화 카메라 복원
+]]></output>
+              </test-case>
+              <test-case id="1292" name="DialogueCameraDirector_Contract_AutoEndTimer_InputExit_NoAudioListener" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Contract_AutoEndTimer_InputExit_NoAudioListener" methodname="DialogueCameraDirector_Contract_AutoEndTimer_InputExit_NoAudioListener" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="392824126" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:01Z" duration="0.023374" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1302" name="DialogueCameraDirector_Contract_FixedBearing_LateUpdate_94" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Contract_FixedBearing_LateUpdate_94" methodname="DialogueCameraDirector_Contract_FixedBearing_LateUpdate_94" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1324793159" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:01Z" duration="0.008267" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1295" name="DialogueCameraDirector_Contract_FixedFrameH_DiagBoundsY_EndLogOrder_92Followup" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Contract_FixedFrameH_DiagBoundsY_EndLogOrder_92Followup" methodname="DialogueCameraDirector_Contract_FixedFrameH_DiagBoundsY_EndLogOrder_92Followup" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1488775913" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:01Z" duration="0.012130" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1310" name="DialogueCameraDirector_Contract_FullBodyPanelLifetime_97F2" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Contract_FullBodyPanelLifetime_97F2" methodname="DialogueCameraDirector_Contract_FullBodyPanelLifetime_97F2" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="385743602" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:01Z" duration="0.018602" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1293" name="DialogueCameraDirector_Contract_GraceAndReframe_91" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Contract_GraceAndReframe_91" methodname="DialogueCameraDirector_Contract_GraceAndReframe_91" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="2072412885" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:01Z" duration="0.009700" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1303" name="DialogueCameraDirector_Contract_SideOffset_96" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Contract_SideOffset_96" methodname="DialogueCameraDirector_Contract_SideOffset_96" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1457779015" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:01Z" duration="0.007151" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1294" name="DialogueCameraDirector_Contract_SwapAbolished_DirectControl_FullBody_92" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_Contract_SwapAbolished_DirectControl_FullBody_92" methodname="DialogueCameraDirector_Contract_SwapAbolished_DirectControl_FullBody_92" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="90762254" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:01Z" duration="0.014177" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1313" name="DialogueCameraDirector_DialoguePanelOpenOverride_DisplayFlexFallback_ReturnsOpen_98F2F1" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_DialoguePanelOpenOverride_DisplayFlexFallback_ReturnsOpen_98F2F1" methodname="DialogueCameraDirector_DialoguePanelOpenOverride_DisplayFlexFallback_ReturnsOpen_98F2F1" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="206029610" result="Passed" start-time="2026-10-17 01:09:01Z" end-time="2026-10-17 01:09:02Z" duration="0.281593" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1296" name="DialogueCameraDirector_FullBody_FrontalFraming_ControllerToggle_92" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_FullBody_FrontalFraming_ControllerToggle_92" methodname="DialogueCameraDirector_FullBody_FrontalFraming_ControllerToggle_92" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1236527932" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:02Z" duration="0.075195" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DialogueCameraDirector] 🔍 대화 카메라 시작 — 주민 (fullBody=True — 스왑 폐기, 기존 카메라 직접 제어 / [97차 F2] fullBody=패널 수명 연동, 기존=5s 타이머·0.8s 유예)
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF92_MainCam:on] depth=[Main Camera:-1.0,DF92_MainCam:0.0] pos=(0.9,2.5,-2.9) boundsY=1.00 (Begin)
+[99차 F-B] 전신프레임 — boundsY=1.00 bounds(minY=0.40,maxY=1.40) dist=2.92m frameH=2.12m 화면상단여유≈0.56m 하단여유≈0.56m (FOV 40°)
+[98차 F2] 카메라 End 원인 — 경로=미기록 override=null pollOpen=False 진단미등록 t=0.36s
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF92_MainCam:on] depth=[Main Camera:-1.0,DF92_MainCam:0.0] pos=(10.0,20.0,-30.0) boundsY=-1.00 (End)
+[DialogueCameraDirector] 대화 카메라 복원
+]]></output>
+              </test-case>
+              <test-case id="1297" name="DialogueCameraDirector_FullBody_HeadClearAbovePlayer_B2_99" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_FullBody_HeadClearAbovePlayer_B2_99" methodname="DialogueCameraDirector_FullBody_HeadClearAbovePlayer_B2_99" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="147769387" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:02Z" duration="0.009184" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DialogueCameraDirector] 🔍 대화 카메라 시작 — 주민 (fullBody=True — 스왑 폐기, 기존 카메라 직접 제어 / [97차 F2] fullBody=패널 수명 연동, 기존=5s 타이머·0.8s 유예)
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF99B2_MainCam:on] depth=[Main Camera:-1.0,DF99B2_MainCam:0.0] pos=(0.9,12.3,-2.9) boundsY=1.00 (Begin)
+[99차 F-B] 전신프레임 — boundsY=1.00 bounds(minY=0.40,maxY=1.40) dist=2.92m frameH=2.12m 화면상단여유≈0.56m 하단여유≈0.56m (FOV 40°)
+[98차 F2] 카메라 End 원인 — 경로=미기록 override=null pollOpen=False 진단미등록 t=0.36s
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF99B2_MainCam:on] depth=[Main Camera:-1.0,DF99B2_MainCam:0.0] pos=(10.0,20.0,-30.0) boundsY=-1.00 (End)
+[DialogueCameraDirector] 대화 카메라 복원
+]]></output>
+              </test-case>
+              <test-case id="1311" name="DialogueCameraDirector_FullBody_PanelCloseEnds_PanelOpenKeeps_97F2" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_FullBody_PanelCloseEnds_PanelOpenKeeps_97F2" methodname="DialogueCameraDirector_FullBody_PanelCloseEnds_PanelOpenKeeps_97F2" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1422826645" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:02Z" duration="0.007126" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DialogueCameraDirector] 🔍 대화 카메라 시작 — 주민 (fullBody=True — 스왑 폐기, 기존 카메라 직접 제어 / [97차 F2] fullBody=패널 수명 연동, 기존=5s 타이머·0.8s 유예)
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF97_MainCam:on] depth=[Main Camera:-1.0,DF97_MainCam:0.0] pos=(0.9,2.5,-2.9) boundsY=1.00 (Begin)
+[99차 F-B] 전신프레임 — boundsY=1.00 bounds(minY=0.40,maxY=1.40) dist=2.92m frameH=2.12m 화면상단여유≈0.56m 하단여유≈0.56m (FOV 40°)
+[98차 F2] 카메라 End 원인 — 경로=패널닫힘폴링 override=등록 pollOpen=False 진단미등록 t=0.36s
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF97_MainCam:on] depth=[Main Camera:-1.0,DF97_MainCam:0.0] pos=(10.0,20.0,-30.0) boundsY=-1.00 (End)
+[DialogueCameraDirector] 대화 카메라 복원
+]]></output>
+              </test-case>
+              <test-case id="1304" name="DialogueCameraDirector_FullBody_Reframe_KeepsFixedBearing_TracksTarget_94" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_FullBody_Reframe_KeepsFixedBearing_TracksTarget_94" methodname="DialogueCameraDirector_FullBody_Reframe_KeepsFixedBearing_TracksTarget_94" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1140586747" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:02Z" duration="0.006568" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DialogueCameraDirector] 🔍 대화 카메라 시작 — 주민 (fullBody=True — 스왑 폐기, 기존 카메라 직접 제어 / [97차 F2] fullBody=패널 수명 연동, 기존=5s 타이머·0.8s 유예)
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF94_MainCam:on] depth=[Main Camera:-1.0,DF94_MainCam:0.0] pos=(0.9,2.5,-2.9) boundsY=1.00 (Begin)
+[99차 F-B] 전신프레임 — boundsY=1.00 bounds(minY=0.40,maxY=1.40) dist=2.92m frameH=2.12m 화면상단여유≈0.56m 하단여유≈0.56m (FOV 40°)
+[98차 F2] 카메라 End 원인 — 경로=미기록 override=null pollOpen=False 진단미등록 t=0.36s
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF94_MainCam:on] depth=[Main Camera:-1.0,DF94_MainCam:0.0] pos=(10.0,20.0,-30.0) boundsY=-1.00 (End)
+[DialogueCameraDirector] 대화 카메라 복원
+]]></output>
+              </test-case>
+              <test-case id="1300" name="DialogueCameraGate_93_Source_Contract" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraGate_93_Source_Contract" methodname="DialogueCameraGate_93_Source_Contract" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="754697477" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:02Z" duration="0.036479" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1288" name="GuardPlaceholder_AllDirectAssignments_WrappedIntoSetStatusMessage" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.GuardPlaceholder_AllDirectAssignments_WrappedIntoSetStatusMessage" methodname="GuardPlaceholder_AllDirectAssignments_WrappedIntoSetStatusMessage" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="571516625" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:02Z" duration="0.006776" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1287" name="GuardPlaceholder_StatusMessageChanged_Event_WrappedBySetStatusMessage" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.GuardPlaceholder_StatusMessageChanged_Event_WrappedBySetStatusMessage" methodname="GuardPlaceholder_StatusMessageChanged_Event_WrappedBySetStatusMessage" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1935556081" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:02Z" duration="0.001446" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1290" name="GuardTalkBubble_Contract_StaticBootSubscription_Billboard" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.GuardTalkBubble_Contract_StaticBootSubscription_Billboard" methodname="GuardTalkBubble_Contract_StaticBootSubscription_Billboard" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="593953490" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:02Z" duration="0.002853" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1289" name="GuardTalkBubble_Show_ShowsAboveHead_4sTimerReset_OnRetrigger" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.GuardTalkBubble_Show_ShowsAboveHead_4sTimerReset_OnRetrigger" methodname="GuardTalkBubble_Show_ShowsAboveHead_4sTimerReset_OnRetrigger" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="681625520" result="Passed" start-time="2026-10-17 01:09:02Z" end-time="2026-10-17 01:09:04Z" duration="2.035570" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1299" name="IndoorWarTestSetup_SeedsGold_ForBribeRecruitTesting" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.IndoorWarTestSetup_SeedsGold_ForBribeRecruitTesting" methodname="IndoorWarTestSetup_SeedsGold_ForBribeRecruitTesting" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="107746433" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.003473" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1298" name="InteractionPanelUTK_BribeRecruit_Toasts_And_TalkCameraZoom" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.InteractionPanelUTK_BribeRecruit_Toasts_And_TalkCameraZoom" methodname="InteractionPanelUTK_BribeRecruit_Toasts_And_TalkCameraZoom" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1666051396" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.015667" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1308" name="InteractionPanelUTK_DialogueGuard_DefersResume_96" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.InteractionPanelUTK_DialogueGuard_DefersResume_96" methodname="InteractionPanelUTK_DialogueGuard_DefersResume_96" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="522738991" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.010267" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[InteractionPanelUTK] [94차 F4] 패널 개방 즉시 정지 — 주민 F96_Villager_Guard (PauseForDialogue)
+[InteractionPanelUTK] [96차 F2] 닫힘 재개 위임 — 주민 F96_Villager_Guard (대화 카메라 세션 소유 — EndDialoguePose 재개 / [98차 F1] 워치독 유지)
+]]></output>
+              </test-case>
+              <test-case id="1305" name="InteractionPanelUTK_FKeyWanderPause_And_FrontAnchor_94" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.InteractionPanelUTK_FKeyWanderPause_And_FrontAnchor_94" methodname="InteractionPanelUTK_FKeyWanderPause_And_FrontAnchor_94" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="787382416" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.011695" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1312" name="InteractionPanelUTK_NextFrameReplacement_And_PlacementVerify_97F3" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.InteractionPanelUTK_NextFrameReplacement_And_PlacementVerify_97F3" methodname="InteractionPanelUTK_NextFrameReplacement_And_PlacementVerify_97F3" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1794057020" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.019694" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1307" name="InteractionPanelUTK_PlacementTickAutoClose_Resumes_96" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.InteractionPanelUTK_PlacementTickAutoClose_Resumes_96" methodname="InteractionPanelUTK_PlacementTickAutoClose_Resumes_96" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1195960193" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.003937" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[InteractionPanelUTK] [94차 F4] 패널 개방 즉시 정지 — 주민 F96_Villager_AutoClose (PauseForDialogue)
+[InteractionPanelUTK] [94차 F4] 패널 닫힘 — 주민 F96_Villager_AutoClose 배회 재개 (ResumeAfterDialogue)
+]]></output>
+              </test-case>
+              <test-case id="1306" name="InteractionPanelUTK_ResumeConvergence_SafetyNet_96" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.InteractionPanelUTK_ResumeConvergence_SafetyNet_96" methodname="InteractionPanelUTK_ResumeConvergence_SafetyNet_96" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="2132284868" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.016417" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1309" name="InteractionPanelUTK_Watchdog15s_AutoResumes_96" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.InteractionPanelUTK_Watchdog15s_AutoResumes_96" methodname="InteractionPanelUTK_Watchdog15s_AutoResumes_96" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="1597503639" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.003318" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[InteractionPanelUTK] [94차 F4] 패널 개방 즉시 정지 — 주민 F96_Villager_Watchdog (PauseForDialogue)
+[InteractionPanelUTK] [96차 F2] 안전망 — 정지 15s 초과 자동 재개 — 주민 F96_Villager_Watchdog (누락 닫힘 경로 회복)
+]]></output>
+              </test-case>
+              <test-case id="1301" name="PlayerMovement_CameraFollowSuppressed_Gate_BlocksApplyFollowCamera_93" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.PlayerMovement_CameraFollowSuppressed_Gate_BlocksApplyFollowCamera_93" methodname="PlayerMovement_CameraFollowSuppressed_Gate_BlocksApplyFollowCamera_93" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="586072519" result="Passed" start-time="2026-10-17 01:09:04Z" end-time="2026-10-17 01:09:04Z" duration="0.109679" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[PlayerMovement] CinemachineBrain 비활성=False → 탑다운 카메라가 플레이어 추적
+[TerritoryDatabase] 산포 전역 재검증 통과 — 영지 82개 전 쌍 간격 ≥ 120m, 밴드 이탈 없음
+[NationTerrainController] 흙길 MST: 세그먼트 163개 (노드 164개)
+[TerrainGenerator] 대형 호수 추가: center=(400,300) r=180 depth=5.0 waterLevel=6.84
+[TerrainGenerator] 대형 호수 추가: center=(-560,-520) r=150 depth=4.5 waterLevel=12.32
+[TerrainGenerator] 대형 호수 추가: center=(423,906) r=130 depth=5.5 waterLevel=10.52
+[TerrainGenerator] Lake_0: center=(1339,250) r=53 baseH=8.92 depth=4.95 ringMax=10.50 waterLevel→5.47
+[TerrainGenerator] Lake_1: center=(793,93) r=50 baseH=8.01 depth=3.34 ringMax=18.67 waterLevel→6.16
+[TerrainGenerator] Lake_2: center=(-661,1191) r=44 baseH=12.64 depth=3.58 ringMax=25.47 waterLevel→10.56
+[TerrainGenerator] Lake_3: center=(1193,-804) r=50 baseH=10.99 depth=3.94 ringMax=10.66 waterLevel→8.55
+[TerrainGenerator] Lake_4: center=(-845,-312) r=53 baseH=18.45 depth=3.70 ringMax=29.22 waterLevel→16.25
+[TerrainGenerator] Lake_5: center=(-1196,-253) r=55 baseH=18.53 depth=3.30 ringMax=27.21 waterLevel→16.73
+[TerrainGenerator] Lake_6: center=(-250,391) r=40 baseH=21.15 depth=4.94 ringMax=25.35 waterLevel→17.71
+[TerrainGenerator] Lake_7: center=(-234,-372) r=48 baseH=3.14 depth=4.20 ringMax=8.94 waterLevel→0.44
+[TerrainGenerator] Lake_8: center=(1015,-550) r=58 baseH=6.10 depth=4.65 ringMax=21.66 waterLevel→2.95
+[TerrainGenerator] Lake_9: center=(58,-577) r=43 baseH=3.41 depth=3.62 ringMax=12.59 waterLevel→1.29
+[TerrainGenerator] Lake_10: center=(864,769) r=66 baseH=4.77 depth=5.00 ringMax=18.63 waterLevel→1.27
+[TerrainGenerator] Lake_11: center=(-720,288) r=65 baseH=16.99 depth=3.87 ringMax=22.47 waterLevel→14.62
+[TerrainGenerator] Lake_12: center=(-964,542) r=57 baseH=10.82 depth=4.29 ringMax=18.98 waterLevel→8.04
+[TerrainGenerator] Lake_13: center=(426,-123) r=66 baseH=10.70 depth=3.10 ringMax=17.33 waterLevel→9.09
+[TerrainGenerator] T-D2 호수 승격: center=(1339,250) r=108 depth=5.5 wl=4.90
+[TerrainGenerator] T-D2 호수 승격: center=(-661,1191) r=106 depth=4.6 wl=9.53
+[TerrainGenerator] T-D2 호수 승격: center=(-250,391) r=110 depth=5.6 wl=17.07
+[TerrainGenerator] 호수 배치 완료: 17개 (절차적 14목표 + 대형 3, 승격 3, AA2 시드 20260914)
+Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

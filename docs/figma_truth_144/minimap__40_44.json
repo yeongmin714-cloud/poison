@@ -1,0 +1,76 @@
+{
+ "id": "40:44",
+ "name": "empty-circular-minimap",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 6293,
+ "ay": 338,
+ "w": 264.0,
+ "h": 264.0,
+ "d": 0,
+ "strokeW": 1.2,
+ "c": [
+  {
+   "id": "40:45",
+   "name": "bezel-shadow",
+   "type": "ELLIPSE",
+   "x": null,
+   "y": null,
+   "ax": 6293,
+   "ay": 338,
+   "w": 264.0,
+   "h": 264.0,
+   "d": 1,
+   "fills": [
+    "#FFFFFF/1.0"
+   ],
+   "strokes": [
+    "#E5E7EB/1.0"
+   ],
+   "strokeW": 1.2,
+   "fx": [
+    "DROP_SHADOW:2.4000000953674316:#111827/0.039",
+    "DROP_SHADOW:33.60000228881836:#111827/0.078"
+   ]
+  },
+  {
+   "id": "40:46",
+   "name": "bezel-outer-ring",
+   "type": "ELLIPSE",
+   "x": null,
+   "y": null,
+   "ax": 6297,
+   "ay": 343,
+   "w": 254.4,
+   "h": 254.4,
+   "d": 1,
+   "fills": [
+    "#000000/1.0@0.0"
+   ],
+   "strokes": [
+    "#D1D5DB/1.0"
+   ],
+   "strokeW": 1.2
+  },
+  {
+   "id": "40:47",
+   "name": "bezel-inner-ring",
+   "type": "ELLIPSE",
+   "x": null,
+   "y": null,
+   "ax": 6305,
+   "ay": 350,
+   "w": 240.0,
+   "h": 240.0,
+   "d": 1,
+   "fills": [
+    "#000000/1.0@0.0"
+   ],
+   "strokes": [
+    "#E5E7EB/1.0"
+   ],
+   "strokeW": 0.6
+  }
+ ]
+}

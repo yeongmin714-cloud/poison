@@ -33,6 +33,9 @@ namespace ProjectName.Systems
         // [P26] 활성 이동 명령 지속 마커 — 소유 병사 도착/취소/사망 시 자동 소멸 추적용
         private readonly List<CommandMarker> _activeMoveMarks = new List<CommandMarker>();
 
+        // [무번호 28-S3] 스태거 세대 가드 — 새 명령이 오면 대기 중 지연분 폐기(결정론)
+        private int _moveStaggerGeneration;
+
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -73,6 +76,8 @@ namespace ProjectName.Systems
         /// </summary>
         public void IssueRightClickCommand(Vector3 mousePosition, bool ctrl = false)
         {
+            // [104차 F1] 건설 홀로그램 배치 중 — 우클릭 명령 무시 (배치 클릭과 충돌 방지)
+            if (ConstructionHologram.IsPlacementActive) return;
             // [P26] Ctrl+우클릭 미선택 폴백: 선택 병사가 없으면 전체 소속(포섭) 병사로 일괄 이동/공격.
             //   비Ctrl 우클릭은 선택 필수 유지(기존 확산 형성 이동) — 사용자 요구 "Ctrl+우클릭=이동" 정확 반영.
             var originalSel = GetSelectedGuards();
@@ -189,7 +194,8 @@ namespace ProjectName.Systems
             {
                 if (guard != null && guard.IsAlive)
                 {
-                    guard.SetCommandTarget(attackPos, true);
+                    if (targetTransform != null) guard.SetExplicitAttackTarget(target, attackPos);
+                    else guard.SetCommandTarget(attackPos, true);
                     guard.SetInCombat(true);
                     AttackLinkFX.Spawn(guard.transform.position, attackPos);   // [15차 B4] 연결선
                     count++;
@@ -212,7 +218,8 @@ namespace ProjectName.Systems
             {
                 if (guard != null && guard.IsAlive)
                 {
-                    guard.SetCommandTarget(attackPos, true);
+                    if (targetTransform != null) guard.SetExplicitAttackTarget(target, attackPos);
+                    else guard.SetCommandTarget(attackPos, true);
                     guard.SetInCombat(true);
                     count++;
                 }
@@ -233,47 +240,85 @@ namespace ProjectName.Systems
         /// <summary>이동 명령 본체 — 화면 레이캐스트 경로와 월드 직행(미니맵) 경로가 공유.</summary>
         private void IssueMoveCommandCore(IReadOnlyList<GuardPlaceholder> selected, Vector3 position)
         {
-            // 분산 지점 수 = 생존 병사 수 (죽은 병사는 제외)
-            int aliveCount = 0;
+            var aliveGuards = new List<GuardPlaceholder>();
             foreach (var guard in selected)
             {
-                if (guard != null && guard.IsAlive) aliveCount++;
+                if (guard != null && guard.IsAlive) aliveGuards.Add(guard);
+            }
+            if (aliveGuards.Count == 0)
+            {
+                Debug.Log("[RTSCommandSystem] 이동 명령 대상 없음(생존 0)");
+                return;
             }
 
-            Vector3[] spread = FormationSpread.Distribute(position, aliveCount);
+            // 분산 지점 수 = 생존 병사 수 (죽은 병사는 제외)
+            Vector3[] spread = FormationSpread.Distribute(position, aliveGuards.Count);
 
-            int count = 0;
             ClearActiveMoveMarks();   // [P26] 새 이동 명령 → 기존 지속 마커 정리
-            foreach (var guard in selected)
+            // [무번호 28-S3] 그룹 이동 스태거 — 유닛별 0.04s 리듬 발화(부대 이동감). 동기화 계열은 기존 목적 유지(미적용).
+            //   세대 가드: 대기 중 새 명령이 오면 지연분 전부 폐기(만료 명령이 늦게 덮어쓰는 것 방지).
+            //   폴백: 컴포넌트 비활성 시 코루틴 불가 → 기존 동기 경로 즉시 발화(기존 동작 등가).
+            int generation = ++_moveStaggerGeneration;
+            if (!isActiveAndEnabled)
             {
-                if (guard != null && guard.IsAlive)
+                for (int i = 0; i < aliveGuards.Count; i++)
                 {
-                    guard.SetCommandTarget(spread[count], false);
-                    TrackMoveMark(guard, spread[count]);   // [P26] 병사별 도착까지 지속 링
-                    // [16차 사용자 요구] 경로 점 제거 — 최종 지점 링만 표시
-                    count++;
+                    aliveGuards[i].SetCommandTarget(spread[i], false);
                 }
             }
-            Debug.Log($"[RTSCommandSystem] {count}명 이동 명령 → {position} (링 분산 {spread.Length}지점)");
+            else
+            {
+                for (int i = 0; i < aliveGuards.Count; i++)
+                {
+                    StartCoroutine(DelayedMoveCommand(aliveGuards[i], spread[i], i * StaggerStepSeconds, generation));
+                }
+            }
+            // [16차 사용자 요구] 경로 점 제거 — 최종 지점 링만 표시
+            // [51차 사용자 요구 — 이동 링 1개] 병사별 지속 링 N개 폐기 → 명령 지점(클릭점)에 **링 1개**.
+            //   그룹 소유 — 전원 도착(명령 해제)/사망 시 소멸(CommandMarker 그룹 판정).
+            var mark = CommandMarker.Spawn(position, null, null, CommandRingPresentation.MoveMarkerScale, aliveGuards);
+            if (mark != null) _activeMoveMarks.Add(mark);
+            Debug.Log($"[RTSCommandSystem] {aliveGuards.Count}명 이동 명령 → {position} (링 1개 — 분산 {spread.Length}지점)");
         }
 
+        /// <summary>[무번호 28-S3] 유닛별 지연 발화 — 인덱스 기반 결정론 지연(delay = index × StaggerStepSeconds), 세대 불일치 시 폐기.</summary>
+        private System.Collections.IEnumerator DelayedMoveCommand(GuardPlaceholder guard, Vector3 position, float delay, int generation)
+        {
+            if (delay > 0f) yield return new WaitForSeconds(delay);   // 결정론 지연(인덱스 기반 — Random 0건)
+            if (generation != _moveStaggerGeneration) yield break;    // 세대 불일치 — 폐기
+            if (guard == null) yield break;
+            guard.SetCommandTarget(position, false);
+        }
+
+        /// <summary>[무번호 28-S3] 스태거 간격(초) — 유닛당 리듬 간격(계획서 확정값 0.04s).</summary>
+        private const float StaggerStepSeconds = 0.04f;
+
         /// <summary>
-        /// 일제 이동 명령 (Ctrl+우클릭) — 모든 병사가 동일한 지점으로 이동
+        /// 일제 이동 명령 (Ctrl+우클릭) — [51차 사용자 요구] 동일 지점이어도 **겹침 금지**: 전원 동일 좌표 대신
+        /// FormationSpread 분산 슬롯 배정(기본 이동과 동일 규칙). 링도 명령 지점 1개만.
         /// </summary>
         private void IssueSynchronizedMoveCommand(IReadOnlyList<GuardPlaceholder> selected, Vector3 position)
         {
-            int count = 0;
-            ClearActiveMoveMarks();   // [P26] 새 이동 명령 → 기존 지속 마커 정리
+            var aliveGuards = new List<GuardPlaceholder>();
             foreach (var guard in selected)
             {
-                if (guard != null && guard.IsAlive)
-                {
-                    guard.SetCommandTarget(position, false);
-                    TrackMoveMark(guard, position);   // [P26] 동일 지점 — 전원 도착까지 링 잔존
-                    count++;
-                }
+                if (guard != null && guard.IsAlive) aliveGuards.Add(guard);
             }
-            Debug.Log($"[RTSCommandSystem] {count}명 일제 이동 명령 → {position}");
+            if (aliveGuards.Count == 0)
+            {
+                Debug.Log("[RTSCommandSystem] 일제 이동 명령 대상 없음(생존 0)");
+                return;
+            }
+
+            Vector3[] spread = FormationSpread.Distribute(position, aliveGuards.Count);
+            ClearActiveMoveMarks();   // [P26] 새 이동 명령 → 기존 지속 마커 정리
+            for (int i = 0; i < aliveGuards.Count; i++)
+            {
+                aliveGuards[i].SetCommandTarget(spread[i], false);
+            }
+            var mark = CommandMarker.Spawn(position, null, null, CommandRingPresentation.MoveMarkerScale, aliveGuards);
+            if (mark != null) _activeMoveMarks.Add(mark);
+            Debug.Log($"[RTSCommandSystem] {aliveGuards.Count}명 일제 이동 명령 → {position} (링 1개 — 분산 적용, 겹침 금지)");
         }
 
         // ===== [P26] 지속 이동 마커 관리 =====
@@ -305,13 +350,8 @@ namespace ProjectName.Systems
             RTSCommandFeedback.PlayMoveAck();
         }
 
-        /// <summary>병사별 목표 지점에 지속 원형 링 표시(도착/취소/사망 시 자동 소멸).</summary>
-        private void TrackMoveMark(GuardPlaceholder guard, Vector3 targetPos)
-        {
-            // [2026-10-11 사용자 요구] 이동 포인트 링 = 현행의 절반 + 파란 액센트(MoveTargetColor 변경 동행).
-            var mark = CommandMarker.Spawn(targetPos, null, guard, CommandRingPresentation.MoveMarkerScale);   // persistent
-            if (mark != null) _activeMoveMarks.Add(mark);
-        }
+        /// <summary>[51차 폐기] 병사별 지속 링 스폰 — 이동 링 1개 요구로 IssueMoveCommandCore/
+        ///   IssueSynchronizedMoveCommand가 명령 지점 그룹 링 1개를 직접 스폰. 잔존 호출부 없음.</summary>
 
         /// <summary>모든 활성 지속 마커 제거.</summary>
         private void ClearActiveMoveMarks()

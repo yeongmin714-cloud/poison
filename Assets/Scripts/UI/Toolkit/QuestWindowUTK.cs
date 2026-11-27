@@ -112,6 +112,16 @@ namespace ProjectName.UI.Toolkit
             public static readonly Color Stroke   = Hex(0x2E343D);   // 테두리/구분선
             public static readonly Color Success  = Hex(0x3FB950);   // success 그린 — 완료
 
+            // [144차 Figma 93:230 진실치] 신규 토큰 — 의미색 아님(프레임 고정색).
+            public static readonly Color GreenMet = Hex(0x39D353);   // 93:362 목표 달성 그린
+            public static readonly Color Purple   = Hex(0xBC8CFF);   // 93:345 배지/93:392 전설 등급 퍼플
+            public static readonly Color Orange   = Hex(0xFF9E2C);   // 93:414 Rare 등급 오렌지
+            /// <summary>같은 RGB에 알파만 덮어쓴 색 — Figma @알파 성분 대조용.</summary>
+            public static Color WithAlpha(Color c, float a) => new Color(c.r, c.g, c.b, a);
+            public static readonly Color SlotFillSel  = WithAlpha(Hex(0xFFFFFF), 0.078f);  // 93:256 선택 슬롯/게이지 트랙
+            public static readonly Color SlotFill     = WithAlpha(Hex(0xFFFFFF), 0.02f);   // 93:269 비선택 슬롯/카드 배경
+            public static readonly Color BorderChrome = WithAlpha(Hex(0x30363D), 0.502f);  // 93:230 공유 크롬 스트로크
+
             private static Color Hex(uint rgb) =>
                 new Color32((byte)((rgb >> 16) & 0xFF), (byte)((rgb >> 8) & 0xFF), (byte)(rgb & 0xFF), 0xFF);
         }
@@ -204,7 +214,7 @@ namespace ProjectName.UI.Toolkit
         private static void ApplyDarkSlotStyle(VisualElement slot)
         {
             if (slot == null) return;
-            // [Figma 93:230 패널 글래스] #161B22@0.85(사용자 조정) + #30363D@0.5 1.2px + r14.4
+            // [Figma 93:230 패널 글래스] #161B22@0.702(UTKTheme.GlassPanelFill — 144차 알파 D1 통일) + #30363D@0.502 1.2px + r14.4
             slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);
             slot.style.backgroundColor = new StyleColor(UTKTheme.GlassPanelFill);
             slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = UTKTheme.GlassStrokeWidth;
@@ -217,10 +227,13 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 레퍼런스 =====
         private ScrollView _list;   // [Phase2a] readonly 제거 — BuildListZone()에서 초기화(독립 창 분리 기반)
-        private Label _statActive, _statCompleted, _statAvailable, _statChain, _summaryFooter;
+        private Label _statActive, _statCompleted, _statAvailable, _statChain, _summaryFooter, _summaryFooterRight;
         private VisualElement _listPanel, _detailPanel, _rewardPanel;
         private VisualElement _canvasLayoutRoot;
         private Label _detailHeroTitle, _detailHeroTag, _detailStory;
+        private VisualElement _detailHeroBadge;   // [144차 P1 #55] 히어로 우측 등급 배지 pill
+        private Label _detailHeroBadgeText;
+        private bool _trackToggleOn = true;       // [144차 P0 #80] 토글 시각 상태(API 부재 — 시각 우선)
         private VisualElement _objectivesList;
         private VisualElement _rewardsList;
         private readonly List<Button> _filterTabs = new List<Button>();
@@ -228,14 +241,17 @@ namespace ProjectName.UI.Toolkit
 
         private QuestWindowUTK() : base("📋 퀘스트", new Vector2(WinW, WinH), UTKWindowChrome.Frameless)
         {
-            // [Frameless] 배경 투명 — 게임 화면이 비치고, 아래 3개 판넬(목록/상세/보상)만 떠 보임.
+            // [144차 P0 #2] Figma 93:230 루트 디밍 레이어 — 풀캔버스 #0B0E14@0.82 배경.
+            //  구 "게임 화면 비침" 의도 주석은 Figma 진실치(93:230 fills #0B0E14@0.82 + IMAGE)로 대체됨.
+            //  호스트(window) 자체는 투명 유지(RuntimePanelRoots 계약: host alpha 0 + content childCount 3) —
+            //  디밍은 _content 배경으로 구현(별도 자식 레이어 추가 금지).
             _content.style.flexGrow = 1f;
-            // _content hosts only the three positioned panel roots; its parent window stays
-            // full-screen and transparent so the game remains visible around the overlays.
             style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
             style.backgroundImage = new StyleBackground(StyleKeyword.None);
             _content.style.position = Position.Relative;
-            _content.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            _content.style.backgroundColor = new StyleColor(GitHubDark.WithAlpha(GitHubDark.BgBase, 0.82f));
+            // [144차 P1 #6 기록] 패널 fx(BACKGROUND_BLUR 36 + DROP_SHADOW 38.4 #000@0.251)는 UTK 런타임
+            //  인라인 스타일 미지원 — 기록만(블러/그림자 미구현).
             // [Phase2a] 3영역 빌더를 메서드로 추출 (동작 0 변화 — 독립 창 승격의 기반)
             BuildListZone();
             BuildDetailZone();
@@ -305,9 +321,10 @@ namespace ProjectName.UI.Toolkit
             listCol.style.paddingTop = 24f;
             listCol.style.paddingBottom = 24f;
             ApplyDarkSlotStyle(listCol);     // 판넬 배경/테두리(독립 창처럼)
+            UTKTheme.AddCornerDecals(listCol, 14.4f, 1.8f);   // [144차 P0 #7] 패널 코너 데칼 4개(93:232~243, outside 모드)
             _content.Add(listCol);
 
-            listCol.Add(BuildPanelBar("퀘스트 목록", "QUEST DECK", GitHubDark.Gold));
+            listCol.Add(BuildPanelBar("퀘스트 창", "QUEST DECK", GitHubDark.TextMain));   // [144차 P1 #10/#13] 제목 텍스트+색 정합
 
             // 필터 탭 [진행 중][완료]
             var tabRow = new VisualElement();
@@ -333,9 +350,16 @@ namespace ProjectName.UI.Toolkit
             footerRow.style.height = 34.4f;
             footerRow.style.flexShrink = 0f;
             footerRow.style.marginTop = 18f;
-            _summaryFooter = MkLabel("동시 추적 제한 2 / 5 개 등록", UTKTheme.FontRowLabel, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 15.6
+            // [144차 P1 #50] 푸터 보더 — #30363D@0.502 (93:321 strokes)
+            footerRow.style.borderTopWidth = footerRow.style.borderBottomWidth = footerRow.style.borderLeftWidth = footerRow.style.borderRightWidth = 1.2f;
+            footerRow.style.borderTopColor = footerRow.style.borderBottomColor = footerRow.style.borderLeftColor = footerRow.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
+            // [144차 P1 #47] 푸터 2요소 분리 — 좌 "동시 추적 가능 제한"(93:323) + 우 "N / M 개 등록됨"(93:324)
+            _summaryFooter = MkLabel("동시 추적 가능 제한", UTKTheme.FontRowLabel, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [Figma] 15.6/400
             _summaryFooter.style.flexGrow = 1f;
             footerRow.Add(_summaryFooter);
+            _summaryFooterRight = MkLabel("0 / 5 개 등록됨", UTKTheme.FontRowLabel, GitHubDark.Accent, TextAnchor.MiddleRight);   // [144차 P1 #49] 15.6/700 #58A6FF — Geist Mono 에셋 부재, UIFont 폴백 기록
+            _summaryFooterRight.style.unityFontStyleAndWeight = FontStyle.Bold;
+            footerRow.Add(_summaryFooterRight);
             listCol.Add(footerRow);
         }
 
@@ -355,9 +379,10 @@ namespace ProjectName.UI.Toolkit
             _detailPanel.style.paddingTop = 24f;
             _detailPanel.style.paddingBottom = 24f;
             ApplyDarkSlotStyle(_detailPanel);
+            UTKTheme.AddCornerDecals(_detailPanel, 14.4f, 1.8f);   // [144차 P0 #7] 패널 코너 데칼 4개(93:326~337)
             _content.Add(_detailPanel);
 
-            _detailPanel.Add(BuildPanelBar("임무 상세", "OBJECTIVE", GitHubDark.Accent));
+            _detailPanel.Add(BuildPanelBar("줄거리", "TACTICAL INTEL", GitHubDark.TextMain));   // [144차 P1 #11/#13/#14] 텍스트/색/부제 정합
 
             var hero = new VisualElement { name = "QuestHeroHeader" };
             hero.style.flexDirection = FlexDirection.Column;
@@ -367,11 +392,42 @@ namespace ProjectName.UI.Toolkit
             hero.style.paddingLeft = 14.4f;
             hero.style.paddingRight = 14.4f;
             hero.style.paddingTop = 14.4f;
-            _detailHeroTitle = MkLabel("퀘스트를 선택하세요", UTKTheme.FontDisplayName, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 26.4/700
+            // [144차 P1 #53] 히어로 카드 — #FFFFFF@0.02 + 스트로크 #30363D@0.502 1.2 + r9.6 + pad 14.4 4면(93:342)
+            hero.style.paddingBottom = 14.4f;
+            hero.style.backgroundColor = new StyleColor(GitHubDark.SlotFill);
+            hero.style.borderTopWidth = hero.style.borderBottomWidth = hero.style.borderLeftWidth = hero.style.borderRightWidth = 1.2f;
+            hero.style.borderTopColor = hero.style.borderBottomColor = hero.style.borderLeftColor = hero.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
+            hero.style.borderTopLeftRadius = 9.6f;
+            hero.style.borderTopRightRadius = 9.6f;
+            hero.style.borderBottomLeftRadius = 9.6f;
+            hero.style.borderBottomRightRadius = 9.6f;
+            // 제목행 — 좌 제목 + 우 등급 배지(93:343 space-between)
+            var heroTitleRow = new VisualElement { name = "HeroTitleRow" };
+            heroTitleRow.style.flexDirection = FlexDirection.Row;
+            heroTitleRow.style.alignItems = Align.Center;
+            heroTitleRow.style.height = 31f;
+            _detailHeroTitle = MkLabel("퀘스트를 선택하세요", UTKTheme.FontDisplayName, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 26.4/700 + [144차 P1 #54] 색 #F0F6FC 고정
             _detailHeroTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             _detailHeroTitle.style.height = 31f;
-            hero.Add(_detailHeroTitle);
-            _detailHeroTag = MkLabel("", 12, GitHubDark.Accent, TextAnchor.MiddleLeft);
+            _detailHeroTitle.style.flexGrow = 1f;
+            _detailHeroTitle.style.minWidth = 0f;
+            heroTitleRow.Add(_detailHeroTitle);
+            // [144차 P1 #55] 우측 배지 pill — #BC8CFF r4.8 pad 9.6/2.4, 텍스트 12/700 #0B0E14(93:345/346, 실데이터 텍스트)
+            _detailHeroBadge = new VisualElement { name = "HeroBadge" };
+            _detailHeroBadge.style.backgroundColor = new StyleColor(GitHubDark.Purple);
+            _detailHeroBadge.style.borderTopLeftRadius = 4.8f;
+            _detailHeroBadge.style.borderTopRightRadius = 4.8f;
+            _detailHeroBadge.style.borderBottomLeftRadius = 4.8f;
+            _detailHeroBadge.style.borderBottomRightRadius = 4.8f;
+            _detailHeroBadge.style.paddingLeft = _detailHeroBadge.style.paddingRight = 9.6f;
+            _detailHeroBadge.style.paddingTop = _detailHeroBadge.style.paddingBottom = 2.4f;
+            _detailHeroBadge.style.flexShrink = 0f;
+            _detailHeroBadgeText = MkLabel("", 12, GitHubDark.BgBase, TextAnchor.MiddleCenter);
+            _detailHeroBadgeText.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _detailHeroBadge.Add(_detailHeroBadgeText);
+            heroTitleRow.Add(_detailHeroBadge);
+            hero.Add(heroTitleRow);
+            _detailHeroTag = MkLabel("", 15.6f, GitHubDark.TextSub, TextAnchor.MiddleLeft);   // [144차 P0 #56] 히어로 부제 행(93:347) — tag 병합 정보를 부제로 재배치
             _detailHeroTag.style.marginTop = 4.8f;
             _detailHeroTag.style.height = 18f;
             hero.Add(_detailHeroTag);
@@ -385,10 +441,20 @@ namespace ProjectName.UI.Toolkit
             storySection.style.paddingLeft = 14.4f;
             storySection.style.paddingRight = 14.4f;
             storySection.style.paddingTop = 14.4f;
-            var storyH = MkLabel("작전 브리핑", 14.4f, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            // [144차 P1 #57] StorySection 카드 — #FFFFFF@0.02 + 스트로크 + r9.6 + pad 14.4 4면(93:350)
+            storySection.style.paddingBottom = 14.4f;
+            storySection.style.backgroundColor = new StyleColor(GitHubDark.SlotFill);
+            storySection.style.borderTopWidth = storySection.style.borderBottomWidth = storySection.style.borderLeftWidth = storySection.style.borderRightWidth = 1.2f;
+            storySection.style.borderTopColor = storySection.style.borderBottomColor = storySection.style.borderLeftColor = storySection.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
+            storySection.style.borderTopLeftRadius = 9.6f;
+            storySection.style.borderTopRightRadius = 9.6f;
+            storySection.style.borderBottomLeftRadius = 9.6f;
+            storySection.style.borderBottomRightRadius = 9.6f;
+            var storyH = MkLabel("작전 요약 브리핑", 15.6f, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [144차 P1 #58] 15.6/700 #58A6FF(93:351)
+            storyH.style.unityFontStyleAndWeight = FontStyle.Bold;
             storyH.style.height = 18f;
             storySection.Add(storyH);
-            _detailStory = MkLabel("—", 13.2f, GitHubDark.TextSub, TextAnchor.UpperLeft);
+            _detailStory = MkLabel("—", 15.6f, GitHubDark.TextSub, TextAnchor.UpperLeft);   // [144차 P1 #59] 15.6/400 #8B949E(93:352) — lineHeight 21.6은 UTK 미지원 폰트축 기록
             _detailStory.style.whiteSpace = WhiteSpace.Normal;
             _detailStory.style.height = 87f;
             _detailStory.style.marginTop = 7.2f;
@@ -400,7 +466,8 @@ namespace ProjectName.UI.Toolkit
             objectivesSection.style.flexGrow = 1f;
             objectivesSection.style.minHeight = 0f;
             objectivesSection.style.marginTop = 19.2f;
-            var objH = MkLabel("달성 조건", 14.4f, GitHubDark.Gold, TextAnchor.MiddleLeft);
+            var objH = MkLabel("달성 조건", 15.6f, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [144차 P1 #61] 15.6/700 #58A6FF(93:354)
+            objH.style.unityFontStyleAndWeight = FontStyle.Bold;
             objH.style.height = 18f;
             objectivesSection.Add(objH);
 
@@ -431,9 +498,10 @@ namespace ProjectName.UI.Toolkit
             _rewardPanel.style.paddingTop = 24f;
             _rewardPanel.style.paddingBottom = 24f;
             ApplyDarkSlotStyle(_rewardPanel);
+            UTKTheme.AddCornerDecals(_rewardPanel, 14.4f, 1.8f);   // [144차 P0 #7] 패널 코너 데칼 4개(93:372~383)
             _content.Add(_rewardPanel);
 
-            _rewardPanel.Add(BuildPanelBar("보상", "REWARD", GitHubDark.Gold));
+            _rewardPanel.Add(BuildPanelBar("보상", "REWARD VAULT", GitHubDark.TextMain));   // [144차 P1 #13/#14] 제목색/부제 정합
 
             _rewardsList = new VisualElement();
             _rewardsList.name = "RewardsList";
@@ -444,6 +512,138 @@ namespace ProjectName.UI.Toolkit
             // runtime data exists; preserve the spacing without inserting placeholder copy.
             _rewardsList.style.marginTop = 87.2f;
             _rewardPanel.Add(_rewardsList);
+
+            // [144차 P0 #80/#81] DeploymentFooter(93:431~442) — TrackingRow + ButtonContainer 구축.
+            BuildDeploymentFooter();
+        }
+
+        // [144차 P0 #80/#81] DeploymentFooter — TrackingRow(레이더+라벨+토글) + ButtonContainer(포기/추적 적용).
+        //  피드백 계약: 추적/포기 API 부재(코드베이스 grep QuestMarkerSystem/TrackQuest/Minimap 추적 0히트) →
+        //  버튼은 Figma 스펙 그대로 렌더하되 disabled + 기록. 토글은 시각 우선(상태 바인딩 가능 API 부재).
+        private void BuildDeploymentFooter()
+        {
+            var footer = new VisualElement { name = "DeploymentFooter" };   // 93:431 — strokes #30363D@0.502, pt 14.4, gap 14.4
+            footer.style.flexDirection = FlexDirection.Column;
+            footer.style.flexShrink = 0f;
+            footer.style.marginTop = 19.2f;
+            footer.style.paddingTop = 14.4f;
+            footer.style.borderTopWidth = footer.style.borderBottomWidth = footer.style.borderLeftWidth = footer.style.borderRightWidth = 1.2f;
+            footer.style.borderTopColor = footer.style.borderBottomColor = footer.style.borderLeftColor = footer.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
+
+            // TrackingRow(93:432) — #FFFFFF@0.02 + 스트로크 + r9.6, space-between
+            var trackingRow = new VisualElement { name = "TrackingRow" };
+            trackingRow.style.flexDirection = FlexDirection.Row;
+            trackingRow.style.alignItems = Align.Center;
+            trackingRow.style.justifyContent = Justify.SpaceBetween;
+            trackingRow.style.height = 48f;
+            trackingRow.style.flexShrink = 0f;
+            trackingRow.style.paddingLeft = 14.4f;
+            trackingRow.style.paddingRight = 14.4f;
+            trackingRow.style.paddingTop = 9.6f;
+            trackingRow.style.paddingBottom = 9.6f;
+            trackingRow.style.backgroundColor = new StyleColor(GitHubDark.SlotFill);
+            trackingRow.style.borderTopWidth = trackingRow.style.borderBottomWidth = trackingRow.style.borderLeftWidth = trackingRow.style.borderRightWidth = 1.2f;
+            trackingRow.style.borderTopColor = trackingRow.style.borderBottomColor = trackingRow.style.borderLeftColor = trackingRow.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
+            trackingRow.style.borderTopLeftRadius = 9.6f;
+            trackingRow.style.borderTopRightRadius = 9.6f;
+            trackingRow.style.borderBottomLeftRadius = 9.6f;
+            trackingRow.style.borderBottomRightRadius = 9.6f;
+
+            var trackLeft = new VisualElement { name = "TrackLeft" };   // 93:433 — gap 9.6
+            trackLeft.style.flexDirection = FlexDirection.Row;
+            trackLeft.style.alignItems = Align.Center;
+            var radar = new VisualElement { name = "RadarIcon" };   // 93:459 벡터 16×16 → 링 근사(벡터 에셋 부재 기록)
+            radar.style.width = 19.2f;
+            radar.style.height = 19.2f;
+            radar.style.flexShrink = 0f;
+            var radarRing = new VisualElement();
+            radarRing.style.width = 16f;
+            radarRing.style.height = 16f;
+            radarRing.style.borderTopWidth = radarRing.style.borderBottomWidth = radarRing.style.borderLeftWidth = radarRing.style.borderRightWidth = 2.4f;
+            radarRing.style.borderTopColor = radarRing.style.borderBottomColor = radarRing.style.borderLeftColor = radarRing.style.borderRightColor = new StyleColor(GitHubDark.Accent);
+            radarRing.style.borderTopLeftRadius = 8f;
+            radarRing.style.borderTopRightRadius = 8f;
+            radarRing.style.borderBottomLeftRadius = 8f;
+            radarRing.style.borderBottomRightRadius = 8f;
+            radar.Add(radarRing);
+            trackLeft.Add(radar);
+            var trackLbl = MkLabel("HUD 미니맵 상 추적 활성화", UTKTheme.FontRowLabel, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [Figma] 15.6/700 (93:435)
+            trackLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
+            trackLbl.style.marginLeft = 9.6f;
+            trackLeft.Add(trackLbl);
+            trackingRow.Add(trackLeft);
+
+            var toggle = new VisualElement { name = "TogglePill" };   // 93:436 — 52.8×28.8 #58A6FF r14.4 pad 2.4
+            toggle.style.width = 52.8f;
+            toggle.style.height = 28.8f;
+            toggle.style.flexShrink = 0f;
+            toggle.style.backgroundColor = new StyleColor(GitHubDark.Accent);
+            toggle.style.borderTopLeftRadius = 14.4f;
+            toggle.style.borderTopRightRadius = 14.4f;
+            toggle.style.borderBottomLeftRadius = 14.4f;
+            toggle.style.borderBottomRightRadius = 14.4f;
+            toggle.style.paddingLeft = toggle.style.paddingRight = toggle.style.paddingTop = toggle.style.paddingBottom = 2.4f;
+            toggle.style.alignItems = Align.Center;
+            toggle.style.justifyContent = Justify.FlexEnd;   // on 상태 — knob 우측(93:436 mainAlign MAX)
+            var knob = new VisualElement { name = "ToggleKnob" };   // 93:437 Ellipse 24 #0B0E14
+            knob.style.width = 24f;
+            knob.style.height = 24f;
+            knob.style.flexShrink = 0f;
+            knob.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
+            knob.style.borderTopLeftRadius = 12f;
+            knob.style.borderTopRightRadius = 12f;
+            knob.style.borderBottomLeftRadius = 12f;
+            knob.style.borderBottomRightRadius = 12f;
+            toggle.Add(knob);
+            toggle.RegisterCallback<PointerDownEvent>(_ =>
+            {
+                // [144차 P0 #80 기록] 추적 상태 바인딩 API 부재 — 시각 우선 토글만.
+                _trackToggleOn = !_trackToggleOn;
+                toggle.style.backgroundColor = new StyleColor(_trackToggleOn ? GitHubDark.Accent : GitHubDark.PanelSub);
+                toggle.style.justifyContent = _trackToggleOn ? Justify.FlexEnd : Justify.FlexStart;
+            });
+            trackingRow.Add(toggle);
+            footer.Add(trackingRow);
+
+            // ButtonContainer(93:438) — gap 9.6
+            var btnRow = new VisualElement { name = "ButtonContainer" };
+            btnRow.style.flexDirection = FlexDirection.Row;
+            btnRow.style.marginTop = 14.4f;
+            btnRow.style.flexShrink = 0f;
+            var abort = new Button(() => Debug.Log("[QuestWindowUTK] 추적 포기 — 추적 API 부재로 실행 불가(피드백 계약 기록)")) { name = "AbortButton", text = "포기" };
+            abort.style.width = 212.4f;   // 93:439 스트로크 온리
+            abort.style.height = 53.6f;
+            abort.style.flexShrink = 0f;
+            abort.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            abort.style.borderTopWidth = abort.style.borderBottomWidth = abort.style.borderLeftWidth = abort.style.borderRightWidth = 1.2f;
+            abort.style.borderTopColor = abort.style.borderBottomColor = abort.style.borderLeftColor = abort.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
+            abort.style.borderTopLeftRadius = 7.2f;
+            abort.style.borderTopRightRadius = 7.2f;
+            abort.style.borderBottomLeftRadius = 7.2f;
+            abort.style.borderBottomRightRadius = 7.2f;
+            abort.style.color = new StyleColor(GitHubDark.TextSub);   // 93:440
+            abort.style.fontSize = 16.8f;
+            abort.style.unityFontStyleAndWeight = FontStyle.Bold;
+            abort.SetEnabled(false);   // [144차 P0 #81 기록] 추적 API 부재 — disabled + 기록
+            btnRow.Add(abort);
+            var apply = new Button(() => Debug.Log("[QuestWindowUTK] 추적 적용 — 추적 API 부재로 실행 불가(피드백 계약 기록)")) { name = "ApplyButton", text = "추적 적용" };
+            apply.style.width = 210f;   // 93:441
+            apply.style.height = 53.6f;
+            apply.style.flexShrink = 0f;
+            apply.style.backgroundColor = new StyleColor(GitHubDark.Accent);
+            apply.style.borderTopLeftRadius = 7.2f;
+            apply.style.borderTopRightRadius = 7.2f;
+            apply.style.borderBottomLeftRadius = 7.2f;
+            apply.style.borderBottomRightRadius = 7.2f;
+            apply.style.color = new StyleColor(GitHubDark.BgBase);   // 93:442
+            apply.style.fontSize = 16.8f;
+            apply.style.unityFontStyleAndWeight = FontStyle.Bold;
+            apply.SetEnabled(false);   // [144차 P0 #81 기록] 추적 API 부재 — disabled + 기록
+            btnRow.Add(apply);
+            footer.Add(btnRow);
+
+            _rewardPanel.Add(footer);
+            Debug.Log("[QuestWindowUTK] DeploymentFooter 구성 — 추적/포기 API 부재로 버튼 disabled(피드백 계약 기록), 토글은 시각 우선");
         }
 
         private void AddFilterTab(VisualElement parent, QuestFilter filter, string label)
@@ -456,8 +656,13 @@ namespace ProjectName.UI.Toolkit
             tab.style.flexGrow = 1f;
             tab.style.height = 36.2f;
             tab.style.minWidth = 0f;
-            tab.style.marginRight = filter == QuestFilter.Completed ? 0f : 8.4f;
+            tab.style.marginRight = filter == QuestFilter.Completed ? 0f : 4.8f;   // [144차 P1 #17] 탭 간격 gap 4.8(93:248)
             StyleButton(tab, UTKButton.Variant.Secondary);
+            // [144차 P1 #20] 탭 r7.2(93:249/251) — StyleButton r6 오버라이드
+            tab.style.borderTopLeftRadius = 7.2f;
+            tab.style.borderTopRightRadius = 7.2f;
+            tab.style.borderBottomLeftRadius = 7.2f;
+            tab.style.borderBottomRightRadius = 7.2f;
             _filterTabs.Add(tab);
             parent.Add(tab);
         }
@@ -473,9 +678,13 @@ namespace ProjectName.UI.Toolkit
             bar.style.flexShrink = 0f;
             bar.style.paddingLeft = 0f;
             bar.style.paddingRight = 0f;
-            // [Figma 93:230 PanelHeader] 배경/테두리 없음 — 제목 21.6/700(accent) + 영문 13.2/500 + 닫기 31.2
+            // [Figma 93:230 PanelHeader] 배경 없음 — 제목 21.6/700 + 영문 13.2/500 + 닫기 31.2
             bar.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
-            bar.style.borderTopWidth = bar.style.borderBottomWidth = bar.style.borderLeftWidth = bar.style.borderRightWidth = 0f;
+            bar.style.borderTopWidth = bar.style.borderLeftWidth = bar.style.borderRightWidth = 0f;
+            // [144차 P1 #9] 헤더 하단 구분선 — #30363D@0.502 (93:244 strokes)
+            bar.style.borderBottomWidth = 1.2f;
+            bar.style.borderBottomColor = new StyleColor(GitHubDark.BorderChrome);
+            bar.style.borderTopColor = bar.style.borderLeftColor = bar.style.borderRightColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
             var titleLbl = MkLabel(title, UTKTheme.FontTitle, accent, TextAnchor.MiddleLeft);
             titleLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
             titleLbl.style.flexGrow = 1f;
@@ -483,6 +692,7 @@ namespace ProjectName.UI.Toolkit
             bar.Add(titleLbl);
             var enLbl = MkLabel(enTitle, UTKTheme.FontSubtitle, GitHubDark.TextSub, TextAnchor.MiddleLeft);
             enLbl.style.unityFontStyleAndWeight = FontStyle.Normal;
+            enLbl.style.letterSpacing = 1.2f;   // [144차 P1 #14] letterSpacing 1.2 — 500 Medium은 FontStyle 미지원 폰트축 기록
             enLbl.style.marginLeft = 12f;
             enLbl.style.marginTop = 5f;
             enLbl.style.flexShrink = 0f;
@@ -589,8 +799,11 @@ namespace ProjectName.UI.Toolkit
             if (_statChain != null) _statChain.text = $"🔗 활성 체인: {chains.Count}";
 
             int tracked = active.Count + chains.Count + (int)Mathf.Min(5, available.Count);
+            // [144차 P1 #47/#49] 2요소 분리 — 좌 고정 라벨 / 우 "{tracked} / 5 개 등록됨"(Geist Mono 폴백 기록)
             if (_summaryFooter != null)
-                _summaryFooter.text = $"등록: 수락가능 {available.Count} / 진행 {active.Count} / 완료 {completed.Count} / 체인 {chains.Count}  (추적 제한 2/5)";
+                _summaryFooter.text = "동시 추적 가능 제한";
+            if (_summaryFooterRight != null)
+                _summaryFooterRight.text = $"{tracked} / 5 개 등록됨";
 
             // 목록 재조립 (필터 적용)
             _list.Clear();
@@ -610,7 +823,7 @@ namespace ProjectName.UI.Toolkit
             {
                 for (int i = 0; i < active.Count; i++)
                 {
-                    _list.Add(BuildQuestBox(active[i], QuestState.Active));
+                    _list.Add(BuildQuestBox(active[i], QuestState.Active, active[i].questId == _selectedQuestId));
                     any = true;
                 }
             }
@@ -619,7 +832,7 @@ namespace ProjectName.UI.Toolkit
             {
                 for (int i = 0; i < completed.Count; i++)
                 {
-                    _list.Add(BuildQuestBox(completed[i], QuestState.Completed));
+                    _list.Add(BuildQuestBox(completed[i], QuestState.Completed, completed[i].questId == _selectedQuestId));
                     any = true;
                 }
             }
@@ -629,7 +842,7 @@ namespace ProjectName.UI.Toolkit
             {
                 for (int i = 0; i < available.Count; i++)
                 {
-                    _list.Add(BuildQuestBox(available[i], QuestState.Available));
+                    _list.Add(BuildQuestBox(available[i], QuestState.Available, available[i].questId == _selectedQuestId));
                     any = true;
                 }
             }
@@ -686,15 +899,19 @@ namespace ProjectName.UI.Toolkit
                 Button b = _filterTabs[i];
                 bool active = (i == 0 && _filter == QuestFilter.Active)
                     || (i == 1 && _filter == QuestFilter.Completed);
+                // [144차 P1 #18/#19] 활성탭 — bg #58A6FF + 텍스트 #0B0E14 / 비활성탭 — 무배경 + 스트로크 #30363D@0.502 + 텍스트 #8B949E
+                b.style.borderTopWidth = b.style.borderBottomWidth = b.style.borderLeftWidth = b.style.borderRightWidth = 1.2f;
                 if (active)
                 {
                     b.style.backgroundColor = GitHubDark.Accent;
-                    b.style.color = GitHubDark.Panel;
+                    b.style.color = GitHubDark.BgBase;
+                    b.style.borderTopColor = b.style.borderBottomColor = b.style.borderLeftColor = b.style.borderRightColor = new StyleColor(GitHubDark.Accent);
                 }
                 else
                 {
-                    b.style.backgroundColor = GitHubDark.PanelSub;
-                    b.style.color = GitHubDark.TextMain;
+                    b.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+                    b.style.color = GitHubDark.TextSub;
+                    b.style.borderTopColor = b.style.borderBottomColor = b.style.borderLeftColor = b.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
                 }
             }
         }
@@ -779,11 +996,10 @@ namespace ProjectName.UI.Toolkit
             return box;
         }
 
-        private VisualElement BuildQuestBox(QuestData quest, QuestState state)
+        private VisualElement BuildQuestBox(QuestData quest, QuestState state, bool selected)
         {
             var box = new VisualElement();
             box.AddToClassList("utk-slot");
-            ApplyDarkRowStyle(box);
             box.name = "QuestSlot";
             box.style.flexDirection = FlexDirection.Column;
             box.style.position = Position.Relative;
@@ -795,6 +1011,18 @@ namespace ProjectName.UI.Toolkit
             box.style.paddingBottom = 14.4f;
             box.style.paddingLeft = 14.4f;
             box.style.paddingRight = 14.4f;
+            // [144차 P1 #27/#28/#29/#30] 슬롯 스타일 — bg #FFFFFF@0.078(선택)/@0.02,
+            //  보더 #30363D@0.502 1.2(선택 #58A6FF 1.8), r9.6, 선택 하이라이트 분기(93:256/269).
+            box.style.backgroundImage = new StyleBackground(StyleKeyword.None);
+            box.style.backgroundColor = new StyleColor(selected ? GitHubDark.SlotFillSel : GitHubDark.SlotFill);
+            float slotBorderW = selected ? 1.8f : 1.2f;
+            Color slotBorderColor = selected ? GitHubDark.Accent : GitHubDark.BorderChrome;
+            box.style.borderTopWidth = box.style.borderBottomWidth = box.style.borderLeftWidth = box.style.borderRightWidth = slotBorderW;
+            box.style.borderTopColor = box.style.borderBottomColor = box.style.borderLeftColor = box.style.borderRightColor = new StyleColor(slotBorderColor);
+            box.style.borderTopLeftRadius = 9.6f;
+            box.style.borderTopRightRadius = 9.6f;
+            box.style.borderBottomLeftRadius = 9.6f;
+            box.style.borderBottomRightRadius = 9.6f;
             string qid = quest.questId;
             box.RegisterCallback<PointerDownEvent>(_ => { _selectedQuestId = qid; RefreshDisplay(); });
 
@@ -826,7 +1054,10 @@ namespace ProjectName.UI.Toolkit
             var pill = MkLabel(categoryStr, UTKTheme.FontBadge, GitHubDark.TextSub, TextAnchor.MiddleCenter);   // [Figma] 12/700
             pill.style.unityFontStyleAndWeight = FontStyle.Bold;
             pill.name = "CategoryPill";
-            pill.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
+            // [144차 P1 #34] Pill 배경/보더 — #0B0E14 + #30363D@0.502/1.2 (93:259)
+            pill.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
+            pill.style.borderTopWidth = pill.style.borderBottomWidth = pill.style.borderLeftWidth = pill.style.borderRightWidth = 1.2f;
+            pill.style.borderTopColor = pill.style.borderBottomColor = pill.style.borderLeftColor = pill.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
             pill.style.borderTopLeftRadius = 4f;
             pill.style.borderTopRightRadius = 4f;
             pill.style.borderBottomLeftRadius = 4f;
@@ -837,9 +1068,12 @@ namespace ProjectName.UI.Toolkit
             pill.style.flexShrink = 0f;
             cardRow.Add(pill);
 
-            var levelLbl = MkLabel(quest.requiredLevel > 0 ? $"Lv.{quest.requiredLevel}" : "", UTKTheme.FontTab, GitHubDark.Accent, TextAnchor.MiddleLeft);   // [Figma] 14.4/700
+            // [144차 P1 #36] Lv 라벨 행 우측 끝 정렬(93:261) — pill 뒤 스페이서로 밀어냄
+            var lvSpacer = new VisualElement();
+            lvSpacer.style.flexGrow = 1f;
+            cardRow.Add(lvSpacer);
+            var levelLbl = MkLabel(quest.requiredLevel > 0 ? $"Lv.{quest.requiredLevel}" : "", UTKTheme.FontTab, GitHubDark.Accent, TextAnchor.MiddleRight);   // [Figma] 14.4/700
             levelLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
-            levelLbl.style.marginLeft = 6f;
             cardRow.Add(levelLbl);
 
             box.Add(cardRow);
@@ -847,9 +1081,9 @@ namespace ProjectName.UI.Toolkit
             // 제목 + 설명 — Figma CardBody region with live quest data.
             var cardBody = new VisualElement { name = "CardBody" };
             cardBody.style.flexDirection = FlexDirection.Column;
-            cardBody.style.marginTop = 4.8f;
+            cardBody.style.marginTop = 14.4f;   // [144차 P1 #38] 헤더→바디 간격 14.4(93:256 gap)
             cardBody.style.flexShrink = 0f;
-            Color questNameColor = quest.isMain ? GitHubDark.Gold : GitHubDark.Accent;
+            Color questNameColor = GitHubDark.TextMain;   // [144차 P1 #39] 카드 제목색 #F0F6FC 고정(93:263)
             var nameLabel = MkLabel(quest.questName, UTKTheme.FontCardName, questNameColor, TextAnchor.MiddleLeft);   // [Figma] 16.8/700
             nameLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             nameLabel.style.minHeight = 20f;
@@ -882,28 +1116,29 @@ namespace ProjectName.UI.Toolkit
             progRow.style.alignItems = Align.Center;
             progRow.style.height = state == QuestState.Completed ? 17f : 26f;
             progRow.style.flexShrink = 0f;
-            progRow.style.marginTop = 7.2f;
+            progRow.style.marginTop = 14.4f;   // [144차 P1 #41] 바디→게이지 간격 14.4(93:256 gap)
 
             var track = new VisualElement();
             track.name = "GaugeTrack";
             track.style.flexGrow = 1f;
             track.style.minWidth = 0f;
             track.style.height = 4.8f;
-            track.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
-            track.style.borderTopLeftRadius = 2f;
-            track.style.borderTopRightRadius = 2f;
-            track.style.borderBottomLeftRadius = 2f;
-            track.style.borderBottomRightRadius = 2f;
+            track.style.backgroundColor = new StyleColor(GitHubDark.SlotFillSel);   // [144차 P1 #42] 트랙 #FFFFFF@0.078(93:266)
+            track.style.borderTopLeftRadius = 2.4f;
+            track.style.borderTopRightRadius = 2.4f;
+            track.style.borderBottomLeftRadius = 2.4f;
+            track.style.borderBottomRightRadius = 2.4f;
 
             var fill = new VisualElement();
             fill.name = "GaugeFill";
             fill.style.height = new Length(100f, LengthUnit.Percent);
             fill.style.width = new Length(Mathf.Clamp01(prog) * 100f, LengthUnit.Percent);
-            fill.style.backgroundColor = new StyleColor(stateColor);
+            fill.style.backgroundColor = new StyleColor(GitHubDark.Accent);   // [144차 P1 #43] 게이지 필 #58A6FF 고정(93:267) — 상태색 폐기
             track.Add(fill);
             progRow.Add(track);
 
-            var pct = MkLabel($"{Mathf.RoundToInt(Mathf.Clamp01(prog) * 100f)}%", 12, GitHubDark.TextMain, TextAnchor.MiddleRight);
+            var pct = MkLabel($"{Mathf.RoundToInt(Mathf.Clamp01(prog) * 100f)}%", 13.2f, GitHubDark.Accent, TextAnchor.MiddleRight);   // [144차 P1 #44] 13.2/700 #58A6FF(93:268) — Geist Mono 에셋 부재, UIFont 폴백 기록
+            pct.style.unityFontStyleAndWeight = FontStyle.Bold;
             pct.style.width = 32f;
             pct.style.marginLeft = 6f;
             progRow.Add(pct);
@@ -974,8 +1209,10 @@ namespace ProjectName.UI.Toolkit
                     QuestChainManager.ChainProgress progress = selectedChain.Value;
                     QuestChainNode node = chain.GetNode(progress.currentNodeId);
                     _detailHeroTitle.text = string.IsNullOrEmpty(chain.chainTitle) ? chain.chainId : chain.chainTitle;
+                    _detailHeroTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [144차 P1 #54] 제목색 #F0F6FC 고정
                     int completedNodeCount = progress.completedNodeIds != null ? progress.completedNodeIds.Count : 0;
-                    _detailHeroTag.text = $"활성 퀘스트 체인  ·  노드 {completedNodeCount}/{(chain.nodes != null ? chain.nodes.Length : 0)}";
+                    _detailHeroTag.text = $"활성 퀘스트 체인  ·  노드 {completedNodeCount}/{(chain.nodes != null ? chain.nodes.Length : 0)}";   // [144차 P0 #56] 부제 행(실데이터 재배치)
+                    SetHeroBadge("체인");
                     _detailStory.text = string.IsNullOrEmpty(chain.chainDescription) ? "현재 진행 중인 퀘스트 체인입니다." : chain.chainDescription;
                     _objectivesList.Clear();
                     if (!string.IsNullOrEmpty(node.id))
@@ -1005,7 +1242,9 @@ namespace ProjectName.UI.Toolkit
                 }
 
                 _detailHeroTitle.text = "퀘스트를 선택하세요";
+                _detailHeroTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [144차 P1 #54]
                 _detailHeroTag.text = "";
+                SetHeroBadge(null);
                 _detailStory.text = "왼쪽 목록에서 퀘스트를 선택하면 상세 정보가 표시됩니다.";
                 _objectivesList.Clear();
                 RefreshRewards(new QuestData { questId = "" });
@@ -1013,8 +1252,11 @@ namespace ProjectName.UI.Toolkit
             }
 
             _detailHeroTitle.text = quest.questName;
-            _detailHeroTitle.style.color = new StyleColor(quest.isMain ? GitHubDark.Gold : GitHubDark.Accent);
+            _detailHeroTitle.style.color = new StyleColor(GitHubDark.TextMain);   // [144차 P1 #54] 제목색 #F0F6FC 고정(93:344) — isMain 색 분기 폐기
+            // [144차 P0 #56] 히어로 부제 행(93:347) — 기존 tag 병합 정보(분류/Lv/보상 요약)를 부제로 재배치(실데이터).
+            // [144차 P1 #55] 배지 pill — 실데이터 분류 텍스트 유지(93:345/346).
             _detailHeroTag.text = $"{(quest.isMain ? "주 임무" : "부 임무")}  ·  Lv.{quest.requiredLevel}  ·  {QuestRewardPreview.GetRewardSummary(quest)}";
+            SetHeroBadge(quest.isMain ? "주 임무" : "부 임무");
             _detailStory.text = string.IsNullOrEmpty(quest.description) ? "—" : quest.description;
 
             // 목표 체크리스트
@@ -1035,9 +1277,13 @@ namespace ProjectName.UI.Toolkit
             row.style.flexDirection = FlexDirection.Column;
             row.style.height = 32f;
             row.style.flexShrink = 0f;
+            row.style.marginBottom = 12f;   // [144차 P1 #60] 목표 행간 gap 12(93:353)
 
             float ratio = obj.requiredCount > 0 ? Mathf.Clamp01((float)obj.currentCount / obj.requiredCount) : (obj.IsMet ? 1f : 0f);
-            Color c = obj.IsMet ? GitHubDark.Success : GitHubDark.TextSub;
+            // [144차 P1 #64/#66/#68] met #39D353 / 대기 #58A6FF(93:456/360/362) — 축별 색 분리(기존 Success/TextSub 폐기)
+            Color markColor = obj.IsMet ? GitHubDark.GreenMet : GitHubDark.Accent;
+            Color cntColor  = obj.IsMet ? GitHubDark.GreenMet : GitHubDark.TextSub;
+            Color fillColor = obj.IsMet ? GitHubDark.GreenMet : GitHubDark.Accent;
 
             var contentRow = new VisualElement();
             contentRow.style.flexDirection = FlexDirection.Row;
@@ -1045,17 +1291,19 @@ namespace ProjectName.UI.Toolkit
             contentRow.style.height = 20f;
             row.Add(contentRow);
 
-            var mark = MkLabel(obj.IsMet ? "✓" : "○", 15.6f, c, TextAnchor.MiddleCenter);
+            var mark = MkLabel(obj.IsMet ? "✓" : "○", 15.6f, markColor, TextAnchor.MiddleCenter);
             mark.style.width = 26.4f;
             contentRow.Add(mark);
 
-            var desc = MkLabel(obj.description ?? "목표", 13.2f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
+            var desc = MkLabel(obj.description ?? "목표", 15.6f, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [144차 P1 #65] 15.6(93:359)
             desc.style.flexGrow = 1f;
             desc.style.minWidth = 0f;
             desc.style.whiteSpace = WhiteSpace.Normal;
             contentRow.Add(desc);
 
-            var cnt = MkLabel(obj.requiredCount > 0 ? $"{obj.currentCount}/{obj.requiredCount}" : (obj.IsMet ? "완료" : "진행"), 12, c, TextAnchor.MiddleRight);
+            // [144차 P1 #66] 카운트 — 15.6/700, met #39D353/unmet #8B949E, "4 / 5" 포맷(93:360, Geist Mono 폴백 기록)
+            var cnt = MkLabel(obj.requiredCount > 0 ? $"{obj.currentCount} / {obj.requiredCount}" : (obj.IsMet ? "완료" : "진행"), 15.6f, cntColor, TextAnchor.MiddleRight);
+            cnt.style.unityFontStyleAndWeight = FontStyle.Bold;
             cnt.style.width = 47f;
             contentRow.Add(cnt);
 
@@ -1065,15 +1313,15 @@ namespace ProjectName.UI.Toolkit
             track.style.width = new Length(100f, LengthUnit.Percent);
             track.style.height = 7.2f;
             track.style.marginTop = 4.8f;
-            track.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
-            track.style.borderTopLeftRadius = 3f;
-            track.style.borderTopRightRadius = 3f;
-            track.style.borderBottomLeftRadius = 3f;
-            track.style.borderBottomRightRadius = 3f;
+            track.style.backgroundColor = new StyleColor(GitHubDark.SlotFillSel);   // [144차 P1 #67] 트랙 #FFFFFF@0.078(93:361)
+            track.style.borderTopLeftRadius = 3.6f;
+            track.style.borderTopRightRadius = 3.6f;
+            track.style.borderBottomLeftRadius = 3.6f;
+            track.style.borderBottomRightRadius = 3.6f;
             var fill = new VisualElement();
             fill.style.width = new Length(Mathf.Clamp01(ratio) * 100f, LengthUnit.Percent);
             fill.style.height = new Length(100f, LengthUnit.Percent);
-            fill.style.backgroundColor = new StyleColor(c);
+            fill.style.backgroundColor = new StyleColor(fillColor);   // [144차 P1 #68] met #39D353 / unmet #58A6FF(93:362/370)
             track.Add(fill);
             row.Add(track);
 
@@ -1092,6 +1340,7 @@ namespace ProjectName.UI.Toolkit
             QuestReward reward = quest.reward;   // struct — 항상 존재, IsEmpty로 빈 판정
             bool empty = reward.IsEmpty;
 
+            // [144차 P0 #78 데이터 가드] 골드/경험치/호감도에는 등급 데이터가 없다 → 부제 행 생략(위조 금지 — 기록).
             // 골드
             if (reward.gold > 0)
                 _rewardsList.Add(BuildRewardRow($"💰 골드", $"{reward.gold:N0}", GitHubDark.Gold));
@@ -1102,7 +1351,8 @@ namespace ProjectName.UI.Toolkit
             if (reward.affinity > 0)
                 _rewardsList.Add(BuildRewardRow($"💛 호감도", $"+{reward.affinity}", GitHubDark.Success));
 
-            // 아이템 카드 — 원본은 각 아이템을 1개씩 AddItem(ItemData list), 수량은 "1x"
+            // 아이템 카드 — 원본은 각 아이템을 1개씩 AddItem(ItemData list), 수량은 "1x".
+            // [144차 P0 #78] 아이템은 ItemData.rarity 실데이터가 있으므로 등급 부제 행 렌더(등급색).
             if (reward.items != null)
             {
                 for (int i = 0; i < reward.items.Count; i++)
@@ -1111,7 +1361,8 @@ namespace ProjectName.UI.Toolkit
                     _rewardsList.Add(BuildRewardRow(
                         string.IsNullOrEmpty(it.displayName) ? it.id : it.displayName,
                         "1x",
-                        GitHubDark.Gold));
+                        RarityColor(it.rarity),
+                        RarityLabel(it.rarity)));
                 }
             }
 
@@ -1119,53 +1370,96 @@ namespace ProjectName.UI.Toolkit
                 _rewardsList.Add(MkLabel("보상 없음", 13.2f, GitHubDark.TextSub, TextAnchor.MiddleLeft));
         }
 
-        private VisualElement BuildRewardRow(string name, string value, Color accent)
+        /// <summary>[144차 P0 #78] 등급 부제 텍스트 — ItemData.rarity 실데이터(열거명) 그대로, 위조 금지.</summary>
+        private static string RarityLabel(ItemRarity rarity) => rarity.ToString();
+
+        /// <summary>[144차 P1 #75 기록/매핑] Figma 등급색(93:392/414/422/430) — Epic/Legendary/Unique #BC8CFF,
+        ///  Rare #FF9E2C, Uncommon #58A6FF, Common #8B949E. 기존 Gold/Accent 상태색 체계 폐기(의미색 사용자 판정 항목 기록).</summary>
+        private static Color RarityColor(ItemRarity rarity)
+        {
+            switch (rarity)
+            {
+                case ItemRarity.Epic:
+                case ItemRarity.Legendary:
+                case ItemRarity.Unique: return GitHubDark.Purple;
+                case ItemRarity.Rare: return GitHubDark.Orange;
+                case ItemRarity.Uncommon: return GitHubDark.Accent;
+                default: return GitHubDark.TextSub;
+            }
+        }
+
+        private VisualElement BuildRewardRow(string name, string value, Color accent, string subtitle = null)
         {
             var row = new VisualElement();
-            row.name = "RewardRow";
+            row.name = "RewardItem";   // [144차 P1 #71] Figma node명 정합(93:391)
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
             row.style.height = 72f;
             row.style.flexShrink = 0f;
-            row.style.marginTop = 4.8f;
+            row.style.marginTop = 0f;        // [144차 P1 #72] 행 간격 9.6 — mb만(93:390 gap 9.6)
             row.style.marginBottom = 9.6f;
             row.style.paddingTop = 12f;
             row.style.paddingBottom = 12f;
             row.style.paddingLeft = 12f;
             row.style.paddingRight = 12f;
-            row.style.backgroundColor = new StyleColor(GitHubDark.PanelSub);
-            row.style.borderTopLeftRadius = 6f;
-            row.style.borderTopRightRadius = 6f;
-            row.style.borderBottomLeftRadius = 6f;
-            row.style.borderBottomRightRadius = 6f;
+            // [144차 P1 #71] RewardItem — #FFFFFF@0.02 + 스트로크 #30363D@0.502 1.2 + r9.6(93:391)
+            row.style.backgroundColor = new StyleColor(GitHubDark.SlotFill);
+            row.style.borderTopWidth = row.style.borderBottomWidth = row.style.borderLeftWidth = row.style.borderRightWidth = 1.2f;
+            row.style.borderTopColor = row.style.borderBottomColor = row.style.borderLeftColor = row.style.borderRightColor = new StyleColor(GitHubDark.BorderChrome);
+            row.style.borderTopLeftRadius = 9.6f;
+            row.style.borderTopRightRadius = 9.6f;
+            row.style.borderBottomLeftRadius = 9.6f;
+            row.style.borderBottomRightRadius = 9.6f;
 
             var icon = new VisualElement();
             icon.style.width = 48f;
             icon.style.height = 48f;
             icon.style.flexShrink = 0f;
             icon.style.backgroundColor = new StyleColor(GitHubDark.BgBase);
-            icon.style.borderTopWidth = 1f;
-            icon.style.borderBottomWidth = 1f;
-            icon.style.borderLeftWidth = 1f;
-            icon.style.borderRightWidth = 1f;
+            icon.style.borderTopWidth = 1.8f;   // [144차 P1 #73] 등급색 스트로크 1.8(93:392)
+            icon.style.borderBottomWidth = 1.8f;
+            icon.style.borderLeftWidth = 1.8f;
+            icon.style.borderRightWidth = 1.8f;
             icon.style.borderTopColor = icon.style.borderBottomColor = icon.style.borderLeftColor = icon.style.borderRightColor = new StyleColor(accent);
-            icon.style.borderTopLeftRadius = 4f;
-            icon.style.borderTopRightRadius = 4f;
-            icon.style.borderBottomLeftRadius = 4f;
-            icon.style.borderBottomRightRadius = 4f;
+            icon.style.borderTopLeftRadius = 7.2f;
+            icon.style.borderTopRightRadius = 7.2f;
+            icon.style.borderBottomLeftRadius = 7.2f;
+            icon.style.borderBottomRightRadius = 7.2f;
             row.Add(icon);
 
-            var nameLbl = MkLabel(name, 14.4f, GitHubDark.TextMain, TextAnchor.MiddleLeft);
-            nameLbl.style.flexGrow = 1f;
-            nameLbl.style.minWidth = 0f;
-            nameLbl.style.marginLeft = 14.4f;
-            row.Add(nameLbl);
+            // [144차 P0 #78] 2줄 ItemInfo — 상행 아이템명 15.6/700 #F0F6FC + 하행 등급/분류 부제 13.2/400 등급색(93:396/398)
+            var nameCol = new VisualElement { name = "ItemInfo" };
+            nameCol.style.flexDirection = FlexDirection.Column;
+            nameCol.style.flexGrow = 1f;
+            nameCol.style.minWidth = 0f;
+            nameCol.style.marginLeft = 14.4f;
+            var nameLbl = MkLabel(name, 15.6f, GitHubDark.TextMain, TextAnchor.MiddleLeft);   // [144차 P1 #76] 15.6/700 #F0F6FC(93:396)
+            nameLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
+            nameLbl.style.minHeight = 18f;
+            nameCol.Add(nameLbl);
+            if (!string.IsNullOrEmpty(subtitle))
+            {
+                var subLbl = MkLabel(subtitle, 13.2f, accent, TextAnchor.MiddleLeft);   // [144차 P0 #78] 13.2/400 등급색(93:398)
+                subLbl.style.marginTop = 2.4f;
+                subLbl.style.minHeight = 15f;
+                nameCol.Add(subLbl);
+            }
+            row.Add(nameCol);
 
-            var val = MkLabel(value, 13.2f, accent, TextAnchor.MiddleRight);
+            var val = MkLabel(value, 15.6f, GitHubDark.Accent, TextAnchor.MiddleRight);   // [144차 P1 #77] 수량 15.6/700 #58A6FF(93:397) — Geist Mono 폴백 기록
+            val.style.unityFontStyleAndWeight = FontStyle.Bold;
             val.style.width = 57f;
             row.Add(val);
 
             return row;
+        }
+
+        /// <summary>[144차 P1 #55] 히어로 배지 텍스트 갱신 — 빈/ null이면 pill 숨김.</summary>
+        private void SetHeroBadge(string text)
+        {
+            if (_detailHeroBadgeText == null || _detailHeroBadge == null) return;
+            _detailHeroBadgeText.text = text ?? "";
+            _detailHeroBadge.style.display = string.IsNullOrEmpty(text) ? DisplayStyle.None : DisplayStyle.Flex;
         }
 
         private QuestData FindQuestData(string questId)

@@ -21,6 +21,17 @@ Shader "Custom/SelectionRing"
         _DropWidth ("Drop Shadow Width", Range(0, 0.5)) = 0.18
         _PulseSpeed  ("Pulse Speed", Range(0, 8)) = 0.9
         _ArcSpeed    ("Arc Speed", Range(0, 3)) = 0.0
+        // [84차 고품질] 이중 링 — 주 밴드 외곽의 얇은 보조 링(RTS 마커 표준 리딩).
+        _SecondRingOffset ("Second Ring Offset", Range(0, 0.5)) = 0.13
+        _SecondRingAlpha  ("Second Ring Alpha", Range(0, 1)) = 0.55
+        // [84차 고품질] 스폰 확산 웨이브 — 명령 ack 순간 중심→외곽으로 달려나가는 1회성 링. <0 = off.
+        _WaveT ("Spawn Wave T", Range(-1, 1)) = -1
+        // [무번호 19-C1] 회전 세그먼트 링 — 4~6분할 아크가 회전. ≤2 = 연속 링(기존).
+        _Segments ("Spin Segments (4~6; <=2 continuous)", Range(0, 8)) = 0
+        // [무번호 19-C1] 중앙 그라디언트 필 — 링 내부를 중심→외곽으로 흐리게 채움(선택 링 가독성).
+        _CenterFillAlpha ("Center Gradient Fill Alpha", Range(0, 1)) = 0.12
+        // [무번호 19-C1] 선택 순간 확산 펄스 — 스폰 순간 0.15s 이징 확산(SelectionRingController 구동). <0 = off.
+        _BurstT ("Selection Burst T", Range(-1, 1)) = -1
     }
     SubShader
     {
@@ -53,6 +64,12 @@ Shader "Custom/SelectionRing"
                 half  _DropWidth;
                 half  _PulseSpeed;
                 half  _ArcSpeed;
+                half  _SecondRingOffset;
+                half  _SecondRingAlpha;
+                half  _WaveT;
+                half  _Segments;
+                half  _CenterFillAlpha;
+                half  _BurstT;
             CBUFFER_END
 
             struct appdata { float4 vertex : POSITION; float2 uv : TEXCOORD0; };
@@ -95,15 +112,67 @@ Shader "Custom/SelectionRing"
                 // Gentle, low-amplitude breathing; alpha stays zero outside the annulus.
                 float pulse = 0.94 + 0.06 * sin(_Time.y * _PulseSpeed);
                 float ang = atan2(c.y, c.x);
-                float arc = frac(ang * 0.15915494309 + _Time.y * _ArcSpeed);
-                float highlight = _ArcSpeed > 0.001 ? (0.55 + 0.45 * step(0.72, arc)) : 1.0;
+                // [85차 부드러움] 회전 대시 — 대비 완화(0.80+0.20) + 넓은 페이드 에지(계단감 제거).
+                float arcPos = frac(ang * 4.0 * 0.15915494309 + _Time.y * _ArcSpeed);
+                float dash = smoothstep(0.00, 0.18, arcPos) * (1.0 - smoothstep(0.45, 0.62, arcPos));
+                float highlight = _ArcSpeed > 0.001 ? (0.80 + 0.20 * dash) : 1.0;
 
                 // [입체감] rim 하이라이트 — 화면-상 방향(카메라 전방 XZ → 로컬 XY) 밴드가 밝게 빛난다.
                 float2 rimDir = normalize(_RimDirection.xy + float2(1e-5, 0.0));
                 float rim = smoothstep(0.30, 0.95, dot(normalize(c + float2(1e-5, 0.0)), rimDir));
 
-                half3 accentCol = _TeamColor.rgb * _Intensity * highlight * (1.0 + _RimIntensity * rim);
+                // [무번호 65-P2] 강조색 포화 캡 — _Intensity×highlight×rim 배수가 HDR 영역으로 밀어
+                //   프레임버퍼 클램프에서 순백으로 포화되는 것을 차단(테스트 12 영상 실측: 명령 웨이브 링이
+                //   #f8f8f8 순백 렌더). 팀색 위계는 유지, 채도만 LDR로 고정.
+                half3 accentCol = saturate(_TeamColor.rgb * _Intensity * highlight * (1.0 + _RimIntensity * rim));
                 half coreA = saturate((core + glow * 0.40) * pulse * _TeamColor.a);
+
+                // [무번호 19-C1] 회전 세그먼트 링 — 4~6분할 아크가 회전(_ArcSpeed 공유). ≤2 = 연속 링(무변경).
+                if (_Segments > 2)
+                {
+                    float seg = frac((ang / 6.28318530) * _Segments + _Time.y * _ArcSpeed);
+                    float segMask = smoothstep(0.00, 0.10, seg) * (1.0 - smoothstep(0.72, 0.92, seg));
+                    segMask = lerp(0.30, 1.0, segMask);   // 세그먼트 갭도 완전 소멸 금지(0.30 유지)
+                    coreA = saturate(coreA * segMask);
+                }
+
+                // [무번호 19-C1] 중앙 그라디언트 필 — 링 내부를 중심→외곽으로 흐리게(선택 링 가독성).
+                if (_CenterFillAlpha > 0.001)
+                {
+                    float inner = saturate(1.0 - d / _RingRadius);
+                    coreA = saturate(coreA + inner * inner * _CenterFillAlpha * _TeamColor.a);
+                }
+
+                // [84차 고품질] 이중 링 — 주 밴드 외곽 얇은 보조 링(같은 액센트, 낮은 알파).
+                if (_SecondRingAlpha > 0.001 && _SecondRingOffset > 0.001)
+                {
+                    float r2 = min(_RingRadius + _SecondRingOffset, 0.96);
+                    float t2 = max(_RingThickness * 0.40, aa * 1.5);
+                    float core2 = smoothstep(r2 - t2 - aa, r2 - t2 + aa, d)
+                                * (1.0 - smoothstep(r2 + t2 - aa, r2 + t2 + aa, d));
+                    coreA = saturate(max(coreA, core2 * _SecondRingAlpha * pulse * _TeamColor.a));
+                }
+
+                // [84차 고품질] 스폰 확산 웨이브 — 명령 ack 순간 중심→외곽 1회성 확산 링(액센트색).
+                if (_WaveT >= 0.0)
+                {
+                    float wr = lerp(_RingRadius * 0.30, 0.97, _WaveT);
+                    float wth = 0.035 + 0.045 * _WaveT;
+                    float wave = smoothstep(wr - wth - aa, wr - wth + aa, d)
+                               * (1.0 - smoothstep(wr + wth - aa, wr + wth + aa, d));
+                    coreA = saturate(coreA + wave * (1.0 - _WaveT) * 0.55);
+                }
+
+                // [무번호 19-C1] 선택 순간 확산 펄스 — 스폰 순간 0.15s 이징 확산(SelectionRingController 구동).
+                if (_BurstT >= 0.0)
+                {
+                    float br = lerp(_RingRadius * 0.42, 0.97, _BurstT);
+                    float bth = 0.05 + 0.06 * _BurstT;
+                    float burst = smoothstep(br - bth - aa, br - bth + aa, d)
+                                * (1.0 - smoothstep(br + bth - aa, br + bth + aa, d));
+                    coreA = saturate(coreA + burst * (1.0 - _BurstT) * 0.70);
+                }
+
                 half backA = saturate(backing * _BackingColor.a);
                 half dropA = saturate(drop * _DropColor.a);
 

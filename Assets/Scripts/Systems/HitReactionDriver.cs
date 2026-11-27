@@ -62,7 +62,15 @@ namespace ProjectName.Systems
             float push = severity == HitSeverity.Crit ? CritPush : (severity == HitSeverity.Heavy ? HeavyPush : LightPush);
             if (isFatal) { lean *= 1.25f; push *= 1.2f; }
 
-            runner.PlayFlinch(dir, dur, lean, push, isFatal);
+            // [무번호 75] 본(상체 척추) 플린치 승격 — 본 매치 성공(true) 시 본 반응이 transform lean을 대체(이중 기움 방지),
+            // 본 0건(GLB 비리그 등)은 기존 transform lean 그대로(폴백 — 현행 무손상). 넉백·경직·애니 트리거는 무관하게 유지.
+            bool boneFlinch = false;
+            try { boneFlinch = FxHitFlinchBone.Trigger(target, dir, severity); }
+            catch (System.Exception e) { Debug.LogWarning($"[HitReaction] 본 플린치 스킵: {e.GetType().Name}"); }
+            if (!boneFlinch)
+            {
+                runner.PlayFlinch(dir, dur, lean, push, isFatal);   // 폴백 — 기존 transform lean(무손상)
+            }
 
             // 넉백 — Heavy/Crit 및 사망 시.
             if (severity != HitSeverity.Light || isFatal)

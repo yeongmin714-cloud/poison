@@ -33,7 +33,7 @@ namespace ProjectName.UI
         private const float EXIT_Z_OFFSET = 0.5f;
         private const float LIGHT_RANGE = 6f;
         private const float LIGHT_INTENSITY = 0.6f;
-        private const float AMBIENT_INTENSITY = 0.16f;
+        private const float AMBIENT_INTENSITY = 0.272f;   // [125차 후속5] 0.16→0.272 (1.7배 상향 — 성당 과도한 어둠 완화)
         private static readonly Color AMBIENT_DARK = new Color(0.04f, 0.04f, 0.06f);
         private static readonly Color ALTAR_MAT_COLOR = new Color(0.80f, 0.75f, 0.65f);
         private static readonly Color BENCH_MAT_COLOR = new Color(0.55f, 0.40f, 0.25f);
@@ -47,7 +47,7 @@ namespace ProjectName.UI
         public static GameObject BuildChurchInterior()
         {
             // ===== 텍스처 생성 =====
-            Texture2D floorTex = IndoorTextureGenerator.GenerateChurchFloor();
+            // [무번호 32] Church 전용 바닥 텍스처 폐기 — 영지 실내 공통 석타일(씬 통일 계약).
             Texture2D wallTex = IndoorTextureGenerator.GenerateChurchWall();
             Texture2D ceilingTex = IndoorTextureGenerator.GeneratePlasterWall(256, 256, CEILING_COLOR);
 
@@ -55,7 +55,8 @@ namespace ProjectName.UI
             Shader shader = ResolveShader("Universal Render Pipeline/Lit", "Standard");
             if (shader == null) return null;
 
-            Material floorMat = CreateMaterial(shader, "Church_FloorMat", floorTex, Color.white);
+            // [무번호 32] 영지 실내 공통 석타일 — 국가 무관 단일 바닥(1m 타일, UV 0..1 쿼드 스케일 정합).
+            Material floorMat = InteriorQualityBaseline.CreateCommonInteriorFloorMat(ROOM_WIDTH, ROOM_DEPTH, "Church");
             Material wallMat = CreateMaterial(shader, "Church_WallMat", wallTex, Color.white);
             Material ceilingMat = CreateMaterial(shader, "Church_CeilingMat", ceilingTex, Color.white);
             Material altarMat = CreateMaterial(shader, "Church_AltarMat", null, ALTAR_MAT_COLOR);
@@ -104,6 +105,12 @@ namespace ProjectName.UI
 
             // ===== 출구 트리거 생성 =====
             CreateExitTrigger(room);
+
+            // [수조 통일] 천장 제거+남측 벽 시각 절단(콜라이더 유지) — 9/20 실내씬 예시 기준
+            ProjectName.Systems.IndoorDioramaKit.Apply(room);
+
+            // [실내 고품질화 P3] 가구/조명/소품 가산 패스.
+            ProjectName.Systems.InteriorFurnishingPass.ApplyBuilding(room, "church", ROOM_WIDTH, ROOM_DEPTH, null, ROOM_HEIGHT);
 
             Debug.Log("[ChurchInteriorBuilder] 교회 실내 생성 완료!");
 

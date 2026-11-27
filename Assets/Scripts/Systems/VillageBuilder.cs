@@ -11,11 +11,12 @@ namespace ProjectName.Systems
     ///
     /// 설계:
     ///  · 좌표는 VillagePlacementSystem.GetAllVillages()의 결정론 좌표를 그대로 사용한다.
-    ///  · 마을마다 광장(원판) 1 + 집 4~6채 + 창고 1 + 우물 1을 배치한다.
+    ///  · 일반 마을: 광장(원판) 1 + 집 4~6채 + 창고 1 + 우물 1.
+    ///  · 촌락(isHamlet, T3-2): 광장 반경 4 + 집 2~3채 + 우물 1 — 창고/상점 생략.
     ///  · 배치는 마을 center 기준 결정론(System.Random 고정 시드) — 프로세스 재시작 간 동일.
     ///    UnityEngine.Random 사용 금지.
     ///  · 집은 center 반지름 8~28m 링에 균등 각도(+결정론 지터)로 분산, 최소 간격 6m 강제.
-    ///  · 대표 마을(index 0, isRepresentative)에는 실외 상점 건물을 추가 배치하고
+    ///  · 대표 마을(isRepresentative && !isHamlet — 촌락 제외)에는 실외 상점 건물을 추가 배치하고
     ///    ShopPlaceholder(ProjectName.UI)를 부착해 실외에서 E키로 상점 창을 연다.
     ///    ※ 실내 진입용 BuildingTrigger는 상점에 붙이지 않는다(실외 상점 전용).
     ///    ※ 기존 성 내부 상점(TerritoryBuilder.SpawnInteriorFixtures)은 유지(롤백 안전).
@@ -42,6 +43,9 @@ namespace ProjectName.Systems
 
         /// <summary>마을 광장 반경 (m).</summary>
         private const float PlazaRadius = 6f;
+
+        /// <summary>촌락(isHamlet) 광장 반경 (m) — T3-2 촌락 분기.</summary>
+        private const float HamletPlazaRadius = 4f;
 
         /// <summary>집/상점 폴백 대신 우선 사용하는 GLB 모델 키.</summary>
         private const string HutModelKey = "hut";
@@ -83,10 +87,28 @@ namespace ProjectName.Systems
             Debug.Log($"[VillageBuilder] 전체 마을 빌드 완료: villages={builtCount} outdoorShops={shopCount} layoutHash={combinedHash:X8}");
         }
 
+        /// <summary>[81차] 단일 마을 건물 배치(테스트씬 진입용 — Test_15 마을+마약 경영 검증).
+        /// BuildAllVillages와 완전히 동일한 BuildVillage 경로(메인씬 마을과 같은 결정론 레이아웃).
+        /// Villages_Root가 없으면 생성(동일 중복 방지 규약). 런타임 전용 — 에디터에서 무동작.</summary>
+        public static bool BuildSingleVillage(VillagePlacementSystem.VillageInfo village)
+        {
+            if (!Application.isPlaying)
+                return false;
+
+            var rootGO = GameObject.Find("Villages_Root");
+            if (rootGO == null) rootGO = new GameObject("Villages_Root");
+
+            int layoutHash = BuildVillage(rootGO.transform, village, out bool shopPlaced);
+            Debug.Log($"[VillageBuilder] 단일 마을 빌드: {village.nation} #{village.index} layoutHash={layoutHash:X8} shop={shopPlaced}");
+            return true;
+        }
+
         /// <summary>단일 마을 건물 배치. 마을 단위 결정론 layoutHash 반환, 실외 상점 배치 여부 출력.</summary>
         private static int BuildVillage(Transform root, VillagePlacementSystem.VillageInfo village, out bool shopPlaced)
         {
             shopPlaced = false;
+            // T3-2: 촌락(isHamlet — baseTerritoryIndex 1~5, Ring4) 분기. 광장 반경 4 + 집 2~3 + 우물.
+            bool isHamlet = village.isHamlet;
             string parentName = $"Village_{village.nation}_{village.index:D2}";
 
             var rng = new System.Random(SeedBase + GetHash($"{village.nation}_{village.index}_villagebuild"));
@@ -100,8 +122,8 @@ namespace ProjectName.Systems
             int buildings = 0;
             int layoutHash = 17;
 
-            // 1) 광장 — 마을 center 원판 (국가 톤 회색빛)
-            CreatePlaza(parentGo.transform, village.center, nationTint);
+            // 1) 광장 — 마을 center 원판 (국가 톤 회색빛). 촌락은 반경 4(T3-2), 일반은 6.
+            CreatePlaza(parentGo.transform, village.center, nationTint, isHamlet ? HamletPlazaRadius : PlazaRadius);
 
             // 2) 우물 — 광장 바로 밖(반지름 7~9m), 간격 목록에 선반영
             Vector3 wellPos = CreateWell(parentGo.transform, village.center, rng, placed);
@@ -109,7 +131,8 @@ namespace ProjectName.Systems
             buildings++;
 
             // 3) 대표 마을 → 실외 상점 (집 배치 전에 간격 목록에 포함시켜 겹침 방지)
-            if (village.isRepresentative)
+            //    촌락에는 상점을 두지 않는다(T3-2: isRepresentative && !isHamlet).
+            if (village.isRepresentative && !isHamlet)
             {
                 Vector3 shopPos = CreateOutdoorShop(parentGo.transform, village.center, rng, nationTint, placed, layoutHash);
                 layoutHash = FoldHash(layoutHash, shopPos);
@@ -117,16 +140,19 @@ namespace ProjectName.Systems
                 buildings++;
             }
 
-            // 4) 집 4~6채 — 반지름 8~28m 링, 균등 각도 + 결정론 지터, 최소 간격 6m 강제
-            int houseCount = 4 + rng.Next(3); // 4~6
+            // 4) 집 — 촌락 2~3채 / 일반 4~6채(T3-2). 균등 각도 + 결정론 지터, 최소 간격 6m 강제
+            //    배치 알고리즘은 기존(안팎 교대 링) 그대로 재사용 — 촌락은 외곽 링을 마을 반경 이내로 압축.
+            int houseCount = isHamlet ? 2 + rng.Next(2) : 4 + rng.Next(3); // 촌락 2~3 / 일반 4~6
+            float outerMin = isHamlet ? 15f : 19f;
+            float outerMax = isHamlet ? village.radius - 2f : 28f; // 촌락: v.radius 소비(반경 22 → 20m 이내)
             for (int i = 0; i < houseCount; i++)
             {
                 float slotAngle = (360f / houseCount) * i;
                 float angleDeg = slotAngle - 10f + (float)rng.NextDouble() * 20f; // ±10° 결정론 지터
-                // 안팎 교대 링: 짝수=안쪽(8~16m), 홀수=바깥쪽(19~28m) → 간격 확보에 유리
+                // 안팎 교대 링: 짝수=안쪽(8~16m), 홀수=바깥쪽(촌락 15~20m / 일반 19~28m) → 간격 확보에 유리
                 float radius = (i % 2 == 0)
                     ? 8f + (float)rng.NextDouble() * 8f
-                    : 19f + (float)rng.NextDouble() * 9f;
+                    : outerMin + (float)rng.NextDouble() * (outerMax - outerMin);
                 float angleRad = angleDeg * Mathf.Deg2Rad;
                 Vector3 spot = village.center + new Vector3(Mathf.Cos(angleRad) * radius, 0f, Mathf.Sin(angleRad) * radius);
 
@@ -138,7 +164,8 @@ namespace ProjectName.Systems
                 buildings++;
             }
 
-            // 5) 창고 1채 — 바깥 링(22~27m), 결정론 각도
+            // 5) 창고 1채 — 바깥 링(22~27m), 결정론 각도. 촌락(isHamlet)은 생략(T3-2)
+            if (!isHamlet)
             {
                 float angleDeg = 15f + (float)rng.NextDouble() * 40f;
                 float radius = 22f + (float)rng.NextDouble() * 5f;
@@ -153,21 +180,81 @@ namespace ProjectName.Systems
                 buildings++;
             }
 
-            Debug.Log($"[VillageBuilder] Nation={village.nation} Village={village.index} center=({village.center.x:F1},{village.center.z:F1}) buildings={buildings} layoutHash={layoutHash:X8}");
+            Debug.Log($"[VillageBuilder] Nation={village.nation} Village={village.index} grade={(isHamlet ? "hamlet" : "village")} center=({village.center.x:F1},{village.center.z:F1}) buildings={buildings} layoutHash={layoutHash:X8}");
+
+            // [86차] 마을 울타리 링 — 나무 펜스 GLB(사용자 지정)를 마을 반경 바깥 원주에 배치.
+            //   메인씬/단일 마을(테스트씬) 공용 — BuildVillage 말단이라 양쪽 경로 모두 적용.
+            BuildVillageFence(root, village);
+
             return layoutHash;
+        }
+
+        /// <summary>[86차] 마을 울타리 링 — 나무 펜스 GLB(VillageBuildingCatalog.FencePath, 스플릿 로그 목장
+        ///   펜스)를 마을 반경+3m 원주에 배치한다. ①프로브 1개 인스턴스로 세그먼트 장축/길이 실측 ②개수 산출
+        ///   ③각 세그먼트 접지(TerrainGenerator, VillageBuilder TerrainSeed 계약)+접선 정렬. 로드 실패 시
+        ///   경고 1회 후 생략(건물/NPC 무영향).</summary>
+        private static void BuildVillageFence(Transform root, VillagePlacementSystem.VillageInfo village)
+        {
+            float fenceRadius = village.radius + 3f;
+
+            var probe = VillageBuildingCatalog.InstantiateAtGround(
+                VillageBuildingCatalog.FencePath, Vector3.zero, 0f, VillageBuildingCatalog.FenceTargetHeight,
+                "Fence_probe");
+            if (probe == null)
+            {
+                Debug.LogWarning("[VillageBuilder] 펜스 GLB 로드 실패 — 울타리 생략 (FencePath 확인)");
+                return;
+            }
+
+            // 세그먼트 실측 — 높이 정규화 후 XZ bounds로 장축/길이 판정(모델마다 장축이 X/Z로 다를 수 있음)
+            float segLen = 3.2f;
+            bool longAxisIsX = false;
+            var rends = probe.GetComponentsInChildren<Renderer>();
+            if (rends != null && rends.Length > 0)
+            {
+                Bounds b = rends[0].bounds;
+                for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+                segLen = Mathf.Max(b.size.x, b.size.z);
+                longAxisIsX = b.size.x > b.size.z;
+            }
+            Object.DestroyImmediate(probe);   // 프로브 즉시 회수(1프레임 플래시 방지)
+
+            int count = Mathf.Max(12, Mathf.RoundToInt((2f * Mathf.PI * fenceRadius) / Mathf.Max(segLen, 1f)));
+
+            var fenceRoot = new GameObject($"Fence_{village.nation}_{village.index:D2}");
+            fenceRoot.transform.SetParent(root, false);
+            int placed = 0;
+            for (int i = 0; i < count; i++)
+            {
+                float ang = (360f * i / count) * Mathf.Deg2Rad;
+                Vector3 dir = new Vector3(Mathf.Cos(ang), 0f, Mathf.Sin(ang));
+                Vector3 pos = village.center + dir * fenceRadius;
+                float groundY = TerrainGenerator.GetHeightAt(pos.x, pos.z, BiomeType.Plains, TerrainSeed) + GROUND_BASE;
+                var seg = VillageBuildingCatalog.InstantiateAtGround(
+                    VillageBuildingCatalog.FencePath, pos, groundY, VillageBuildingCatalog.FenceTargetHeight,
+                    $"Fence_{i:D2}");
+                if (seg == null) continue;
+                // 접선 정렬 — 원주 접선 방향을 +Z로, 장축이 X인 모델은 90° 보정
+                Vector3 tangent = new Vector3(-dir.z, 0f, dir.x);
+                seg.transform.rotation = Quaternion.LookRotation(tangent, Vector3.up)
+                    * (longAxisIsX ? Quaternion.Euler(0f, 90f, 0f) : Quaternion.identity);
+                seg.transform.SetParent(fenceRoot.transform, true);
+                placed++;
+            }
+            Debug.Log($"[VillageBuilder] 울타리 링: {village.nation} #{village.index} radius={fenceRadius:F1} segments={placed}/{count} segLen={segLen:F2}m");
         }
 
         // ────────────────────────────── 건물 팩토리 ──────────────────────────────
 
-        /// <summary>광장: 마을 center 원판(실린더 지름 12m × 두께 0.12m), 회색+국가 톤.</summary>
-        private static void CreatePlaza(Transform parent, Vector3 center, Color nationTint)
+        /// <summary>광장: 마을 center 원판(실린더 지름 2×plazaRadius × 두께 0.12m), 회색+국가 톤. 일반 6 / 촌락 4(T3-2).</summary>
+        private static void CreatePlaza(Transform parent, Vector3 center, Color nationTint, float plazaRadius = PlazaRadius)
         {
             float groundY = TerrainGenerator.GetHeightAt(center.x, center.z, BiomeType.Plains, TerrainSeed) + GROUND_BASE;
 
             var plaza = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             plaza.name = "Plaza";
             plaza.transform.position = new Vector3(center.x, groundY + 0.06f, center.z); // 두께 0.12m → 절반만 위로
-            plaza.transform.localScale = new Vector3(PlazaRadius * 2f, 0.06f, PlazaRadius * 2f); // 실린더 기본: 지름1 × 높이2
+            plaza.transform.localScale = new Vector3(plazaRadius * 2f, 0.06f, plazaRadius * 2f); // 실린더 기본: 지름1 × 높이2
             plaza.tag = "Untagged";
             var renderer = plaza.GetComponent<MeshRenderer>();
             if (renderer != null)

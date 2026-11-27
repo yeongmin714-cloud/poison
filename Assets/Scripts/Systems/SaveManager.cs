@@ -123,6 +123,18 @@ namespace ProjectName.Systems
                     nationReputations = CollectNationReputationData(),
                     isNewGamePlus = NewGamePlusSystem.IsNewGamePlus,
                     constructions = CollectConstructionData(),
+                    // [D5-A] 마을 음식점/마약 상태 수출 — 재고 있는 마을만 저장(용량 절감, VillageDrugState 규약)
+                    villageDrugs = VillageDrugState.ExportSaveEntries(),
+                    // v4: 경제/용병 영속 상태 (static 시스템은 항상 non-null 전송 → 로드 시 null = 레거시 세이브)
+                    soldierWage = SoldierWageSystem.ExportSaveData(),
+                    aiEconomy = AITerritoryEconomySystem.ExportSaveData(),
+                    mercenaries = CollectMercenaryData(),
+                    // v4: 고용 시장 AI 고용 카운트 (static 시스템 → 항상 non-null 전송. 방출 풀은 저장하지 않음)
+                    laborMarket = LaborMarketSystem.ExportSaveData(),
+                    // [F5] 살려준 영주 공물 멱등 상태
+                    sparedLords = SparedLordTributeSystem.ExportSaveData(),
+                    // [무번호 86-P1] 말 상태(품종/길들임/위치) — 구세이브 호환은 DTO 폴백(빈 리스트)
+                    horses = HorseMountSystem.ExportSaveData(),
                 };
 
                 string json = JsonUtility.ToJson(data, prettyPrint: true);
@@ -175,19 +187,30 @@ namespace ProjectName.Systems
                 }
 
                 // saveVersion 검증 및 마이그레이션
-                if (data.saveVersion < 1 || data.saveVersion > 3)
+                if (data.saveVersion < 1 || data.saveVersion > 6)
                 {
-                    Debug.LogWarning($"[SaveManager] 슬롯 {slotIndex}의 saveVersion({data.saveVersion})이 현재 버전(3)과 다릅니다. 호환을 시도합니다.");
+                    Debug.LogWarning($"[SaveManager] 슬롯 {slotIndex}의 saveVersion({data.saveVersion})이 현재 버전(6)과 다릅니다. 호환을 시도합니다.");
                 }
 
+                // 복원 순서: 시간 → 플레이어/영지(금고 포함) → 퀘스트/기타 → 용병 로스터 → 병사 원장/계약일 → AI 세수 멱등 상태
                 ApplyTimeData(data.time);
                 ApplyPlayerData(data.player);
                 ApplyInventoryData(data.inventory);
-                ApplyTerritoryData(data.territories);
+                ApplyTerritoryData(data.territories, data.saveVersion >= 4);
                 ApplyQuestData(data.quests);
                 ApplyRevengeListData(data.revengeList);
                 ApplyNationReputationData(data.nationReputations);
+                // [D5-A] 마을 음식점/마약 상태 복원 — ApplyConstructionData(음식점 실물 복원 훅)보다
+                // 먼저 실행해야 한다. ImportSaveEntries가 상태를 전면 클리어하므로, 실물 복원
+                // (RestaurantPropBuilder.RebuildFromSave)이 세팅하는 restaurantBuilt 플래그를
+                // 클리어로 지우지 않으려면 마을 상태 대입이 선행되어야 한다.
+                VillageDrugState.ImportSaveEntries(data?.villageDrugs);
                 ApplyConstructionData(data.constructions);
+                HorseMountSystem.ImportSaveData(data?.horses); // [무번호 86-P1] 말 상태 복원 — 널/빈 리스트는 무시(전부 야생 유지)
+                ApplyEconomyAndMercenaryData(data);
+
+                // [A2 이계] 마지막 로드 슬롯 기록 — 이계 퍼머데스가 "현재 플레이 슬롯" 삭제에 사용
+                _lastLoadedSlot = slotIndex;
 
                 // C20-01: 난이도 복원
                 GameManager.CurrentDifficulty = (int)data.difficulty;
@@ -279,6 +302,10 @@ namespace ProjectName.Systems
         /// 유효한 슬롯 수를 반환합니다.
         /// </summary>
         public int SlotCount => _slotCount;
+
+        /// <summary>[A2 이계] 마지막으로 로드한 슬롯 (퍼머데스 삭제 대상 — 로드 이력 없으면 -1 = 삭제할 세이브 없음).</summary>
+        public int CurrentSaveSlot => _lastLoadedSlot;
+        private int _lastLoadedSlot = -1;
 
         /// <summary>
         /// 모든 슬롯 중 가장 오래된(타임스탬프가 가장 이른) 슬롯 인덱스를 반환합니다.
@@ -400,6 +427,15 @@ namespace ProjectName.Systems
             return data;
         }
 
+        /// <summary>
+        /// v4: 용병 로스터 수집. MercenaryManager 부재 시 빈 블록을 반환해 로드 시 레거시와 구분되게 한다.
+        /// </summary>
+        private MercenarySaveData CollectMercenaryData()
+        {
+            var mgr = MercenaryManager.Instance;
+            return mgr != null ? mgr.ExportSaveData() : new MercenarySaveData();
+        }
+
         private List<TerritorySaveData> CollectTerritoryData()
         {
             List<TerritorySaveData> list = new List<TerritorySaveData>();
@@ -417,7 +453,20 @@ namespace ProjectName.Systems
                             {
                                 territoryId = def.id.ToString(),
                                 ownerNation = state.ownership.ToString(),
-                                isConquered = state.ownership == TerritoryOwnership.PlayerOwned
+                                isConquered = state.ownership == TerritoryOwnership.PlayerOwned,
+                                territoryGold = state.territoryGold, // v4: 영지 금고
+                                // [F5] 살려준 영주 공물/배신 상태
+                                lordSpared = state.lordSpared,
+                                tributeWeeksPaid = state.tributeWeeksPaid,
+                                betrayalCount = state.betrayalCount,
+                                loyaltyToPlayer = state.loyaltyToPlayer,
+                                // [113차] 영주 선호 음식 마지막 지급 일차 (미지급/구세이브 = -1)
+                                lastPreferredFeedDay = state.lastPreferredFeedDay,
+                                // [123차] 소유 영주 이름 (v6) — 영주↔영주 점령 시 승리 영주 기록
+                                ownerLordName = state.ownerLordName,
+                                // [126차] 영주 딸 호감도/결혼 상태 (구세이브는 기본값 0/false)
+                                daughterAffection = state.daughterAffection,
+                                daughterMarried = state.daughterMarried
                             });
                         }
                     }
@@ -547,7 +596,7 @@ namespace ProjectName.Systems
             }
         }
 
-        private void ApplyTerritoryData(List<TerritorySaveData> data)
+        private void ApplyTerritoryData(List<TerritorySaveData> data, bool restoreGold)
         {
             if (data == null) return;
 
@@ -571,6 +620,31 @@ namespace ProjectName.Systems
                                 if (def.id.ToString() == tData.territoryId)
                                 {
                                     TerritoryDatabase.Instance.SetOwnership(def.id, ownership);
+                                    // v4: 금고 복원 (레거시 v3 이하는 territoryGold 필드가 없으므로 현재 값 유지)
+                                    if (restoreGold)
+                                    {
+                                        var restored = TerritoryDatabase.Instance.GetState(def.id);
+                                        if (restored != null) restored.territoryGold = tData.territoryGold;
+                                    }
+                                    // [F5] 살려준 영주 공물/배신 상태 복원 (필드 부재 세이브는 기본값 — JsonUtility가 false/0으로 채움)
+                                    var f5state = TerritoryDatabase.Instance.GetState(def.id);
+                                    if (f5state != null)
+                                    {
+                                        f5state.lordSpared = tData.lordSpared;
+                                        f5state.tributeWeeksPaid = tData.tributeWeeksPaid;
+                                        f5state.betrayalCount = tData.betrayalCount;
+                                        f5state.loyaltyToPlayer = tData.loyaltyToPlayer;
+                                        // [113차] 영주 선호 음식 마지막 지급 일차 복원 (필드 부재 시 JsonUtility가 초기값 -1 유지)
+                                        f5state.lastPreferredFeedDay = tData.lastPreferredFeedDay;
+                                        // [123차] 소유 영주 복원 (v6) — 구세이브(필드 부재 = 빈 값)는
+                                        // 원래 영주(def.lord.lordName)로 폴백. OwnershipRestoreMode 경로도 동일 적용.
+                                        f5state.ownerLordName = string.IsNullOrEmpty(tData.ownerLordName)
+                                            ? def.lord.lordName
+                                            : tData.ownerLordName;
+                                        // [126차] 영주 딸 호감도/결혼 상태 복원 (필드 부재 세이브는 기본값 0/false)
+                                        f5state.daughterAffection = tData.daughterAffection;
+                                        f5state.daughterMarried = tData.daughterMarried;
+                                    }
                                     break;
                                 }
                             }
@@ -728,6 +802,43 @@ private NationReputationSaveData CollectNationReputationData()
         }
 
         // ===== 리플렉션 / 아이템 조회 헬퍼 =====
+
+        /// <summary>
+        /// v4 경제/용병 복원. 의존 순서: 용병 로스터 → 병사 입단 원장/계약 청구일 → AI 세수 멱등 상태.
+        /// 영지 금고는 ApplyTerritoryData에서 이미 복원된 뒤다. 복원 자체는 골드를 청구하지 않는다.
+        /// 레거시(해당 블록 null) 세이브: 경제 블록은 현재 게임일 기준으로 시딩하여 소급 청구/과세를 막고,
+        /// 고용 시장 블록은 기본 상태로 리셋한다.
+        /// </summary>
+        private void ApplyEconomyAndMercenaryData(SaveData data)
+        {
+            int currentDay = data.time != null ? data.time.day : SoldierWageSystem.CurrentDay();
+            try
+            {
+                // 1) 용병 로스터 (레거시 null이면 현재 로스터를 건드리지 않음 — 기존 동작 보존)
+                if (data.mercenaries != null)
+                    MercenaryManager.Instance?.ImportSaveData(data.mercenaries);
+
+                // 2) 병사 입단 원장 + 용병 계약 청구일 (로스터 이후)
+                SoldierWageSystem.ImportSaveData(data.soldierWage, currentDay);
+
+                // 3) AI 세수/유지비 멱등 상태 (영지 금고 복원 이후)
+                AITerritoryEconomySystem.ImportSaveData(data.aiEconomy, currentDay);
+
+                // 4) 고용 시장 AI 카운트/누적/마지막 처리일 (영지 금고 이후).
+                //    레거시(null): API의 null 처리는 lastProcessedDay를 -1로 리셋하므로, 현재 게임일을 처리 완료로
+                //    시딩하는 기본 블록을 넘긴다. 같은 날 고용 틱이 로드 직후 다시 실행되는 것을 막고,
+                //    이전 세션의 인메모리 카운트도 함께 비운다 (레거시 고용 이력은 복원하지 않음).
+                LaborMarketSystem.ImportSaveData(data.laborMarket ?? new LaborMarketSaveData { lastProcessedDay = currentDay });
+
+                // 5) [F5] 살려준 영주 공물/배신 — 등록 복원(lordSpared 스캔) + 주차 멱등 상태
+                SparedLordTributeSystem.ImportSaveData(data.sparedLords, currentDay);
+                LordBetrayalSystem.EnsureSubscribed();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SaveManager] 경제/용병 데이터 복원 중 오류: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
 
         /// <summary>
         /// 리플렉션으로 private 필드 값을 설정합니다.

@@ -46,6 +46,8 @@ namespace ProjectName.Core
 
             // ── 방어구 (가죽 계열) ──
             new WeaponRecipe { ResultId="armor_leather",  Mat1Id="mat_boar_leather", Mat1Count=3, Mat2Count=0, RequiredLevel=3, rarity=ItemRarity.Common },
+            // ── [무번호 85-P2] 말 안장 — 야생 말 길들이기 필수품(멧돼지 가죽 5개) ──
+            new WeaponRecipe { ResultId="mat_saddle",     Mat1Id="mat_boar_leather", Mat1Count=5, Mat2Count=0, RequiredLevel=3, rarity=ItemRarity.Common },
             new WeaponRecipe { ResultId="mat_rabbit_fur", Mat1Id="mat_rabbit_fur",   Mat1Count=0, Mat2Count=0, RequiredLevel=0, rarity=ItemRarity.Common },
 
             // ── [Milestone B] Stone 티어 (돌날 + 목재 자루) — Uncommon ──

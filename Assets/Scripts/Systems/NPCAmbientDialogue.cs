@@ -216,6 +216,106 @@ namespace ProjectName.Systems
         public NpcDialogueData GetDialogueData() => _dialogueData;
 
         // ================================================================
+        // [89차] F키 상호작용 — 표시명/대사/대화 자세 (docs/89_NPC_FKEY_PLAYER_ANIM_PLAN.md §4)
+        // ================================================================
+
+        /// <summary>[89차] NPC 표시명 — NpcDialogueData.NpcName 우선, 데이터 미구성 시 gameObject.name 폴백.</summary>
+        public string DisplayName
+        {
+            get
+            {
+                var data = GetDialogueData();
+                if (data != null && !string.IsNullOrEmpty(data.NpcName))
+                    return data.NpcName;
+                return gameObject.name;   // [89차] 데이터 미구성 폴백 — 오브젝트명
+            }
+        }
+
+        /// <summary>
+        /// [89차] F키 상호작용 1행 대사 — 데이터 구성 시 GetRandomInteractionDialogue(),
+        /// 데이터 부재(null)/미구성("...") 시 고정 폴백 3종 중 결정론 선택.
+        /// 위조 금지 표기: 폴백 3종은 데이터 미구성 폴백(스펙 §4 — 실제 대사 데이터 아님).
+        /// </summary>
+        public string GetInteractionLine()
+        {
+            var data = GetDialogueData();
+            if (data != null)
+            {
+                string line = data.GetRandomInteractionDialogue();
+                if (!string.IsNullOrEmpty(line) && line != "...")   // "..." = 데이터 미구성 마커(NpcDialogueData 계약)
+                    return line;
+            }
+
+            // 데이터 미구성 폴백 — 고정 3종 중 오브젝트명 해시 결정론 선택(VillageNpcSpawner.GetHash 동일 알고리즘).
+            string[] fallbacks =
+            {
+                "안녕하세요, 여행자님.",
+                "오늘 날씨가 참 좋네요.",
+                "마을 구경 잘 하고 가세요.",
+            };
+            int hash = 17;
+            foreach (char c in gameObject.name)
+                hash = hash * 31 + c;
+            return fallbacks[Mathf.Abs(hash) % fallbacks.Length];
+        }
+
+        /// <summary>
+        /// [89차] 대화 자세 진입 — VillagerWanderer.PauseForDialogue(배회 정지+Speed 0) + Animator "Talk" 트리거
+        /// (Player_AC TalkA 상태 — HumanoidClipDriver.TriggerTalkA 동일 트리거명). DialogueEnded(카메라 복원) 구독
+        /// (구독 전 해제 — 1회성)으로 EndDialoguePose 자동 복귀.
+        /// [128-2 P2] Talk 단일화 — [103차 P3] 토크 변형(TalkA/Talk2 홀짝) 폐기, 항상 "Talk" 트리거 단일화
+        /// (TalkB 슬롯이 캐릭터 talk/idle 클립으로 오버라이드되므로 Talk2 직접 트리거는 SetTalkBTrigger 경로만 유지).
+        /// </summary>
+        public void BeginDialoguePose()
+        {
+            var wanderer = GetComponent<VillagerWanderer>();
+            if (wanderer != null) wanderer.PauseForDialogue();
+
+            var anim = GetComponent<Animator>();   // 취득 방식 기존 유지(GetComponent — PauseForDialogue/Rebind 경로와 동일)
+            if (anim != null)
+            {
+                // [128-2 P2] 대화 자세 = Idle 강제 진입 — Walk 프레임 동결 원천 제거(스펙 §2-4). Talk 트리거는 단일화(토크 변형 폐기).
+                var st = anim.GetCurrentAnimatorStateInfo(0);
+                bool wasWalk = st.IsName("Walk");   // EditMode 평가 안전 — IsName은 state info 기반이라 예외 없음
+                anim.CrossFade("Idle", 0.15f);
+                anim.SetTrigger("Talk");
+                Debug.Log($"[128-2 P2] 대화자세 — {DisplayName} 진입전state={(wasWalk ? "Walk" : "기타")}");
+            }
+
+            // [89차] DialogueEnded 1회성 구독 — 구독 전 해제(중복 방지), 카메라 복원 시 대화 자세 해제.
+            DialogueCameraDirector.DialogueEnded -= OnDialogueEndedForPose;
+            DialogueCameraDirector.DialogueEnded += OnDialogueEndedForPose;
+        }
+
+        /// <summary>[89차] 대화 자세 해제 — DialogueEnded 구독 해제 + VillagerWanderer.ResumeAfterDialogue(배회 재개).
+        /// [98차 F1] F1-4 재개 봉합 — 위임 경로(카메라 End → DialogueEnded → 본 메서드) 가시화 로그 추가.
+        /// 근거: 마을씬 테스트 9 Editor.log — 배회 재개 로그 전무 + 위임 경로 로그 부재로 성패 판별 불가
+        /// (위임 수신처가 죽으면 영구 정지 — Director End 폴백 재개/[98차 F1]가 안전망 이중화).</summary>
+        public void EndDialoguePose()
+        {
+            DialogueCameraDirector.DialogueEnded -= OnDialogueEndedForPose;
+
+            var wanderer = GetComponent<VillagerWanderer>();
+            if (wanderer != null) wanderer.ResumeAfterDialogue();
+            // [98차 F1] 위임 수신처 재개 로그 — 재개 성패 판별 가능화(테스트 9 판별 불가 원인 봉합).
+            Debug.Log($"[98차 F1] 대화 종료 재개 — {DisplayName}");
+        }
+
+        /// <summary>[89차] DialogueEnded 수신 — 대화 카메라 복원 시 대화 자세 해제(1회성 — EndDialoguePose가 구독 해제).</summary>
+        private void OnDialogueEndedForPose(Component target)
+        {
+            EndDialoguePose();
+        }
+
+        /// <summary>[89차] TalkB 트리거 — Player_AC TalkB 상태(트리거 "Talk2", HasExitTime 0.92 → 자동 Idle 복귀).
+        /// NPCDialoguePanelUTK.OpenForVillager 선택지 응답 경유.</summary>
+        public void SetTalkBTrigger()
+        {
+            var anim = GetComponent<Animator>();
+            if (anim != null) anim.SetTrigger("Talk2");
+        }
+
+        // ================================================================
         // 내부 메서드
         // ================================================================
 

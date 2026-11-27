@@ -15,9 +15,9 @@ namespace ProjectName.UI.Toolkit
     ///
     /// [구현]
     ///  ① MercenaryManager 실측 API 직접 호출 (복제 금지):
-    ///     - GetAllMercenaryData() / GetHiredMercenaries() / HiredCount / MaxMercenaries
+    ///     - GetAllMercenaryData() / GetHiredMercenaries() / HiredCount / AvailableMercenaryCount
     ///     - HireMercenary(id) / FireMercenary(id) / GetAffinity(id) / TryGetMercenaryData(id, out)
-    ///     - PlayerInventory.GetItemCount("gold") / RemoveItem("gold", cost) — 골드 결제.
+    ///     - PlayerStats.SpendGold(cost, "mercenary_hire") — 지갑 골드 결제 [70차 지갑 단일소스].
     ///  ② 용병 목록 행: 등급별 ★표시 + 이름/직업 + 능력치 + 특수능력 + 고용 비용.
     ///     - 미고용 → 📋 고용 버튼, 고용됨 → 🔴 해고 버튼 + 호감도 표시.
     ///  ③ 📖 상세 토글 → 배경 스토리 + 호감도(보너스) 확장.
@@ -196,11 +196,9 @@ namespace ProjectName.UI.Toolkit
                 return;
             }
 
-            // 보유 골드 + 고용 수 (요약)
-            int gold = PlayerInventory.Instance != null
-                ? PlayerInventory.Instance.GetItemCount("gold")
-                : 0;
-            _summaryLabel.text = $"🍺 용병 고용소 — 💰 {gold}G · 👥 {mgr.HiredCount}/{mgr.MaxMercenaries}";
+            // 보유 골드 + 고용 수 (요약) — 단일 지갑 PlayerStats
+            int gold = PlayerStats.Instance != null ? PlayerStats.Instance.Gold : 0;
+            _summaryLabel.text = $"🍺 용병 고용소 — 💰 {gold}G · 👥 {mgr.HiredCount}/{mgr.AvailableMercenaryCount}";
 
             // 고용된 용병 ID 집합 → O(1) 조회 (원본 _cachedHiredIds 대응)
             var hiredIds = new HashSet<string>();
@@ -253,7 +251,10 @@ namespace ProjectName.UI.Toolkit
             actions.style.marginTop = 3f;
 
             // 비용 표시
-            row.Add(MakeLabel($"💰 고용 비용: {merc.hireCost}G", UTKTheme.Gold));   // [GitHub-dark] 비용 — 골드
+            // 입단비(1회) + 주간 계약비(7일마다) 분리 표시 — 실제 청구액과 일치
+            row.Add(MakeLabel(
+                $"💰 입단비 {SoldierWageSystem.GetMercenaryAdmissionFee(merc)}G · 주간 고용비: {SoldierWageSystem.GetMercenaryWeeklyContractCost(merc)}G/주",
+                UTKTheme.Gold));   // [GitHub-dark] 비용 — 골드
 
             if (isHired)
             {
@@ -263,7 +264,7 @@ namespace ProjectName.UI.Toolkit
             }
             else
             {
-                var hireBtn = UTKButton.Create($"📋 고용 ({merc.hireCost}G)",
+                var hireBtn = UTKButton.Create($"📋 고용 ({SoldierWageSystem.GetMercenaryUpfrontCost(merc)}G)",
                     () => OnHireMercenary(mgr, merc), UTKButton.Variant.Primary);
                 StyleButton(hireBtn, UTKButton.Variant.Primary);   // [GitHub-dark] 고용 버튼 인라인 리스타일
                 actions.Add(hireBtn);
@@ -299,26 +300,25 @@ namespace ProjectName.UI.Toolkit
 
         // ===== 고용 / 해고 =====
 
-        /// <summary>원본 OnHireMercenary 실측 — 골드 확인 후 HireMercenary + RemoveItem.</summary>
+        /// <summary>원본 OnHireMercenary 실측 — 결제·등록은 MercenaryManager.HireMercenary(단일 원자 경로)가 PlayerStats로 처리.</summary>
         private void OnHireMercenary(MercenaryManager mgr, MercenaryData merc)
         {
-            int gold = PlayerInventory.Instance != null ? PlayerInventory.Instance.GetItemCount("gold") : 0;
-            if (gold < merc.hireCost)
+            int upfront = SoldierWageSystem.GetMercenaryUpfrontCost(merc);
+            int gold = PlayerStats.Instance != null ? PlayerStats.Instance.Gold : 0;
+            if (gold < upfront)
             {
-                SetStatus($"⚠️ 골드 부족! 필요: {merc.hireCost}G, 보유: {gold}G");
+                SetStatus($"⚠️ 골드 부족! 필요: {upfront}G (입단비+첫 주), 보유: {gold}G");
                 return;
             }
 
             if (mgr.HireMercenary(merc.id))
             {
-                if (PlayerInventory.Instance != null)
-                    PlayerInventory.Instance.RemoveItem("gold", merc.hireCost);
-                Debug.Log($"[MercUTK] 🎭 용병 고용 완료: {merc.mercenaryName} ({merc.hireCost}G 지불)");
-                SetStatus($"✅ {merc.mercenaryName} 고용 완료! ({merc.hireCost}G 지불)");
+                Debug.Log($"[MercUTK] 🎭 용병 고용 완료: {merc.mercenaryName} (입단+첫 주 {upfront}G 지불)");
+                SetStatus($"✅ {merc.mercenaryName} 고용 완료! ({upfront}G 지불, 이후 주간 {SoldierWageSystem.GetMercenaryWeeklyContractCost(merc)}G)");
             }
             else
             {
-                SetStatus("⚠️ 더 이상 고용할 수 없습니다. (최대 인원 초과)");
+                SetStatus("⚠️ 고용 불가 (최대 인원 초과 또는 골드 부족).");
             }
             RefreshList();
         }

@@ -228,11 +228,6 @@ namespace ProjectName.Core
         /// <summary>포섭 확률 보정 (0~1): 화술 높을수록 포섭 성공률 상승</summary>
         public float RecruitSpeechBonus => Mathf.Clamp(SpeechSkill * 0.003f, 0f, 0.2f);
 
-        /// <summary>밀매 숙련 (0~1): 화술 높을수록 밀매 가능/성공</summary>
-        public float SmuggleSkill => Mathf.Clamp(SpeechSkill * 0.01f, 0.05f, 0.9f);
-
-        /// <summary>밀매 판매 프리미엄 (1.0~1.5): 최대 +50%</summary>
-        public float SmuggleGainMultiplier => 1f + Mathf.Clamp(SpeechSkill * 0.005f, 0f, 0.5f);
         public float CombatDamageBonus => _level * 0.01f; // +1% damage per level
 
         /// <summary>

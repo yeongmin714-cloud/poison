@@ -21,6 +21,13 @@ namespace ProjectName.Systems
             BuildPlayableTestInterior();
         }
 
+        /// <summary>[44차] 전용 씬 언로드 시 실내 플래그 복구 — MainScene 복귀 후 잔존 방지.</summary>
+        private void OnDestroy()
+        {
+            if (gameObject.scene.name == TestSceneName)
+                UITransitionState.IndoorActive = false;
+        }
+
         private static void EnsureWarehouseSystem()
         {
             if (WarehouseSystem.Instance != null) return;
@@ -35,6 +42,10 @@ namespace ProjectName.Systems
             //   본 씬의 PlaytestDirectionalLight(1.15+Soft)가 천장 비활성화로 실내를 직사해
             //   성내부 암전 무드/디더링 계약을 무력화했다. 런타임 소등 — 씬 복제에도 유지.
             NeutralizeSceneSunlights();
+            // [44차] 전용 씬도 실내 상태로 진입 — BedRestEnforcer/자가수리 스윕/P14 이동 게이트 등
+            //   IndoorActive 소비 시스템 전반이 실내 계약으로 작동한다(플래그 미세팅으로
+            //   강제자/스윕이 잠자 병사가 서 있던 원인 차단). OnDestroy에서 복구.
+            UITransitionState.IndoorActive = true;
             EnsureWarehouseSystem();
             EnsureTestPlayer();
             EnsureGuardSystems();   // [38차] 병사배치 UI 실증 — GuardManager/GuardTaskSystem 보장
@@ -124,8 +135,13 @@ namespace ProjectName.Systems
             {
                 if (player.GetComponent<CharacterController>() == null)
                     ConfigureController(player.AddComponent<CharacterController>());
-                if (player.GetComponent<PlayerCastleInteriorTestMovement>() == null)
-                    player.AddComponent<PlayerCastleInteriorTestMovement>();
+                // [이동통일 B1] 단순 WASD 전용 컨트롤러 폐기 — Test_10 계약 PlayerMovement로 통일
+                //   (점프/구르기/더블탭 달리기/커서 조준/휠 줌/E·F 상호작용/넉백 구독 승계).
+                if (player.GetComponent<PlayerMovement>() == null)
+                    player.AddComponent<PlayerMovement>();
+                // [이동통일 B3] 구 컨트롤러 발지 클램프 승계 — 성 외부 이탈 방지(벽 콜라이더 부재 씬).
+                if (player.GetComponent<IndoorPlayBoundsClamp>() == null)
+                    player.AddComponent<IndoorPlayBoundsClamp>();
                 if (PlayerInventory.Instance == null && player.GetComponent<PlayerInventory>() == null)
                     player.AddComponent<PlayerInventory>();
                 return player;
@@ -135,17 +151,43 @@ namespace ProjectName.Systems
             player.transform.position = new Vector3(0f, 0f, -3f);
             ConfigureController(player.AddComponent<CharacterController>());
 
-            GameObject visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            visual.name = "PlayerTestCapsule";
-            visual.transform.SetParent(player.transform, false);
-            visual.transform.localPosition = new Vector3(0f, 0.9f, 0f);
-            visual.transform.localScale = new Vector3(0.7f, 0.9f, 0.7f);
-            Collider visualCollider = visual.GetComponent<Collider>();
-            if (visualCollider != null)
-                Destroy(visualCollider);
+            // [51차 사용자 확정 — 키 1.8m 전 씬 통일] 이 씬 플레이어 비주얼 = 휴머노이드 FBX(Player_Rigged_Heat —
+            //   Humanoid avatar 보유로 애니도 작동)를 **SoldierTargetHeight(1.8m)로 정규화** →
+            //   병사-플레이어 키 완전 동일(1.8m). 캡슐은 폴백(FBX 부재 시 — 본래 ~1.8m라 무변경).
+            GameObject visual;
+            var playerFbx = Resources.Load<GameObject>("Models/UserProvided/fbx/Player_Rigged_Heat");
+            if (playerFbx != null)
+            {
+                visual = Object.Instantiate(playerFbx);
+                visual.name = "PlayerModel";
+                visual.transform.SetParent(player.transform, false);
+                visual.transform.localPosition = Vector3.zero;
+                visual.transform.localRotation = Quaternion.identity;
+                visual.transform.localScale = Vector3.one;
+                TerritoryBuilder.NormalizeSoldierHeight(visual, TerritoryBuilder.SoldierTargetHeight, skinnedLocalBounds: false);   // [54차] 플레이어 모델 = 월드 bounds 측정
+                // 플레이어 무기/장비 시스템과 동일하게 필요한 애니 부트 — TestPlayerAnimatorBoot가 있으면 위임, 없으면 최소 구성.
+                if (visual.GetComponent<Animator>() == null)
+                    visual.AddComponent<Animator>();
+            }
+            else
+            {
+                visual = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                visual.name = "PlayerTestCapsule";
+                visual.transform.SetParent(player.transform, false);
+                visual.transform.localPosition = new Vector3(0f, 0.45f, 0f);
+                visual.transform.localScale = new Vector3(0.35f, 0.5f, 0.35f);
+                Collider visualCollider = visual.GetComponent<Collider>();
+                if (visualCollider != null)
+                    Destroy(visualCollider);
+            }
 
-            player.AddComponent<PlayerCastleInteriorTestMovement>();
+            // [이동통일 B1] PlayerMovement — RequireComponent(CharacterController) 자동 부착,
+            //   위 ConfigureController 계수(height 1.8/radius 0.35/center 0.9/stepOffset 0.3/skin 0.08) 유지 이식.
+            player.AddComponent<PlayerMovement>();
             if (PlayerInventory.Instance == null)
+            // [이동통일 B3] 구 컨트롤러 발지 클램프 승계 — 성 외부 이탈 방지(벽 콜라이더 부재 씬).
+            if (player.GetComponent<IndoorPlayBoundsClamp>() == null)
+                player.AddComponent<IndoorPlayBoundsClamp>();
                 player.AddComponent<PlayerInventory>();
             return player;
         }
@@ -176,13 +218,14 @@ namespace ProjectName.Systems
             if (camera == null)
                 camera = cameraObject.AddComponent<Camera>();
             camera.clearFlags = CameraClearFlags.Skybox;
-            camera.orthographic = true;
-            camera.orthographicSize = 12f;
+            // [카메라통일] 직교 폐기 → Test_10식 원근(PM 오빗 57° 단일 기록자 계약).
+            camera.orthographic = false;
             camera.nearClipPlane = 0.1f;
-            camera.farClipPlane = 100f;
+            camera.farClipPlane = 500f;   // farClip 500 계약 통일(Test_10 선례 — 기존 100 상향)
 
-            if (cameraObject.GetComponent<IndoorCameraFollow>() == null)
-                cameraObject.AddComponent<IndoorCameraFollow>();
+            // [카메라통일] 잔존 IndoorCameraFollow 제거 — PM 원근 단일 기록자(투어 DDOL 카메라 재사용 대비).
+            var staleFollow = cameraObject.GetComponent<IndoorCameraFollow>();
+            if (staleFollow != null) Destroy(staleFollow);
             if (cameraObject.GetComponent<AudioListener>() == null && Object.FindAnyObjectByType<AudioListener>() == null)
                 cameraObject.AddComponent<AudioListener>();
         }

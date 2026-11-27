@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using ProjectName.Core.Utils; // [T1-2] TerritoryScatterMath(밴드 산포) — 프로젝트 산포 수학 API
+using static ProjectName.Core.Utils.TerritoryScatterMath; // [T1-2 CS0246 수리] 중첩 struct ScatterInput 스코프 진입 — namespace using은 중첩 타입을 스코프에 가져오지 못함
 #pragma warning disable 0414
 
 namespace ProjectName.Core.Data
@@ -174,6 +176,13 @@ namespace ProjectName.Core.Data
         /// <summary>[O6 C-O6-02] 소유 변경 발화 — PlayerOwned로 "변경된" 경우에만. 구독자 없으면 무해.</summary>
         public static event System.Action<TerritoryId, TerritoryOwnership> OwnershipChanged;
 
+        /// <summary>
+        /// [F3] 소유 상실 발화 — PlayerOwned에서 다른 소유로 "변경된" 경우에만
+        /// (영주 배신, AI 재탈환 등). 기존 OwnershipChanged 계약(PlayerOwned 전환만) 불변 유지,
+        /// 신규 이벤트라 구독자 없으면 무해. 세이브 복원 중(OwnershipRestoreMode)엔 억제.
+        /// </summary>
+        public static event System.Action<TerritoryId, TerritoryOwnership> OwnershipLost;
+
         /// <summary>[P1] 세이브 로드 중 복원 모드 — 복원은 "새 점령"이 아니므로 이벤트 억제(칭호 카운터 오염 방지).</summary>
         public static bool OwnershipRestoreMode { get; set; }
 
@@ -181,18 +190,48 @@ namespace ProjectName.Core.Data
         {
             var state = GetState(nation, index);
             bool changed = state.ownership != ownership;
+            bool wasPlayer = state.ownership == TerritoryOwnership.PlayerOwned; // [F3] 변경 전 소유 기록
             state.ownership = ownership;
             if (changed && ownership == TerritoryOwnership.PlayerOwned && !OwnershipRestoreMode)
                 OwnershipChanged?.Invoke(state.id, ownership);
+            if (changed && wasPlayer && ownership != TerritoryOwnership.PlayerOwned && !OwnershipRestoreMode)
+                OwnershipLost?.Invoke(state.id, ownership);
         }
 
         public void SetOwnership(TerritoryId id, TerritoryOwnership ownership)
         {
             var state = GetState(id);
             bool changed = state.ownership != ownership;
+            bool wasPlayer = state.ownership == TerritoryOwnership.PlayerOwned; // [F3] 변경 전 소유 기록
             state.ownership = ownership;
             if (changed && ownership == TerritoryOwnership.PlayerOwned && !OwnershipRestoreMode)
                 OwnershipChanged?.Invoke(id, ownership);
+            if (changed && wasPlayer && ownership != TerritoryOwnership.PlayerOwned && !OwnershipRestoreMode)
+                OwnershipLost?.Invoke(id, ownership);
+        }
+
+        /// <summary>
+        /// [123차] 영지 소유 영주 설정 — 소유권(ownership)과 별개로 "현재 소유 영주 이름"만 갱신.
+        /// 영주↔영주 점령 경로(AIWarSystem.CompleteWar / TerritoryWarManager.HandleVictory),
+        /// 배신 복귀(LordBetrayalSystem.ExecuteBetrayal), 뉴게임+ 리셋(NewGamePlusSystem)에서 호출.
+        /// - 멱등: 동일 값 재설정은 무시(불필요한 변경 없음).
+        /// - 가드: null/빈 territoryId·lordName 무시, 미등록 territoryId 무시.
+        /// - 소유 영주만 기록 — ownership 자체는 건드리지 않음(이벤트 발화 없음).
+        /// </summary>
+        public void SetOwnerLord(string territoryId, string lordName)
+        {
+            if (string.IsNullOrEmpty(territoryId) || string.IsNullOrEmpty(lordName))
+            {
+                Debug.LogWarning($"[TerritoryDatabase] SetOwnerLord 무효 인자 무시 — territoryId: '{territoryId}', lordName: '{lordName}'");
+                return;
+            }
+            if (!_states.TryGetValue(territoryId, out var state))
+            {
+                Debug.LogWarning($"[TerritoryDatabase] SetOwnerLord 미등록 영지 무시 — {territoryId}");
+                return;
+            }
+            if (state.ownerLordName == lordName) return; // 멱등
+            state.ownerLordName = lordName;
         }
 
         // ===== 초기화 =====
@@ -204,17 +243,41 @@ namespace ProjectName.Core.Data
 
         /// <summary>
         /// 82개 전 영지 정의 생성 (Seed 기반 결정론적 생성)
+        /// [T1-2] 좌표 산포 교체: 기존 링 고정 반경×지터(원 배치) → 밴드 산포(TerritoryScatterMath.TryScatter).
+        /// 산포 순서 Ring4→Ring1(안쪽부터 확정)으로 밴드 단조 보장, 전역 최소 간격 120m,
+        /// 스폰(728,−529) 회피 100m, Empire/Dracula는 고정 앵커로 taken 사전 시드.
+        /// 난이도/이름/영주/병사수/설명 배정 로직은 기존 그대로 유지(좌표 산출만 교체).
         /// </summary>
         private void GenerateAllDefinitions()
         {
-            // 국가별 링별로 5개씩 총 80영지 + 황제국 1영지 + 드라큘라 1영지 = 82영지
-            foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North })
+            // ===== [T1-2] 산포 상수 =====
+            const float ScatterMinSpacing = 120f; // 전 영지 간 최소 간격(m)
+            const int ScatterMaxTries = 200;      // 산포 재시도 상한(초과 시 폴백 좌표 반환)
+            const float SpawnAvoidRadius = 100f;  // 플레이어 스폰 회피 반경(m)
+            Vector2 spawnAvoidPoint = new Vector2(728f, -529f); // 플레이어 스폰(XZ 좌표 규약: Vector2(x, z))
+
+            // 드라큘라 앵커 좌표 — 하단 드라큘라 블록과 동일한 상수(1350m @ 150°)를 그대로 재현.
+            // (블록 무수정 원칙에 따라 블록은 그대로 두고, taken 사전 시드용으로만 동일 계산을 수행)
+            const float DraculaAnchorDistance = 1350f;
+            const float DraculaAnchorAngleDeg = 150f;
+            float draculaAnchorRad = DraculaAnchorAngleDeg * Mathf.Deg2Rad;
+            Vector2 draculaAnchorXZ = new Vector2(Mathf.Cos(draculaAnchorRad) * DraculaAnchorDistance,
+                                                  Mathf.Sin(draculaAnchorRad) * DraculaAnchorDistance);
+
+            // taken 리스트: 확정 좌표 누적 — 고정 앵커(황제국 중심 (0,0), 드라큘라 성)부터 사전 시드
+            var taken = new List<Vector2> { Vector2.zero, draculaAnchorXZ };
+
+            // 산포 순서: Ring4(안쪽·최난) → Ring3 → Ring2 → Ring1(바깥·최약)
+            // 안쪽 밴드를 먼저 확정해 링 간 밴드 단조(Ring4max ≤ Ring3min ≤ …)를 보장한다.
+            // 링 내 순서: nation × t=1..5 (인덱스 1~20 배정은 기존 규약 유지)
+            for (int ring = 3; ring >= 0; ring--)
             {
-                for (int ring = 0; ring < 4; ring++)
+                TerritoryDifficulty difficulty = (TerritoryDifficulty)ring;
+                (float bandMin, float bandMax) = GetRingBand(difficulty);
+
+                foreach (NationType nation in new[] { NationType.East, NationType.West, NationType.South, NationType.North })
                 {
-                    TerritoryDifficulty difficulty = (TerritoryDifficulty)ring;
                     int baseGuardCount = GetGuardCount(nation, difficulty);
-                    float ringDistance = GetRingDistance(difficulty);
                     float nationBaseAngle = GetNationBaseAngle(nation);
 
                     for (int t = 0; t < 5; t++)
@@ -224,16 +287,33 @@ namespace ProjectName.Core.Data
                         LordInfo lord = GenerateLordInfo(nation, difficulty, index);
                         string desc = GenerateDescription(nation, difficulty, index);
 
-                        // Calculate world position for this territory
-                        // 결정론적 흔들림(jitter): 국가/링/인덱스 조합당 고정 시드 → 재시작·재생성 시에도 항상 동일 좌표
-                        var jitterRng = new System.Random(GetDeterministicHash($"{nation}_{ring}_{index}_jitter"));
-                        float radiusScale = 0.85f + (float)jitterRng.NextDouble() * 0.25f;  // 0.85 ~ 1.10 (링1 최대 1450×1.10=1595m < 세계 extent 1600m — 지도 밖 방지)
-                        float angleDeltaDeg = ((float)jitterRng.NextDouble() * 16f) - 8f;   // -8° ~ +8° (±10° 이내, 18° 슬라이스 안에 머묾 → 인접 영지와 최소 2° 간격 보장)
+                        // [T1-2] 밴드 산포: 거리 ∈ [bandMin, bandMax] 균등, 각도 ∈ 기저각 ±(45−6)° 균등,
+                        // 기확정 좌표(taken)와 최소 간격 이상, 스폰 회피 원 밖 배치.
+                        // 결정론 시드("{nation}_{ring}_{t}_scatter") → 재시작·재생성 시에도 항상 동일 좌표.
+                        string scatterKey = $"{nation}_{ring}_{t}_scatter";
+                        var scatterRng = new System.Random(GetDeterministicHash(scatterKey));
+                        var scatterInput = new ScatterInput
+                        {
+                            key = scatterKey,
+                            bandMin = bandMin,
+                            bandMax = bandMax,
+                            wedgeBaseDeg = nationBaseAngle,
+                            wedgeMarginDeg = 6f
+                        };
+                        bool scattered = TerritoryScatterMath.TryScatter(
+                            scatterInput, scatterRng, taken, ScatterMinSpacing,
+                            spawnAvoidPoint, SpawnAvoidRadius, ScatterMaxTries,
+                            out Vector2 scatteredXZ);
+                        if (!scattered)
+                        {
+                            // 폴백 좌표(밴드 중간거리 + 쐐기 기저각)가 사용된 경우 — 생성은 계속되지만
+                            // 간격 위반 가능성이 있으므로 전역 재검증(하단)에서 최종 확인된다.
+                            Debug.LogWarning($"[TerritoryDatabase] 산포 실패 — 폴백 좌표 사용: {scatterKey}");
+                        }
+                        taken.Add(scatteredXZ);
 
-                        float angleDeg = nationBaseAngle - 45f + (t * 18f) + 9f + angleDeltaDeg; // centered in each 18° slice
-                        float angleRad = angleDeg * Mathf.Deg2Rad;
-                        float jitteredDistance = ringDistance * radiusScale; // 링 순서 유지: Ring3 최대 605m < Ring2 최소 850m 등 링 간 겹침 없음
-                        Vector3 worldPos = new Vector3(Mathf.Cos(angleRad) * jitteredDistance, 0f, Mathf.Sin(angleRad) * jitteredDistance);
+                        // Vector2(x, z) 좌표 규약 → 세계 XZ (Y=0 고정)
+                        Vector3 worldPos = new Vector3(scatteredXZ.x, 0f, scatteredXZ.y);
 
                         AddDefinition(nation, index, name, nation, difficulty, baseGuardCount, lord, desc, worldPos);
                     }
@@ -254,7 +334,9 @@ namespace ProjectName.Core.Data
                 var lord = new LordInfo
                 {
                     lordName = "아우구스투스 황제",
-                    preferredFood = new[] { "구운 고기", "생선 스튜", "버섯 수프", "야채 샐러드", "빵과 치즈", "포도주", "꿀 케이크", "로스트 치킨", "양고기 스테이크", "해산물 파이" }[rng.Next(10)],
+                    // [2026-10-21] 강한 영지일수록 재료 구하기 힘든 음식(T3 고급) 지정 —
+                    // 최강 난이도인 황제국은 T3 집합(꿀 케이크/양고기 스테이크/해산물 파이)에서만 선택.
+                    preferredFood = new[] { "꿀 케이크", "양고기 스테이크", "해산물 파이" }[rng.Next(3)],
                     chronicDisease = "위 질환, 통풍, 고혈압",
                     loyalty = 95 + rng.Next(6), // 95~100
                     personality = (LordPersonality)rng.Next(7)
@@ -287,6 +369,51 @@ namespace ProjectName.Core.Data
                 AddDefinition(NationType.Dracula, 1, "드라큘라의 성", NationType.Dracula,
                     TerritoryDifficulty.Ring4, 10, draculaLord, draculaDescription, draculaPos, isNightOnly: true);
             }
+
+            // ===== [T1-2] 산포 완료 후 전역 재검증 =====
+            // 82영지 전 쌍 간격 ≥ 120m 및 산포 영지 밴드 소속 확인. 플레이 타임 1회만 도는 초기화라 비용 무시 가능.
+            {
+                var allDefs = new List<TerritoryDefinition>(_definitions.Values);
+                int spacingViolations = 0;
+                int bandViolations = 0;
+                var violationDetails = new System.Text.StringBuilder();
+
+                for (int i = 0; i < allDefs.Count; i++)
+                {
+                    for (int j = i + 1; j < allDefs.Count; j++)
+                    {
+                        float dx = allDefs[i].worldPosition.x - allDefs[j].worldPosition.x;
+                        float dz = allDefs[i].worldPosition.z - allDefs[j].worldPosition.z;
+                        float pairDist = Mathf.Sqrt(dx * dx + dz * dz);
+                        if (pairDist < ScatterMinSpacing)
+                        {
+                            spacingViolations++;
+                            if (violationDetails.Length < 2000) // 로그 과다 방지 — 앞부분 위반만 상세 기록
+                                violationDetails.AppendLine($"  간격 {pairDist:F1}m: {allDefs[i].id}({allDefs[i].worldPosition.x:F1},{allDefs[i].worldPosition.z:F1}) ↔ {allDefs[j].id}({allDefs[j].worldPosition.x:F1},{allDefs[j].worldPosition.z:F1})");
+                        }
+                    }
+
+                    // 밴드 이탈 검사 — 고정 앵커(황제국/드라큘라)는 산포 대상이 아니므로 제외
+                    if (allDefs[i].nation != NationType.Empire && allDefs[i].nation != NationType.Dracula)
+                    {
+                        (float bandMin, float bandMax) = GetRingBand(allDefs[i].difficulty);
+                        float dx = allDefs[i].worldPosition.x;
+                        float dz = allDefs[i].worldPosition.z;
+                        float dist = Mathf.Sqrt(dx * dx + dz * dz);
+                        if (dist < bandMin - 0.5f || dist > bandMax + 0.5f)
+                        {
+                            bandViolations++;
+                            if (violationDetails.Length < 2000)
+                                violationDetails.AppendLine($"  밴드 이탈: {allDefs[i].id} 거리 {dist:F1}m ∉ [{bandMin:F0},{bandMax:F0}]");
+                        }
+                    }
+                }
+
+                if (spacingViolations > 0 || bandViolations > 0)
+                    Debug.LogError($"[TerritoryDatabase] 산포 전역 재검증 실패 — 최소 간격({ScatterMinSpacing}m) 위반 {spacingViolations}건, 밴드 이탈 {bandViolations}건\n{violationDetails}");
+                else
+                    Debug.Log($"[TerritoryDatabase] 산포 전역 재검증 통과 — 영지 {allDefs.Count}개 전 쌍 간격 ≥ {ScatterMinSpacing}m, 밴드 이탈 없음");
+            }
         }
 
         /// <summary>
@@ -301,6 +428,29 @@ namespace ProjectName.Core.Data
                 TerritoryDifficulty.Ring3 => 550f,
                 TerritoryDifficulty.Ring4 => 150f,
                 _ => 0f
+            };
+        }
+
+        /// <summary>
+        /// [T1-2] 링별 배치 밴드(최소/최대 거리, 미터) — 원 배치(링 고정 반경×지터)를 밴드 산포로 교체하며 신설.
+        /// Ring4=(50,380) 최난(안쪽) / Ring3=(380,750) / Ring2=(750,1150) / Ring1=(1150,1550) 최약(바깥).
+        /// 밴드 경계는 맞닿아 있어 산포 순서(Ring4→Ring1)가 밴드 단조를 보장한다.
+        /// Ring1 최대 1550m < 세계 extent 1600m — 지도 밖 방지.
+        /// [2026-10-15 실측 — 밴드 확장 근거] 기존 Ring4=(50,300)은 78°쐐기(±39°) 내 120m 간격 5점 배치가
+        /// 리젝션 포화에 도달해 20/20 시드에서 폴백 발생(시뮬 평균 4.25건/시드, 전부 Ring4).
+        /// 밴드 확장으로 리젝션 여유를 확보했다. 단조 원칙(중앙 가까울수록 어려움)·쐐기·간격 규약 유지.
+        /// 지도 extent 1600m 내(Ring1 최대 1550m).
+        /// 황제국은 밴드 없음(고정 (0,0)) — Empire 호출 시 (0,0) 폴백.
+        /// </summary>
+        private static (float min, float max) GetRingBand(TerritoryDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                TerritoryDifficulty.Ring4 => (50f, 380f),
+                TerritoryDifficulty.Ring3 => (380f, 750f),
+                TerritoryDifficulty.Ring2 => (750f, 1150f),
+                TerritoryDifficulty.Ring1 => (1150f, 1550f),
+                _ => (0f, 0f)
             };
         }
 
@@ -431,9 +581,42 @@ namespace ProjectName.Core.Data
             };
             string lordName = namePool[(index - 1) % namePool.Length];
 
-            // 선호 음식 (10종 중 랜덤)
-            string[] foods = { "구운 고기", "생선 스튜", "버섯 수프", "야채 샐러드", "빵과 치즈", "포도주", "꿀 케이크", "로스트 치킨", "양고기 스테이크", "해산물 파이" };
-            string preferredFood = foods[rng.Next(foods.Length)];
+            // 선호 음식 (링 가중치 결정론) — T1 쉬움/T3 어려움, 링 강할수록 T3 고급 음식 가중.
+            // 링별 10슬롯 배열(합계 반드시 10)로 가중치 구현. RNG 소모 1회(rng.Next(10)) 유지 —
+            // 이후 지병/충성심/성격 추첨 순서·횟수 불변(바이트 동일 보장). 슬롯 순서는 고정 계약.
+            string[] foods = difficulty switch
+            {
+                TerritoryDifficulty.Ring1 => new[] {
+                    "구운 고기", "구운 고기",             // T1 70 (2+2+2+1=7)
+                    "야채 샐러드", "야채 샐러드",
+                    "빵과 치즈", "빵과 치즈",
+                    "버섯 수프",
+                    "생선 스튜", "로스트 치킨", "포도주" // T2 30 (3)
+                },
+                TerritoryDifficulty.Ring2 => new[] {
+                    "구운 고기", "야채 샐러드", "빵과 치즈", // T1 30 (3)
+                    "생선 스튜", "생선 스튜",              // T2 50 (2+2+1=5)
+                    "로스트 치킨", "로스트 치킨",
+                    "포도주",
+                    "꿀 케이크", "해산물 파이"            // T3 20 (2)
+                },
+                TerritoryDifficulty.Ring3 => new[] {
+                    "구운 고기",                        // T1 10 (1)
+                    "생선 스튜", "로스트 치킨",           // T2 40 (1+1+2=4)
+                    "포도주", "포도주",
+                    "꿀 케이크", "꿀 케이크",             // T3 50 (2+2+1=5)
+                    "양고기 스테이크", "양고기 스테이크",
+                    "해산물 파이"
+                },
+                TerritoryDifficulty.Ring4 => new[] {
+                    "꿀 케이크", "해산물 파이",              // T2 잔여 슬롯 폐기 → T3 100% (최강 링은 어려운 음식만)
+                    "꿀 케이크", "꿀 케이크", "꿀 케이크",     // T3 80+20 = 100 (3+3+2 기존 + 교체 2 = 4/3/3)
+                    "양고기 스테이크", "양고기 스테이크", "양고기 스테이크",
+                    "해산물 파이", "해산물 파이"
+                },
+                _ => new[] { "구운 고기", "구운 고기", "야채 샐러드", "야채 샐러드", "빵과 치즈", "빵과 치즈", "버섯 수프", "생선 스튜", "로스트 치킨", "포도주" }
+            };
+            string preferredFood = foods[rng.Next(10)];
 
             // 지병 (Ring별)
             string chronicDisease = difficulty switch
@@ -500,7 +683,12 @@ namespace ProjectName.Core.Data
         {
             foreach (var kvp in _definitions)
             {
-                _states[kvp.Key] = new TerritoryState(kvp.Value.id);
+                var state = new TerritoryState(kvp.Value.id);
+                // [123차] 소유 영주 결정론 매핑 — 초기 소유 영주 = def.lord.lordName.
+                // 씬 로드 시점과 무관하게 DB 생성(InitializeStates) 경로에서 확정되므로
+                // 같은 정의가 주어지면 항상 같은 ownerLordName이 보장된다.
+                state.ownerLordName = kvp.Value.lord.lordName;
+                _states[kvp.Key] = state;
             }
         }
 

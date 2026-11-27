@@ -64,9 +64,14 @@ namespace ProjectName.Systems
 
         [Header("Fog Settings")]
         [SerializeField] private Color _dayFogColor = new Color(0.7f, 0.75f, 0.8f);
-        [SerializeField] private Color _nightFogColor = new Color(0.05f, 0.05f, 0.1f);
-        [SerializeField] private float _dayFogDensity = 0.01f;
-        [SerializeField] private float _nightFogDensity = 0.03f;
+        // [125차 후속21 F2] 야간 포그색 (0.05,0.05,0.1) → (0.13,0.15,0.20) — 후속18 야간 앰비언트 톤과 동일 계열.
+        //   검정 안개("하늘과 구분 불가" 원인) → 달빛 톤 안개로 원거리 지형 실루엣이 배경과 구분되게.
+        [SerializeField] private Color _nightFogColor = new Color(0.13f, 0.15f, 0.20f);
+        // [125차 후속21 F1] 낮 밀도 0.01 → 0.005 (100m 투과율 63%→39% — 야외 광역 뷰 탁도 개선).
+        [SerializeField] private float _dayFogDensity = 0.005f;
+        // [125차 후속21 F1] 야간 밀도 0.03 → 0.005 (Exponential 특성거리 33m→200m; 100m 투과율 5%→61%).
+        //   원거리 아레나 실루엣 식별 가능 — "아레나가 안 보임" 직접 원인 수리.
+        [SerializeField] private float _nightFogDensity = 0.005f;
 
         // ================================================================
         // Skybox Lerp (G3-01)
@@ -177,6 +182,7 @@ namespace ProjectName.Systems
             RenderSettings.fogColor = Color.Lerp(_nightFogColor, _dayFogColor, smoothAmbientT);
             RenderSettings.fogDensity = Mathf.Lerp(_nightFogDensity, _dayFogDensity, smoothAmbientT);
             RenderSettings.fog = true;
+            LogFogDiagnosticsOnce();   // [125차 후속21 F3] 재발 방지 판별표 — 1회성 밀도/색 실측
 
             // ===== 5. Skybox Lerp =====
             UpdateSkybox(smoothAmbientT);
@@ -406,6 +412,23 @@ namespace ProjectName.Systems
         }
 
         // ================================================================
+        // 포그 진단 [F3] — 1회성 밀도/색 실측 로그 (재발 방지 판별표)
+        // ================================================================
+
+        private static bool _fogDiagnosticsLogged = false;
+        /// <summary>
+        /// [125차 후속21 F3] 포그 적용 지점에서 1회성 호출 — 현재 RenderSettings 실측값 덤프.
+        /// </summary>
+        private void LogFogDiagnosticsOnce()
+        {
+            if (_fogDiagnosticsLogged) return;
+            _fogDiagnosticsLogged = true;
+            Debug.Log($"[DayNightCycle] [125차 후속21 F3] 포그 진단: mode={RenderSettings.fogMode}, enabled={RenderSettings.fog}, " +
+                      $"density={RenderSettings.fogDensity:F4}, color={RenderSettings.fogColor} — " +
+                      $"Night({_nightFogColor:F2}, {_nightFogDensity:F4}) / Day({_dayFogColor:F2}, {_dayFogDensity:F4})");
+        }
+
+        // ================================================================
         // 초기 상태 즉시 적용
         // ================================================================
 
@@ -437,6 +460,7 @@ namespace ProjectName.Systems
             RenderSettings.fogColor = Color.Lerp(_nightFogColor, _dayFogColor, smoothAmbientT);
             RenderSettings.fogDensity = Mathf.Lerp(_nightFogDensity, _dayFogDensity, smoothAmbientT);
             RenderSettings.fog = true;
+            LogFogDiagnosticsOnce();   // [125차 후속21 F3] 재발 방지 판별표 — 1회성 밀도/색 실측
 
             // Skybox
             UpdateSkybox(smoothAmbientT);

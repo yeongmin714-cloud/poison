@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 #pragma warning disable 0414
 
@@ -36,9 +37,20 @@ namespace ProjectName.Systems
             }
 
             // 앰비언트 라이트를 어둡게 설정
-            // NOTE: URP에서 RenderSettings.ambientMode가 Skybox인 경우 이 설정은 효과가 없습니다.
-            // 실내 씬에서는 Lighting 창에서 Ambient Mode를 Color/Trilight로 설정하거나
-            // Volume Override를 통해 Ambient Probe를 제어해야 정상 동작합니다.
+            // [125차 후속7] 근본 수리 — ambientMode가 Skybox(URP 신규 씬 기본값)이면
+            //   RenderSettings.ambientLight는 엔진이 완전히 무시한다(기존 NOTE 주석도 이를 인정하고 있었다).
+            //   즉 지금까지 모든 실내 빌더의 앰비언트 설정은 전부 무효였고, 실내는 중앙 PointLight만으로
+            //   렌더링되어 '실내가 어둡다'는 사용자 신고의 직접 원인이었다.
+            //   수리: 여기서 AmbientMode.Flat을 강제해 ambientLight 값이 실제로 반영되게 한다.
+            //   선례: PlayerCastleInteriorBuilder(SetupIndoorLighting 호출 전 수동 Flat — L784),
+            //         IndoorSceneTransition(L391 Flat). 성 내부 additive 씬은 언로드 시
+            //         월드 씬 라이팅 환경이 자동 원복되므로 야외 조명 오염은 없다.
+            var previousAmbientMode = RenderSettings.ambientMode;
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            if (previousAmbientMode != UnityEngine.Rendering.AmbientMode.Flat)
+            {
+                Debug.Log($"[IndoorLighting] [125차 후속7] ambientMode {previousAmbientMode} → Flat 강제 — ambientLight가 실제로 적용되도록 수리 ({room.name})");
+            }
             RenderSettings.ambientLight = new Color(
                 ambientColor.r * ambientIntensity,
                 ambientColor.g * ambientIntensity,
@@ -66,8 +78,11 @@ namespace ProjectName.Systems
             Vector3 lightLocalPos = room.transform.InverseTransformPoint(lightWorldPos);
             Light pointLight = AddPointLight(room, lightLocalPos, DEFAULT_LIGHT_COLOR, lightRange, Mathf.Max(0f, centralLightIntensity));
 
-            // 선택적 깜빡임 효과
-            if (flicker && pointLight != null)
+            // 선택적 깜빡임 효과 — [78차 수리] Play 전용 게이트
+            //   편집모드에서도 코루틴이 진행돼 플리커가 intensity를 0.8~1.2 무작위 위상으로 흔들었다
+            //   → PlayerCastleInteriorTimberFrameTests 조명 상한 검사가 실행마다 2.6393 등으로 떨어지는 RNG 플레이크.
+            //   Play 동작 불변(플리커는 런타임 전용 연출), 편집모드 테스트는 굽힘 값(2.6)을 그대로 읽는다.
+            if (flicker && pointLight != null && Application.isPlaying)
             {
                 var runner = room.GetComponent<FlickerRunner>() ?? room.AddComponent<FlickerRunner>();
                 runner.StartFlicker(pointLight);
@@ -131,7 +146,7 @@ namespace ProjectName.Systems
         /// <param name="color">라이트 색상</param>
         /// <param name="range">라이트 범위</param>
         /// <param name="intensity">라이트 강도</param>
-        public static Light AddPointLight(GameObject parent, Vector3 localPosition, Color color, float range, float intensity)
+        public static Light AddPointLight(GameObject parent, Vector3 localPosition, Color color, float range, float intensity, bool softShadows = false, bool flicker = false)
         {
             GameObject lightGo = new GameObject("PointLight");
             lightGo.transform.SetParent(parent.transform);
@@ -142,14 +157,23 @@ namespace ProjectName.Systems
             light.color = color;
             light.range = range;
             light.intensity = intensity;
-            // [2026-10-10 H4 — 그림자 디더링 튜닝] 포인트라이트 실시간 섀도우 OFF —
+            // [2026-10-10 H4 — 그림자 디더링 튜닝] 포인트라이트 실시간 섀도우 OFF가 기본 —
             //   저해상도 큐브 섀도우가 점무늬 노이즈를 만들고(실내씬 7/8 지적), 어두운 실내에서
             //   그림자 기여는 낮다. 방향성은 쿠키 무늬+여러 광원 조합으로 대체.
-            light.shadows = LightShadows.None;
+            //   [125차 후속35-R P1] softShadows:true 호출부만 선택적 Soft — 기존 호출부 전부 None 유지
+            //   (성 내부 무변화 계약). 방향광 섀도우(ArenaFillSun/ArenaPit_Sun)는 별도로 Soft 전환.
+            light.shadows = softShadows ? LightShadows.Soft : LightShadows.None;
             // [2026-10-10 F2] 절차 불꽃 쿠키(큐브맵) — 라이트 풀에 화염 무늬(고르지 않은 밝기) 부여.
             //   쿠키 생성 실패 시 무쿠키(기존 동작) — 선택 강화.
             var cookie = GetOrCreateFlameCookie();
             if (cookie != null) light.cookie = cookie;
+
+            // [125차 후속35-R P1-3] 플리커 등록 — FlickerRunner 재사용(신규 파일 0). Play 전용 게이트 유지.
+            if (flicker && light != null && Application.isPlaying)
+            {
+                var runner = parent.GetComponent<FlickerRunner>() ?? parent.AddComponent<FlickerRunner>();
+                runner.AddLight(light);
+            }
 
             return light;
         }
@@ -204,22 +228,27 @@ namespace ProjectName.Systems
         [DisallowMultipleComponent]
         private class FlickerRunner : MonoBehaviour
         {
-            private Light _target;
-            private float _baseIntensity;
+            // [125차 후속35-R P1-3] 복수 광원 플리커 — 중앙광+보조광+횃불 동시 진동.
+            //   기존 StartFlicker(단일) 계약 유지: 재호출 시 타깃 리셋. AddLight는 누적 등록.
+            private readonly List<Light> _targets = new List<Light>();
+            private readonly List<float> _baseIntensities = new List<float>();
             private Coroutine _coroutine;
 
             public void StartFlicker(Light target)
             {
-                // 중복 코루틴 실행 방지
-                if (_coroutine != null)
-                {
-                    StopCoroutine(_coroutine);
-                    _coroutine = null;
-                }
+                // 중복 코루틴 실행 방지 + 기존 단일 타깃 계약 유지(재호출 시 리셋)
+                _targets.Clear();
+                _baseIntensities.Clear();
+                AddLight(target);
+            }
 
-                _target = target;
-                _baseIntensity = target != null ? target.intensity : 1f;
-                _coroutine = StartCoroutine(FlickerLoop());
+            /// <summary>[125차 후속35-R P1-3] 추가 광원 등록 — 기존 루프 재사용(코루틴 중복 생성 금지).</summary>
+            public void AddLight(Light target)
+            {
+                if (target == null || _targets.Contains(target)) return;
+                _targets.Add(target);
+                _baseIntensities.Add(target.intensity);
+                if (_coroutine == null && isActiveAndEnabled) _coroutine = StartCoroutine(FlickerLoop());
             }
 
             private IEnumerator FlickerLoop()
@@ -230,7 +259,7 @@ namespace ProjectName.Systems
                 float phase1 = Random.value * Mathf.PI * 2f;
                 float phase2 = Random.value * Mathf.PI * 2f;
                 float phase3 = Random.value * Mathf.PI * 2f;
-                while (_target != null)
+                while (_targets.Count > 0)
                 {
                     float t = Time.unscaledTime;
                     float multiplier = 1f
@@ -238,8 +267,26 @@ namespace ProjectName.Systems
                         + 0.050f * Mathf.Sin(t * FLICKER_SPEED * 2.3f + phase2)
                         + 0.045f * Mathf.Sin(t * FLICKER_SPEED * 5.9f + phase3);
                     multiplier = Mathf.Clamp(multiplier, FLICKER_MIN_MULT, FLICKER_MAX_MULT);
-                    _target.intensity = _baseIntensity * multiplier;
+                    for (int i = _targets.Count - 1; i >= 0; i--)
+                    {
+                        var target = _targets[i];
+                        if (target == null)
+                        {
+                            _targets.RemoveAt(i);
+                            _baseIntensities.RemoveAt(i);
+                            continue;
+                        }
+                        target.intensity = _baseIntensities[i] * multiplier;
+                    }
                     yield return null;
+                }
+            }
+
+            private void RestoreAll()
+            {
+                for (int i = 0; i < _targets.Count; i++)
+                {
+                    if (_targets[i] != null) _targets[i].intensity = _baseIntensities[i];
                 }
             }
 
@@ -252,8 +299,7 @@ namespace ProjectName.Systems
                 }
 
                 // 비활성화 시 intensity를 기본값으로 복원
-                if (_target != null)
-                    _target.intensity = _baseIntensity;
+                RestoreAll();
             }
 
             private void OnDestroy()
@@ -265,8 +311,7 @@ namespace ProjectName.Systems
                 }
 
                 // 컴포넌트 제거 시 intensity를 기본값으로 복원
-                if (_target != null)
-                    _target.intensity = _baseIntensity;
+                RestoreAll();
             }
         }
     }

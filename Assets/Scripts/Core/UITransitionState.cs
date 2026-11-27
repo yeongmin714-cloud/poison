@@ -21,6 +21,10 @@ namespace ProjectName.Core
         ///   IndoorSceneTransition(Enter/Exit)에서 갱신, Systems AI 루프가 게이트로 읽음(Core 양방향 공용 규약).</summary>
         public static bool IndoorActive;
 
+        /// <summary>[152차 P1-수리] 성 실내 배치 영지 귀속 키 — IndoorSceneTransition(Enter/Exit)에서 갱신,
+        ///   Systems(ConstructionManager 실내 분기)가 읽음(Core 양방향 공용 규약 — Systems→UI 직접 참조 금지 계약 준용).</summary>
+        public static string IndoorCastleTerritoryKey;
+
         /// <summary>[GNB] 지형 관찰 테스트씬(TerrainOnly)에서 UI 전체 비활성 — UIToolkitBootstrap이 루트를 숨기고
         ///   신규 UI 생성을 막는 게이트. GameSetup.RunTerrainOnlySetup이 세팅.</summary>
         public static bool DisableAllUi;

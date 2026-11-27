@@ -1,4 +1,4 @@
-// U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
+﻿// U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
 #pragma warning disable 618
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,13 +9,20 @@ using ProjectName.Core;
 namespace ProjectName.Systems
 {
     /// <summary>
+    /// [132차] 구르기 종류 — Shift+방향 발화에 대응하는 애니 상태 분기용
+    /// (Roll=전방 / RollBack=후방 / RollSideL·RollSideR=측면, HumanoidClipDriver가 소비).
+    /// </summary>
+    public enum RollKind { Forward, Back, Left, Right }
+
+    /// <summary>
     /// 플레이어 이동을 담당하는 스크립트.
     /// Input System Package 기반으로 동작 (Input.GetKey 대신 Keyboard.current 사용)
-    /// WASD 이동, Shift 달리기/대쉬, Space 점프, Q 구르기를 지원합니다.
+    /// WASD 이동, WASD 더블탭 달리기, Shift+방향 구르기, Space 점프를 지원합니다.
     /// 
     /// C16-02: E 키 상호작용 추가 — 근처 Bed 발견 시 Bed.OnInteract() 호출.
     /// C21-01: 대쉬 시스템 — 스태미나, HUD, 카메라 효과
-    /// C21-02: 구르기 시스템 — Q 키, 무적, 쿨다운, 더블탭
+    /// C21-02: 구르기 시스템 — Shift+방향, 무적, 쿨다운
+    /// [132차] 키 리바인드 — Q는 퀘스트 토글 전용(해방), WASD 더블탭=달리기 래치, Shift+방향=구르기(4방향).
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PlayerMovement : MonoBehaviour, IVelocityProvider
@@ -47,6 +54,56 @@ namespace ProjectName.Systems
         private Transform _cameraTransform;
         private Camera _camera;
 
+        // [P206-P5] 팔로우 카메라 정적 노출 — 플레이어 추적(렌더) 카메라의 단일 진실원.
+        //   근거: [FollowProbe] 실측상 ApplyFollowCamera가 매 프레임 이동하는 카메라가 실렌더 카메라이며,
+        //   조준 솔버가 쓰는 Camera.main은 세계 원점 매몰 별개 "Main Camera"를 반환해 조준 180° 반대 체감
+        //   ([BowAim] 88건 실측). 조준 경로(PlayerCombat)가 이 접근자를 우선 사용하게 한다.
+        //   마지막 캐시 시점의 인스턴스를 유지(파괴 시 Unity null 연산자로 자연 무효화).
+        public static Camera FollowCamera { get; private set; }
+
+        // [207차 P1] 자가 치유 바인딩 코어 — 매 프레임 실제 이동시키는 카메라(실렌더 카메라)를 참조 삼인조
+        //   (_camera/_cameraTransform/FollowCamera 정적 :62)의 단일 진실원으로 동기화하는 순수 판정부.
+        //   변경 시에만 할당한다(매 프레임 재할당 금지 — 프레임 예산 보호). 목적: 어떤 경로로 카메라가
+        //   생성·잔존했든(Awake 폴백 생성, TestTerritoryCombatSetup 원점 생성, 세션 잔존 등) 조준의 단일
+        //   진실원이 "실렌더되는 카메라"로 고정된다. Awake 바인딩 경로는 초기값 제공용으로 무손상 유지.
+        //   순수 함수로 분리한 이유: EditMode에서 다른 카메라 인스턴스가 끼어 있어도 실렌더 카메라로
+        //   수렴함을 직접 호출로 검증하기 위함(BowAimAlignmentTests 계약 소스핀 — [207차 P1]).
+        /// <returns>할당(변경)이 실제 일어났으면 true — 호출부가 _camera 필드를 갱신하는 근거.</returns>
+        public static bool SyncFollowBindingsToRendered(Camera renderedCamera, Camera currentBound, out Camera syncedCamera)
+        {
+            syncedCamera = currentBound;
+            if (renderedCamera == null) return false;   // 이동 대상에 카메라 컴포넌트 부재 — 기존 바인딩 유지
+            if (ReferenceEquals(currentBound, renderedCamera)
+                && ReferenceEquals(FollowCamera, renderedCamera)) return false;   // 변경 없음 — 재할당 금지
+            FollowCamera = renderedCamera;
+            syncedCamera = renderedCamera;
+            return true;
+        }
+
+        // [207차 P1] 조준 카메라 유효성 1차 게이트 상수 — 플레이어↔조준 후보 카메라 최대 허용 거리(m).
+        //   실렌더 팔로우 카메라는 오빗 반경 11m(휠 줌 상한 CamDistanceMax=30m)를 벗어나지 않으므로 그
+        //   2배인 60m를 상한으로 삼는다. 세션 잔존/원점 매몰 카메라(y=-0.08로 지형 아래 매몰된 P0 실측
+        //   사례 — camId -2578이 조준을 원점 고정시킨 결함)는 플레이어와 비정상적으로 떨어진 위치에서
+        //   발견되면 이 거리 게이트로 기각된다. y 좌표 기반 판정은 실내 씬(본 지형 y≈42 아래의 정상
+        //   렌더) 오탐 여지가 있어 거리 기반 1차 선별로 한다.
+        public const float AimCameraPlausibleDistance = 60f;
+
+        /// <summary>[207차 P1] 조준 카메라 유효성 가드 — 조준 솔버에 넘기기 전 후보 카메라의 성립 조건을
+        /// 검증하는 순수 판정부. ①파괴(fake-null 포함)/부재 ②컴포넌트 비활성화(enabled=false)
+        /// ③계층 비활성화(activeInHierarchy=false) ④플레이어와 거리 > AimCameraPlausibleDistance(60m)
+        /// 중 하나라도 해당하면 불합격(false). 원점 매몰/세션 잔존 카메라가 조준 단일 진실원을 탈취해
+        /// 화살이 항상 플레이어→원점 방향으로 발사되던 P0 결함의 재발 차단용. PlayerCombat.
+        /// ResolveBowAimCamera가 FollowCamera→Camera.main 순으로 소비하고, 둘 다 불합격이면 기존 동작
+        /// (null 반환 → 발사 취소 경로)으로 폴백한다. 순수 함수 — EditMode 계약테스트에서 플레이모드
+        /// 없이 직접 호출로 검증 가능.</summary>
+        public static bool IsPlausibleAimCamera(Camera c, Transform player)
+        {
+            if (c == null || player == null) return false;      // 파괴/부재 — Unity null 연산자로 fake-null 일괄 처리
+            if (!c.isActiveAndEnabled) return false;            // 컴포넌트 비활성화
+            if (!c.gameObject.activeInHierarchy) return false;  // 계층 비활성화
+            return Vector3.Distance(c.transform.position, player.position) <= AimCameraPlausibleDistance;
+        }
+
         private Vector3 _moveDirection;
         private float _verticalVelocity;
         private float _currentSpeed;
@@ -55,6 +112,14 @@ namespace ProjectName.Systems
         // 이동 가속/감속 평활 속도 — 0↔5m/s 즉발 전환 제거(Idle↔Walk↔Run 애니 사이클 급전환·클립 재시작 방지).
         // 가속 12m/s², 감속 18m/s²로 평면 속도만 램프 (방향은 즉시 반영 — 조작감 유지).
         private float _smoothedPlanarSpeed;
+
+        // [80차] 플레이어 넉백 임펄스 — PlayerHealth.KnockbackRequested 구독(몬스터 근접 타격 시 피격 방향으로
+        // 감속 커브 이동). 즉시 Move(텔레포트 튐) 대신 MovePlayer에서 매 프레임 가산해 자연스럽게 밀려난다.
+        private const float KnockbackDuration = 0.25f;      // 임펄스 지속(초) — 선형 감속
+        private const float KnockbackSpeedPerForce = 4f;    // 강도 1당 초기 속도(m/s) — 근접 2 → 8m/s → 총 ~1m 밀림
+        private Vector3 _knockbackDir;
+        private float _knockbackSpeed;
+        private float _knockbackTimer;
 
         // ── Input System 키보드 참조 (W키 간헐 드랍 수정: 캐시 금지, 매 접근 즉시 조회) ──
         // 과거 `_keyboard = Keyboard.current`를 1회 캐시하면 Input System이 디바이스를
@@ -98,6 +163,13 @@ namespace ProjectName.Systems
         private Vector3 _rollDirection;
         private float _rollTimer = 0f;
         private float _lastRollTime = -10f;
+
+        // [132차] 더블탭 달리기 래치 — 같은 방향키 더블탭 시 해당 인덱스 래치, 방향키를 떼면 해제.
+        // (기존 더블탭=즉시 구르기를 달리기로 용도 변경. 스태미나 소모 없음.)
+        private readonly bool[] _doubleTapRunLatched = new bool[4];
+        // [132차] 방향키별 최근 누름 시각 — Shift+방향 구르기의 "가장 최근 방향" 판정용
+        // (게임 시작 직후 오인 방지 위해 음수 초기화 — _lastKeyTime 선례 동일)
+        private readonly float[] _lastDirectionPressTime = new float[] { -10f, -10f, -10f, -10f };
 
         // --- 점프 관련 (로컬 추적 — RigAnimationController의 CurrentState 타이밍 이슈 해결) ---
         private bool _isJumping = false;
@@ -174,41 +246,10 @@ namespace ProjectName.Systems
                     // 자동 부착 금지(2026-09-05 정책) — 씬에 명시 배치된 경우만 사용
                     _rigAnim = GetComponent<RigAnimationController>();
 
-                    // 메인 카메라 찾기
-                    if (Camera.main != null)
-                    {
-                        _cameraTransform = Camera.main.transform;
-                        _camera = Camera.main;
-                        _defaultFOV = _camera.fieldOfView;
-                        _cameraOriginalLocalPosition = _cameraTransform.localPosition;
-                    }
-                    else
-                    {
-                        // Try to find any camera
-                        var anyCamera = FindAnyObjectByType<Camera>();
-                        if (anyCamera != null)
-                        {
-                            _cameraTransform = anyCamera.transform;
-                            _camera = anyCamera;
-                            _defaultFOV = _camera.fieldOfView;
-                            _cameraOriginalLocalPosition = _cameraTransform.localPosition;
-                            anyCamera.tag = "MainCamera"; // Tag it for future use
-                            Debug.LogWarning("[PlayerMovement] No MainCamera tagged camera found, using first available camera and tagging it.");
-                        }
-                        else
-                        {
-                            Debug.LogError("[PlayerMovement] 씬에 카메라가 없습니다! 카메라를 생성합니다.");
-                            // Create a default camera
-                            var camGO = new GameObject("Main Camera");
-                            camGO.tag = "MainCamera";
-                            _camera = camGO.AddComponent<Camera>();
-                            _cameraTransform = _camera.transform;
-                            _defaultFOV = _camera.fieldOfView;
-                            _cameraOriginalLocalPosition = _cameraTransform.localPosition;
-                            camGO.AddComponent<AudioListener>();
-                            Debug.Log("[PlayerMovement] Created default Main Camera.");
-                        }
-                    }
+                    // 메인 카메라 찾기 — [207차 P1] 취득 체인(Camera.main → anyCamera 태그 부여 → 신규 생성)을
+                    // BindFollowCameraFromScene으로 추출해 Awake 초기 바인딩과 ApplyFollowCamera 자가 치유
+                    // 재바인딩이 동일한 체인을 공유한다(중복 신설 금지 — 동작 무손상).
+                    BindFollowCameraFromScene();
 
                     // W키 드랍 수정: 키보드 참조 캐시 제거 — 모든 접근은 CurrentKeyboard 즉시 조회로 대체
                     _stamina = _maxStamina;
@@ -279,6 +320,47 @@ namespace ProjectName.Systems
             }
         }
 
+        // ═══════════════ [80차] 플레이어 넉백 ═══════════════
+        private void OnEnable()
+        {
+            ProjectName.Core.PlayerHealth.KnockbackRequested += HandleKnockbackRequested;
+        }
+
+        private void OnDisable()
+        {
+            ProjectName.Core.PlayerHealth.KnockbackRequested -= HandleKnockbackRequested;
+        }
+
+        /// <summary>[80차] 넉백 임펄스 주입 — PlayerHealth.KnockbackRequested 이벤트에서 호출.
+        /// 방향은 평면(x,z)만 사용, 강도는 KnockbackSpeedPerForce 배율로 초기 속도 환산.</summary>
+        public void AddImpulse(Vector3 direction, float force)
+        {
+            if (direction.sqrMagnitude < 1e-6f || force <= 0f) return;
+            Vector3 planar = new Vector3(direction.x, 0f, direction.z);
+            if (planar.sqrMagnitude < 1e-6f) return;
+            _knockbackDir = planar.normalized;
+            _knockbackSpeed = force * KnockbackSpeedPerForce;
+            _knockbackTimer = KnockbackDuration;
+        }
+
+        private void HandleKnockbackRequested(Vector3 direction, float force)
+        {
+            if (_controller == null) return;   // 초기화 전 이벤트 — 무시(다음 타격부터 적용)
+            AddImpulse(direction, force);
+        }
+
+        /// <summary>[80차] 넉백 타이머 감소 — 선형 감속(뒤로 밀리다 멈춤). 0 도달 시 속도 소멸.</summary>
+        private void TickKnockback(float dt)
+        {
+            if (_knockbackTimer <= 0f) return;
+            _knockbackTimer -= dt;
+            if (_knockbackTimer <= 0f)
+            {
+                _knockbackTimer = 0f;
+                _knockbackSpeed = 0f;
+            }
+        }
+
         private void Update()
         {
             // DD5: WASD 입력 에지 프로브 (Play 시작 120초 동안만 — 진단 전용, 동작 변경 없음)
@@ -301,6 +383,7 @@ namespace ProjectName.Systems
             MovePlayer();
             HandleSwimming(); // 수영 판정 + 부유 보정 (중력/이동/접지 적용 후)
             HandleInteraction(); // C16-02: E 키 상호작용
+            TickBridgePendingWatchdog();   // [96차 F2] 브리지 안전망 — 패널 소유 미확인 정지 15s 초과 자동 재개(누락 경로 회복).
             HandleCameraShake();
             HandleDashCameraEffect();
 
@@ -455,7 +538,10 @@ namespace ProjectName.Systems
                 && pos.y + 0.4f < surfaceY
                 && (pos.y + 1.2f) > surfaceY - 1.5f;
 
-            if (!_isSwimming) return;
+            if (!_isSwimming) { PlayerStatusEffectSystem.SetWet(false); return; }   // [63-B] 수영 이탈 — 젖음 해제
+
+            PlayerStatusEffectSystem.Extinguish();   // [63-B] 물 접촉 — 화상 즉시 해제(현실감 계약)
+            PlayerStatusEffectSystem.SetWet(true);
 
             // 부유 보정: y = Max(바닥, 수면 - 0.7) — 수면 위로 튀지 않게 하고 바닥 파묻힘도 방지
             float bottomCenterY;
@@ -520,8 +606,8 @@ namespace ProjectName.Systems
             // E 키 (wasPressedThisFrame: 눌린 순간만 반응)
             if (kb.eKey.wasPressedThisFrame)
             {
-                // 탑승 중에는 상호작용 무시 (MountSystem에서 하차 처리)
-                if (MountSystem.Instance != null && MountSystem.Instance.IsMounted)
+                // 탑승 중에는 상호작용 무시 (HorseMountSystem에서 하차 처리) — [206차] 게이트 통일
+                if (HorseMountSystem.IsMounted)
                     return;
 
                 // Physics.OverlapSphere로 주변 Bed 검색
@@ -555,12 +641,185 @@ namespace ProjectName.Systems
                     }
                 }
                 if (nearest != null)
-                    SoldierInteractBridge.RaiseInteract(nearest);   // [P13] 상호작용 창 (SoldierInteractUTK)
+                {
+                    // [68차 P1] F키 = 피그마 상호작용 패널(InteractionPanelUTK) — 구 SoldierInteractUTK 창 경로
+                    //   (RaiseInteract)에서 통합 패널 경로로 전환. 영입 병사=Ally / 미영입=EnemyGuard.
+                    //   RaiseTargetInteraction은 NPC 분기(아래)와 동일 브리지 API.
+                    SoldierInteractBridge.RaiseTargetInteraction(
+                        nearest.IsRecruited ? HoverTargetClassifier.TargetKind.Ally
+                                            : HoverTargetClassifier.TargetKind.EnemyGuard,
+                        nearest);
+                }
+                else
+                {
+                    // [69차 P2] 병사 미발견 → 영주(InvadedLordEncounter) 감지 — 월드 씬에서도 F키로 영주 패널 개방(좌클릭 패널과 통일).
+                    //   NPC 감지보다 영주 우선(영주>NPC). Systems 동일 어셈블리 → 직접 참조.
+                    InvadedLordEncounter encounter = null;
+                    float lordBestDist = float.MaxValue;
+                    foreach (var hit in hits)
+                    {
+                        var lordHit = hit.GetComponentInParent<InvadedLordEncounter>();
+                        if (lordHit == null) continue;
+                        float d = Vector3.Distance(transform.position, lordHit.transform.position);
+                        if (d < lordBestDist) { lordBestDist = d; encounter = lordHit; }
+                    }
+
+                    // [125차 후속8] 아레나 베팅 관리인(ArenaBetManager) 감지 — 병사>영주 다음 순위로
+                    //   F키 패널 개방(좌클릭 라우팅과 동일 InteractionPanelUTK 아레나 패널 — 피그마 261:3).
+                    //   Systems 동일 어셈블리 → 직접 참조(리플렉션 불필요). 기존 hits 재사용 — 최근접 선택.
+                    ArenaBetManager arenaManager = null;
+                    float arenaBestDist = float.MaxValue;
+                    foreach (var hit in hits)
+                    {
+                        var arenaHit = hit.GetComponentInParent<ArenaBetManager>();
+                        if (arenaHit == null) continue;
+                        float d = Vector3.Distance(transform.position, arenaHit.transform.position);
+                        if (d < arenaBestDist) { arenaBestDist = d; arenaManager = arenaHit; }
+                    }
+
+                    if (encounter != null)
+                    {
+                        SoldierInteractBridge.RaiseTargetInteraction(
+                            HoverTargetClassifier.TargetKind.Lord, encounter);
+                    }
+                    else if (arenaManager != null)   // [125차 후속8] 아레나 관리인 — 마을NPC/주민보다 선행
+                    {
+                        // InteractionPanelUTK 아레나 패널(대화하기/베팅하기) 개방 — SoldierInteractBridge 이벤트 경유.
+                        SoldierInteractBridge.RaiseTargetInteraction(
+                            HoverTargetClassifier.TargetKind.ArenaManager, arenaManager);
+                        Debug.Log("[PlayerMovement] [125차 후속8] F키 — 아레나 베팅 관리인 패널 개방 요청");
+                    }
+                    else
+                    {
+                    // [64차 P3] 병사 미발견 시 NPC/영주(마을 NPC·영주 NPC — TerritoryNPCBehaviour) 감지 —
+                    //   좌클릭 패널과 동일 대상을 F키로도 상호작용. Systems는 UI 참조 불가 → 리플렉션(Test_14/TerritoryManager 선례).
+                    var npcType = System.Type.GetType("ProjectName.UI.TerritoryNPCBehaviour, ProjectName.UI");
+                    bool villageNpcRaised = false;   // [89차 P4] P3 발화 여부 — 주민 스캔은 P3 미발화 시에만(우선순위 계약 유지)
+                    if (npcType != null)
+                    {
+                        Component nearestNpc = null;
+                        float npcBestDist = float.MaxValue;
+                        foreach (var hit in hits)
+                        {
+                            var npc = hit.GetComponentInParent(npcType);
+                            if (npc == null) continue;
+                            float d = Vector3.Distance(transform.position, npc.transform.position);
+                            if (d < npcBestDist) { npcBestDist = d; nearestNpc = npc; }
+                        }
+                        if (nearestNpc != null)
+                        {
+                            // [94차 F4] 마을NPC(TerritoryNPCBehaviour) — 배회 로직 없음(실측: TerritoryNPCSpawner
+                            //   354행 정적 상호작용 전용 컴포넌트) → 정지 API 불요(로그만). 주민 정지는 아래
+                            //   주민 분기 브리지(PauseTargetWanderForPanel) 담당.
+                            // InteractionPanelUTK 구독 이벤트 경유 — NPC 패널(대화하기/상점 등) 개방.
+                                // [116차 R2] 상점 NPC(ShopNPC) 분기 — 세금제안 패널 경로. 좌클릭(HoverTargetClassifier
+                                //   .ClassifyAt→IsShopTerritoryNpc)과 동일 분류 단일소스. 기존 NPC 분기는 폴백 유지.
+                                var fkeyNpcKind = HoverTargetClassifier.IsShopTerritoryNpc(nearestNpc.gameObject)
+                                    ? HoverTargetClassifier.TargetKind.ShopNPC
+                                    : HoverTargetClassifier.TargetKind.NPC;
+                                SoldierInteractBridge.RaiseTargetInteraction(fkeyNpcKind, nearestNpc);
+                            villageNpcRaised = true;
+                        }
+                    }
+
+                    // [89차 P4] 마을 NPC(TerritoryNPCBehaviour) 미발견 → 마을 주민(NPCAmbientDialogue) 감지 —
+                    //   우선순위 계약: 병사 > 영주 > 마을NPC > 주민. 동일 Systems 어셈블리 → 직접 참조(리플렉션 불필요),
+                    //   기존 hits 재사용. kind는 64차 P3 좌클릭 패널과 동일 NPC — InteractionPanelUTK 대화하기 활성 경로.
+                    if (!villageNpcRaised)
+                    {
+                        NPCAmbientDialogue nearestVillager = null;
+                        float villagerBestDist = float.MaxValue;
+                        foreach (var hit in hits)
+                        {
+                            var villager = hit.GetComponentInParent<NPCAmbientDialogue>();
+                            if (villager == null) continue;
+                            float d = Vector3.Distance(transform.position, villager.transform.position);
+                            if (d < villagerBestDist) { villagerBestDist = d; nearestVillager = villager; }
+                        }
+                        if (nearestVillager != null)
+                        {
+                            // [94차 F4] F키 패널 개방 브리지 — 정지 API 호출 전달(즉시 정지 — 패널 개방 이벤트
+                            //   전에 전달. 멱등 — InteractionPanelUTK 개방 경로와 중복 무해).
+                            PauseTargetWanderForPanel(nearestVillager);
+                            BridgePendingBegin(nearestVillager);   // [96차 F2] 브리지 안전망 — 정지 기록(개방 유실 대비).
+                            SoldierInteractBridge.RaiseTargetInteraction(
+                                HoverTargetClassifier.TargetKind.NPC, nearestVillager);
+                            BridgePendingConfirm(nearestVillager);   // [96차 F2] 패널 소유 확인 — 소유 시 안전망 해제(패널 위임).
+                        }
+                    }
+                    } // [69차 P2] 영주 판정 else — NPC 블록은 영주 미발견 시에만 실행
+                }
             }
+        }
+
+        /// <summary>
+        /// [94차 F4] F키 패널 개방 브리지 — 정지 API 호출 전달(최소 변경). Systems 내 직접 캐스트로
+        /// VillagerWanderer 접근(UI 어셈블리 경유 없이 즉시 정지). 주민=VillagerWanderer.PauseForDialogue
+        /// 재사용(멱등 — '대화하기' 클릭 경로/InteractionPanelUTK 개방 경로와 중복 무해). 병사/영주는
+        /// 기존 정지 체계 존재 — 호출 자체 없음(무간섭). 마을NPC는 배회 없음(실측) — 호출부 로그만.
+        /// </summary>
+        private static void PauseTargetWanderForPanel(NPCAmbientDialogue villager)
+        {
+            if (villager == null) return;
+            var wanderer = villager.GetComponent<VillagerWanderer>();
+            if (wanderer == null) return;
+            wanderer.PauseForDialogue();
+            Debug.Log($"[PlayerMovement] [94차 F4] F키 패널 개방 — 주민 {villager.DisplayName} 배회 정지 전달(PauseForDialogue)");
+        }
+
+        // ── [96차 F2] 브리지 안전망 — 패널 개방 이벤트 유실 대비 최후 방어(봉인 해소) ──
+
+        /// <summary>[96차 F2] 브리지 안전망 타임아웃 — 정지 전달 후 패널 소유가 확인되지 않으면 이 시간(초)
+        /// 경과 시 자동 재개+경고(스펙 결함 2 수리 3과 동일 15s 계약 — 어떤 누락 경로에도 회복).</summary>
+        private const float BridgePendingTimeoutSeconds = 15f;
+        private static NPCAmbientDialogue _bridgePendingVillager;   // 정지 전달 후 패널 소유 미확인 주민
+        private static float _bridgePendingRealtime;                // 정지 전달 시각(realtime — timeScale 무관)
+
+        /// <summary>[96차 F2] 브리지 정지 기록 — 패널이 소유를 확인할 때까지 안전망 감시 대상으로 등록.</summary>
+        private static void BridgePendingBegin(NPCAmbientDialogue villager)
+        {
+            _bridgePendingVillager = villager;
+            _bridgePendingRealtime = Time.realtimeSinceStartup;
+        }
+
+        /// <summary>[96차 F2] 패널 소유 확인 — Systems는 UI 어셈블리 참조 불가(64차 P3 리플렉션 선례).
+        /// InteractionPanelUTK.IsHoldingPause 공용 게이트로 소유 이전을 확인 — 확인되면 브리지 안전망 해제
+        /// (이후 재개는 패널 수렴/15s 안전망이 단일 담당 — 이중 강제 재개 경로 방지).</summary>
+        private static void BridgePendingConfirm(NPCAmbientDialogue villager)
+        {
+            if (villager == null || _bridgePendingVillager == null) return;
+            var panelType = System.Type.GetType("ProjectName.UI.Toolkit.InteractionPanelUTK, ProjectName.UI");
+            var holder = panelType?.GetMethod("IsHoldingPause");
+            if (holder != null && holder.Invoke(null, new object[] { villager }) is bool holding && holding)
+                _bridgePendingVillager = null;   // 소유 이전 확인 — 패널 측 위임.
+        }
+
+        /// <summary>[96차 F2] 브리지 안전망 틱 — 미확인 정지 15s 초과 시 자동 재개+경고. 대화 소유권 가드 정합
+        /// (대화 카메라 세션 중 강제 재개 금지 — 94차 위임 계약과 동일, 대화 중 주민 움직임 부작용 방지).</summary>
+        private static void TickBridgePendingWatchdog()
+        {
+            if (_bridgePendingVillager == null) return;
+            if (Time.realtimeSinceStartup - _bridgePendingRealtime < BridgePendingTimeoutSeconds) return;
+            var pending = _bridgePendingVillager;
+            _bridgePendingVillager = null;
+            if (pending == null) return;   // 파괴 — 기록 해제만.
+            if (DialogueCameraDirector.IsActive && DialogueCameraDirector.Target == pending) return;   // 대화 소유 — 강제 재개 금지.
+            var wanderer = pending.GetComponent<VillagerWanderer>();
+            if (wanderer == null) return;
+            wanderer.ResumeAfterDialogue();
+            Debug.LogWarning($"[PlayerMovement] [96차 F2] 브리지 안전망 — 패널 개방 미확인 {BridgePendingTimeoutSeconds:F0}s 경과 — 주민 {pending.DisplayName} 배회 강제 재개");
         }
 
         private void HandleMovement()
         {
+            // [125차 후속27 R-B] 관전 세션 이동 차단 — 결투 중 플레이어는 관전자(아레나 밖 이탈 실측
+            //   (-4.02,1.27,-24.09) 방지). 물리/중력은 유지하고 입력 이동만 차단한다.
+            if (ArenaSpectatorCameraLock.Active)
+            {
+                _moveDirection = Vector3.zero;
+                return;
+            }
+
             // W키 드랍 수정: 캐시된 _keyboard 대신 매 프레임 즉시 조회 (stale 참조 차단)
             var kb = CurrentKeyboard;
             if (kb == null)
@@ -649,10 +908,10 @@ namespace ProjectName.Systems
                 }
             }
 
-            // 걷기/달리기/대쉬
-            bool sprintKey = kb.leftShiftKey.isPressed; // kb는 위 가드에서 null 아님 보장
-            bool hasStamina = _stamina > 0f;
+            // 걷기/달리기 — [132차] 달리기=WASD 더블탭 래치(Shift 홀드 폐지).
+            // 대쉬 트리거는 이번 패치에 없음(대쉬 코드 잔존 — 별도 키 지정 대기).
             bool isMoving = _moveDirection.magnitude > 0.1f;
+            bool runActive = IsDoubleTapRunActive && isMoving; // 더블탭 래치 + 실제 이동 중일 때만 달리기
 
             // T2B-1: 방향 전환 스무딩 — 조준 회전이 개입하지 않은 프레임에서만,
             // 이동 중 루트가 _moveDirection 방향으로 급격히 돌지 않고 부드럽게 회전하도록 Slerp.
@@ -667,15 +926,25 @@ namespace ProjectName.Systems
                 }
             }
 
-            if (sprintKey && hasStamina && isMoving)
-            {
-                _currentSpeed = _dashSpeed;
-                _isDashing = true;
-            }
-            else if (sprintKey && isMoving)
+            if (runActive && isMoving)
             {
                 _currentSpeed = _runSpeed;
-                _isDashing = false;
+                _isDashing = false; // [132차] 달리기는 대쉬 아님(_isDashing 경유 소모 경로 미사용)
+                // [134차 F] 달리기 스태미나 소모 복원 — 더블탭 래치 활성 && 실제 이동 입력 중 초당
+                //   _dashStaminaCost(20) 차감(기존 필드 주석 '초당 소모'와 정합). isMoving 게이트로
+                //   서 있는 동안(입력 없음) 소모 없음. 회복(HandleStamina)과 경합 시 소모 20 > 회복 15로
+                //   기존 구조상 자연스럽게 순소모(회복 로직 무수정).
+                _stamina -= _dashStaminaCost * Time.deltaTime;
+                if (_stamina <= 0f)
+                {
+                    _stamina = 0f;
+                    _staminaEmptyTime = Time.time;   // 기존 고갈 계약(HandleStamina 고갈 분기와 동일 — 회복 딜레이 개시)
+                    if (!PlayerStatusEffectSystem.HasEffect(StatusEffectId.Exhaustion))   // [63-B] 고갈 → 탈진 1회
+                        PlayerStatusEffectSystem.AddEffect(StatusEffectId.Exhaustion, 20f);
+                    for (int i = 0; i < _doubleTapRunLatched.Length; i++)
+                        _doubleTapRunLatched[i] = false;   // 달리기 래치 해제 → 다음 프레임부터 보행 복귀
+                    Debug.Log("[134차 F] 스태미나 고갈 — 달리기 해제");
+                }
             }
             else
             {
@@ -723,7 +992,7 @@ namespace ProjectName.Systems
                     _rigAnim.CurrentSpeed = 1f; // Speed = 1 for Run blend
                     _rigAnim.SetState(AnimationState.Run);
                 }
-                else if (sprintKey)
+                else if (runActive) // [132차] 더블탭 달리기 래치 기준 Run 상태(Shift 홀드 폐지)
                 {
                     _rigAnim.CurrentSpeed = 1f; // Speed = 1 for Run blend
                     _rigAnim.SetState(AnimationState.Run);
@@ -737,12 +1006,21 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// 더블탭 방향키 감지 — 같은 방향키를 _doubleTapTimeWindow 내에 두 번 누르면 구르기
+        /// 더블탭 방향키 감지 — 같은 방향키를 _doubleTapTimeWindow 내에 두 번 누르면 달리기 래치
+        /// ([132차] 기존 즉시 구르기 → 달리기로 용도 변경. 구르기는 Shift+방향으로 발화한다.)
         /// </summary>
         private void DetectDoubleTap()
         {
             var kb = CurrentKeyboard;
             if (kb == null) return;
+
+            // [132차] 달리기 래치 갱신 — 해당 방향키를 떼면(isPressed 아님) 래치 해제.
+            // 더블탭한 방향키를 계속 누르는 동안에만 달리기가 유지된다.
+            for (int i = 0; i < _doubleTapRunLatched.Length; i++)
+            {
+                if (_doubleTapRunLatched[i] && !IsDirectionKeyHeld(kb, (KeyDirection)i))
+                    _doubleTapRunLatched[i] = false;
+            }
 
             // 각 키의 wasPressedThisFrame 확인
             if (kb.wKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame)
@@ -762,11 +1040,9 @@ namespace ProjectName.Systems
 
             if (now - _lastKeyTime[idx] < _doubleTapTimeWindow)
             {
-                // 더블탭 감지 → 구르기 실행
-                if (!_isRolling && _isGrounded && Time.time - _lastRollTime > _rollCooldown)
-                {
-                    StartRoll(GetDirectionVector(dir));
-                }
+                // [132차] 더블탭 감지 → 달리기 래치 설정(기존: 즉시 구르기 — 구르기는 Shift+방향으로 이동).
+                // 래치 해제는 DetectDoubleTap의 홀드 갱신이 담당. 스태미나 소모 없음.
+                _doubleTapRunLatched[idx] = true;
                 _lastKeyTime[idx] = 0f; // 더블탭 중복 방지
             }
             else
@@ -801,13 +1077,44 @@ namespace ProjectName.Systems
             var kb = CurrentKeyboard;
             if (kb == null || _controller == null) return;
 
-            // Q 키 구르기 + 더블탭 구르기 조건
-            if (kb.qKey.wasPressedThisFrame && !_isRolling && 
-                Time.time - _lastRollTime > _rollCooldown && _isGrounded)
+            // [132차] Shift+방향 구르기 트리거(양엣지) — Q는 퀘스트 토글 전용으로 해방(기존 Q 구르기 분기 제거).
+            //  (a) 방향키 wasPressedThisFrame && Shift 홀드 → 구르기
+            //  (b) Shift wasPressedThisFrame && 방향키 홀드 → 구르기(가장 최근에 누른 방향 우선, 동률 시 W/S > A/D)
+            //  방향 없는 Shift 단독 = 무동작. 방향 벡터는 기존 GetDirectionVector(카메라 상대) 재사용.
+            TrackDirectionPressTimes(kb);
+            bool groundedForRoll = _isGrounded;
+            // [159차 P1] 실내 접지 폴백 — CC.isGrounded/SphereCast가 실내 바닥(쿼드 MeshCollider)에서
+            //   false로 떨어지는 회선(사용자 보고: 실내 영지씬 구르기 불가)에 대비한 2차 판정.
+            //   짧은 하향 Raycast가 바닥을 즉시 잡으면 접지로 취급+AA3 동일 마이크로 하강 Move로
+            //   CC 접촉을 복원(다음 프레임 isGrounded 자연 회복). 실내에서만 발화, 월드 로직 무영향.
+            if (!groundedForRoll && ProjectName.Core.UITransitionState.IndoorActive)
             {
-                // 방향: 현재 이동 방향 또는 캐릭터 정면
-                Vector3 rollDir = _moveDirection.magnitude > 0.1f ? _moveDirection : transform.forward;
-                StartRoll(rollDir);
+                float probeDist = _controller.height * 0.5f + 0.3f;
+                if (Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, out _, probeDist, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    groundedForRoll = true;
+                    _controller.Move(Vector3.down * 0.02f);
+                }
+            }
+            if (!_isRolling && groundedForRoll && Time.time - _lastRollTime > _rollCooldown)
+            {
+                KeyDirection? dir = null;
+
+                // (a) 방향키 새 입력 && Shift 홀드 — 이번 프레임에 새로 누른 방향키(W/S > A/D 우선)
+                if (kb.leftShiftKey.isPressed)
+                    dir = GetFreshDirection(kb);
+
+                // (b) Shift 새 입력 && 방향키 홀드 — 홀드 중 방향키 중 가장 최근에 누른 것
+                if (dir == null && kb.leftShiftKey.wasPressedThisFrame)
+                    dir = GetMostRecentHeldDirection(kb);
+
+                if (dir != null)
+                    StartRoll(GetDirectionVector(dir.Value), ToRollKind(dir.Value));
+                else if (kb.leftShiftKey.wasPressedThisFrame && !_isRolling && Time.time - _lastRollTime <= _rollCooldown)
+                {
+                    // [159차 P1] 차단 원인 실측 — Shift 입력 감지 시 게이트 상태 1회 로그(재현 근거 수집).
+                    Debug.Log($"[RollProbe] Shift 입력 감지 — blocked: rolling={_isRolling} grounded={_isGrounded} indoorGrounded={groundedForRoll} cooldown={Time.time - _lastRollTime:F2}s/{_rollCooldown}s");
+                }
             }
 
             // 구르기 진행
@@ -816,7 +1123,7 @@ namespace ProjectName.Systems
                 _rollTimer += Time.deltaTime;
 
                 // 구르기 모션: walkSpeed * ROLL_SPEED_MULTIPLIER
-                Vector3 rollMotion = _rollDirection * (_walkSpeed * _rollSpeedMultiplier);
+                Vector3 rollMotion = _rollDirection * (_walkSpeed * _rollSpeedMultiplier * AfterlifeCardSystem.RollDistanceFactor); // [156차 P5] 그림자 부츠 — 런 외부 1f 무영향
                 rollMotion.y = _verticalVelocity; // 중력 유지
                 _controller.Move(rollMotion * Time.deltaTime);
                 ClampToWorldBounds(); // 구르기 이동도 월드 경계 안으로 클램프
@@ -849,15 +1156,113 @@ namespace ProjectName.Systems
             }
         }
 
-        private void StartRoll(Vector3 direction)
+        // ── [132차] Shift+방향 구르기 보조 ──
+
+        /// <summary>[132차] 방향키별 최근 누름 시각 갱신 — Shift 입력 시점 기준 "가장 최근 방향" 판정용.</summary>
+        private void TrackDirectionPressTimes(Keyboard kb)
         {
+            if (kb.wKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame)
+                _lastDirectionPressTime[(int)KeyDirection.Up] = Time.time;
+            if (kb.sKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame)
+                _lastDirectionPressTime[(int)KeyDirection.Down] = Time.time;
+            if (kb.aKey.wasPressedThisFrame || kb.leftArrowKey.wasPressedThisFrame)
+                _lastDirectionPressTime[(int)KeyDirection.Left] = Time.time;
+            if (kb.dKey.wasPressedThisFrame || kb.rightArrowKey.wasPressedThisFrame)
+                _lastDirectionPressTime[(int)KeyDirection.Right] = Time.time;
+        }
+
+        /// <summary>[132차] 방향키 홀드 여부(화살표 대체키 포함 — 기존 WASD 이동과 동일 매핑).</summary>
+        private static bool IsDirectionKeyHeld(Keyboard kb, KeyDirection dir)
+        {
+            switch (dir)
+            {
+                case KeyDirection.Up:    return kb.wKey.isPressed || kb.upArrowKey.isPressed;
+                case KeyDirection.Down:  return kb.sKey.isPressed || kb.downArrowKey.isPressed;
+                case KeyDirection.Left:  return kb.aKey.isPressed || kb.leftArrowKey.isPressed;
+                case KeyDirection.Right: return kb.dKey.isPressed || kb.rightArrowKey.isPressed;
+                default: return false;
+            }
+        }
+
+        /// <summary>[132차] 이번 프레임에 새로 누른 방향키(W/S > A/D 우선). 없으면 null.</summary>
+        private static KeyDirection? GetFreshDirection(Keyboard kb)
+        {
+            if (kb.wKey.wasPressedThisFrame || kb.upArrowKey.wasPressedThisFrame) return KeyDirection.Up;
+            if (kb.sKey.wasPressedThisFrame || kb.downArrowKey.wasPressedThisFrame) return KeyDirection.Down;
+            if (kb.aKey.wasPressedThisFrame || kb.leftArrowKey.wasPressedThisFrame) return KeyDirection.Left;
+            if (kb.dKey.wasPressedThisFrame || kb.rightArrowKey.wasPressedThisFrame) return KeyDirection.Right;
+            return null;
+        }
+
+        /// <summary>
+        /// [132차] 홀드 중인 방향키 중 가장 최근에 누른 것. 동률(같은 프레임)이면 W/S > A/D 우선.
+        /// 홀드 중인 방향키가 없으면 null — 방향 없는 Shift 단독은 무동작(스펙 그대로).
+        /// </summary>
+        private KeyDirection? GetMostRecentHeldDirection(Keyboard kb)
+        {
+            KeyDirection? best = null;
+            float bestTime = float.MinValue;
+            for (int i = 0; i < 4; i++)
+            {
+                var dir = (KeyDirection)i;
+                if (!IsDirectionKeyHeld(kb, dir)) continue;
+
+                float t = _lastDirectionPressTime[i];
+                bool vertical = dir == KeyDirection.Up || dir == KeyDirection.Down;
+                if (best == null || t > bestTime || (Mathf.Approximately(t, bestTime) && vertical))
+                {
+                    best = dir;
+                    bestTime = t;
+                }
+            }
+            return best;
+        }
+
+        /// <summary>[132차] 방향키 → 구르기 종류 매핑(애니 상태 분기용).</summary>
+        private static RollKind ToRollKind(KeyDirection dir)
+        {
+            switch (dir)
+            {
+                case KeyDirection.Down:  return RollKind.Back;
+                case KeyDirection.Left:  return RollKind.Left;
+                case KeyDirection.Right: return RollKind.Right;
+                default:                 return RollKind.Forward;
+            }
+        }
+
+        private void StartRoll(Vector3 direction, RollKind kind = RollKind.Forward)
+        {
+            // 탑승 중 구르기 불가 (HorseMountSystem) — [132차] Shift 트리거가 탑승 질주 입력(Shift)과 겹쳐
+            // 탑승자 구르기 오발을 유발하므로 HandleJump 선례대로 봉합한다.
+            if (HorseMountSystem.IsMounted)   // [206차] 게이트 통일 — 레거시 MountSystem 참조 제거
+                return;
+
             if (_isSwimming) return; // 수영 중 구르기 무시
+            if (PlayerStatusEffectSystem.BlocksRoll()) return;   // [63-B] 골절 — 구르기 불가
+
+            // [132차] 발화 종류 기록 — HumanoidClipDriver가 IsRolling 상승엣지에서 애니 트리거
+            // (Roll/RollBack/RollSideL/RollSideR) 분기에 사용. 기본값 Forward(기존 호출부 호환).
+            LastRollKind = kind;
 
             _isRolling = true;
             _rollTimer = 0f;
             _lastRollTime = Time.time;
             _rollDirection = direction.normalized;
             _rollDirection.y = 0;
+
+            // [134차 E6] 측면 롤(Left/Right) 발화 시 진행 방향으로 몸을 즉시 주시 — 몸이 구르는 방향을
+            // 향해야 스핀축(±right)이 이동 방향에 수직이 되어 "옆으로 전복"으로 보인다. 미적용 시 몸은
+            // 기존 시선 유지 + 진행축 ∥ 스핀축 = 제자리 트위스트로만 보여 "앞으로만 구르는"으로 지각됨
+            // (구르기 2 영상 관측 — 몸 각도 고정 슬라이드). 전방/후방 롤은 시선과 진행이 이미 일치해 무수정.
+            // 롤 중 다른 회전 경로는 전부 게이트(이동 조준 L897 !isRolling / 경사 정렬 ApplySlopeAlignment
+            // _isRolling early-return)라 이 요 스냅이 롤 내내 유지되고, 종료 후 자연 이동 회전으로 이어진다.
+            if (kind == RollKind.Left || kind == RollKind.Right)
+            {
+                Vector3 rollFacing = _rollDirection;
+                rollFacing.y = 0f;
+                if (rollFacing.sqrMagnitude > 0.001f)
+                    transform.rotation = Quaternion.LookRotation(rollFacing.normalized, Vector3.up);
+            }
 
             // 구르기 시작 시 카메라 흔들림
             TriggerCameraShake(0.1f, 0.1f);
@@ -879,8 +1284,8 @@ namespace ProjectName.Systems
             // 수영 중 점프 무시 (부유 상태에서 수면 위로 튀어오름 방지)
             if (_isSwimming) return;
 
-            // 탑승 중 점프 불가 (MountSystem)
-            if (MountSystem.Instance != null && MountSystem.Instance.IsMounted)
+            // 탑승 중 점프 불가 (HorseMountSystem) — [206차] 게이트 통일
+            if (HorseMountSystem.IsMounted)
                 return;
 
             // [JumpProbe] 점프 무반응 원인 분리 — Space 입력 순간 판정 변수 스냅샷(진단 로그 전용, 동작 변경 없음)
@@ -891,7 +1296,7 @@ namespace ProjectName.Systems
                                          || FishingSystem.Instance.IsMinigameActive);
             if (kb.spaceKey.wasPressedThisFrame)
             {
-                Debug.Log($"[JumpProbe] Space입력: grounded={_isGrounded} rolling={_isRolling} mountBlocked={(MountSystem.Instance != null && MountSystem.Instance.IsMounted)} fishingBlocked={fishingBlocksJump} vv={_verticalVelocity:F2}");
+                Debug.Log($"[JumpProbe] Space입력: grounded={_isGrounded} rolling={_isRolling} mountBlocked={HorseMountSystem.IsMounted} fishingBlocked={fishingBlocksJump} vv={_verticalVelocity:F2}");
             }
 
             if (kb.spaceKey.wasPressedThisFrame && _isGrounded && !fishingBlocksJump)
@@ -921,6 +1326,8 @@ namespace ProjectName.Systems
                     _stamina = 0f;
                     _staminaEmptyTime = Time.time;
                     _isDashing = false;
+                    if (!PlayerStatusEffectSystem.HasEffect(StatusEffectId.Exhaustion))   // [63-B] 고갈 → 탈진 1회
+                        PlayerStatusEffectSystem.AddEffect(StatusEffectId.Exhaustion, 20f);
                 }
             }
             else
@@ -930,7 +1337,7 @@ namespace ProjectName.Systems
                 {
                     if (Time.time - _staminaEmptyTime > _staminaRegenDelay)
                     {
-                        _stamina += _staminaRegenRate * Time.deltaTime;
+                        _stamina += _staminaRegenRate * PlayerStatusEffectSystem.StaminaRegenMultiplier() * Time.deltaTime;   // [63-B] 회복 계수
                         _stamina = Mathf.Min(_stamina, _maxStamina);
                     }
                 }
@@ -1032,8 +1439,12 @@ namespace ProjectName.Systems
                 _smoothedPlanarSpeed, targetSpeed,
                 accel * Time.deltaTime);
             Vector3 motion = planarDir.normalized * _smoothedPlanarSpeed;
+            // [80차] 넉백 임펄스 — 감속 커브(선형)로 평면에 가산. 구르기 중엔 HandleRoll 전용 경로라 무영향.
+            if (_knockbackTimer > 0f)
+                motion += _knockbackDir * (_knockbackSpeed * (_knockbackTimer / KnockbackDuration));
             motion.y = _verticalVelocity;
             _controller.Move(motion * Time.deltaTime);
+            TickKnockback(Time.deltaTime);   // [80차] 이동 적용 후 타이머 감소 — 다음 프레임 속도 반영
             ClampToWorldBounds(); // 월드 경계 클램프 — 지형 밖(±1600m 초과) 이동 차단
 
             // === 지면 고정 (추락 영구 방지 / 지형 위 안착) ===
@@ -1067,12 +1478,21 @@ namespace ProjectName.Systems
         // 2026-09-09(3): 에지 팬 비활성 — 커서 조준+카메라 팬 이중 반응 루프 차단(고정 오빗). true로 재활용 가능.
         private const bool CameraEdgePan = false;
         private Vector3 _camSmoothPos;                    // 카메라 평활 위치(끊김 제거)
-        private float _camPitch = 65f;
+        // [카메라통일] 전 씬 57° — 9/20 실내 예시(50~60°) 정렬, 사용자 확정(전 씬 통일).
+        //   단일 기록자 계약: 실게임 카메라 = 본 ApplyFollowCamera뿐(IndoorCameraFollow는 Test_23 관람 전용 경로).
+        private float _camPitch = 57f;
         private float _camDistance = 11f;
         private const float CamDistanceMin = 4f;
         private const float CamDistanceMax = 30f;
         private const float ZoomStepPerNotch = 1.5f;
         private const float MouseSensitivity = 0.12f;
+        // [카메라통일 A4] 휠 줌 거리 공개 접근 — IndoorSceneTransition이 실내 진입/복귀 시 적정 거리를
+        //   세팅/복원(Systems 동일 어셈블리 협업 — 필드 직접 노출 대신 클램프 내재화 프로퍼티 최소 노출).
+        public float CameraDistance
+        {
+            get => _camDistance;
+            set => _camDistance = Mathf.Clamp(value, CamDistanceMin, CamDistanceMax);
+        }
         // 몸 회전 속도 (Slerp 계수/초) — 이동 방향/커서 조준 공용
         private const float TurnSpeed = 12f;
         private const float CursorTurnSpeed = 10f;
@@ -1133,13 +1553,100 @@ namespace ProjectName.Systems
         /// <summary>LateUpdate: 모든 스크립트/Cinemachine 이후에 카메라를 최종 적용 — 플레이어 추적 보장.</summary>
         private bool _cameraUnparented = false;
 
+        // [93차 F1] 대화 중 카메라 추적 억제 게이트(정적 — 전역 1개 스위치, 기본 false).
+        // 근거(마을씬 테스트 4.mp4 영상4): DialogueCameraDirector.Begin 로그 pos=(-429.8,3.2,-87.1) boundsY=1.80
+        // — 1.8m 고정 계약 프레이밍이 정확히 적용됐는데, 같은 순간 영상(대화창 표시 19~22s)은 탑다운 원거리
+        // 그대로 줌인 전무(1fps 10프레임 전수 판정 — NPC 크기 변화 0, 화면은 살아있음). 원인 = ApplyFollowCamera가
+        // LateUpdate에서 "모든 스크립트 이후 카메라 최종 적용" 계약대로 대화 중에도 매 프레임 플레이어 추적
+        // 오빗을 강제 적용 → Director의 Begin/ReframeCamera 프레이밍을 즉시 덮어써 화면 도달 불가(Begin 로그는
+        // 덮어쓰기 전 시점이라 정상 기록 — 로그와 화면의 모순 완전 해명). 대화 세션 동안 true면 LateUpdate
+        // 추적이 스스로 건너뛰고 End에서 복구된다(세터는 DialogueCameraDirector Begin/End — 멱등).
+        public static bool CameraFollowSuppressed;
+
+        /// <summary>[207차 P1] 팔로우 카메라 취득 체인 — Camera.main → 미태그 카메라(anyCamera, MainCamera
+        /// 태그 부여) → 신규 "Main Camera" 생성. Awake의 인라인 체인을 추출한 것으로 동작 무손상(로그·태그
+        /// 부여·FOV·흔들림 원위치 캐시 포함). ApplyFollowCamera의 자가 치유 재바인딩이 파괴·비활성 바인딩
+        /// 회복 시 이 동일 체인을 재실행한다 — 취득 로직의 단일 진실원(중복 구현 금지).</summary>
+        private void BindFollowCameraFromScene()
+        {
+            if (Camera.main != null)
+            {
+                _cameraTransform = Camera.main.transform;
+                _camera = Camera.main;
+                FollowCamera = _camera;   // [P206-P5] 렌더 카메라 정적 노출
+                _defaultFOV = _camera.fieldOfView;
+                _cameraOriginalLocalPosition = _cameraTransform.localPosition;
+                return;
+            }
+
+            // Try to find any camera
+            var anyCamera = FindAnyObjectByType<Camera>();
+            if (anyCamera != null)
+            {
+                _cameraTransform = anyCamera.transform;
+                _camera = anyCamera;
+                FollowCamera = _camera;   // [P206-P5] 렌더 카메라 정적 노출
+                _defaultFOV = _camera.fieldOfView;
+                _cameraOriginalLocalPosition = _cameraTransform.localPosition;
+                anyCamera.tag = "MainCamera"; // Tag it for future use
+                Debug.LogWarning("[PlayerMovement] No MainCamera tagged camera found, using first available camera and tagging it.");
+                return;
+            }
+
+            Debug.LogError("[PlayerMovement] 씬에 카메라가 없습니다! 카메라를 생성합니다.");
+            // Create a default camera
+            var camGO = new GameObject("Main Camera");
+            camGO.tag = "MainCamera";
+            _camera = camGO.AddComponent<Camera>();
+            _cameraTransform = _camera.transform;
+            FollowCamera = _camera;   // [P206-P5] 렌더 카메라 정적 노출
+            _defaultFOV = _camera.fieldOfView;
+            _cameraOriginalLocalPosition = _cameraTransform.localPosition;
+            camGO.AddComponent<AudioListener>();
+            Debug.Log("[PlayerMovement] Created default Main Camera.");
+        }
+
         private void ApplyFollowCamera()
         {
-            if (_cameraTransform == null)
+            // [125차 후속27 R-A] 관전 세션 중 추적 기록 금지 — 락 세션 플래그 게이트(1차 차단).
+            //   근거: 락 로그 — Update 페이즈에서 매 프레임 (0,0,0) 기록(파괴/무효 대상 참조 패턴 의심).
+            if (ArenaSpectatorCameraLock.Active) return;
+
+            if (CameraFollowSuppressed) return;
+            // DialogueCameraDirector.Begin=true / End=false. 대화 프레이밍이 매 프레임 덮어써지던
+            // 결함1의 단일 수정점 — 다른 프레이밍 수리는 이 게이트 없이 화면에 도달할 수 없다.
+            if (CameraFollowSuppressed) return;
+            // ── [207차 P1] 자가 치유 바인딩(1) — 파괴·비활성·비활성화 바인딩 경량 검증(매 프레임, 할당 없음) ──
+            // _cameraTransform 파괴(fake-null) 또는 _camera 파괴/컴포넌트 비활성화/계층 비활성화 상태면
+            // Awake와 동일한 취득 체인(Camera.main → anyCamera 태그 부여 → 신규 생성)을 재실행해
+            // 재바인딩한다. P0 실측(바인딩 상실 후 세션 잔존/원점 매몰 카메라가 조준 단일 진실원을
+            // 탈취)의 재발 차단. 로그는 실제 전이(참조 변화) 시 1회만 — 매 프레임 스팸 금지.
+            if (_cameraTransform == null || _camera == null
+                || !_camera.isActiveAndEnabled || !_camera.gameObject.activeInHierarchy)
             {
-                if (Camera.main != null) { _cameraTransform = Camera.main.transform; _camera = Camera.main; }
-                else return;
+                Camera prevCamera = _camera;
+                Transform prevTransform = _cameraTransform;
+                BindFollowCameraFromScene();   // 기존 취득 체인 재사용(추출 공유 — 중복 신설 금지)
+                if (!ReferenceEquals(prevCamera, _camera) || !ReferenceEquals(prevTransform, _cameraTransform))
+                    Debug.Log($"[PlayerMovement][207차] 팔로우 카메라 자가 치유 재바인딩 — " +
+                        $"이전={(prevCamera == null ? "<파괴/부재>" : prevCamera.name)} → " +
+                        $"신규={_camera.name}(id={_camera.GetInstanceID()}) (취득 체인 재실행)");
             }
+            if (_cameraTransform == null) return;   // 방어 — 체인의 신규 생성 분기가 바인딩을 항상 보장
+
+            // ── [207차 P1] 자가 치유 바인딩(2) — 실렌더(이동 대상) 카메라 확정 후 단일 진실원 동기화 ──
+            // LateUpdate가 실제로 매 프레임 이동시키는 카메라 = _cameraTransform 소속 인스턴스. 이것이
+            // 조준의 단일 진실원이다. _camera/FollowCamera가 어긋나 있으면(세션 잔존/원점 매몰 카메라가
+            // Camera.main을 탈취한 P0 실측 사례) 여기서 실렌더 카메라로 수렴시킨다 — 변경 시에만 할당
+            // (매 프레임 재할당 금지, 프레임 예산 보호). Awake 바인딩 경로는 초기값 제공용 무손상.
+            if (SyncFollowBindingsToRendered(_cameraTransform.GetComponent<Camera>(), _camera, out Camera syncedCamera))
+                _camera = syncedCamera;
+
+            // ── [207차 P1] 자가 치유 바인딩(3) — FollowCamera=_camera 불변식 매 프레임 유지 ──
+            // (2)가 실렌더 정합을 먼저 보장하므로 평시 no-op. 렌더 컴포넌트 소실 등 잔여 틈에서는
+            // _camera 기준으로 정적 노출을 동기화해 조준 참조가 실바인딩과 어긋나지 않게 한다.
+            if (_camera != null && !ReferenceEquals(FollowCamera, _camera))
+                FollowCamera = _camera;
 
             // ── 카메라가 본/프롭의 자식으로 저장돼 있으면 분리 (과거 세션 잔재) ──
             // 부모가 본이면 애니메이션/이동에 카메라가 끌려가 추적이 깨진다. 루트로 분리 후 월드 추적.
@@ -1310,6 +1817,8 @@ namespace ProjectName.Systems
         {
             if (_controller == null) return;
 
+            if (ProjectName.Core.UITransitionState.IndoorActive) return;   // [146차 P1] 실내는 지형 공식 클램프 금지 — 실내 바닥은 물리 접지 단일 소스(프로브 실측: 월드 공식이 실내에서 플레이어를 바닥 위 1.2m에 영구 부유시킴)
+
             // 점프 중에는 지표면 고정하지 않음 (점프 상승)
             if (_isJumping) return;
 
@@ -1376,6 +1885,8 @@ namespace ProjectName.Systems
         private void ApplySlopeAlignment()
         {
             if (_controller == null || _isRolling) return;
+
+            if (ProjectName.Core.UITransitionState.IndoorActive) return;   // [146차 P1] 실내는 지형 공식 클램프 금지 — 실내 바닥은 물리 접지 단일 소스(프로브 실측: 월드 공식이 실내에서 플레이어를 바닥 위 1.2m에 영구 부유시킴)
 
             // 개입 조건(접지+이동 중) 벗어남 → 기울임을 서서히 해제(요 회전은 조준/이동 로직 소관)
             if (_isJumping || !_isGrounded || _smoothedPlanarSpeed < 0.1f)
@@ -1486,7 +1997,8 @@ namespace ProjectName.Systems
         /// <summary>
         /// 카메라 흔들림 트리거
         /// </summary>
-        private void TriggerCameraShake(float duration, float intensity)
+        /// [133차] public 전환 — GatherFeedbackSystem이 채집 타격 시 호출(바디 무변경, 내부 호출 유지).
+        public void TriggerCameraShake(float duration, float intensity)
         {
             // 진행 중인 흔들림보다 강한 효과만 덮어쓰기 (약한 효과는 무시)
             if (_cameraShakeTimer > 0f && intensity <= _cameraShakeIntensity)
@@ -1594,11 +2106,15 @@ namespace ProjectName.Systems
         {
             get
             {
-                var kb = CurrentKeyboard; // 캐시 없이 즉시 조회 (W키 드랍 수정)
-                return kb != null && kb.leftShiftKey.isPressed && _moveDirection.magnitude > 0.1f;
+                // [132차] 달리기=WASD 더블탭 래치(Shift 홀드 폐지) — 래치 활성 + 실제 이동 중이면 달리기.
+                // 사용처: SoundRefinement 발소리 인터벌(IsDashing → IsSprinting 순 판정, 의미 유지).
+                return IsDoubleTapRunActive && _moveDirection.magnitude > 0.1f;
             }
         }
         public bool IsDashing => _isDashing;
+        /// <summary>[132차] 더블탭 달리기 래치 활성 여부 — 더블탭한 방향키를 누르는 동안 true(달리기 판정 근거).</summary>
+        public bool IsDoubleTapRunActive => _doubleTapRunLatched[0] || _doubleTapRunLatched[1]
+            || _doubleTapRunLatched[2] || _doubleTapRunLatched[3];
         public bool IsJumping => _isJumping;
 
         /// <summary>T-D3 이동 파라미터 확장: 로컬(캐릭터 기준) 이동 벡터(X=측면, Z=전후). 입력 없으면 zero.</summary>
@@ -1617,7 +2133,7 @@ namespace ProjectName.Systems
 
         // --- 스태미나 속성 ---
         public float Stamina => _stamina;
-        public float MaxStamina => _maxStamina;
+        public float MaxStamina => _maxStamina * PlayerStatusEffectSystem.MaxStaminaMultiplier();   // [63-B] 허기 시 최대 −30%
         public float StaminaRatio => _maxStamina > 0f ? Mathf.Clamp01(_stamina / _maxStamina) : 0f;
         public float StaminaEmptyTime => _staminaEmptyTime;
 
@@ -1627,6 +2143,8 @@ namespace ProjectName.Systems
 
         // --- 구르기 속성 ---
         public bool IsRolling => _isRolling;
+        /// <summary>[132차] 마지막 구르기 종류 — StartRoll에서 설정, HumanoidClipDriver가 애니 분기에 사용. 기본값 Forward.</summary>
+        public RollKind LastRollKind { get; private set; } = RollKind.Forward;
 
         // --- 웅크림/수영 속성 ---
         public bool IsCrouching => _isCrouching;

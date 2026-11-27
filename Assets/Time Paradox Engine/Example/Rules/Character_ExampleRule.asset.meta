@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a0232d2281698f04aa95a60394e867d1
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Example/Rules/Character_ExampleRule.asset
+  uploadId: 898796

@@ -306,6 +306,174 @@ namespace ProjectName.Systems
         }
 
         // ==================================================================================================
+        // [125차 후속32 T2] 중세 주점 팔레트 — tavern_* 세트(사용자 제공). 아레나 로비 전용(성 내부 불변 계약).
+        //   파일 부재 시 null/false 반환 → 호출부가 기존 HQ 경로 유지(폴백 계약).
+        // ==================================================================================================
+
+        /// <summary>[125차 후속32 T2] 주점 바닥 — tavern_floor_plank(오크 판자, 1장=2.4×2.4m 계약).
+        ///   타일링=방 크기/2.4m(기존 CreateFloor 동일 산식). 오크 왁스 광 — 성 석재(0.55)보다 낮은 0.25.</summary>
+        public static Material CreateTavernFloor(float roomWidth, float roomDepth)
+        {
+            if (!IndoorTextureLoader.HasTavernFiles || UrpLit == null) return null;
+            var m = new Material(UrpLit) { name = "IndoorTavern_Floor" };
+            var baseTex = IndoorTextureLoader.TavernFloor;
+            IndoorTextureLoader.Configure(baseTex, linear: false);
+            m.mainTexture = baseTex;
+            m.color = Color.white;
+            float tx = Mathf.Max(1f, Mathf.RoundToInt(roomWidth / IndoorTextureLoader.TavernFloorCoverMeters));
+            float ty = Mathf.Max(1f, Mathf.RoundToInt(roomDepth / IndoorTextureLoader.TavernFloorCoverMeters));
+            m.mainTextureScale = new Vector2(tx, ty);
+            m.SetFloat("_Smoothness", 0.25f);
+            var n = IndoorTextureLoader.TavernFloorNormal;
+            if (n != null)
+            {
+                IndoorTextureLoader.Configure(n, linear: true);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetTexture("_BumpMap", n);
+                m.SetTextureScale("_BumpMap", new Vector2(tx, ty));
+            }
+            // [125차 후속35-R P3-4] 노멀 강도 — 판자 결 강조(기존 _n 파일 그대로, 파일 교체 0).
+            if (m.HasProperty("_BumpScale")) m.SetFloat("_BumpScale", 1.3f);
+            // [125차 후속35-R P3-1] 런타임 AO — plank 크레비스 음영(파생 맵, 파일 쓰기 없음). 실패 시 무AO 폴백.
+            var floorAo = IndoorTextureGenerator.SynthesizeOcclusionFromAlbedo(baseTex);
+            if (floorAo != null)
+            {
+                m.SetTexture("_OcclusionMap", floorAo);
+                m.SetTextureScale("_OcclusionMap", new Vector2(tx, ty));
+                if (m.HasProperty("_OcclusionStrength")) m.SetFloat("_OcclusionStrength", 0.6f);
+            }
+            // [125차 후속35-R P3-3] 디테일 노이즈 — 19×25 타일 반복 완화(시임리스 벨류 노이즈).
+            var micro = IndoorTextureGenerator.GenerateMicroNoiseTexture();
+            if (micro != null)
+            {
+                m.EnableKeyword("_DETAIL_MULX2");
+                m.SetTexture("_DetailAlbedoMap", micro);
+                m.SetTextureScale("_DetailAlbedoMap", new Vector2(tx * 3f, ty * 3f));
+                if (m.HasProperty("_DetailAlbedoMapScale")) m.SetFloat("_DetailAlbedoMapScale", 0.35f);
+            }
+            return m;
+        }
+
+        /// <summary>[125차 후속32 T2] 주점 벽 — 상부 tavern_wall_plaster(2.2×1.1m 그리드)+하부 동일 텍스처 톤다운 틴트
+        ///   (투톤 구조 유지 기본안 — 하부 전용 파일은 미제공, plank 판넬 대안은 Play 비교 후 결정).
+        ///   하부 색상: 주점 하부 어두운 톤(성 하부의 밝은 틴트와 구분).</summary>
+        public static bool TryCreateTavernWall(float roomWidth, float roomHeight, out Material lower, out Material upper)
+        {
+            lower = null; upper = null;
+            if (!IndoorTextureLoader.HasTavernFiles || IndoorTextureLoader.TavernWallPlaster == null || UrpLit == null) return false;
+
+            var tex = IndoorTextureLoader.TavernWallPlaster;
+            IndoorTextureLoader.Configure(tex, linear: false);
+            var plasterN = IndoorTextureLoader.TavernWallPlasterNormal;
+            if (plasterN != null) IndoorTextureLoader.Configure(plasterN, linear: true);
+
+            // 상부 회반죽 — tavern_wall_plaster 그대로
+            var upperM = new Material(UrpLit) { name = "IndoorTavern_WallPlasterUpper" };
+            upperM.mainTexture = tex;
+            upperM.mainTextureScale = Vector2.one;
+            upperM.color = new Color(0.95f, 0.93f, 0.89f);
+            upperM.SetFloat("_Smoothness", 0.25f);
+            if (plasterN != null)
+            {
+                upperM.EnableKeyword("_NORMALMAP");
+                upperM.SetTexture("_BumpMap", plasterN);
+                upperM.SetTextureScale("_BumpMap", Vector2.one);
+            }
+            upper = upperM;
+
+            // 하부 — 동일 텍스처 톤다운 틴트(기존 투톤 아키텍처 유지)
+            var lowerM = new Material(UrpLit) { name = "IndoorTavern_WallLower" };
+            lowerM.mainTexture = tex;
+            lowerM.mainTextureScale = Vector2.one;
+            lowerM.color = new Color(0.55f, 0.48f, 0.42f);
+            lowerM.SetFloat("_Smoothness", 0.2f);
+            if (plasterN != null)
+            {
+                lowerM.EnableKeyword("_NORMALMAP");
+                lowerM.SetTexture("_BumpMap", plasterN);
+                lowerM.SetTextureScale("_BumpMap", Vector2.one);
+            }
+            lower = lowerM;
+            return true;
+        }
+
+        /// <summary>[125차 후속32 T2] 주점 골조 — tavern_wall_timber(세로 나뭇결, 기둥/들보/문틀 공용).
+        ///   로비 셸에 골조 요소가 없어 본 사이클에선 머티리얼만 준비(GLB 가구/골조 위원 배치 시 소비 — 계획 원안).</summary>
+        public static Material CreateTavernWoodFrame()
+        {
+            if (!IndoorTextureLoader.HasTavernFiles || IndoorTextureLoader.TavernWallTimber == null) return null;
+            var m = new Material(UrpLit) { name = "IndoorTavern_WoodFrame" };
+            var tex = IndoorTextureLoader.TavernWallTimber;
+            IndoorTextureLoader.Configure(tex, linear: false);
+            m.mainTexture = tex;
+            m.mainTextureScale = Vector2.one;
+            m.color = new Color(0.95f, 0.93f, 0.90f);
+            var timberN = IndoorTextureLoader.TavernWallTimberNormal;
+            if (timberN != null)
+            {
+                IndoorTextureLoader.Configure(timberN, linear: true);
+                m.EnableKeyword("_NORMALMAP");
+                m.SetTexture("_BumpMap", timberN);
+                m.SetTextureScale("_BumpMap", Vector2.one);
+            }
+            if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.18f);
+            return m;
+        }
+
+        /// <summary>[125차 후속32 T3] 주점 팔레트 룸 적용 — 아레나 로비 전용. Floor+벽 4면(상부 밴드) 구조는
+        ///   ApplyToRoom 계약 승계(UV/밴드 기하 동일). tavern 세트 부재 시 아무 것도 건드리지 않는다(폴백 계약).</summary>
+        public static void ApplyTavernToRoom(GameObject room, float width, float height, float depth)
+        {
+            if (room == null || !IndoorTextureLoader.HasTavernFiles) return;
+
+            var floor = room.transform.Find("Floor");
+            var floorMat = CreateTavernFloor(width, depth);
+            if (floor != null && floorMat != null)
+                floor.GetComponent<MeshRenderer>().sharedMaterial = floorMat;
+
+            if (TryCreateTavernWall(width, height, out var lower, out var upper))
+            {
+                string[] wallNames = { "Wall_Front", "Wall_Back", "Wall_Left", "Wall_Right" };
+                foreach (var wn in wallNames)
+                {
+                    var wall = room.transform.Find(wn);
+                    if (wall == null) continue;
+                    var r = wall.GetComponent<MeshRenderer>();
+                    if (r != null) r.sharedMaterial = lower;
+
+                    // 상단 밴드 쿼드 얹기 — ApplyToRoom 계약 승계(기하/UV 동일)
+                    var band = new GameObject(wn + "_PlasterBand");
+                    band.transform.SetParent(wall);
+                    band.transform.localPosition = new Vector3(0f, height * 0.25f, 0f);
+                    band.transform.localRotation = Quaternion.identity;
+                    var mf = band.AddComponent<MeshFilter>();
+                    var mesh = new Mesh { name = wn + "_PlasterBand_Mesh" };
+                    float hw, hh;
+                    bool isSide = wn == "Wall_Left" || wn == "Wall_Right";
+                    hw = (isSide ? depth : width) * 0.5f;
+                    hh = height * 0.25f;
+                    mesh.vertices = new Vector3[]
+                    {
+                        new Vector3(-hw, -hh, 0), new Vector3(hw, -hh, 0),
+                        new Vector3(-hw,  hh, 0), new Vector3(hw,  hh, 0)
+                    };
+                    mesh.uv = new Vector2[]
+                    {
+                        new Vector2(0, 0.5f), new Vector2(1, 0.5f),
+                        new Vector2(0, 1.0f), new Vector2(1, 1.0f)
+                    };
+                    mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+                    mesh.RecalculateNormals();
+                    mf.sharedMesh = mesh;
+                    var br = band.AddComponent<MeshRenderer>();
+                    br.sharedMaterial = upper;
+                    br.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
+                Debug.Log("[IndoorMaterialFactory] [125차 후속32] 주점 머티리얼 적용 완료 — Floor(오크 판자)+Wall(회반죽 투톤)");
+            }
+        }
+
+        // ==================================================================================================
         // [2026-10-10 F1~F3 고품질화] 신규 머티리얼 팩토리 3종
         // ==================================================================================================
 

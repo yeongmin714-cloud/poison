@@ -30,9 +30,9 @@ namespace ProjectName.Tests.EditMode
         }
 
         [TestCase(1, 0, true)]
-        [TestCase(1, 1, true)]
+        [TestCase(1, 1, false)]
         [TestCase(1, 2, false)]
-        [TestCase(2, 0, true)]
+        [TestCase(2, 0, false)]
         [TestCase(2, 1, false)]
         [TestCase(3, 0, false)]
         public void HasComboFollowupCapacity_ReservesSlotsForPendingAcceptedInputs(

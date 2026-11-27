@@ -1,0 +1,2503 @@
+{
+ "id": "94:6",
+ "name": "daily-combat-log",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 34154,
+ "ay": 3,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "IMAGE",
+  "#07090E/1.0@0.88"
+ ],
+ "strokeW": 1.2,
+ "layout": "HORIZONTAL",
+ "gap": 24.0,
+ "pl": 38.400001525878906,
+ "pr": 38.400001525878906,
+ "pt": 38.400001525878906,
+ "pb": 38.400001525878906,
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "94:46",
+   "name": "BattleLogPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 34742,
+   "ay": 51,
+   "w": 744.0,
+   "h": 984.0,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.251"
+   ],
+   "layout": "VERTICAL",
+   "gap": 19.200000762939453,
+   "pl": 24.0,
+   "pr": 24.0,
+   "pt": 24.0,
+   "pb": 24.0,
+   "c": [
+    {
+     "id": "94:47",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 34742,
+     "ay": 51,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "94:48",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 34742,
+       "ay": 51,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "94:49",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 34742,
+       "ay": 51,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "94:50",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 35472,
+     "ay": 51,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "94:51",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 35472,
+       "ay": 51,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "94:52",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 35472,
+       "ay": 51,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "94:53",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 34742,
+     "ay": 1021,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "94:54",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 34742,
+       "ay": 1021,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "94:55",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 34742,
+       "ay": 1021,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "94:56",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 35472,
+     "ay": 1021,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "94:57",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 35472,
+       "ay": 1021,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "94:58",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 35472,
+       "ay": 1021,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "94:59",
+     "name": "PanelHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 34766,
+     "ay": 75,
+     "w": 696.0,
+     "h": 48.0,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 14.40000057220459,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "94:60",
+       "name": "TitleGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 34766,
+       "ay": 79,
+       "w": 85.0,
+       "h": 25.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "94:61",
+         "name": "전투 소식",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 34766,
+         "ay": 79,
+         "w": 85.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "전투 소식",
+         "fontSize": 21.600000381469727,
+         "font": "Roboto 700 Bold",
+         "lineH": 25.3
+        }
+       ]
+      },
+      {
+       "id": "95:4",
+       "name": "CloseButton",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 35428,
+       "ay": 75,
+       "w": 33.6,
+       "h": 33.6,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "95:157",
+         "name": "x-circle",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 35437,
+         "ay": 83,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "95:158",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 35438,
+           "ay": 85,
+           "w": 14.0,
+           "h": 14.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "94:65",
+     "name": "LogList",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 34766,
+     "ay": 142,
+     "w": 696.0,
+     "h": 815.2,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "94:66",
+       "name": "BattleLogItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 34766,
+       "ay": 142,
+       "w": 696.0,
+       "h": 107.4,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0@0.133"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 7.200000286102295,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "c": [
+        {
+         "id": "95:6",
+         "name": "MetaInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 152,
+         "w": 667.2,
+         "h": 39.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:7",
+           "name": "23:14:05",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 152,
+           "w": 70.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "23:14:05",
+           "fontSize": 14.40000057220459,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          },
+          {
+           "id": "95:8",
+           "name": "차원 관문 서부 지대",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 173,
+           "w": 667.2,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "차원 관문 서부 지대",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        },
+        {
+         "id": "95:159",
+         "name": "BattleResultRow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 198,
+         "w": 667.2,
+         "h": 41.6,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 14.40000057220459,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "95:9",
+           "name": "FactionCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 199,
+           "w": 326.4,
+           "h": 39.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:10",
+             "name": "교전 세력",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 199,
+             "w": 57.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "교전 세력",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:11",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 221,
+             "w": 326.4,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:12",
+               "name": "크로노스 선봉대",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34780,
+               "ay": 221,
+               "w": 105.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "크로노스 선봉대",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              },
+              {
+               "id": "95:13",
+               "name": "vs",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34893,
+               "ay": 222,
+               "w": 15.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "vs",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "95:14",
+               "name": "아라크네 정보팀",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34915,
+               "ay": 221,
+               "w": 105.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "95:15",
+           "name": "OutcomeCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 35121,
+           "ay": 198,
+           "w": 326.4,
+           "h": 41.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:16",
+             "name": "결과",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 198,
+             "w": 27.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "결과",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:17",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 220,
+             "w": 326.4,
+             "h": 19.8,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:18",
+               "name": "OutcomeBadge",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 35121,
+               "ay": 220,
+               "w": 44.2,
+               "h": 19.8,
+               "d": 7,
+               "fills": [
+                "#1F402B/1.0"
+               ],
+               "strokes": [
+                "#39D353/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 4.8,
+               "layout": "HORIZONTAL",
+               "pl": 9.600000381469727,
+               "pr": 9.600000381469727,
+               "pt": 2.4000000953674316,
+               "pb": 2.4000000953674316,
+               "c": [
+                {
+                 "id": "95:19",
+                 "name": "WIN",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 35131,
+                 "ay": 223,
+                 "w": 25.0,
+                 "h": 15.0,
+                 "d": 8,
+                 "fills": [
+                  "#39D353/1.0"
+                 ],
+                 "strokeW": 1.2,
+                 "text": "WIN",
+                 "fontSize": 13.200000762939453,
+                 "font": "Roboto 700 Bold",
+                 "lineH": 15.5
+                }
+               ]
+              },
+              {
+               "id": "95:20",
+               "name": "크로노스 선봉대 승리",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 35173,
+               "ay": 222,
+               "w": 127.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "크로노스 선봉대 승리",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "94:85",
+       "name": "BattleLogItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 34766,
+       "ay": 259,
+       "w": 696.0,
+       "h": 107.4,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 7.200000286102295,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "c": [
+        {
+         "id": "95:31",
+         "name": "MetaInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 269,
+         "w": 667.2,
+         "h": 39.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:32",
+           "name": "21:45:12",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 269,
+           "w": 70.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "21:45:12",
+           "fontSize": 14.40000057220459,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          },
+          {
+           "id": "95:33",
+           "name": "에너지 제어 터미널",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 290,
+           "w": 667.2,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "에너지 제어 터미널",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        },
+        {
+         "id": "95:160",
+         "name": "BattleResultRow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 315,
+         "w": 667.2,
+         "h": 41.6,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 14.40000057220459,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "95:34",
+           "name": "FactionCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 316,
+           "w": 326.4,
+           "h": 39.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:35",
+             "name": "교전 세력",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 316,
+             "w": 57.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "교전 세력",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:36",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 338,
+             "w": 326.4,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:37",
+               "name": "아라크네 정보팀",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34780,
+               "ay": 338,
+               "w": 105.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              },
+              {
+               "id": "95:38",
+               "name": "vs",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34893,
+               "ay": 339,
+               "w": 15.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "vs",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "95:39",
+               "name": "크로노스 선봉대",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34915,
+               "ay": 338,
+               "w": 105.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "크로노스 선봉대",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "95:40",
+           "name": "OutcomeCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 35121,
+           "ay": 315,
+           "w": 326.4,
+           "h": 41.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:41",
+             "name": "결과",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 315,
+             "w": 27.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "결과",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:42",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 337,
+             "w": 326.4,
+             "h": 19.8,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:43",
+               "name": "OutcomeBadge",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 35121,
+               "ay": 337,
+               "w": 44.2,
+               "h": 19.8,
+               "d": 7,
+               "fills": [
+                "#1F402B/1.0"
+               ],
+               "strokes": [
+                "#39D353/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 4.8,
+               "layout": "HORIZONTAL",
+               "pl": 9.600000381469727,
+               "pr": 9.600000381469727,
+               "pt": 2.4000000953674316,
+               "pb": 2.4000000953674316,
+               "c": [
+                {
+                 "id": "95:44",
+                 "name": "WIN",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 35131,
+                 "ay": 340,
+                 "w": 25.0,
+                 "h": 15.0,
+                 "d": 8,
+                 "fills": [
+                  "#39D353/1.0"
+                 ],
+                 "strokeW": 1.2,
+                 "text": "WIN",
+                 "fontSize": 13.200000762939453,
+                 "font": "Roboto 700 Bold",
+                 "lineH": 15.5
+                }
+               ]
+              },
+              {
+               "id": "95:45",
+               "name": "아라크네 정보팀 승리",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 35173,
+               "ay": 339,
+               "w": 127.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀 승리",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "94:104",
+       "name": "BattleLogItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 34766,
+       "ay": 376,
+       "w": 696.0,
+       "h": 107.4,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 7.200000286102295,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "c": [
+        {
+         "id": "95:56",
+         "name": "MetaInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 386,
+         "w": 667.2,
+         "h": 39.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:57",
+           "name": "19:02:44",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 386,
+           "w": 70.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "19:02:44",
+           "fontSize": 14.40000057220459,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          },
+          {
+           "id": "95:58",
+           "name": "크로노스 제 3초소",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 407,
+           "w": 667.2,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "크로노스 제 3초소",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        },
+        {
+         "id": "95:161",
+         "name": "BattleResultRow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 432,
+         "w": 667.2,
+         "h": 41.6,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 14.40000057220459,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "95:59",
+           "name": "FactionCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 433,
+           "w": 326.4,
+           "h": 39.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:60",
+             "name": "교전 세력",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 433,
+             "w": 57.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "교전 세력",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:61",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 455,
+             "w": 326.4,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:62",
+               "name": "크로노스 기갑부대",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34780,
+               "ay": 455,
+               "w": 119.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "크로노스 기갑부대",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              },
+              {
+               "id": "95:63",
+               "name": "vs",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34907,
+               "ay": 456,
+               "w": 15.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "vs",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "95:64",
+               "name": "아라크네 정보팀",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34929,
+               "ay": 455,
+               "w": 105.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "95:65",
+           "name": "OutcomeCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 35121,
+           "ay": 432,
+           "w": 326.4,
+           "h": 41.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:66",
+             "name": "결과",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 432,
+             "w": 27.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "결과",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:67",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 454,
+             "w": 326.4,
+             "h": 19.8,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:68",
+               "name": "OutcomeBadge",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 35121,
+               "ay": 454,
+               "w": 66.2,
+               "h": 19.8,
+               "d": 7,
+               "fills": [
+                "#442125/1.0"
+               ],
+               "strokes": [
+                "#FF6B6B/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 4.8,
+               "layout": "HORIZONTAL",
+               "pl": 9.600000381469727,
+               "pr": 9.600000381469727,
+               "pt": 2.4000000953674316,
+               "pb": 2.4000000953674316,
+               "c": [
+                {
+                 "id": "95:69",
+                 "name": "DEFEAT",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 35131,
+                 "ay": 457,
+                 "w": 47.0,
+                 "h": 15.0,
+                 "d": 8,
+                 "fills": [
+                  "#FF6B6B/1.0"
+                 ],
+                 "strokeW": 1.2,
+                 "text": "DEFEAT",
+                 "fontSize": 13.200000762939453,
+                 "font": "Roboto 700 Bold",
+                 "lineH": 15.5
+                }
+               ]
+              },
+              {
+               "id": "95:70",
+               "name": "아라크네 정보팀 승리",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 35195,
+               "ay": 456,
+               "w": 127.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀 승리",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "94:123",
+       "name": "BattleLogItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 34766,
+       "ay": 493,
+       "w": 696.0,
+       "h": 107.4,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 7.200000286102295,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "c": [
+        {
+         "id": "95:81",
+         "name": "MetaInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 503,
+         "w": 667.2,
+         "h": 39.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:82",
+           "name": "15:30:19",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 503,
+           "w": 70.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "15:30:19",
+           "fontSize": 14.40000057220459,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          },
+          {
+           "id": "95:83",
+           "name": "폐기된 연료 공급탑",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 524,
+           "w": 667.2,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "폐기된 연료 공급탑",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        },
+        {
+         "id": "95:162",
+         "name": "BattleResultRow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 549,
+         "w": 667.2,
+         "h": 41.6,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 14.40000057220459,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "95:84",
+           "name": "FactionCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 550,
+           "w": 326.4,
+           "h": 39.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:85",
+             "name": "교전 세력",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 550,
+             "w": 57.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "교전 세력",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:86",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 572,
+             "w": 326.4,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:87",
+               "name": "아라크네 정보팀",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34780,
+               "ay": 572,
+               "w": 105.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              },
+              {
+               "id": "95:88",
+               "name": "vs",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34893,
+               "ay": 573,
+               "w": 15.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "vs",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "95:89",
+               "name": "바이오 드론 무리",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34915,
+               "ay": 572,
+               "w": 109.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "바이오 드론 무리",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "95:90",
+           "name": "OutcomeCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 35121,
+           "ay": 549,
+           "w": 326.4,
+           "h": 41.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:91",
+             "name": "결과",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 549,
+             "w": 27.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "결과",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:92",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 571,
+             "w": 326.4,
+             "h": 19.8,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:93",
+               "name": "OutcomeBadge",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 35121,
+               "ay": 571,
+               "w": 44.2,
+               "h": 19.8,
+               "d": 7,
+               "fills": [
+                "#1F402B/1.0"
+               ],
+               "strokes": [
+                "#39D353/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 4.8,
+               "layout": "HORIZONTAL",
+               "pl": 9.600000381469727,
+               "pr": 9.600000381469727,
+               "pt": 2.4000000953674316,
+               "pb": 2.4000000953674316,
+               "c": [
+                {
+                 "id": "95:94",
+                 "name": "WIN",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 35131,
+                 "ay": 574,
+                 "w": 25.0,
+                 "h": 15.0,
+                 "d": 8,
+                 "fills": [
+                  "#39D353/1.0"
+                 ],
+                 "strokeW": 1.2,
+                 "text": "WIN",
+                 "fontSize": 13.200000762939453,
+                 "font": "Roboto 700 Bold",
+                 "lineH": 15.5
+                }
+               ]
+              },
+              {
+               "id": "95:95",
+               "name": "아라크네 정보팀 승리",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 35173,
+               "ay": 573,
+               "w": 127.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀 승리",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "94:142",
+       "name": "BattleLogItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 34766,
+       "ay": 610,
+       "w": 696.0,
+       "h": 107.4,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 7.200000286102295,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "c": [
+        {
+         "id": "95:106",
+         "name": "MetaInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 620,
+         "w": 667.2,
+         "h": 39.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:107",
+           "name": "11:12:05",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 620,
+           "w": 70.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "11:12:05",
+           "fontSize": 14.40000057220459,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          },
+          {
+           "id": "95:108",
+           "name": "지하 차원 통로",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 641,
+           "w": 667.2,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "지하 차원 통로",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        },
+        {
+         "id": "95:163",
+         "name": "BattleResultRow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 666,
+         "w": 667.2,
+         "h": 41.6,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 14.40000057220459,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "95:109",
+           "name": "FactionCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 667,
+           "w": 326.4,
+           "h": 39.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:110",
+             "name": "교전 세력",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 667,
+             "w": 57.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "교전 세력",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:111",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 689,
+             "w": 326.4,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:112",
+               "name": "아라크네 정보팀",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34780,
+               "ay": 689,
+               "w": 105.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              },
+              {
+               "id": "95:113",
+               "name": "vs",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34893,
+               "ay": 690,
+               "w": 15.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "vs",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "95:114",
+               "name": "차원 붕괴 침입자",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34915,
+               "ay": 689,
+               "w": 109.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "차원 붕괴 침입자",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "95:115",
+           "name": "OutcomeCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 35121,
+           "ay": 666,
+           "w": 326.4,
+           "h": 41.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:116",
+             "name": "결과",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 666,
+             "w": 27.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "결과",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:117",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 688,
+             "w": 326.4,
+             "h": 19.8,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:118",
+               "name": "OutcomeBadge",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 35121,
+               "ay": 688,
+               "w": 44.2,
+               "h": 19.8,
+               "d": 7,
+               "fills": [
+                "#1F402B/1.0"
+               ],
+               "strokes": [
+                "#39D353/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 4.8,
+               "layout": "HORIZONTAL",
+               "pl": 9.600000381469727,
+               "pr": 9.600000381469727,
+               "pt": 2.4000000953674316,
+               "pb": 2.4000000953674316,
+               "c": [
+                {
+                 "id": "95:119",
+                 "name": "WIN",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 35131,
+                 "ay": 691,
+                 "w": 25.0,
+                 "h": 15.0,
+                 "d": 8,
+                 "fills": [
+                  "#39D353/1.0"
+                 ],
+                 "strokeW": 1.2,
+                 "text": "WIN",
+                 "fontSize": 13.200000762939453,
+                 "font": "Roboto 700 Bold",
+                 "lineH": 15.5
+                }
+               ]
+              },
+              {
+               "id": "95:120",
+               "name": "아라크네 정보팀 승리",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 35173,
+               "ay": 690,
+               "w": 127.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀 승리",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "94:161",
+       "name": "BattleLogItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 34766,
+       "ay": 727,
+       "w": 696.0,
+       "h": 107.4,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 7.200000286102295,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "c": [
+        {
+         "id": "95:131",
+         "name": "MetaInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 737,
+         "w": 667.2,
+         "h": 39.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:132",
+           "name": "08:44:50",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 737,
+           "w": 70.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "08:44:50",
+           "fontSize": 14.40000057220459,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          },
+          {
+           "id": "95:133",
+           "name": "통신 탑 외곽 구역",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 758,
+           "w": 667.2,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "통신 탑 외곽 구역",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        },
+        {
+         "id": "95:164",
+         "name": "BattleResultRow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 34780,
+         "ay": 783,
+         "w": 667.2,
+         "h": 41.6,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 14.40000057220459,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "95:134",
+           "name": "FactionCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 34780,
+           "ay": 784,
+           "w": 326.4,
+           "h": 39.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:135",
+             "name": "교전 세력",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 784,
+             "w": 57.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "교전 세력",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:136",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 34780,
+             "ay": 806,
+             "w": 326.4,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:137",
+               "name": "크로노스 전파방해단",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34780,
+               "ay": 806,
+               "w": 134.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "크로노스 전파방해단",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              },
+              {
+               "id": "95:138",
+               "name": "vs",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34922,
+               "ay": 807,
+               "w": 15.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "vs",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "95:139",
+               "name": "아라크네 정보팀",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 34944,
+               "ay": 806,
+               "w": 105.0,
+               "h": 18.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀",
+               "fontSize": 15.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 18.3
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "95:140",
+           "name": "OutcomeCol",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 35121,
+           "ay": 783,
+           "w": 326.4,
+           "h": 41.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "VERTICAL",
+           "gap": 4.800000190734863,
+           "c": [
+            {
+             "id": "95:141",
+             "name": "결과",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 783,
+             "w": 27.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "결과",
+             "fontSize": 14.40000057220459,
+             "font": "Roboto 400 Regular",
+             "lineH": 16.9
+            },
+            {
+             "id": "95:142",
+             "name": "Frame",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 35121,
+             "ay": 805,
+             "w": 326.4,
+             "h": 19.8,
+             "d": 6,
+             "strokeW": 1.2,
+             "layout": "HORIZONTAL",
+             "gap": 7.200000286102295,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "95:143",
+               "name": "OutcomeBadge",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 35121,
+               "ay": 805,
+               "w": 66.2,
+               "h": 19.8,
+               "d": 7,
+               "fills": [
+                "#442125/1.0"
+               ],
+               "strokes": [
+                "#FF6B6B/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 4.8,
+               "layout": "HORIZONTAL",
+               "pl": 9.600000381469727,
+               "pr": 9.600000381469727,
+               "pt": 2.4000000953674316,
+               "pb": 2.4000000953674316,
+               "c": [
+                {
+                 "id": "95:144",
+                 "name": "DEFEAT",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 35131,
+                 "ay": 808,
+                 "w": 47.0,
+                 "h": 15.0,
+                 "d": 8,
+                 "fills": [
+                  "#FF6B6B/1.0"
+                 ],
+                 "strokeW": 1.2,
+                 "text": "DEFEAT",
+                 "fontSize": 13.200000762939453,
+                 "font": "Roboto 700 Bold",
+                 "lineH": 15.5
+                }
+               ]
+              },
+              {
+               "id": "95:145",
+               "name": "아라크네 정보팀 승리",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 35195,
+               "ay": 807,
+               "w": 127.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "아라크네 정보팀 승리",
+               "fontSize": 14.40000057220459,
+               "font": "Roboto 400 Regular",
+               "lineH": 16.9
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "94:180",
+     "name": "SummaryFooter",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 34766,
+     "ay": 977,
+     "w": 696.0,
+     "h": 34.4,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "c": [
+      {
+       "id": "94:181",
+       "name": "Frame",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 34766,
+       "ay": 991,
+       "w": 696.0,
+       "h": 20.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "94:182",
+         "name": "기록된 최근 교전 수",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 34766,
+         "ay": 992,
+         "w": 127.0,
+         "h": 18.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "기록된 최근 교전 수",
+         "fontSize": 15.600000381469727,
+         "font": "Roboto 400 Regular",
+         "lineH": 18.3
+        },
+        {
+         "id": "94:183",
+         "name": "6 / 50 세션 로드됨",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 35315,
+         "ay": 991,
+         "w": 147.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "6 / 50 세션 로드됨",
+         "fontSize": 15.600000381469727,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 20.3
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -67,11 +67,16 @@ namespace ProjectName.Systems
             CreateStage(room, width, depth);
 
             // 어두운 조명 — 노란빛 PointLight, 낮은 강도
-            IndoorLighting.SetupIndoorLighting(room, new Color(0.08f, 0.06f, 0.04f), 0.13f, false);
+            IndoorLighting.SetupIndoorLighting(room, new Color(0.08f, 0.06f, 0.04f), 0.22f, false);   // [125차 후속5] 앰비언트 0.13→0.22 상향
 
             // 추가 노란빛 포인트 라이트 (무대 위)
             CreateStageLight(room, width, depth);
 
+            // [수조 통일] 천장 제거+남측 벽 시각 절단(콜라이더 유지) — 9/20 실내씬 예시 기준
+            IndoorDioramaKit.Apply(room);
+
+            // [실내 고품질화 P3] 가구/조명/소품 가산 패스.
+            InteriorFurnishingPass.ApplyBuilding(room, "tavern", width, depth, null, size.height);
             return room;
         }
 
@@ -84,9 +89,9 @@ namespace ProjectName.Systems
             floor.transform.localScale = new Vector3(width, 0.1f, depth);
 
             var renderer = floor.GetComponent<MeshRenderer>();
-            var mat = MaterialHelper.CreateLitMaterial(new Color(0.30f, 0.18f, 0.08f), "TavernFloorMat");
-            if (mat != null)
-                renderer.material = mat;
+            // [무번호 32] 영지 실내 공통 석타일 — 어두운 목재 색 바닥 폐기(씬 통일 계약). Cube UV 0..1 → 1m 타일 스케일.
+            var mat = InteriorQualityBaseline.CreateCommonInteriorFloorMat(width, depth, "Tavern");
+            renderer.material = mat;
         }
 
         private static void CreateWalls(GameObject room, float width, float height, float depth)

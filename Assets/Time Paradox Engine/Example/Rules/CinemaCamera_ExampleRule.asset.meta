@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7bc469df9827dae439277e1d2c181e96
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Example/Rules/CinemaCamera_ExampleRule.asset
+  uploadId: 898796

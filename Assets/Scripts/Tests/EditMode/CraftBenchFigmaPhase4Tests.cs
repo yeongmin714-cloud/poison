@@ -127,6 +127,95 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
+        public void AlchemyBench_144P2Alch_AppliesV3SurgeryContract()
+        {
+            // [144차 P2-ALCH] A행 수술 핵심 수치 계약 — 64:337(v3 crafting-panel) 진실치 기반.
+            var instanceField = typeof(AlchemyBenchUTK).GetField("_instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var bench = (AlchemyBenchUTK)instanceField.GetValue(null);
+            if (bench == null)
+            {
+                var ctor = typeof(AlchemyBenchUTK).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic,
+                    null, Type.EmptyTypes, null);
+                bench = (AlchemyBenchUTK)ctor.Invoke(null);
+                instanceField.SetValue(null, bench);
+            }
+            var craft = bench.CraftPanelRoot;
+            Assert.That(craft, Is.Not.Null);
+
+            // [A5/A18/체인] v3 섹션 −1px — 조합섹션 y 151 · divider 365 · 레시피섹션 (24,385,456,420.2) · 스크롤 h 393.6.
+            var combination = craft.Q<VisualElement>("craft-bench-combination-section");
+            Assert.That(combination.style.top.value.value, Is.EqualTo(151f).Within(0.001f), "A5 combination section top 152.4→151");
+            var recipeRegion = craft.Q<VisualElement>("craft-bench-recipe-list-section");
+            Assert.That(recipeRegion.style.top.value.value, Is.EqualTo(385f).Within(0.001f), "A18 recipe section top 386.4→385");
+            Assert.That(recipeRegion.style.height.value.value, Is.EqualTo(420.2f).Within(0.001f), "A18 recipe section height 420.2");
+            var divider = craft.Q<VisualElement>("alch-combination-divider");
+            Assert.That(divider, Is.Not.Null, "v3 divider must exist above the recipe section.");
+            Assert.That(divider.style.top.value.value, Is.EqualTo(365f).Within(0.001f), "v3 divider top 366→365");
+            Assert.That(divider.style.height.value.value, Is.EqualTo(1.2f).Within(0.001f));
+            var book = craft.Q<ScrollView>("craft-bench-recipe-list");
+            Assert.That(book.style.height.value.value, Is.EqualTo(393.6f).Within(0.001f), "v3 recipe scroll height 393.6");
+
+            // [A3/A4] 탭바 h 36.2 · 6탭 · 폭 70/72.4 · TabLabel fs 14.4.
+            var tabBar = craft.Q<VisualElement>("craft-bench-recipe-filters");
+            Assert.That(tabBar, Is.Not.Null);
+            Assert.That(tabBar.style.height.value.value, Is.EqualTo(36.2f).Within(0.001f), "A3 tab bar height 37.2→36.2");
+            Assert.That(tabBar.childCount, Is.EqualTo(6), "v3 declares six tabs.");
+            Assert.That(tabBar[0].style.width.value.value, Is.EqualTo(70f).Within(0.001f), "A3 active tab width 70");
+            Assert.That(tabBar[1].style.width.value.value, Is.EqualTo(72.4f).Within(0.001f), "A3 inactive tab width 72.4");
+            Assert.That(((Button)tabBar[0]).style.fontSize.value.value, Is.EqualTo(14.4f).Within(0.001f), "A4 tab label font 17→14.4");
+
+            // [A6] 재료 슬롯 76.8×3 실사용 + 결과 91.2 — 60/72 판본 분기 오배칙 폐기.
+            var slot0 = craft.Q<UTKSlot>("BenchSlot_0");
+            Assert.That(slot0, Is.Not.Null);
+            Assert.That(slot0.style.width.value.value, Is.EqualTo(76.8f).Within(0.001f), "A6 ingredient slot 60→76.8");
+            Assert.That(craft.Q<UTKSlot>("BenchSlot_2"), Is.Not.Null, "A6 v3 uses three real ingredient slots");
+            Assert.That(craft.Q<VisualElement>("BenchSlotPlaceholder_2"), Is.Null, "A6 placeholder branch must be gone");
+            var resultSlot = craft.Q<UTKSlot>("BenchResult");
+            Assert.That(resultSlot.style.width.value.value, Is.EqualTo(91.2f).Within(0.001f), "A6 result slot 72→91.2");
+
+            // [A7] 성공확률 좌/우 분리 — 좌 "제조 성공 확률" 14.4 + 우측 값 y157.
+            var rateLabel = craft.Q<Label>("alch-success-rate-label");
+            Assert.That(rateLabel, Is.Not.Null, "A7 success-rate title label must exist.");
+            Assert.That(rateLabel.text, Is.EqualTo("제조 성공 확률"));
+            Assert.That(rateLabel.style.fontSize.value.value, Is.EqualTo(14.4f).Within(0.001f));
+            var rateValue = craft.Q<Label>("craft-bench-success-rate");
+            Assert.That(rateValue.style.top.value.value, Is.EqualTo(157f).Within(0.001f), "A7 rate value top 158→157");
+            Assert.That(rateValue.style.fontSize.value.value, Is.EqualTo(14.4f).Within(0.001f), "A7 rate value font 13.2→14.4");
+
+            // [A11 승계/W50] BioText fs 15.6 · h 69.
+            var bio = bench.DetailPanelRoot.Q<Label>("craft-bench-detail-description");
+            Assert.That(bio.style.fontSize.value.value, Is.EqualTo(15.6f).Within(0.001f), "BioText font 13.2→15.6");
+            Assert.That(bio.style.height.value.value, Is.EqualTo(69f).Within(0.001f), "BioText height 46→69 (digest_v3 64:507)");
+
+            // [A14/A15/A16] 스토리지 배지/푸터.
+            var storage = bench.StoragePanelRoot;
+            var badge = storage.Q<VisualElement>("alch-storage-stats-badge");
+            Assert.That(badge, Is.Not.Null, "A14 storage badge must exist.");
+            Assert.That(badge.style.top.value.value, Is.EqualTo(96f).Within(0.001f), "A14 badge at Figma 64:529 position");
+            Assert.That(((Label)badge[0]).text, Is.EqualTo("보유 연금술 재료"));
+            var footer = storage.Q<VisualElement>("alch-storage-footer");
+            Assert.That(footer, Is.Not.Null, "A16 storage footer must exist.");
+            Assert.That(footer.style.top.value.value, Is.EqualTo(697f).Within(0.001f), "A16 storage footer top 697");
+            var track = storage.Q<VisualElement>("alch-storage-progress-track");
+            Assert.That(track, Is.Not.Null, "A16 progress track must exist.");
+            Assert.That(track.style.top.value.value, Is.EqualTo(48f).Within(0.001f), "A15/A16 progress track top 48");
+            Assert.That(track.style.height.value.value, Is.EqualTo(7.2f).Within(0.001f));
+            Assert.That(storage.Q<Label>("alch-storage-weight-value").text, Is.EqualTo("—"),
+                "A15 weight value stays an em-dash slot (D7 — no fabricated weight data).");
+
+            // [A1/A2/A10/A13/A6/A19/A20] 소스 문자열 계약.
+            string source = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/AlchemyBenchUTK.cs");
+            Assert.That(source, Does.Contain("\"물약 제작\""), "A1 title 24/700 (이모지 병기 문구 폐기).");
+            Assert.That(source, Does.Contain("\"BREWING\""), "A2 subtitle BREWING.");
+            Assert.That(source, Does.Contain("\"POTIONS\""), "A10 detail subtitle.");
+            Assert.That(source, Does.Contain("\"REAGENTS\""), "A13 storage subtitle.");
+            Assert.That(source, Does.Contain("ShowThirdIngredientPlaceholder => false"), "A6 60/72 branch retired.");
+            Assert.That(source, Does.Contain("SetCount(held + \"/\" + required)"), "A8 count format 보유/요구.");
+            Assert.That(source, Does.Contain("필요 연금술 레벨 —"), "A19 subtitle level slot (no fabricated level data).");
+            Assert.That(source, Does.Contain("출처: 플레이어 인벤토리"), "A20 game-only source label must be kept.");
+        }
+
+        [Test]
         public void ShowLifecycle_AppliesUniformDesignSpaceScalingToBenchContent()
         {
             string source = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/CraftBenchBaseUTK.cs");

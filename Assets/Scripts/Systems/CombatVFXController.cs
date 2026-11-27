@@ -20,25 +20,58 @@ namespace ProjectName.Systems
         public static void PlayHitFlash(GameObject target)
         {
             if (target == null) return;
+            // [무번호 70-U1] 중첩 스킵 가드 — 진행 중 플래시 위 재요청은 조용 스킵.
+            //   인스턴스 방식에서 재판독은 '이전 플래시 인스턴스'를 스냅샷해 원복 시 파괴된 재질을 슬롯에 남긴다(오염 근원 차단).
+            if (_activeFlashTargets.Contains(target)) return;
             Renderer[] renderers = target.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0) return;
 
-            var mats = new System.Collections.Generic.List<Material>();
+            // [무번호 70-U1] 히트 틴트 가시화(38-T1 이월) — 3중 수리:
+            //   ① r.sharedMaterials 전 슬롯 대상(구 r.sharedMaterial 슬롯 0 한정 — 멀티머티리얼 FBX 미체감 뿌리)
+            //   ② 인스턴스 클론 전환(shared 무손상) → 흰 틴트 → 종료 시 원본 배열 원복+인스턴스 파괴
+            //      (구 shared 직접 쓰기의 동일 재질 타겟 동시 백플래시 부작용 제거)
+            //   ③ 지속 0.15→0.08s(38-T1 스펙) → 0.10s([무번호 80-P7] 림 실루엣 0.10s 창 합일, HitFlashRunner.Update FlashDuration)
+            //   대입은 47-a 단일 관문(TryAssignSharedMaterials) 경유, 원본 판독은 sharedMaterials 직접 판독
+            //   (49-T1 게터 금지 승계 — FxDissolveUtility 선례). _Color 부재 머티리얼 스킵 가드 유지.
+            //   중첩 타격은 스킵 가드(_activeFlashTargets)로 정리 — 인스턴스 스냅샷 오염(파괴 뒤 원복) 차단.
+            var flashMats = new System.Collections.Generic.List<Material>();                    // 플래시 인스턴스(유한 수명 — 종료 시 파괴)
+            var originals = new System.Collections.Generic.Dictionary<Renderer, Material[]>();  // 렌더러별 원본 배열 — 종료 시 원복
             foreach (Renderer r in renderers)
             {
                 if (r == null) continue;
-                var m = r.sharedMaterial;
-                // 47차 후속5: ShaderGraph 재질(_Color 부재) 가드 — 콘솔 에러 스팸 제거.
-                if (m == null || !m.HasProperty("_Color")) continue;
-                // [2026-09-15 Phase F-FLASH] 공유 재질은 1회만 begin(중복 카운트 방지)
-                if (mats.Contains(m)) continue;
-                mats.Add(m);
-                FlashMaterialBegin(m);
+                Material[] shared = null;
+                try { shared = r.sharedMaterials; } catch (System.Exception) { shared = null; }   // [무번호 70-U1] 전 슬롯 직접 판독(무인스턴스화)
+                if (shared == null || shared.Length == 0) continue;
+
+                var instArr = new Material[shared.Length];
+                bool any = false;
+                for (int i = 0; i < shared.Length; i++)
+                {
+                    var m = shared[i];
+                    // 47차 후속5: ShaderGraph 재질(_Color 부재) 가드 — 콘솔 에러 스팸 제거(유지).
+                    if (m == null || !m.HasProperty("_Color")) { instArr[i] = m; continue; }
+                    var inst = Object.Instantiate(m);   // [무번호 70-U1] 인스턴스 클론 — shared 무손상
+                    FlashMaterialBegin(inst);           // 레지스트리 경유 흰 틴트(구조 유지 — 대상이 shared에서 인스턴스로 전환)
+                    instArr[i] = inst;
+                    flashMats.Add(inst);
+                    any = true;
+                }
+                if (!any) continue;
+                // [무번호 70-U1] 대입은 47-a 단일 관문 경유 — 실패 시 가드 내부에서 원본 배열 복원됨.
+                if (FxMaterialLibrary.TryAssignSharedMaterials(r, instArr, "HitFlashTint70"))
+                    originals[r] = shared;
+                else
+                {
+                    foreach (var im in instArr)
+                        if (im != null && flashMats.Remove(im)) Object.Destroy(im);   // 미소유 인스턴스 누출 금지(47-b 선례)
+                }
             }
-            if (mats.Count == 0) return;
+            if (flashMats.Count == 0) return;
 
             var go = new GameObject("HitFlashRunner");
-            go.AddComponent<HitFlashRunner>().Init(renderers, mats);
+            var runner = go.AddComponent<HitFlashRunner>();
+            runner.Init(target, renderers, flashMats, originals);
+            _activeFlashTargets.Add(target);   // Init 성공 후 등록 — 조기 실패 시 스킵 가드 오염 방지
         }
 
         // ================================================================
@@ -48,10 +81,14 @@ namespace ProjectName.Systems
         //   복원해도 흰색이 남는 레이스가 발생(테스트19 "흰색에서 안 돌아옴").
         //   수정: 재질별 '진짜 원본 색/이미션'을 최초 1회만 기록 + refcount 로 동시 플래시를 세고,
         //         마지막 플래시가 끝날 때만 원본으로 복원한다. 대상이 파괴돼도 재질 키 기반이라 복원 성공.
+        //   [무번호 70-U1] 레지스트리 구조(원본 색/이미션 캡처 + refcount)는 유지하되 대상이 shared에서
+        //         플래시 인스턴스 클론으로 전환 — shared 직접 쓰기 제거(동일 재질 타겟 동시 백플래시 부작용 차단),
+        //         shared는 플래시 기간 내내 무손상. 중첩은 PlayHitFlash 스킵 가드(_activeFlashTargets)로 정리.
         // ================================================================
         private static readonly System.Collections.Generic.Dictionary<Material, Color> _flashOrigColor = new System.Collections.Generic.Dictionary<Material, Color>();
         private static readonly System.Collections.Generic.Dictionary<Material, int> _flashRef = new System.Collections.Generic.Dictionary<Material, int>();
         private static readonly System.Collections.Generic.Dictionary<Material, Color> _flashOrigEmission = new System.Collections.Generic.Dictionary<Material, Color>();
+        private static readonly System.Collections.Generic.HashSet<GameObject> _activeFlashTargets = new System.Collections.Generic.HashSet<GameObject>();
 
         private static void FlashMaterialBegin(Material m)
         {
@@ -148,7 +185,7 @@ namespace ProjectName.Systems
             go.transform.position = position;
             var ps = go.GetComponent<ParticleSystem>();
             var main = ps.main;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.25f);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.25f);   // [무번호 22 수리] 19-G2 오배선 원복 — 원래 상수
             main.startSpeed = new ParticleSystem.MinMaxCurve(6f, 9f);
             main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f);
             main.startColor = FXPalette.Accent; // 45차 P2: 골드화이트(팔레트 Accent) — 순수 노랑 제거
@@ -240,7 +277,7 @@ namespace ProjectName.Systems
             flashMain.startLifetime = 0.3f;
             flashMain.startSpeed = 0f;
             flashMain.startSize = new ParticleSystem.MinMaxCurve(0.5f, 1.0f);
-            flashMain.startColor = FXPalette.Core;
+            flashMain.startColor = FXPalette.AttackPrimary;   // [79-R20] 공격 이펙트 통일색(암살 섬광)
             flashPs.Emit(5);
             // 45차 P1: 머티리얼 정규화 — 마젠타 방지
             FXPalette.ApplyTo(flashGo.GetComponent<ParticleSystemRenderer>());
@@ -328,7 +365,7 @@ namespace ProjectName.Systems
         //    직선 스파크 12개. 파편은 기존 SpawnHitDebris(갈색/회색)가 담당 — 여기서 중복 스폰하지 않는다.
         //    [45차 P2] 플래시=팔레트 Core(흰), 외곽 스파크=팔레트 Edge(주황).
         // ================================================================
-        public static void SpawnCritBurst(Vector3 position)
+        public static void SpawnCritBurst(Vector3 position, int sparkCount = 12, float speedScale = 1f, float sizeScale = 1f, Color? tint = null)
         {
             if (!ActionFeel.HighSpec) return; // HighSpec 전용 — 저사양(Balanced)은 스폰하지 않는다
 
@@ -336,10 +373,16 @@ namespace ProjectName.Systems
             go.transform.position = position;
             var ps = go.GetComponent<ParticleSystem>();
             var main = ps.main;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.15f, 0.25f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(6f, 9f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.03f, 0.06f);
-            main.startColor = FXPalette.Edge; // 45차 P2: 주황 외곽 스파크(팔레트 Edge)
+            // [172차 P2] 색 파라미터화 — 패막 wave3에서 ParryWhite 전달(노란 웜골드 제거).
+            //   기본 null = 기존 AttackPrimary(기존 호출부 무손상).
+            Color burstColor = tint ?? FXPalette.AttackPrimary;
+            // [무번호 19-G2] 스파클 버스트 0.5s 강화 — 참조 영상 3컷 판독(방사 스파이크 8~16방향, 긴 줄기) 확정.
+            //   [무번호 22 수리] 19-G2가 SpawnHitSparks에 오배선됐던 것을 본 메서드로 정착(파일 단위 Contains 테스트 한계 교훈).
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f);
+            // [무번호 22-T2] 등급별 물성 위계 — PERFECT(1.0/1.0 굵고 빠름) / GOOD(0.7/0.75 얇고 느림)
+            main.startSpeed = new ParticleSystem.MinMaxCurve(6f * speedScale, 9f * speedScale);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.03f * sizeScale, 0.06f * sizeScale);
+            main.startColor = burstColor; // [79-R20 통일색 → 172차 P2 패막 경로 ParryWhite 주입]
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
             // 타격 지점 밀집 발화 + 스트레치 렌더 — SpawnHitSparks와 동일 직선 스파크 스타일
@@ -360,15 +403,15 @@ namespace ProjectName.Systems
                 var ep = new ParticleSystem.EmitParams
                 {
                     velocity = Vector3.zero,
-                    startColor = FXPalette.Core, // 45차 P2: 화이트 코어 플래시(팔레트 Core)
+                    startColor = burstColor, // [172차 P2] 색 파라미터화 — 패막 경로 ParryWhite 계열
                     startLifetime = 0.15f,
                     startSize = Random.Range(0.6f, 1.0f)
                 };
                 ps.Emit(ep, 1);
             }
 
-            // 레이어 2: 주황 외곽 직선 스파크 12개 — 수평 링 + 살짝 위로 번짐
-            const int sparkCount = 12;
+            // 레이어 2: 주황 외곽 직선 스파크 — 수평 링 + 살짝 위로 번짐
+            //   [무번호 20-J2] 등급 위계 — PERFECT 12방향(기본) / GOOD 6방향(절반) — 호출부가 등급별 전달
             for (int i = 0; i < sparkCount; i++)
             {
                 float angle = (360f / sparkCount) * i * Mathf.Deg2Rad + Random.Range(-0.15f, 0.15f);
@@ -392,16 +435,21 @@ namespace ProjectName.Systems
         // ================================================================
         private class HitFlashRunner : MonoBehaviour
         {
+            private GameObject _target;                                                          // [무번호 70-U1] 스킵 가드 해제용
             private Renderer[] _renderers;
             private System.Collections.Generic.List<Material> _mats;
+            private System.Collections.Generic.Dictionary<Renderer, Material[]> _originalMats;   // [무번호 70-U1] 렌더러별 원본 배열 — 종료 시 원복
             private Dictionary<Renderer, Vector3> _originalScales;
             private float _elapsed;
             private bool _restored;
 
-            public void Init(Renderer[] renderers, System.Collections.Generic.List<Material> mats)
+            public void Init(GameObject target, Renderer[] renderers, System.Collections.Generic.List<Material> mats,
+                System.Collections.Generic.Dictionary<Renderer, Material[]> originalMats)
             {
+                _target = target;
                 _renderers = renderers;
                 _mats = mats;
+                _originalMats = originalMats;
                 _elapsed = 0f;
                 _restored = false;
 
@@ -417,12 +465,13 @@ namespace ProjectName.Systems
             private void Update()
             {
                 _elapsed += Time.deltaTime;
-                float duration = 0.15f; // 아웃라인/플래시 지속시간 0.15초
+                const float FlashDuration = 0.10f; // [무번호 80-P7] 플래시 지속 0.08→0.10s — 림 실루엣(FxHitSilhouette 0.10s)과 동일 창 정합.
+                //   [무번호 70-U1] 이전 값 0.08s(38-T1 스펙) — no80 갭①(틴트 미체감) 종결 위해 림 창과 합일.
 
-                if (_elapsed < duration)
+                if (_elapsed < FlashDuration)
                 {
                     // [Phase A] 아웃라인 효과: 스케일 1.05배 + 이미션(발광) 추가
-                    float t = _elapsed / duration;
+                    float t = _elapsed / FlashDuration;
                     float scaleMultiplier = Mathf.Lerp(1.05f, 1f, t); // 1.05배 → 1.0배
                     float emissionIntensity = Mathf.Lerp(1.5f, 0f, t); // 발광 1.5 → 0
 
@@ -448,7 +497,7 @@ namespace ProjectName.Systems
                     }
                 }
 
-                if (_elapsed >= duration && !_restored)
+                if (_elapsed >= FlashDuration && !_restored)
                 {
                     Restore();
                     _restored = true;
@@ -458,11 +507,29 @@ namespace ProjectName.Systems
 
             private void Restore()
             {
+                // [무번호 70-U1] 원복 1 — 원본 배열 재대입(47-a 단일 관문 경유). 파괴된 렌더러는 무해 스킵.
+                if (_originalMats != null)
+                {
+                    foreach (var kv in _originalMats)
+                    {
+                        if (kv.Key == null) continue;
+                        FxMaterialLibrary.TryAssignSharedMaterials(kv.Key, kv.Value, "HitFlashRestore70");
+                    }
+                    _originalMats = null;
+                }
+
                 // [Phase F-FLASH] 재질 복원은 refcount 레지스트리에 위임 — 반드시 원본으로 돌아온다.
+                // [무번호 70-U1] 레지스트리 원복 후 플래시 인스턴스 파괴(누출 금지) — shared는 무손상.
                 if (_mats != null)
                 {
                     foreach (var m in _mats) FlashMaterialEnd(m);
+                    foreach (var m in _mats) if (m != null) Object.Destroy(m);
+                    _mats = null;
                 }
+
+                // [무번호 70-U1] 스킵 가드 해제 — 파괴된 target 참조 잔존(집합 누출) 방지.
+                _activeFlashTargets.Remove(_target);
+                _target = null;
 
                 // [Phase A] 아웃라인 복원: 스케일 원복
                 if (_renderers != null && _originalScales != null)
@@ -589,10 +656,11 @@ namespace ProjectName.Systems
                     int i = slot % StackMaxSlot;
                     if (i == 0) i = StackMaxSlot;
                     // 아이소메트릭 대각 배치: i=1→(dx,-dy), i=2→(-dx,-dy), i=3→(2dx,-2dy), i=4→(-2dx,-2dy) ...
+                    // [무번호 79] 간격 1.5×(26/15→39/22.5) — 연타 스택 겹침 밀도 완화(79-R4 블랙 덩어리 실측).
                     int side = (i % 2 == 1) ? 1 : -1;     // 홀수=우측, 짝수=좌측
                     int group = (i + 1) / 2;              // 대각 '층' (y 높이 증가 계수)
-                    float dx = 26f * s;                    // 좌우 간격 (글자 반폭여유)
-                    float dy = 15f * s;                    // y 대각 상승 간격
+                    float dx = 39f * s;                    // 좌우 간격 (글자 반폭여유)
+                    float dy = 22.5f * s;                  // y 대각 상승 간격
                     offset = new Vector2(side * group * dx, -group * dy);
                 }
                 return offset;
@@ -693,8 +761,10 @@ namespace ProjectName.Systems
                 var outlineStyle = isBig ? _critOutlineStyleCache : _outlineStyleCache;
 
                 style.normal.textColor = new Color(_color.r, _color.g, _color.b, alpha);
-                _shadowStyleCache.normal.textColor = new Color(0, 0, 0, alpha * 0.8f);
-                outlineStyle.normal.textColor = new Color(0, 0, 0, alpha);
+                // [무번호 79] 블랙 완화 — 흑색 외곽선/그림자 합성이 연타 스택에서 블랙 덩어리로 굳는 실측
+                // (79-R4: "12"×3 스택 + 흑색 합성 82×58·3947px 순흑). 외곽선 ×0.65·그림자 ×0.5로 연화.
+                _shadowStyleCache.normal.textColor = new Color(0, 0, 0, alpha * 0.5f);
+                outlineStyle.normal.textColor = new Color(0, 0, 0, alpha * 0.65f);
 
                 Vector2 textSize = style.CalcSize(_guiContent);
 
@@ -746,21 +816,9 @@ namespace ProjectName.Systems
             var host = new GameObject("KillSlowmoHost");
             host.AddComponent<KillSlowmoRunner>().Init();
 
-            // ② 화이트 플래시 (전체 화면) — 0.15초간
-            var flashGo = new GameObject("KillFlash", typeof(ParticleSystem));
-            flashGo.transform.position = Camera.main != null ? Camera.main.transform.position + Camera.main.transform.forward * 1f : position;
-            var flashPs = flashGo.GetComponent<ParticleSystem>();
-            var flashMain = flashPs.main;
-            flashMain.startLifetime = 0.15f;
-            flashMain.startSpeed = 0f;
-            flashMain.startSize = new ParticleSystem.MinMaxCurve(2f, 3f);
-            flashMain.startColor = new ParticleSystem.MinMaxGradient(
-                new Color(1f, 1f, 1f, 0.4f),
-                new Color(1f, 1f, 1f, 0f)
-            );
-            flashPs.Emit(3);
-            FXPalette.ApplyTo(flashGo.GetComponent<ParticleSystemRenderer>());
-            Object.Destroy(flashGo, 0.3f);
+            // ② [2026-10-15 사용자 결정 ③] 사망 버스트 제거 — 사망 연출은 슬로우모션+XP팝업+카메라 임펄스만.
+            //    사망 시점 파티클은 전리품(LootBasket→LootSpawnFX) 골드 스파크+링이 담당한다.
+            //    DeathVFX(에셋 버스트)는 호출부만 걷고 클래스/프리팹은 재활성 대비 보존(46차 회귀 안전망 선례).
 
             // ③ XP 팝업 (데미지 넘버 스타일) — XP 획득 시만
             if (xpGain > 0)
@@ -773,6 +831,9 @@ namespace ProjectName.Systems
             {
                 CombatCameraEffects.PlayKill();
             }
+
+            // [무번호 71-G2] 처치 콤보 카운터 — 최신 처치 지점 기준 등록. 연출 보조 try/catch 격리(전투 방해 금지).
+            try { FxKillComboCounter.RegisterKill(position); } catch (System.Exception) { }
 
             Debug.Log($"[CombatVFXController] Kill VFX at {position}, XP={xpGain}");
         }

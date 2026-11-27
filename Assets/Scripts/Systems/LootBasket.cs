@@ -157,6 +157,9 @@ namespace ProjectName.Systems
             if (success)
             {
                 Debug.Log($"[LootBasket] {entry.Item.displayName} x{entry.Count} 획득!");
+                // [129차] 전리품 줍기 — Gather 애니 발화 (환호 없음)
+                var driver = _player != null ? (_player.GetComponent<HumanoidClipDriver>() ?? _player.GetComponentInChildren<HumanoidClipDriver>()) : null;
+                driver?.TriggerGather();
                 _items.RemoveAt(index);
 
                 // 바구니가 비었으면 자동 소멸
@@ -218,6 +221,13 @@ namespace ProjectName.Systems
                 _isLooted = true;
                 HidePrompt();
                 Destroy(gameObject);
+            }
+
+            // [129차] 전리품 일괄 줍기 성공 — Gather 애니 루프 밖 1회 발화 (환호 없음)
+            if (anySuccess)
+            {
+                var driver = _player != null ? (_player.GetComponent<HumanoidClipDriver>() ?? _player.GetComponentInChildren<HumanoidClipDriver>()) : null;
+                driver?.TriggerGather();
             }
 
             return anySuccess;

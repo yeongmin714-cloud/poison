@@ -33,6 +33,13 @@ namespace ProjectName.Systems
         private WorkProgressBar _bar;
         private bool _active;
 
+        /// <summary>[133차] 채집 타격 이벤트 — Progress가 타격 리듬 구간(타격 간격 0.4초 등분)을 지날 때마다 발화.
+        /// ResourceNode/HerbPickup이 구독해 사운드+파티클을 같은 리듬에 싱크(계획문서 §Phase 1-B).</summary>
+        public event Action OnImpact;
+
+        /// <summary>[133차] 마지막 발화 타격 인덱스 — 같은 구간 중복 발화 방지. Begin/Teardown에서 0 리셋(멱등).</summary>
+        private int _lastImpactIndex;
+
         public static GatherChannelSystem Instance
         {
             get
@@ -89,6 +96,9 @@ namespace ProjectName.Systems
             _startTime = Time.time;
             _startPos = _player.position;
 
+            // [133차] 타격 리듬 인덱스 리셋 — 이전 채널 잔여 값이 첫 타격을 누락하지 않도록.
+            _lastImpactIndex = 0;
+
             _bar = WorkProgressBar.Show(targetAnchor, duration, ChannelBlue);
             return true;
         }
@@ -125,6 +135,15 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // [133차] 타격 리듬 발화 — 타격 간격 0.4초. Progress가 채널 시간을 0.4초로 등분한 구간을
+            //   지날 때마다 1회(구간 건너뜀 시 idx 차이만큼 1회만 발화 — 중복 방지는 _lastImpactIndex).
+            int idx = Mathf.FloorToInt(Progress * Mathf.Max(1f, _duration / 0.4f));
+            if (idx > _lastImpactIndex)
+            {
+                _lastImpactIndex = idx;
+                OnImpact?.Invoke();
+            }
+
             // 3) 완료.
             if (Progress >= 1f)
             {
@@ -142,6 +161,7 @@ namespace ProjectName.Systems
             _targetAnchor = null;
             _onComplete = null;
             _startPos = Vector3.zero;
+            _lastImpactIndex = 0;   // [133차] 타격 인덱스 리셋(멱등) — 완료/취소/이동취소 경로 무관.
         }
     }
 }

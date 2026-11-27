@@ -47,10 +47,10 @@ namespace ProjectName.Tests.EditMode
             try
             {
                 Assert.AreEqual("Custom/SelectionRing", blue.shader.name);
-                // [2026-10-11 사용자 요구] 이동 링 = 선택 링과 동일 Fluent 액센트(#58A6FF) — 구분은 크기가 담당.
+                // [무번호 19-C2] 이동 링 = 선택 링과 동일 청록 액센트(#30D5C8) — 구분은 크기가 담당.
                 Assert.AreEqual(CommandRingPresentation.SelectedGuardColor,
                     CommandRingPresentation.MoveTargetColor,
-                    "이동 링은 노랑이 아닌 파란 액센트여야 한다.");
+                    "이동 링은 노랑이 아닌 청록 액센트여야 한다.");
                 Assert.AreNotEqual(CommandRingPresentation.SelectedGuardColor,
                     CommandRingPresentation.ExplicitTargetColor,
                     "타겟 빨강은 독립 유지.");

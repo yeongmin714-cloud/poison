@@ -1,0 +1,1983 @@
+{
+ "id": "280:163",
+ "name": "투기장 승리 결과",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 54905,
+ "ay": -101,
+ "w": 1600.0,
+ "h": 1040.0,
+ "d": 0,
+ "fills": [
+  "#0B0E14/1.0"
+ ],
+ "strokeW": 1.0,
+ "layout": "VERTICAL",
+ "gap": 24.0,
+ "pl": 64.0,
+ "pr": 64.0,
+ "pt": 36.0,
+ "pb": 36.0,
+ "c": [
+  {
+   "id": "280:176",
+   "name": "승리 선수와 정산 정보",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 54969,
+   "ay": -65,
+   "w": 1472.0,
+   "h": 882.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 24.0,
+   "c": [
+    {
+     "id": "280:177",
+     "name": "승리 선수",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 54969,
+     "ay": -65,
+     "w": 480.0,
+     "h": 882.0,
+     "d": 2,
+     "fills": [
+      "#13181F/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 14.0,
+     "fx": [
+      "DROP_SHADOW:38.0:#000000/0.251"
+     ],
+     "layout": "VERTICAL",
+     "gap": 18.0,
+     "pl": 24.0,
+     "pr": 24.0,
+     "pt": 24.0,
+     "pb": 24.0,
+     "c": [
+      {
+       "id": "280:178",
+       "name": "패널 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 54993,
+       "ay": -41,
+       "w": 432.0,
+       "h": 48.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "c": [
+        {
+         "id": "280:179",
+         "name": "제목 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 54993,
+         "ay": -41,
+         "w": 23.0,
+         "h": 30.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:180",
+           "name": "상태 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 54993,
+           "ay": -38,
+           "w": 23.0,
+           "h": 23.0,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "280:181",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 55028,
+         "ay": -41,
+         "w": 86.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "경기 결과",
+         "fontSize": 22.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 30.0
+        },
+        {
+         "id": "280:182",
+         "name": "보조 제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 55126,
+         "ay": -41,
+         "w": 299.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "2인 난투 · 경기 종료",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 30.0
+        }
+       ]
+      },
+      {
+       "id": "280:183",
+       "name": "승리 선수 사진",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 54993,
+       "ay": 25,
+       "w": 432.0,
+       "h": 514.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.5,
+       "r": 10.0,
+       "layout": "VERTICAL",
+       "pl": 20.0,
+       "pr": 20.0,
+       "pt": 20.0,
+       "pb": 20.0,
+       "mainAlign": "MAX",
+       "c": [
+        {
+         "id": "280:184",
+         "name": "선수 사진",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 54993,
+         "ay": 25,
+         "w": 432.0,
+         "h": 514.0,
+         "d": 4,
+         "fills": [
+          "IMAGE"
+         ],
+         "strokeW": 1.0
+        },
+        {
+         "id": "280:185",
+         "name": "사진 음영",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 54993,
+         "ay": 25,
+         "w": 432.0,
+         "h": 514.0,
+         "d": 4,
+         "fills": [
+          "LINEAR:(#0B0E14/0.0@0.0,#0B0E14/0.961@1.0)"
+         ],
+         "strokeW": 1.0
+        },
+        {
+         "id": "280:186",
+         "name": "승리 표시",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55009,
+         "ay": 41,
+         "w": 69.0,
+         "h": 29.0,
+         "d": 4,
+         "fills": [
+          "#1A2839/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0@0.251"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "gap": 7.0,
+         "pl": 12.0,
+         "pr": 12.0,
+         "pt": 7.0,
+         "pb": 7.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:187",
+           "name": "상태 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 55021,
+           "ay": 48,
+           "w": 15.0,
+           "h": 15.0,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.6
+          },
+          {
+           "id": "280:188",
+           "name": "결과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55043,
+           "ay": 48,
+           "w": 23.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승리",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        },
+        {
+         "id": "280:189",
+         "name": "선수 신원",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55013,
+         "ay": 440,
+         "w": 392.0,
+         "h": 79.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 9.0,
+         "c": [
+          {
+           "id": "280:190",
+           "name": "선택 안내",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55013,
+           "ay": 440,
+           "w": 54.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "베팅한 선수",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          },
+          {
+           "id": "280:191",
+           "name": "이름과 레벨",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 55013,
+           "ay": 462,
+           "w": 184.0,
+           "h": 34.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "280:192",
+             "name": "선수 이름",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 55013,
+             "ay": 462,
+             "w": 136.0,
+             "h": 34.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "잿빛검 레나",
+             "fontSize": 28.0,
+             "font": "Noto Sans KR 700 Bold",
+             "lineH": 33.6
+            },
+            {
+             "id": "280:193",
+             "name": "레벨",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 55161,
+             "ay": 471,
+             "w": 36.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "Lv.26",
+             "fontSize": 12.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 15.6
+            }
+           ]
+          },
+          {
+           "id": "280:194",
+           "name": "전투 특성",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55013,
+           "ay": 505,
+           "w": 106.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "쌍검 검사 · 연속 공격",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "280:195",
+       "name": "승리 기록",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 54993,
+       "ay": 557,
+       "w": 432.0,
+       "h": 88.0,
+       "d": 3,
+       "fills": [
+        "#191F27/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "HORIZONTAL",
+       "pl": 16.0,
+       "pr": 16.0,
+       "pt": 16.0,
+       "pb": 16.0,
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "280:196",
+         "name": "통산 전적",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55009,
+         "ay": 580,
+         "w": 79.0,
+         "h": 42.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 7.0,
+         "c": [
+          {
+           "id": "280:197",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55009,
+           "ay": 580,
+           "w": 79.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "경기 후 통산 전적",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          },
+          {
+           "id": "280:198",
+           "name": "전적",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55009,
+           "ay": 600,
+           "w": 68.0,
+           "h": 22.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "15승 6패",
+           "fontSize": 18.0,
+           "font": "Noto Sans KR 500 Medium",
+           "lineH": 21.6
+          }
+         ]
+        },
+        {
+         "id": "280:199",
+         "name": "상태",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55357,
+         "ay": 590,
+         "w": 52.0,
+         "h": 21.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0@0.078"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "pl": 8.0,
+         "pr": 8.0,
+         "pt": 4.0,
+         "pb": 4.0,
+         "c": [
+          {
+           "id": "280:200",
+           "name": "상태 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55365,
+           "ay": 594,
+           "w": 36.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승리 +1",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 500 Medium",
+           "lineH": 13.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "280:201",
+       "name": "상대 선수",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 54993,
+       "ay": 663,
+       "w": 432.0,
+       "h": 118.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 10.0,
+       "c": [
+        {
+         "id": "280:202",
+         "name": "항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 54993,
+         "ay": 663,
+         "w": 47.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "상대 선수",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 14.4
+        },
+        {
+         "id": "280:203",
+         "name": "패배 선수",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 54993,
+         "ay": 687,
+         "w": 432.0,
+         "h": 94.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 10.0,
+         "layout": "HORIZONTAL",
+         "gap": 12.0,
+         "pl": 12.0,
+         "pr": 12.0,
+         "pt": 12.0,
+         "pb": 12.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:204",
+           "name": "선수 사진",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 55005,
+           "ay": 700,
+           "w": 52.0,
+           "h": 68.0,
+           "d": 5,
+           "fills": [
+            "IMAGE"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0
+          },
+          {
+           "id": "280:205",
+           "name": "선수 신원",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 55069,
+           "ay": 716,
+           "w": 309.0,
+           "h": 35.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "c": [
+            {
+             "id": "280:206",
+             "name": "선수 이름",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 55069,
+             "ay": 716,
+             "w": 81.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "강철방패 로칸",
+             "fontSize": 14.0,
+             "font": "Noto Sans KR 700 Bold",
+             "lineH": 16.8
+            },
+            {
+             "id": "280:207",
+             "name": "직업과 레벨",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 55069,
+             "ay": 738,
+             "w": 81.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "중갑 전사 · Lv.28",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            }
+           ]
+          },
+          {
+           "id": "280:208",
+           "name": "결과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55390,
+           "ay": 727,
+           "w": 23.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "패배",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "280:209",
+     "name": "승리 보상 및 베팅 정산",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 55473,
+     "ay": -65,
+     "w": 968.0,
+     "h": 882.0,
+     "d": 2,
+     "fills": [
+      "#13181F/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 14.0,
+     "fx": [
+      "DROP_SHADOW:38.0:#000000/0.251"
+     ],
+     "layout": "VERTICAL",
+     "gap": 14.0,
+     "pl": 24.0,
+     "pr": 24.0,
+     "pt": 24.0,
+     "pb": 24.0,
+     "c": [
+      {
+       "id": "280:210",
+       "name": "패널 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 55497,
+       "ay": -41,
+       "w": 920.0,
+       "h": 48.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "c": [
+        {
+         "id": "280:211",
+         "name": "제목 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55497,
+         "ay": -41,
+         "w": 23.0,
+         "h": 30.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:212",
+           "name": "상태 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 55497,
+           "ay": -38,
+           "w": 23.0,
+           "h": 23.0,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "280:213",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 55532,
+         "ay": -41,
+         "w": 86.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "전투 결과",
+         "fontSize": 22.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 30.0
+        },
+        {
+         "id": "280:214",
+         "name": "보조 제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 55630,
+         "ay": -41,
+         "w": 745.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "2인 난투 · 승리 베팅 정산",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 30.0
+        },
+        {
+         "id": "280:215",
+         "name": "닫기",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 56387,
+         "ay": -41,
+         "w": 30.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:216",
+           "name": "상태 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 56394,
+           "ay": -34,
+           "w": 17.0,
+           "h": 17.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "280:217",
+       "name": "승리 안내",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 55497,
+       "ay": 21,
+       "w": 920.0,
+       "h": 100.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 20.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "280:218",
+         "name": "승리 문장",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55497,
+         "ay": 33,
+         "w": 76.0,
+         "h": 76.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0@0.078"
+         ],
+         "strokes": [
+          "#58A6FF/1.0@0.251"
+         ],
+         "strokeW": 1.0,
+         "r": 10.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:219",
+           "name": "상태 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 55516,
+           "ay": 52,
+           "w": 38.0,
+           "h": 38.0,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "280:220",
+         "name": "승리 메시지",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55593,
+         "ay": 38,
+         "w": 745.0,
+         "h": 65.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 8.0,
+         "c": [
+          {
+           "id": "280:221",
+           "name": "제목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55593,
+           "ay": 38,
+           "w": 334.0,
+           "h": 41.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "전투에서 승리했습니다!",
+           "fontSize": 34.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 40.8
+          },
+          {
+           "id": "280:222",
+           "name": "설명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55593,
+           "ay": 88,
+           "w": 745.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "잿빛검 레나가 2인 난투에서 승리하여 베팅에 성공했습니다.",
+           "fontSize": 13.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 15.6
+          }
+         ]
+        },
+        {
+         "id": "280:223",
+         "name": "상태",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 56358,
+         "ay": 60,
+         "w": 59.0,
+         "h": 21.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0@0.078"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "pl": 8.0,
+         "pr": 8.0,
+         "pt": 4.0,
+         "pb": 4.0,
+         "c": [
+          {
+           "id": "280:224",
+           "name": "상태 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56366,
+           "ay": 64,
+           "w": 43.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "베팅 성공",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 500 Medium",
+           "lineH": 13.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "280:225",
+       "name": "획득 골드",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 55497,
+       "ay": 135,
+       "w": 920.0,
+       "h": 158.0,
+       "d": 3,
+       "fills": [
+        "#1A2839/1.0"
+       ],
+       "strokes": [
+        "#58A6FF/1.0@0.251"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "HORIZONTAL",
+       "gap": 20.0,
+       "pl": 24.0,
+       "pr": 24.0,
+       "pt": 24.0,
+       "pb": 24.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "280:226",
+         "name": "골드 문장",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55521,
+         "ay": 178,
+         "w": 72.0,
+         "h": 72.0,
+         "d": 4,
+         "fills": [
+          "#E8BF70/1.0@0.078"
+         ],
+         "strokeW": 1.0,
+         "r": 16777200.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:227",
+           "name": "상태 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 55538,
+           "ay": 195,
+           "w": 38.0,
+           "h": 38.0,
+           "d": 5,
+           "strokes": [
+            "#E8BF70/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "280:228",
+         "name": "수령액",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55613,
+         "ay": 172,
+         "w": 666.0,
+         "h": 84.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 4.0,
+         "c": [
+          {
+           "id": "280:229",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55613,
+           "ay": 172,
+           "w": 115.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "획득 골드 · 원금 포함",
+           "fontSize": 13.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 15.6
+          },
+          {
+           "id": "280:230",
+           "name": "획득 금액",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55613,
+           "ay": 192,
+           "w": 251.0,
+           "h": 64.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "+2,400 G",
+           "fontSize": 56.0,
+           "font": "Geist Mono 500 Medium",
+           "lineH": 64.4
+          }
+         ]
+        },
+        {
+         "id": "280:231",
+         "name": "지급 상태",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 56299,
+         "ay": 192,
+         "w": 94.0,
+         "h": 43.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 12.0,
+         "crossAlign": "MAX",
+         "c": [
+          {
+           "id": "280:232",
+           "name": "지급 확인",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 56325,
+           "ay": 192,
+           "w": 68.0,
+           "h": 15.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "280:233",
+             "name": "상태 아이콘",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 56325,
+             "ay": 192,
+             "w": 15.0,
+             "h": 15.0,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.6
+            },
+            {
+             "id": "280:234",
+             "name": "상태",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 56346,
+             "ay": 193,
+             "w": 47.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "지급 완료",
+             "fontSize": 12.0,
+             "font": "Noto Sans KR 500 Medium",
+             "lineH": 14.4
+            }
+           ]
+          },
+          {
+           "id": "280:235",
+           "name": "순이익",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56299,
+           "ay": 220,
+           "w": 94.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "순이익 +1,400 G",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "280:236",
+       "name": "배당금 계산",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 55497,
+       "ay": 307,
+       "w": 920.0,
+       "h": 92.0,
+       "d": 3,
+       "fills": [
+        "#191F27/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "HORIZONTAL",
+       "gap": 24.0,
+       "pl": 16.0,
+       "pr": 16.0,
+       "pt": 16.0,
+       "pb": 16.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "280:237",
+         "name": "정산 항목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55513,
+         "ay": 328,
+         "w": 254.7,
+         "h": 50.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 8.0,
+         "c": [
+          {
+           "id": "280:238",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55513,
+           "ay": 328,
+           "w": 43.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "베팅 금액",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          },
+          {
+           "id": "280:239",
+           "name": "금액",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55513,
+           "ay": 349,
+           "w": 93.0,
+           "h": 29.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "1,000 G",
+           "fontSize": 22.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 28.6
+          }
+         ]
+        },
+        {
+         "id": "280:240",
+         "name": "곱하기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 55792,
+         "ay": 338,
+         "w": 14.0,
+         "h": 29.0,
+         "d": 4,
+         "fills": [
+          "#586473/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "×",
+         "fontSize": 22.0,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 28.6
+        },
+        {
+         "id": "280:241",
+         "name": "정산 항목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55830,
+         "ay": 328,
+         "w": 254.7,
+         "h": 50.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 8.0,
+         "c": [
+          {
+           "id": "280:242",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55830,
+           "ay": 328,
+           "w": 43.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "적용 배율",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          },
+          {
+           "id": "280:243",
+           "name": "금액",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55830,
+           "ay": 349,
+           "w": 53.0,
+           "h": 29.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "2.40",
+           "fontSize": 22.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 28.6
+          }
+         ]
+        },
+        {
+         "id": "280:244",
+         "name": "계산 결과",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 56108,
+         "ay": 338,
+         "w": 14.0,
+         "h": 29.0,
+         "d": 4,
+         "fills": [
+          "#586473/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "=",
+         "fontSize": 22.0,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 28.6
+        },
+        {
+         "id": "280:245",
+         "name": "정산 항목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 56146,
+         "ay": 328,
+         "w": 254.7,
+         "h": 50.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 8.0,
+         "c": [
+          {
+           "id": "280:246",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56146,
+           "ay": 328,
+           "w": 108.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "최종 수령액 · 원금 포함",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          },
+          {
+           "id": "280:247",
+           "name": "금액",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56146,
+           "ay": 349,
+           "w": 93.0,
+           "h": 29.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "2,400 G",
+           "fontSize": 22.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 28.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "280:248",
+       "name": "골드 정산 내역",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 55497,
+       "ay": 413,
+       "w": 920.0,
+       "h": 175.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 12.0,
+       "pt": 7.0,
+       "c": [
+        {
+         "id": "280:249",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 55497,
+         "ay": 420,
+         "w": 90.0,
+         "h": 18.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "골드 정산 내역",
+         "fontSize": 15.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 18.0
+        },
+        {
+         "id": "280:250",
+         "name": "잔액 내역",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55497,
+         "ay": 450,
+         "w": 920.0,
+         "h": 18.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:251",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55497,
+           "ay": 452,
+           "w": 86.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "베팅 전 보유 골드",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          },
+          {
+           "id": "280:252",
+           "name": "금액",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56349,
+           "ay": 450,
+           "w": 68.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "12,500 G",
+           "fontSize": 14.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 18.2
+          }
+         ]
+        },
+        {
+         "id": "280:253",
+         "name": "잔액 내역",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55497,
+         "ay": 480,
+         "w": 920.0,
+         "h": 18.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:254",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55497,
+           "ay": 482,
+           "w": 72.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "베팅 금액 차감",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          },
+          {
+           "id": "280:255",
+           "name": "금액",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56349,
+           "ay": 480,
+           "w": 68.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "−1,000 G",
+           "fontSize": 14.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 18.2
+          }
+         ]
+        },
+        {
+         "id": "280:256",
+         "name": "잔액 내역",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55497,
+         "ay": 510,
+         "w": 920.0,
+         "h": 18.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:257",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55497,
+           "ay": 512,
+           "w": 142.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승리 배당금 지급 · 원금 포함",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          },
+          {
+           "id": "280:258",
+           "name": "금액",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56349,
+           "ay": 510,
+           "w": 68.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "+2,400 G",
+           "fontSize": 14.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 18.2
+          }
+         ]
+        },
+        {
+         "id": "280:259",
+         "name": "최종 보유 골드",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55497,
+         "ay": 540,
+         "w": 920.0,
+         "h": 48.0,
+         "d": 4,
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:260",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55497,
+           "ay": 556,
+           "w": 78.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "현재 보유 골드",
+           "fontSize": 13.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 15.6
+          },
+          {
+           "id": "280:261",
+           "name": "보유량",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56303,
+           "ay": 548,
+           "w": 114.0,
+           "h": 33.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "13,900 G",
+           "fontSize": 25.0,
+           "font": "Geist Mono 500 Medium",
+           "lineH": 32.5
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "280:262",
+       "name": "실행 영역 간격",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 55497,
+       "ay": 602,
+       "w": 920.0,
+       "h": 69.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL"
+      },
+      {
+       "id": "280:263",
+       "name": "결과 확인",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 55497,
+       "ay": 685,
+       "w": 920.0,
+       "h": 76.0,
+       "d": 3,
+       "fills": [
+        "#191F27/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "HORIZONTAL",
+       "gap": 16.0,
+       "pl": 16.0,
+       "pr": 16.0,
+       "pt": 16.0,
+       "pb": 16.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "280:264",
+         "name": "정산 요약",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 55513,
+         "ay": 706,
+         "w": 628.0,
+         "h": 35.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 6.0,
+         "c": [
+          {
+           "id": "280:265",
+           "name": "안내",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55513,
+           "ay": 706,
+           "w": 150.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승리 보상이 지급되었습니다",
+           "fontSize": 13.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 15.6
+          },
+          {
+           "id": "280:266",
+           "name": "안내",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 55513,
+           "ay": 728,
+           "w": 178.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "획득한 골드는 즉시 사용할 수 있습니다.",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "280:267",
+         "name": "투기장으로 돌아가기",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 56157,
+         "ay": 701,
+         "w": 244.0,
+         "h": 44.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "gap": 8.0,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "280:268",
+           "name": "상태 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 56255,
+           "ay": 715,
+           "w": 16.0,
+           "h": 16.0,
+           "d": 5,
+           "strokes": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.6
+          },
+          {
+           "id": "280:269",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 56279,
+           "ay": 715,
+           "w": 24.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "확인",
+           "fontSize": 13.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 15.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "280:270",
+       "name": "지급 안내",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 55497,
+       "ay": 775,
+       "w": 920.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "배당금에는 베팅 원금이 포함됩니다. 추가 수령 절차 없이 정산이 완료되었습니다.",
+       "fontSize": 11.0,
+       "font": "Noto Sans KR 400 Regular",
+       "lineH": 18.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "280:271",
+   "name": "화면 도움말",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 54969,
+   "ay": 841,
+   "w": 1472.0,
+   "h": 20.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "280:272",
+     "name": "정산 안내",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 54969,
+     "ay": 844,
+     "w": 260.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "승리 배당금이 보유 골드에 자동으로 지급되었습니다.",
+     "fontSize": 12.0,
+     "font": "Noto Sans KR 400 Regular",
+     "lineH": 14.4
+    },
+    {
+     "id": "280:273",
+     "name": "단축키 안내",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 56303,
+     "ay": 844,
+     "w": 138.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "Enter  확인     ·     Esc  닫기",
+     "fontSize": 12.0,
+     "font": "Noto Sans KR 400 Regular",
+     "lineH": 14.4
+    }
+   ]
+  }
+ ]
+}

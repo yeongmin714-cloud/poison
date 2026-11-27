@@ -31,8 +31,9 @@ namespace ProjectName.UI
             new ActionEntry { id = TutorialGuideData.ID_01_MOVEMENT,     description = "WASD 이동" },
             new ActionEntry { id = TutorialGuideData.ID_02_CAMERA,       description = "카메라 회전 (우클릭 드래그)" },
             new ActionEntry { id = TutorialGuideData.ID_03_ATTACK,       description = "좌클릭 공격" },
-            new ActionEntry { id = "04_dash",                            description = "Shift 대쉬" },
-            new ActionEntry { id = "05_roll",                            description = "Space 구르기" },
+            // [132차] id("04_dash")는 PlayerPrefs 키/ShowGuide ID 호환 유지 — 문구만 신체계(더블탭 달리기)로 갱신
+            new ActionEntry { id = "04_dash",                            description = "WASD 더블탭 달리기" },
+            new ActionEntry { id = "05_roll",                            description = "Shift+방향 구르기" }, // [132차] 기존 "Space 구르기"는 구체계 잔재(Space=점프) — 신체계 문구로 갱신
             new ActionEntry { id = "06_chop_tree",                     description = "E키 나무 채집" },
             new ActionEntry { id = "07_mine_stone",                    description = "E키 돌 채집" },
             new ActionEntry { id = TutorialGuideData.ID_08_HERB_PICK,    description = "E키 약초 채집" },
@@ -76,6 +77,10 @@ namespace ProjectName.UI
         private bool[] _detectedState; // 캐시: 액션별 감지 완료 여부
         private readonly HashSet<string> _detectedActions = new HashSet<string>(); // T6 영지 액션 감지
         private float _interactionRange = 3f;
+
+        // [132차] 더블탭 WASD 감지 상태 — 같은 방향키를 0.3초 내 2회 press(튜토리얼 04 달리기 감지 전용)
+        private readonly float[] _doubleTapWASDLastPress = { -10f, -10f, -10f, -10f }; // W/A/S/D 순, 음수 초기화(시작 직후 오인 방지)
+        private const float DoubleTapWASDWindow = 0.3f;
 
         // 가드 캐시 (매 프레임 FindObjectsByType 방지)
         private GuardPlaceholder _cachedGuard;
@@ -185,20 +190,19 @@ namespace ProjectName.UI
                 }
             }
 
-            // 04: Shift 대쉬 감지
+            // 04: [132차] 더블탭 WASD 달리기 감지 — 같은 방향키 0.3초 내 2회 press(기존 Shift 대쉬 감지 교체)
             if (!_detectedState[3] && _keyboard != null)
             {
-                if (_keyboard.leftShiftKey.wasPressedThisFrame ||
-                    _keyboard.rightShiftKey.wasPressedThisFrame)
+                if (DetectDoubleTapWASD())
                 {
                     MarkActionDetected(3);
                 }
             }
 
-            // 05: Space 구르기 감지 (태스크 명세: Space 키)
+            // 05: [132차] Shift+방향 구르기 감지 — 신체계(Shift+방향) 양엣지(기존 Space 감지는 점프와 혼동되는 구체계 잔재)
             if (!_detectedState[4] && _keyboard != null)
             {
-                if (_keyboard.spaceKey.wasPressedThisFrame)
+                if (DetectShiftDirectionRoll())
                 {
                     MarkActionDetected(4);
                 }
@@ -230,6 +234,32 @@ namespace ProjectName.UI
 
             // T6 영지 액션 감지 (territoryGuidesStarted 시 활성화)
             DetectTerritoryActions();
+        }
+
+        /// <summary>[132차] 같은 방향키(W/A/S/D)를 0.3초 내 2회 press하면 true — 튜토리얼 04 감지 전용.</summary>
+        private bool DetectDoubleTapWASD()
+        {
+            var wasd = new[] { _keyboard.wKey, _keyboard.aKey, _keyboard.sKey, _keyboard.dKey }; // KeyControl 배열(암시 타입)
+            for (int i = 0; i < wasd.Length; i++)
+            {
+                if (!wasd[i].wasPressedThisFrame) continue;
+                if (Time.time - _doubleTapWASDLastPress[i] < DoubleTapWASDWindow)
+                    return true; // 더블탭 감지 — 감지는 1회면 충분(플래그는 MarkActionDetected가 관리)
+                _doubleTapWASDLastPress[i] = Time.time;
+            }
+            return false;
+        }
+
+        /// <summary>[132차] Shift+방향 구르기 감지 — PlayerMovement 신체계와 동일 양엣지(튜토리얼 05 감지 전용).</summary>
+        private bool DetectShiftDirectionRoll()
+        {
+            bool dirHeld = _keyboard.wKey.isPressed || _keyboard.aKey.isPressed
+                || _keyboard.sKey.isPressed || _keyboard.dKey.isPressed;
+            bool dirPressed = _keyboard.wKey.wasPressedThisFrame || _keyboard.aKey.wasPressedThisFrame
+                || _keyboard.sKey.wasPressedThisFrame || _keyboard.dKey.wasPressedThisFrame;
+            bool shiftHeld = _keyboard.leftShiftKey.isPressed || _keyboard.rightShiftKey.isPressed;
+            bool shiftPressed = _keyboard.leftShiftKey.wasPressedThisFrame || _keyboard.rightShiftKey.wasPressedThisFrame;
+            return (dirPressed && shiftHeld) || (shiftPressed && dirHeld);
         }
 
         // ================================================================

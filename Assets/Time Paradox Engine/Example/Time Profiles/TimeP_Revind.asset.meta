@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1d45a3354e4243b4f9972c4d32d1231d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Example/Time Profiles/Revind.asset
+  uploadId: 898796

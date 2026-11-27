@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 040ff5f95a6541d48a5bef2fe0077f47
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Example/Rules/Rigid Body_Preset.asset
+  uploadId: 898796

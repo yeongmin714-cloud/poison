@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ca36addd054d5074cbf1be4260c99e9c
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Demo/Art/Prefabs/Text.prefab
+  uploadId: 898796

@@ -116,10 +116,10 @@
 .utk-btn {
     font-size: var(--fs-sm);
     color: var(--c-text-primary);
-    background-color: var(--c-bg-panel-dark);
-    border-width: 1px;
-    border-color: var(--c-border-strong);
-    border-radius: 3px;
+    background-color: rgba(33, 38, 45, 0.6);      /* [144차 P1-INT #12] #21262D@0.6 — Figma 버튼 fill */
+    border-width: 1.2px;                           /* [144차 P1-INT #13] 1px→1.2px */
+    border-color: rgba(48, 54, 61, 0.502);         /* [144차 P1-INT #13] #30363D@0.502 — Figma 버튼 보더 */
+    border-radius: 4.8px;                          /* [144차 P1-INT #14] 3px→4.8px */
     padding: 4px 14px;
     align-items: center;
     justify-content: center;
@@ -142,7 +142,7 @@
 }
 
 .utk-btn--secondary {
-    background-color: var(--c-bg-panel-dark);
+    background-color: rgba(33, 38, 45, 0.6);      /* [144차 P1-INT #12] #21262D@0.6 — Figma 정합 */
 }
 
 .utk-btn--danger {
@@ -160,7 +160,10 @@
 .utk-slot {
     width: 64px;
     height: 64px;
-    background-color: #010409;
+    /* [144차 P8-HB #3] #010409 → #0D1015@0.902 — SlotBox 23:80 fill 원문.
+       주의(충돌 기록): 핫바 슬롯은 HotbarUIUTK 인라인 itemBg(#120D08@0.85 — 2026-10-10
+       사용자 계약)가 인라인 > USS 규칙으로 본 값을 덮어씀. 본 값은 Figma 진실 베이스. */
+    background-color: rgba(13, 16, 21, 0.902);
     border-top-width: 2px;
     border-left-width: 2px;
     border-bottom-width: 2px;
@@ -169,7 +172,8 @@
     border-left-color: var(--c-border-default);
     border-bottom-color: var(--c-border-strong);
     border-right-color: var(--c-border-strong);
-    border-radius: 4px;
+    /* [144차 P8-HB #4] r 4px → 9.6px — SlotBox 23:80 r 원문 */
+    border-radius: 9.6px;
     margin: 3px;
 }
 

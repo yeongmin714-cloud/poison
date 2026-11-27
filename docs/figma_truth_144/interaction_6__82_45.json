@@ -1,0 +1,334 @@
+{
+ "id": "82:45",
+ "name": "interaction-panel",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 27154,
+ "ay": 3,
+ "w": 288.0,
+ "h": 52.8,
+ "d": 0,
+ "fills": [
+  "#161B22/1.0@0.702"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.2,
+ "r": 9.6,
+ "fx": [
+  "BACKGROUND_BLUR:24.0:None",
+  "DROP_SHADOW:19.200000762939453:#000000/0.4"
+ ],
+ "layout": "VERTICAL",
+ "gap": 7.200000286102295,
+ "pl": 9.600000381469727,
+ "pr": 9.600000381469727,
+ "pt": 9.600000381469727,
+ "pb": 9.600000381469727,
+ "c": [
+  {
+   "id": "82:46",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 27154,
+   "ay": 3,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "82:47",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 27154,
+     "ay": 3,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "82:48",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 27154,
+     "ay": 3,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "82:49",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 27432,
+   "ay": 3,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "82:50",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 27432,
+     "ay": 3,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "82:51",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 27432,
+     "ay": 3,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "82:52",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 27154,
+   "ay": 46,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "82:53",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 27154,
+     "ay": 46,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "82:54",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 27154,
+     "ay": 46,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "82:55",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 27432,
+   "ay": 46,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "82:56",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 27432,
+     "ay": 46,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "82:57",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 27432,
+     "ay": 46,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "82:58",
+   "name": "ActionGrid",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 27164,
+   "ay": 13,
+   "w": 268.8,
+   "h": 40.8,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "gap": 7.200000286102295,
+   "c": [
+    {
+     "id": "82:60",
+     "name": "ActionInteract",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 27164,
+     "ay": 13,
+     "w": 268.8,
+     "h": 40.8,
+     "d": 2,
+     "fills": [
+      "#30363D/1.0@0.8"
+     ],
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.2,
+     "r": 4.8,
+     "layout": "HORIZONTAL",
+     "gap": 7.200000286102295,
+     "pl": 9.600000381469727,
+     "pr": 9.600000381469727,
+     "pt": 9.600000381469727,
+     "pb": 9.600000381469727,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "82:61",
+       "name": "keycap-E",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 27173,
+       "ay": 22,
+       "w": 21.6,
+       "h": 21.6,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "fx": [
+        "DROP_SHADOW:7.200000286102295:#58A6FF/0.4"
+       ],
+       "layout": "VERTICAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "82:82",
+         "name": "E",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 27180,
+         "ay": 26,
+         "w": 7.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#161B22/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "E",
+         "fontSize": 12.0,
+         "font": "Roboto 700 Bold",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "82:63",
+       "name": "Label",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 27202,
+       "ay": 26,
+       "w": 220.8,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "E키를 눌러 상호작용",
+       "fontSize": 13.200000762939453,
+       "font": "Roboto 700 Bold",
+       "lineH": 15.5
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

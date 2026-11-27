@@ -137,6 +137,12 @@ namespace ProjectName.Systems
                         float damage = Random.Range(6f, 10f);
                         Vector3 direction = (hit.transform.position - field.transform.position).normalized;
                         damageable.TakeDamage(damage, direction, "GasCloud_Poison");
+                        // [63-B] 플레이어 노출 → 중독+혼탁(마스크 착용은 protectedByMask break으로 이미 면역)
+                        if (isPlayer)
+                        {
+                            PlayerStatusEffectSystem.AddEffect(StatusEffectId.Poisoning, 12f);
+                            PlayerStatusEffectSystem.AddEffect(StatusEffectId.Daze, 8f);
+                        }
                         break;
 
                     case PotionType.Mental:

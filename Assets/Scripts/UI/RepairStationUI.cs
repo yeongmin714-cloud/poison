@@ -175,10 +175,8 @@ namespace ProjectName.UI
 
             GUILayout.Space(6);
 
-            // ── 골드 보유량 표시 ──
-            int playerGold = 0;
-            if (PlayerInventory.Instance != null)
-                playerGold = PlayerInventory.Instance.GetItemCount("gold");
+            // ── 골드 보유량 표시 [70차] — 지갑(PlayerStats) 단일소스 ──
+            int playerGold = PlayerStats.Instance != null ? PlayerStats.Instance.Gold : 0;
             GUILayout.Label($"💰 보유 골드: {playerGold}G", _categoryHeaderStyle);
 
             GUILayout.Space(4);

@@ -209,11 +209,12 @@ namespace ProjectName.UI.Toolkit
         {
             if (slot == null || slot.item == null) return;
 
-            bool ok = TerritoryLordDoorSystem.TryFeedLord(_territoryKey, slot.item.id);
+            // [113차 A] 3인자 오버로드 — 실제 증가치 표시 (기본 +5 / 선호 계열 일치 +15 / T3·강한 링 +20)
+            bool ok = TerritoryLordDoorSystem.TryFeedLord(_territoryKey, slot.item.id, out float loyaltyDelta);
             if (ok)
             {
-                _statusLabel.text = slot.item.displayName + " 지급 완료 — 영지 충성도 +5";
-                Debug.Log($"[LordFeedUTK] 🍗 {_lordName}에게 {slot.item.displayName} 지급 → {_territoryKey} 충성도 +5");
+                _statusLabel.text = slot.item.displayName + $" 지급 완료 — 영지 충성도 +{loyaltyDelta:F0}";
+                Debug.Log($"[LordFeedUTK] 🍗 {_lordName}에게 {slot.item.displayName} 지급 → {_territoryKey} 충성도 +{loyaltyDelta:F0}");
             }
             else
             {

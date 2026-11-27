@@ -46,6 +46,11 @@ namespace ProjectName.Systems
     /// [2026-09-14(47차)] 위 틴트 정책은 MagicHit 교체로 철회 — 에셋 고유 색상 사용(보라 정규화만 유지).
     /// [2026-09-15 콤보 스테이지 틴트] PlaySlashStage가 콤보 스테이지별 틴트 적용 — 1타 흰(CoreTint) /
     /// 2타 골드(AccentTint) / 3타 주황·붉은(OuterTint) — ComboStageTint 헬퍼 + TintParticles 호출.
+    ///
+    /// [174차] 찌르기(스피어 오프너 AttackThrust) 전용 선형 FX — PlayThrustStage(하단). 사용자 리포트:
+    ///   오프너(찌르기)와 팔로업 WeaponCombo(스윙)가 같은 슬래시 아크를 발화해 구분 불가 → 오프너 경로는
+    ///   직선 찌르기 스트릭으로 분리(절차 쿼드 스트릭 — Resources/FX에 stab/pierce/thrust 전용 프리팹 부재
+    ///   11-23 정찰, 새 .vfx 제작 금지 계약). 팔로업/근접 콤보는 기존 슬래시 아크 유지.
     /// </summary>
     public static class SlashVFXRunner
     {
@@ -56,8 +61,12 @@ namespace ProjectName.Systems
         /// [2026-09-13 스타일라이즈드 슬래시] 스타일라이즈드 스윙 아크 전용 쿨다운 — MIN_SPAWN_INTERVAL(0.08s)과
         /// 별개 상수. 콤보 타당 최소 간격(0.25s)을 강제해 빠른 연타에서 아크 겹침/스팸을 방지한다
         /// (스윙/크로스/임팩트 쿨다운과 독립 — 타이머도 별도).
+        /// [174차] private→internal 개방(값 무변경) — 콤보 스테이지 간격 실측 하한
+        /// (HumanoidClipDriver.MinComboStageGapSeconds, 최악 0.54s)과의 부등식을 계약테스트
+        /// (CombatFxThrustSeparationTests)가 고정. 실측 최소 스테이지 간격 0.54s > 0.25s라
+        /// 쿨다운 return에 의한 스테이지 소실 없음 → 상수 트림 불요(계약상 이유 명시).
         /// </summary>
-        private const float MIN_STYLIZED_SLASH_INTERVAL = 0.25f;
+        internal const float MIN_STYLIZED_SLASH_INTERVAL = 0.25f;
 
         // [2026-09-14(47차 후속7)] 스윙 스케일 고정 상수(구 기본값 1.5) 제거 — 슬래시 크기=공격범위 연동으로 대체
         // (사거리×0.4, 클램프 0.8~1.6 — PlaySlashStage 본문의 동적 계산 + RangeOf 헬퍼 참조).
@@ -128,6 +137,19 @@ namespace ProjectName.Systems
         private static float _lastImpactSpawnTime = -999f;
         private static float _lastCrossSpawnTime = -999f;   // 크로스 전용 쿨다운 — 스윙/임팩트와 독립
         private static float _lastStylizedSlashSpawnTime = -999f;   // [2026-09-13] 스타일라이즈드 전용 쿨다운(0.25s) — 3종과 독립
+
+        // ── [174차] 찌르기(스피어 오프너 AttackThrust) 선형 스트릭 전용 상수/상태 ──
+        /// <summary>[174차] 찌르기 스트릭 전용 쿨다운 — 슬래시(0.25s)와 독립 타이머. 오프너 스윙 간격 최악
+        /// 0.54s((0.75−0.30)×폴백 클립 1.2s — HumanoidClipDriver.MinComboStageGapSeconds 실측 주석)보다
+        /// 짧아 쿨다운 return에 의한 스테이지 소실 없음(부등식 계약테스트 고정).</summary>
+        internal const float MinThrustStreakInterval = 0.25f;
+        /// <summary>[174차] 찌르기 스트릭 길이 배율 — 찌르기 리치(사거리) 기반. Spear 4m → 2.4m(클램프 1.0~3.0).</summary>
+        internal const float ThrustLengthRangeFactor = 0.6f;
+        private static float _lastThrustSpawnTime = -999f;
+        /// <summary>[174차] 발화 행위 테스트용 카운터(내부) — 실제 스폰 성공 시에만 증가(쿨다운 return은 무증가).</summary>
+        internal static int ThrustStreakSpawnCount;
+        /// <summary>[174차] 행위 테스트 결정론용 쿨다운 리셋 훅(내부 — 프로덕션 호출부 없음).</summary>
+        internal static void ResetThrustCooldownForTest() { _lastThrustSpawnTime = -999f; }
 
         // [2026-09-13 alive 진단] VFX Graph 미출력 폴백 플래그 — SlashAliveProbe가 aliveParticleCount<=0을
         // 감지하면 true로 세팅되고, 이후 PlaySlashStage 발화부터 구 Slash VFX("FX/Slash/Slash VFX") 폴백
@@ -345,12 +367,46 @@ namespace ProjectName.Systems
                 /// ④ 사거리 기반 스케일 (RangeOf * 0.15f, 클램프 0.3~0.7) ⑤ 색상 흰색 고정.
                 /// 파괴 1.5s(StylizedSlashDestroyAfter 공용), 쿨다운은 PlaySlashStage 선두의 _lastStylizedSlashSpawnTime 하나를 공유한다.
                 /// </summary>
+                /// <summary>[무번호 42] 검증 발광 화이트 머티리얼 — WeaponSwingTrail.CreateTrailMaterial 동일 사양
+                /// (URP Particles/Unlit + Emission). 셰이더 부재 시 Sprites/Default 폴백, 최종 부재=null(기존 유지).</summary>
+                private static Material CreateEmissiveWhiteMaterial()
+                {
+                    Shader urpUnlit = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+                    if (urpUnlit != null)
+                    {
+                        var mat = new Material(urpUnlit);
+                        mat.SetColor("_BaseColor", new Color(1.6f, 1.55f, 1.5f, 1f));   // HDR 발광 화이트
+                        if (mat.HasProperty("_BaseColor")) { }
+                        if (mat.HasProperty("_EmissionColor")) mat.SetColor("_EmissionColor", new Color(1.2f, 1.15f, 1.1f, 1f));
+                        return mat;
+                    }
+                    Shader spriteDefault = Shader.Find("Sprites/Default");
+                    return spriteDefault != null ? new Material(spriteDefault) : null;
+                }
+
                 private static void SpawnFallbackSlashStage(GameObject prefab, Vector3 position, Vector3 direction, int stage, float yawSign, Transform playerRoot, Color stageTint)
                 {
                     Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
                     // ① 타격 대상 방향 정렬 — 쿼드 +Z가 dir(타격 대상 방향)을 향하게
                     GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(dir));
                     instance.name = "SlashVFX_Fallback";
+
+                    // [무번호 42] 깨진 셰이더 참조 수리 — 매뉴얼 복사 프리팹(Slash VFX — 8 MeshRenderer, URP Shader Graph)의
+                    //   머티리얼 셰이더 참조가 guid 재발행으로 깨지면 **Hidden/InternalErrorShader(마젠타)**로 렌더
+                    //   (17:56/15:56 영상 실측: 검기 모양 마젠타 밴드 = 메시 정상+셰이더 깨짐 조합).
+                    //   InternalErrorShader 감지 → 검증된 URP 발광 화이트(WeaponSwingTrail.CreateTrailMaterial 동일 사양)로 교체.
+                    //   메시 형태/오리엔테이션은 유지 — 46/47차 에셋 파일 무변경 계약(런타임 인스턴스만).
+                    foreach (var mr in instance.GetComponentsInChildren<MeshRenderer>(true))
+                    {
+                        var m = mr.sharedMaterial;
+                        bool broken = m == null || m.shader == null || m.shader.name == "Hidden/InternalErrorShader";
+                        if (!broken) continue;
+                        var fix = CreateEmissiveWhiteMaterial();
+                        if (fix == null) continue;
+                        var mats = new Material[mr.sharedMaterials.Length];
+                        for (int mi = 0; mi < mats.Length; mi++) mats[mi] = fix;
+                        mr.sharedMaterials = mats;
+                    }
 
                     // ② 플레이어 부착(추종) — worldPositionStays=true, 기존 경로 동일(파괴는 자식 인스턴스만 → 부모 안전)
                     if (playerRoot != null)
@@ -379,6 +435,128 @@ namespace ProjectName.Systems
                     Debug.Log($"[SlashVFX] 폴백 Slash VFX 발화 (stage={stage}, scale={scale:F2}, white)");
                     ScheduleDestroy(instance, StylizedSlashDestroyAfter);   // 1.5s 자가 파괴 — 스타일라이즈드와 동일 상수 공용
                 }
+
+        // ════════════════════════════════════════════════════════════
+        // [174차] 찌르기(스피어 오프너 AttackThrust) 전용 선형 FX
+        // ════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// [174차] 찌르기(스피어 오프너 AttackThrust 상태) 전용 선형 FX — 슬래시 아크(PlaySlashStage)와
+        /// 시각 분리용. 사용자 리포트(11-23): 오프너(찌르기)와 팔로업 WeaponCombo(스윙)가 같은 슬래시
+        /// 아크를 발화해 구분 불가 → 오프너 경로는 직선 찌르기 스트릭으로 분리한다(호출부 =
+        /// HumanoidClipDriver.FireComboThrust — 오프너 스윙 1·2 / 팔로업·근접 콤보는 기존 슬래시 아크 유지).
+        /// 에셋: Resources/FX에 stab/pierce/thrust 전용 프리팹이 없어(11-23 정찰) 새 .vfx 제작 금지 계약에 따라
+        /// 최소 절차 쿼드 스트릭으로 발화한다 — 십자 단면(수평+수직) 쿼드 2장이라 어느 카메라 앵글에서도
+        /// 선형 관통으로 읽힌다(슬래시 아크의 카메라 빌보드와 달리 dir 정렬이 본질 — LookRotation(dir), +Z=진행 방향).
+        /// 형태: 진행 방향으로 길쭉한 테이퍼 스트릭, 길이는 찌르기 리치(RangeOf — Spear 4m) 기반, 버텍스 알파
+        /// 페이드(머리 1.0 → 기부 0.15)로 관통 헤드라이트. 연출: 스폰 직후 전방 신장 → 폭 수축 페이드
+        /// (ThrustStreakFx), 총 수명 0.35s. 쿨다운은 슬래시와 독립 타이머(MinThrustStreakInterval — 오프너
+        /// 스윙 간격 최악 0.54s보다 짧아 쿨다운 return에 의한 스테이지 소실 없음).
+        /// </summary>
+        /// <param name="position">찌르기 시작점(호출부 — 무기 팁 앵커 우선, 부재 시 기존 전방 고정점 폴백).</param>
+        /// <param name="direction">진행 방향(타격 대상 방향 — FireComboSlash와 공용 dir 산식).</param>
+        /// <param name="stage">콤보 스테이지(1~3) — 슬래시와 동일 ComboStageTint 팔레트 소스.</param>
+        /// <param name="playerRoot">플레이어 루트 — 부착(추종) 대상(슬래시 46차 후속 계약 동형). null이면 월드 고정.</param>
+        public static void PlayThrustStage(Vector3 position, Vector3 direction, int stage, Transform playerRoot = null)
+        {
+            // 스팸 방지 — 찌르기 전용 쿨다운(슬래시 MIN_STYLIZED_SLASH_INTERVAL과 독립 타이머).
+            if (Time.time - _lastThrustSpawnTime < MinThrustStreakInterval) return;
+            _lastThrustSpawnTime = Time.time;
+
+            Vector3 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector3.forward;
+            // 길이 = 찌르기 리치 기반(사거리×0.6, 클램프 1.0~3.0 — Spear 4m → 2.4m). 47차 후속7의 사거리 연동과 동일 발상.
+            float length = Mathf.Clamp(RangeOf(WeaponEquipManager.CurrentType) * ThrustLengthRangeFactor, 1.0f, 3.0f);
+
+            GameObject instance = new GameObject("ThrustStreakVFX");
+            instance.transform.SetPositionAndRotation(position, Quaternion.LookRotation(dir));
+            var meshFilter = instance.AddComponent<MeshFilter>();
+            meshFilter.sharedMesh = GetThrustStreakMesh();          // 단위 메시 정적 캐시(HideAndDontSave) — 인스턴스 파괴와 무관
+            var meshRenderer = instance.AddComponent<MeshRenderer>();
+            var material = GetThrustStreakMaterial(stage);          // 스테이지별 정적 캐시(최대 3본 — 누출 없음)
+            if (material != null) meshRenderer.sharedMaterial = material;
+            meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            meshRenderer.receiveShadows = false;
+
+            // 부착(추종) — 슬래시 46차 후속 계약 동형(worldPositionStays=true, 자가 수명 파괴라 부모 안전).
+            if (playerRoot != null)
+                instance.transform.SetParent(playerRoot, true);
+
+            // 길이축 사전 스케일 — 메시는 단위 길이(z 0..1), z 스케일 = 찌르기 리치. ThrustStreakFx가 이 값을 기준으로 신장/수축.
+            instance.transform.localScale = new Vector3(1f, 1f, length);
+            instance.AddComponent<ThrustStreakFx>();
+
+            ThrustStreakSpawnCount++;
+            Debug.Log($"[SlashVFX] 찌르기 스트릭 발화 (stage={stage}, len={length:F2}, dir={dir:F2}, 발화시각={Time.time:F2}s)");
+        }
+
+        /// <summary>[174차] 찌르기 스트릭 단위 메시(정적 캐시) — 로컬 +Z가 진행 방향, z 0..1 단위 길이.
+        /// 십자 단면 쿼드 2장(수평 X폭/수직 Y폭) + 테이퍼(기부 폭 0.22m → 머리 0.05m) + 버텍스 알파
+        /// (기부 0.15 → 머리 1.0). 양면 렌더(역방향 삼각형 병기 — 머티리얼 cull 설정 불가 케이스 폴백).</summary>
+        private static Mesh _thrustStreakMesh;
+        private static Mesh GetThrustStreakMesh()
+        {
+            if (_thrustStreakMesh != null) return _thrustStreakMesh;
+            const float baseHalf = 0.11f;   // 기부 반폭(m) — 폭 0.22m
+            const float headHalf = 0.025f;  // 머리 반폭(m) — 폭 0.05m(테이퍼)
+            // 정점 순서(쿼드당 4개): 기부 L/R → 머리 L/R. 쿼드 1=수평(X 폭), 쿼드 2=수직(Y 폭).
+            Vector3[] verts =
+            {
+                new Vector3(-baseHalf, 0f, 0f), new Vector3(baseHalf, 0f, 0f),
+                new Vector3(headHalf, 0f, 1f),  new Vector3(-headHalf, 0f, 1f),
+                new Vector3(0f, -baseHalf, 0f), new Vector3(0f, baseHalf, 0f),
+                new Vector3(0f, headHalf, 1f),  new Vector3(0f, -headHalf, 1f),
+            };
+            var colors = new Color[8];
+            var uvs = new Vector2[8];
+            for (int i = 0; i < 8; i++)
+            {
+                bool head = (i & 2) == 2;   // 인덱스 2,3,6,7 = 머리(z=1)
+                colors[i] = new Color(1f, 1f, 1f, head ? 1f : 0.15f);   // 관통 헤드라이트 — 기부 페이드
+                uvs[i] = new Vector2((i & 1) == 1 ? 1f : 0f, head ? 1f : 0f);
+            }
+            int[] tris =
+            {
+                0, 1, 2, 0, 2, 3,       // 수평 앞면
+                0, 2, 1, 0, 3, 2,       // 수평 뒷면(역방향 — 양면)
+                4, 5, 6, 4, 6, 7,       // 수직 앞면
+                4, 6, 5, 4, 7, 6,       // 수직 뒷면(역방향 — 양면)
+            };
+            _thrustStreakMesh = new Mesh { hideFlags = HideFlags.HideAndDontSave };
+            _thrustStreakMesh.vertices = verts;
+            _thrustStreakMesh.colors = colors;
+            _thrustStreakMesh.uv = uvs;
+            _thrustStreakMesh.triangles = tris;
+            _thrustStreakMesh.RecalculateBounds();
+            return _thrustStreakMesh;
+        }
+
+        /// <summary>[174차] 찌르기 스트릭 머티리얼(스테이지별 정적 캐시) — CreateEmissiveWhiteMaterial(무번호 42
+        /// 검증 발광 화이트 사양) 재사용 + 투명 표준 세트(NormalizeMagicHitMaterials의 56-P1 검증 레시피 동일).
+        /// 스테이지 틴트는 ComboStageTint(슬래시와 동일 팔레트 소스)를 _BaseColor에 HDR 부스트로 적용 —
+        /// 버텍스 알파 페이드와 곱셈 합성. URP 셰이더 부재 시 Sprites/Default 폴백(기존 선례 동일).</summary>
+        private static readonly Material[] _thrustStageMaterials = new Material[4];   // 스테이지 1~3 인덱스 고정
+        private static Material GetThrustStreakMaterial(int stage)
+        {
+            int idx = Mathf.Clamp(stage, 1, 3);
+            if (_thrustStageMaterials[idx] != null) return _thrustStageMaterials[idx];
+            Material mat = CreateEmissiveWhiteMaterial();
+            if (mat == null) return null;
+            mat.SetFloat("_Surface", 1f);                       // 투명(56-P1 레시피) — 알파 블렌드 스트릭
+            mat.SetFloat("_Blend", 0f);
+            mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            mat.SetOverrideTag("RenderType", "Transparent");
+            mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            mat.SetFloat("_ZWrite", 0f);
+            mat.renderQueue = 3000;
+            Color tint = ComboStageTint(stage);                 // 슬래시와 동일 팔레트 소스 — 1타 흰(현재 고정)
+            if (mat.HasProperty("_BaseColor"))
+                mat.SetColor("_BaseColor", new Color(tint.r * 1.6f, tint.g * 1.55f, tint.b * 1.5f, 1f));   // HDR 부스트(무번호 42 사양)
+            if (mat.HasProperty("_EmissionColor"))
+                mat.SetColor("_EmissionColor", new Color(tint.r * 1.2f, tint.g * 1.15f, tint.b * 1.1f, 1f));
+            _thrustStageMaterials[idx] = mat;
+            return mat;
+        }
 
         /// <summary>콤보 스테이지별 아크 롤(기존 규약) — 1타 수평 0° / 2타 수직 -90° / 3타 사선 -45°. 3타 부호는 튜닝 포인트.</summary>
         private static float ComboStageRollDegrees(int stage)
@@ -452,14 +630,91 @@ namespace ProjectName.Systems
             Vector3 faceDir = CameraHorizontalFaceDir(position, dir);
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.LookRotation(faceDir));
             instance.name = "ImpactVFX_Cross";
+            // [무번호 57-P2] FX 스폰 레지스트리 — 크로스 임팩트도 기록(피격 경로와 동일 계약).
+            MagentaSentinel.RegisterFxSource("MagicHitCross", position);
             // [2026-09-14(47차)] TintParticles(골드) 제거 — MagicHit 에셋 고유 색상 유지(사용자가 이 에셋의 룩을 선택).
             // NormalizePurpleParticles는 유지(보라만 골드화이트로 안전망 — 잔여 보라 → 골드화이트 교체, 재생 전).
             NormalizePurpleParticles(instance);
+            // [무번호 56-P1] PlayCross도 동일 MagicHit 프리팹 — Built-in 머티리얼을 URP 투명으로 정규화
+            //   (41-b 보라 경로는 피격 경로 전용 — 크로스는 에셋 텍스처 승계한 URP 정규화만).
+            if (Application.isPlaying) NormalizeMagicHitMaterials(instance);
             Debug.Log($"[SlashVFX] ✅ 크로스 FX 스폰 (단일 임팩트, pos={position}, faceDir={faceDir:F2}, 발화시각={Time.time:F2}s)");
 
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "CrossSlash");
             ScheduleDestroy(instance);
+        }
+
+        /// <summary>
+        /// [무번호 56-P1] MagicHit 머티리얼 URP 정규화 — 55차 "텍스처 소실"은 오진(프로브 실측: 4종 머티리얼의
+        /// _MainTex는 팩 텍스처 1-Point/1-Crit_/1-Shockwave 2 512×512로 정상 바인딩 — 감사 정규식이
+        /// TexEnv 후보 블록을 잘못 매칭). 진짜 뿌리 = **Built-in "Particles/Standard Unlit" 셰이더의 URP 렌더**:
+        /// 알파가 무시되는 불투명 단색 쿼드(흰=HDR 백색 4.5×, 검=어두운 틴트) — 공격씬 9·10 실측.
+        /// 39차 "체브런/눈금/크랙 흰·검 사각형"과 동일 결함군의 확립된 해법(URP Particles/Unlit 투명 표준화)을
+        /// MagicHit에 적용한다. 41-b 보라 경로(딥 퍼플 startColor+스무스 서클 클론) 선실행 전제 — 클론의
+        /// 텍스처/색을 그대로 승계해 URP로 재조립. 인스턴스 클론+유한 파괴(에셋 무변경), 런타임 전용.
+        /// </summary>
+        internal static void NormalizeMagicHitMaterials(GameObject instance)
+        {
+            if (instance == null) return;
+            var urp = Shader.Find("Universal Render Pipeline/Particles/Unlit");   // [56-P1] L352 생성 경로와 동일 셰이더
+            if (urp == null) return;   // 폴백 계약 — URP 셰이더 미발견 시 built-in 유지(39차 선례)
+            int converted = 0;
+            int streamFixed = 0;   // [무번호 69-P1] 커스텀 버텍스 스트림 재정합 건수
+            foreach (var ps in instance.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                var pr = ps.GetComponent<ParticleSystemRenderer>();
+                // [193차 제거] Shockwave 서브 이미터 — 청백 피격 파티클("피격시 돌아가는 파란색 파티클") 사용자 지시 제거.
+                //   메인 히트 플래시(1-Point/1-Crit)는 유지. 인스턴스 전용 억제(에셋 무변경 — 56-P1 계약 동일):
+                //   렌더+방출 동시 차단해 서브 이미터 트리거(부모 버스트 이벤트)에서도 시각 발화 0건(경고 무시 없음).
+                string psName = ps != null ? ps.name : string.Empty;
+                string matName = (pr != null && pr.sharedMaterial != null) ? pr.sharedMaterial.name : string.Empty;
+                if (psName.Contains("Shockwave") || matName.Contains("Shockwave"))
+                {
+                    var suppressedEm = ps.emission;
+                    suppressedEm.enabled = false;
+                    ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                    if (pr != null) pr.enabled = false;
+                    continue;
+                }
+                if (pr == null || pr.sharedMaterial == null) continue;
+                var src = pr.sharedMaterial;
+                if (src.shader == urp) continue;   // 이미 URP — 무손상(멱등)
+
+                Texture tex = src.mainTexture;     // 41-b 클론이면 스무스 서클, 원본이면 팩 텍스처 — 전부 승계
+                // [무번호 66-P2] 상속색 LDR 캡 — 원본 에셋 HDR 틴트(40-b 실측 2.6,2.55,2.6)를 그대로 승계하면
+                //   URP 파티클 렌더가 프레임버퍼 클램프로 **순백 원형판**이 된다(테스트 13 실측: ~8s 화이트 서클).
+                //   saturate로 LDR 고정 — 팀색/보라 위계는 유지, 포화만 차단(54차 알파 캡·65-P2 캡 동일 구조).
+                Color col = src.color;             // 41-b (1.0,0.85,1.2) 또는 에셋 HDR 틴트 — 승계 후 캡
+                col = new Color(Mathf.Clamp01(col.r), Mathf.Clamp01(col.g), Mathf.Clamp01(col.b), Mathf.Clamp01(col.a));
+                var inst = new Material(urp) { name = "MagicHitURP" };
+                inst.SetTexture("_BaseMap", tex);
+                inst.mainTexture = tex;
+                inst.color = col;
+                if (inst.HasProperty("_BaseColor")) inst.SetColor("_BaseColor", col);
+                // 39차 EnsureUnlitTransparent와 동일 투명 표준 세트 — 알파 무시(불투명 사각) 근원 차단
+                inst.SetFloat("_Surface", 1f);
+                inst.SetFloat("_Blend", 0f);
+                inst.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                inst.SetOverrideTag("RenderType", "Transparent");
+                inst.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                inst.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                inst.SetFloat("_ZWrite", 0f);
+                inst.renderQueue = 3000;
+                pr.material = inst;   // sharedMaterial 판독만으로 게터 부작용 회피(48차 교훈)
+                // [무번호 69-P1/P2] 커스텀 버텍스 스트림 재정합 — URP 표준 레이아웃(Position,Normal,Color,UV)
+                //   + 플립북 AnimFrame. 근거: 에셋 Shockwave/Flash 커스텀 스트림 [Position,UV,Color](Normal 없음,
+                //   MagicHit.prefab YAML 14675/19579) → 56-P1 셰이더 교체만으로는 TEXCOORD0 미바인딩 → 솔리드
+                //   블랙 사각(69 바이섹션 실측: Shockwave 억제 시 결함 10,653→67px — 테스트 14의 0.4~0.75s
+                //   흑 버스트·68차 이후 캡처 암적 사각(비네트 틴트 중첩)의 최종 뿌리). 메커니즘 상세는
+                //   FxMaterialLibrary.AlignParticleVertexStreams 주석 참조. 인스턴스 전용(에셋 무변경).
+                if (FxMaterialLibrary.AlignParticleVertexStreams(pr)) streamFixed++;
+                if (Application.isPlaying) Object.Destroy(inst, 8f);
+                else Object.DestroyImmediate(inst);
+                converted++;
+            }
+            if (converted > 0)
+                Debug.Log($"[SlashVFX] [56-P1] MagicHit 머티리얼 URP 정규화 {converted}건 — Built-in Particles/Standard Unlit → URP Particles/Unlit 투명(에셋 무변경·클론 유한 파괴) / [69-P1] 커스텀 버텍스 스트림 재정합 {streamFixed}건");
         }
 
         /// <summary>
@@ -473,11 +728,18 @@ namespace ProjectName.Systems
         }
 
         /// <summary>[Phase E-2] 멀티 스케일 임팩트 — 크리티컬 1.5배 등 선택적 스케일.</summary>
+        /// <summary>[166차 사용자 확인 루프] 임팩트 기본 배율 — 원본(≈1.2~1.5m 폭)은 게임 카메라(12m 쿼터뷰)에서
+        ///   ~100px 얇은 선이라 체감 불가(83차 "이보다 큰 폭발" 판정·근접 RT 렌더 실측 동일) → 2.5배 상향. Play 트림 대상.</summary>
+        internal const float ImpactBaseScale = 1.6f;   // [168-P2] 백색 룩 가독성 상승 → 축소(166차 2.5 → 1.6, Play 트림 1.4~2.0)
+
         public static void PlayImpactMulti(Vector3 position, CombatHitType type, float scale)
         {
             // 스팸 방지 (동일 임팩트 이중 발화 흡수 — 스윙과는 독립 쿨다운)
             if (Time.time - _lastImpactSpawnTime < MIN_SPAWN_INTERVAL) return;
             _lastImpactSpawnTime = Time.time;
+
+            // [166차] 크리 1.5배는 "기본 배율 대비" 위계로 유지 — 총배율 = 기본 × (크리 1.5/일반 1)
+            scale *= ImpactBaseScale;
 
             // [2026-09-14(47차)] MagicHit 단일 로드 — MagicHitResourcePath 경로(기존 BasicHit 교체)
             GameObject prefab = LoadImpactPrefab();
@@ -485,19 +747,38 @@ namespace ProjectName.Systems
 
             GameObject instance = Object.Instantiate(prefab, position, Quaternion.identity);
             instance.name = $"ImpactVFX_{type}";
+            // [무번호 57-P2] FX 스폰 레지스트리 — 임팩트 수명 수 초로 역산 시점 전 소멸 → 스폰 좌표 기록.
+            MagentaSentinel.RegisterFxSource("MagicHit", position);
+            // [무번호 38-F1R] 보라 지면 링 = 의도적 히트 시그니처(사용자 재판정 11-15) — 에셋 원색 유지.
+            // [167-A1] 38-F1R 보라 시그니처 재판정(11-21 사용자): 딥퍼플 강제 룩을 폐기하고 Magic Hit 2 에셋 원형으로.
+            //   41-b 딥퍼플 강제 + [40] 스무스 서클 교체 + [40-b] 틴트 강등을 임팩트 경로에서 제거 —
+            //   에셋 고유 머티리얼/색/텍스처로 그대로 렌더. [56-P1] URP 정규화·마젠타/블랙 사각 안전망은 유지.
+            //   (폐기 근거 — 38-F1R 딥퍼플 시그니처가 유저 화면에서 "에셋이 아닌 보라 파티클 퍼짐"으로 읽힘)
+            // [무번호 56-P1] 55차 소실 수리 호출을 URP 정규화로 교체 — 소실 오진 정정(프로브 실측: 텍스처 정상 바인딩).
+            if (Application.isPlaying) NormalizeMagicHitMaterials(instance);
+            // [168-P2] 피격 백색화(11-21 2차 사용자 요구) — 45차 BOTW 흰 임팩트 선례 복귀, 스윙 아크(흰)와 통일.
+            TintParticles(instance, CoreTint, 0.1f);
+            NormalizePurpleParticles(instance);
+            // [189차] 몬스터 피격 FX에서 회전 파란 마법진 레이어 제거 — MagicHit.prefab의 "Simbol" 자식 GO
+            //   비활성화. 파란색은 파티클 텍스처에 베이크되어 startColor가 흰 그라디언트 모드(TintParticles
+            //   스킵 대상)라 틴트만으로 제거 불가 → 레이어 자체를 OFF. "Shockwave"(히트 링/원)와 "Flash"는 유지.
+            //   크로스(PlayCross)는 몬스터 피격이 아니므로 이 헬퍼를 호출하지 않고 레이어를 그대로 유지(사용자 요구 범위 = 피격 임팩트 전용).
+            DisableImpactSymbolLayer(instance);
             if (scale > 1.0001f)
             {
                 instance.transform.localScale = Vector3.one * scale;   // 크리 1.5배 확대 — 지속시간/수명은 파티클 에미션 길이 그대로 보존
                 Debug.Log($"[SlashVFX] 임팩트 스케일 {scale:F2}x (type={type})");
             }
-            // [2026-09-14(47차)] TintParticles(흰) 제거 — MagicHit 에셋 고유 색상 유지(사용자가 이 에셋의 룩을 선택).
-            // [2026-09-13 보라 정규화] 그라디언트 등에
-            // 남은 보라를 골드화이트로 교체 — 보라 감지 색은 틴트 결과보다 우선 적용.
-            NormalizePurpleParticles(instance);
-
+            // [167-A1]→[168-P2] 보라→골드화이트 정규화(NormalizePurpleParticles) 임팩트 경로 복귀(피격 백색화 통일) —
+            //   딥퍼플/서클 교체 소멸 계약은 유지, 스윙(L185)/크로스(L493) 경로는 기존 안전망 그대로.
             PlayAllParticleSystems(instance);
             DetectShaderErrorOnce(instance, "Impact");
             ScheduleDestroy(instance);
+
+            // [무번호 73-E3] 우천 타격 물 튀김 입자 — Rain 게이트(WeatherManager 연동, 25-IN1 날씨 틴트 선례).
+            FxEnvReaction.SpawnRainSplash(position);
+            // [무번호 73-E2] 타격 임팩트 → 반경 내 잔디/약초 오브젝트 절차 스윙(37-E2 계층3 착지).
+            FxEnvReaction.TriggerImpactSway(position);
         }
 
         // ================================================================
@@ -657,6 +938,26 @@ namespace ProjectName.Systems
             }
         }
 
+        /// <summary>
+        /// [189차] 임팩트 프리팹의 회전 파란 마법진 레이어 제거 — MagicHit.prefab 내 자식 GO "Simbol"
+        /// (이름 정확 일치)을 재귀 탐색해 SetActive(false). 파란색은 파티클 텍스처에 베이크되어
+        /// startColor 틴트(TintParticles)로는 제거 불가 → 레이어 자체를 비활성화한다.
+        /// "Shockwave"(히트 링/원)와 "Flash"는 그대로 유지하며, 크로스(PlayCross) 경로는 이 헬퍼를
+        /// 호출하지 않아 마법진 레이어를 유지한다(사용자 요구 범위 = 몬스터 피격 임팩트 전용).
+        /// </summary>
+        private static void DisableImpactSymbolLayer(GameObject root)
+        {
+            if (root == null) return;
+
+            Transform[] transforms = root.GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in transforms)
+            {
+                if (child == null) continue;
+                if (child.name == "Simbol")
+                    child.gameObject.SetActive(false);
+            }
+        }
+
         /// <summary>보라/자주 계열 판정 — r·b 모두 높고 g가 양쪽의 절반 이하(채널 균형 붕괴).</summary>
         private static bool IsPurple(Color c)
             => c.r > 0.4f && c.b > 0.4f && c.g < c.r * 0.55f && c.g < c.b * 0.55f;
@@ -709,15 +1010,20 @@ namespace ProjectName.Systems
             EnsureHost();
             if (_host != null)
                 _host.StartCoroutine(DestroyAfterDelay(instance, delay));
-            else
+            else if (Application.isPlaying)
                 Object.Destroy(instance, delay); // 폴백: 호스트 생성 실패 시 예약 파괴
+            else
+                Object.DestroyImmediate(instance);   // EditMode(테스트) 즉시 정리 — Destroy는 EditMode에서 예외 로그
         }
 
         private static System.Collections.IEnumerator DestroyAfterDelay(GameObject instance, float delay)
         {
             yield return new WaitForSeconds(delay);
             if (instance != null)
-                Object.Destroy(instance);
+            {
+                if (Application.isPlaying) Object.Destroy(instance);
+                else Object.DestroyImmediate(instance);   // EditMode(테스트) 즉시 정리 — Destroy는 EditMode에서 예외 로그
+            }
         }
 
         /// <summary>숨은 호스트 지연 생성 (HitVFX.HitFlashRunner 패턴: 비활성 생성 → 활성화로 Awake 타이밍 이슈 회피).</summary>
@@ -741,6 +1047,46 @@ namespace ProjectName.Systems
     /// </summary>
     internal class SlashFxHost : MonoBehaviour
     {
+    }
+
+    /// <summary>
+    /// [174차] 찌르기 스트릭 수명 연출 — 스폰 직후 전방(+Z) 신장(0.06s) → 후반 폭 수축 페이드(총 0.35s) 후
+    /// 자가 파괴. SlashFxHost/SlashAliveProbe와 동일한 파일 내부 보조 MonoBehaviour 패턴.
+    /// 버텍스 알파는 메시에 구워 머티리얼을 스테이지당 단일 공유본으로 유지하므로, 페이드는
+    /// 폭 수축(x/y 스케일 → 0)으로 표현한다(절차 메시라 파티클 컬러-오버-수명 모듈이 없음).
+    /// </summary>
+    internal sealed class ThrustStreakFx : MonoBehaviour
+    {
+        /// <summary>[174차] 전방 신장 시간(초) — 찌르기 스나이핑 감(튜닝 상수).</summary>
+        private const float GrowSeconds = 0.06f;
+        /// <summary>[174차] 총 수명(초) — 슬래시 아크(1.5s)보다 짧은 일격 연출(튜닝 상수).</summary>
+        private const float LifetimeSeconds = 0.35f;
+
+        private float _bornTime;
+        private Vector3 _baseScale;
+
+        private void Start()
+        {
+            _bornTime = Time.time;
+            _baseScale = transform.localScale;   // z = 찌르기 리치(호출부 사전 스케일)
+        }
+
+        private void Update()
+        {
+            float age = Time.time - _bornTime;
+            if (age >= LifetimeSeconds)
+            {
+                if (Application.isPlaying) Object.Destroy(gameObject);
+                else Object.DestroyImmediate(gameObject);   // EditMode(테스트) 즉시 정리 — ScheduleDestroy 선례
+                return;
+            }
+            // 길이축(+Z) 신장 — 단위 메시를 리치 길이까지 스나이핑.
+            float grow = Mathf.Clamp01(age / GrowSeconds);
+            // 후반 폭 수축 = 페이드 대용(수명 후반 45% 동안 폭을 1→0으로).
+            float fadeStart = LifetimeSeconds * 0.55f;
+            float collapse = age < fadeStart ? 1f : 1f - Mathf.InverseLerp(fadeStart, LifetimeSeconds, age);
+            transform.localScale = new Vector3(_baseScale.x * collapse, _baseScale.y * collapse, _baseScale.z * grow);
+        }
     }
 
     /// <summary>

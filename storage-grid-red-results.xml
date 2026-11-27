@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Failed(Child)" total="4" passed="1" failed="3" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.0979905">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="478" result="Failed" site="Child" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.097991" total="4" passed="1" failed="3" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1535" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="469" result="Failed" site="Child" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.082777" total="4" passed="1" failed="3" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2868" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1536" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="469" result="Failed" site="Child" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.078951" total="4" passed="1" failed="3" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1537" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="469" result="Failed" site="Child" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.075765" total="4" passed="1" failed="3" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1538" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="454" result="Failed" site="Child" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.072301" total="4" passed="1" failed="3" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1183" name="FigmaCanvasLayoutTests" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" testcasecount="16" result="Failed" site="Child" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.059279" total="4" passed="1" failed="3" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1188" name="InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" methodname="InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="386814657" result="Passed" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.025797" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1192" name="InventoryClusterPanelRegions_StorageCellBottomMargin_IsOmittedOnlyOnFinalRow" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageCellBottomMargin_IsOmittedOnlyOnFinalRow" methodname="InventoryClusterPanelRegions_StorageCellBottomMargin_IsOmittedOnlyOnFinalRow" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="552950416" result="Failed" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.009991" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Storage cell bottom margin must come from the production geometry helper.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageCellBottomMargin_IsOmittedOnlyOnFinalRow () [0x00039] in C:\Unity\code\Assets\Scripts\Tests\EditMode\FigmaCanvasLayoutTests.cs:236
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1190" name="InventoryClusterPanelRegions_StorageGridContentHeight_FitsSixVisibleRows" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageGridContentHeight_FitsSixVisibleRows" methodname="InventoryClusterPanelRegions_StorageGridContentHeight_FitsSixVisibleRows" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="104389176" result="Failed" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.001046" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Storage grid content height must come from the production geometry helper.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageGridContentHeight_FitsSixVisibleRows () [0x0002b] in C:\Unity\code\Assets\Scripts\Tests\EditMode\FigmaCanvasLayoutTests.cs:201
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1191" name="InventoryClusterPanelRegions_StorageGridContentHeight_PreservesOverflowRows" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageGridContentHeight_PreservesOverflowRows" methodname="InventoryClusterPanelRegions_StorageGridContentHeight_PreservesOverflowRows" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="362057630" result="Failed" start-time="2026-10-05 00:59:40Z" end-time="2026-10-05 00:59:40Z" duration="0.000887" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Storage grid content height must come from the production geometry helper.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageGridContentHeight_PreservesOverflowRows () [0x0002b] in C:\Unity\code\Assets\Scripts\Tests\EditMode\FigmaCanvasLayoutTests.cs:218
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

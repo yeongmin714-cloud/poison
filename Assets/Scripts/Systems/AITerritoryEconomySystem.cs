@@ -11,13 +11,28 @@ namespace ProjectName.Systems
     public static class AITerritoryEconomySystem
     {
         public const int HIRE_COST_DAYS = 5;
-        private static int _lastTaxDay = -1;
+
+        /// <summary>세수 주기(게임일). 앵커일부터 7일마다 1회 과세한다 (주급 문서와 동일 규약).</summary>
+        public const int TAX_INTERVAL_DAYS = 7;
+        public const int TAX_ANCHOR_DAY = 1;
+
+        // 멱등 상태 (SaveData v4 aiEconomy 블록으로 저장/복원 — ExportSaveData/ImportSaveData 참조).
+        private static int _lastTaxWeek = -1;
         private static int _lastMaintenanceDay = -1;
 
-        /// <summary>같은 날 중복 과세 방지. LordOwned 영지에만 세수를 적립하고 상한을 적용한다.</summary>
+        /// <summary>
+        /// 매일 호출 가능. 주 경계일(TAX_ANCHOR_DAY + n * TAX_INTERVAL_DAYS)이 아니면 무시하고,
+        /// 같은 주차는 한 번만 과세한다. LordOwned 영지에만 주간 세수를 적립하고 상한을 적용한다.
+        /// 세액 = 난이도 일세수 * 7 * 프로필 세율(TerritoryDifficultyProfileSystem) × 마을 경제 계수
+        /// (VillageEconomySystem — [D4-B] 세금 타격, 마을 상태 없으면 계수 1.0), 정수 반올림(half-up).
+        /// </summary>
         public static void ApplyDailyTax(int day)
         {
-            if (day <= _lastTaxDay) return;
+            if (!IsTaxBoundaryDay(day)) return;
+
+            int week = GetTaxWeekIndex(day);
+            if (week <= _lastTaxWeek) return;
+            _lastTaxWeek = week;
 
             TerritoryDatabase db = TerritoryDatabase.Instance;
             foreach (TerritoryDefinition definition in db.GetAllDefinitions())
@@ -25,13 +40,43 @@ namespace ProjectName.Systems
                 TerritoryState state = db.GetState(definition.id);
                 if (state == null || state.ownership != TerritoryOwnership.LordOwned) continue;
 
+                TerritoryDifficultyProfile profile = TerritoryDifficultyProfileSystem.Resolve(
+                    GetProfileTerritoryId(definition.id), definition.id.nation, definition.difficulty);
+
                 int cap = GetTreasuryCap(definition.difficulty);
-                long accrued = (long)state.territoryGold + GetDailyTax(definition.difficulty);
+                // [D4-B] 마을 경제 반영 세금 타격 — 주간 세액에 WeeklyTaxFactor(0.55~1.0)를 적용한다.
+                // 상태 없는 마을(중독 0/이탈 0)은 factor 1.0 → D4 이전 세수와 동일(하위호환).
+                int weeklyCollected = VillageEconomySystem.GetWeeklyCollectedTax(
+                    definition.difficulty, profile.TaxPercent, definition.id.nation, definition.id.index);
+                long accrued = (long)state.territoryGold + weeklyCollected;
                 state.territoryGold = accrued >= cap ? cap : (int)accrued;
             }
-
-            _lastTaxDay = day;
         }
+
+        /// <summary>주 경계일 여부. 앵커일 이전이거나 주기에 맞지 않으면 false.</summary>
+        public static bool IsTaxBoundaryDay(int day)
+            => day >= TAX_ANCHOR_DAY && (day - TAX_ANCHOR_DAY) % TAX_INTERVAL_DAYS == 0;
+
+        /// <summary>과세 주차 인덱스 (앵커일 주차 = 0). 경계일에만 의미가 있다.</summary>
+        public static int GetTaxWeekIndex(int day)
+            => (day - TAX_ANCHOR_DAY) / TAX_INTERVAL_DAYS;
+
+        /// <summary>
+        /// 주간 세액 = 일세수 * 7 * taxPercent / 100, 정수 half-up 반올림.
+        /// taxPercent 100이면 정확히 일세수 * 7.
+        /// </summary>
+        public static int GetWeeklyTax(TerritoryDifficulty difficulty, int taxPercent)
+        {
+            long scaled = (long)GetDailyTax(difficulty) * TAX_INTERVAL_DAYS * taxPercent;
+            return (int)((scaled + 50) / 100);
+        }
+
+        /// <summary>
+        /// TerritoryDifficultyProfileSystem.Resolve에 넘길 안정적 정수 ID.
+        /// 국가 enum 값 * 100 + 영지 인덱스 (인덱스는 1~20).
+        /// </summary>
+        public static int GetProfileTerritoryId(TerritoryId id)
+            => (int)id.nation * 100 + id.index;
 
         /// <summary>AI 영지 난이도별 일일 세수.</summary>
         public static int GetDailyTax(TerritoryDifficulty difficulty)
@@ -118,8 +163,18 @@ namespace ProjectName.Systems
                     if (cost <= 0) continue;
 
                     totalCost -= cost;
-                    if (manager != null) manager.RemoveGuardFromAllTerritories(guard);
-                    if (guard != null) Object.Destroy(guard.gameObject);
+
+                    // [119차] 감축 병사 방랑자 전환 — 일반 병사는 파괴 대신 세계 배회로 이동.
+                    // 게이트키퍼는 TerritoryGateSystem 구조 보호를 위해 기존 파괴 유지.
+                    if (guard != null && !guard.IsGatekeeper)
+                    {
+                        if (manager != null) manager.RemoveGuardFromAllTerritories(guard);
+                        guard.BecomeWanderer($"AI 감축({definition.id})");
+                    }
+                    else if (guard != null)
+                    {
+                        Object.Destroy(guard.gameObject);
+                    }
 
                     int baseCount = Mathf.Max(1, definition.guardCount);
                     state.guardAliveRatio = Mathf.Max(0f, state.guardAliveRatio - 1f / baseCount);
@@ -184,8 +239,41 @@ namespace ProjectName.Systems
         /// <summary>테스트용: 일일 처리 멱등 상태 초기화.</summary>
         public static void ResetAll()
         {
-            _lastTaxDay = -1;
+            _lastTaxWeek = -1;
             _lastMaintenanceDay = -1;
+        }
+
+        // ===== 저장/복원 =====
+        // 영지 금고 잔액 자체는 TerritoryState.territoryGold(SaveData.territories[].territoryGold)에 저장된다.
+        // 이 블록은 "이미 청구한 주/일"만 저장해 로드 후 같은 주기 중복 청구를 막는다.
+
+        /// <summary>현재 멱등 상태(마지막 과세 주차, 마지막 유지비 일)를 DTO로 내보낸다.</summary>
+        public static AIEconomySaveData ExportSaveData()
+        {
+            return new AIEconomySaveData
+            {
+                lastTaxWeek = _lastTaxWeek,
+                lastMaintenanceDay = _lastMaintenanceDay
+            };
+        }
+
+        /// <summary>
+        /// 멱등 상태 복원. 영지 금고(territoryGold) 복원 이후에 호출한다.
+        /// data == null (v3 이하 레거시 세이브): 현재 게임일 기준으로 시딩하여 소급 과세/유지비를 막는다.
+        ///   - 과세: 현재 날짜가 속한 주차를 "이미 과세됨"으로 표시 → 다음 경계일부터 과세.
+        ///   - 유지비: 현재 게임일을 "이미 지불됨"으로 표시 → 다음 날부터 지불.
+        /// </summary>
+        public static void ImportSaveData(AIEconomySaveData data, int currentDay)
+        {
+            if (data == null)
+            {
+                _lastTaxWeek = currentDay >= TAX_ANCHOR_DAY ? GetTaxWeekIndex(currentDay) : -1;
+                _lastMaintenanceDay = currentDay;
+                return;
+            }
+
+            _lastTaxWeek = data.lastTaxWeek;
+            _lastMaintenanceDay = data.lastMaintenanceDay;
         }
     }
 }

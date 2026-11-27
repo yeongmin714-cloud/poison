@@ -6,6 +6,7 @@ using ProjectName.Core.Themes;
 using System.Linq;
 using UnityEngine;
 using ProjectName.UI.Themes;
+using ProjectName.UI.Toolkit; // [Phase 3] UTKToastService — 저장고 반입 실패 경고 토스트
 using Game.UI.Core;
 
 namespace ProjectName.UI
@@ -605,8 +606,9 @@ namespace ProjectName.UI
 
             if (!WarehouseSystem.Instance.AddItem(tid, item, 1))
             {
-                // 창고 가득 → 인벤 롤백
+                // 창고 가득 → 인벤 롤백 + [Phase 3] 경고 이벤트(토스트)
                 PlayerInventory.Instance.AddItem(item, 1);
+                UTKToastService.Show("⚠️ 저장고가 가득 찼습니다 — 반입 취소 (물품은 인벤에 유지)", 2.5f);
                 Debug.LogWarning("[WarehouseUI] 창고가 가득 찼습니다 — 드래그 보관 취소");
                 return false;
             }

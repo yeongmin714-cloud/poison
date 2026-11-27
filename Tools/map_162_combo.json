@@ -1,0 +1,1396 @@
+[
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a1_a2.glb",
+  "note": "독성 가시액 (A1+A2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -113.70577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a1_a4.glb",
+  "note": "마비 독침액 (A1+A4)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -101.70577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a2_a3.glb",
+  "note": "출혈 유발제 (A2+A3)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -101.70577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a3_a5.glb",
+  "note": "부식 독액 (A3+A5)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -83.70577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a5_a6.glb",
+  "note": "괴사 독약 (A5+A6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -95.70577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a6_a7.glb",
+  "note": "맹독 포자 (A6+A7)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -113.70577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a7_a8.glb",
+  "note": "오염된 가스액 (A7+A8)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -101.70577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a8_a9.glb",
+  "note": "재앙의 맹독 (A8+A9)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -89.70577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a10_a9.glb",
+  "note": "화염 맹독 (A9+A10)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -77.70577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a1_a10.glb",
+  "note": "작열 독약 (A10+A1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -95.70577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a4_m1.glb",
+  "note": "마비 환각제 (A4+M1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -141.90577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a3_h1.glb",
+  "note": "혈압 상승제 (A3+H1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -70.80577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a6_p2.glb",
+  "note": "용해액 (A6+P2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 169.79423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a7_m3.glb",
+  "note": "신경 마비액 (A7+M3)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -141.90577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a8_h7.glb",
+  "note": "위장 독약 (A8+H7)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -64.80577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a10_p6.glb",
+  "note": "고열 발생제 (A10+P6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 7.79423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a1_m6.glb",
+  "note": "그림자 독약 (A1+M6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -159.90577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a5_p4.glb",
+  "note": "점착성 독액 (A5+P4)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -154.20577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a9_p5.glb",
+  "note": "뼈 강화 파괴제 (A9+P5)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -154.20577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a2_h6.glb",
+  "note": "상처 벌림제 (A2+H6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -76.80577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m1_m2.glb",
+  "note": "혼란의 향수 (M1+M2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 165.89423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m1_m3.glb",
+  "note": "수면의 향기 (M1+M3)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 171.89423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m2_m4.glb",
+  "note": "환영 안개제 (M2+M4)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -176.10577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m4_m5.glb",
+  "note": "영혼 공포액 (M4+M5)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -158.10577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m5_m6.glb",
+  "note": "망령의 속삭임 (M5+M6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -176.10577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m6_m7.glb",
+  "note": "기억 삭제제 (M6+M7)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 165.89423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m7_m8.glb",
+  "note": "환상 마약 (M7+M8)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 177.89423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m8_m9.glb",
+  "note": "냉정 제어제 (M8+M9)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -170.10577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m10_m9.glb",
+  "note": "무기력 약물 (M9+M10)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -158.10577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m1_m10.glb",
+  "note": "매혹 버섯액 (M10+M1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -176.10577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h1_m2.glb",
+  "note": "정신 강화제 (M2+H1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -117.00577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m3_p1.glb",
+  "note": "정지제 (M3+P1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 135.59423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m4_p2.glb",
+  "note": "투명 은신제 (M4+P2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 147.59423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m5_p4.glb",
+  "note": "영혼 결박액 (M5+P4)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 165.59423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m6_p5.glb",
+  "note": "심문 강화제 (M6+P5)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 147.59423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h4_m7.glb",
+  "note": "평온 약물 (M7+H4)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -99.00577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h8_m8.glb",
+  "note": "탐색의 눈 (M8+H8)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -99.00577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h5_m9.glb",
+  "note": "의지 고취제 (M9+H5)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -81.00577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m10_p7.glb",
+  "note": "눈부신 환각제 (M10+P7)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 153.59423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m1_p6.glb",
+  "note": "매력 증폭제 (M1+P6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 123.59423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m4_m6.glb",
+  "note": "은신 물약 (M4+M6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 177.89423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h4_m10.glb",
+  "note": "진정제 (H4+M10)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -81.00577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h1_h2.glb",
+  "note": "만능 치유액 (H1+H2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -39.90577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h1_h3.glb",
+  "note": "기력 회복제 (H1+H3)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -33.90577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h2_h4.glb",
+  "note": "불안 해소제 (H2+H4)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -21.90577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h3_h5.glb",
+  "note": "괴력 물약 (H3+H5)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -9.90577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h4_h6.glb",
+  "note": "흉터 치료제 (H4+H6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -27.90577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h5_h7.glb",
+  "note": "강철 해독제 (H5+H7)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -15.90577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h6_h8.glb",
+  "note": "통찰의 치유제 (H6+H8)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -33.90577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h7_h9.glb",
+  "note": "신속 해독제 (H7+H9)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -21.90577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h10_h8.glb",
+  "note": "예리한 감각 (H8+H10)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -9.90577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h1_h9.glb",
+  "note": "신속 치유제 (H9+H1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -27.90577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h10_p1.glb",
+  "note": "소화 보조제 (H10+P1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 44.69423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h2_p2.glb",
+  "note": "순수한 생명수 (H2+P2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 32.69423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h3_p4.glb",
+  "note": "생명 보호막 (H3+P4)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 50.69423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h4_p5.glb",
+  "note": "피로 누적 해소제 (H4+P5)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 62.69423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h5_p6.glb",
+  "note": "유연한 근육제 (H5+P6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 44.69423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h6_p7.glb",
+  "note": "재생 강화액 (H6+P7)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 26.69423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h7_p8.glb",
+  "note": "화염 내성제 (H7+P8)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 38.69423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h8_p9.glb",
+  "note": "암흑 시야제 (H8+P9)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 50.69423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h9_p10.glb",
+  "note": "영웅의 신속 (H9+P10)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 62.69423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h1_h10.glb",
+  "note": "심신 안락제 (H10+H1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -21.90577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p1_p2.glb",
+  "note": "기초 접착제 (P1+P2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 93.29423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p1_p3.glb",
+  "note": "강력한 덫 (P1+P3)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 99.29423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p2_p4.glb",
+  "note": "습기 차단액 (P2+P4)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 111.29423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p3_p5.glb",
+  "note": "결속제 (P3+P5)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 123.29423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p4_p6.glb",
+  "note": "강화 코팅제 (P4+P6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 105.29423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p5_p7.glb",
+  "note": "마력 도구 (P5+P7)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 117.29423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p6_p8.glb",
+  "note": "단단한 합금제 (P6+P8)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 99.29423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p7_p9.glb",
+  "note": "암흑 광택제 (P7+P9)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 111.29423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p10_p8.glb",
+  "note": "황금 강화액 (P8+P10)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 123.29423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p1_p9.glb",
+  "note": "튼튼한 밧줄 용액 (P9+P1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 105.29423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_p10_p2.glb",
+  "note": "금속 보호제 (P10+P2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 117.29423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h1_p3.glb",
+  "note": "유연한 도구 (P3+H1)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 32.69423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a2_p4.glb",
+  "note": "가시 방패 (P4+A2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -172.20577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a3_p5.glb",
+  "note": "파괴의 도구 (P5+A3)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -160.20577,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m3_p6.glb",
+  "note": "마비 장착액 (P6+M3)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 135.59423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m2_p7.glb",
+  "note": "환영 도구 (P7+M2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 135.59423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a10_p8.glb",
+  "note": "화염 도구 (P8+A10)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -160.20577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_a6_p9.glb",
+  "note": "부식 도구 (P9+A6)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": -178.20577,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_h2_p10.glb",
+  "note": "불사의 장비 (P10+H2)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 50.69423,
+    "sat": 1.54274,
+    "val": 4.35483
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/potion-bottle-099ad7.glb",
+  "dst": "Assets/Resources/Models/UserProvided/combo_m10_p1.glb",
+  "note": "끈적한 마비 트랩 (P1+M10)",
+  "ops": [
+   {
+    "zone": 0,
+    "alpha": 0.28
+   },
+   {
+    "zone": 1,
+    "hue-deg": 147.59423,
+    "sat": 1.54274,
+    "val": 5.06375
+   }
+  ]
+ }
+]

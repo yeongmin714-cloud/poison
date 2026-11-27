@@ -90,6 +90,24 @@ namespace ProjectName.EditorTools
                 Debug.LogWarning($"[MixamoControllers] 클립 없음: {mpath}");
                 return null;
             }
+            // "bow:<파일>" → 플레이어 제공 활 FBX(Assets/플레이어 애니메이션) — Take 001 우선(BowRigFix195.FindTake 동일 규칙)
+            if (fileName.StartsWith("bow:"))
+            {
+                var bpath = $"Assets/플레이어 애니메이션/{fileName.Substring(4)}";
+                var bclips = AssetDatabase.LoadAllAssetsAtPath(bpath);
+                AnimationClip bfirst = null;
+                foreach (var a in bclips)
+                {
+                    if (a is AnimationClip bc && !bc.name.StartsWith("__"))
+                    {
+                        if (bc.name == "Take 001") return bc;
+                        if (bfirst == null) bfirst = bc;
+                    }
+                }
+                if (bfirst == null)
+                    Debug.LogWarning($"[MixamoControllers] 클립 없음: {bpath}");
+                return bfirst;
+            }
             var path = $"{MixamoDir}/{fileName}";
             var clips = AssetDatabase.LoadAllAssetsAtPath(path);
             foreach (var a in clips)
@@ -235,7 +253,8 @@ namespace ProjectName.EditorTools
             var bowBack1 = AddState(sm, "BowBack1", Clip("meshy:Walk_Backward_with_Bow_1.fbx"));
             var bowBackAimed = AddState(sm, "BowBackAimed", Clip("meshy:Walk_Backward_with_Bow_Aimed.fbx"));
             var archeryShot = AddState(sm, "ArcheryShot", Clip("meshy:Archery_Shot.fbx"));
-            var drawShoot = AddState(sm, "DrawShoot", Clip("meshy:Draw_and_Shoot_from_Back_1.fbx"));
+            // P206: 영어 클립(Draw_and_Shoot_from_Back_1) → 플레이어 활쏘기.fbx(Take 001) — Player_AC 컨트롤러 YAML 교체와 동기화(재빌드 시 회귀 방지)
+            var drawShoot = AddState(sm, "DrawShoot", Clip("bow:플레이어 활쏘기.fbx"));
             var spearWalk = AddState(sm, "SpearWalk", Clip("meshy:Spear_Walk.fbx"));
             var throwPrep = AddState(sm, "ThrowPrep", Clip("meshy:Crouch_Pull_and_Throw.fbx"));
             var throwPitch = AddState(sm, "ThrowPitch", Clip("meshy:baseball_pitching.fbx"));

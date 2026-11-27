@@ -19,8 +19,13 @@ namespace ProjectName.Systems
     /// </summary>
     public static class AttackArcVFX
     {
-        /// <summary>기본 OFF — A/B 안전. true 전환 전까지 기존 공격 연출에 전혀 영향 없음(호스트 생성도 없음).</summary>
-        public static bool PremiumArcEnabled = false;
+        /// <summary>[무번호 57-P1] 슬래시 텍스처 구조적 최대 알파 — 페더+코어 합(1.85)의 Clamp01 포화가
+        ///   "지면에 깔린 불투명 흰 다이아몬드"의 뿌리(공격씬 10 실측). 텍스처 최대치를 0.62로 캡(선단 추가 ×0.85)
+        ///   — 53차 핀 계약 진화. FillSlashPixels(파사드 산식) 전용.</summary>
+        internal const float AlphaCap = 0.62f;
+        /// <summary>[무번호 35-S1] 기본 ON 정식 채택 — 3D 스윕 리본이 기본 공격 연출(사용자 Play 판정 전제).
+        ///   F6 토글은 A/B 비교 수단으로 유지(기존 이력 보존).</summary>
+        public static bool PremiumArcEnabled = true;
 
         /// <summary>토글 설정 + 상태 로그 — 인스펙터/디버그에서 켜는 지점.</summary>
         public static void SetPremium(bool on)
@@ -35,6 +40,9 @@ namespace ProjectName.Systems
         public static int SampleCap = 64;
         /// <summary>궤적 유지 시간(s) — 나이가 이 값을 넘은 샘플은 잘리고 알파 0 수렴.</summary>
         public static float TrailSeconds = 0.35f;
+        /// <summary>[무번호 60] 속도 비례 알파 기준 팁 속도(m/s) — 느린 스윙 알파 하향·빠른 스윙 상향.
+        ///   EmitPass의 speedBoost가 이 값 대비 팁 이동속도를 반영. 상수 트림은 Play 체감 게이트.</summary>
+        public static float RefTipSpeed = 14f;
         /// <summary>전두엽(최신 샘플) 반폭(m) — 폭 = 이×pow(1-age/T,1.2), 꼬리로 갈수록 가늘어짐.</summary>
         public static float MaxHalfWidth = 0.35f;
         /// <summary>전체 크기 배율(공격 범위 연동 스케일 예약) — 1.0=기본. 인게임 범위 기반 배율을 여기에 곱한다.</summary>
@@ -51,7 +59,13 @@ namespace ProjectName.Systems
             if (!PremiumArcEnabled) return;   // 이중 가드 — 직접 호출 오용 시에도 OFF 상태에선 아무것도 생성하지 않음
             ArcRangeScale = ScaleForRange(type);   // [Phase3] 사거리 자동 비례 — 리치가 긴 무기일수록 궤적 확대
             EnsureHost();
-            if (_host != null) _host.Swing(type, fallbackRoot);
+            if (_host != null)
+            {
+                _host.Swing(type, fallbackRoot);
+                // [무번호 57-P2] FX 스폰 레지스트리 — 아크는 수명 0.35s로 역산 시점 전 소멸 → 스폰 좌표 기록.
+                var root = fallbackRoot != null ? fallbackRoot : (_host != null ? _host.transform : null);
+                MagentaSentinel.RegisterFxSource("AttackArc", root != null ? root.position : Vector3.zero);
+            }
         }
 
         /// <summary>[Phase3] 타입별 공격 사거리에 비례한 크기 배율 — WeaponData.range(공개 필드) 기반.</summary>
@@ -76,6 +90,78 @@ namespace ProjectName.Systems
 
         /// <summary>콤보 스테이지 틴트 갱신(1=흰/2=골드/3=주황). 호스트 없으면 무시.</summary>
         public static void SetTint(WeaponType type, int stage) { if (_host != null) _host.Tint(type, stage); }
+
+        // ── [무번호 53-P2] 절차 슬래시 텍스처 — 부채꼴 슬래시 판독용 ──
+        //  배경(11-16 사용자 영상 실측): 텍스처 없는 additive 흰 리본이 불투명 폴리곤 덩어리로 판독
+        //  (하드엣지·사각 종단). 텍스처 알파가 additive 강도를 조형해 가장자리 페더/꼬리 페이드를 만든다.
+        private static Texture2D _slashTexture;   // 정적 캐시 1회 — 재생성 금지(GetStarTexture/GetRingTexture 선례)
+
+        /// <summary>슬래시 텍스처 해상도 계약 — 256(길이 u)×64(폭 v), pow2·mip 없음(파티클 텍스처 선례 준용).</summary>
+        internal const int SlashTexWidth = 256;
+        internal const int SlashTexHeight = 64;
+
+        /// <summary>
+        /// [무번호 53-P2] 절차 슬래시 텍스처(256×64 RGBA) — 리본/트레일 공용.
+        ///   v(폭)방향 가우시안 페더(중심 1→가장자리 0) + u(길이)방향 전두엽(u=1) 밝음→꼬리(u=0) 페이드
+        ///   + 중심 코어 밴드(검날 판독). 결정론 계약: 순수 수학만(Mathf) — 난수 API 0건(무작위성 배제).
+        ///   캐시 1회 — 동일 호출 동일 픽셀(AttackArcTextureContract_53Tests 직접판정).
+        /// </summary>
+        internal static Texture2D GetSlashTexture()
+        {
+            if (_slashTexture != null) return _slashTexture;
+            var tex = new Texture2D(SlashTexWidth, SlashTexHeight, TextureFormat.RGBA32, false)
+            {
+                name = "AttackArcSlashTex", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear
+            };
+            var pixels = new Color[SlashTexWidth * SlashTexHeight];
+            FillSlashPixels(pixels, SlashTexWidth, SlashTexHeight);
+            tex.SetPixels(pixels);
+            tex.Apply();
+            _slashTexture = tex;
+            return tex;
+        }
+
+        /// <summary>
+        /// 슬래시 픽셀 산식 — 순수 함수(결정론 — 계약테스트가 텍스처 생성과 무관하게 동일 산식 직접판정).
+        ///   알파 = 페더(폭 가우시안)×길이 페이드 + 코어 밴드 부스트, RGB = 백(틴트/알파는 정점색 곱 — 계약).
+        /// </summary>
+        internal static void FillSlashPixels(Color[] pixels, int w, int h)
+        {
+            for (int y = 0; y < h; y++)
+            {
+                float v01 = (y + 0.5f) / h;                        // 0=하단(좌 가장자리) → 1=상단(우 가장자리)
+                float d = Mathf.Abs(v01 - 0.5f) * 2f;              // 0=폭 중심 → 1=가장자리
+                float feather = Mathf.Exp(-(d * d) / 0.16f);       // [53-P2 핀] 가우시안 시그마²=0.16 — 중심 1→가장자리 소멸
+                float core = Mathf.Exp(-(d * d) / 0.02f);          // [53-P2 핀] 중심 코어 밴드(좁은 고알파 — 검기 판독)
+                float edgeKill = Mathf.SmoothStep(1f, 0f, Mathf.Clamp01((d - 0.92f) / 0.08f));   // [53-P2 핀] 최외곽 소프트 소멸(가장자리 알파 ≈0 — 하드 사각 엣지 금지)
+                for (int x = 0; x < w; x++)
+                {
+                    float u01 = (x + 0.5f) / w;                    // 0=꼬리(오래된 샘플) → 1=전두엽(최신 샘플)
+                    float head = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((u01 - 0.82f) / 0.18f));   // [53-P2 핀] 선단 리드온(밴드 끝 하드컷 방지)
+                    float len = Mathf.Pow(u01, 1.35f) * (0.85f + 0.15f * head);                    // [53-P2 핀] 꼬리 페이드(1.35)+선단 가강(+0.15)
+                    // [무번호 57-P1] 전체 최대 알파 캡 — 공격씬 10 실측: 알파블렌드 전환 후에도 페더+코어 합(1.85)이
+                    //   Clamp01에서 포화해 "지면에 깔린 불투명 흰 다이아몬드"로 읽혔다(비전 실측). 구조적 최대치를
+                    //   0.62로 캡하고 선단 8%는 추가 15% 감쇠 — 팁이 하드 벽이 아니라 빗살로 빠진다.
+                    float baseA = (feather + core * 0.85f) * len * edgeKill;
+                    float frontT = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((u01 - 0.92f) / 0.08f));
+                    float a = Mathf.Min(baseA, AlphaCap * Mathf.Lerp(1f, 0.85f, frontT));
+                    pixels[y * w + x] = new Color(1f, 1f, 1f, Mathf.Clamp01(a));
+                }
+            }
+        }
+
+        /// <summary>
+        /// [무번호 53-P2] 슬래시 텍스처 머티리얼 바인딩 — _BaseMap(URP)/_MainTex(폴백) 속성 존재 시에만 대입.
+        ///   additive·트랜스페런트·정점색 알파 페이드 계약 무변경 — 텍스처가 additive 강도 분포를 조형할 뿐.
+        /// </summary>
+        internal static void BindSlashTexture(Material mat)
+        {
+            if (mat == null) return;
+            Texture2D tex = GetSlashTexture();
+            if (tex == null) return;
+            if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", tex);
+            if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", tex);
+        }
 
         private static void EnsureHost()
         {
@@ -111,6 +197,7 @@ namespace ProjectName.Systems
         private float[] _py;
         private float[] _pz;
         private float[] _birth;      // 샘플 생성 시각(Time.time)
+        private float[] _spd;        // [무번호 60] 샘플 팁 속도(m/s) — WriteSample에서 이전 샘플과의 거리/시간 산출
         private int _cap;            // 실제 할당 용량(AttackArcVFX.SampleCap 스냅샷)
         private int _write;          // 다음 샘플 기록 인덱스
         private int _first;          // 가장 오래된 유효 샘플 인덱스
@@ -142,6 +229,17 @@ namespace ProjectName.Systems
         private const float IdleGraceSeconds = 0.4f;
         /// <summary>인접 샘플 최소 구간 길이²(m) — 미세 지터로 생기는 0폭 쿼드 스팸 방지.</summary>
         private const float MinSegmentLengthSq = 0.004f * 0.004f;
+        /// <summary>
+        /// [무번호 53-P2] 글로우 패스 알파 배율 소스계약 핀 — 0.30의 절반(0.15). 11-16 실측: 텍스처 없던 시절
+        /// additive 흰 덩어리 포화의 원인 중 하나가 글로우 과노출 — 절반으로 낮춰 외곽 미광만 남기고, 코어(×1.0)는 유지.
+        /// </summary>
+        internal const float GlowPassAlphaMul = 0.15f;
+        /// <summary>[무번호 57-P1] 코어 패스 알파 배율 상한 — 공격씬 10 실측(8.25s 크롭 "지면에 깔린 불투명 흰
+        ///   다이아몬드")으로 1.0→0.6 하향. 알파블렌드에서 0.6+전단 캡 = 밝은 슬래시 질감·불투명 판 해소.</summary>
+        internal const float CorePassAlphaMul = 0.6f;
+        /// <summary>[무번호 60] 폭 프로파일 지수 — 전두엽(신선 샘플, life01=1) 굵게 유지·꼬리 가늘게 강화.
+        ///   47계획 §8 폭 프로파일 항목: 기존 인라인 1.2(완만) → 1.7(가파른 테이퍼). 값 튜닝은 Play 체감 게이트.</summary>
+        internal const float WidthProfilePow = 1.7f;
 
         private void Awake()
         {
@@ -285,6 +383,17 @@ namespace ProjectName.Systems
         private void WriteSample(Vector3 p, float now)
         {
             if (_cap <= 0 || _px == null) EnsureCapacity(Mathf.Max(8, AttackArcVFX.SampleCap));
+            // [무번호 60] 속도 비례 알파 — 직전 샘플과의 거리/시간(결정론, 외부 난수 미사용). 첫 샘플은 0(기본 boost).
+            if (_spd == null || _spd.Length != _cap) _spd = new float[Mathf.Max(1, _cap)];   // 수동 버퍼 주입(리플렉션 테스트) 호환 — 지연 할당
+            if (_count > 0)
+            {
+                int prevIdx = (_write - 1 + _cap) % _cap;
+                float dt = now - _birth[prevIdx];
+                float dist = Vector3.Distance(new Vector3(_px[prevIdx], _py[prevIdx], _pz[prevIdx]), p);
+                float speed = dt > 0.0001f ? dist / dt : 0f;
+                _spd[_write] = speed;
+            }
+            else _spd[_write] = 0f;
             _px[_write] = p.x;
             _py[_write] = p.y;
             _pz[_write] = p.z;
@@ -297,13 +406,14 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 링버퍼(oldest→newest)를 스윕 스트립으로 재구성 — 샘플당 좌/우 2정점, 인접 샘플 간 쿼드(양권선 2중).
-        /// 폭 = MaxHalfWidth×ArcScale×pow(1-age/T,1.2)(전두엽 굵고 꼬리 가늘게), 알파 = 1-age/T.
+        /// 폭 = MaxHalfWidth×ArcScale×pow(1-age/T, WidthProfilePow=1.7)(전두엽 굵고 꼬리 가늘게 — [무번호 60] 강화), 알파 = 1-age/T×속도 boost.
         /// 미세 지터(구간 길이 미달) 쿼드는 스킵 — 0폭 깜빡임 방지.
         /// 반환: 구축된 쿼드 수. (프로젝트 관례 — mesh.vertices/.colors(Color[])/.triangles 배열 필드 직접 대입,
         ///  C# arraycopy 부재로 스윙 중 프레임당 정확 길이 배열 신규 할당 — 정점 극소.)
         ///
-        /// [2026-09-25 Phase3] 이중 패스 합성 — ①글로우(넓게·흐리게, α×0.30) 선행 후 ②코어(꽉·밝게) 후행.
+        /// [2026-09-25 Phase3] 이중 패스 합성 — ①글로우(넓게·흐리게, α×<see cref="GlowPassAlphaMul"/>) 선행 후 ②코어(꽉·밝게) 후행.
         /// 두 리본을 한 배열 버퍼에 누적해 '가장자리 발광' 톤을 만든다(같은 샘플 루프 EmitPass 재사용).
+        /// [무번호 53-P2] 글로우 α 핀 0.30→0.15 절반 완화(additive 포화 완화) + UV 버퍼 할당/메시 uv 대입 추가.
         /// </summary>
         private int RebuildRibbon(float now, float trailSec)
         {
@@ -317,17 +427,23 @@ namespace ProjectName.Systems
 
             // 두 패스 누적 버퍼 — 글로우(전반)+코어(후반). 정점 ≤ 샘플×2×2, 삼각 ≤ (샘플-1)×12×2패스.
             // [QA_fix] tcap은 2패스×4삼각×3idx = 세그먼트당 24 — 이전 ×12는 2패스 때 OOB(치명). 
+            // [53-P2] UV 버퍼 — 정점 커서(w[0])를 공유하므로 정점수=UV수 계약이 구조적으로 성립.
             int vcap = _count * 4;
             int tcap = (_count - 1) * 24;
             Vector3[] fArr = new Vector3[vcap];
             Color[] cArr = new Color[vcap];
+            Vector2[] uvArr = new Vector2[vcap];
             int[] qArr = new int[tcap];
             int[] w = new int[2];   // [정점커서, 삼각커서]
 
-            // 글로우 패스 — 넓게(×1.65)·흐리게(α×0.30) — 코어의 외곽 미광.
-            EmitPass(now, trailSec, halfW, 1.65f, 0.30f, new Color(coreTint.r * 0.9f, coreTint.g * 0.9f, coreTint.b * 0.9f, 1f), fArr, cArr, qArr, w);
-            // 코어 패스 — 꽉·밝게(α×1.0, 풀 틴트) — 전경 확실한 궤적.
-            EmitPass(now, trailSec, halfW, 1.0f, 1.0f, coreTint, fArr, cArr, qArr, w);
+            // 글로우 패스 — 넓게(×1.65)·흐리게(α×0.15 — [53-P2] 0.30의 절반, additive 포화 완화) — 코어의 외곽 미광.
+            // 코어 패스 — 꽉·밝게. [무번호 57-P1] 코어 알파 상한 1.0→0.6 — 공격씬 10 실측(8.25s 크롭): strike
+            //   지점 리본이 "지면에 깔린 불투명 흰 다이아몬드"로 렌더(코어 알파 1.0×백 틴트 = 알파블렌드에서도 단색 판).
+            //   0.6 상한+57 텍스처 전단 졸업으로 밝은 슬래시 질감 유지·불투명 판 해소.
+            // [무번호 60 갱신 79-R20] 글로우=코어→FXPalette.AttackPrimary 35% 보간 — 공격 이펙트 통일색 단일 소스(기존 Edge 폐기).
+            Color glowTint = Color.Lerp(coreTint, FXPalette.AttackPrimary, 0.35f);
+            EmitPass(now, trailSec, halfW, 1.65f, GlowPassAlphaMul, glowTint, fArr, cArr, qArr, uvArr, w);
+            EmitPass(now, trailSec, halfW, 1.0f, CorePassAlphaMul, coreTint, fArr, cArr, qArr, uvArr, w);
 
             int vw = w[0];
             int tw = w[1];
@@ -336,23 +452,42 @@ namespace ProjectName.Systems
             // 정확 길이로 슬라이스 후 대입(C# arraycopy 부재 — 수동 복사, 극소량)
             Vector3[] vOut = new Vector3[vw];
             Color[] cOut = new Color[vw];
-            for (int i = 0; i < vw; i++) { vOut[i] = fArr[i]; cOut[i] = cArr[i]; }
+            Vector2[] uvOut = new Vector2[vw];
+            for (int i = 0; i < vw; i++) { vOut[i] = fArr[i]; cOut[i] = cArr[i]; uvOut[i] = uvArr[i]; }
             int[] tOut = new int[tw];
             for (int i = 0; i < tw; i++) tOut[i] = qArr[i];
 
-            _mesh.vertices = vOut;
-            _mesh.colors = cOut;
-            _mesh.triangles = tOut;
+            // [무번호 45-RIBBON] 메시 배열 대입 순서 계약 — 축소 시(만료 샘플 트림) 정점을 먼저 대입하면
+            // 기존 삼각형이 아직 더 큰 인덱스를 참조해 "Mesh.vertices is too small"+"colors out of bounds"가
+            // 페이드아웃마다 발화(11-15 사용자 Play 실측 — AttackArcHost:RebuildRibbon 344/345행). 축소 시
+            // 삼각형 먼저 → 정점 → 색 순서로 교체(확대 시 정점 먼저). 부분 갱신 순서만 정정 — 데이터 자체 무변경.
+            // [53-P2] UV는 정점과 함께 대입(정점수=UV수 계약 — 축소/확대 양분기 동일).
+            if (vOut.Length < _mesh.vertexCount)
+            {
+                _mesh.triangles = tOut;
+                _mesh.vertices = vOut;
+                _mesh.uv = uvOut;
+                _mesh.colors = cOut;
+            }
+            else
+            {
+                _mesh.vertices = vOut;
+                _mesh.uv = uvOut;
+                _mesh.colors = cOut;
+                _mesh.triangles = tOut;
+            }
             _mesh.RecalculateBounds();
             return tw / 6;
         }
 
         /// <summary>
-        /// 스윕 리본 한 소총 — 같은 샘플 루프로 정점/색/삼각을 배열에 누적. widthMul/alphaMul로 글로우/코어 분기.
+        /// 스윕 리본 한 소총 — 같은 샘플 루프로 정점/색/UV/삼각을 배열에 누적. widthMul/alphaMul로 글로우/코어 분기.
         /// 인덱스는 전역 정점 커서(w[0]) 기준 — 두 패스가 한 메시에 합쳐질 수 있도록 baseV 오프셋으로 삼각을 기록.
+        /// [무번호 53-P2] UV 대입 — u=샘플 진행도(0=꼬리 → 1=전두엽, 텍스처 전두엽 밝음과 정합), v=좌0/우1.
+        ///   UV는 정점 커서(w[0])를 공유 — 정점수=UV수 계약이 구조적으로 성립.
         /// </summary>
         private void EmitPass(float now, float trailSec, float halfW, float widthMul, float alphaMul,
-            Color tint, Vector3[] vArr, Color[] cArr, int[] tArr, int[] w)
+            Color tint, Vector3[] vArr, Color[] cArr, int[] tArr, Vector2[] uvArr, int[] w)
         {
             int v = w[0];   // 이 패스 정점 시작(전역 인덱스) — prevBase/baseIdx가 전역 위치를 그대로 참조
             int t = w[1];
@@ -366,7 +501,7 @@ namespace ProjectName.Systems
                 float life01 = 1f - Mathf.Clamp01((now - _birth[idx]) / trailSec);
                 if (life01 <= 0f) continue;
 
-                float width = Mathf.Max(0.001f, halfW * widthMul * Mathf.Pow(life01, 1.2f));
+                float width = Mathf.Max(0.001f, halfW * widthMul * Mathf.Pow(life01, WidthProfilePow));   // [무번호 60] 프로파일 지수 상수화
 
                 Vector3 dir = SampleDir(k, idx);
                 Vector3 side = Vector3.Cross(Vector3.up, dir);
@@ -374,9 +509,17 @@ namespace ProjectName.Systems
                 else side = _lastRight;
 
                 int baseIdx = v;
-                vArr[v++] = pos - side * width;
-                vArr[v++] = pos + side * width;
-                float a = Mathf.Clamp01(life01 * alphaMul);
+                vArr[v++] = pos - side * width;     // 좌 정점 — v=0(텍스처 하단 가장자리)
+                vArr[v++] = pos + side * width;     // 우 정점 — v=1(텍스처 상단 가장자리)
+                // [53-P2] UV 대입 — u=샘플 진행도(k=0 꼬리 → k=_count-1 전두엽), v=좌0/우1(계약).
+                float u = _count <= 1 ? 1f : (float)k / (_count - 1);
+                uvArr[baseIdx] = new Vector2(u, 0f);
+                uvArr[baseIdx + 1] = new Vector2(u, 1f);
+                // [무번호 60] 속도 비례 알파 — 팁 속도(RefTipSpeed 대비)로 boost. 하한 0.55(과소 노출 방지)·상한 1.15(과노출 방지).
+                //   버퍼 부재(_spd 미할당 — 리플렉션 직접 진입) = 미측정 → 중립 boost 1.0(기존 알파 경로 무변경).
+                float spd = (_spd != null && idx < _spd.Length) ? _spd[idx] : -1f;
+                float speedBoost = spd < 0f ? 1f : Mathf.Clamp(0.55f + 0.45f * (spd / Mathf.Max(0.01f, AttackArcVFX.RefTipSpeed)), 0.55f, 1.15f);
+                float a = Mathf.Clamp01(life01 * alphaMul * speedBoost);
                 Color col = new Color(tint.r, tint.g, tint.b, a);
                 cArr[baseIdx] = col;
                 cArr[baseIdx + 1] = col;
@@ -455,6 +598,7 @@ namespace ProjectName.Systems
             _py = new float[cap];
             _pz = new float[cap];
             _birth = new float[cap];
+            _spd = new float[cap];   // [무번호 60] 속도 버퍼 동시 할당
             _cap = cap;
             _write = 0;
             _first = 0;
@@ -494,11 +638,15 @@ namespace ProjectName.Systems
             if (urpUnlit != null)
             {
                 var mat = new Material(urpUnlit);
+                // [무번호 54-P1] Additive → Alpha 블렌드 계약 진화 — 공격씬 7·8 실측: 밝은 지면(녹색 ~0.7) 위
+                //   additive 흰 코어(α1.0)는 지면+흰 > 1.0 클램프로 전 폭 순백 포화 → 53차 슬래시 텍스처의
+                //   페더가 시각적으로 마스킹되어 "텍스처 없는 불투명 흰 덩어리"로 읽혔다(비전 판독 일치).
+                //   Alpha 블렌드(SrcAlpha/OneMinusSrcAlpha)로 전환해 텍스처 페더·글로우 α계층이 실제로 보이게 한다.
                 if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1f);           // Transparent
-                if (mat.HasProperty("_Blend")) mat.SetFloat("_Blend", 2f);               // Additive
+                if (mat.HasProperty("_Blend")) mat.SetFloat("_Blend", 0f);               // Alpha (구 Additive=2)
                 mat.SetOverrideTag("RenderType", "Transparent");
                 if (mat.HasProperty("_SrcBlend")) mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                if (mat.HasProperty("_DstBlend")) mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                 if (mat.HasProperty("_ZWrite")) mat.SetFloat("_ZWrite", 0f);
                 if (mat.HasProperty("_EmissionColor"))
                 {
@@ -507,10 +655,13 @@ namespace ProjectName.Systems
                 }
                 mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                 mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                AttackArcVFX.BindSlashTexture(mat);   // [무번호 53-P2] 슬래시 텍스처 바인딩(_BaseMap/_MainTex) — additive 강도 조형
                 return mat;
             }
             Shader spriteDefault = Shader.Find("Sprites/Default");
-            return spriteDefault != null ? new Material(spriteDefault) : null;
+            var fallbackMat = spriteDefault != null ? new Material(spriteDefault) : null;
+            AttackArcVFX.BindSlashTexture(fallbackMat);   // [53-P2] 폴백도 텍스처 바인딩(_MainTex) — 텍스처 없어도 마젠타 아님(계약 유지)
+            return fallbackMat;
         }
 
         // ================================================================

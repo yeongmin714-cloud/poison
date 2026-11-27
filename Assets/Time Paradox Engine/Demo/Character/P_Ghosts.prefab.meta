@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b80fffc62e3660f47b89a06f15f29e75
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Demo/Character/Ghost.prefab
+  uploadId: 898796

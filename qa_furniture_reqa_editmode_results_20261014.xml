@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="5" result="Failed(Child)" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.2106931">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="789" result="Failed" site="Child" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.210693" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1893" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="780" result="Failed" site="Child" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.193469" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="13068" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1894" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="777" result="Failed" site="Child" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.186505" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1895" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="777" result="Failed" site="Child" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.179639" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1896" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="762" result="Failed" site="Child" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.173023" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1449" name="IndoorFurnitureFallbackQualityTests" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.151727" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1451" name="Fallback_Bed_InteractionContract_Unchanged_WithClothDetail" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_Bed_InteractionContract_Unchanged_WithClothDetail" methodname="Fallback_Bed_InteractionContract_Unchanged_WithClothDetail" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="1033990824" result="Passed" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.108628" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1453" name="Fallback_Chair_SeatCushion_RendererOnly" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_Chair_SeatCushion_RendererOnly" methodname="Fallback_Chair_SeatCushion_RendererOnly" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="2098426796" result="Failed" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.008014" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Seat — 장식은 콜라이더가 없어야 한다(렌더러 전용).
+  Expected: null
+  But was:  <Seat (UnityEngine.BoxCollider)>
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.AssertRendererOnly (UnityEngine.GameObject go, System.String label) [0x00000] in C:\Unity\code\Assets\Scripts\Tests\EditMode\IndoorFurnitureFallbackQualityTests.cs:19
+at ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_Chair_SeatCushion_RendererOnly () [0x0009e] in C:\Unity\code\Assets\Scripts\Tests\EditMode\IndoorFurnitureFallbackQualityTests.cs:162
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1452" name="Fallback_DetailOptOut_CrateAndMirrorSilhouettes" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_DetailOptOut_CrateAndMirrorSilhouettes" methodname="Fallback_DetailOptOut_CrateAndMirrorSilhouettes" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="201888336" result="Passed" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.005201" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1454" name="Fallback_MaterialDifferentiation_AtLeastThreeDistinctMaterials" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_MaterialDifferentiation_AtLeastThreeDistinctMaterials" methodname="Fallback_MaterialDifferentiation_AtLeastThreeDistinctMaterials" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="908459652" result="Passed" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.006795" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1450" name="Fallback_Table_RefinedDetails_WithinFootprint_RendererOnlyDecor" fullname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests.Fallback_Table_RefinedDetails_WithinFootprint_RendererOnlyDecor" methodname="Fallback_Table_RefinedDetails_WithinFootprint_RendererOnlyDecor" classname="ProjectName.Tests.EditMode.IndoorFurnitureFallbackQualityTests" runstate="Runnable" seed="116455543" result="Passed" start-time="2026-10-14 09:03:24Z" end-time="2026-10-14 09:03:24Z" duration="0.002802" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

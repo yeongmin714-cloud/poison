@@ -111,8 +111,8 @@ namespace ProjectName.UI
             GUI.Label(titleRect, "⚡ 빠른 이동", _titleStyle);
 
             // 골드 정보
-            int currentGold = PlayerInventory.Instance != null
-                ? PlayerInventory.Instance.GetItemCount("gold")
+            int currentGold = PlayerStats.Instance != null
+                ? PlayerStats.Instance.Gold
                 : 0;
             Rect goldRect = new Rect(innerRect.x, titleRect.y + titleRect.height + 2f, innerRect.width, 22f);
             GUI.Label(goldRect, $"💰 보유 골드: {currentGold}G", _costStyle);

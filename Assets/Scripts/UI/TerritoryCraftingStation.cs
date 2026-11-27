@@ -95,6 +95,12 @@ namespace ProjectName.UI
             float sqrRange = _interactRange * _interactRange;
             _isPlayerNearby = sqrDist <= sqrRange;
 
+            // [43차] 공용 E 월드 프롬프트 — 근접 시 등록, 이탈 시 해제(창 열림 시 UI가 자동 숨김).
+            if (_isPlayerNearby)
+                EInteractionPromptBridge.RaiseRegister(transform, $"[E] {_stationName}", _interactRange);
+            else
+                EInteractionPromptBridge.RaiseUnregister(transform);
+
             if (_isPlayerNearby && WasInteractPressed())
             {
                 PlayerStats stats = FindPlayerStats();

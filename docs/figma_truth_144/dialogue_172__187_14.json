@@ -1,0 +1,610 @@
+{
+ "id": "187:14",
+ "name": "npc-dialogue-panel",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 39424,
+ "ay": 386,
+ "w": 528.0,
+ "h": 171.8,
+ "d": 0,
+ "fills": [
+  "#161B22/1.0@0.45"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.3"
+ ],
+ "strokeW": 1.2,
+ "r": 9.6,
+ "fx": [
+  "BACKGROUND_BLUR:24.0:None",
+  "DROP_SHADOW:19.200000762939453:#000000/0.4"
+ ],
+ "layout": "VERTICAL",
+ "gap": 9.600000381469727,
+ "pl": 14.40000057220459,
+ "pr": 14.40000057220459,
+ "pt": 14.40000057220459,
+ "pb": 14.40000057220459,
+ "c": [
+  {
+   "id": "187:15",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39419,
+   "ay": 381,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "187:16",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39419,
+     "ay": 381,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "187:17",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39419,
+     "ay": 374,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "187:18",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39947,
+   "ay": 381,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "187:19",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39949,
+     "ay": 381,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "187:20",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39956,
+     "ay": 374,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "187:21",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39419,
+   "ay": 552,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "187:22",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39419,
+     "ay": 562,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "187:23",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39419,
+     "ay": 548,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "187:24",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39947,
+   "ay": 552,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "187:25",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39949,
+     "ay": 562,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "187:26",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39956,
+     "ay": 548,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "187:37",
+   "name": "NpcNameRow",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39439,
+   "ay": 401,
+   "w": 496.8,
+   "h": 15.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "gap": 9.600000381469727,
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "187:38",
+     "name": "npc-indicator",
+     "type": "ELLIPSE",
+     "x": null,
+     "y": null,
+     "ax": 39439,
+     "ay": 405,
+     "w": 7.2,
+     "h": 7.2,
+     "d": 2,
+     "fills": [
+      "#33E5D9/1.0"
+     ],
+     "strokeW": 1.2,
+     "fx": [
+      "DROP_SHADOW:7.200000286102295:#33E5D9/0.5"
+     ]
+    },
+    {
+     "id": "187:39",
+     "name": "NpcName",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 39456,
+     "ay": 401,
+     "w": 25.0,
+     "h": 15.0,
+     "d": 2,
+     "fills": [
+      "#33E5D9/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "드류",
+     "fontSize": 13.200000762939453,
+     "font": "Roboto 700 Bold",
+     "lineH": 15.5
+    }
+   ]
+  },
+  {
+   "id": "187:40",
+   "name": "Separator",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39439,
+   "ay": 426,
+   "w": 496.8,
+   "h": 1.2,
+   "d": 1,
+   "fills": [
+    "#30363D/1.0@0.6"
+   ],
+   "strokeW": 1.2
+  },
+  {
+   "id": "187:41",
+   "name": "DialogueContent",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39439,
+   "ay": 436,
+   "w": 496.8,
+   "h": 43.2,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "VERTICAL",
+   "gap": 7.200000286102295,
+   "c": [
+    {
+     "id": "187:42",
+     "name": "DialogueLine1",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 39439,
+     "ay": 436,
+     "w": 496.8,
+     "h": 18.0,
+     "d": 2,
+     "fills": [
+      "#EBEDF0/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "대요정님...",
+     "fontSize": 15.600000381469727,
+     "font": "Roboto 500 Medium",
+     "lineH": 18.3
+    },
+    {
+     "id": "187:43",
+     "name": "DialogueLine2",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 39439,
+     "ay": 462,
+     "w": 496.8,
+     "h": 18.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "분명 놀신한 미인이시겠지...",
+     "fontSize": 15.600000381469727,
+     "font": "Roboto 400 Regular",
+     "lineH": 18.3
+    }
+   ]
+  },
+  {
+   "id": "187:44",
+   "name": "ActionRow",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39439,
+   "ay": 489,
+   "w": 496.8,
+   "h": 14.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "gap": 9.600000381469727,
+   "mainAlign": "MAX",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "187:45",
+     "name": "ContinueHint",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 39840,
+     "ay": 489,
+     "w": 96.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "계속하려면 클릭 ▶",
+     "fontSize": 12.0,
+     "font": "Roboto 500 Medium",
+     "lineH": 14.1
+    }
+   ]
+  },
+  {
+   "id": "187:27",
+   "name": "ChoiceGrid",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39439,
+   "ay": 513,
+   "w": 496.8,
+   "h": 28.8,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "gap": 9.600000381469727,
+   "c": [
+    {
+     "id": "187:28",
+     "name": "ChoiceCard1",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 39439,
+     "ay": 513,
+     "w": 159.2,
+     "h": 28.8,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.031"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.302"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "VERTICAL",
+     "pl": 9.600000381469727,
+     "pr": 9.600000381469727,
+     "pt": 4.800000190734863,
+     "pb": 4.800000190734863,
+     "mainAlign": "CENTER",
+     "c": [
+      {
+       "id": "187:29",
+       "name": "선택 1",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 39451,
+       "ay": 525,
+       "w": 135.2,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "선택 1",
+       "fontSize": 12.0,
+       "font": "Roboto 700 Bold",
+       "lineH": 14.1
+      },
+      {
+       "id": "187:30",
+       "name": "대요정님, 저는 드류예요.",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 39449,
+       "ay": 520,
+       "w": 140.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#EBEDF0/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "대요정님, 저는 드류예요.",
+       "fontSize": 13.200000762939453,
+       "font": "Roboto 500 Medium",
+       "lineH": 15.5
+      }
+     ]
+    },
+    {
+     "id": "187:31",
+     "name": "ChoiceCard2",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 39608,
+     "ay": 513,
+     "w": 159.2,
+     "h": 28.8,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.031"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.302"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "VERTICAL",
+     "pl": 9.600000381469727,
+     "pr": 9.600000381469727,
+     "pt": 4.800000190734863,
+     "pb": 4.800000190734863,
+     "mainAlign": "CENTER",
+     "c": [
+      {
+       "id": "187:32",
+       "name": "선택 2",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 39620,
+       "ay": 525,
+       "w": 135.2,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "선택 2",
+       "fontSize": 12.0,
+       "font": "Roboto 700 Bold",
+       "lineH": 14.1
+      },
+      {
+       "id": "187:33",
+       "name": "오늘은 어때요?",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 39618,
+       "ay": 520,
+       "w": 140.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#EBEDF0/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "오늘은 어때요?",
+       "fontSize": 13.200000762939453,
+       "font": "Roboto 500 Medium",
+       "lineH": 15.5
+      }
+     ]
+    },
+    {
+     "id": "187:34",
+     "name": "ChoiceCard3",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 39777,
+     "ay": 513,
+     "w": 159.2,
+     "h": 28.8,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.031"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.302"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "VERTICAL",
+     "pl": 9.600000381469727,
+     "pr": 9.600000381469727,
+     "pt": 4.800000190734863,
+     "pb": 4.800000190734863,
+     "mainAlign": "CENTER",
+     "c": [
+      {
+       "id": "187:35",
+       "name": "선택 3",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 39789,
+       "ay": 525,
+       "w": 135.2,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "선택 3",
+       "fontSize": 12.0,
+       "font": "Roboto 700 Bold",
+       "lineH": 14.1
+      },
+      {
+       "id": "187:36",
+       "name": "오늘은 무슨 일이시죠?",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 39786,
+       "ay": 520,
+       "w": 140.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#EBEDF0/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "오늘은 무슨 일이시죠?",
+       "fontSize": 13.200000762939453,
+       "font": "Roboto 500 Medium",
+       "lineH": 15.5
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

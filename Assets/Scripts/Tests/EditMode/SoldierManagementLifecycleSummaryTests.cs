@@ -154,7 +154,9 @@ namespace ProjectName.Tests.EditMode
             Assert.That(summary, Is.Not.Null, "The summary label must be held in the visible list panel, outside the scroll view.");
             Assert.That(summary.parent, Is.Not.Null);
             Assert.That(summary.parent, Is.Not.SameAs(SoldierManagementUTK.Instance.Q<ScrollView>()));
-            Assert.That(summary.text, Is.EqualTo("병사 2/2명 · 임무 배치 1명"));
+            // [144차 P6-SOL #43] Figma 69:117 푸터 우 값 "N / M 명" 진실치 갱신 — 구 "병사 2/2명 · 임무 배치 1명"은
+            //   레거시 실데이터 형식(계약 갱신 원칙: Figma 진실치 우선, 임무 배치 수는 '임무 배치 및 제어' 패널 소관).
+            Assert.That(summary.text, Is.EqualTo("2 / 2 명"));
         }
 
         private GuardPlaceholder CreateGuard(string guardName)

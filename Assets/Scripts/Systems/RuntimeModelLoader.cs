@@ -89,13 +89,31 @@ namespace ProjectName.Systems
                 { "lord", "npc_lord_rigged" },
                 { "king", "npc_king_rigged" },
                 { "shop_npc", "npc_shop_rigged" },
-                { "man1", "npc_man1_rigged" },
-                { "man2", "npc_man2_rigged" },
-                { "girl1", "npc_girl1_rigged" },
-                { "girl2", "npc_girl2_rigged" },
-                { "girl3", "npc_girl3_rigged" },
-                { "oldman1", "npc_oldman1_rigged" },
-                { "oldman2", "npc_oldman2_rigged" },
+                // [128-2 P1] 스폰 경로 24종 확장 (마을 NPC 전면 교체)
+                { "man1", "Npc2026/Npc_Man_1/Npc_Man_1_rigged" },
+                { "man2", "Npc2026/Npc_Man_2/Npc_Man_2_rigged" },
+                { "man3", "Npc2026/Npc_Man_3/Npc_Man_3_rigged" },
+                { "man4", "Npc2026/Npc_Man_4/Npc_Man_4_rigged" },
+                { "man5", "Npc2026/Npc_Man_5/Npc_Man_5_rigged" },
+                { "girl1", "Npc2026/Npc_Girl_1/Npc_Girl_1_rigged" },
+                { "girl2", "Npc2026/Npc_Girl_2/Npc_Girl_2_rigged" },
+                { "girl3", "Npc2026/Npc_Girl_3/Npc_Girl_3_rigged" },
+                { "girl4", "Npc2026/Npc_Girl_4/Npc_Girl_4_rigged" },
+                { "girl5", "Npc2026/Npc_Girl_5/Npc_Girl_5_rigged" },
+                { "girl6", "Npc2026/Npc_Girl_6/Npc_Girl_6_rigged" },
+                { "oldman1", "Npc2026/Npc_OldMan_1/Npc_OldMan_1_rigged" },
+                { "oldman2", "Npc2026/Npc_OldMan_2/Npc_OldMan_2_rigged" },
+                { "oldman3", "Npc2026/Npc_OldMan_3/Npc_OldMan_3_rigged" },
+                { "boy1", "Npc2026/Npc_Boy_1/Npc_Boy_1_rigged" },
+                { "boy2", "Npc2026/Npc_Boy_2/Npc_Boy_2_rigged" },
+                { "boy3", "Npc2026/Npc_Boy_3/Npc_Boy_3_rigged" },
+                { "boy4", "Npc2026/Npc_Boy_4/Npc_Boy_4_rigged" },
+                { "boy5", "Npc2026/Npc_Boy_5/Npc_Boy_5_rigged" },
+                { "oldwoman1", "Npc2026/Npc_OldWoman_1/Npc_OldWoman_1_rigged" },
+                { "oldwoman2", "Npc2026/Npc_OldWoman_2/Npc_OldWoman_2_rigged" },
+                { "oldwoman3", "Npc2026/Npc_OldWoman_3/Npc_OldWoman_3_rigged" },
+                { "oldwoman4", "Npc2026/Npc_OldWoman_4/Npc_OldWoman_4_rigged" },
+                { "oldwoman5", "Npc2026/Npc_OldWoman_5/Npc_OldWoman_5_rigged" },
                 { "dracula", "npc_dracula_rigged" },
                 { "hut", "hut" },
                 { "shop", "shop" },
@@ -110,6 +128,10 @@ namespace ProjectName.Systems
                 { "blue_castle", "blue_castle" },
                 { "green_castle", "green_castle" },
                 { "purple_castle", "purple_castle" },
+                // [레스토랑 실내] 식당 가구 별칭 — Models/Restaurant/ GLB (RestaurantInteriorBuilder 배치용)
+                { "restaurantchair", "Chair_1_A" },
+                { "restauranttable", "Table_1_A" },
+                { "restaurantcounter", "StationTable_1_A" },
             };
 
             _isInitialized = true;
@@ -131,6 +153,24 @@ namespace ProjectName.Systems
             // Resources.Load로 개별 모델 로드 (한 번에 전체 로드 X)
             string resourcePath = "Models/UserProvided/" + key;
             GameObject prefab = Resources.Load<GameObject>(resourcePath);
+            if (prefab == null)
+            {
+                // [147차 P-A2] 던전 팩 폴백 — Models/Dungeon/ 2차 시도(320종 실스케일 에셋).
+                //   UserProvided 동작 무손상(폴백 추가만). 카탈로그: DungeonAssetCatalog.ResourceRoot.
+                prefab = Resources.Load<GameObject>("Models/Dungeon/" + key);
+            }
+            if (prefab == null)
+            {
+                // [155차 P0] 공동묘지 팩 폴백 — Models/Cemetery/ 3차 시도(Necropoly 선별 프리팹).
+                //   카탈로그: AfterlifeCemeteryCatalog(155차 — 이계 공동묘지화 전용).
+                prefab = Resources.Load<GameObject>("Models/Cemetery/" + key);
+            }
+            if (prefab == null)
+            {
+                // [레스토랑 실내] 식당 가구 팩 폴백 — Models/Restaurant/ 4차 시도(Restourant Furniture GLB).
+                //   카탈로그: RestaurantInteriorBuilder(식당 실내 전용).
+                prefab = Resources.Load<GameObject>("Models/Restaurant/" + key);
+            }
             if (prefab == null)
             {
                 // 전체 폴더 스캔 없이 개별 로드 실패 — 해당 키의 모델이 없음
@@ -155,16 +195,26 @@ namespace ProjectName.Systems
         public static bool TryGetModel(string key, out GameObject model, out ModelMetadata metadata)
         {
             Initialize();
-            string lowerKey = (key ?? "").ToLowerInvariant();
+            string rawKey = key ?? "";
+            string lowerKey = rawKey.ToLowerInvariant();
             // Check alias
             if (_aliases != null && _aliases.TryGetValue(lowerKey, out string realKey))
                 lowerKey = realKey;
             // Lazy load: not yet loaded? try per-key Resources.Load
             if (!_loadedModels.ContainsKey(lowerKey))
             {
-                LoadModelByKey(lowerKey);
+                if (!LoadModelByKey(lowerKey) && !string.Equals(rawKey, lowerKey, StringComparison.Ordinal))
+                {
+                    // [159차 P2] 대소문자 보존 2차 시도 — Restaurant 팩(PascalCase 파일명: Table_2_C 등)을
+                    //   변형 키로 직접 로드하기 위함. Resources.Load는 빌드에서 대소문자를 구분하므로
+                    //   소문자화된 키 실패 시 원본 대소문자 키로 재시도한다(ArenaInteriorBuilder 변형 순환).
+                    LoadModelByKey(rawKey);
+                }
             }
             if (_loadedModels.TryGetValue(lowerKey, out model) && _modelMetadata.TryGetValue(lowerKey, out metadata))
+                return true;
+            if (!string.Equals(rawKey, lowerKey, StringComparison.Ordinal) &&
+                _loadedModels.TryGetValue(rawKey, out model) && _modelMetadata.TryGetValue(rawKey, out metadata))
                 return true;
             metadata = default;
             model = null;
@@ -196,16 +246,46 @@ namespace ProjectName.Systems
             if (string.IsNullOrEmpty(modelKey))
                 return false;
 
-            string key = modelKey.ToLowerInvariant();
+            string rawKey = modelKey ?? "";
+            string key = rawKey.ToLowerInvariant();
             // 별칭 해석: TryGetModel과 동일한 alias 로직 적용
             if (_aliases != null && _aliases.TryGetValue(key, out string realKey))
                 key = realKey;
             // Lazy load: not yet loaded? try per-key Resources.Load
             if (!_loadedModels.ContainsKey(key))
             {
-                LoadModelByKey(key);
+                if (!LoadModelByKey(key) && !string.Equals(rawKey, key, StringComparison.Ordinal))
+                {
+                    // [159차 P2] 대소문자 보존 2차 시도 (TryGetModel과 동일 — Restaurant 팩 PascalCase 키)
+                    LoadModelByKey(rawKey);
+                }
             }
-            return _loadedModels.ContainsKey(key);
+            return _loadedModels.ContainsKey(key) ||
+                   (!string.Equals(rawKey, key, StringComparison.Ordinal) && _loadedModels.ContainsKey(rawKey));
+        }
+
+        /// <summary>
+        /// [128-2 P1] 별칭(alias)을 리소스 키로 변환합니다.
+        /// 등록된 별칭이 있으면 리소스 키를 반환하고, 없으면 원본 문자열을 그대로 반환합니다.
+        /// </summary>
+        /// <param name="alias">별칭 (예: "man1")</param>
+        /// <param name="resourceKey">변환된 리소스 키</param>
+        /// <returns>변환 성공 여부</returns>
+        public static bool TryGetResourceKey(string alias, out string resourceKey)
+        {
+            if (string.IsNullOrEmpty(alias))
+            {
+                resourceKey = null;
+                return false;
+            }
+
+            if (EnsureInitialized() && _aliases != null && _aliases.TryGetValue(alias.ToLowerInvariant(), out resourceKey))
+            {
+                return true;
+            }
+
+            resourceKey = alias;
+            return false;
         }
 
         /// <summary>
@@ -280,16 +360,25 @@ namespace ProjectName.Systems
             if (string.IsNullOrEmpty(modelKey))
                 return false;
 
-            string key = modelKey.ToLowerInvariant();
+            string rawKey = modelKey ?? "";
+            string key = rawKey.ToLowerInvariant();
             // 별칭 해석: TryGetModel과 동일한 alias 로직 적용
             if (_aliases != null && _aliases.TryGetValue(key, out string realKey))
                 key = realKey;
             // Lazy load: not yet loaded? try per-key Resources.Load
             if (!_loadedModels.ContainsKey(key))
             {
-                LoadModelByKey(key);
+                if (!LoadModelByKey(key) && !string.Equals(rawKey, key, StringComparison.Ordinal))
+                {
+                    // [159차 P2] 대소문자 보존 2차 시도 (TryGetModel과 동일 — Restaurant 팩 PascalCase 키)
+                    LoadModelByKey(rawKey);
+                }
             }
-            return _modelMetadata.TryGetValue(key, out metadata);
+            if (_modelMetadata.TryGetValue(key, out metadata))
+                return true;
+            if (!string.Equals(rawKey, key, StringComparison.Ordinal))
+                return _modelMetadata.TryGetValue(rawKey, out metadata);
+            return false;
         }
 
         /// <summary>

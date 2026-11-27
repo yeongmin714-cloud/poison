@@ -50,12 +50,15 @@ namespace ProjectName.UI.Toolkit
         }
 
         // ===== 설정 =====
-        private const float Diameter   = 220f;
-        private const float MarginLeft = 20f;
-        private const float MarginTop  = 20f;
-        private const float FigmaBezelDiameter = 264f;
-        private const float FigmaBezelRight = 24f;
-        private const float FigmaBezelTop = 24f;
+        // [144차 P8-MM #1] Figma empty-circular-minimap 264×264 — 지도 지름 220→264.
+        //   연쇄 확인: 중심/반경/오버레이 배치는 전부 Diameter 기반(radius=Diameter*0.5,
+        //   topRow.bottom=Diameter+4, 블립 sideLen=Diameter-4 등)이라 그대로 스케일됨.
+        //   LocalRadius(120f)는 월드 좌표 반경(픽셀 무관) — 무손상.
+        private const float Diameter   = 264f;
+        // [144차 P8-MM #2] Figma bezel 여백 Right/Top 20/20 → 24/24.
+        //   미사용 dead 상수 FigmaBezel*(264/24/24) 제거 — Diameter=264 통일로 중복.
+        private const float MarginLeft = 24f;
+        private const float MarginTop  = 24f;
         private const float PlayerMarkerSize = 12f;
         private const float LocalRadius = 120f;
         private float _bezelScaleX = 1f;
@@ -86,6 +89,7 @@ namespace ProjectName.UI.Toolkit
         private static readonly Color AllyBlipColor = new Color32(88, 166, 255, 255);   // Fluent 액센트
         private static readonly Color EnemyBlipColor = new Color32(248, 81, 73, 255);   // 위험
         private Texture2D _mapTexture;
+        private Texture2D _indoorBgApplied;   // [146차 P2] 실내 배경으로 교체 중인 캡처 텍스처(월드 원복 판별)
 
         private MinimapUTK()
         {
@@ -107,14 +111,17 @@ namespace ProjectName.UI.Toolkit
             _mapFrame.style.top = 0f;
             _mapFrame.style.right = 0f;
             _mapFrame.style.bottom = 0f;
-            _mapFrame.style.borderTopWidth = 2f;
-            _mapFrame.style.borderRightWidth = 2f;
-            _mapFrame.style.borderBottomWidth = 2f;
-            _mapFrame.style.borderLeftWidth = 2f;
-            _mapFrame.style.borderTopColor = new StyleColor(new Color(1f, 1f, 1f, 0.3f));
-            _mapFrame.style.borderRightColor = new StyleColor(new Color(1f, 1f, 1f, 0.3f));
-            _mapFrame.style.borderBottomColor = new StyleColor(new Color(1f, 1f, 1f, 0.3f));
-            _mapFrame.style.borderLeftColor = new StyleColor(new Color(1f, 1f, 1f, 0.3f));
+            // [144차 P8-MM #4] Figma outer-ring 진실치: stroke #E5E7EB 1.2px (구 white@0.3 2px).
+            //   3링 체계(#3)는 MinimapBezel.png 텍스처 위임 — 코드 stroke는 mapFrame 1겹만 담당.
+            _mapFrame.style.borderTopWidth = 1.2f;
+            _mapFrame.style.borderRightWidth = 1.2f;
+            _mapFrame.style.borderBottomWidth = 1.2f;
+            _mapFrame.style.borderLeftWidth = 1.2f;
+            var mapFrameStroke = new StyleColor(new Color32(229, 231, 235, 255)); // #E5E7EB
+            _mapFrame.style.borderTopColor = mapFrameStroke;
+            _mapFrame.style.borderRightColor = mapFrameStroke;
+            _mapFrame.style.borderBottomColor = mapFrameStroke;
+            _mapFrame.style.borderLeftColor = mapFrameStroke;
             _mapFrame.style.overflow = Overflow.Hidden;
             _mapFrame.style.backgroundColor = new StyleColor(new Color(0.05f, 0.05f, 0.05f, 0.85f));
             // [P27] 원형 미니맵 — 프레임 모서리를 완전 라운드로 마스킹(스타크래프트식 원형 지도)
@@ -127,6 +134,13 @@ namespace ProjectName.UI.Toolkit
 
             // [Figma GitHub-dark] MinimapBezel.png 베젤 링 오버레이 — 맵 프레임 테두리를
             // 베젤 텍스처 링이 살짝 덮는 방식 (원형 지도 위 스트랩). pickingMode=Ignore.
+            // [144차 P8-MM #3 기록] Figma 링 체계 3겹(bezel-shadow 264 / outer-ring 254.4 /
+            //   inner-ring 240, stroke #E5E7EB·#D1D5DB) → MinimapBezel.png 텍스처 1매 오버레이로
+            //   구조 근사. 코드 stroke는 mapFrame 1겹만(#4 — outer-ring 진실치).
+            // [144차 P8-MM #5 기록] bezel-shadow 그림자(DROP_SHADOW #111827 0.039/0.078)는
+            //   MinimapBezel.png 텍스처 내부에 포함 — 코드 무상수(별도 그림자 스타일 없음).
+            // [144차 P8-MM #6 기록] 베젤 fill: 게임 다크 유지 vs Figma 라이트 베젤 목업 —
+            //   GitHub-dark 톤 유지 판단(맵 캔버스 다크 배경 위 라이트 베젤 부조화 방지).
             _bezel = new VisualElement();
             _bezel.name = "MapBezel";
             _bezel.style.position = Position.Absolute;
@@ -369,7 +383,18 @@ namespace ProjectName.UI.Toolkit
             if (_playerTransform == null)
                 _playerTransform = FindPlayer();
 
-            UpdateMapCrop();
+            // [146차 P2] 실내/월드 분기 — 실내는 RT 캡처 평면도(크롭 산식 우회), 월드는 기존 경로 그대로.
+            //   월드 경로 로직(UpdateMapCrop 본체)은 무수정 단일소스 계약 — 분기 추가만.
+            bool indoorNow = IsIndoorMapActive();
+            if (indoorNow)
+            {
+                UpdateIndoorMap();
+            }
+            else
+            {
+                RestoreWorldMapIfIndoorApplied();   // 실내 중 교체한 배경 원복(지오메트리는 UpdateMapCrop이 매 리프레시 재적용)
+                UpdateMapCrop();
+            }
 
             // 시간/날씨 — [P27] 시간은 글래스 시계로 이관, 미니맵은 날씨 아이콘만
             switch (_weather)
@@ -434,10 +459,32 @@ namespace ProjectName.UI.Toolkit
 
             // Keep all spatial overlays hidden until UI Toolkit's vertical texture orientation
             // is source-proven against the legacy GUI UVRect path (north/south must not invert).
-            _playerMarker.style.display = DisplayStyle.None;
+            // [146차 P2] 실내에서는 UpdateIndoorMap이 핀을 MapToUv로 배치 — 월드 경로 숨김은 실내 중 스킵
+            //   (배경 캡처와 핀이 동일 MapToUv 좌표계 — 자기정합, 방향 근거는 UpdateIndoorMap 주석).
+            if (!indoorNow)
+                _playerMarker.style.display = DisplayStyle.None;
 
             // 영지/퀘스트 마커 (matching terrain crop이 확보되기 전까지 숨김)
-            RefreshMarkers();
+            // [146차 P2] 실내 중 스킵 — 영지/퀘스트 마커는 월드 전용(실내 무표시 계약) + 블립 보존
+            //   (ClearMarkers가 _markerHost 전체를 비워 유닛 블립도 떼어낸다).
+            if (!indoorNow)
+                RefreshMarkers();
+
+            // [125차-38] 목적지 경로 오버레이 갱신 훅(1곳 계약) — UpdateMapCrop 플레이어 중심 크롭과 동기.
+            //   세그먼트 좌표는 FillBlips/크롭과 동일 산식(+z=북=상) — 리프레시마다 재계산으로 플레이어 이동 추종.
+            //   경로 비활성/플레이어 부재 시 오버레이 측에서 자동 숨김(무동작 호출).
+            // [146차 P2] 실내 중 경로 오버레이 비활성(월드 좌표 오염 방지) — null 플레이어 호출 =
+            //   오버레이 자동 숨김(경로 '상태'는 유지 — 퇴출 후 월드 복귀 시 즉시 재표시).
+            if (indoorNow)
+            {
+                MinimapRouteOverlay.OnMinimapRefresh(_mapFrame, null, LocalRadius, Diameter - 4f);
+            }
+            else
+            {
+                MinimapRouteOverlay.OnMinimapRefresh(_mapFrame,
+                    _playerTransform != null ? _playerTransform.position : (Vector3?)null,
+                    LocalRadius, Diameter - 4f);
+            }
         }
 
         // =====================================================================
@@ -450,6 +497,12 @@ namespace ProjectName.UI.Toolkit
         public void RefreshUnitBlips()
         {
             if (_markerHost == null || _playerTransform == null) return;
+            // [146차 P2] 실내 — 절대 좌표(MapToUv) 배치 분기(월드 로컬뷰 상대 산식은 무수정).
+            if (IsIndoorMapActive())
+            {
+                RefreshUnitBlipsIndoor();
+                return;
+            }
             float side = _mapFrame != null && _mapFrame.contentRect.width > 0f
                 ? _mapFrame.contentRect.width
                 : Diameter - 4f;
@@ -544,10 +597,155 @@ namespace ProjectName.UI.Toolkit
             return used;
         }
 
+        // =====================================================================
+        //  [146차 P2] 실내 평면도 분기 — RT 캡처 배경 + MapToUv 절대 배치
+        //  (월드 경로 UpdateMapCrop/RefreshMarkers/월드 블립 산식 무수정 — 단일소스 계약)
+        // =====================================================================
+
+        /// <summary>[146차 P2] 실내 미니맵 모드 판정 단일 소스 — IndoorSceneTransition.IsIndoor(동일 UI
+        ///   어셈블리 직접 참조) 또는 테스트씬 경유(Test_21은 UITransitionState.IndoorActive=true만 세팅 —
+        ///   IsIndoor=false 실측)는 유효 캡처 존재를 조건으로 실내 판정. Refresh/RefreshUnitBlips 공용.</summary>
+        private static bool IsIndoorMapActive()
+        {
+            return ProjectName.UI.IndoorSceneTransition.IsIndoor
+                || (UITransitionState.IndoorActive && IndoorMinimapBaker.HasCapture);
+        }
+
+        /// <summary>[146차 P2] 실내 배경+핀 갱신 — 정사각 RT를 지름에 맞춰 중앙 배치(UpdateMapCrop
+        ///   플레이어 중심 크롭 산식 우회: 실내는 방 전체가 시야 계약 — 본체는 무변경).
+        ///   방향 근거: 캡처 카메라 Euler(90,0,0)로 화면 위=+z(북) — px=u·side, py=(1−v)·side는
+        ///   UpdateMapCrop 크롭/MinimapRouteOverlay(py=half−dz·k)의 +z=북=상 규약과 동일 좌표계.</summary>
+        private void UpdateIndoorMap()
+        {
+            var tex = IndoorMinimapBaker.LatestTexture;
+            var bounds = IndoorMinimapBaker.LatestBounds;
+            if (tex == null)
+            {
+                // 캡처 소실(리빌드 공백 프레임 등) — 배경 유지, 핀만 숨김(무음 — 크래시 금지 계약)
+                _playerMarker.style.display = DisplayStyle.None;
+                return;
+            }
+
+            // 배경 — 텍스처 교체 시에만 재적용(UTKTextureSafe 캐시 — 매 리프레시 재래핑 방지)
+            if (!ReferenceEquals(_indoorBgApplied, tex))
+            {
+                _mapCanvas.style.backgroundImage = UTKTextureSafe.ToBackground(tex);
+                _indoorBgApplied = tex;
+            }
+
+            // 지름에 맞춘 중앙 배치 — 정사각 RT(512²) → 원형 프레임에 1:1 수용(월드 크롭 지오메트리 대체)
+            float side = _mapFrame != null && _mapFrame.contentRect.width > 0f
+                ? _mapFrame.contentRect.width
+                : Diameter - 4f;
+            _mapCanvas.style.left = 0f;
+            _mapCanvas.style.top = 0f;
+            _mapCanvas.style.width = side;
+            _mapCanvas.style.height = side;
+
+            // 플레이어 핀 — MapToUv 절대 매핑(기존 핀 배치 코드 재사용 — 로컬 UV만 교체)
+            if (_playerTransform != null && bounds.size.x > 0f && bounds.size.z > 0f)
+            {
+                Vector2 uv = IndoorMinimapBaker.MapToUv(_playerTransform.position, bounds);
+                _playerMarker.style.display = DisplayStyle.Flex;
+                _playerMarker.style.left = uv.x * side - PlayerMarkerSize * 0.5f;
+                _playerMarker.style.top = (1f - uv.y) * side - PlayerMarkerSize * 0.5f;
+            }
+            else
+            {
+                _playerMarker.style.display = DisplayStyle.None;
+            }
+        }
+
+        /// <summary>[146차 P2] 월드 복귀 원복 — 실내 중 교체한 배경만 복구. 프레임 지오메트리는
+        ///   UpdateMapCrop이 매 리프레시 재적용(월드 경로 상태 복원 계약)하므로 여기서 손대지 않는다.</summary>
+        private void RestoreWorldMapIfIndoorApplied()
+        {
+            if (_indoorBgApplied == null) return;
+            _indoorBgApplied = null;
+            if (_mapTexture != null)
+                _mapCanvas.style.backgroundImage = UTKTextureSafe.ToBackground(_mapTexture);
+        }
+
+        /// <summary>[146차 P2] 실내 유닛 블립 — MapToUv 절대 매핑(월드 로컬뷰 상대 산식과 분리).
+        ///   필터/풀 운용은 기존 FillBlips 계약 동일(IsAlive/IsRecruited, MaxUnitBlips 상한).</summary>
+        private void RefreshUnitBlipsIndoor()
+        {
+            var bounds = IndoorMinimapBaker.LatestBounds;
+            if (IndoorMinimapBaker.LatestTexture == null || bounds.size.x <= 0f || bounds.size.z <= 0f)
+            {
+                for (int i = 0; i < _unitBlipPool.Count; i++)
+                    _unitBlipPool[i].style.display = DisplayStyle.None;
+                return;
+            }
+            float side = _mapFrame != null && _mapFrame.contentRect.width > 0f
+                ? _mapFrame.contentRect.width
+                : Diameter - 4f;
+            int used = 0;
+            used = FillBlipsIndoor(used, side, bounds,
+                UnityEngine.Object.FindObjectsByType<GuardPlaceholder>(FindObjectsSortMode.None),
+                AllyBlipColor);
+            used = FillBlipsIndoor(used, side, bounds,
+                UnityEngine.Object.FindObjectsByType<AnimalAI>(FindObjectsSortMode.None),
+                EnemyBlipColor);
+            for (int i = used; i < _unitBlipPool.Count; i++)
+                _unitBlipPool[i].style.display = DisplayStyle.None;
+        }
+
+        private int FillBlipsIndoor(int used, float side, Bounds bounds, GuardPlaceholder[] units, Color color)
+        {
+            foreach (var unit in units)
+            {
+                if (unit == null || !unit.IsAlive || !unit.IsRecruited || used >= MaxUnitBlips) continue;
+                used = PlaceIndoorBlip(used, side, bounds, unit.transform.position, color);
+            }
+            return used;
+        }
+
+        private int FillBlipsIndoor(int used, float side, Bounds bounds, AnimalAI[] units, Color color)
+        {
+            foreach (var unit in units)
+            {
+                if (unit == null || !unit.IsAlive || used >= MaxUnitBlips) continue;
+                used = PlaceIndoorBlip(used, side, bounds, unit.transform.position, color);
+            }
+            return used;
+        }
+
+        /// <summary>블립 1개 절대 배치 — 풀 슬롯 재사용+재부착(월드 경로 ClearMarkers가 떼어낸 슬롯 복원).</summary>
+        private int PlaceIndoorBlip(int used, float side, Bounds bounds, Vector3 worldPos, Color color)
+        {
+            VisualElement blip;
+            if (used < _unitBlipPool.Count)
+            {
+                blip = _unitBlipPool[used];
+            }
+            else
+            {
+                blip = new VisualElement { name = "UnitBlip", pickingMode = PickingMode.Ignore };
+                blip.style.position = Position.Absolute;
+                blip.style.width = UnitBlipSize;
+                blip.style.height = UnitBlipSize;
+                blip.style.borderTopLeftRadius = 4f;
+                blip.style.borderTopRightRadius = 4f;
+                blip.style.borderBottomLeftRadius = 4f;
+                blip.style.borderBottomRightRadius = 4f;
+                _unitBlipPool.Add(blip);
+            }
+            if (blip.parent == null) _markerHost.Add(blip);   // 풀 슬롯 재부착 — 실내 진입 시 떼어진 슬롯 복원
+            Vector2 uv = IndoorMinimapBaker.MapToUv(worldPos, bounds);
+            blip.style.display = DisplayStyle.Flex;
+            blip.style.left = uv.x * side - UnitBlipSize * 0.5f;
+            blip.style.top = (1f - uv.y) * side - UnitBlipSize * 0.5f;
+            blip.style.backgroundColor = color;
+            return used + 1;
+        }
+
         /// <summary>[15차 A4] 미니맵 우클릭 → 클릭 지점의 월드 좌표 역산 → 선택 병사 이동 명령.</summary>
         private void OnMapPointerDown(PointerDownEvent evt)
         {
             if (evt.button != 1) return;
+            // [146차 P2] 실내 평면도 클릭 — 월드 좌표 역산 산식이 성립하지 않아 명령 무시(월드 좌표 오염 방지).
+            if (IsIndoorMapActive()) return;
             if (_playerTransform == null) return;
             var rts = RTSCommandSystem.Instance;
             if (rts == null || rts.SelectedCount == 0) return;   // 선택 없음 → 명령 없음(카메라 점프 미구현)

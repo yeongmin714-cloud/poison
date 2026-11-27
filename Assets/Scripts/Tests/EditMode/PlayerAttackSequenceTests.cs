@@ -78,8 +78,8 @@ namespace ProjectName.Tests.EditMode
         }
 
         [TestCase(1, 0, true)]
-        [TestCase(2, 0, true)]
-        [TestCase(1, 1, true)]
+        [TestCase(2, 0, false)]
+        [TestCase(1, 1, false)]
         [TestCase(1, 2, false)]
         [TestCase(2, 1, false)]
         [TestCase(3, 0, false)]
@@ -94,15 +94,15 @@ namespace ProjectName.Tests.EditMode
 
         [TestCase(true, 0, 0, true, false)]
         [TestCase(true, 0, 1, true, true)]
-        [TestCase(true, 0, 2, true, true)]
+        [TestCase(true, 0, 2, true, false)]
         [TestCase(true, 0, 3, true, false)]
         [TestCase(true, 1, 0, true, true)]
-        [TestCase(true, 1, 1, true, true)]
-        [TestCase(true, 2, 0, true, true)]
+        [TestCase(true, 1, 1, true, false)]
+        [TestCase(true, 2, 0, true, false)]
         [TestCase(true, 2, 1, true, false)]
         [TestCase(true, 0, 1, false, false)]
         [TestCase(false, 0, 1, true, false)]
-        public void BufferedFollowupGate_AllowsPendingOpenerButNeverExceedsThree(
+        public void BufferedFollowupGate_AllowsPendingOpenerButNeverExceedsTwo(
             bool animatorReady, int activeClicks, long pendingClicks, bool windowOpen, bool expected)
         {
             var canAccept = typeof(HumanoidClipDriver).GetMethod("CanAcceptBufferedFollowup", PrivateStatic);
@@ -163,16 +163,15 @@ namespace ProjectName.Tests.EditMode
         }
 
         [Test]
-        public void SameTimeFollowups_UnlockExactlyTheThreeComboSegments()
+        public void SameTimeFollowups_UnlockExactlyTheTwoComboSegments()
         {
             var combo = new MeleeComboStateMachine();
             combo.Start(5f);
 
             Assert.That(combo.TryAcceptFollowup(5f, 0.6f), Is.True);
-            Assert.That(combo.TryAcceptFollowup(5f, 0.6f), Is.True);
             Assert.That(combo.TryAcceptFollowup(5f, 0.6f), Is.False,
-                "The combo accepts no more than its three swing segments.");
-            Assert.That(combo.AcceptedClicks, Is.EqualTo(3));
+                "The combo accepts no more than its two swing segments. [168-P1]");
+            Assert.That(combo.AcceptedClicks, Is.EqualTo(2));
         }
     }
 }

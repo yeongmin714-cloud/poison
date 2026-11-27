@@ -33,6 +33,10 @@ namespace ProjectName.Systems
         // 재충원 타이머
         private readonly Dictionary<string, float> _refillTimers = new Dictionary<string, float>();
 
+        // 영지별 재충원 시퀀스 (난이도 프로필 soldier-index 용)
+        private const int REFILL_SOLDIER_INDEX_BASE = 2000;
+        private readonly Dictionary<string, int> _refillSoldierSeq = new Dictionary<string, int>();
+
         // 병사 퇴각 모드 플래그 (플레이어 사망 시 true)
         public bool IsRetreatMode { get; private set; } = false;
 
@@ -161,6 +165,25 @@ namespace ProjectName.Systems
             if (_territoryGuards.TryGetValue(key, out var guards))
                 return new List<GuardPlaceholder>(guards);
             return new List<GuardPlaceholder>();
+        }
+
+        /// <summary>
+        /// 영지 등록 목록 전체 스캔 — (영지ID, 병사) 쌍. 파괴된 참조/파싱 불가 키는 제외한다.
+        /// AI 고용 병사 저장(LaborMarketSystem.ExportSaveData)이 실제 등록 병사를 기준으로 쓰도록 사용.
+        /// </summary>
+        public List<KeyValuePair<TerritoryId, GuardPlaceholder>> GetAllRegisteredGuards()
+        {
+            var result = new List<KeyValuePair<TerritoryId, GuardPlaceholder>>();
+            foreach (var kvp in _territoryGuards)
+            {
+                if (!TryParseTerritoryKey(kvp.Key, out TerritoryId id)) continue;
+                foreach (var g in kvp.Value)
+                {
+                    if (g != null)
+                        result.Add(new KeyValuePair<TerritoryId, GuardPlaceholder>(id, g));
+                }
+            }
+            return result;
         }
 
         /// <summary>플레이어 소유 모든 영지의 병사 목록 반환</summary>
@@ -320,11 +343,14 @@ namespace ProjectName.Systems
             GameObject guardGO = new GameObject(newName);
             guardGO.transform.position = GetRandomSpawnPosition(id);
 
-            // 레벨 결정: RingDifficultyData.GetGuardLevelRange()
+            // 레벨 결정: 영지 난이도 프로필(국가+Ring 범위 · 영지별 Tier 편향) — soldier-index 기반 결정론 선택.
+            // 영지별 신규 충원 시퀀스 번호를 soldier-index로 사용 (REFILL_SOLDIER_INDEX_BASE 오프셋으로 실내/문지기와 분리).
             var territoryDef = TerritoryDatabase.Instance?.GetDefinition(id);
             TerritoryDifficulty diff = territoryDef?.difficulty ?? TerritoryDifficulty.Ring1;
-            var levelRange = RingDifficultyData.GetGuardLevelRange(diff);
-            int newLevel = Random.Range(levelRange.x, levelRange.y + 1);
+            var profile = TerritoryDifficultyProfileSystem.Resolve(id.index, id.nation, diff);
+            if (!_refillSoldierSeq.TryGetValue(key, out int refillSeq)) refillSeq = 0;
+            _refillSoldierSeq[key] = refillSeq + 1;
+            int newLevel = profile.SelectGuardLevel(REFILL_SOLDIER_INDEX_BASE + refillSeq);
 
             // GLB 모델 로드 (레벨별)
             string modelPath = GetSoldierModelPath(newLevel);
@@ -340,9 +366,9 @@ namespace ProjectName.Systems
                 guardModel = Object.Instantiate(modelPrefab, guardGO.transform);
                 guardModel.name = "GuardModel";
                 guardModel.transform.localPosition = new Vector3(0, 0.9f, 0);
-                // [69차 후속17] 병사 크기 = 플레이어 실측 높이와 동일화(FBX 원본이 작아 보이는 문제)
+                // [69차 후속17→51차] 병사 크기 = 표준 인간 키 1.8m 고정(SoldierTargetHeight — 씬 플레이어 실측 폐기)
                 // [후속17-2] lv20+ 덩치 병사는 일반(lv1-20) 대비 1.8배 확대
-                float s = NormalizeSoldierScaleToPlayer(guardModel);
+                float s = TerritoryBuilder.NormalizeSoldierHeightFactor(guardModel, TerritoryBuilder.SoldierTargetHeight);
                 s *= GetSoldierSizeMultiplier(newLevel);
                 guardModel.transform.localScale = Vector3.one * s;
                 guardModel.transform.localPosition = new Vector3(0, 0, 0);   // 스케일 후 재접지(GroundModelToY 호환)
@@ -488,6 +514,28 @@ namespace ProjectName.Systems
                 return center + new Vector3(randomCircle.x, 0, randomCircle.y);
             }
             return Vector3.zero;
+        }
+
+        /// <summary>
+        /// TerritoryId.ToString() 형식("East_01")만 유효로 인정하는 엄격 파서 (왕복 일치 검사).
+        /// "East_1"·알 수 없는 국가명·비정규 인덱스는 거부한다. LaborMarketSystem 저장 복원과 공유.
+        /// </summary>
+        internal static bool TryParseTerritoryKey(string key, out TerritoryId id)
+        {
+            id = default;
+            if (string.IsNullOrEmpty(key)) return false;
+
+            string[] parts = key.Split('_');
+            if (parts.Length != 2) return false;
+            if (!System.Enum.TryParse<NationType>(parts[0], out NationType nation)) return false;
+            if (!System.Enum.IsDefined(typeof(NationType), nation)) return false;
+            if (!int.TryParse(parts[1], out int index)) return false;
+
+            var candidate = new TerritoryId(nation, index);
+            if (candidate.ToString() != key) return false;
+
+            id = candidate;
+            return true;
         }
 
         private static TerritoryId ParseTerritoryKey(string key)
@@ -679,10 +727,15 @@ namespace ProjectName.Systems
             return Mathf.Clamp(target / h, 0.5f, 5f);
         }
 
-        /// <summary>[후속17-2] 레벨 구간별 덩치 배율 — lv20 미만 일반 병사=1.0, lv20+ 덩치 병사=1.8(일반 대비).</summary>
+        /// <summary>
+        /// [후속17-2] 레벨 구간별 덩치 배율 — lv20 미만 일반 병사=1.0, lv20+ 덩치 병사=1.8(일반 대비).
+        /// [139차 P2] 사용자 계약 변경(전 씬 캐릭터 키 균일 1.8m) — 덩치 배율 폐기, 항상 1.0 반환.
+        /// 근거(139차 P2 진단): 정규화 1.8m 위에 ×1.8 곱산 = lv20+ 3.24m 거인(계약 이탈 실측).
+        /// 3.289m 측정 아티팩트 별건: 월드공간 이름표 렌더러가 bounds에 끼이는 측정 오염(본체 SMR은 1.800 정상).
+        /// </summary>
         public static float GetSoldierSizeMultiplier(int level)
         {
-            return level >= 20 ? 1.8f : 1.0f;
+            return 1.0f;   // [139차 P2] 전 레벨 균일 — 키 계약 1.8m 단일소스(NormalizeSoldierHeight)
         }
 
         /// <summary>모델 최하단을 지면(SurfaceY 실측)에 접지 — 스케일 후 필수.</summary>

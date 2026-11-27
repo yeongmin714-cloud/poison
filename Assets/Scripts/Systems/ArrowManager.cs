@@ -62,9 +62,12 @@ namespace ProjectName.Systems
         }
 
         /// <summary>
-        /// Resolve the reticle's screen ray into a diagnostic world aim point. The normalized camera
-        /// ray itself defines launch direction; collider hits and muzzle parallax never bend the shot.
-        /// The shooter hierarchy is skipped when selecting the diagnostic hit point.
+        /// Resolve the reticle's screen ray into the cursor's world aim point. The launch direction is
+        /// the muzzle→aim-point vector: the arrow leaves the hand and passes through the cursor's world
+        /// point, so the reticle pixel and the actual landing agree. Copying the camera ray direction
+        /// instead flies the arrow parallel to the ray from the 1.4m muzzle and lands short of the
+        /// cursor point by ~(muzzle height)·(ray slope) — measured 2.3m short at 5m, 6.7m at 10m with
+        /// the default 45°/R15 orbit camera. The shooter hierarchy is skipped when selecting the hit.
         /// </summary>
         public static bool TrySolveAim(Camera camera, Vector2 aimScreenPoint, Vector3 muzzleOrigin,
             Transform shooter, out Vector3 aimPoint, out Vector3 muzzleDirection)
@@ -99,8 +102,16 @@ namespace ProjectName.Systems
 
             // An unobstructed reticle still has a stable world-space target on its camera ray.
             if (!foundWorldPoint) aimPoint = ray.GetPoint(100f);
-            muzzleDirection = ray.direction.normalized;
-            Debug.LogWarning($"[BowAim] screen={aimScreenPoint} camera={camera.name} rayO={ray.origin} rayD={ray.direction} "
+            // [172-A] 기하 정합 수리 — 발사 방향 = 머즐→조준점(커서의 세계점). 화살이 손에서 나와
+            // 커서의 세계점을 통과하므로 리티클 픽셀과 실제 착탄이 일치한다. 10월 계약(ray.direction
+            // 복사)은 머즐(높이≈1.4m)에서 카메라 레이와 평행하게 날려 착탄점이 커서 지면점보다
+            // 사거리 1m당 ≈0.87m 짧아졌다(45°/R15 실측: 5m→2.3m, 10m→6.7m 부족). 머즐이 조준점과
+            // 겹치는 퇴화 케이스만 레이 방향으로 폴백한다.
+            Vector3 muzzleToAim = aimPoint - muzzleOrigin;
+            muzzleDirection = muzzleToAim.sqrMagnitude > 0.000001f
+                ? muzzleToAim.normalized
+                : ray.direction.normalized;
+            Debug.LogWarning($"[BowAim] screen={aimScreenPoint} camera={camera.name} camId={camera.GetInstanceID()} camPos={camera.transform.position} rayO={ray.origin} rayD={ray.direction} "
                 + $"hit={(foundWorldPoint ? acceptedHit.collider.name : "<none; ray+100m>")} "
                 + $"point={aimPoint} muzzle={muzzleOrigin} dir={muzzleDirection}");
             return true;

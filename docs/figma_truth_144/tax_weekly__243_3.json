@@ -1,0 +1,2728 @@
+{
+ "id": "243:3",
+ "name": "영지별 주간 세금 패널",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 49758,
+ "ay": 3,
+ "w": 624.0,
+ "h": 984.0,
+ "d": 0,
+ "fills": [
+  "#13181F/1.0"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.2,
+ "r": 14.4,
+ "fx": [
+  "DROP_SHADOW:38.400001525878906:#000000/0.251"
+ ],
+ "layout": "VERTICAL",
+ "gap": 19.200000762939453,
+ "pl": 24.0,
+ "pr": 24.0,
+ "pt": 24.0,
+ "pb": 24.0,
+ "c": [
+  {
+   "id": "243:4",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 49758,
+   "ay": 3,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "243:6",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 49758,
+     "ay": 3,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "243:5",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 49758,
+     "ay": 3,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "243:7",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50370,
+   "ay": 3,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "243:9",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50380,
+     "ay": 3,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "243:8",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50370,
+     "ay": 3,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "243:10",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 49758,
+   "ay": 975,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "243:12",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 49758,
+     "ay": 975,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "243:11",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 49758,
+     "ay": 985,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "243:13",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 50370,
+   "ay": 975,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "243:15",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50380,
+     "ay": 975,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "243:14",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 50370,
+     "ay": 985,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "243:16",
+   "name": "패널 제목",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 49782,
+   "ay": 27,
+   "w": 576.0,
+   "h": 52.8,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 12.0,
+   "pb": 14.399999618530273,
+   "crossAlign": "BASELINE",
+   "c": [
+    {
+     "id": "243:17",
+     "name": "제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 27,
+     "w": 85.0,
+     "h": 25.0,
+     "d": 2,
+     "fills": [
+      "#F0F6FC/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "주간 세금",
+     "fontSize": 21.600000381469727,
+     "font": "Roboto 700 Bold",
+     "lineH": 25.3
+    },
+    {
+     "id": "243:18",
+     "name": "보조 제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 49879,
+     "ay": 35,
+     "w": 120.0,
+     "h": 15.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "영지별 세금 징수 현황",
+     "fontSize": 13.199999809265137,
+     "font": "Roboto 500 Medium",
+     "lineH": 15.5
+    }
+   ]
+  },
+  {
+   "id": "243:19",
+   "name": "영지 필터",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 49782,
+   "ay": 99,
+   "w": 576.0,
+   "h": 38.4,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 4.800000190734863,
+   "c": [
+    {
+     "id": "243:20",
+     "name": "필터 탭",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 99,
+     "w": 188.8,
+     "h": 38.4,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:21",
+       "name": "필터 문구",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 49848,
+       "ay": 110,
+       "w": 57.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#0B0E14/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "전체 영지",
+       "fontSize": 14.399999618530273,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    },
+    {
+     "id": "243:22",
+     "name": "필터 탭",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49976,
+     "ay": 99,
+     "w": 188.8,
+     "h": 38.4,
+     "d": 2,
+     "fills": [
+      "#13181F/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:23",
+       "name": "필터 문구",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50048,
+       "ay": 110,
+       "w": 45.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "성·도시",
+       "fontSize": 14.399999618530273,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    },
+    {
+     "id": "243:24",
+     "name": "필터 탭",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 50169,
+     "ay": 99,
+     "w": 188.8,
+     "h": 38.4,
+     "d": 2,
+     "fills": [
+      "#13181F/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:25",
+       "name": "필터 문구",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50250,
+       "ay": 110,
+       "w": 27.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "마을",
+       "fontSize": 14.399999618530273,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "243:26",
+   "name": "영지 세금 목록",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 49782,
+   "ay": 157,
+   "w": 576.0,
+   "h": 662.4,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 9.600000381469727,
+   "c": [
+    {
+     "id": "243:27",
+     "name": "영지 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 157,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.078"
+     ],
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:28",
+       "name": "영지 등급",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 49782,
+       "ay": 157,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#BC8CFF/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "243:29",
+       "name": "영지 상징",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49796,
+       "ay": 173,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:135",
+         "name": "castle",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49811,
+         "ay": 188,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "243:136",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 49813,
+           "ay": 191,
+           "w": 20.0,
+           "h": 18.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.1
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "243:31",
+       "name": "영지 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49864,
+       "ay": 179,
+       "w": 280.2,
+       "h": 41.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "243:32",
+         "name": "영지 이름과 유형",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 179,
+         "w": 280.2,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "BASELINE",
+         "c": [
+          {
+           "id": "243:33",
+           "name": "영지 이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49864,
+           "ay": 179,
+           "w": 67.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "아르덴 성",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "243:34",
+           "name": "영지 유형",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49940,
+           "ay": 184,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "중앙 성채",
+           "fontSize": 12.0,
+           "font": "Roboto 400 Regular",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "243:35",
+         "name": "세금 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 204,
+         "w": 280.2,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "주민세 · 상업세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "243:36",
+       "name": "주간 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50158,
+       "ay": 179,
+       "w": 111.0,
+       "h": 41.4,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 2.4000000953674316,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "243:37",
+         "name": "주간 징수액",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50199,
+         "ay": 179,
+         "w": 70.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "5,400g",
+         "fontSize": 19.200000762939453,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 25.0
+        },
+        {
+         "id": "243:38",
+         "name": "징수 주기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50221,
+         "ay": 206,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "매주 징수",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "243:39",
+       "name": "영지 상세 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50284,
+       "ay": 182,
+       "w": 60.0,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:40",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50300,
+         "ay": 191,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "상세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "243:41",
+     "name": "영지 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 253,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:42",
+       "name": "영지 등급",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 49782,
+       "ay": 253,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#1F6FEB/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "243:43",
+       "name": "영지 상징",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49796,
+       "ay": 269,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:138",
+         "name": "landmark",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49811,
+         "ay": 284,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "243:139",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 49814,
+           "ay": 286,
+           "w": 18.1,
+           "h": 20.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.1
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "243:45",
+       "name": "영지 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49864,
+       "ay": 275,
+       "w": 280.2,
+       "h": 41.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "243:46",
+         "name": "영지 이름과 유형",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 275,
+         "w": 280.2,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "BASELINE",
+         "c": [
+          {
+           "id": "243:47",
+           "name": "영지 이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49864,
+           "ay": 275,
+           "w": 47.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "벨포트",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "243:48",
+           "name": "영지 유형",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49920,
+           "ay": 280,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "항구 도시",
+           "fontSize": 12.0,
+           "font": "Roboto 400 Regular",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "243:49",
+         "name": "세금 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 300,
+         "w": 280.2,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "주민세 · 무역세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "243:50",
+       "name": "주간 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50158,
+       "ay": 275,
+       "w": 111.0,
+       "h": 41.4,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 2.4000000953674316,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "243:51",
+         "name": "주간 징수액",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50199,
+         "ay": 275,
+         "w": 70.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "3,600g",
+         "fontSize": 19.200000762939453,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 25.0
+        },
+        {
+         "id": "243:52",
+         "name": "징수 주기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50221,
+         "ay": 302,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "매주 징수",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "243:53",
+       "name": "영지 상세 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50284,
+       "ay": 278,
+       "w": 60.0,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:54",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50300,
+         "ay": 287,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "상세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "243:55",
+     "name": "영지 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 349,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:56",
+       "name": "영지 등급",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 49782,
+       "ay": 349,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#1F6FEB/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "243:57",
+       "name": "영지 상징",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49796,
+       "ay": 365,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:141",
+         "name": "landmark",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49811,
+         "ay": 380,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "243:142",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 49814,
+           "ay": 382,
+           "w": 18.1,
+           "h": 20.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.1
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "243:59",
+       "name": "영지 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49864,
+       "ay": 371,
+       "w": 280.2,
+       "h": 41.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "243:60",
+         "name": "영지 이름과 유형",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 371,
+         "w": 280.2,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "BASELINE",
+         "c": [
+          {
+           "id": "243:61",
+           "name": "영지 이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49864,
+           "ay": 371,
+           "w": 78.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "실버헤이븐",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "243:62",
+           "name": "영지 유형",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49951,
+           "ay": 376,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "상업 도시",
+           "fontSize": 12.0,
+           "font": "Roboto 400 Regular",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "243:63",
+         "name": "세금 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 396,
+         "w": 280.2,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "주민세 · 상업세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "243:64",
+       "name": "주간 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50158,
+       "ay": 371,
+       "w": 111.0,
+       "h": 41.4,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 2.4000000953674316,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "243:65",
+         "name": "주간 징수액",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50199,
+         "ay": 371,
+         "w": 70.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "2,850g",
+         "fontSize": 19.200000762939453,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 25.0
+        },
+        {
+         "id": "243:66",
+         "name": "징수 주기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50221,
+         "ay": 398,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "매주 징수",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "243:67",
+       "name": "영지 상세 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50284,
+       "ay": 374,
+       "w": 60.0,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:68",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50300,
+         "ay": 383,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "상세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "243:69",
+     "name": "영지 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 445,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:70",
+       "name": "영지 등급",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 49782,
+       "ay": 445,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "243:71",
+       "name": "영지 상징",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49796,
+       "ay": 461,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:144",
+         "name": "house",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49811,
+         "ay": 476,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "243:145",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 49814,
+           "ay": 478,
+           "w": 18.0,
+           "h": 19.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.1
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "243:73",
+       "name": "영지 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49864,
+       "ay": 467,
+       "w": 280.2,
+       "h": 41.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "243:74",
+         "name": "영지 이름과 유형",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 467,
+         "w": 280.2,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "BASELINE",
+         "c": [
+          {
+           "id": "243:75",
+           "name": "영지 이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49864,
+           "ay": 467,
+           "w": 62.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "그린필드",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "243:76",
+           "name": "영지 유형",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49935,
+           "ay": 472,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "농업 마을",
+           "fontSize": 12.0,
+           "font": "Roboto 400 Regular",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "243:77",
+         "name": "세금 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 492,
+         "w": 280.2,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "주민세 · 농업세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "243:78",
+       "name": "주간 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50158,
+       "ay": 467,
+       "w": 111.0,
+       "h": 41.4,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 2.4000000953674316,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "243:79",
+         "name": "주간 징수액",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50199,
+         "ay": 467,
+         "w": 70.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "2,200g",
+         "fontSize": 19.200000762939453,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 25.0
+        },
+        {
+         "id": "243:80",
+         "name": "징수 주기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50221,
+         "ay": 494,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "매주 징수",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "243:81",
+       "name": "영지 상세 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50284,
+       "ay": 470,
+       "w": 60.0,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:82",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50300,
+         "ay": 479,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "상세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "243:83",
+     "name": "영지 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 541,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:84",
+       "name": "영지 등급",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 49782,
+       "ay": 541,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "243:85",
+       "name": "영지 상징",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49796,
+       "ay": 557,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:147",
+         "name": "house",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49811,
+         "ay": 572,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "243:148",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 49814,
+           "ay": 574,
+           "w": 18.0,
+           "h": 19.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.1
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "243:87",
+       "name": "영지 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49864,
+       "ay": 563,
+       "w": 280.2,
+       "h": 41.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "243:88",
+         "name": "영지 이름과 유형",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 563,
+         "w": 280.2,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "BASELINE",
+         "c": [
+          {
+           "id": "243:89",
+           "name": "영지 이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49864,
+           "ay": 563,
+           "w": 62.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "아이언힐",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "243:90",
+           "name": "영지 유형",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49935,
+           "ay": 568,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "광산 마을",
+           "fontSize": 12.0,
+           "font": "Roboto 400 Regular",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "243:91",
+         "name": "세금 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 588,
+         "w": 280.2,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "주민세 · 광업세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "243:92",
+       "name": "주간 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50158,
+       "ay": 563,
+       "w": 111.0,
+       "h": 41.4,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 2.4000000953674316,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "243:93",
+         "name": "주간 징수액",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50199,
+         "ay": 563,
+         "w": 70.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "1,800g",
+         "fontSize": 19.200000762939453,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 25.0
+        },
+        {
+         "id": "243:94",
+         "name": "징수 주기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50221,
+         "ay": 590,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "매주 징수",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "243:95",
+       "name": "영지 상세 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50284,
+       "ay": 566,
+       "w": 60.0,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:96",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50300,
+         "ay": 575,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "상세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "243:97",
+     "name": "영지 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 637,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:98",
+       "name": "영지 등급",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 49782,
+       "ay": 637,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "243:99",
+       "name": "영지 상징",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49796,
+       "ay": 653,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:150",
+         "name": "house",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49811,
+         "ay": 668,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "243:151",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 49814,
+           "ay": 670,
+           "w": 18.0,
+           "h": 19.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.1
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "243:101",
+       "name": "영지 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49864,
+       "ay": 659,
+       "w": 280.2,
+       "h": 41.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "243:102",
+         "name": "영지 이름과 유형",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 659,
+         "w": 280.2,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "BASELINE",
+         "c": [
+          {
+           "id": "243:103",
+           "name": "영지 이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49864,
+           "ay": 659,
+           "w": 62.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "오크우드",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "243:104",
+           "name": "영지 유형",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49935,
+           "ay": 664,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "산림 마을",
+           "fontSize": 12.0,
+           "font": "Roboto 400 Regular",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "243:105",
+         "name": "세금 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 684,
+         "w": 280.2,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "주민세 · 임업세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "243:106",
+       "name": "주간 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50158,
+       "ay": 659,
+       "w": 111.0,
+       "h": 41.4,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 2.4000000953674316,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "243:107",
+         "name": "주간 징수액",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50199,
+         "ay": 659,
+         "w": 70.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "1,650g",
+         "fontSize": 19.200000762939453,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 25.0
+        },
+        {
+         "id": "243:108",
+         "name": "징수 주기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50221,
+         "ay": 686,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "매주 징수",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "243:109",
+       "name": "영지 상세 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50284,
+       "ay": 662,
+       "w": 60.0,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:110",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50300,
+         "ay": 671,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "상세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "243:111",
+     "name": "영지 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 733,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:112",
+       "name": "영지 등급",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 49782,
+       "ay": 733,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "243:113",
+       "name": "영지 상징",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49796,
+       "ay": 749,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:153",
+         "name": "house",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49811,
+         "ay": 764,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "243:154",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 49814,
+           "ay": 766,
+           "w": 18.0,
+           "h": 19.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.1
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "243:115",
+       "name": "영지 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49864,
+       "ay": 755,
+       "w": 280.2,
+       "h": 41.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "243:116",
+         "name": "영지 이름과 유형",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 755,
+         "w": 280.2,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "BASELINE",
+         "c": [
+          {
+           "id": "243:117",
+           "name": "영지 이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49864,
+           "ay": 755,
+           "w": 93.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "레이크사이드",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "243:118",
+           "name": "영지 유형",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 49966,
+           "ay": 760,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "어촌 마을",
+           "fontSize": 12.0,
+           "font": "Roboto 400 Regular",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "243:119",
+         "name": "세금 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49864,
+         "ay": 780,
+         "w": 280.2,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "주민세 · 어업세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "243:120",
+       "name": "주간 세금",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50158,
+       "ay": 755,
+       "w": 111.0,
+       "h": 41.4,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 2.4000000953674316,
+       "crossAlign": "MAX",
+       "c": [
+        {
+         "id": "243:121",
+         "name": "주간 징수액",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50199,
+         "ay": 755,
+         "w": 70.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "1,250g",
+         "fontSize": 19.200000762939453,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 25.0
+        },
+        {
+         "id": "243:122",
+         "name": "징수 주기",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50221,
+         "ay": 782,
+         "w": 48.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "매주 징수",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "243:123",
+       "name": "영지 상세 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 50284,
+       "ay": 758,
+       "w": 60.0,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "243:124",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 50300,
+         "ay": 767,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "상세",
+         "fontSize": 14.399999618530273,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "243:125",
+   "name": "주간 세금 요약",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 49782,
+   "ay": 838,
+   "w": 576.0,
+   "h": 114.4,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 14.399999618530273,
+   "pt": 14.399999618530273,
+   "c": [
+    {
+     "id": "243:126",
+     "name": "징수 일정",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 853,
+     "w": 576.0,
+     "h": 18.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:127",
+       "name": "징수 주기",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 49782,
+       "ay": 853,
+       "w": 184.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "매주 월요일 00:00 자동 징수",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 400 Regular",
+       "lineH": 18.3
+      },
+      {
+       "id": "243:128",
+       "name": "합산 영지 수",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50269,
+       "ay": 853,
+       "w": 89.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "전체 7개 영지",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 700 Bold",
+       "lineH": 18.3
+      }
+     ]
+    },
+    {
+     "id": "243:129",
+     "name": "전체 주간 세금",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 49782,
+     "ay": 885,
+     "w": 576.0,
+     "h": 67.6,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0@0.078"
+     ],
+     "strokes": [
+      "#58A6FF/1.0@0.251"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "243:130",
+       "name": "합계 설명",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 49796,
+       "ay": 899,
+       "w": 177.0,
+       "h": 38.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "243:131",
+         "name": "총액 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49796,
+         "ay": 899,
+         "w": 137.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "전체 주간 세금 합계",
+         "fontSize": 16.799999237060547,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        },
+        {
+         "id": "243:132",
+         "name": "합산 대상",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 49796,
+         "ay": 924,
+         "w": 177.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "보유한 7개 영지의 주간 징수액 합계",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "243:133",
+       "name": "세금 합계",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 50233,
+       "ay": 902,
+       "w": 111.0,
+       "h": 34.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "18,750g",
+       "fontSize": 26.399999618530273,
+       "font": "Geist Mono 700 Bold",
+       "lineH": 34.3
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

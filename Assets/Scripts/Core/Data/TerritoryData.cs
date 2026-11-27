@@ -152,11 +152,24 @@ namespace ProjectName.Core.Data
         [SerializeField] private float _guardAliveRatio = 1f;       // 0~1, 전투로 인한 병사 손실 반영
         [SerializeField] private float _loyaltyToPlayer = 0f;       // 0~100, 점령 후 주민/병사의 플레이어 충성도
         [SerializeField] private bool _isUnderAttack = false;       // 전쟁 중 플래그
+        [SerializeField] private bool _playerHostile = false;       // [D3-B] 마약 발각 적대 플래그 (RestaurantSystem — 발각→적대 전환 롤 성공 시 true)
+        [SerializeField] private bool _lordViolent = false;         // [D4-B] 영주 폭력화 플래그 (LordViolenceSystem — 주간 세수 기준 미달 시 true, 세탁 없이 유지)
         [SerializeField] private bool _flagRaised = false;          // 국기 게양 여부
         [SerializeField] private bool _lordSurrendered = false;     // 영주 항복 여부 (C10-10)
         [SerializeField] private bool _lordDefeated = false;        // 영주 처치 여부 (C10-10)
         [SerializeField] private bool _lordExecuted = false;        // 영주 처형 여부 (C10-11)
         [SerializeField] private bool _lordSpared = false;          // 영주 살려주기 여부 (C10-11)
+
+        // ===== [113차] 영주 선호 음식 기능확장 (A/B/C) — 선물 보너스/인텔 재료 힌트/미지급 페널티 =====
+        [SerializeField] private int _lastPreferredFeedDay = -1;    // [113차] 영주 선호 음식 마지막 지급 일차 (-1 = 미지급/구세이브)
+
+        // ===== [126차] 영주 딸 — 호감도/결혼 상태 (선례: 113차 _lastPreferredFeedDay) =====
+        [SerializeField] private int _daughterAffection = 0;        // 0~100, 들꽃 선물 1개당 +10
+        [SerializeField] private bool _daughterMarried = false;     // 프로포즈 수락 시 1회 설정(멱등), 이후 불변
+
+        // ===== F2/F3: 살려준 영주 공물/배신 상태 (세이브 v5 — FLAG_TAKEOVER_PLAN F5) =====
+        [SerializeField] private int _tributeWeeksPaid = 0;         // 공물 지급 누적 주차 수
+        [SerializeField] private int _betrayalCount = 0;            // 배신 누적 횟수 (2회 이상 → 배신 확률 ×1.5)
 
         // ===== 병사 배치 (TerritoryDeploymentSystem 연동) =====
         [SerializeField] private GarrisonRole _garrisonRole = GarrisonRole.None;   // 공격/수비 배치 상태
@@ -185,6 +198,9 @@ namespace ProjectName.Core.Data
         // ===== Phase D: 영지 금고 (TerritoryLootSystem 연동) =====
         [SerializeField] private int _territoryGold = 0;              // 영지 금고 (점령 시 몰수 대상, 미시딩=0)
 
+        // ===== [123차] 소유 영주 추적 (Phase 1 — 월드맵 호버 영주 툴팁 전제 데이터) =====
+        [SerializeField] private string _ownerLordName = string.Empty; // 현재 소유 영주 이름 (영주↔영주 점령 시 승리 영주로 갱신)
+
         public TerritoryId id => _id;
         public TerritoryOwnership ownership { get => _ownership; set => _ownership = value; }
 
@@ -207,11 +223,39 @@ namespace ProjectName.Core.Data
         }
 
         public bool isUnderAttack { get => _isUnderAttack; set => _isUnderAttack = value; }
+
+        /// <summary>[D3-B] 마약 음식점 발각에 의한 영지 적대 플래그 — 발각 후 적대 전환 롤 성공 시 true (RestaurantSystem).</summary>
+        public bool playerHostile { get => _playerHostile; set => _playerHostile = value; }
+
+        /// <summary>[D4-B] 영주 폭력화 플래그 — 주간 세수 기준 미달 시 true (LordViolenceSystem). 세이브/세탁 없이 유지.</summary>
+        public bool lordViolent { get => _lordViolent; set => _lordViolent = value; }
         public bool flagRaised { get => _flagRaised; set => _flagRaised = value; }
         public bool lordSurrendered { get => _lordSurrendered; set => _lordSurrendered = value; }
         public bool lordDefeated { get => _lordDefeated; set => _lordDefeated = value; }
         public bool lordExecuted { get => _lordExecuted; set => _lordExecuted = value; }
         public bool lordSpared { get => _lordSpared; set => _lordSpared = value; }
+
+        /// <summary>[F5] 공물 지급 누적 주차 수 (살려준 영주 — SparedLordTributeSystem).</summary>
+        public int tributeWeeksPaid { get => _tributeWeeksPaid; set => _tributeWeeksPaid = Mathf.Max(0, value); }
+
+        /// <summary>[F5] 배신 누적 횟수 — 2회 이상 배신한 영주는 배신 확률 ×1.5 (LordBetrayalSystem).</summary>
+        public int betrayalCount { get => _betrayalCount; set => _betrayalCount = Mathf.Max(0, value); }
+
+        /// <summary>[113차] 마지막 선호 음식 지급 일차 — 미지급/구세이브는 -1 (미지급 페널티 판정 기준). -1 하한 클램프.</summary>
+        public int lastPreferredFeedDay { get => _lastPreferredFeedDay; set => _lastPreferredFeedDay = Mathf.Max(-1, value); }
+
+        /// <summary>
+        /// [126차] 영주 딸 호감도 (0~100). setter가 자동으로 0~100 범위로 클램핑합니다.
+        /// 들꽃 선물 1개당 +10, 100 도달 시 추가 선물은 거부(꽃 소비 없음).
+        /// </summary>
+        public int daughterAffection
+        {
+            get => _daughterAffection;
+            set => _daughterAffection = Mathf.Clamp(value, 0, 100);
+        }
+
+        /// <summary>[126차] 영주 딸 결혼 여부 — 프로포즈 수락 시 1회 설정(멱등), 재호출 시 재가 없음.</summary>
+        public bool daughterMarried { get => _daughterMarried; set => _daughterMarried = value; }
         public bool spyReportRecon { get => _spyReportRecon; set => _spyReportRecon = value; }
         public bool spyReportInfiltrate { get => _spyReportInfiltrate; set => _spyReportInfiltrate = value; }
         public bool spyReportSurvey { get => _spyReportSurvey; set => _spyReportSurvey = value; }
@@ -242,6 +286,18 @@ namespace ProjectName.Core.Data
         {
             get => _territoryGold;
             set => _territoryGold = Mathf.Max(0, value);
+        }
+
+        /// <summary>
+        /// [123차] 현재 소유 영주 이름 — 영주↔영주 점령(AIWarSystem/TerritoryWarManager)에서
+        /// 승리 영주로 갱신되고, 배신(LordBetrayalSystem)·뉴게임+ 리셋에서 원래 영주로 복귀합니다.
+        /// 초기값은 TerritoryDatabase.InitializeStates()가 def.lord.lordName으로 결정론 매핑합니다.
+        /// PlayerOwned(플레이어 점령) 시에는 툴팁이 "플레이어"로 표기하므로 저장·조회 불필요.
+        /// </summary>
+        public string ownerLordName
+        {
+            get => _ownerLordName;
+            set => _ownerLordName = value ?? string.Empty;
         }
 
         // ===== 병사 배치 프로퍼티 (TerritoryDeploymentSystem 연동) =====

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="15" result="Passed" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.4314611">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="448" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.431461" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1500" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="439" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.402817" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1560" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1501" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="439" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.399440" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1502" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="439" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.396926" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestFixture" id="1015" name="BowAimAlignmentTests" fullname="ProjectName.Tests.BowAimAlignmentTests" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" testcasecount="15" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.359145" total="15" passed="15" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-case id="1029" name="AimSolverRejectsMissingCameraWithoutProducingAValidAim" fullname="ProjectName.Tests.BowAimAlignmentTests.AimSolverRejectsMissingCameraWithoutProducingAValidAim" methodname="AimSolverRejectsMissingCameraWithoutProducingAValidAim" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="723385724" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.024947" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1026" name="AimSolverUsesReticleHitPointAndAimsFromMuzzle" fullname="ProjectName.Tests.BowAimAlignmentTests.AimSolverUsesReticleHitPointAndAimsFromMuzzle" methodname="AimSolverUsesReticleHitPointAndAimsFromMuzzle" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="1429249729" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.091292" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[[BowAim] screen=(320.00, 240.00) camera=BowAimTestCamera rayO=(0.00, 0.00, 0.30) rayD=(0.00, 0.00, 1.00) hit=Cube point=(0.00, 0.00, 9.50) muzzle=(2.00, 0.00, 0.00) dir=(-0.21, 0.00, 0.98)
+]]></output>
+            </test-case>
+            <test-case id="1024" name="AlternateBowReleaseRoutesFailClosedUnlessNormalDrawOwnsFreshAimSample" fullname="ProjectName.Tests.BowAimAlignmentTests.AlternateBowReleaseRoutesFailClosedUnlessNormalDrawOwnsFreshAimSample" methodname="AlternateBowReleaseRoutesFailClosedUnlessNormalDrawOwnsFreshAimSample" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="295199590" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.015404" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1025" name="ArrowManagerResolvesInventoryCreatedAfterItsAwake" fullname="ProjectName.Tests.BowAimAlignmentTests.ArrowManagerResolvesInventoryCreatedAfterItsAwake" methodname="ArrowManagerResolvesInventoryCreatedAfterItsAwake" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="721318711" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.013103" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1022" name="BowAimStateRejectsPriorDrawSampleUntilReticlePublishesNewPoint" fullname="ProjectName.Tests.BowAimAlignmentTests.BowAimStateRejectsPriorDrawSampleUntilReticlePublishesNewPoint" methodname="BowAimStateRejectsPriorDrawSampleUntilReticlePublishesNewPoint" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="1754696681" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.002978" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1030" name="BowDrawHasNoYellowImguiAimLine" fullname="ProjectName.Tests.BowAimAlignmentTests.BowDrawHasNoYellowImguiAimLine" methodname="BowDrawHasNoYellowImguiAimLine" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="964057109" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.007551" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1023" name="BowReleaseCapturesCursorAfterLastReticleTickAndSharesSnapshotWithFadeAndSolver" fullname="ProjectName.Tests.BowAimAlignmentTests.BowReleaseCapturesCursorAfterLastReticleTickAndSharesSnapshotWithFadeAndSolver" methodname="BowReleaseCapturesCursorAfterLastReticleTickAndSharesSnapshotWithFadeAndSolver" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="766641175" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.012128" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1031" name="BowShotAndUtkReticleUseTheSameMouseCursorAimPoint" fullname="ProjectName.Tests.BowAimAlignmentTests.BowShotAndUtkReticleUseTheSameMouseCursorAimPoint" methodname="BowShotAndUtkReticleUseTheSameMouseCursorAimPoint" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="1355982791" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.046960" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-suite type="ParameterizedMethod" id="1020" name="CameraFreezePredicateMatchesBowAimState" fullname="ProjectName.Tests.BowAimAlignmentTests.CameraFreezePredicateMatchesBowAimState" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.011964" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1016" name="CameraFreezePredicate_FreezesWhileDrawing" fullname="ProjectName.Tests.BowAimAlignmentTests.CameraFreezePredicate_FreezesWhileDrawing" methodname="CameraFreezePredicateMatchesBowAimState" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="1331634933" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.001035" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1017" name="CameraFreezePredicate_FreezesReleasePendingOnReleaseFrame" fullname="ProjectName.Tests.BowAimAlignmentTests.CameraFreezePredicate_FreezesReleasePendingOnReleaseFrame" methodname="CameraFreezePredicateMatchesBowAimState" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="560505154" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.000347" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1018" name="CameraFreezePredicate_DoesNotFreezePendingReleaseAfterReleaseFrame" fullname="ProjectName.Tests.BowAimAlignmentTests.CameraFreezePredicate_DoesNotFreezePendingReleaseAfterReleaseFrame" methodname="CameraFreezePredicateMatchesBowAimState" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="1882905974" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.000362" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1019" name="CameraFreezePredicate_DoesNotFreezeWhileIdle" fullname="ProjectName.Tests.BowAimAlignmentTests.CameraFreezePredicate_DoesNotFreezeWhileIdle" methodname="CameraFreezePredicateMatchesBowAimState" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="258292899" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.000421" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-case id="1021" name="CameraLateUpdateFreezesBeforeCursorControlsAndCameraTransforms" fullname="ProjectName.Tests.BowAimAlignmentTests.CameraLateUpdateFreezesBeforeCursorControlsAndCameraTransforms" methodname="CameraLateUpdateFreezesBeforeCursorControlsAndCameraTransforms" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="1499726335" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.006077" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+            </test-case>
+            <test-case id="1027" name="OffCenterAimHitReachesTheProjectileInitialVelocityAndLongAxis" fullname="ProjectName.Tests.BowAimAlignmentTests.OffCenterAimHitReachesTheProjectileInitialVelocityAndLongAxis" methodname="OffCenterAimHitReachesTheProjectileInitialVelocityAndLongAxis" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="895758012" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.078346" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[
+IgnoreFailingMessages:true
+[BowAim] screen=(416.00, 288.00) camera=BowAimOffCenterCamera rayO=(2.00, 1.00, 0.30) rayD=(0.00, 0.00, 1.00) hit=Cube point=(2.00, 1.00, 11.50) muzzle=(-1.00, 0.25, 0.00) dir=(0.25, 0.06, 0.97)
+[Arrow][P20-4] 스폰 정합 — up·dir=1.000(±1이 정상), dir=(0.25, 0.06, 0.97)
+Instantiating material due to calling renderer.material during edit mode. This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.
+Destroy may not be called from edit mode! Use DestroyImmediate instead.
+Destroying an object in edit mode destroys it permanently.
+Instantiating material due to calling renderer.material during edit mode. This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.
+Destroy may not be called from edit mode! Use DestroyImmediate instead.
+Destroying an object in edit mode destroys it permanently.
+Instantiating material due to calling renderer.material during edit mode. This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.
+Destroy may not be called from edit mode! Use DestroyImmediate instead.
+Destroying an object in edit mode destroys it permanently.
+Instantiating material due to calling renderer.material during edit mode. This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.
+
+IgnoreFailingMessages:false
+]]></output>
+            </test-case>
+            <test-case id="1028" name="SpawnBuildsProceduralArrowBodyWithoutResourceModel" fullname="ProjectName.Tests.BowAimAlignmentTests.SpawnBuildsProceduralArrowBodyWithoutResourceModel" methodname="SpawnBuildsProceduralArrowBodyWithoutResourceModel" classname="ProjectName.Tests.BowAimAlignmentTests" runstate="Runnable" seed="608426331" result="Passed" start-time="2026-10-03 23:57:31Z" end-time="2026-10-03 23:57:31Z" duration="0.018467" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <output><![CDATA[
+IgnoreFailingMessages:true
+[Arrow][P20-4] 스폰 정합 — up·dir=1.000(±1이 정상), dir=(0.24, 0.10, 0.97)
+Instantiating material due to calling renderer.material during edit mode. This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.
+Destroy may not be called from edit mode! Use DestroyImmediate instead.
+Destroying an object in edit mode destroys it permanently.
+Instantiating material due to calling renderer.material during edit mode. This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.
+Destroy may not be called from edit mode! Use DestroyImmediate instead.
+Destroying an object in edit mode destroys it permanently.
+Instantiating material due to calling renderer.material during edit mode. This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.
+Destroy may not be called from edit mode! Use DestroyImmediate instead.
+Destroying an object in edit mode destroys it permanently.
+Instantiating material due to calling renderer.material during edit mode. This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.
+
+IgnoreFailingMessages:false
+Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

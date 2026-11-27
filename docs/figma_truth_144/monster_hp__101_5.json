@@ -1,0 +1,105 @@
+{
+ "id": "101:5",
+ "name": "monster-health-bar",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 38298,
+ "ay": 3,
+ "w": 80.4,
+ "h": 12.0,
+ "d": 0,
+ "fills": [
+  "#161B22/1.0@0.702"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 0.6,
+ "r": 1198.8,
+ "fx": [
+  "BACKGROUND_BLUR:24.0:None",
+  "DROP_SHADOW:19.200000762939453:#000000/0.4"
+ ],
+ "layout": "VERTICAL",
+ "gap": 2.4000000953674316,
+ "pl": 1.2000000476837158,
+ "pr": 1.2000000476837158,
+ "pt": 1.2000000476837158,
+ "pb": 1.2000000476837158,
+ "c": [
+  {
+   "id": "101:27",
+   "name": "gauge-container",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 38299,
+   "ay": 4,
+   "w": 78.0,
+   "h": 9.6,
+   "d": 1,
+   "fills": [
+    "#1F242C/1.0"
+   ],
+   "strokes": [
+    "#4F5964/1.0"
+   ],
+   "strokeW": 1.2,
+   "r": 1198.8,
+   "layout": "VERTICAL",
+   "c": [
+    {
+     "id": "101:28",
+     "name": "health-fill-layer",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 38299,
+     "ay": 4,
+     "w": 78.0,
+     "h": 9.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "mainAlign": "SPACE_BETWEEN",
+     "c": [
+      {
+       "id": "101:29",
+       "name": "health-bar-fill",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 38299,
+       "ay": 4,
+       "w": 60.0,
+       "h": 9.6,
+       "d": 3,
+       "fills": [
+        "#FF0000/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 1198.8
+      },
+      {
+       "id": "101:30",
+       "name": "empty-bar",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 38359,
+       "ay": 4,
+       "w": 18.0,
+       "h": 9.6,
+       "d": 3,
+       "fills": [
+        "#000000/1.0@0.0"
+       ],
+       "strokeW": 1.2
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

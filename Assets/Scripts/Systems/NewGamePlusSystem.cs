@@ -198,6 +198,11 @@ namespace ProjectName.Systems
                 var state = db.GetState(def.id);
                 if (state == null) continue;
 
+                // [123차] 소유 영주 리셋 — 전 영지(소유권 분기 무관)를 원래 영주로 복원.
+                // AI 점령 등으로 대표 영주가 바뀐 LordOwned 영지까지 되돌려야 하므로
+                // 아래 PlayerOwned/Contested 분기 밖에서 결정론 재생성 값(def.lord.lordName)을 적용한다.
+                state.ownerLordName = def.lord.lordName;
+
                 // PlayerOwned → LordOwned (또는 Unoccupied)로 리셋
                 if (state.ownership == TerritoryOwnership.PlayerOwned ||
                     state.ownership == TerritoryOwnership.Contested)

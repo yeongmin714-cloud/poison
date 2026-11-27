@@ -25,7 +25,7 @@ namespace ProjectName.Systems
         [SerializeField] private float _maxHP = 10f;
         [SerializeField] private float _speed = 5f;
         [SerializeField] private float _detectRange = 10f;
-        [SerializeField] private float _attackRange = 2f;
+        [SerializeField] private float _attackRange = 1.6f;   // [무번호 20-H1] 2.0→1.6 축소 — 링/판정/추격(1.2×) 동시 일치
         [SerializeField] private int _attackDamage = 5;
         [SerializeField] private float _attackCooldown = 1.5f;
         [SerializeField] private MonsterTier _tier = MonsterTier.Beginner;
@@ -258,19 +258,19 @@ namespace ProjectName.Systems
             {
                 case MonsterTier.Beginner:
                     _detectRange = 10f;
-                    _attackRange = 2f;
+                    _attackRange = 1.6f;   // [무번호 20-H1] 2.0→1.6 축소
                     _attackCooldown = 1.5f;
                     _bodyScale = Random.Range(0.6f, 0.9f);
                     break;
                 case MonsterTier.Intermediate:
                     _detectRange = 14f;
-                    _attackRange = 2.5f;
+                    _attackRange = 2f;   // [무번호 20-H1] 2.5→2.0 축소
                     _attackCooldown = 1.2f;
                     _bodyScale = Random.Range(0.9f, 1.2f);
                     break;
                 case MonsterTier.Advanced:
                     _detectRange = 18f;
-                    _attackRange = 3f;
+                    _attackRange = 2.4f;   // [무번호 20-H1] 3.0→2.4 축소
                     _attackCooldown = 1.0f;
                     _bodyScale = Random.Range(1.2f, 1.8f);
                     break;
@@ -481,6 +481,16 @@ namespace ProjectName.Systems
         {
             // [P14] 실내 활성 시 몬스터 AI 완전 정지 — 어그로/추격이 실내 씬으로 유입되는 것 차단
             if (ProjectName.Core.UITransitionState.IndoorActive)
+            {
+                _currentAISpeed = 0f;
+                _currentAIVelocity = Vector3.zero;
+                if (_quadAnim != null && _quadConfigured) _quadAnim.SetMovementSpeed(0f);
+                return;
+            }
+
+            // [무번호5/P3] Time Paradox 스테이시스 게이트 — PERFECT 패링 타임 스톱 중 이동/어그로 스킵(
+            //   IndoorActive 게이트 선례 동일 패턴). 상태 소유자=TimeWarpIdentity(에셋) — 읽기 전용 의존.
+            if (ParadoxTimeStop.IsActiveFor(this))
             {
                 _currentAISpeed = 0f;
                 _currentAIVelocity = Vector3.zero;
@@ -798,36 +808,411 @@ namespace ProjectName.Systems
                 }
             }
 
-            // === 공격 대상 결정: 어그로 대상(아군 병사 등) 우선, 없으면 플레이어 ===
-            // [확장] 어그로 대상이 활성 + 생존 중인 IDamageable이면 그 대상에게 근접 데미지.
-            //        대상이 없거나 죽었으면 기존처럼 플레이어 공격 (백워드 호환 경로 유지).
+            // === [95차 F5] 예고→타격 2페이즈 — 즉발 TakeDamage 대신 텔레그래프 진입 ===
+            // 공격 대상 결정: 어그로 대상(아군 병사 등) 우선, 없으면 플레이어 (기존 결정 규칙 무변경).
+            // 데미지 판정/적용은 예고 0.5s 종료 후 거리 재확인을 거쳐 ConcludeMeleeTelegraph에서 수행.
             IDamageable aggroDamageable = GetAliveAggroDamageable();
             if (aggroDamageable != null && _aggroTarget != null)
             {
-                // 어그로 대상(병사 등)에게 데미지 — IDamageable.TakeDamage(float, Vector3, string) 오버로드 사용
-                Vector3 hitDirection = (_aggroTarget.transform.position - transform.position).normalized;
-                aggroDamageable.TakeDamage(_attackDamage, hitDirection, "melee");
-                Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId}가(이) {_aggroTarget.name}에게 {_attackDamage} 데미지!");
+                // 어그로 대상(병사 등) 근접 공격 — 예고 후 IDamageable.TakeDamage(float, Vector3, string) 오버로드 사용
+                BeginMeleeTelegraph(aggroDamageable);
             }
             else if (PlayerHealth.Instance != null)
             {
-                // 기존 경로: 플레이어에게 실제 데미지 (기본 공격)
-                PlayerHealth.Instance.TakeDamage(_attackDamage);
-                Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId}가(이) 플레이어에게 {_attackDamage} 데미지!");
-                // 적용 디버프: 슬로우 (이동 속도 감소)
-                if (BuffManager.Instance != null)
+                // 기존 경로: 플레이어에게 실제 데미지 (기본 공격) — 예고 후 기존 TakeDamage 시그니처 그대로
+                BeginMeleeTelegraph(null);
+            }
+            else
+            {
+                Debug.Log($"{_monsterId} attacks for {_attackDamage} damage!");
+            }
+        }
+
+        // ===================== [95차 F5] 적 공격 텔레그래프 (예고→타격 2페이즈) =====================
+        // 공격 조건 충족(사정거리/쿨다운) 시 즉발 TakeDamage 대신 0.5s 예고:
+        //   ①선동작 = 절차 스케일 펄스 1.0→1.12→1.0 (애니 에셋/클립 불변 — transform.localScale 펄스만)
+        //   ②발밑 경고 인디케이터 = 붉은 반투명 링 쿼드 펄스 (월드 스페이스 — BlobShadow 쿼드 스폰 선례 재사용)
+        // 예고 종료 시 거리 재확인 — 이탈 시 공격 공백(빈 스윙), 사정거리 유지 시 기존 TakeDamage 시그니처 그대로.
+        // 쿨다운/데미지 밸런스 무변경 — 예고 페이즈만 추가. 상태는 전부 인스턴스 필드(정적 상태 금지 — 다중 인스턴스 안전).
+
+        // [156차 P5] 이계의 부적인 — 보유 시 +0.1s(런 외부 0 무영향). const→static 프로퍼티(사용처 L858/867/876 시그니처 무변경).
+        private static float TelegraphWindupSeconds => 0.5f + AfterlifeCardSystem.TelegraphBonusSeconds;    // 예고 페이즈 길이 (패링 창 0.45s 커버)
+        private const float TelegraphScalePulsePeak = 1.12f;  // 선동작 스케일 펄스 첨두치 (1.0→1.12→1.0)
+
+        private bool _telegraphActive;             // 텔레그래프 상태 머신 플래그 (인스턴스)
+        private Coroutine _telegraphRoutine;       // 진행 중 예고 코루틴
+        private GameObject _telegraphIndicator;    // 발밑 경고 인디케이터(붉은 링 쿼드)
+        private Vector3 _telegraphArcDir = Vector3.forward;   // [169-P6] 호 텔레그래프 방향(예고 시작 시점 타겟 방향 고정 — 회피 가능 설계)
+        private Vector3 _telegraphBaseScale = Vector3.one; // 펄스 복원용 기저 스케일 (스폰 스케일 보존)
+        private IDamageable _telegraphAggroTarget; // 예고 중 확정된 어그로 대상 (null이면 플레이어 경로)
+
+        // ===================== [무번호 28-M1] 몬스터 충전 글로우 (예고 windup 발광) =====================
+        // 예고 페이즈 동안 몸이 위험 적색으로 달아오르는 충전 글로우. 발광 부여 패턴은
+        // ShockwaveRingFX.ApplyEmissionBoost(25-BL1) 선례 준용(EnableKeyword+SetColor, GI 비기년재).
+        // GLB 몬스터는 루트 _renderer가 null이므로 GetComponentsInChildren<Renderer>(true) 전체 순회로 커버 —
+        // Trail/ParticleSystem/Line 이펙트 렌더러는 스킵(53차 측정 필터 선례). base color/SetBodyColor(46/47차
+        // 몸색) 계약 무손상 — emission만 조작. 색 단일 소스 FXPalette.MonsterDanger(U-1), 강도는
+        // FXMotion.Progress(U-3) — 결정론(진행 입력만 사용).
+
+        /// <summary>[무번호 28-M1] 충전 글로우 피크 강도 — 예고 완료 순간(t=1) 발광 배율.</summary>
+        private const float ChargeGlowPeakIntensity = 1.6f;
+
+        /// <summary>[무번호 28-M1] 충전 글로우 경고 1회 가드 — 동일 키 재경고 억제(스팸 방지 관행).</summary>
+        private static readonly System.Collections.Generic.HashSet<string> _chargeGlowWarnedKeys = new System.Collections.Generic.HashSet<string>();
+
+        // [무번호 29-M1-2] 충전 림 오버레이(위험 임박 fill≥0.75) — FxRimOverlay 소유 인스턴스.
+        private GameObject _chargeRim;
+
+        /// <summary>경고 1회성 가드 — 동일 키 최초 1회만 로그(스팸 방지).</summary>
+        private static void WarnOnce(string key, string message)
+        {
+            if (!_chargeGlowWarnedKeys.Add(key)) return;
+            Debug.LogWarning(message);
+        }
+
+        /// <summary>
+        /// [무번호 28-M1] 충전 글로우 갱신 — 예고 windup 진행도 t(0→1)에 비례해 몸 전체 렌더러에
+        /// 위험 적색(FXPalette.MonsterDanger) 발광을 부여한다. 강도 = FXMotion.Progress(t) × 피크 1.6.
+        /// _EMISSION 미지원 셰이더는 폴백 스킵 + 씬 키 WarnOnce 1회.
+        /// </summary>
+        private void UpdateChargeGlow(float t)
+        {
+            float intensity = FXMotion.Progress(t) * ChargeGlowPeakIntensity;
+            Color danger = FXPalette.MonsterDanger;
+            Color emission = new Color(danger.r * intensity, danger.g * intensity, danger.b * intensity, 1f);
+            string sceneKey = $"charge-glow-missing-emission:{UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}";
+            foreach (var rend in GetComponentsInChildren<Renderer>(true))
+            {
+                if (rend is TrailRenderer || rend is ParticleSystemRenderer || rend is LineRenderer)
+                    continue; // 이펙트 렌더러 스킵 — 53차 측정 필터 선례
+                if (rend.sharedMaterial == null) continue;
+                var mat = rend.material;   // 인스턴스 머티리얼 — L300-302 .material 패턴 기존 존재
+                if (mat == null || !mat.HasProperty("_EmissionColor"))
                 {
-                    BuffManager.Instance.AddBuff("Slowness", 0.5f, 5f); // 이동 속도 0.5 감소, 5초 지속
-                    Debug.Log("[AnimalAI] 🐌 플레이어에게 슬로우 디버프 적용 (속도 -0.5, 5초)");
+                    WarnOnce(sceneKey, $"[AnimalAI] [무번호 28-M1] 충전 글로우 미지원 셰이더 폴백 스킵 — _EmissionColor 프로퍼티 부재({(mat != null ? mat.shader.name : "null")})");
+                    continue;
+                }
+                mat.EnableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", emission);
+            }
+
+            // [무번호 29-M1-2] 충전 림 — 위험 임박(fill≥0.75) 프레넬 림 강화(D-3 오버레이).
+            //   등 위계: AfterlifeEnemy 동거(정예)=주황(ElitAura), 일반=위험 적색(MonsterDanger).
+            //   림 셰이더 미지원 환경 = 기존 emissive만(폴백 계약 — 위 루프 무손상).
+            float fill = FXMotion.Progress(t);
+            if (fill >= 0.75f)
+            {
+                bool elite = TryGetComponent<AfterlifeEnemy>(out _);
+                Color rimCol = elite ? FXPalette.ElitAura : FXPalette.MonsterDanger;
+                if (_chargeRim == null)
+                {
+                    var rimSmr = GetComponentInChildren<SkinnedMeshRenderer>();
+                    if (rimSmr != null) _chargeRim = FxRimOverlay.AttachRim(rimSmr, rimCol, 3f, 1.2f);
+                    if (_chargeRim == null)
+                        WarnOnce($"charge-rim-fallback:{UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}",
+                            "[AnimalAI] [무번호 29-M1-2] 충전 림 폴백 — 림 셰이더 부재/SMR 부재, 기존 emissive만 유지");
+                }
+                if (_chargeRim != null)
+                {
+                    FxRimOverlay.SetRimColor(_chargeRim, rimCol);
+                    FxRimOverlay.SetRimIntensity(_chargeRim, 0.8f + 1.2f * (fill - 0.75f) / 0.25f);   // 임박 강화
+                }
+            }
+            else if (_chargeRim != null)
+            {
+                FxRimOverlay.Release(_chargeRim); _chargeRim = null;
+            }
+        }
+
+        /// <summary>
+        /// [무번호 28-M1] 충전 글로우 해제 — 각 인스턴스 머티리얼의 _EmissionColor를 블랙으로 복원
+        /// (EmissiveIsBlack GI 비기년재 — 25-BL1 주석 선례). base color 무손상. 멱등(다중 경로 호출 안전).
+        /// </summary>
+        private void ReleaseChargeGlow()
+        {
+            foreach (var rend in GetComponentsInChildren<Renderer>(true))
+            {
+                if (rend is TrailRenderer || rend is ParticleSystemRenderer || rend is LineRenderer)
+                    continue;
+                if (rend.sharedMaterial == null) continue;
+                var mat = rend.material;
+                if (mat == null || !mat.HasProperty("_EmissionColor")) continue;
+                mat.SetColor("_EmissionColor", Color.black);
+            }
+            if (_chargeRim != null) { FxRimOverlay.Release(_chargeRim); _chargeRim = null; }   // [무번호 29-M1-2] 림 해제(멱등)
+        }
+
+        /// <summary>[무번호 29-M2-1] 히트 림 플래시 — 피격 순간 몸 림 0.12s(D-3 오버레이·별도 경로).
+        /// EA1 몸색 혼합과 병행, 기존 히트컬러 계약 무손상. 림 불가 환경=무영향 폴백. 결정론(Random 0건).</summary>
+        public void PlayHitRimFlash()
+        {
+            if (!Application.isPlaying) return;
+            var rimSmr = GetComponentInChildren<SkinnedMeshRenderer>();
+            if (rimSmr == null) return;
+            var rim = FxRimOverlay.AttachRim(rimSmr, FXPalette.MonsterDanger, 2.5f, 1.6f);
+            if (rim == null) return;   // 폴백 — 기존 히트 경로만
+            StartCoroutine(ReleaseHitRimAfter(rim, 0.12f));
+        }
+
+        private System.Collections.IEnumerator ReleaseHitRimAfter(GameObject rim, float seconds)
+        {
+            yield return new UnityEngine.WaitForSeconds(seconds);
+            FxRimOverlay.Release(rim);
+        }
+
+        /// <summary>
+        /// [무번호 28-P3] 공격자 반응 플래시 — 패링 성공 순간 공격자 몸 백색 반전 0.1s(PlayerCombat Perfect 배선).
+        /// GetComponentsInChildren&lt;Renderer&gt;(true) 전부 순회(Trail/Particle/Line 스킵 — M1 필터 선례),
+        /// EnableKeyword("_EMISSION") + _EmissionColor = Color.white × 1.8f → 0.1s(unscaled) → black 원복.
+        /// M1 해제 상태(black)와 동일 — 상충 없음; windup 재시작 시 UpdateChargeGlow가 매 프레임 재개(자가 치유).
+        /// </summary>
+        public void PlayParryFlash()
+        {
+            if (!Application.isPlaying) return;   // EditMode 가드 — 코루틴 미개시(무해)
+            StartCoroutine(PlayParryFlashRoutine());
+        }
+
+        /// <summary>[무번호 28-P3] PlayParryFlash 본체 코루틴 — white 1.8f 펄스 → black 원복(M1 인프라 재사용).</summary>
+        private System.Collections.IEnumerator PlayParryFlashRoutine()
+        {
+            // [무번호 29-P3-2] 공격자 백색 림 — 실루엣 반전 강조(D-3 오버레이).
+            //   M1 충전 림 상충 가드 유지: 충전 림 활성 중이면 스킵(가드 계약 계승).
+            GameObject whiteRim = null;
+            if (_chargeRim == null)
+            {
+                var rimSmr = GetComponentInChildren<SkinnedMeshRenderer>();
+                if (rimSmr != null) whiteRim = FxRimOverlay.AttachRim(rimSmr, Color.white, 2.2f, 1.8f);
+            }
+            var flashMats = new System.Collections.Generic.List<Material>();
+            foreach (var rend in GetComponentsInChildren<Renderer>(true))
+            {
+                if (rend is TrailRenderer || rend is ParticleSystemRenderer || rend is LineRenderer)
+                    continue;   // 이펙트 렌더러 스킵 — M1 필터 선례
+                if (rend.sharedMaterial == null) continue;
+                var mat = rend.material;
+                if (mat == null || !mat.HasProperty("_EmissionColor")) continue;
+                mat.EnableKeyword("_EMISSION");
+                mat.SetColor("_EmissionColor", Color.white * 1.8f);
+                flashMats.Add(mat);
+            }
+            yield return new WaitForSecondsRealtime(0.1f);
+            if (whiteRim != null) FxRimOverlay.Release(whiteRim);   // [무번호 29-P3-2] 림 해제(누출 금지)
+            foreach (var mat in flashMats)
+            {
+                if (mat == null) continue;
+                mat.SetColor("_EmissionColor", Color.black);   // black 원복 — M1 해제 상태와 동일
+            }
+        }
+
+        /// <summary>예고 페이즈 진입 — 텔레그래프 상태 진환(인디케이터 스폰/스케일 펄스 시작). 기존 쿨다운 게이트는 TryAttack 선두 유지.</summary>
+        private void BeginMeleeTelegraph(IDamageable aggroTarget)
+        {
+            // 이중 진입 방지 — 진행 중 예고가 있으면 안전 정리 후 재시작 (다중 인스턴스 안전: 전부 인스턴스 상태)
+            CancelMeleeTelegraph();
+
+            _telegraphActive = true;
+            _telegraphAggroTarget = aggroTarget;
+            _telegraphBaseScale = transform.localScale;
+
+            // ②발밑 경고 인디케이터 — [190차 제거] 몬스터 적색링(공격 텔레그래프 호) 폐지 — 사용자 지시
+            //   "몬스터 적색링은 아직 안 없어진거 같던데". 스폰 삭제 — _telegraphIndicator 영구 null,
+            //   발동 플래시(ConcludeMeleeTelegraph null 가드)·인디케이터 정리(null 가드) 모두 무영향.
+            // [무번호 25-A3] 적색링 절반 축소 계약(T6)은 190차 제거 계약으로 갱신.
+            // [169-P6] 호 판정 자체는 유지 — 방향은 예고 시작 시점 타겟 방향으로 고정 — windup 내 호 밖
+            //   이동 시 빈 스윙(회피 가능) — 시각 없이 판정만 존속.
+            Vector3 arcDir = transform.forward;
+            if (_aggroTarget != null)
+            {
+                Vector3 d = _aggroTarget.transform.position - transform.position; d.y = 0f;
+                if (d.sqrMagnitude > 0.0001f) arcDir = d.normalized;
+            }
+            _telegraphArcDir = arcDir;
+            _telegraphIndicator = null;   // [190차] 적색링 제거 — 스폰 삭제(판정·윈드업 로직 무영향)
+
+            _telegraphRoutine = StartCoroutine(MeleeTelegraphRoutine());
+        }
+
+        /// <summary>예고 코루틴 — 0.5s 스케일 펄스(선동작) 후 거리 재확인 타격. 예고 중 사망 시 안전 정리.</summary>
+        private System.Collections.IEnumerator MeleeTelegraphRoutine()
+        {
+            float elapsed = 0f;
+            while (elapsed < TelegraphWindupSeconds)
+            {
+                if (_isDead)          // 예고 중 사망 — 무타격 보장 후 정리
+                {
+                    CancelMeleeTelegraph();
+                    yield break;
+                }
+
+                // ①선동작 — 절차 스케일 펄스 1.0→1.12→1.0 (사인 반파, 기저 스케일 배수 — 스폰 스케일 보존)
+                float t = Mathf.Clamp01(elapsed / TelegraphWindupSeconds);
+                UpdateChargeGlow(t);   // [무번호 28-M1] 충전 글로우 — 예고 진행에 비례해 위험 적색 발광 상승
+                float pulse = 1f + (TelegraphScalePulsePeak - 1f) * Mathf.Sin(t * Mathf.PI);
+                transform.localScale = _telegraphBaseScale * pulse;
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            ConcludeMeleeTelegraph();
+        }
+
+        /// <summary>예고 종료 — 거리 재확인 후 타격(기존 TakeDamage 시그니처 그대로) 또는 공격 공백(빈 스윙).</summary>
+        private void ConcludeMeleeTelegraph()
+        {
+            RestoreTelegraphVisuals();
+            ReleaseChargeGlow();   // [무번호 28-M1] 해제 경로 ① — 루프 정상 종료 직후(공격 실행 지점)
+
+            // [무번호 20-H3] 발동 순간 공격 방향 부채꼴 플래시 — 실제 스윙 방향(어그로 대상/플레이어)으로
+            //   정직한 예고(B2 부채꼴·플래시 셰이더 자산 사용 배선 — 중복 구현 없음).
+            if (_telegraphIndicator != null)
+            {
+                var telegraphComp = _telegraphIndicator.GetComponent<TelegraphArcIndicator>();
+                if (telegraphComp != null)
+                {
+                    Vector3 flashDir = _telegraphAggroTarget != null && _aggroTarget != null
+                        ? (Vector3)(_aggroTarget.transform.position - transform.position)
+                        : (PlayerHealth.Instance != null ? (Vector3)(PlayerHealth.Instance.transform.position - transform.position) : transform.forward);
+                    flashDir.y = 0f;
+                    telegraphComp.FlashConclude(flashDir.sqrMagnitude > 0.0001f ? flashDir.normalized : transform.forward);
+                }
+            }
+
+            IDamageable aggroTarget = _telegraphAggroTarget;
+            _telegraphAggroTarget = null;
+
+            if (aggroTarget != null)
+            {
+                // 어그로 대상 경로 — 재활성/생존/사정거리 재확인 후 기존 오버로드 그대로
+                if (_aggroTarget != null && _aggroTarget.activeInHierarchy && aggroTarget.IsAlive)
+                {
+                    float aggroDist = Vector3.Distance(transform.position, _aggroTarget.transform.position);
+                    if (aggroDist <= _attackRange && TelegraphArcIndicator.IsInFrontArc(transform.position, _telegraphArcDir, _aggroTarget.transform.position, _attackRange))   // [169-P6] 부채꼴 판정 — 표시=판정 정합
+                    {
+                        Vector3 hitDirection = (_aggroTarget.transform.position - transform.position).normalized;
+                        aggroTarget.TakeDamage(_attackDamage, hitDirection, "melee");
+                        // [무번호 21-L2] 스콜치 데칼 — 명중 지점(대상 발밑) 전투 흔적 1회. 빈 스윙은 미배치(판정 정직성).
+                        try
+                        {
+                            if (DecalSpawner.Instance != null)
+                                DecalSpawner.Instance.SpawnDecal("ScorchMark",
+                                    new Vector3(_aggroTarget.transform.position.x, 0.02f, _aggroTarget.transform.position.z), Quaternion.identity);
+                        }
+                        catch (System.Exception) { }
+                        // [무번호 22-S2/S3] 스윙 지면 파동(공격 방향 좁은 팬 3본)+불티 파편(5개) — 흔적에 생동감.
+                        try
+                        {
+                            Vector3 hitGround = new Vector3(_aggroTarget.transform.position.x, 0.05f, _aggroTarget.transform.position.z);
+                            ShockwaveRingFX.SpawnSwingSweep(hitGround, hitDirection, new Color(1f, 0.35f, 0.25f, 0.9f), 0.25f);
+                            ShockwaveRingFX.SpawnEmberBurst(hitGround);
+                            // [무번호 23-X3] 몬스터 스윙 아크 — 곡선 잔상(위스프 재사용, 적색 계열)
+                            ShockwaveRingFX.SpawnParryArcWisps(new Vector3(hitGround.x, hitGround.y + 0.9f, hitGround.z),
+                                hitDirection, new Color(1f, 0.35f, 0.25f, 0.9f), 0.25f);
+                        }
+                        catch (System.Exception) { }
+                        Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId}가(이) {_aggroTarget.name}에게 {_attackDamage} 데미지!");
+                    }
+                    else
+                    {
+                        Debug.Log($"[AnimalAI] {_monsterId} 빈 스윙 — 예고 중 대상 이탈 (거리 {aggroDist:F2} > 사정거리 {_attackRange:F2}) [95차 F5]");
+                    }
+                }
+            }
+            else if (PlayerHealth.Instance != null)
+            {
+                // 기존 경로: 플레이어 공격 — [95차 F5] 예고 종료 후 거리 재확인 (이탈 시 빈 스윙)
+                // [80차] 플레이어 넉백 — 타격 방향 전달(공격자→플레이어 평면 방향). 기존 규약 유지.
+                Vector3 playerHitDir = PlayerHealth.Instance.transform.position - transform.position;
+                playerHitDir.y = 0f;
+                float playerDist = playerHitDir.magnitude;
+                if (playerDist <= _attackRange && TelegraphArcIndicator.IsInFrontArc(transform.position, _telegraphArcDir, PlayerHealth.Instance.transform.position, _attackRange))   // [169-P6] 부채꼴 판정
+                {
+                    Vector3 kbDir = playerHitDir.sqrMagnitude > 0.0001f ? playerHitDir.normalized : transform.forward;
+                    // [159차 P4] 몬스터 타격 임팩트 VFX — 흡수점(플레이어 흉부)에서 발화.
+                    //   ①히트스톱 0.04s(scale 0.10) — 타격 무게감(패링 0.07s 대비 약 0.6배)
+                    //   ②지면 링 1겹(흡수점 y 0.05m, 붉은 톤 1.4m) — 몬스터 공격 시그니처 색(패링 금/청 대비)
+                    //     [무번호 25-A4] SpawnImpactRing — HDR emissive ×2.0 + 깊이 페이드(_FadeLength 0.35) +
+                    //     EliteColor 변주 계약(텔레그래프 위험도 2색 패밀리 승계). 46/47차 에셋 계약 무변경.
+                    //   ③방향성 스파크(공격자→플레이어 방향) — 기존 ShockwaveRingFX API 재사용
+                    if (Application.isPlaying)
+                        HitStopManager.RequestHitStop(0.04f, 0.10f);
+                    Vector3 impactP = PlayerHealth.Instance.transform.position + Vector3.up * 0.9f;
+                    // [195차 P1] 지면 링(SpawnImpactRing 1.4m 적색) 호출 철거 — 사용자 지시 몬스터 링 시각 폐지.
+                    //   개성 틴트(accentDef/accentBody)는 해당 링 전용 인자라 함께 걷어냄(틴트 헬퍼 정의는 시그니처 계약 보존).
+                    //   ③방향성 스파크 이하 데칼/스윙/불티 따뜻한 색 히트 피드백은 무수정.
+                    ShockwaveRingFX.SpawnDirectionalSpark(impactP, -kbDir, new Color(1f, 0.35f, 0.25f, 0.9f), 0.35f);
+                    // [무번호 21-L2] 스콜치 데칼 — 명중 지점 지면 그을음 흔적 1회(빈 스윙은 미배치 — 판정 정직성).
+                    try
+                    {
+                        if (DecalSpawner.Instance != null)
+                            DecalSpawner.Instance.SpawnDecal("ScorchMark",
+                                new Vector3(impactP.x, 0.02f, impactP.z), Quaternion.identity);
+                    }
+                    catch (System.Exception) { }
+                    // [무번호 22-S2/S3] 스윙 지면 파동(공격 방향)+불티 파편 — 흔적에 생동감.
+                    try
+                    {
+                        Vector3 hitGround = new Vector3(impactP.x, 0.05f, impactP.z);
+                        ShockwaveRingFX.SpawnSwingSweep(hitGround, kbDir, new Color(1f, 0.35f, 0.25f, 0.9f), 0.25f);
+                        ShockwaveRingFX.SpawnEmberBurst(hitGround);
+                        // [무번호 23-X3] 몬스터 스윙 아크 — 곡선 잔상(위스프 재사용, 적색 계열)
+                        ShockwaveRingFX.SpawnParryArcWisps(new Vector3(hitGround.x, hitGround.y + 0.9f, hitGround.z),
+                            kbDir, new Color(1f, 0.35f, 0.25f, 0.9f), 0.25f);
+                    }
+                    catch (System.Exception) { }
+                    PlayerHealth.Instance.TakeDamage(_attackDamage, kbDir, "melee");
+                    Debug.Log($"{MonsterDatabase.Get(_monsterId)?.displayName ?? _monsterId}가(이) 플레이어에게 {_attackDamage} 데미지!");
+                    // 적용 디버프: 슬로우 (이동 속도 감소)
+                    if (BuffManager.Instance != null)
+                    {
+                        BuffManager.Instance.AddBuff("Slowness", 0.5f, 5f); // 이동 속도 0.5 감소, 5초 지속
+                        Debug.Log("[AnimalAI] 🐌 플레이어에게 슬로우 디버프 적용 (속도 -0.5, 5초)");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[AnimalAI] BuffManager 인스턴스를 찾을 수 없습니다.");
+                    }
                 }
                 else
                 {
-                    Debug.LogWarning("[AnimalAI] BuffManager 인스턴스를 찾을 수 없습니다.");
+                    // 공격 공백 — 빈 스윙 (데미지/쿨다운 계약 무손상, 타격만 보류)
+                    // [159차 P4] 빈 스윙(회피 성공) 피드백 — 몬스터 발밑 희미한 흰 파동(0.9m).
+                    //   막았을 때(패링 흰색)와 명중 시(붉은색)과 분리된 3번째 피드백 채널.
+                    Vector3 missP = transform.position + Vector3.up * 0.05f;
+                    ShockwaveRingFX.Spawn(missP, 0.9f, new Color(0.9f, 0.9f, 0.9f, 0.45f), 0.4f);
+                    Debug.Log($"[AnimalAI] {_monsterId} 빈 스윙 — 예고 중 플레이어 이탈 (거리 {playerDist:F2} > 사정거리 {_attackRange:F2}) [95차 F5]");
                 }
             }
             else
             {
                 Debug.Log($"{_monsterId} attacks for {_attackDamage} damage!");
+            }
+        }
+
+        /// <summary>예고 시각 요소 정리 — 스케일 복원 + 인디케이터 제거 + 상태 초기화(코루틴 정지 포함).</summary>
+        private void CancelMeleeTelegraph()
+        {
+            if (_telegraphRoutine != null)
+            {
+                StopCoroutine(_telegraphRoutine);
+                _telegraphRoutine = null;
+            }
+            RestoreTelegraphVisuals();
+            ReleaseChargeGlow();   // [무번호 28-M1] 해제 경로 ② — CancelMeleeTelegraph/예고 중단 경로
+            _telegraphAggroTarget = null;
+        }
+
+        /// <summary>선동작 스케일 복원 + 인디케이터 제거 + 플래그 해제 (파괴 진행 중 호출 안전).</summary>
+        private void RestoreTelegraphVisuals()
+        {
+            _telegraphActive = false;
+            _telegraphRoutine = null;
+            if (this != null && transform != null)
+                transform.localScale = _telegraphBaseScale;
+            if (_telegraphIndicator != null)
+            {
+                Destroy(_telegraphIndicator);
+                _telegraphIndicator = null;
             }
         }
 
@@ -905,6 +1290,7 @@ namespace ProjectName.Systems
             try
             {
                 CombatVFXController.PlayHitFlash(gameObject);
+                PlayHitRimFlash();   // [무번호 29-M2-1] 히트 림 플래시(별도 경로 — 히트컬러 계약 무손상)
 
                 // 4. Hit Reaction (넉백 + 경직)
                 var hitReaction = GetComponent<HitReaction>();
@@ -971,6 +1357,7 @@ namespace ProjectName.Systems
             if (_isDead) return false;
 
             _isDead = true;
+            if (_chargeRim != null) { FxRimOverlay.Release(_chargeRim); _chargeRim = null; }   // [무번호 29-M1-2] 사망 림 해제(누출 금지)
 
             // 애니메이션: Idle (즉시)
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
@@ -1019,6 +1406,11 @@ namespace ProjectName.Systems
         {
             if (_isDead) return;
             _isDead = true;
+            if (_chargeRim != null) { FxRimOverlay.Release(_chargeRim); _chargeRim = null; }   // [무번호 29-M1-2] 사망 림 해제(누출 금지)
+
+            // [95차 F5] 예고 중 사망 — 진행 중 텔레그래프 안전 정리(코루틴 정지+인디케이터 제거+스케일 복원), 무타격 보장
+            CancelMeleeTelegraph();
+            ReleaseChargeGlow();   // [무번호 28-M1] 해제 경로 ③ — Die 경로(사망 시각 복원 지점 — GetComponentsInChildren 토글 근처)
 
             // 애니메이션: Idle (즉시)
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
@@ -1056,8 +1448,21 @@ namespace ProjectName.Systems
             // 🔊 컨트롤러 진동: 몬스터 사망 (Light)
             HapticFeedback.PlayPreset(HapticFeedback.RumblePreset.Light);
 
-            // Death effect — 프리팹 이펙트 제거 (촌스러운 파티클 방지)
-            // if (deathEffectPrefab != null) { Instantiate(deathEffectPrefab, transform.position, Quaternion.identity); }
+            // [무번호 25-A1] 사망 FX 무한 반복 수리 — Instantiate(deathEffectPrefab) 직접 호출(루프 오프/파괴 예약 부재,
+            // DeathSmoke burst 루핑이 죽은 자리에 연기를 영원히 남김) 폐기 → DeathVFX.PlayDeathVFX 유한 수명 경로로 우회
+            // (main.loop=false 강제 + 루핑 서브시스템 Stop + Destroy(go, 2~3s) + maxBurstsPerSecond=8 예산).
+            // deathEffectPrefab 필드와 MonsterData 폴백 로드 경로는 유지(EA2 MonsterData 계약 무손상, 리소스 판별 용도).
+            // [무번호 46-T2] FX 격리 — 45차 실측: DeathVFX NRE가 Die()를 1447행에서 중단 → 그 아래 전리품
+            //   바구니·고기/재료/희귀 드롭·디졸브·시체 정리 전부 미실행(사용자 보고 "전리품 안 뜸/사망 확인 불가"의
+            //   직접 뿌리). FX 실패는 사망 후처리를 방해하지 않는다 — TakeDamage의 카메라 이펙트 격리 선례와 동일 원칙.
+            try
+            {
+                DeathVFX.PlayDeathVFX(transform.position, 1f);
+            }
+            catch (System.Exception deathFxEx)
+            {
+                Debug.LogWarning($"[46-DIE] 사망 FX 격리 — 사망 후처리(전리품·디졸브) 계속: {deathFxEx.Message}");
+            }
             if (deathSound != null)
             {
                 AudioSource.PlayClipAtPoint(deathSound, transform.position);
@@ -1114,6 +1519,9 @@ namespace ProjectName.Systems
 
             // === G2-04: 처치 카메라 이펙트
             CombatCameraEffects.PlayKill();
+            // [무번호 71-G2] 처치 콤보 카운터 등록 — 동일 처치가 PlayKillVFX 훅과 이중 계수되지 않도록
+            //   카운터 내 디듀프 가드(KillDedupSec)가 정합 담당. 연출 보조 try/catch 격리(전투 방해 금지).
+            try { FxKillComboCounter.RegisterKill(transform.position); } catch (System.Exception) { }
         }
 
         /// <summary>
@@ -1131,6 +1539,23 @@ namespace ProjectName.Systems
             FeedQuadrupedSpeed(0f);
             SetCollidersEnabled(false);
 
+            // [무번호 30-D4] 사망 디졸브 — 눕힘/sink 창(0.6~1.2s)에 바디 소멸 램프(엣지=MonsterDanger).
+            //   폴백: 셰이더 부재/편집 모드 = 기존 사망 연출만(무영향). 머티리얼 인스턴스는 램프 종료 시 파괴(누출 금지).
+            bool dissolveBegan = FxDissolveUtility.TryBeginDissolve(gameObject, FXPalette.MonsterDanger, 0.9f, (int)_tier);   // [무번호 39-T4] 티어 위계
+            if (dissolveBegan)
+            {
+                StartCoroutine(FxDissolveUtility.FadeRoutine(gameObject, 0.9f));
+                // [무번호 33-A3] 사망 소멸 광 — 디졸브 램프(0.9s)와 동기된 소멸 광(색=MonsterDanger 단일 소스).
+                //   디졸브 폴백(셰이더 부재) 시 라이트도 스킵(연출 동기 계약).
+                FxImpactLight.Spike(transform.position, FXPalette.MonsterDanger, 1.6f, 5f, 0.9f);
+                // [무번호 33-D2] 소멸 불티 — 디졸브 엣지 상승 불티 버스트(FXPalette.Edge 단일 소스, 유한 수명).
+                FxEmberRise.Burst(transform.position);
+            }
+
+            // [무번호 72-W2] 사망 관절 이완 1단계 — 절차 본 회전(러그돌 아님), 0.35s(눕힘 0.5s 창과 겹침,
+            //   시체 숨김 0.6~1.2s 전 완료). FX 격리 원칙: 사망 후처리(디졸브/눕힘/전리) 절대 방해 금지 — 예외 조용 스킵.
+            try { FxDeathRelax.Begin(gameObject, 0.35f); } catch (System.Exception) { }
+
             StartCoroutine(DeathDownRoutine(respawnDelay));
         }
 
@@ -1147,6 +1572,7 @@ namespace ProjectName.Systems
             Quaternion startRot = transform.rotation; // 현재 바라보는 방향 기준 눕힘 (스폰 회전으로 역스냅 방지)
             Quaternion downRot = startRot * Quaternion.Euler(0f, 0f, 90f); // GLB 메시 기준 측면 눕힘
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
+            if (_rigAnim != null) _rigAnim.enabled = false;   // [무번호 72-W2] 리그 프리즈 — 본 구동 충돌 제거(이완 러너가 사지 본 구동 담당, 컴포넌트 인스턴스 토글만)
 
             float downDuration = 0.5f;
             float t = 0f;
@@ -1203,6 +1629,7 @@ namespace ProjectName.Systems
             FeedQuadrupedSpeed(0f);
 
             // 애니메이션: Idle
+            if (_rigAnim != null) _rigAnim.enabled = true;   // [무번호 72-W2] 리그 원복 — 리스폰 후 정상 구동(프리즈 대응)
             if (_rigAnim != null) _rigAnim.SetStateImmediate(AnimationState.Idle);
         }
 
@@ -1248,7 +1675,19 @@ namespace ProjectName.Systems
             {
                 _aggroState = AggroState.Alert;
                 _aggroTimer = 0f;
+                // [무번호 19-E1] 발견(!) 시각 시그널 — Alert 진입 시 발밑 적색 ! 링(SpawnAlert, 3s 전이 게이지)
+                // [무번호 19-E2] 발견 SFX — Alert 진입 시 저음 웅성+짧은 경계음(시각+청각 이중 예고)
+                // [195차 P1] 시그널 본문 비움 — 적색링·청록 회전 체브런 시각+발견 SFX 철거(호출 배선·Alert→Combat 전이 로직 무수정)
+                SpawnAlertSignals();
             }
+        }
+
+        /// <summary>[무번호 19-E1/E2] 발견 시각+청각 시그널 — (구) 발밑 적색 ! 링(3s 전이 게이지) + 발견 SFX.
+        /// [195차 P1] 시각 제거 — 사용자 지시로 적색 링+청록 회전 체브런 스폰과 발견 SFX를 모두 철거, 본문 비움.
+        ///   메서드 시그니처는 계약 보존(호출부 SetAggroTarget 무수정) — Alert→Combat 3초 전이(UpdateAggroTimer) 무수정.</summary>
+        private void SpawnAlertSignals()
+        {
+            // [195차 P1] 본문 비움 — 발견 시각/청각 시그널 철거(시그니처 계약 보존).
         }
 
         /// <summary>어그로 해제. 대상 사망/이탈 시.</summary>
@@ -1353,6 +1792,10 @@ namespace ProjectName.Systems
                 FeedQuadrupedSpeed(0f);
                 if (_rigAnim != null && _rigAnim.CurrentState != AnimationState.Idle)
                     _rigAnim.SetState(AnimationState.Idle);
+
+                // [무번호 19-E3] 발견 응시 애니메이션 — Alert 진입 첫 0.5s 동안 몬스터가 대상 방향으로
+                // 응시 + 짧은 정지(4족 애니 속도 0 피드는 이미 위에서 수행). 보강: Alert 진입 직후
+                // 시각 피드백(적색 ! 링 E1)이 발밑에 렌더되므로, 응시 동작은 기존 LookRotation 스냅 유지.
                 return;
             }
 
@@ -1476,26 +1919,37 @@ namespace ProjectName.Systems
                 }
             }
 
-            // IDamageable이면 데미지 (기본 공격)
+            // [95차 F5] IDamageable이면 데미지 (기본 공격) — 즉발 대신 예고→타격 2페이즈(거리 재확인 포함)
             if (_aggroTarget != null)
             {
                 var dmg = _aggroTarget.GetComponent<IDamageable>();
                 if (dmg != null && dmg.IsAlive)
                 {
-                    Vector3 dir = (_aggroTarget.transform.position - transform.position).normalized;
-                    dmg.TakeDamage(_attackDamage, dir, "melee");
-                    Debug.Log($"{_monsterId}가(이) {_aggroTarget.name}에게 {_attackDamage} 데미지 (어그로)!");
+                    BeginMeleeTelegraph(dmg);
                 }
             }
         }
 
         private void OnDestroy()
         {
+            // [95차 F5] 예고 중 파괴 — 코루틴/인디케이터 안전 정리 (파괴 후에도 링 쿼드 잔존 방지)
+            CancelMeleeTelegraph();
+
             // MonsterAggroSystem 등록 해제
             if (MonsterAggroSystem.Instance != null)
             {
                 MonsterAggroSystem.Instance.UnregisterMonster(this);
             }
+        }
+
+        /// <summary>[무번호 25-EA1] 몬스터 개성 임팩트 틴트 — 제안안(위험도 기본 적색 유지 + 몸색 25% 반영).
+        ///   B3 위험도 색 계약(텔레그래프 일반=적/정예=주황)은 AttackTelegraphIndicator 내부 독립이라 무영향. 결정론.</summary>
+        private static Color MonsterAccentImpactColor(Color baseImpactColor, Color bodyColor)
+        {
+            float maxC = Mathf.Max(bodyColor.r, Mathf.Max(bodyColor.g, bodyColor.b));
+            if (maxC <= 0.001f) return baseImpactColor;         // 0색 안전 가드
+            Color sat = new Color(bodyColor.r / maxC, bodyColor.g / maxC, bodyColor.b / maxC, 1f);   // 정규화
+            return Color.Lerp(baseImpactColor, sat, 0.25f);     // 적색 우세 유지 — hue 25% 시프트
         }
     }
 }

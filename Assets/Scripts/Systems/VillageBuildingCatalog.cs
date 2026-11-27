@@ -65,6 +65,11 @@ namespace ProjectName.Systems
         public static string ShelterPath(int i) => BuildingDir + ShelterKeys[Mod(i, ShelterCount)];
         public static string ShopPath(int i)  => BuildingDir + ShopKeys[Mod(i, ShopCount)];
 
+        /// <summary>[86차] 마을 울타리 — 나무 펜스 GLB(사용자 지정 신규 에셋: 스플릿 로그 목장 펜스).
+        ///   원본 위치 Assets/새로운 glb/fence/(건물과 동일 AssetDatabase 로드 경로).</summary>
+        public const string FencePath = "Assets/새로운 glb/fence/common-fences-split-log-ranch-fence-straight-normal.glb";
+        public const float FenceTargetHeight = 1.1f;   // 울타리 목표 높이(m) — 사람 허리 높이 경계물
+
         private static int Mod(int a, int b) { int r = a % b; return r < 0 ? r + b : r; }
 
         /// <summary>

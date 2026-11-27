@@ -1,0 +1,4228 @@
+{
+ "id": "93:230",
+ "name": "quest-window-ui",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 32082,
+ "ay": 3,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "IMAGE",
+  "#0B0E14/1.0@0.82"
+ ],
+ "strokeW": 1.2,
+ "layout": "HORIZONTAL",
+ "gap": 24.0,
+ "pl": 38.400001525878906,
+ "pr": 38.400001525878906,
+ "pt": 38.400001525878906,
+ "pb": 38.400001525878906,
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "93:231",
+   "name": "QuestListPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 32226,
+   "ay": 51,
+   "w": 480.0,
+   "h": 984.0,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.251"
+   ],
+   "layout": "VERTICAL",
+   "gap": 19.200000762939453,
+   "pl": 24.0,
+   "pr": 24.0,
+   "pt": 24.0,
+   "pb": 24.0,
+   "c": [
+    {
+     "id": "93:232",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32226,
+     "ay": 51,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:233",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32226,
+       "ay": 51,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:234",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32226,
+       "ay": 51,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:235",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32692,
+     "ay": 51,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:236",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32692,
+       "ay": 51,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:237",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32692,
+       "ay": 51,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:238",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32226,
+     "ay": 1021,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:239",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32226,
+       "ay": 1021,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:240",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32226,
+       "ay": 1021,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:241",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32692,
+     "ay": 1021,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:242",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32692,
+       "ay": 1021,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:243",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32692,
+       "ay": 1021,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:244",
+     "name": "PanelHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32250,
+     "ay": 75,
+     "w": 432.0,
+     "h": 52.8,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 14.40000057220459,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "93:245",
+       "name": "TitleGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32250,
+       "ay": 82,
+       "w": 186.0,
+       "h": 25.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "93:246",
+         "name": "퀘스트 창",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32250,
+         "ay": 82,
+         "w": 85.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "퀘스트 창",
+         "fontSize": 21.600000381469727,
+         "font": "Roboto 700 Bold",
+         "lineH": 25.3
+        },
+        {
+         "id": "93:247",
+         "name": "QUEST DECK",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32347,
+         "ay": 90,
+         "w": 89.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "QUEST DECK",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 500 Medium",
+         "lineH": 15.5,
+         "letterSp": 1.2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "93:248",
+     "name": "FilterTabs",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32250,
+     "ay": 147,
+     "w": 432.0,
+     "h": 36.2,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 4.800000190734863,
+     "c": [
+      {
+       "id": "93:249",
+       "name": "Tab",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32250,
+       "ay": 147,
+       "w": 212.4,
+       "h": 36.2,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 12.0,
+       "pr": 12.0,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:250",
+         "name": "진행 중",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32334,
+         "ay": 157,
+         "w": 44.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "진행 중",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "93:251",
+       "name": "Tab",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32467,
+       "ay": 147,
+       "w": 214.8,
+       "h": 36.2,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 12.0,
+       "pr": 12.0,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:252",
+         "name": "완료",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32561,
+         "ay": 157,
+         "w": 27.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "완료",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "93:255",
+     "name": "QuestSlotsContainer",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32250,
+     "ay": 202,
+     "w": 432.0,
+     "h": 755.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "93:256",
+       "name": "QuestSlot",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32250,
+       "ay": 202,
+       "w": 432.0,
+       "h": 135.2,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.078"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 14.40000057220459,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "c": [
+        {
+         "id": "93:257",
+         "name": "TierStrip",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 32250,
+         "ay": 202,
+         "w": 4.8,
+         "h": 135.4,
+         "d": 4,
+         "fills": [
+          "#BC8CFF/1.0"
+         ],
+         "strokeW": 1.2
+        },
+        {
+         "id": "93:258",
+         "name": "CardHeader",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 217,
+         "w": 403.2,
+         "h": 18.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:259",
+           "name": "CategoryPill",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 217,
+           "w": 114.4,
+           "h": 18.8,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 4.8,
+           "layout": "HORIZONTAL",
+           "pl": 7.200000286102295,
+           "pr": 7.200000286102295,
+           "pt": 2.4000000953674316,
+           "pb": 2.4000000953674316,
+           "c": [
+            {
+             "id": "93:260",
+             "name": "MAIN OPERATION",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 32272,
+             "ay": 219,
+             "w": 100.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "MAIN OPERATION",
+             "fontSize": 12.0,
+             "font": "Roboto 700 Bold",
+             "lineH": 14.1
+            }
+           ]
+          },
+          {
+           "id": "93:261",
+           "name": "Lv.45",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32634,
+           "ay": 218,
+           "w": 34.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "Lv.45",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:262",
+         "name": "CardBody",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 250,
+         "w": 403.2,
+         "h": 41.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 4.800000190734863,
+         "c": [
+          {
+           "id": "93:263",
+           "name": "부서진 차원의 문 가동",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 250,
+           "w": 403.2,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "부서진 차원의 문 가동",
+           "fontSize": 16.80000114440918,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "93:264",
+           "name": "크로노스 연료 전지 5개 획득",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 275,
+           "w": 403.2,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "크로노스 연료 전지 5개 획득",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:265",
+         "name": "ProgressArea",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 306,
+         "w": 403.2,
+         "h": 17.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:266",
+           "name": "GaugeTrack",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 312,
+           "w": 369.6,
+           "h": 4.8,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokeW": 1.2,
+           "r": 2.4,
+           "layout": "HORIZONTAL",
+           "c": [
+            {
+             "id": "93:267",
+             "name": "GaugeFill",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 32264,
+             "ay": 312,
+             "w": 192.0,
+             "h": 4.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 2.4
+            }
+           ]
+          },
+          {
+           "id": "93:268",
+           "name": "80%",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32644,
+           "ay": 306,
+           "w": 24.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "80%",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 17.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:269",
+       "name": "QuestSlot",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32250,
+       "ay": 347,
+       "w": 432.0,
+       "h": 135.2,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 14.40000057220459,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "c": [
+        {
+         "id": "93:270",
+         "name": "TierStrip",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 32250,
+         "ay": 347,
+         "w": 4.8,
+         "h": 135.4,
+         "d": 4,
+         "fills": [
+          "#FF9E2C/1.0"
+         ],
+         "strokeW": 1.2
+        },
+        {
+         "id": "93:271",
+         "name": "CardHeader",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 362,
+         "w": 403.2,
+         "h": 18.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:272",
+           "name": "CategoryPill",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 362,
+           "w": 145.4,
+           "h": 18.8,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 4.8,
+           "layout": "HORIZONTAL",
+           "pl": 7.200000286102295,
+           "pr": 7.200000286102295,
+           "pt": 2.4000000953674316,
+           "pb": 2.4000000953674316,
+           "c": [
+            {
+             "id": "93:273",
+             "name": "TERRITORY DISCOVERY",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 32272,
+             "ay": 364,
+             "w": 131.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "TERRITORY DISCOVERY",
+             "fontSize": 12.0,
+             "font": "Roboto 700 Bold",
+             "lineH": 14.1
+            }
+           ]
+          },
+          {
+           "id": "93:274",
+           "name": "Lv.38",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32634,
+           "ay": 362,
+           "w": 34.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "Lv.38",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:275",
+         "name": "CardBody",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 395,
+         "w": 403.2,
+         "h": 41.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 4.800000190734863,
+         "c": [
+          {
+           "id": "93:276",
+           "name": "잊혀진 혹성 고원 정찰",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 395,
+           "w": 403.2,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "잊혀진 혹성 고원 정찰",
+           "fontSize": 16.80000114440918,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "93:277",
+           "name": "정밀 스캐너 설치 및 데이터 동기화",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 420,
+           "w": 403.2,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "정밀 스캐너 설치 및 데이터 동기화",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:278",
+         "name": "ProgressArea",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 451,
+         "w": 403.2,
+         "h": 17.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:279",
+           "name": "GaugeTrack",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 457,
+           "w": 369.6,
+           "h": 4.8,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokeW": 1.2,
+           "r": 2.4,
+           "layout": "HORIZONTAL",
+           "c": [
+            {
+             "id": "93:280",
+             "name": "GaugeFill",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 32264,
+             "ay": 457,
+             "w": 96.0,
+             "h": 4.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 2.4
+            }
+           ]
+          },
+          {
+           "id": "93:281",
+           "name": "40%",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32644,
+           "ay": 451,
+           "w": 24.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "40%",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 17.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:282",
+       "name": "QuestSlot",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32250,
+       "ay": 492,
+       "w": 432.0,
+       "h": 135.2,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 14.40000057220459,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "c": [
+        {
+         "id": "93:283",
+         "name": "TierStrip",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 32250,
+         "ay": 492,
+         "w": 4.8,
+         "h": 135.4,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2
+        },
+        {
+         "id": "93:284",
+         "name": "CardHeader",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 506,
+         "w": 403.2,
+         "h": 18.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:285",
+           "name": "CategoryPill",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 506,
+           "w": 165.4,
+           "h": 18.8,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 4.8,
+           "layout": "HORIZONTAL",
+           "pl": 7.200000286102295,
+           "pr": 7.200000286102295,
+           "pt": 2.4000000953674316,
+           "pb": 2.4000000953674316,
+           "c": [
+            {
+             "id": "93:286",
+             "name": "RESOURCE PROCUREMENT",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 32272,
+             "ay": 509,
+             "w": 151.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "RESOURCE PROCUREMENT",
+             "fontSize": 12.0,
+             "font": "Roboto 700 Bold",
+             "lineH": 14.1
+            }
+           ]
+          },
+          {
+           "id": "93:287",
+           "name": "Lv.31",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32634,
+           "ay": 507,
+           "w": 34.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "Lv.31",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:288",
+         "name": "CardBody",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 540,
+         "w": 403.2,
+         "h": 41.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 4.800000190734863,
+         "c": [
+          {
+           "id": "93:289",
+           "name": "중수소 핵심 화물 운송",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 540,
+           "w": 403.2,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "중수소 핵심 화물 운송",
+           "fontSize": 16.80000114440918,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "93:290",
+           "name": "공업 지구 사령관에게 수송선 인도",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 564,
+           "w": 403.2,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "공업 지구 사령관에게 수송선 인도",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:291",
+         "name": "ProgressArea",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 596,
+         "w": 403.2,
+         "h": 17.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:292",
+           "name": "GaugeTrack",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 602,
+           "w": 361.6,
+           "h": 4.8,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokeW": 1.2,
+           "r": 2.4,
+           "layout": "HORIZONTAL",
+           "c": [
+            {
+             "id": "93:293",
+             "name": "GaugeFill",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 32264,
+             "ay": 602,
+             "w": 240.0,
+             "h": 4.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 2.4
+            }
+           ]
+          },
+          {
+           "id": "93:294",
+           "name": "100%",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32636,
+           "ay": 596,
+           "w": 32.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "100%",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 17.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:295",
+       "name": "QuestSlot",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32250,
+       "ay": 637,
+       "w": 432.0,
+       "h": 135.2,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 14.40000057220459,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "c": [
+        {
+         "id": "93:296",
+         "name": "TierStrip",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 32250,
+         "ay": 637,
+         "w": 4.8,
+         "h": 135.4,
+         "d": 4,
+         "fills": [
+          "#FF9E2C/1.0"
+         ],
+         "strokeW": 1.2
+        },
+        {
+         "id": "93:297",
+         "name": "CardHeader",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 651,
+         "w": 403.2,
+         "h": 18.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:298",
+           "name": "CategoryPill",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 651,
+           "w": 155.4,
+           "h": 18.8,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 4.8,
+           "layout": "HORIZONTAL",
+           "pl": 7.200000286102295,
+           "pr": 7.200000286102295,
+           "pt": 2.4000000953674316,
+           "pb": 2.4000000953674316,
+           "c": [
+            {
+             "id": "93:299",
+             "name": "DIPLOMATIC EXPEDITION",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 32272,
+             "ay": 654,
+             "w": 141.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "DIPLOMATIC EXPEDITION",
+             "fontSize": 12.0,
+             "font": "Roboto 700 Bold",
+             "lineH": 14.1
+            }
+           ]
+          },
+          {
+           "id": "93:300",
+           "name": "Lv.42",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32634,
+           "ay": 652,
+           "w": 34.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "Lv.42",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:301",
+         "name": "CardBody",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 684,
+         "w": 403.2,
+         "h": 41.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 4.800000190734863,
+         "c": [
+          {
+           "id": "93:302",
+           "name": "엘리시온 대표단 보호",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 684,
+           "w": 403.2,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "엘리시온 대표단 보호",
+           "fontSize": 16.80000114440918,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "93:303",
+           "name": "협정 협상 종료 시까지 보위 태세 유지",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 709,
+           "w": 403.2,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "협정 협상 종료 시까지 보위 태세 유지",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:304",
+         "name": "ProgressArea",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 741,
+         "w": 403.2,
+         "h": 17.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:305",
+           "name": "GaugeTrack",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 747,
+           "w": 377.6,
+           "h": 4.8,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokeW": 1.2,
+           "r": 2.4,
+           "layout": "HORIZONTAL",
+           "c": [
+            {
+             "id": "93:306",
+             "name": "GaugeFill",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 32264,
+             "ay": 747,
+             "w": 0.0,
+             "h": 4.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 2.4
+            }
+           ]
+          },
+          {
+           "id": "93:307",
+           "name": "0%",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32652,
+           "ay": 741,
+           "w": 16.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "0%",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 17.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:308",
+       "name": "QuestSlot",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32250,
+       "ay": 782,
+       "w": 432.0,
+       "h": 135.2,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 14.40000057220459,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "c": [
+        {
+         "id": "93:309",
+         "name": "TierStrip",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 32250,
+         "ay": 782,
+         "w": 4.8,
+         "h": 135.4,
+         "d": 4,
+         "fills": [
+          "#BC8CFF/1.0"
+         ],
+         "strokeW": 1.2
+        },
+        {
+         "id": "93:310",
+         "name": "CardHeader",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 796,
+         "w": 403.2,
+         "h": 18.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:311",
+           "name": "CategoryPill",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 796,
+           "w": 128.4,
+           "h": 18.8,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 4.8,
+           "layout": "HORIZONTAL",
+           "pl": 7.200000286102295,
+           "pr": 7.200000286102295,
+           "pt": 2.4000000953674316,
+           "pb": 2.4000000953674316,
+           "c": [
+            {
+             "id": "93:312",
+             "name": "FACTION CAMPAIGN",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 32272,
+             "ay": 798,
+             "w": 114.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "FACTION CAMPAIGN",
+             "fontSize": 12.0,
+             "font": "Roboto 700 Bold",
+             "lineH": 14.1
+            }
+           ]
+          },
+          {
+           "id": "93:313",
+           "name": "Lv.50",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32634,
+           "ay": 797,
+           "w": 34.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "Lv.50",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:314",
+         "name": "CardBody",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 829,
+         "w": 403.2,
+         "h": 41.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 4.800000190734863,
+         "c": [
+          {
+           "id": "93:315",
+           "name": "반란군 레이저 진지 초토화",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 829,
+           "w": 403.2,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "반란군 레이저 진지 초토화",
+           "fontSize": 16.80000114440918,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "93:316",
+           "name": "요새 외각 방어 거대 대포 3기 폭파",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 854,
+           "w": 403.2,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "요새 외각 방어 거대 대포 3기 폭파",
+           "fontSize": 14.40000057220459,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "93:317",
+         "name": "ProgressArea",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32264,
+         "ay": 885,
+         "w": 403.2,
+         "h": 17.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:318",
+           "name": "GaugeTrack",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32264,
+           "ay": 891,
+           "w": 369.6,
+           "h": 4.8,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokeW": 1.2,
+           "r": 2.4,
+           "layout": "HORIZONTAL",
+           "c": [
+            {
+             "id": "93:319",
+             "name": "GaugeFill",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 32264,
+             "ay": 891,
+             "w": 36.0,
+             "h": 4.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 2.4
+            }
+           ]
+          },
+          {
+           "id": "93:320",
+           "name": "15%",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 32644,
+           "ay": 885,
+           "w": 24.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "15%",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 17.2
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "93:321",
+     "name": "SummaryFooter",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32250,
+     "ay": 977,
+     "w": 432.0,
+     "h": 34.4,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "c": [
+      {
+       "id": "93:322",
+       "name": "Frame",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32250,
+       "ay": 991,
+       "w": 432.0,
+       "h": 20.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:323",
+         "name": "동시 추적 가능 제한",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32250,
+         "ay": 992,
+         "w": 127.0,
+         "h": 18.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "동시 추적 가능 제한",
+         "fontSize": 15.600000381469727,
+         "font": "Roboto 400 Regular",
+         "lineH": 18.3
+        },
+        {
+         "id": "93:324",
+         "name": "2 / 5 개 등록됨",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32559,
+         "ay": 991,
+         "w": 123.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "2 / 5 개 등록됨",
+         "fontSize": 15.600000381469727,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 20.3
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "93:325",
+   "name": "QuestDetailPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 32730,
+   "ay": 255,
+   "w": 624.0,
+   "h": 576.0,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.251"
+   ],
+   "layout": "VERTICAL",
+   "gap": 19.200000762939453,
+   "pl": 24.0,
+   "pr": 24.0,
+   "pt": 24.0,
+   "pb": 24.0,
+   "c": [
+    {
+     "id": "93:326",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32730,
+     "ay": 255,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:327",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32730,
+       "ay": 255,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:328",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32730,
+       "ay": 255,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:329",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33340,
+     "ay": 255,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:330",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33340,
+       "ay": 255,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:331",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33340,
+       "ay": 255,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:332",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32730,
+     "ay": 817,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:333",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32730,
+       "ay": 817,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:334",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 32730,
+       "ay": 817,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:335",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33340,
+     "ay": 817,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:336",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33340,
+       "ay": 817,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:337",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33340,
+       "ay": 817,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:338",
+     "name": "PanelHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32754,
+     "ay": 279,
+     "w": 576.0,
+     "h": 52.8,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 14.40000057220459,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "93:339",
+       "name": "TitleGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32754,
+       "ay": 286,
+       "w": 188.0,
+       "h": 25.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "93:340",
+         "name": "줄거리",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32754,
+         "ay": 286,
+         "w": 60.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "줄거리",
+         "fontSize": 21.600000381469727,
+         "font": "Roboto 700 Bold",
+         "lineH": 25.3
+        },
+        {
+         "id": "93:341",
+         "name": "TACTICAL INTEL",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32826,
+         "ay": 294,
+         "w": 116.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "TACTICAL INTEL",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 500 Medium",
+         "lineH": 15.5,
+         "letterSp": 1.2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "93:342",
+     "name": "QuestHeroHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32754,
+     "ay": 351,
+     "w": 576.0,
+     "h": 82.6,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 4.800000190734863,
+     "pl": 14.40000057220459,
+     "pr": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "pb": 14.40000057220459,
+     "c": [
+      {
+       "id": "93:343",
+       "name": "Frame",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32768,
+       "ay": 365,
+       "w": 547.2,
+       "h": 31.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:344",
+         "name": "부서진 차원의 문 가동",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 32768,
+         "ay": 365,
+         "w": 239.0,
+         "h": 31.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "부서진 차원의 문 가동",
+         "fontSize": 26.400001525878906,
+         "font": "Roboto 700 Bold",
+         "lineH": 30.9
+        },
+        {
+         "id": "93:345",
+         "name": "Frame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33248,
+         "ay": 372,
+         "w": 67.2,
+         "h": 18.8,
+         "d": 4,
+         "fills": [
+          "#BC8CFF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 4.8,
+         "layout": "HORIZONTAL",
+         "pl": 9.600000381469727,
+         "pr": 9.600000381469727,
+         "pt": 2.4000000953674316,
+         "pb": 2.4000000953674316,
+         "c": [
+          {
+           "id": "93:346",
+           "name": "에픽 미션",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33258,
+           "ay": 374,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "에픽 미션",
+           "fontSize": 12.0,
+           "font": "Roboto 700 Bold",
+           "lineH": 14.1
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:347",
+       "name": "주 임무 · 크로노스 잔존 세력 저지 및 차원 좌표 복구 작전",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 32768,
+       "ay": 401,
+       "w": 371.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "주 임무  ·  크로노스 잔존 세력 저지 및 차원 좌표 복구 작전",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 400 Regular",
+       "lineH": 18.3
+      }
+     ]
+    },
+    {
+     "id": "93:350",
+     "name": "StorySection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32754,
+     "ay": 453,
+     "w": 576.0,
+     "h": 141.0,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 7.200000286102295,
+     "pl": 14.40000057220459,
+     "pr": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "pb": 14.40000057220459,
+     "c": [
+      {
+       "id": "93:351",
+       "name": "작전 요약 브리핑",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 32768,
+       "ay": 467,
+       "w": 109.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "작전 요약 브리핑",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 700 Bold",
+       "lineH": 18.3
+      },
+      {
+       "id": "93:352",
+       "name": "\"크로노스 전초 기지의 전파 방해로 인해 지구 연합사부와의 차원 전송 관문이 폐쇄되었습니다. 이대로 에너지 방출이 폭주하면 전방 6광년 구역 전체가 아원자 붕괴를 맞이하게 됩니다. 신속하게 현장 보급 장치에서 연료 전지를 탈취해 좌표 축을 임시 고정해야만 퇴각이 가능합니다.\"",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 32768,
+       "ay": 492,
+       "w": 547.2,
+       "h": 87.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "\"크로노스 전초 기지의 전파 방해로 인해 지구 연합사부와의 차원 전송 관문이 폐쇄되었습니다. 이대로 에너지 ",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 400 Regular",
+       "lineH": 21.6
+      }
+     ]
+    },
+    {
+     "id": "93:353",
+     "name": "ObjectivesSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 32754,
+     "ay": 613,
+     "w": 576.0,
+     "h": 106.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 12.0,
+     "c": [
+      {
+       "id": "93:354",
+       "name": "달성 조건",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 32754,
+       "ay": 613,
+       "w": 62.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "달성 조건",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 700 Bold",
+       "lineH": 18.3
+      },
+      {
+       "id": "93:355",
+       "name": "GoalRow",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32754,
+       "ay": 643,
+       "w": 576.0,
+       "h": 32.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "93:356",
+         "name": "Frame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32754,
+         "ay": 643,
+         "w": 576.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:357",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32754,
+           "ay": 644,
+           "w": 290.4,
+           "h": 18.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:456",
+             "name": "check",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 32754,
+             "ay": 645,
+             "w": 16.8,
+             "h": 16.8,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:457",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 32757,
+               "ay": 649,
+               "w": 11.2,
+               "h": 7.7,
+               "d": 7,
+               "strokes": [
+                "#39D353/1.0"
+               ],
+               "strokeW": 2.4
+              }
+             ]
+            },
+            {
+             "id": "93:359",
+             "name": "서부 발전기에서 크로노스 연료 전지 탈취",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 32780,
+             "ay": 644,
+             "w": 264.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "서부 발전기에서 크로노스 연료 전지 탈취",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 400 Regular",
+             "lineH": 18.3
+            }
+           ]
+          },
+          {
+           "id": "93:360",
+           "name": "4 / 5",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33283,
+           "ay": 643,
+           "w": 47.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#39D353/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "4 / 5",
+           "fontSize": 15.600000381469727,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 20.3
+          }
+         ]
+        },
+        {
+         "id": "93:361",
+         "name": "GaugeTrack",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32754,
+         "ay": 668,
+         "w": 576.0,
+         "h": 7.2,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.078"
+         ],
+         "strokeW": 1.2,
+         "r": 3.6,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "93:362",
+           "name": "GaugeFill",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 32754,
+           "ay": 668,
+           "w": 460.8,
+           "h": 7.2,
+           "d": 5,
+           "fills": [
+            "#39D353/1.0"
+           ],
+           "strokeW": 1.2,
+           "r": 3.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:363",
+       "name": "GoalRow",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 32754,
+       "ay": 687,
+       "w": 576.0,
+       "h": 32.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "93:364",
+         "name": "Frame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32754,
+         "ay": 687,
+         "w": 576.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:365",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 32754,
+           "ay": 688,
+           "w": 279.4,
+           "h": 18.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:444",
+             "name": "loader-pinwheel",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 32754,
+             "ay": 689,
+             "w": 16.8,
+             "h": 16.8,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:445",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 32755,
+               "ay": 690,
+               "w": 14.0,
+               "h": 14.0,
+               "d": 7,
+               "strokes": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 2.4
+              }
+             ]
+            },
+            {
+             "id": "93:367",
+             "name": "차원 동조기 제어 터미널 우회 해킹 완료",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 32780,
+             "ay": 688,
+             "w": 253.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "차원 동조기 제어 터미널 우회 해킹 완료",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 400 Regular",
+             "lineH": 18.3
+            }
+           ]
+          },
+          {
+           "id": "93:368",
+           "name": "0 / 1",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33283,
+           "ay": 687,
+           "w": 47.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "0 / 1",
+           "fontSize": 15.600000381469727,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 20.3
+          }
+         ]
+        },
+        {
+         "id": "93:369",
+         "name": "GaugeTrack",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 32754,
+         "ay": 712,
+         "w": 576.0,
+         "h": 7.2,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.078"
+         ],
+         "strokeW": 1.2,
+         "r": 3.6,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "93:370",
+           "name": "GaugeFill",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 32754,
+           "ay": 712,
+           "w": 0.0,
+           "h": 7.2,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "r": 3.6
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "93:371",
+   "name": "DeploymentPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 33378,
+   "ay": 51,
+   "w": 480.0,
+   "h": 984.0,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.251"
+   ],
+   "layout": "VERTICAL",
+   "gap": 19.200000762939453,
+   "pl": 24.0,
+   "pr": 24.0,
+   "pt": 24.0,
+   "pb": 24.0,
+   "c": [
+    {
+     "id": "93:372",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33378,
+     "ay": 51,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:373",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33378,
+       "ay": 51,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:374",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33378,
+       "ay": 51,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:375",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33844,
+     "ay": 51,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:376",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33844,
+       "ay": 51,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:377",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33844,
+       "ay": 51,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:378",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33378,
+     "ay": 1021,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:379",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33378,
+       "ay": 1021,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:380",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33378,
+       "ay": 1021,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:381",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33844,
+     "ay": 1021,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "c": [
+      {
+       "id": "93:382",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33844,
+       "ay": 1021,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "93:383",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 33844,
+       "ay": 1021,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "93:384",
+     "name": "PanelHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33402,
+     "ay": 75,
+     "w": 432.0,
+     "h": 52.8,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 14.40000057220459,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "93:385",
+       "name": "TitleGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 82,
+       "w": 161.0,
+       "h": 25.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "93:386",
+         "name": "보상",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 33402,
+         "ay": 82,
+         "w": 40.0,
+         "h": 25.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "보상",
+         "fontSize": 21.600000381469727,
+         "font": "Roboto 700 Bold",
+         "lineH": 25.3
+        },
+        {
+         "id": "93:387",
+         "name": "REWARD VAULT",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 33454,
+         "ay": 90,
+         "w": 109.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "REWARD VAULT",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 500 Medium",
+         "lineH": 15.5,
+         "letterSp": 1.2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "93:388",
+     "name": "SectionDescription",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33402,
+     "ay": 147,
+     "w": 432.0,
+     "h": 48.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 4.800000190734863,
+     "c": [
+      {
+       "id": "93:389",
+       "name": "본 작전 요건을 정상적으로 인계받아 완수 시 아래의 한정급 장비 및 보급 물자가 귀하의 인벤토리로 안전하게 영구 전송됩니다.",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 147,
+       "w": 432.0,
+       "h": 44.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "본 작전 요건을 정상적으로 인계받아 완수 시 아래의 한정급 장비 및 보급 물자가 귀하의 인벤토리로 안전하게 ",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 400 Regular",
+       "lineH": 21.6
+      }
+     ]
+    },
+    {
+     "id": "93:390",
+     "name": "RewardsList",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33402,
+     "ay": 215,
+     "w": 432.0,
+     "h": 646.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "93:391",
+       "name": "RewardItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 215,
+       "w": 432.0,
+       "h": 72.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "HORIZONTAL",
+       "gap": 14.40000057220459,
+       "pl": 12.0,
+       "pr": 12.0,
+       "pt": 12.0,
+       "pb": 12.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:392",
+         "name": "ItemIconFrame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33414,
+         "ay": 227,
+         "w": 48.0,
+         "h": 48.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokes": [
+          "#BC8CFF/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:450",
+           "name": "gem",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33424,
+           "ay": 237,
+           "w": 28.8,
+           "h": 28.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "93:451",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 33426,
+             "ay": 240,
+             "w": 24.0,
+             "h": 22.8,
+             "d": 6,
+             "strokes": [
+              "#BC8CFF/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "93:394",
+         "name": "ItemInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33476,
+         "ay": 232,
+         "w": 345.6,
+         "h": 37.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "93:395",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 232,
+           "w": 345.6,
+           "h": 20.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "mainAlign": "SPACE_BETWEEN",
+           "c": [
+            {
+             "id": "93:396",
+             "name": "퀀텀 크리스탈 배터리",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33476,
+             "ay": 232,
+             "w": 137.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "퀀텀 크리스탈 배터리",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 700 Bold",
+             "lineH": 18.3
+            },
+            {
+             "id": "93:397",
+             "name": "10x",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33793,
+             "ay": 232,
+             "w": 29.0,
+             "h": 20.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "10x",
+             "fontSize": 15.600000381469727,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 20.3
+            }
+           ]
+          },
+          {
+           "id": "93:398",
+           "name": "레전더리 융합 촉매제",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 255,
+           "w": 116.0,
+           "h": 15.0,
+           "d": 5,
+           "fills": [
+            "#BC8CFF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "레전더리 융합 촉매제",
+           "fontSize": 13.200000762939453,
+           "font": "Roboto 400 Regular",
+           "lineH": 15.5
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:399",
+       "name": "RewardItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 297,
+       "w": 432.0,
+       "h": 72.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "HORIZONTAL",
+       "gap": 14.40000057220459,
+       "pl": 12.0,
+       "pr": 12.0,
+       "pt": 12.0,
+       "pb": 12.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:400",
+         "name": "ItemIconFrame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33414,
+         "ay": 309,
+         "w": 48.0,
+         "h": 48.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:447",
+           "name": "coins",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33424,
+           "ay": 318,
+           "w": 28.8,
+           "h": 28.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "93:448",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 33426,
+             "ay": 321,
+             "w": 24.0,
+             "h": 24.0,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "93:402",
+         "name": "ItemInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33476,
+         "ay": 314,
+         "w": 345.6,
+         "h": 37.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "93:403",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 314,
+           "w": 345.6,
+           "h": 20.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "mainAlign": "SPACE_BETWEEN",
+           "c": [
+            {
+             "id": "93:404",
+             "name": "연합 크레딧 화폐",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33476,
+             "ay": 314,
+             "w": 109.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "연합 크레딧 화폐",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 700 Bold",
+             "lineH": 18.3
+            },
+            {
+             "id": "93:405",
+             "name": "24,500",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33765,
+             "ay": 314,
+             "w": 57.0,
+             "h": 20.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "24,500",
+             "fontSize": 15.600000381469727,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 20.3
+            }
+           ]
+          },
+          {
+           "id": "93:406",
+           "name": "기본 통화 보상",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 336,
+           "w": 80.0,
+           "h": 15.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "기본 통화 보상",
+           "fontSize": 13.200000762939453,
+           "font": "Roboto 400 Regular",
+           "lineH": 15.5
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:407",
+       "name": "RewardItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 378,
+       "w": 432.0,
+       "h": 72.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "HORIZONTAL",
+       "gap": 14.40000057220459,
+       "pl": 12.0,
+       "pr": 12.0,
+       "pt": 12.0,
+       "pb": 12.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:408",
+         "name": "ItemIconFrame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33414,
+         "ay": 390,
+         "w": 48.0,
+         "h": 48.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokes": [
+          "#FF9E2C/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:465",
+           "name": "zap-off",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33424,
+           "ay": 400,
+           "w": 28.8,
+           "h": 28.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "93:466",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 33426,
+             "ay": 402,
+             "w": 24.0,
+             "h": 24.0,
+             "d": 6,
+             "strokes": [
+              "#FF9E2C/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "93:410",
+         "name": "ItemInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33476,
+         "ay": 396,
+         "w": 345.6,
+         "h": 37.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "93:411",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 396,
+           "w": 345.6,
+           "h": 20.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "mainAlign": "SPACE_BETWEEN",
+           "c": [
+            {
+             "id": "93:412",
+             "name": "크로노 가우스 소총 프로토타입",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33476,
+             "ay": 396,
+             "w": 199.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "크로노 가우스 소총 프로토타입",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 700 Bold",
+             "lineH": 18.3
+            },
+            {
+             "id": "93:413",
+             "name": "1x",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33803,
+             "ay": 396,
+             "w": 19.0,
+             "h": 20.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "1x",
+             "fontSize": 15.600000381469727,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 20.3
+            }
+           ]
+          },
+          {
+           "id": "93:414",
+           "name": "레어 화력 화기 보급",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 418,
+           "w": 107.0,
+           "h": 15.0,
+           "d": 5,
+           "fills": [
+            "#FF9E2C/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "레어 화력 화기 보급",
+           "fontSize": 13.200000762939453,
+           "font": "Roboto 400 Regular",
+           "lineH": 15.5
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:415",
+       "name": "RewardItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 460,
+       "w": 432.0,
+       "h": 72.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "HORIZONTAL",
+       "gap": 14.40000057220459,
+       "pl": 12.0,
+       "pr": 12.0,
+       "pt": 12.0,
+       "pb": 12.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:416",
+         "name": "ItemIconFrame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33414,
+         "ay": 472,
+         "w": 48.0,
+         "h": 48.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:462",
+           "name": "flask-conical",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33424,
+           "ay": 481,
+           "w": 28.8,
+           "h": 28.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "93:463",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 33428,
+             "ay": 484,
+             "w": 19.2,
+             "h": 24.0,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "93:418",
+         "name": "ItemInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33476,
+         "ay": 477,
+         "w": 345.6,
+         "h": 37.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "93:419",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 477,
+           "w": 345.6,
+           "h": 20.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "mainAlign": "SPACE_BETWEEN",
+           "c": [
+            {
+             "id": "93:420",
+             "name": "나노 분자 수리 키트",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33476,
+             "ay": 477,
+             "w": 127.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "나노 분자 수리 키트",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 700 Bold",
+             "lineH": 18.3
+            },
+            {
+             "id": "93:421",
+             "name": "5x",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33803,
+             "ay": 477,
+             "w": 19.0,
+             "h": 20.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "5x",
+             "fontSize": 15.600000381469727,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 20.3
+            }
+           ]
+          },
+          {
+           "id": "93:422",
+           "name": "언커먼 소모품",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 499,
+           "w": 77.0,
+           "h": 15.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "언커먼 소모품",
+           "fontSize": 13.200000762939453,
+           "font": "Roboto 400 Regular",
+           "lineH": 15.5
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:423",
+       "name": "RewardItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 541,
+       "w": 432.0,
+       "h": 72.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "HORIZONTAL",
+       "gap": 14.40000057220459,
+       "pl": 12.0,
+       "pr": 12.0,
+       "pt": 12.0,
+       "pb": 12.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:424",
+         "name": "ItemIconFrame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33414,
+         "ay": 553,
+         "w": 48.0,
+         "h": 48.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokes": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.8,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:453",
+           "name": "medal",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33424,
+           "ay": 563,
+           "w": 28.8,
+           "h": 28.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "93:454",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 33426,
+             "ay": 565,
+             "w": 23.1,
+             "h": 24.0,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "93:426",
+         "name": "ItemInfo",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33476,
+         "ay": 559,
+         "w": 345.6,
+         "h": 37.4,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 2.4000000953674316,
+         "c": [
+          {
+           "id": "93:427",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 559,
+           "w": 345.6,
+           "h": 20.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "mainAlign": "SPACE_BETWEEN",
+           "c": [
+            {
+             "id": "93:428",
+             "name": "연합 정착지 평판 지수",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33476,
+             "ay": 559,
+             "w": 141.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "연합 정착지 평판 지수",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 700 Bold",
+             "lineH": 18.3
+            },
+            {
+             "id": "93:429",
+             "name": "+500",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 33784,
+             "ay": 559,
+             "w": 38.0,
+             "h": 20.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "+500",
+             "fontSize": 15.600000381469727,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 20.3
+            }
+           ]
+          },
+          {
+           "id": "93:430",
+           "name": "진영 우호 가산점",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33476,
+           "ay": 581,
+           "w": 92.0,
+           "h": 15.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "진영 우호 가산점",
+           "fontSize": 13.200000762939453,
+           "font": "Roboto 400 Regular",
+           "lineH": 15.5
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "93:431",
+     "name": "DeploymentFooter",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 33402,
+     "ay": 881,
+     "w": 432.0,
+     "h": 130.4,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "c": [
+      {
+       "id": "93:432",
+       "name": "TrackingRow",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 895,
+       "w": 432.0,
+       "h": 48.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "HORIZONTAL",
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "93:433",
+         "name": "TrackLeft",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33416,
+         "ay": 909,
+         "w": 205.8,
+         "h": 19.2,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 9.600000381469727,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:459",
+           "name": "radar",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 33416,
+           "ay": 909,
+           "w": 19.2,
+           "h": 19.2,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "93:460",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 33418,
+             "ay": 911,
+             "w": 16.0,
+             "h": 16.0,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          },
+          {
+           "id": "93:435",
+           "name": "HUD 미니맵 상 추적 활성화",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33445,
+           "ay": 910,
+           "w": 177.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "HUD 미니맵 상 추적 활성화",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        },
+        {
+         "id": "93:436",
+         "name": "TogglePill",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33767,
+         "ay": 905,
+         "w": 52.8,
+         "h": 28.8,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 14.4,
+         "layout": "HORIZONTAL",
+         "pl": 2.4000000953674316,
+         "pr": 2.4000000953674316,
+         "pt": 2.4000000953674316,
+         "pb": 2.4000000953674316,
+         "mainAlign": "MAX",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:437",
+           "name": "Ellipse",
+           "type": "ELLIPSE",
+           "x": null,
+           "y": null,
+           "ax": 33793,
+           "ay": 907,
+           "w": 24.0,
+           "h": 24.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:438",
+       "name": "ButtonContainer",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 33402,
+       "ay": 957,
+       "w": 432.0,
+       "h": 53.6,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "c": [
+        {
+         "id": "93:439",
+         "name": "AbortButton",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33402,
+         "ay": 957,
+         "w": 212.4,
+         "h": 53.6,
+         "d": 4,
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "pl": 16.80000114440918,
+         "pr": 16.80000114440918,
+         "pt": 16.80000114440918,
+         "pb": 16.80000114440918,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:440",
+           "name": "포기",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33493,
+           "ay": 974,
+           "w": 31.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "포기",
+           "fontSize": 16.80000114440918,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          }
+         ]
+        },
+        {
+         "id": "93:441",
+         "name": "ApplyButton",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 33624,
+         "ay": 957,
+         "w": 210.0,
+         "h": 53.6,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "pl": 16.80000114440918,
+         "pr": 16.80000114440918,
+         "pt": 16.80000114440918,
+         "pb": 16.80000114440918,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "93:442",
+           "name": "추적 적용",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 33696,
+           "ay": 974,
+           "w": 67.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "추적 적용",
+           "fontSize": 16.80000114440918,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

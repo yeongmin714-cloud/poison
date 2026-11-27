@@ -257,7 +257,16 @@ namespace ProjectName.UI
         private const int GRID_ROWS_PER_PAGE = 5;          // 2026-09-12(P3): 페이지당 5행×6열=30슬롯 — 초과분은 ◀/▶ 페이지 버튼
         private const int GRID_PAGE_SLOTS = GRID_ROWS_PER_PAGE * GRID_COLUMNS;
         private static float PAGER_STRIP_HEIGHT => 40f * _uiScale;      // 그리드 하단 페이지 버튼 스트립 높이
-        private static float SLOT_MARGIN => 6f * _uiScale;              // 슬롯 간격
+        // [2026-11-23 Figma 정합] 키 02vPXOGzFJUUYTaEPSVz3R · 프레임 15:4 fluent-game-inventory-ui ·
+        // 1920×1080 캔버스(_uiScale=1 지점) 실측. 그리드 슬롯 갭(행/열 공통) 9.6(행피치 91.2=81.6+9.6) ·
+        // 패널 콘텐츠 인셋 24(InventoryPanel pad — 플러시 시작) · 장비칸 섹션 인셋 14.4 · 장비칸 셀 갭
+        // 4.8(5×81.6+4×4.8=427.2 합산) · 탭 갭 4.8. 슬롯 폭 산식은 선행 마진 없는 플러시 합산
+        // (inner − 갭×(열수−1))/열수, 행 합산은 후행 갭 제거(contentHeight = 행수×rowHeight − 갭) 규약.
+        private static float SLOT_MARGIN => 9.6f * _uiScale;            // 슬롯 간격 (Figma 9.6 — 구 6)
+        private static float PANEL_CONTENT_PAD => 24f * _uiScale;       // 패널 콘텐츠 외곽 인셋 (Figma 24 — 구 +4 하드코딩+선행 갭 6=실효 10 대체)
+        private static float EQUIP_SECTION_PAD => 14.4f * _uiScale;     // 장비칸 섹션 인셋/행 리듬 (Figma 14.4 — 구 +4+갭 6=실효 10 대체)
+        private static float EQUIP_CELL_GAP => 4.8f * _uiScale;         // 장비칸 셀 갭 (Figma 4.8)
+        private static float TAB_GAP => 4.8f * _uiScale;                // 탭 갭 (Figma 4.8 — 구 암시적 2(width−2) 대체)
         private static float SLOT_ICON_SIZE => 96f * _uiScale;          // 슬롯 내 아이콘 크기 (레거시, 동적 크기 사용 권장)
         private const float PREVIEW_PANEL_WIDTH = 0f;    // (제거됨)
         private static float GRID_AREA_WIDTH => WINDOW_WIDTH - PREVIEW_PANEL_WIDTH; // 그리드 영역 폭
@@ -563,6 +572,11 @@ namespace ProjectName.UI
         protected override void OnShow()
         {
             // 2026-09-09: 3D 캐릭터 프리뷰 제거 (아바타 구조 폐지 — 스탯창 v2가 담당)
+
+            // [2026-11-23 첫오픈 그리드 버그 보조 수리] 오픈 시점 스케일 선행 갱신 — GetContextX/PanelWidth 등
+            // 정적 스케일 소비자가 첫 OnGUI 이전에도 최신 해상도 스케일을 보도록 보호.
+            // (RefreshUIScale은 해상도 무변화 시 조기 리턴이라 OnGUI와의 중복 호출 무해)
+            RefreshUIScale();
 
             _selectedSlotIndex = -1;
             RefreshInventory();
@@ -870,6 +884,20 @@ namespace ProjectName.UI
         {
             if (!IsOpen) return;
 
+            // [2026-11-23 첫오픈 그리드 버그 수리] RefreshUIScale()/스케일 변경 검사/InitStyles()를 winRect 산출·
+            // DrawCloseButton 이전으로 이동했다(구 위치는 닫기버튼 블록 뒤 — 삭제). 기존 순서에선 세션 최초 OnGUI
+            // 프레임의 winRect/드롭섀도우/닫기버튼이 _uiScale 초기값 1.0으로 그려지고 타이틀·장비칸·그리드만
+            // 갱신 스케일로 그려져, 1920×1080 이외 해상도에서 첫 프레임만 그리드가 창박스를 넘어 어긋났다.
+            // UIWindow.OnGUI(배경 텍스처+DrawWindowContent 디스패치만)와 DrawDimOverlay는 스케일 무관이라
+            // 순서 교환은 안전하다.
+            RefreshUIScale();   // [Phase G-UI] 해상도 변경 감지 → 비례 스케일 갱신 (winRect 산출 이전 실행 — 첫 프레임 정합)
+            if (!Mathf.Approximately(_uiScaleUsedForStyles, _uiScale))   // 스케일 변경 → 폰트 스타일 재생성
+            {
+                _uiScaleUsedForStyles = _uiScale;
+                _stylesInitialized = false;
+            }
+            InitStyles();
+
             base.OnGUI();
 
             // G3-05: 통일 스타일 — 딤드 오버레이 (창 자체는 아래 AAA 4레이어가 그림)
@@ -885,14 +913,6 @@ namespace ProjectName.UI
                 Hide();
                 return;
             }
-
-            RefreshUIScale();   // [Phase G-UI] 해상도 변경 감지 → 비례 스케일 갱신
-            if (!Mathf.Approximately(_uiScaleUsedForStyles, _uiScale))   // 스케일 변경 → 폰트 스타일 재생성
-            {
-                _uiScaleUsedForStyles = _uiScale;
-                _stylesInitialized = false;
-            }
-            InitStyles();
 
             // ===================================================================
             // AAA 4레이어 z-order: ①드롭섀도우 → ②백플레이트 → ③그리드/컨텐츠 → ④프레임
@@ -986,15 +1006,17 @@ namespace ProjectName.UI
                 PlayerInventory.ItemCategory.Arrow
             };
 
-            float tabWidth = (WINDOW_WIDTH - 8) / tabNames.Length;
-            float tx = panelX + 4;
+            // [2026-11-23 Figma 정합] 탭 갭 4.8 (구 암시적 2 = tabWidth−2 폐기) — 플러시 합산: N×탭폭+(N−1)×갭 = 가용폭
+            float tabInset = 4f;
+            float tabWidth = (WINDOW_WIDTH - tabInset * 2f - TAB_GAP * (tabNames.Length - 1)) / tabNames.Length;
+            float tx = panelX + tabInset;
 
             for (int i = 0; i < tabNames.Length; i++)
             {
                 bool isActive = _selectedCategory == categories[i];
                 var style = isActive ? _styleTabActive : _styleTab;
 
-                if (GUI.Button(new Rect(tx, tabY + 2, tabWidth - 2, TAB_BAR_HEIGHT - 4), tabNames[i], style))
+                if (GUI.Button(new Rect(tx, tabY + 2, tabWidth, TAB_BAR_HEIGHT - 4), tabNames[i], style))
                 {
                     if (!isActive)
                     {
@@ -1004,7 +1026,7 @@ namespace ProjectName.UI
                         RefreshInventory();
                     }
                 }
-                tx += tabWidth;
+                tx += tabWidth + TAB_GAP;
             }
         }
 
@@ -1025,12 +1047,15 @@ namespace ProjectName.UI
         private float DrawEquipmentGrid(float panelX, float gridY)
         {
             var em = ProjectName.Systems.EquipmentManager.Instance;
-            float innerX = panelX + 4;
-            float innerWidth = GRID_AREA_WIDTH - 8;
-            float cellW = (innerWidth - SLOT_MARGIN * (EQUIP_GRID_COLS + 1)) / EQUIP_GRID_COLS;
+            // [2026-11-23 Figma 정합] 섹션 인셋 14.4는 패널 콘텐츠 인셋 24 위에 겹침(외곽 기준 면당 38.4) —
+            // 셀 갭 4.8, 플러시 합산 산식((inner − 갭×(열수−1))/열수, 선행 마진 없음). 1080p 검산:
+            // cellW=(628−2×38.4−4×4.8)/5=106.4 · cellH=58.52 · rowBlock=22+58.52+14.4=94.92 · totalH=2×94.92=189.84(구 190.48).
+            float innerX = panelX + PANEL_CONTENT_PAD + EQUIP_SECTION_PAD;
+            float innerWidth = GRID_AREA_WIDTH - (PANEL_CONTENT_PAD + EQUIP_SECTION_PAD) * 2f;
+            float cellW = (innerWidth - EQUIP_CELL_GAP * (EQUIP_GRID_COLS - 1)) / EQUIP_GRID_COLS;
             float cellH = cellW * 0.55f;   // 인벤 슬롯보다 낮은 직사각 셀 (2행 절약)
-            float rowBlock = EQUIP_BADGE_HEIGHT + cellH + SLOT_MARGIN;
-            float totalH = EQUIP_GRID_ROWS * rowBlock + SLOT_MARGIN;
+            float rowBlock = EQUIP_BADGE_HEIGHT + cellH + EQUIP_SECTION_PAD;   // 행 리듬 = 섹션 인셋 14.4 (후행 갭 없는 플러시 합산)
+            float totalH = EQUIP_GRID_ROWS * rowBlock;
 
             // 2026-09-12(P4): 드래그 장착 드롭 판정용 셀 화면 Rect 캐시 리빌드 (매 프레임 — ProcessDrag가 소비)
             s_equipSlotScreenRects.Clear();
@@ -1044,8 +1069,8 @@ namespace ProjectName.UI
                 var def = _equipCellDefs[i];
                 int col = i % EQUIP_GRID_COLS;
                 int row = i / EQUIP_GRID_COLS;
-                float cx = innerX + SLOT_MARGIN + col * (cellW + SLOT_MARGIN);
-                float cy = gridY + SLOT_MARGIN + row * rowBlock;
+                float cx = innerX + col * (cellW + EQUIP_CELL_GAP);   // 좌측 플러시 — 선행 갭 없음 (Figma GridRow 규약)
+                float cy = gridY + row * rowBlock;                    // 상단 플러시 — 선행 인셋 없음
                 Rect badgeRect = new Rect(cx, cy, cellW, EQUIP_BADGE_HEIGHT);
                 Rect cellRect = new Rect(cx, cy + EQUIP_BADGE_HEIGHT, cellW, cellH);
 
@@ -1203,14 +1228,15 @@ namespace ProjectName.UI
         // ===================================================================
         private void DrawItemGrid(float panelX, float gridY, float gridHeight)
         {
-            float innerX = panelX + 4;
+            float innerX = panelX + PANEL_CONTENT_PAD;   // [2026-11-23 Figma 정합] 패널 콘텐츠 인셋 24 (구 +4 하드코딩 대체)
             float innerY = gridY + 2;
-            float innerWidth = GRID_AREA_WIDTH - 8;   // T3B-2: 우측 프리뷰 패널을 제외한 좌측 그리드 영역
+            float innerWidth = GRID_AREA_WIDTH - PANEL_CONTENT_PAD * 2f;   // T3B-2 → 2026-11-23: 좌우 대칭 인셋 24 (플러시 합산 기준 폭)
 
             // 스크롤 뷰 — 2026-09-12(P3): 6열 단일 그리드 (빈 슬롯 회색 가이드) + 5행/페이지 페이지네이션
             // 세로 스크롤은 창 높이 부족 시 폴백으로 유지 (기존 scroll 패턴)
             float slotTotalWidth = innerWidth;
-            float slotWidth = (slotTotalWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
+            // [2026-11-23 Figma 정합] 플러시 합산: (inner − 갭×(열수−1))/열수 — 선행 마진 없음 (1080p: (580−9.6×5)/6=88.67)
+            float slotWidth = (slotTotalWidth - SLOT_MARGIN * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
             float slotHeight = slotWidth;   // 정사각형 슬롯
             float rowHeight = slotHeight + SLOT_MARGIN;
 
@@ -1235,7 +1261,7 @@ namespace ProjectName.UI
             bool showPager = pagerApplies && totalPages > 1;
 
             int guideRows = GRID_ROWS_PER_PAGE;   // 페이지당 5행 가이드 (빈 슬롯 회색 셀 포함)
-            float contentHeight = guideRows * rowHeight + SLOT_MARGIN;
+            float contentHeight = guideRows * rowHeight - SLOT_MARGIN;   // [2026-11-23 Figma 정합] 후행 갭 제거 플러시 합산 (5×rowHeight−갭)
             float viewHeight = gridHeight - 4 - (showPager ? PAGER_STRIP_HEIGHT : 0f);
 
             // 2026-09-11(3): DnD 드롭 판정용 Rect 캐시 리빌드 (매 프레임)
@@ -1265,8 +1291,8 @@ namespace ProjectName.UI
             {
                 int gCol = g % GRID_COLUMNS;
                 int gRow = g / GRID_COLUMNS;
-                float gx = SLOT_MARGIN + gCol * (slotWidth + SLOT_MARGIN);
-                float gy = SLOT_MARGIN + gRow * rowHeight;
+                float gx = gCol * (slotWidth + SLOT_MARGIN);   // 좌측 플러시 — 선행 마진 없음
+                float gy = gRow * rowHeight;                   // 상단 플러시
                 GUI.DrawTexture(new Rect(gx, gy, slotWidth, slotHeight), slotCellTex);
             }
             GUI.color = prevGuideColor;
@@ -1292,8 +1318,8 @@ namespace ProjectName.UI
                     int col = localIdx % GRID_COLUMNS;
                     int row = localIdx / GRID_COLUMNS;
 
-                    float sx = SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
-                    float sy = SLOT_MARGIN + row * rowHeight;
+                    float sx = col * (slotWidth + SLOT_MARGIN);   // 좌측 플러시 — 선행 마진 없음
+                    float sy = row * rowHeight;                   // 상단 플러시
 
                     Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
                     bool isSelected = (i == _selectedSlotIndex);
@@ -1787,7 +1813,11 @@ namespace ProjectName.UI
                 _previewModel = Instantiate(prefab);
                 _previewModel.name = "InventoryPreviewBody";
                 // 씬 물체와 겹치지 않는 원격 위치 (전용 카메라가 개체만 비추도록 far clip과 조합)
-                Vector3 remotePos = new Vector3(10000f, 1000f, 10000f);
+                // [189차 수리] 본체가 아이템 아이콘 베이크 자리(10000,1000,10000 — GblItemIconRenderer)와
+                //   동일 좌표를 상주 점유 → 핫바/인벤 아이콘이 인벤 프리뷰 본체(청록 플레이어 모델)를
+                //   겹쳐 찍는 결함("아이콘이 초록색으로 깨짐" 사용자 실측 189차). 본체 전용 자리로 이동
+                //   (10000아이템 / 10500병사 / 11000프리뷰본체 — 상호 farClip 20 밖 격리).
+                Vector3 remotePos = new Vector3(11000f, 1000f, 11000f);
                 _previewModel.transform.position = remotePos;
 
                 // 스케일 정규화 (GameSetup과 동일: 키 ~1.8m) + 원격 위치 바닥 기준 정렬
@@ -2517,8 +2547,9 @@ namespace ProjectName.UI
             float LOOT_BOTTOM_H = 96f * _uiScale;
             float gridY = panelY + TITLE_BAR_HEIGHT + 4;
             float gridHeight = lootH - (gridY - panelY) - LOOT_BOTTOM_H - 6;
-            float innerWidth = lootW - 8;
-            float slotWidth = (innerWidth - SLOT_MARGIN * (LOOT_COLUMNS + 1)) / LOOT_COLUMNS;
+            float innerWidth = lootW - PANEL_CONTENT_PAD * 2f;   // [2026-11-23 Figma 정합] 패널 콘텐츠 인셋 24
+            // 플러시 합산: (inner − 갭×(열수−1))/열수 (1080p: (580−9.6×4)/5=108.32)
+            float slotWidth = (innerWidth - SLOT_MARGIN * (LOOT_COLUMNS - 1)) / LOOT_COLUMNS;
             float slotHeight = slotWidth;   // 정사각형 슬롯 (인벤 그리드 규약 동일 — 5열에서도 유지)
             float rowHeight = slotHeight + SLOT_MARGIN;
             int totalRows = Mathf.Clamp(Mathf.CeilToInt((float)itemCount / LOOT_COLUMNS), 1, LOOT_ROWS_MAX);
@@ -2542,8 +2573,8 @@ namespace ProjectName.UI
                 // 2026-09-14(47차): panelX 오프셋 누락 수리 — 이 패널은 BeginGroup/ScrollView 없이
                 // 절대 스크린 좌표로 렌더(배경 Box·타이틀·그리드 배경 모두 panelX 사용). 기존
                 // SLOT_MARGIN 단독 시작이라 슬롯이 화면 좌측(x≈8)에 렌더되어 패널엔 빈 슬롯만 보였음.
-                float sx = panelX + SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
-                float sy = gridY + SLOT_MARGIN + row * rowHeight;
+                float sx = panelX + PANEL_CONTENT_PAD + col * (slotWidth + SLOT_MARGIN);   // 좌측 인셋 24 후 플러시 — 선행 갭 없음
+                float sy = gridY + row * rowHeight;                                        // 상단 플러시 — 선행 갭 없음
                 Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
 
                 // 드롭 판정용 스크린 Rect 캐시 — GUIToScreenPoint y 상승계 보정
@@ -2674,12 +2705,13 @@ namespace ProjectName.UI
             // === 6열 창고 슬롯 그리드 — 스크롤 유지 / 페이지네이션 미적용 (창고 최대 20슬롯 = 4행, 5행 가이드에 수용) ===
             float WH_BOTTOM_H = 64f * _uiScale;
             float gridHeight = WINDOW_HEIGHT - (gridY - panelY) - WH_BOTTOM_H - 6;
-            float innerWidth = WINDOW_WIDTH - 8;
-            float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
+            float innerWidth = WINDOW_WIDTH - PANEL_CONTENT_PAD * 2f;   // [2026-11-23 Figma 정합] 패널 콘텐츠 인셋 24
+            // 플러시 합산: (inner − 갭×(열수−1))/열수 — 메인 그리드와 동일 산식 (1080p: (580−9.6×5)/6=88.67)
+            float slotWidth = (innerWidth - SLOT_MARGIN * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
             float slotHeight = slotWidth;               // 정사각형 슬롯 (메인 그리드 규약 동일)
             float rowHeight = slotHeight + SLOT_MARGIN;
             int guideRows = GRID_ROWS_PER_PAGE;         // 5행 가이드 (빈 슬롯 회색 셀 포함 — 메인 그리드 규약 동일)
-            float contentHeight = guideRows * rowHeight + SLOT_MARGIN;
+            float contentHeight = guideRows * rowHeight - SLOT_MARGIN;   // [2026-11-23 Figma 정합] 후행 갭 제거 플러시 합산 (5×rowHeight−갭)
 
             // DnD 판정용 슬롯 화면 Rect 캐시 리빌드 (매 프레임, 빈 창고 포함 — 스테일 Rect 방지: WarehouseUI 선례)
             s_warehouseSlotScreenRects.Clear();
@@ -2688,7 +2720,7 @@ namespace ProjectName.UI
             DrawColoredRect(new Rect(panelX, gridY, WINDOW_WIDTH, gridHeight), ColorInfoBg);
 
             _warehouseScrollPosition = GUI.BeginScrollView(
-                new Rect(panelX + 4, gridY + 2, innerWidth, gridHeight - 4),
+                new Rect(panelX + PANEL_CONTENT_PAD, gridY + 2, innerWidth, gridHeight - 4),   // 좌측 인셋 24 (구 +4 대체)
                 _warehouseScrollPosition,
                 new Rect(0, 0, innerWidth - 20, contentHeight)
             );
@@ -2702,8 +2734,8 @@ namespace ProjectName.UI
             {
                 int gCol = g % GRID_COLUMNS;
                 int gRow = g / GRID_COLUMNS;
-                float gx = SLOT_MARGIN + gCol * (slotWidth + SLOT_MARGIN);
-                float gy = SLOT_MARGIN + gRow * rowHeight;
+                float gx = gCol * (slotWidth + SLOT_MARGIN);   // 좌측 플러시 — 선행 마진 없음
+                float gy = gRow * rowHeight;                   // 상단 플러시
                 GUI.DrawTexture(new Rect(gx, gy, slotWidth, slotHeight), slotCellTex);
 
                 Vector2 guideSp = GUIUtility.GUIToScreenPoint(new Vector2(gx, gy));
@@ -2728,8 +2760,8 @@ namespace ProjectName.UI
                     int row = i / GRID_COLUMNS;
                     if (row >= guideRows) break;   // 가이드 행 초과분 미렌더 (20슬롯=4행 — 발생 없음, 방어)
 
-                    float sx = SLOT_MARGIN + col * (slotWidth + SLOT_MARGIN);
-                    float sy = SLOT_MARGIN + row * rowHeight;
+                    float sx = col * (slotWidth + SLOT_MARGIN);   // 좌측 플러시 — 선행 마진 없음
+                    float sy = row * rowHeight;                   // 상단 플러시
                     Rect slotRect = new Rect(sx, sy, slotWidth, slotHeight);
                     bool isSelected = (i == _warehouseSelectedIndex);
                     bool isHover = slotRect.Contains(Event.current.mousePosition);

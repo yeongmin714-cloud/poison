@@ -14,6 +14,8 @@ namespace ProjectName.Systems
     /// GLB 로드 실패 시 프리미티브 폴백 → 어떤 경우에도 null 반환 금지(호출부가 null 체크 없이 SetParent).
     /// Collider 등 부가 컴포넌트는 붙이지 않는다(순수 시각). 단, Bed는 세이브 상호작용 유지를 위해
     /// BoxCollider(isTrigger) + Bed 컴포넌트를 root에 부착(프리미티브 CreateBed 로직 모방).
+    /// [2026-10-14] 폴백 정제 디테일(트림/에이프런/철 코너/소품)은 IndoorFurniturePlacer 폴백
+    /// 경로에만 존재 — GLB 인스턴스에는 프리미티브 장식이 절대 붙지 않는다(GLB 교체 시 자동 소거).
     /// </summary>
     public static class IndoorFurnitureCatalog
     {
@@ -132,7 +134,8 @@ namespace ProjectName.Systems
         public static GameObject CreateCrate(float width, float height, float depth, Material mat)
         {
             var go = Spawn(CratePool, CrateTargetHeight, "Crate");
-            if (go == null) go = IndoorFurniturePlacer.CreateCounter(width, height, depth, mat);
+            // 상자 폴백은 서랍 디테일 미생성(detailed=false) — 트림/철 코너만 적용.
+            if (go == null) go = IndoorFurniturePlacer.CreateCounter(width, height, depth, mat, false);
             AddBlobShadow(go, 1.1f);
             return go;
         }
@@ -141,8 +144,22 @@ namespace ProjectName.Systems
         public static GameObject CreateMirror(float width, float height, float depth, Material mat)
         {
             var go = Spawn(MirrorPool, MirrorTargetHeight, "Mirror");
-            if (go == null) go = IndoorFurniturePlacer.CreateShelf(width, height, depth, mat);
+            // 거울 폴백은 책 줄/병 디테일 미생성(detailed=false) — 후면 패널/상단 캡만 적용.
+            if (go == null) go = IndoorFurniturePlacer.CreateShelf(width, height, depth, mat, 3, false);
             AddBlobShadow(go, 1.0f);
+            return go;
+        }
+
+        /// <summary>
+        /// [143차 P5] 결정론 상자 — poolIndex 고정 pick(Spawn 순환 카운터와 무관, GLB 2종 교차 보장).
+        /// 정규화/접지/폴백/블롭은 CreateCrate 경로와 동일. GLB 실패 시 프리미티브 폴백(null 반환 금지).
+        /// </summary>
+        public static GameObject CreateCrateAt(int poolIndex, float width, float height, float depth, Material mat)
+        {
+            var go = SpawnAt(CratePool, CrateTargetHeight, "Crate", poolIndex);
+            // 상자 폴백은 서랍 디테일 미생성(detailed=false) — CreateCrate 폴백과 동일.
+            if (go == null) go = IndoorFurniturePlacer.CreateCounter(width, height, depth, mat, false);
+            AddBlobShadow(go, 1.1f);
             return go;
         }
 
@@ -200,6 +217,36 @@ namespace ProjectName.Systems
         }
 
         private static int Mod(int a, int b) { int r = a % b; return r < 0 ? r + b : r; }
+
+        /// <summary>[143차 P5] Spawn 고정인덱스판 — pool[poolIndex % Length] pick 외 Spawn과 동일
+        /// (Instantiate+높이 정규화+접지 floorY=0, Collider 미부착). 로드 실패 시 null(호출부 폴백).</summary>
+        private static GameObject SpawnAt(string[] pool, float targetHeight, string name, int poolIndex)
+        {
+            if (pool == null || pool.Length == 0) return null;
+            var src = LoadGlb(FurnitureDir + pool[Mod(poolIndex, pool.Length)]);
+            if (src == null) return null;
+
+            var go = Object.Instantiate(src);
+            go.name = name;
+
+            var renderers = go.GetComponentsInChildren<Renderer>();
+            if (renderers != null && renderers.Length > 0)
+            {
+                // 스케일 정규화: world bounds 높이 → targetHeight 균등 스케일.
+                Bounds b = BoundsOf(renderers);
+                float h = b.size.y;
+                if (h > 0.0001f && Mathf.Abs(h - targetHeight) > 0.01f)
+                {
+                    float s = targetHeight / h;
+                    go.transform.localScale = new Vector3(s, s, s);
+                }
+                // 접지: 밑면(bounds.min.y)이 바닥 y=0에 닿도록 y 보정.
+                Bounds nb = BoundsOf(renderers);
+                Vector3 p = go.transform.position;
+                go.transform.position = new Vector3(p.x, p.y - nb.min.y, p.z);
+            }
+            return go;
+        }
 
         /// <summary>[2026-10-10 H2] 접지 블롭 섀도우 — 바닥 위 1cm 방사형 어두운 쿼드(오브제 접지감).
         /// 렌더러 전용·그림자 미방출·콜라이더 없음. 머티리얼 실패 시 무블롭(스킵).</summary>

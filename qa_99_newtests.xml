@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.3368653">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="1299" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.336865" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="2465" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="1290" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.321428" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="7872" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="2466" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="1287" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.316344" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2467" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="1287" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.312075" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2468" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="1272" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.306703" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1286" name="DialogueFeedbackTests" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.124912" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1297" name="DialogueCameraDirector_FullBody_HeadClearAbovePlayer_B2_99" fullname="ProjectName.Tests.EditMode.DialogueFeedbackTests.DialogueCameraDirector_FullBody_HeadClearAbovePlayer_B2_99" methodname="DialogueCameraDirector_FullBody_HeadClearAbovePlayer_B2_99" classname="ProjectName.Tests.EditMode.DialogueFeedbackTests" runstate="Runnable" seed="248062821" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.099310" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[DialogueCameraDirector] 🔍 대화 카메라 시작 — 주민 (fullBody=True — 스왑 폐기, 기존 카메라 직접 제어 / [97차 F2] fullBody=패널 수명 연동, 기존=5s 타이머·0.8s 유예)
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF99B2_MainCam:on] depth=[Main Camera:-1.0,DF99B2_MainCam:0.0] pos=(0.9,12.3,-2.9) boundsY=1.00 (Begin)
+[99차 F-B] 전신프레임 — boundsY=1.00 bounds(minY=0.40,maxY=1.40) dist=2.92m frameH=2.12m 화면상단여유≈0.56m 하단여유≈0.56m (FOV 40°)
+[98차 F2] 카메라 End 원인 — 경로=미기록 override=null pollOpen=False 진단미등록 t=0.36s
+[DialogueCameraDirector] 렌더 상태 — camCount=2 enabled=[Main Camera:on,DF99B2_MainCam:on] depth=[Main Camera:-1.0,DF99B2_MainCam:0.0] pos=(10.0,20.0,-30.0) boundsY=-1.00 (End)
+[DialogueCameraDirector] 대화 카메라 복원
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2235" name="TargetProjectionTests" fullname="ProjectName.Tests.EditMode.TargetProjectionTests" classname="ProjectName.Tests.EditMode.TargetProjectionTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.016995" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2240" name="InteractionPanelUTK_ScreenBoundsGuard_HideBeyond200px_Recover_99FA" fullname="ProjectName.Tests.EditMode.TargetProjectionTests.InteractionPanelUTK_ScreenBoundsGuard_HideBeyond200px_Recover_99FA" methodname="InteractionPanelUTK_ScreenBoundsGuard_HideBeyond200px_Recover_99FA" classname="ProjectName.Tests.EditMode.TargetProjectionTests" runstate="Runnable" seed="731511234" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.013948" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2410" name="VillagerWanderTests" fullname="ProjectName.Tests.EditMode.VillagerWanderTests" classname="ProjectName.Tests.EditMode.VillagerWanderTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.070937" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2417" name="VillagerWander_SkeletonProbe_And_NameRemap_DummySkeleton_99FC" fullname="ProjectName.Tests.EditMode.VillagerWanderTests.VillagerWander_SkeletonProbe_And_NameRemap_DummySkeleton_99FC" methodname="VillagerWander_SkeletonProbe_And_NameRemap_DummySkeleton_99FC" classname="ProjectName.Tests.EditMode.VillagerWanderTests" runstate="Runnable" seed="751812429" result="Passed" start-time="2026-10-17 01:06:25Z" end-time="2026-10-17 01:06:25Z" duration="0.067962" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

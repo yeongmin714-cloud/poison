@@ -39,6 +39,24 @@ namespace ProjectName.UI.Toolkit
         public static readonly Color AccentHover = Hex(0x79C0FF);
         public static readonly Color SuccessHover = Hex(0x57AB5A);
 
+        // ===== [125차 후속12] 플루언트(글래스) 토큰 — 게임 화면이 비치는 반투명 패널 계약 =====
+        // [144차 P0 V8] D1 사용자 확정(2026-10-31) — 글래스 알파 0.85 → Figma 진실치 0.702 전 창 통일.
+        /// <summary>글래스 패널 — 흑 알파 0.702(Figma 진실치, D1 확정). 창 배경으로 게임 화면이 비친다.</summary>
+        public static readonly Color GlassPanel = new Color(0f, 0f, 0f, 0.702f);
+        /// <summary>부드러운 글래스 패널(보조판/내용 밀도 낮은 영역) — 알파 0.72(보조판 별도 토큰 — D1 0.85/0.88 통일 대상 아님).</summary>
+        public static readonly Color GlassPanelSoft = new Color(0.02f, 0.03f, 0.05f, 0.72f);
+        /// <summary>글래스 스트로크 — #30363D@50%(AttackFormationUTK Dark.GlassStroke 선례).</summary>
+        public static readonly Color GlassStroke = new Color(0x30 / 255f, 0x36 / 255f, 0x3D / 255f, 0.5f);
+
+        /// <summary>[125차 후속12] 기존 VisualElement를 글래스 패널로 전환 — 배경/스트로크만 교체(레이아웃 무변경).</summary>
+        public static void ApplyGlassPanel(VisualElement el, bool soft = false)
+        {
+            if (el == null) return;
+            el.style.backgroundColor = soft ? new StyleColor(GlassPanelSoft) : new StyleColor(GlassPanel);
+            el.style.borderTopColor = el.style.borderBottomColor =
+                el.style.borderLeftColor = el.style.borderRightColor = new StyleColor(GlassStroke);
+        }
+
         public const int RadiusMain = 8;
         public const int RadiusSub = 6;
         public const int RadiusBadge = 4;
@@ -156,10 +174,10 @@ namespace ProjectName.UI.Toolkit
         // =====================================================================
         //  [Figma 글래스 패널 — 69:4/84:4 등 전 패널 공통 실측] 글래스모피즘.
         //  fill #161B22@0.7 + stroke #30363D@0.5 1.2px + r14.4 + DROP_SHADOW(y19.2/blur38.4/25%).
-        //  ⚠ UI Toolkit 런타임은 BACKGROUND_BLUR 미지원 — 0.7 알파(배경 30% 비침)로 유사 효과만 제공.
+        //  ⚠ UI Toolkit 런타임은 BACKGROUND_BLUR 미지원 — 0.702 알파(배경 ~30% 비침)로 유사 효과만 제공.
         //  =====================================================================
-        // 사용자 조정(2026-10-08): 피그마 0.7보다 "조금 더 불투명" — 0.85. 배경 비침은 15%로 축소.
-        public static readonly Color GlassPanelFill = new Color32(0x16, 0x1B, 0x22, 0xD9);   // 0.85 ≈ D9/255
+        // [144차 P0 V8] D1 사용자 확정(2026-10-31) — 2026-10-08 사용자 조정(0.85) 폐기, Figma 진실치 0.702로 전 창 통일.
+        public static readonly Color GlassPanelFill = new Color32(0x16, 0x1B, 0x22, 0xB3);   // 0.702 ≈ B3/255
         public static readonly Color GlassPanelStroke = new Color32(0x30, 0x36, 0x3D, 0x80); // 0.5
         public const float GlassStrokeWidth = 1.2f;
         public const float GlassRadius = 14.4f;
@@ -185,6 +203,164 @@ namespace ProjectName.UI.Toolkit
             panel.style.borderTopRightRadius = GlassRadius;
             panel.style.borderBottomLeftRadius = GlassRadius;
             panel.style.borderBottomRightRadius = GlassRadius;
+        }
+
+        // =====================================================================
+        //  [144차 Phase 0 — 공용 UI 어휘 정비] V1/V2/V4/V6
+        //  계획: docs/144_FIGMA_UI_PARITY_FIX_PLAN.md §2 — 반복 P0/P1의 공용 원인을 1회 정비.
+        //  근거: docs/144_figma_parity_audit.md + TestOutput/figma_audit_144/*.md (진실치 인라인 주석).
+        //  =====================================================================
+
+        // ── [144차 P0 V2] 패널/요소 테두리 크롬 — Figma 공통 스트로크 #30363D 실효알파 0.502 · 두께 1.2.
+        //    (크래프트/건설/수면/음식점/퀘스트/세금 등 전 창 반복 — "0.5 고정 폐기" 대상, inventory.md A51 계열 실측)
+        /// <summary>Figma 공통 테두리 크롬색 — #30363D 실효알파 0.502.</summary>
+        public static readonly Color BorderChrome = new Color(0x30 / 255f, 0x36 / 255f, 0x3D / 255f, 0.502f);
+        /// <summary>Figma 공통 테두리 두께 — 1.2.</summary>
+        public const float BorderChromeWidth = 1.2f;
+
+        /// <summary>[144차 P0 V2] 요소 테두리 일괄 적용 — 인자 생략 시 크롬 진실치(#30363D@0.502 / 1.2).
+        /// 4면 동일값(요소별 상이 두께/색은 인자로) — 4면 개별 지정 규약 준수(124차-ImplB 셧스루헛 금지 선례).</summary>
+        public static void ApplyElementBorder(VisualElement el, Color? color = null, float? width = null)
+        {
+            if (el == null) return;
+            var chrome = new StyleColor(color ?? BorderChrome);
+            el.style.borderTopColor = chrome;
+            el.style.borderBottomColor = chrome;
+            el.style.borderLeftColor = chrome;
+            el.style.borderRightColor = chrome;
+            float w = width ?? BorderChromeWidth;
+            el.style.borderTopWidth = w;
+            el.style.borderBottomWidth = w;
+            el.style.borderLeftWidth = w;
+            el.style.borderRightWidth = w;
+        }
+
+        /// <summary>[144차 P0 V6] 4면 코너 반경 일괄 적용 — 124차-ImplB 패널/핀/카드 공용 헬퍼의 Theme 승격.</summary>
+        public static void ApplyRadius(VisualElement el, float radius)
+        {
+            if (el == null) return;
+            el.style.borderTopLeftRadius = radius;
+            el.style.borderTopRightRadius = radius;
+            el.style.borderBottomLeftRadius = radius;
+            el.style.borderBottomRightRadius = radius;
+        }
+
+        // ── [144차 P0 V1] 코너 데칼 4각 공용 어휘 — 124차 L자 2면 보더 선례(WorldMapWindowUTK.BuildCornerDecal).
+        //    Figma 진실치: 14.4×14.4(옵션 10×10) L자 2면 #58A6FF w1.8 — CSP/EP/퀘스트12/공격조8/ArenaBattle/
+        //    고용비/포션/낚시/상호작용7/병사관리(오배치)/대화(색·위치) 등 반복 P0/P1.
+        //    outsideCorner=true가 Figma 진실(대화 163:24~33 — 데칼이 코너 "밖"에 걸침): inset −size/2로 코너에 걸치게.
+        //    false는 레거시 안쪽 모드(+4px — NPCDialoguePanelUTK.AddCornerDecals inset 4 선례).
+        /// <summary>루트 4모서리에 L자 코너 데칼 4개(DecalTL/TR/BL/BR)를 추가한다.
+        /// 개별 창의 세부 좌표(대화 TL(−4,−5) 등)는 각 창 Phase에서 미조정 — 본 어휘는 구조/색/두께만 담당.</summary>
+        public static void AddCornerDecals(VisualElement root, float size = 10f, float weight = 1.8f,
+            string hexColor = "#58A6FF", bool outsideCorner = true)
+        {
+            if (root == null) return;
+            Color color = ParseHexColor(hexColor);
+            float inset = outsideCorner ? -(size * 0.5f) : 4f;
+            void Decal(string cornerName, bool top, bool left)
+            {
+                var decal = new VisualElement { name = cornerName };
+                decal.style.position = Position.Absolute;
+                decal.style.width = size;
+                decal.style.height = size;
+                var side = new StyleColor(color);
+                decal.style.borderTopColor = side;
+                decal.style.borderBottomColor = side;
+                decal.style.borderLeftColor = side;
+                decal.style.borderRightColor = side;
+                // L자 2면 보더 트릭 — 코너에 해당하는 2면만 표시(124차 Phase A 선례)
+                decal.style.borderTopWidth = top ? weight : 0f;
+                decal.style.borderBottomWidth = top ? 0f : weight;
+                decal.style.borderLeftWidth = left ? weight : 0f;
+                decal.style.borderRightWidth = left ? 0f : weight;
+                if (left) decal.style.left = inset; else decal.style.right = inset;
+                if (top) decal.style.top = inset; else decal.style.bottom = inset;
+                decal.pickingMode = PickingMode.Ignore;
+                root.Add(decal);
+            }
+            Decal("DecalTL", true, true);
+            Decal("DecalTR", true, false);
+            Decal("DecalBL", false, true);
+            Decal("DecalBR", false, false);
+        }
+
+        /// <summary>[144차 P0 V1] "#RRGGBB"/"#RRGGBBAA" → Color. 파싱 실패 시 Accent(#58A6FF) 폴백.</summary>
+        public static Color ParseHexColor(string hex)
+        {
+            return ColorUtility.TryParseHtmlString(hex, out Color color) ? color : Accent;
+        }
+
+        // ── [144차 P0 V4] 헤더 2행 어휘 — 제목(기존 타이틀 상수 재사용) + 영문 Subtitle 세로 2행.
+        //    진실치: 인벤 15:21 Subtitle "INVENTORY" (153,38) 78×17, 14.4/400 #8B949E(inventory.md P0 1건).
+        /// <summary>패널 헤더 2행(제목 + 영문 부제) 생성 후 parent에 추가해 반환.
+        /// 제목은 FontTitle/700/TextMain(기존 타이틀 토큰 재사용), 부제는 14.4/400/TextSub. 부제 빈 값이면 1행만.</summary>
+        public static VisualElement BuildPanelHeader2Row(VisualElement parent, string title, string subtitle)
+        {
+            var header = new VisualElement { name = "PanelHeader2Row" };
+            header.style.flexDirection = FlexDirection.Column;
+            var titleLabel = new Label(title ?? "");
+            StyleFigmaText(titleLabel, FontTitle, 700, TextMain, TextAnchor.MiddleLeft);
+            header.Add(titleLabel);
+            if (!string.IsNullOrEmpty(subtitle))
+            {
+                var subtitleLabel = new Label(subtitle);
+                StyleFigmaText(subtitleLabel, FontBody, 400, TextSub, TextAnchor.MiddleLeft);
+                header.Add(subtitleLabel);
+            }
+            parent?.Add(header);
+            return header;
+        }
+
+        // ── [144차 P0 V6] 배지/칩 3종 공용 스타일 — 감사 반복(크래프트 EPIC 배지, 병사관리 등).
+        //    TierBadge(63:125-126): r4.8 · fill 티어색@0.122 · stroke 티어색 1.2 · 텍스트 13.2/700 티어색.
+        //    CountBadge(69:197): fill #000000@0.251 · r7.2 · stroke #30363D@0.502 1.2 · 텍스트 14.4/700.
+        //    StatusPill(69:40): fill #000000@0.251 · r4.8 · stroke #30363D@0.502 · pad 7.2/2.4 · 텍스트 12/700.
+        /// <summary>등급 배지(TierBadge) 생성 — 티어 의미색 단일 인자로 프레임/스트로크/텍스트색 일괄.</summary>
+        public static VisualElement CreateTierBadge(string text, Color tierColor, string name = "TierBadge")
+        {
+            var badge = new VisualElement { name = name };
+            badge.style.backgroundColor = new StyleColor(new Color(tierColor.r, tierColor.g, tierColor.b, 0.122f));
+            ApplyElementBorder(badge, tierColor, 1.2f);
+            ApplyRadius(badge, 4.8f);
+            badge.style.paddingLeft = badge.style.paddingRight = 9.6f;
+            badge.style.paddingTop = badge.style.paddingBottom = 4.8f;
+            var label = new Label(text ?? "");
+            StyleFigmaText(label, FontSubtitle, 700, tierColor, TextAnchor.MiddleCenter);
+            badge.Add(label);
+            return badge;
+        }
+
+        /// <summary>수량 배지(CountBadge) 생성 — #000000@0.251 · r7.2 · 크롬 스트로크.
+        /// 텍스트색은 호출부 의미(활성 Accent #58A6FF / 비활성 TextSub #8B949E — 69:198).</summary>
+        public static VisualElement CreateCountBadge(string text, Color textColor, string name = "CountBadge")
+        {
+            var badge = new VisualElement { name = name };
+            badge.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.251f));
+            ApplyElementBorder(badge, BorderChrome, BorderChromeWidth);
+            ApplyRadius(badge, 7.2f);
+            badge.style.paddingLeft = badge.style.paddingRight = 9.6f;
+            badge.style.paddingTop = badge.style.paddingBottom = 4.8f;
+            var label = new Label(text ?? "");
+            StyleFigmaText(label, FontTab, 700, textColor, TextAnchor.MiddleCenter);
+            badge.Add(label);
+            return badge;
+        }
+
+        /// <summary>상태 칩(StatusPill) 생성 — #000000@0.251 체계 · r4.8 · 크롬 스트로크 · pad 7.2/2.4.
+        /// 상태 의미색 인자(병사관리 진실치: 활성 #39D353 / 외교 #FF9E2C / 대기 #8B949E — 69:53/65/77).</summary>
+        public static VisualElement CreateStatusPill(string text, Color statusColor, string name = "StatusPill")
+        {
+            var badge = new VisualElement { name = name };
+            badge.style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0.251f));
+            ApplyElementBorder(badge, BorderChrome, BorderChromeWidth);
+            ApplyRadius(badge, 4.8f);
+            badge.style.paddingLeft = badge.style.paddingRight = 7.2f;
+            badge.style.paddingTop = badge.style.paddingBottom = 2.4f;
+            var label = new Label(text ?? "");
+            StyleFigmaText(label, FontBadge, 700, statusColor, TextAnchor.MiddleCenter);
+            badge.Add(label);
+            return badge;
         }
 
         // ── [Fluent 스크롤러] Unity 기본 스크롤러(두꺼운 트랙+화살표 버튼)는 GitHub-dark/Fluent 미학과 어긋난다.

@@ -49,6 +49,18 @@ namespace ProjectName.UI.Toolkit
         }
 
         /// <summary>
+        /// [72차] 상호작용 패널 경유 개방 — 창을 연 뒤 지정 아이템 모드(음식/약) 선택 섹션을 곧바로 표시.
+        /// InteractionPanelUTK 물약주기/음식주기 위임 경로(패널은 창을 여는 다리).
+        /// </summary>
+        public static void OpenWithItemMode(GuardPlaceholder guard, ItemMode mode)
+        {
+            if (guard == null || !guard.IsAlive) return;
+            Ensure();
+            _instance.OpenForGuard(guard);
+            _instance.ShowItemSection(mode);   // OpenForGuard→Show 내 ShowMenu() 이후 즉시 전환
+        }
+
+        /// <summary>
         /// [P13 배선] F키 병사 상호작용 — Systems(PlayerMovement) 이벤트 → UTK 상호작용 창.
         /// GuardInfoUTK.BootstrapBridge와 동일 AfterSceneLoad 패턴.
         /// </summary>
@@ -191,7 +203,7 @@ namespace ProjectName.UI.Toolkit
             slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(c);
         }
 
-        private enum ItemMode { None, Food, Drug }
+        public enum ItemMode { None, Food, Drug, Equipment }   // [202차] Equipment = 장비 착용(아군 전용 — EquipAllyItem P30-C 활성화)
         private ItemMode _itemMode = ItemMode.None;
 
         // ===== 상태 =====
@@ -278,9 +290,11 @@ namespace ProjectName.UI.Toolkit
 
             if (_guard != null && _guard.IsAlly)
             {
-                // 아군병사 — 물약주기 / 음식주기 (맥락 페어)
+                // 아군병사 — 물약주기 / 음식주기 / 장비주기 (맥락 페어+장비 — Figma 2열 그리드 3행)
                 AddMenuButton("물약주기", () => ShowItemSection(ItemMode.Drug), UTKButton.Variant.Secondary);
                 AddMenuButton("음식주기", () => ShowItemSection(ItemMode.Food), UTKButton.Variant.Secondary);
+                // [202차] 장비주기 — 소속 병사(IsAlly)에 플레이어 인벤 장비 착용(EquipAllyItem 경로 활성화)
+                AddMenuButton("장비주기", () => ShowItemSection(ItemMode.Equipment), UTKButton.Variant.Secondary);
             }
             else
             {
@@ -492,11 +506,14 @@ namespace ProjectName.UI.Toolkit
             if (_guard == null) return;
             _itemMode = mode;
             if (mode == ItemMode.Food) _guard.BeginFoodSelection();
-            else _guard.BeginDrugSelection();
+            else if (mode == ItemMode.Drug) _guard.BeginDrugSelection();
+            else _guard.BeginEquipmentSelection();   // [202차] 장비 모드
 
             _menuSection.style.display = DisplayStyle.None;
             _itemSection.style.display = DisplayStyle.Flex;
-            _itemTitleLabel.text = mode == ItemMode.Food ? "🥩 음식 선택" : "💊 약 선택";
+            _itemTitleLabel.text = mode == ItemMode.Food ? "🥩 음식 선택"
+                                 : mode == ItemMode.Drug ? "💊 약 선택"
+                                 : "🛡️ 장비 선택";
             RebuildItemList();
         }
 
@@ -581,7 +598,14 @@ namespace ProjectName.UI.Toolkit
         private void GiveItem(PlayerInventory.ItemData item)
         {
             if (_guard == null || item == null) return;
-            if (_guard.IsAlly)
+            if (_itemMode == ItemMode.Equipment)
+            {
+                // [202차] 장비 착용 — EquipAllyItem(P30-C, 기존 미배선 코드) 활성화.
+                //   내부 가드: 적병사 거부 메시지 + 슬롯 분류(무기/투구/갑옷/신발/장갑/방패) + 인벤 소비 + 이전 장비 반환
+                //   + GuardVisualAttachSystem.RequestRefreshFor(즉시 GLB 재부착). 성공/실패 상태메시지는 메서드 내 확정.
+                _guard.EquipAllyItem(item);
+            }
+            else if (_guard.IsAlly)
             {
                 // [P30-C] 아군 — 약은 버프 실행(적병사와 달리 중독 경로 미사용)
                 if (_itemMode == ItemMode.Food) _guard.GiveAllyFood(item);

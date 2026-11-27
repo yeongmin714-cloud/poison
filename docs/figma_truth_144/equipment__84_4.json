@@ -1,0 +1,5542 @@
+{
+ "id": "84:4",
+ "name": "equipment-inventory-panel",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 29618,
+ "ay": 3,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "IMAGE",
+  "#0B0E14/1.0@0.85"
+ ],
+ "strokeW": 1.2,
+ "layout": "HORIZONTAL",
+ "gap": 28.80000114440918,
+ "pl": 48.0,
+ "pr": 48.0,
+ "pt": 48.0,
+ "pb": 48.0,
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "84:5",
+   "name": "TelemetryOverlay",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 29858,
+   "ay": 51,
+   "w": 1440.0,
+   "h": 19.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "pl": 19.200000762939453,
+   "pr": 19.200000762939453,
+   "mainAlign": "SPACE_BETWEEN",
+   "c": [
+    {
+     "id": "84:6",
+     "name": "SYSTEM_STATUS: ONLINE // LOADOUT_ENGAGED: TRUE",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 29877,
+     "ay": 51,
+     "w": 398.0,
+     "h": 19.0,
+     "d": 2,
+     "fills": [
+      "#484F58/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "SYSTEM_STATUS: ONLINE // LOADOUT_ENGAGED: TRUE",
+     "fontSize": 14.40000057220459,
+     "font": "Geist Mono 400 Regular",
+     "lineH": 18.7
+    },
+    {
+     "id": "84:7",
+     "name": "SECTOR: DEEP_GRID_ALPHA // PORT: 0x9F4C",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 30942,
+     "ay": 51,
+     "w": 337.0,
+     "h": 19.0,
+     "d": 2,
+     "fills": [
+      "#484F58/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "SECTOR: DEEP_GRID_ALPHA // PORT: 0x9F4C",
+     "fontSize": 14.40000057220459,
+     "font": "Geist Mono 400 Regular",
+     "lineH": 18.7
+    }
+   ]
+  },
+  {
+   "id": "84:8",
+   "name": "CharacterStatusPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 30010,
+   "ay": 75,
+   "w": 576.0,
+   "h": 936.0,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.376"
+   ],
+   "layout": "VERTICAL",
+   "gap": 19.200000762939453,
+   "pl": 24.0,
+   "pr": 24.0,
+   "pt": 24.0,
+   "pb": 24.0,
+   "c": [
+    {
+     "id": "84:9",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30010,
+     "ay": 75,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "84:10",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30010,
+       "ay": 75,
+       "w": 14.4,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "84:11",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30010,
+       "ay": 75,
+       "w": 0.0,
+       "h": 14.4,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "84:12",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30571,
+     "ay": 75,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "84:13",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30571,
+       "ay": 75,
+       "w": 14.4,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "84:14",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30571,
+       "ay": 75,
+       "w": 0.0,
+       "h": 14.4,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "84:15",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30010,
+     "ay": 997,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "84:16",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30010,
+       "ay": 997,
+       "w": 14.4,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "84:17",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30010,
+       "ay": 997,
+       "w": 0.0,
+       "h": 14.4,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "84:18",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30571,
+     "ay": 997,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "84:19",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30571,
+       "ay": 997,
+       "w": 14.4,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "84:20",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30571,
+       "ay": 997,
+       "w": 0.0,
+       "h": 14.4,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "84:21",
+     "name": "PanelHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30034,
+     "ay": 99,
+     "w": 528.0,
+     "h": 52.8,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 14.40000057220459,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "84:22",
+       "name": "TitleGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30034,
+       "ay": 104,
+       "w": 234.0,
+       "h": 28.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "84:23",
+         "name": "상태 정보",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30034,
+         "ay": 104,
+         "w": 95.0,
+         "h": 28.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "상태 정보",
+         "fontSize": 24.0,
+         "font": "Roboto 700 Bold",
+         "lineH": 28.1
+        },
+        {
+         "id": "84:24",
+         "name": "CHARACTER STATUS",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30141,
+         "ay": 113,
+         "w": 127.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "CHARACTER STATUS",
+         "fontSize": 13.200000762939453,
+         "font": "Geist Mono 500 Medium",
+         "lineH": 17.2
+        }
+       ]
+      },
+      {
+       "id": "84:25",
+       "name": "CloseBtn",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30531,
+       "ay": 103,
+       "w": 31.2,
+       "h": 31.2,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.059"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 7.200000286102295,
+       "pr": 7.200000286102295,
+       "pt": 7.200000286102295,
+       "pb": 7.200000286102295,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "84:26",
+         "name": "x-circle",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30538,
+         "ay": 110,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "84:27",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 30538,
+           "ay": 110,
+           "w": 16.8,
+           "h": 16.8,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "84:28",
+     "name": "Identity",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30034,
+     "ay": 171,
+     "w": 528.0,
+     "h": 85.0,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 7.200000286102295,
+     "pl": 14.40000057220459,
+     "pr": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "pb": 14.40000057220459,
+     "c": [
+      {
+       "id": "84:29",
+       "name": "Frame",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30048,
+       "ay": 185,
+       "w": 499.2,
+       "h": 18.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "84:30",
+         "name": "전설적인 에이전트 (LEGENDARY)",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30048,
+         "ay": 185,
+         "w": 222.0,
+         "h": 18.0,
+         "d": 4,
+         "fills": [
+          "#BC8CFF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "전설적인 에이전트 (LEGENDARY)",
+         "fontSize": 15.600000381469727,
+         "font": "Roboto 700 Bold",
+         "lineH": 18.3
+        },
+        {
+         "id": "84:31",
+         "name": "클래스: 뱅가드",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30453,
+         "ay": 185,
+         "w": 94.0,
+         "h": 18.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "클래스: 뱅가드",
+         "fontSize": 15.600000381469727,
+         "font": "Roboto 400 Regular",
+         "lineH": 18.3
+        }
+       ]
+      },
+      {
+       "id": "84:32",
+       "name": "코드네임: 아르테미스",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 30048,
+       "ay": 211,
+       "w": 499.2,
+       "h": 31.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "코드네임: 아르테미스",
+       "fontSize": 26.400001525878906,
+       "font": "Roboto 700 Bold",
+       "lineH": 30.9
+      }
+     ]
+    },
+    {
+     "id": "84:33",
+     "name": "Portrait",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30034,
+     "ay": 275,
+     "w": 528.0,
+     "h": 312.0,
+     "d": 2,
+     "fills": [
+      "#0B0E14/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "84:34",
+       "name": "Rectangle",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 30034,
+       "ay": 275,
+       "w": 528.0,
+       "h": 312.0,
+       "d": 3,
+       "fills": [
+        "IMAGE"
+       ],
+       "strokeW": 1.2
+      },
+      {
+       "id": "84:35",
+       "name": "HudOverlay",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30034,
+       "ay": 275,
+       "w": 528.0,
+       "h": 44.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "mainAlign": "SPACE_BETWEEN",
+       "c": [
+        {
+         "id": "84:36",
+         "name": "SYS_SCAN_ACTIVE",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30048,
+         "ay": 290,
+         "w": 108.0,
+         "h": 16.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "SYS_SCAN_ACTIVE",
+         "fontSize": 12.0,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 15.6
+        },
+        {
+         "id": "84:37",
+         "name": "HP 100%",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30496,
+         "ay": 290,
+         "w": 51.0,
+         "h": 16.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "HP 100%",
+         "fontSize": 12.0,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 15.6
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "84:38",
+     "name": "Stats",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30034,
+     "ay": 606,
+     "w": 528.0,
+     "h": 157.8,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.012"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 19.200000762939453,
+     "pl": 14.40000057220459,
+     "pr": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "pb": 14.40000057220459,
+     "c": [
+      {
+       "id": "84:39",
+       "name": "Frame",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30048,
+       "ay": 621,
+       "w": 120.0,
+       "h": 129.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "pl": 19.200000762939453,
+       "pr": 19.200000762939453,
+       "pt": 19.200000762939453,
+       "pb": 19.200000762939453,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "84:40",
+         "name": "LEVEL",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30089,
+         "ay": 640,
+         "w": 38.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "LEVEL",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 500 Medium",
+         "lineH": 15.5
+        },
+        {
+         "id": "84:41",
+         "name": "85",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30085,
+         "ay": 660,
+         "w": 47.0,
+         "h": 50.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "85",
+         "fontSize": 38.400001525878906,
+         "font": "Geist Mono 800 ExtraBold",
+         "lineH": 49.9
+        },
+        {
+         "id": "84:42",
+         "name": "EXP 94.2%",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30076,
+         "ay": 715,
+         "w": 65.0,
+         "h": 16.0,
+         "d": 4,
+         "fills": [
+          "#56E39F/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "EXP 94.2%",
+         "fontSize": 12.0,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 15.6
+        }
+       ]
+      },
+      {
+       "id": "84:43",
+       "name": "StatsGrid",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30187,
+       "ay": 621,
+       "w": 360.0,
+       "h": 104.4,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "VERTICAL",
+       "gap": 9.600000381469727,
+       "mainAlign": "CENTER",
+       "c": [
+        {
+         "id": "84:44",
+         "name": "Frame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30187,
+         "ay": 621,
+         "w": 360.0,
+         "h": 22.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "84:45",
+           "name": "공격력 (ATK)",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30187,
+           "ay": 623,
+           "w": 87.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "공격력 (ATK)",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 500 Medium",
+           "lineH": 18.3
+          },
+          {
+           "id": "84:46",
+           "name": "+1,845",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30486,
+           "ay": 621,
+           "w": 61.0,
+           "h": 22.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "+1,845",
+           "fontSize": 16.80000114440918,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 21.8
+          }
+         ]
+        },
+        {
+         "id": "84:47",
+         "name": "Line",
+         "type": "LINE",
+         "x": null,
+         "y": null,
+         "ax": 30187,
+         "ay": 652,
+         "w": 360.0,
+         "h": 0.0,
+         "d": 4,
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2
+        },
+        {
+         "id": "84:48",
+         "name": "Frame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30187,
+         "ay": 662,
+         "w": 360.0,
+         "h": 22.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "84:49",
+           "name": "방어력 (DEF)",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30187,
+           "ay": 664,
+           "w": 86.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "방어력 (DEF)",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 500 Medium",
+           "lineH": 18.3
+          },
+          {
+           "id": "84:50",
+           "name": "+1,230",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30486,
+           "ay": 662,
+           "w": 61.0,
+           "h": 22.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "+1,230",
+           "fontSize": 16.80000114440918,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 21.8
+          }
+         ]
+        },
+        {
+         "id": "84:51",
+         "name": "Line",
+         "type": "LINE",
+         "x": null,
+         "y": null,
+         "ax": 30187,
+         "ay": 694,
+         "w": 360.0,
+         "h": 0.0,
+         "d": 4,
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2
+        },
+        {
+         "id": "84:52",
+         "name": "Frame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30187,
+         "ay": 703,
+         "w": 360.0,
+         "h": 22.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "84:53",
+           "name": "최대 체력 (HP)",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30187,
+           "ay": 705,
+           "w": 98.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "최대 체력 (HP)",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 500 Medium",
+           "lineH": 18.3
+          },
+          {
+           "id": "84:54",
+           "name": "15,400",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30486,
+           "ay": 703,
+           "w": 61.0,
+           "h": 22.0,
+           "d": 5,
+           "fills": [
+            "#FF7B72/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "15,400",
+           "fontSize": 16.80000114440918,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 21.8
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "85:3",
+     "name": "SpecialStatsSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30034,
+     "ay": 783,
+     "w": 528.0,
+     "h": 157.0,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.012"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 16.80000114440918,
+     "pl": 16.80000114440918,
+     "pr": 16.80000114440918,
+     "pt": 16.80000114440918,
+     "pb": 16.80000114440918,
+     "c": [
+      {
+       "id": "85:4",
+       "name": "Frame",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30051,
+       "ay": 800,
+       "w": 494.4,
+       "h": 17.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "85:5",
+         "name": "특수 상태 게이지",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30051,
+         "ay": 800,
+         "w": 100.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "특수 상태 게이지",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        },
+        {
+         "id": "85:6",
+         "name": "SPECIAL VITALS",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30444,
+         "ay": 801,
+         "w": 101.0,
+         "h": 16.0,
+         "d": 4,
+         "fills": [
+          "#484F58/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "SPECIAL VITALS",
+         "fontSize": 12.0,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 15.6
+        }
+       ]
+      },
+      {
+       "id": "85:7",
+       "name": "GaugeContainer",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30051,
+       "ay": 834,
+       "w": 494.4,
+       "h": 36.4,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "VERTICAL",
+       "gap": 7.200000286102295,
+       "c": [
+        {
+         "id": "85:8",
+         "name": "Frame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30051,
+         "ay": 834,
+         "w": 494.4,
+         "h": 22.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "85:9",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30051,
+           "ay": 836,
+           "w": 139.8,
+           "h": 18.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "85:10",
+             "name": "Ellipse",
+             "type": "ELLIPSE",
+             "x": null,
+             "y": null,
+             "ax": 30051,
+             "ay": 841,
+             "w": 7.2,
+             "h": 7.2,
+             "d": 6,
+             "fills": [
+              "#BC8CFF/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "85:11",
+             "name": "호감도 (Affection)",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30067,
+             "ay": 836,
+             "w": 123.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "호감도 (Affection)",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 700 Bold",
+             "lineH": 18.3
+            }
+           ]
+          },
+          {
+           "id": "85:12",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30426,
+           "ay": 834,
+           "w": 119.2,
+           "h": 22.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 7.200000286102295,
+           "crossAlign": "BASELINE",
+           "c": [
+            {
+             "id": "85:13",
+             "name": "Lv. 4",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30426,
+             "ay": 834,
+             "w": 51.0,
+             "h": 22.0,
+             "d": 6,
+             "fills": [
+              "#BC8CFF/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "Lv. 4",
+             "fontSize": 16.80000114440918,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 21.8
+            },
+            {
+             "id": "85:14",
+             "name": "(신뢰 단계)",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30484,
+             "ay": 839,
+             "w": 61.0,
+             "h": 15.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "(신뢰 단계)",
+             "fontSize": 13.200000762939453,
+             "font": "Roboto 400 Regular",
+             "lineH": 15.5
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "85:15",
+         "name": "BarBg",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30051,
+         "ay": 863,
+         "w": 494.4,
+         "h": 7.2,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.059"
+         ],
+         "strokeW": 1.2,
+         "r": 3.6,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "85:16",
+           "name": "BarFill",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 30051,
+           "ay": 863,
+           "w": 307.2,
+           "h": 7.2,
+           "d": 5,
+           "fills": [
+            "#BC8CFF/1.0"
+           ],
+           "strokeW": 1.2,
+           "r": 3.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "85:17",
+       "name": "GaugeContainer",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30051,
+       "ay": 887,
+       "w": 494.4,
+       "h": 36.4,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "VERTICAL",
+       "gap": 7.200000286102295,
+       "c": [
+        {
+         "id": "85:18",
+         "name": "Frame",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30051,
+         "ay": 887,
+         "w": 494.4,
+         "h": 22.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "85:19",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30051,
+           "ay": 889,
+           "w": 129.8,
+           "h": 18.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "85:20",
+             "name": "Ellipse",
+             "type": "ELLIPSE",
+             "x": null,
+             "y": null,
+             "ax": 30051,
+             "ay": 895,
+             "w": 7.2,
+             "h": 7.2,
+             "d": 6,
+             "fills": [
+              "#F2C94C/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "85:21",
+             "name": "중독도 (Toxicity)",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30067,
+             "ay": 889,
+             "w": 113.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "중독도 (Toxicity)",
+             "fontSize": 15.600000381469727,
+             "font": "Roboto 700 Bold",
+             "lineH": 18.3
+            }
+           ]
+          },
+          {
+           "id": "85:22",
+           "name": "Frame",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30446,
+           "ay": 887,
+           "w": 99.2,
+           "h": 22.0,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 7.200000286102295,
+           "crossAlign": "BASELINE",
+           "c": [
+            {
+             "id": "85:23",
+             "name": "24%",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30446,
+             "ay": 887,
+             "w": 31.0,
+             "h": 22.0,
+             "d": 6,
+             "fills": [
+              "#F2C94C/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "24%",
+             "fontSize": 16.80000114440918,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 21.8
+            },
+            {
+             "id": "85:24",
+             "name": "(안정 상태)",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30484,
+             "ay": 892,
+             "w": 61.0,
+             "h": 15.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "(안정 상태)",
+             "fontSize": 13.200000762939453,
+             "font": "Roboto 400 Regular",
+             "lineH": 15.5
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "85:25",
+         "name": "BarBg",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30051,
+         "ay": 916,
+         "w": 494.4,
+         "h": 7.2,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.059"
+         ],
+         "strokeW": 1.2,
+         "r": 3.6,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "85:26",
+           "name": "BarFill",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 30051,
+           "ay": 916,
+           "w": 92.4,
+           "h": 7.2,
+           "d": 5,
+           "fills": [
+            "#F2C94C/1.0"
+           ],
+           "strokeW": 1.2,
+           "r": 3.6
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "84:55",
+   "name": "EquipmentPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 30615,
+   "ay": 75,
+   "w": 531.6,
+   "h": 936.0,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.376"
+   ],
+   "layout": "HORIZONTAL",
+   "c": [
+    {
+     "id": "84:56",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30615,
+     "ay": 75,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "84:57",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30615,
+       "ay": 75,
+       "w": 14.4,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "84:58",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30615,
+       "ay": 75,
+       "w": 0.0,
+       "h": 14.4,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "84:59",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 31132,
+     "ay": 75,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "84:60",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 31132,
+       "ay": 75,
+       "w": 14.4,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "84:61",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 31132,
+       "ay": 75,
+       "w": 0.0,
+       "h": 14.4,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "84:62",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30615,
+     "ay": 997,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "84:63",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30615,
+       "ay": 997,
+       "w": 14.4,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "84:64",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 30615,
+       "ay": 997,
+       "w": 0.0,
+       "h": 14.4,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "84:65",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 31132,
+     "ay": 997,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "84:66",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 31132,
+       "ay": 997,
+       "w": 14.4,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "84:67",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 31132,
+       "ay": 997,
+       "w": 0.0,
+       "h": 14.4,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "84:68",
+     "name": "EquipmentLoadout",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 30615,
+     "ay": 75,
+     "w": 531.6,
+     "h": 936.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 19.200000762939453,
+     "pl": 24.0,
+     "pr": 24.0,
+     "pt": 24.0,
+     "pb": 24.0,
+     "c": [
+      {
+       "id": "84:69",
+       "name": "SectionHeader",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30639,
+       "ay": 99,
+       "w": 483.6,
+       "h": 52.8,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "pb": 14.40000057220459,
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "84:70",
+         "name": "TitleGroup",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30639,
+         "ay": 104,
+         "w": 218.0,
+         "h": 28.0,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 12.0,
+         "crossAlign": "BASELINE",
+         "c": [
+          {
+           "id": "84:71",
+           "name": "장착 장비",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30639,
+           "ay": 104,
+           "w": 95.0,
+           "h": 28.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "장착 장비",
+           "fontSize": 24.0,
+           "font": "Roboto 700 Bold",
+           "lineH": 28.1
+          },
+          {
+           "id": "84:72",
+           "name": "LOADOUT MATRIX",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30746,
+           "ay": 113,
+           "w": 111.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "LOADOUT MATRIX",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 500 Medium",
+           "lineH": 17.2
+          }
+         ]
+        },
+        {
+         "id": "84:73",
+         "name": "SYS_EQ_STABLE",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 31028,
+         "ay": 110,
+         "w": 94.0,
+         "h": 16.0,
+         "d": 4,
+         "fills": [
+          "#56E39F/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "SYS_EQ_STABLE",
+         "fontSize": 12.0,
+         "font": "Geist Mono 400 Regular",
+         "lineH": 15.6
+        }
+       ]
+      },
+      {
+       "id": "93:4",
+       "name": "EquippedSection",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30639,
+       "ay": 171,
+       "w": 483.6,
+       "h": 230.4,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 12.0,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "c": [
+        {
+         "id": "93:5",
+         "name": "장착 중인 장비",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 30653,
+         "ay": 185,
+         "w": 116.0,
+         "h": 23.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "장착 중인 장비",
+         "fontSize": 19.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 22.5
+        },
+        {
+         "id": "93:6",
+         "name": "EquipGrid",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30667,
+         "ay": 220,
+         "w": 427.2,
+         "h": 172.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "HORIZONTAL",
+         "gap": 4.800000190734863,
+         "c": [
+          {
+           "id": "93:7",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30667,
+           "ay": 220,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:8",
+             "name": "EquipBadge",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30672,
+             "ay": 225,
+             "w": 22.6,
+             "h": 15.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 3.6,
+             "layout": "HORIZONTAL",
+             "pl": 4.800000190734863,
+             "pr": 4.800000190734863,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "93:9",
+               "name": "EQ",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30676,
+               "ay": 227,
+               "w": 13.0,
+               "h": 11.0,
+               "d": 7,
+               "fills": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "EQ",
+               "fontSize": 9.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 11.2
+              }
+             ]
+            },
+            {
+             "id": "93:10",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 30667,
+             "ay": 220,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#BC8CFF/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:11",
+             "name": "helmet",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30688,
+             "ay": 242,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:12",
+               "name": "hard-hat",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30688,
+               "ay": 242,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:13",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30692,
+                 "ay": 248,
+                 "w": 32.0,
+                 "h": 24.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:14",
+             "name": "투구",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30695,
+             "ay": 286,
+             "w": 18.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "투구",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:15",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30753,
+           "ay": 220,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:16",
+             "name": "EquipBadge",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30758,
+             "ay": 225,
+             "w": 22.6,
+             "h": 15.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 3.6,
+             "layout": "HORIZONTAL",
+             "pl": 4.800000190734863,
+             "pr": 4.800000190734863,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "93:17",
+               "name": "EQ",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30763,
+               "ay": 227,
+               "w": 13.0,
+               "h": 11.0,
+               "d": 7,
+               "fills": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "EQ",
+               "fontSize": 9.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 11.2
+              }
+             ]
+            },
+            {
+             "id": "93:18",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 30753,
+             "ay": 220,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#1F6FEB/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:19",
+             "name": "chest-armor",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30775,
+             "ay": 242,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:20",
+               "name": "shirt",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30775,
+               "ay": 242,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:21",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30778,
+                 "ay": 245,
+                 "w": 31.2,
+                 "h": 32.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:22",
+             "name": "갑옷",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30781,
+             "ay": 286,
+             "w": 18.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "갑옷",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:23",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30840,
+           "ay": 220,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:24",
+             "name": "EquipBadge",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30844,
+             "ay": 225,
+             "w": 22.6,
+             "h": 15.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 3.6,
+             "layout": "HORIZONTAL",
+             "pl": 4.800000190734863,
+             "pr": 4.800000190734863,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "93:25",
+               "name": "EQ",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30849,
+               "ay": 227,
+               "w": 13.0,
+               "h": 11.0,
+               "d": 7,
+               "fills": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "EQ",
+               "fontSize": 9.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 11.2
+              }
+             ]
+            },
+            {
+             "id": "93:26",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 30840,
+             "ay": 220,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#BC8CFF/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:27",
+             "name": "boot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30861,
+             "ay": 242,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:28",
+               "name": "Boot shaft",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30870,
+               "ay": 248,
+               "w": 10.8,
+               "h": 18.0,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 2.4,
+               "r": 3.6
+              },
+              {
+               "id": "93:29",
+               "name": "Boot foot",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30870,
+               "ay": 263,
+               "w": 26.4,
+               "h": 10.8,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 2.4,
+               "r": 4.8
+              },
+              {
+               "id": "93:30",
+               "name": "Boot sole",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30870,
+               "ay": 274,
+               "w": 26.4,
+               "h": 2.4,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 1.2
+              }
+             ]
+            },
+            {
+             "id": "93:31",
+             "name": "신발",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30867,
+             "ay": 286,
+             "w": 18.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "신발",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:32",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30926,
+           "ay": 220,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:33",
+             "name": "EquipBadge",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30931,
+             "ay": 225,
+             "w": 22.6,
+             "h": 15.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 3.6,
+             "layout": "HORIZONTAL",
+             "pl": 4.800000190734863,
+             "pr": 4.800000190734863,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "93:34",
+               "name": "EQ",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30936,
+               "ay": 227,
+               "w": 13.0,
+               "h": 11.0,
+               "d": 7,
+               "fills": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "EQ",
+               "fontSize": 9.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 11.2
+              }
+             ]
+            },
+            {
+             "id": "93:35",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 30926,
+             "ay": 220,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:36",
+             "name": "shield",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30948,
+             "ay": 242,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:37",
+               "name": "shield",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30948,
+               "ay": 242,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:38",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30954,
+                 "ay": 245,
+                 "w": 25.6,
+                 "h": 32.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:39",
+             "name": "방패",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30953,
+             "ay": 286,
+             "w": 18.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "방패",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:40",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 31012,
+           "ay": 220,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:41",
+             "name": "EquipBadge",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 31017,
+             "ay": 225,
+             "w": 22.6,
+             "h": 15.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 3.6,
+             "layout": "HORIZONTAL",
+             "pl": 4.800000190734863,
+             "pr": 4.800000190734863,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "93:42",
+               "name": "EQ",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 31022,
+               "ay": 227,
+               "w": 13.0,
+               "h": 11.0,
+               "d": 7,
+               "fills": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "EQ",
+               "fontSize": 9.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 11.2
+              }
+             ]
+            },
+            {
+             "id": "93:43",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 31012,
+             "ay": 220,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:44",
+             "name": "sword",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 31034,
+             "ay": 242,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:45",
+               "name": "sword",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 31034,
+               "ay": 242,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:46",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 31039,
+                 "ay": 247,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:47",
+             "name": "무기",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 31040,
+             "ay": 286,
+             "w": 18.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "무기",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:48",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30667,
+           "ay": 311,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:49",
+             "name": "EquipBadge",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30672,
+             "ay": 316,
+             "w": 22.6,
+             "h": 15.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 3.6,
+             "layout": "HORIZONTAL",
+             "pl": 4.800000190734863,
+             "pr": 4.800000190734863,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "93:50",
+               "name": "EQ",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30676,
+               "ay": 319,
+               "w": 13.0,
+               "h": 11.0,
+               "d": 7,
+               "fills": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "EQ",
+               "fontSize": 9.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 11.2
+              }
+             ]
+            },
+            {
+             "id": "93:51",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 30667,
+             "ay": 311,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#BC8CFF/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:52",
+             "name": "gas-mask",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30688,
+             "ay": 333,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:53",
+               "name": "Mask face",
+               "type": "ELLIPSE",
+               "x": null,
+               "y": null,
+               "ax": 30698,
+               "ay": 341,
+               "w": 19.2,
+               "h": 18.0,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 2.4
+              },
+              {
+               "id": "93:54",
+               "name": "Left filter",
+               "type": "ELLIPSE",
+               "x": null,
+               "y": null,
+               "ax": 30692,
+               "ay": 355,
+               "w": 8.4,
+               "h": 8.4,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 2.4
+              },
+              {
+               "id": "93:55",
+               "name": "Right filter",
+               "type": "ELLIPSE",
+               "x": null,
+               "y": null,
+               "ax": 30715,
+               "ay": 355,
+               "w": 8.4,
+               "h": 8.4,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 2.4
+              },
+              {
+               "id": "93:56",
+               "name": "Mask center",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30706,
+               "ay": 351,
+               "w": 2.4,
+               "h": 10.8,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 1.2
+              },
+              {
+               "id": "93:57",
+               "name": "Left strap",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30688,
+               "ay": 346,
+               "w": 9.6,
+               "h": 2.4,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 1.2
+              },
+              {
+               "id": "93:58",
+               "name": "Right strap",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30717,
+               "ay": 346,
+               "w": 9.6,
+               "h": 2.4,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 1.2
+              }
+             ]
+            },
+            {
+             "id": "93:59",
+             "name": "방독면",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30687,
+             "ay": 377,
+             "w": 27.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "방독면",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:60",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30753,
+           "ay": 311,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:61",
+             "name": "EquipBadge",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30758,
+             "ay": 316,
+             "w": 22.6,
+             "h": 15.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 3.6,
+             "layout": "HORIZONTAL",
+             "pl": 4.800000190734863,
+             "pr": 4.800000190734863,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "93:62",
+               "name": "EQ",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30763,
+               "ay": 319,
+               "w": 13.0,
+               "h": 11.0,
+               "d": 7,
+               "fills": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "EQ",
+               "fontSize": 9.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 11.2
+              }
+             ]
+            },
+            {
+             "id": "93:63",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 30753,
+             "ay": 311,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#1F6FEB/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:64",
+             "name": "syringe",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30775,
+             "ay": 333,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:65",
+               "name": "briefcase",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30775,
+               "ay": 333,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:66",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30778,
+                 "ay": 336,
+                 "w": 32.0,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:67",
+             "name": "분사기",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30773,
+             "ay": 377,
+             "w": 27.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "분사기",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:68",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30840,
+           "ay": 311,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:69",
+             "name": "EquipBadge",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30844,
+             "ay": 316,
+             "w": 22.6,
+             "h": 15.8,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.2,
+             "r": 3.6,
+             "layout": "HORIZONTAL",
+             "pl": 4.800000190734863,
+             "pr": 4.800000190734863,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "93:70",
+               "name": "EQ",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30849,
+               "ay": 319,
+               "w": 13.0,
+               "h": 11.0,
+               "d": 7,
+               "fills": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "EQ",
+               "fontSize": 9.600000381469727,
+               "font": "Roboto 700 Bold",
+               "lineH": 11.2
+              }
+             ]
+            },
+            {
+             "id": "93:71",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 30840,
+             "ay": 311,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#BC8CFF/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:72",
+             "name": "gas-tank",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30861,
+             "ay": 333,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:73",
+               "name": "atom",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30861,
+               "ay": 333,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:74",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30866,
+                 "ay": 338,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:75",
+             "name": "물약",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30867,
+             "ay": 377,
+             "w": 18.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "물약",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:76",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30926,
+           "ay": 311,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:77",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 30926,
+             "ay": 311,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:78",
+             "name": "ring",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30948,
+             "ay": 333,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:79",
+               "name": "Ellipse",
+               "type": "ELLIPSE",
+               "x": null,
+               "y": null,
+               "ax": 30960,
+               "ay": 345,
+               "w": 14.4,
+               "h": 14.4,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 2.4
+              },
+              {
+               "id": "93:80",
+               "name": "Ellipse",
+               "type": "ELLIPSE",
+               "x": null,
+               "y": null,
+               "ax": 30960,
+               "ay": 345,
+               "w": 7.2,
+               "h": 7.2,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              }
+             ]
+            },
+            {
+             "id": "93:81",
+             "name": "반지",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 30953,
+             "ay": 377,
+             "w": 18.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "반지",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "93:82",
+           "name": "ItemSlot",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 31012,
+           "ay": 311,
+           "w": 81.6,
+           "h": 81.6,
+           "d": 5,
+           "fills": [
+            "#21262D/1.0@0.6"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.2,
+           "r": 9.6,
+           "layout": "VERTICAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "93:83",
+             "name": "TierStrip",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 31012,
+             "ay": 311,
+             "w": 81.6,
+             "h": 3.6,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2
+            },
+            {
+             "id": "93:84",
+             "name": "necklace",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 31034,
+             "ay": 333,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokeW": 1.2,
+             "c": [
+              {
+               "id": "93:85",
+               "name": "Ellipse",
+               "type": "ELLIPSE",
+               "x": null,
+               "y": null,
+               "ax": 31046,
+               "ay": 345,
+               "w": 14.4,
+               "h": 14.4,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 2.4
+              },
+              {
+               "id": "93:86",
+               "name": "Rectangle",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 31052,
+               "ay": 359,
+               "w": 2.4,
+               "h": 7.2,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 1.2
+              }
+             ]
+            },
+            {
+             "id": "93:87",
+             "name": "목걸이",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 31032,
+             "ay": 377,
+             "w": 27.0,
+             "h": 11.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.2,
+             "text": "목걸이",
+             "fontSize": 9.600000381469727,
+             "font": "Roboto 500 Medium",
+             "lineH": 11.2,
+             "align": "CENTER"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "93:88",
+       "name": "TacticalPackSection",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 30639,
+       "ay": 421,
+       "w": 483.6,
+       "h": 567.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.012"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 9.6,
+       "layout": "VERTICAL",
+       "gap": 14.40000057220459,
+       "pl": 19.200000762939453,
+       "pr": 19.200000762939453,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "c": [
+        {
+         "id": "93:89",
+         "name": "SidebarHeader",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30658,
+         "ay": 435,
+         "w": 445.2,
+         "h": 58.2,
+         "d": 4,
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 4.800000190734863,
+         "pb": 14.40000057220459,
+         "c": [
+          {
+           "id": "93:90",
+           "name": "전술 배낭",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30658,
+           "ay": 435,
+           "w": 76.0,
+           "h": 23.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "전술 배낭",
+           "fontSize": 19.200000762939453,
+           "font": "Roboto 700 Bold",
+           "lineH": 22.5
+          },
+          {
+           "id": "93:91",
+           "name": "TACTICAL PACK",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 30658,
+           "ay": 463,
+           "w": 94.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "TACTICAL PACK",
+           "fontSize": 12.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 15.6
+          }
+         ]
+        },
+        {
+         "id": "85:100",
+         "name": "InventoryGrid",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 30658,
+         "ay": 508,
+         "w": 445.2,
+         "h": 465.6,
+         "d": 4,
+         "strokeW": 1.2,
+         "layout": "VERTICAL",
+         "gap": 14.40000057220459,
+         "c": [
+          {
+           "id": "85:101",
+           "name": "InventoryRow1",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30658,
+           "ay": 508,
+           "w": 445.2,
+           "h": 81.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "c": [
+            {
+             "id": "85:102",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30658,
+             "ay": 508,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:92",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30658,
+               "ay": 508,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#BC8CFF/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "85:104",
+               "name": "zap-off",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30679,
+               "ay": 529,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "85:105",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30683,
+                 "ay": 532,
+                 "w": 32.0,
+                 "h": 32.0,
+                 "d": 8,
+                 "strokes": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              },
+              {
+               "id": "93:93",
+               "name": "1",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30724,
+               "ay": 568,
+               "w": 8.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "1",
+               "fontSize": 13.200000762939453,
+               "font": "Geist Mono 500 Medium",
+               "lineH": 17.2
+              }
+             ]
+            },
+            {
+             "id": "93:94",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30749,
+             "ay": 508,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:95",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30749,
+               "ay": 508,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#1F6FEB/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "85:109",
+               "name": "battery",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30771,
+               "ay": 529,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "layout": "VERTICAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "93:96",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30774,
+                 "ay": 539,
+                 "w": 32.0,
+                 "h": 19.2,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              },
+              {
+               "id": "93:97",
+               "name": "5",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30815,
+               "ay": 568,
+               "w": 8.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "5",
+               "fontSize": 13.200000762939453,
+               "font": "Geist Mono 500 Medium",
+               "lineH": 17.2
+              }
+             ]
+            },
+            {
+             "id": "93:98",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30840,
+             "ay": 508,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:99",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30840,
+               "ay": 508,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "85:114",
+               "name": "syringe",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30862,
+               "ay": 529,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "layout": "VERTICAL",
+               "gap": 4.800000190734863,
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "93:100",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30865,
+                 "ay": 532,
+                 "w": 32.0,
+                 "h": 32.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              },
+              {
+               "id": "93:101",
+               "name": "12",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30898,
+               "ay": 568,
+               "w": 16.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "12",
+               "fontSize": 13.200000762939453,
+               "font": "Geist Mono 500 Medium",
+               "lineH": 17.2
+              }
+             ]
+            },
+            {
+             "id": "93:102",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30931,
+             "ay": 508,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "85:118",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30931,
+               "ay": 508,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#1F6FEB/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:103",
+               "name": "atom",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30953,
+               "ay": 529,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:104",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30958,
+                 "ay": 534,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              },
+              {
+               "id": "93:105",
+               "name": "2",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30997,
+               "ay": 568,
+               "w": 8.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "2",
+               "fontSize": 13.200000762939453,
+               "font": "Geist Mono 500 Medium",
+               "lineH": 17.2
+              }
+             ]
+            },
+            {
+             "id": "85:122",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 31023,
+             "ay": 508,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:106",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 31023,
+               "ay": 508,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:107",
+               "name": "shield",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 31044,
+               "ay": 529,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:108",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 31051,
+                 "ay": 532,
+                 "w": 25.6,
+                 "h": 32.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              },
+              {
+               "id": "93:109",
+               "name": "18",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 31080,
+               "ay": 568,
+               "w": 16.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "18",
+               "fontSize": 13.200000762939453,
+               "font": "Geist Mono 500 Medium",
+               "lineH": 17.2
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "85:127",
+           "name": "InventoryRow2",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30658,
+           "ay": 604,
+           "w": 445.2,
+           "h": 81.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "c": [
+            {
+             "id": "85:128",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30658,
+             "ay": 604,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:110",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30658,
+               "ay": 604,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:111",
+               "name": "backpack",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30679,
+               "ay": 625,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:112",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30686,
+                 "ay": 628,
+                 "w": 25.6,
+                 "h": 32.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              },
+              {
+               "id": "93:113",
+               "name": "7",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30724,
+               "ay": 664,
+               "w": 8.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "7",
+               "fontSize": 13.200000762939453,
+               "font": "Geist Mono 500 Medium",
+               "lineH": 17.2
+              }
+             ]
+            },
+            {
+             "id": "85:133",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30749,
+             "ay": 604,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:114",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30749,
+               "ay": 604,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "85:135",
+               "name": "droplet",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30771,
+               "ay": 625,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "85:136",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30779,
+                 "ay": 630,
+                 "w": 22.4,
+                 "h": 30.4,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              },
+              {
+               "id": "93:115",
+               "name": "9",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30815,
+               "ay": 664,
+               "w": 8.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "9",
+               "fontSize": 13.200000762939453,
+               "font": "Geist Mono 500 Medium",
+               "lineH": 17.2
+              }
+             ]
+            },
+            {
+             "id": "93:116",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30840,
+             "ay": 604,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:117",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30840,
+               "ay": 604,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#1F6FEB/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "85:140",
+               "name": "microchip",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30862,
+               "ay": 625,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "layout": "VERTICAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "93:118",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30868,
+                 "ay": 628,
+                 "w": 25.6,
+                 "h": 32.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              },
+              {
+               "id": "93:119",
+               "name": "42",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 30898,
+               "ay": 664,
+               "w": 16.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2,
+               "text": "42",
+               "fontSize": 13.200000762939453,
+               "font": "Geist Mono 500 Medium",
+               "lineH": 17.2
+              }
+             ]
+            },
+            {
+             "id": "93:120",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30931,
+             "ay": 604,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:121",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30931,
+               "ay": 604,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#BC8CFF/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "85:145",
+               "name": "terminal",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30953,
+               "ay": 625,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "layout": "VERTICAL",
+               "gap": 4.800000190734863,
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "93:122",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30959,
+                 "ay": 633,
+                 "w": 25.6,
+                 "h": 22.4,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "85:147",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 31023,
+             "ay": 604,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:123",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 31023,
+               "ay": 604,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:124",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 31044,
+               "ay": 625,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:125",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 31049,
+                 "ay": 630,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "85:151",
+           "name": "InventoryRow3",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30658,
+           "ay": 700,
+           "w": 445.2,
+           "h": 81.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "c": [
+            {
+             "id": "85:152",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30658,
+             "ay": 700,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:126",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30658,
+               "ay": 700,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:127",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30679,
+               "ay": 721,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:128",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30684,
+                 "ay": 726,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:129",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30749,
+             "ay": 700,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:130",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30749,
+               "ay": 700,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "85:158",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30771,
+               "ay": 721,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "layout": "VERTICAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "93:131",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30775,
+                 "ay": 726,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:132",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30840,
+             "ay": 700,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "85:161",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30840,
+               "ay": 700,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:133",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30862,
+               "ay": 721,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:134",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30867,
+                 "ay": 726,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:135",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30931,
+             "ay": 700,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:136",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30931,
+               "ay": 700,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:137",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30953,
+               "ay": 721,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:138",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30958,
+                 "ay": 726,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:139",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 31023,
+             "ay": 700,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:140",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 31023,
+               "ay": 700,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:141",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 31044,
+               "ay": 721,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:142",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 31049,
+                 "ay": 726,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "93:143",
+           "name": "InventoryRow4",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30658,
+           "ay": 796,
+           "w": 445.2,
+           "h": 81.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "c": [
+            {
+             "id": "93:144",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30658,
+             "ay": 796,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:145",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30658,
+               "ay": 796,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:146",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30679,
+               "ay": 817,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:147",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30684,
+                 "ay": 822,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:148",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30749,
+             "ay": 796,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:149",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30749,
+               "ay": 796,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:150",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30771,
+               "ay": 817,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:151",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30775,
+                 "ay": 822,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:152",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30840,
+             "ay": 796,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:153",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30840,
+               "ay": 796,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:154",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30862,
+               "ay": 817,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:155",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30867,
+                 "ay": 822,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:156",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30931,
+             "ay": 796,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:157",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30931,
+               "ay": 796,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:158",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30953,
+               "ay": 817,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:159",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30958,
+                 "ay": 822,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:160",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 31023,
+             "ay": 796,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:161",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 31023,
+               "ay": 796,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:162",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 31044,
+               "ay": 817,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:163",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 31049,
+                 "ay": 822,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "93:164",
+           "name": "InventoryRow5",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 30658,
+           "ay": 892,
+           "w": 445.2,
+           "h": 81.6,
+           "d": 5,
+           "strokeW": 1.2,
+           "layout": "HORIZONTAL",
+           "gap": 9.600000381469727,
+           "c": [
+            {
+             "id": "93:165",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30658,
+             "ay": 892,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:166",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30658,
+               "ay": 892,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:167",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30679,
+               "ay": 913,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:168",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30684,
+                 "ay": 918,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:169",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30749,
+             "ay": 892,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:170",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30749,
+               "ay": 892,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:171",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30771,
+               "ay": 913,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:172",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30775,
+                 "ay": 918,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:173",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30840,
+             "ay": 892,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:174",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30840,
+               "ay": 892,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:175",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30862,
+               "ay": 913,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:176",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30867,
+                 "ay": 918,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:177",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 30931,
+             "ay": 892,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:178",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 30931,
+               "ay": 892,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:179",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 30953,
+               "ay": 913,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:180",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 30958,
+                 "ay": 918,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "93:181",
+             "name": "ItemSlot",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 31023,
+             "ay": 892,
+             "w": 81.6,
+             "h": 81.6,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 9.6,
+             "layout": "VERTICAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "93:182",
+               "name": "TierStrip",
+               "type": "RECTANGLE",
+               "x": null,
+               "y": null,
+               "ax": 31023,
+               "ay": 892,
+               "w": 81.6,
+               "h": 3.6,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.2
+              },
+              {
+               "id": "93:183",
+               "name": "square-dashed",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 31044,
+               "ay": 913,
+               "w": 38.4,
+               "h": 38.4,
+               "d": 7,
+               "strokeW": 1.2,
+               "c": [
+                {
+                 "id": "93:184",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 31049,
+                 "ay": 918,
+                 "w": 28.8,
+                 "h": 28.8,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

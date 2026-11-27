@@ -1,0 +1,3369 @@
+{
+ "id": "227:262",
+ "name": "수면 시스템 패널",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 45814,
+ "ay": 3,
+ "w": 624.0,
+ "h": 1101.0,
+ "d": 0,
+ "fills": [
+  "#13181F/1.0"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.2,
+ "r": 14.0,
+ "fx": [
+  "BACKGROUND_BLUR:36.0:None",
+  "DROP_SHADOW:38.0:#000000/0.251"
+ ],
+ "layout": "VERTICAL",
+ "gap": 20.0,
+ "pl": 24.0,
+ "pr": 24.0,
+ "pt": 24.0,
+ "pb": 24.0,
+ "c": [
+  {
+   "id": "227:263",
+   "name": "패널 제목",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45838,
+   "ay": 27,
+   "w": 576.0,
+   "h": 48.0,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 12.0,
+   "pb": 18.0,
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "227:365",
+     "name": "moon",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 30,
+     "w": 24.0,
+     "h": 24.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "c": [
+      {
+       "id": "227:366",
+       "name": "Vector",
+       "type": "VECTOR",
+       "x": null,
+       "y": null,
+       "ax": 45841,
+       "ay": 33,
+       "w": 18.0,
+       "h": 18.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "227:265",
+     "name": "제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 45874,
+     "ay": 29,
+     "w": 107.0,
+     "h": 26.0,
+     "d": 2,
+     "fills": [
+      "#F0F6FC/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "수면 시스템",
+     "fontSize": 22.0,
+     "font": "Noto Sans KR 700 Bold",
+     "lineH": 26.4
+    },
+    {
+     "id": "227:266",
+     "name": "보조 제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 45993,
+     "ay": 35,
+     "w": 379.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "휴식 및 진행 상황 저장",
+     "fontSize": 12.0,
+     "font": "Noto Sans KR 400 Regular",
+     "lineH": 14.4
+    },
+    {
+     "id": "227:267",
+     "name": "닫기",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 46384,
+     "ay": 27,
+     "w": 30.0,
+     "h": 30.0,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 5.0,
+     "layout": "HORIZONTAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "227:368",
+       "name": "x",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46391,
+       "ay": 34,
+       "w": 16.0,
+       "h": 16.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "c": [
+        {
+         "id": "227:369",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 46395,
+         "ay": 38,
+         "w": 8.0,
+         "h": 8.0,
+         "d": 4,
+         "strokes": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.6
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "227:269",
+   "name": "수면 설정",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45838,
+   "ay": 95,
+   "w": 576.0,
+   "h": 452.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 20.0,
+   "c": [
+    {
+     "id": "227:270",
+     "name": "휴식 장소",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 95,
+     "w": 576.0,
+     "h": 70.0,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 10.0,
+     "layout": "HORIZONTAL",
+     "gap": 12.0,
+     "pl": 14.0,
+     "pr": 14.0,
+     "pt": 14.0,
+     "pb": 14.0,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "227:271",
+       "name": "장소 아이콘",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45852,
+       "ay": 109,
+       "w": 42.0,
+       "h": 42.0,
+       "d": 3,
+       "fills": [
+        "#1C232C/1.0"
+       ],
+       "strokeW": 1.0,
+       "r": 7.0,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:371",
+         "name": "bed-double",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45862,
+         "ay": 119,
+         "w": 22.0,
+         "h": 22.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "227:372",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45864,
+           "ay": 123,
+           "w": 18.3,
+           "h": 14.7,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "227:273",
+       "name": "장소 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45906,
+       "ay": 112,
+       "w": 400.0,
+       "h": 35.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.0,
+       "c": [
+        {
+         "id": "227:274",
+         "name": "장소 이름",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45906,
+         "ay": 112,
+         "w": 121.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "전초기지 · 개인 숙소",
+         "fontSize": 14.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 16.8
+        },
+        {
+         "id": "227:275",
+         "name": "장소 설명",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45906,
+         "ay": 134,
+         "w": 202.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "안전한 침대에서 충분한 휴식을 취합니다.",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 14.4
+        }
+       ]
+      },
+      {
+       "id": "227:276",
+       "name": "안전 상태",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46318,
+       "ay": 119,
+       "w": 82.0,
+       "h": 22.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0@0.078"
+       ],
+       "strokeW": 1.0,
+       "r": 5.0,
+       "layout": "HORIZONTAL",
+       "gap": 5.0,
+       "pl": 8.0,
+       "pr": 8.0,
+       "pt": 4.0,
+       "pb": 4.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:374",
+         "name": "shield-check",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46326,
+         "ay": 123,
+         "w": 14.0,
+         "h": 14.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "227:375",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 46328,
+           "ay": 124,
+           "w": 9.3,
+           "h": 11.7,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.5
+          }
+         ]
+        },
+        {
+         "id": "227:278",
+         "name": "상태",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46345,
+         "ay": 123,
+         "w": 47.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "안전 지역",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 500 Medium",
+         "lineH": 14.4
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "227:279",
+     "name": "수면 시간",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 185,
+     "w": 576.0,
+     "h": 193.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "VERTICAL",
+     "gap": 12.0,
+     "c": [
+      {
+       "id": "227:280",
+       "name": "항목 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 185,
+       "w": 576.0,
+       "h": 19.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:281",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45838,
+         "ay": 185,
+         "w": 63.0,
+         "h": 19.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "수면 시간",
+         "fontSize": 16.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 19.2
+        },
+        {
+         "id": "227:282",
+         "name": "현재 날짜",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46355,
+         "ay": 188,
+         "w": 59.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "24일차 · 밤",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 14.4
+        }
+       ]
+      },
+      {
+       "id": "227:283",
+       "name": "기상 시간 미리보기",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 216,
+       "w": 576.0,
+       "h": 92.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0@0.078"
+       ],
+       "strokes": [
+        "#58A6FF/1.0@0.251"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "HORIZONTAL",
+       "pl": 20.0,
+       "pr": 20.0,
+       "pt": 16.0,
+       "pb": 16.0,
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:284",
+         "name": "현재 시간",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45858,
+         "ay": 232,
+         "w": 96.0,
+         "h": 60.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 4.0,
+         "c": [
+          {
+           "id": "227:285",
+           "name": "시간 항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45858,
+           "ay": 232,
+           "w": 23.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "현재",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          },
+          {
+           "id": "227:286",
+           "name": "시간",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45858,
+           "ay": 250,
+           "w": 96.0,
+           "h": 42.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "22:00",
+           "fontSize": 32.0,
+           "font": "Geist Mono 500 Medium",
+           "lineH": 41.6
+          }
+         ]
+        },
+        {
+         "id": "227:287",
+         "name": "수면 길이",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46094,
+         "ay": 242,
+         "w": 64.0,
+         "h": 40.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 8.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "227:288",
+           "name": "선택 시간",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46099,
+           "ay": 242,
+           "w": 54.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "8시간 수면",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 500 Medium",
+           "lineH": 14.4
+          },
+          {
+           "id": "227:377",
+           "name": "arrow-right",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46094,
+           "ay": 264,
+           "w": 64.0,
+           "h": 18.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "227:378",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 46107,
+             "ay": 268,
+             "w": 37.3,
+             "h": 10.5,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.5
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "227:290",
+         "name": "기상 시간",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46298,
+         "ay": 232,
+         "w": 96.0,
+         "h": 60.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 4.0,
+         "crossAlign": "MAX",
+         "c": [
+          {
+           "id": "227:291",
+           "name": "시간 항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46299,
+           "ay": 232,
+           "w": 95.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "기상 예정 · 25일차",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          },
+          {
+           "id": "227:292",
+           "name": "시간",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46298,
+           "ay": 250,
+           "w": 96.0,
+           "h": 42.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "06:00",
+           "fontSize": 32.0,
+           "font": "Geist Mono 500 Medium",
+           "lineH": 41.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "227:293",
+       "name": "수면 시간 선택",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 320,
+       "w": 576.0,
+       "h": 58.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 6.0,
+       "c": [
+        {
+         "id": "227:294",
+         "name": "시간 선택",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45838,
+         "ay": 320,
+         "w": 188.0,
+         "h": 58.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 7.0,
+         "layout": "VERTICAL",
+         "gap": 3.0,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "227:295",
+           "name": "시간",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45914,
+           "ay": 332,
+           "w": 35.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "2시간",
+           "fontSize": 14.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 16.8
+          },
+          {
+           "id": "227:296",
+           "name": "설명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45910,
+           "ay": 352,
+           "w": 43.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "짧은 휴식",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "227:297",
+         "name": "시간 선택",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46032,
+         "ay": 320,
+         "w": 188.0,
+         "h": 58.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 7.0,
+         "layout": "VERTICAL",
+         "gap": 3.0,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "227:298",
+           "name": "시간",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46108,
+           "ay": 332,
+           "w": 35.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "4시간",
+           "fontSize": 14.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 16.8
+          },
+          {
+           "id": "227:299",
+           "name": "설명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46099,
+           "ay": 352,
+           "w": 54.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "가벼운 수면",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "227:300",
+         "name": "시간 선택",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46226,
+         "ay": 320,
+         "w": 188.0,
+         "h": 58.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 7.0,
+         "layout": "VERTICAL",
+         "gap": 3.0,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "227:301",
+           "name": "시간",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46302,
+           "ay": 332,
+           "w": 35.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "8시간",
+           "fontSize": 14.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 16.8
+          },
+          {
+           "id": "227:302",
+           "name": "설명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46293,
+           "ay": 352,
+           "w": 54.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "충분한 수면",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "227:303",
+     "name": "회복 예상",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 398,
+     "w": 576.0,
+     "h": 149.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "VERTICAL",
+     "gap": 12.0,
+     "c": [
+      {
+       "id": "227:304",
+       "name": "항목 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 398,
+       "w": 576.0,
+       "h": 19.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:305",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45838,
+         "ay": 398,
+         "w": 63.0,
+         "h": 19.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "회복 예상",
+         "fontSize": 16.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 19.2
+        },
+        {
+         "id": "227:306",
+         "name": "예상 안내",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46335,
+         "ay": 400,
+         "w": 79.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "8시간 수면 기준",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 14.4
+        }
+       ]
+      },
+      {
+       "id": "227:307",
+       "name": "회복 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 429,
+       "w": 576.0,
+       "h": 92.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 10.0,
+       "c": [
+        {
+         "id": "227:308",
+         "name": "회복 항목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45838,
+         "ay": 429,
+         "w": 283.0,
+         "h": 92.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 10.0,
+         "layout": "VERTICAL",
+         "gap": 10.0,
+         "pl": 14.0,
+         "pr": 14.0,
+         "pt": 14.0,
+         "pb": 14.0,
+         "c": [
+          {
+           "id": "227:309",
+           "name": "능력치",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45852,
+           "ay": 443,
+           "w": 255.0,
+           "h": 17.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 8.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:380",
+             "name": "heart",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45852,
+             "ay": 444,
+             "w": 16.0,
+             "h": 16.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "227:381",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 45853,
+               "ay": 446,
+               "w": 13.3,
+               "h": 11.3,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.6
+              }
+             ]
+            },
+            {
+             "id": "227:311",
+             "name": "항목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45876,
+             "ay": 443,
+             "w": 201.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "체력",
+             "fontSize": 14.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 16.8
+            },
+            {
+             "id": "227:312",
+             "name": "회복량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46085,
+             "ay": 444,
+             "w": 22.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "+36",
+             "fontSize": 12.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 15.6
+            }
+           ]
+          },
+          {
+           "id": "227:313",
+           "name": "회복 수치",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45852,
+           "ay": 470,
+           "w": 85.0,
+           "h": 23.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 8.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:314",
+             "name": "현재 수치",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45852,
+             "ay": 470,
+             "w": 22.0,
+             "h": 23.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "64",
+             "fontSize": 18.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 23.4
+            },
+            {
+             "id": "227:383",
+             "name": "arrow-right",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45882,
+             "ay": 474,
+             "w": 14.0,
+             "h": 14.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "227:384",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 45885,
+               "ay": 477,
+               "w": 8.2,
+               "h": 8.2,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.5
+              }
+             ]
+            },
+            {
+             "id": "227:316",
+             "name": "예상 수치",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45904,
+             "ay": 470,
+             "w": 33.0,
+             "h": 23.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "100",
+             "fontSize": 18.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 23.4
+            }
+           ]
+          },
+          {
+           "id": "227:317",
+           "name": "회복 게이지",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45852,
+           "ay": 503,
+           "w": 255.0,
+           "h": 4.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0@0.078"
+           ],
+           "strokeW": 1.0,
+           "r": 2.0,
+           "layout": "HORIZONTAL",
+           "c": [
+            {
+             "id": "227:318",
+             "name": "현재 상태",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 45852,
+             "ay": 503,
+             "w": 158.0,
+             "h": 4.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "r": 2.0
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "227:319",
+         "name": "회복 항목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46131,
+         "ay": 429,
+         "w": 283.0,
+         "h": 92.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 10.0,
+         "layout": "VERTICAL",
+         "gap": 10.0,
+         "pl": 14.0,
+         "pr": 14.0,
+         "pt": 14.0,
+         "pb": 14.0,
+         "c": [
+          {
+           "id": "227:320",
+           "name": "능력치",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46145,
+           "ay": 443,
+           "w": 255.0,
+           "h": 17.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 8.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:386",
+             "name": "zap",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46145,
+             "ay": 444,
+             "w": 16.0,
+             "h": 16.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "227:387",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46147,
+               "ay": 445,
+               "w": 12.0,
+               "h": 13.3,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.6
+              }
+             ]
+            },
+            {
+             "id": "227:322",
+             "name": "항목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46169,
+             "ay": 443,
+             "w": 201.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "기력",
+             "fontSize": 14.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 16.8
+            },
+            {
+             "id": "227:323",
+             "name": "회복량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46378,
+             "ay": 444,
+             "w": 22.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "+72",
+             "fontSize": 12.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 15.6
+            }
+           ]
+          },
+          {
+           "id": "227:324",
+           "name": "회복 수치",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46145,
+           "ay": 470,
+           "w": 85.0,
+           "h": 23.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 8.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:325",
+             "name": "현재 수치",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46145,
+             "ay": 470,
+             "w": 22.0,
+             "h": 23.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "28",
+             "fontSize": 18.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 23.4
+            },
+            {
+             "id": "227:389",
+             "name": "arrow-right",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46175,
+             "ay": 474,
+             "w": 14.0,
+             "h": 14.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "227:390",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46178,
+               "ay": 477,
+               "w": 8.2,
+               "h": 8.2,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.5
+              }
+             ]
+            },
+            {
+             "id": "227:327",
+             "name": "예상 수치",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46197,
+             "ay": 470,
+             "w": 33.0,
+             "h": 23.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "100",
+             "fontSize": 18.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 23.4
+            }
+           ]
+          },
+          {
+           "id": "227:328",
+           "name": "회복 게이지",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46145,
+           "ay": 503,
+           "w": 255.0,
+           "h": 4.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0@0.078"
+           ],
+           "strokeW": 1.0,
+           "r": 2.0,
+           "layout": "HORIZONTAL",
+           "c": [
+            {
+             "id": "227:329",
+             "name": "현재 상태",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46145,
+             "ay": 503,
+             "w": 70.0,
+             "h": 4.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "r": 2.0
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "227:330",
+       "name": "수면 안내",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 533,
+       "w": 576.0,
+       "h": 14.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 8.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:392",
+         "name": "info",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45838,
+         "ay": 533,
+         "w": 14.0,
+         "h": 14.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "227:393",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45839,
+           "ay": 534,
+           "w": 11.7,
+           "h": 11.7,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.5
+          }
+         ]
+        },
+        {
+         "id": "227:332",
+         "name": "안내 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45860,
+         "ay": 533,
+         "w": 554.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "수면 중에는 게임 시간이 흐르며, 부대원의 임무는 계속됩니다.",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 14.4
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "227:333",
+   "name": "세이브",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45838,
+   "ay": 567,
+   "w": 576.0,
+   "h": 403.0,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 12.0,
+   "pt": 20.0,
+   "c": [
+    {
+     "id": "227:334",
+     "name": "항목 제목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 587,
+     "w": 576.0,
+     "h": 19.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "gap": 8.0,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "227:395",
+       "name": "save",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 588,
+       "w": 18.0,
+       "h": 18.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "c": [
+        {
+         "id": "227:396",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 45840,
+         "ay": 590,
+         "w": 13.5,
+         "h": 13.5,
+         "d": 4,
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.6
+        }
+       ]
+      },
+      {
+       "id": "227:336",
+       "name": "제목",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 45864,
+       "ay": 587,
+       "w": 387.0,
+       "h": 19.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "세이브",
+       "fontSize": 16.0,
+       "font": "Noto Sans KR 700 Bold",
+       "lineH": 19.2
+      },
+      {
+       "id": "227:337",
+       "name": "저장 안내",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 46259,
+       "ay": 590,
+       "w": 155.0,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "현재 진행 상황을 안전하게 보관",
+       "fontSize": 12.0,
+       "font": "Noto Sans KR 400 Regular",
+       "lineH": 14.4
+      }
+     ]
+    },
+    {
+     "id": "227:338",
+     "name": "자동 저장 설정",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 618,
+     "w": 576.0,
+     "h": 63.0,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 10.0,
+     "layout": "HORIZONTAL",
+     "gap": 12.0,
+     "pl": 14.0,
+     "pr": 14.0,
+     "pt": 14.0,
+     "pb": 14.0,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "227:339",
+       "name": "설정 설명",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45852,
+       "ay": 632,
+       "w": 474.0,
+       "h": 35.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.0,
+       "c": [
+        {
+         "id": "227:340",
+         "name": "설정 제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45852,
+         "ay": 632,
+         "w": 100.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "수면 전 자동 저장",
+         "fontSize": 14.0,
+         "font": "Noto Sans KR 500 Medium",
+         "lineH": 16.8
+        },
+        {
+         "id": "227:341",
+         "name": "설정 안내",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45852,
+         "ay": 653,
+         "w": 227.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "수면을 시작하면 자동 저장 슬롯에 기록합니다.",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 14.4
+        }
+       ]
+      },
+      {
+       "id": "227:342",
+       "name": "설정 상태",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 46338,
+       "ay": 642,
+       "w": 12.0,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "켬",
+       "fontSize": 12.0,
+       "font": "Noto Sans KR 400 Regular",
+       "lineH": 14.4
+      },
+      {
+       "id": "227:343",
+       "name": "자동 저장 스위치",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46362,
+       "ay": 638,
+       "w": 38.0,
+       "h": 22.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "r": 11.0,
+       "layout": "HORIZONTAL",
+       "pl": 3.0,
+       "pr": 3.0,
+       "pt": 3.0,
+       "pb": 3.0,
+       "mainAlign": "MAX",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:344",
+         "name": "스위치 손잡이",
+         "type": "ELLIPSE",
+         "x": null,
+         "y": null,
+         "ax": 46381,
+         "ay": 642,
+         "w": 16.0,
+         "h": 16.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokeW": 1.0
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "227:405",
+     "name": "수동 저장 목록",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 693,
+     "w": 576.0,
+     "h": 277.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "VERTICAL",
+     "gap": 12.0,
+     "c": [
+      {
+       "id": "227:406",
+       "name": "수동 저장 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 693,
+       "w": 576.0,
+       "h": 17.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:407",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45838,
+         "ay": 693,
+         "w": 84.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "수동 저장 슬롯",
+         "fontSize": 14.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 16.8
+        },
+        {
+         "id": "227:408",
+         "name": "슬롯 수",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46371,
+         "ay": 694,
+         "w": 43.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "5개 슬롯",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 14.4
+        }
+       ]
+      },
+      {
+       "id": "227:409",
+       "name": "수동 저장 목록 영역",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 722,
+       "w": 576.0,
+       "h": 248.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "c": [
+        {
+         "id": "227:410",
+         "name": "수동 저장 슬롯 목록",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45838,
+         "ay": 722,
+         "w": 556.0,
+         "h": 248.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 10.0,
+         "c": [
+          {
+           "id": "227:345",
+           "name": "수동 저장 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45838,
+           "ay": 722,
+           "w": 556.0,
+           "h": 81.0,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.02"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:346",
+             "name": "슬롯 아이콘",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45852,
+             "ay": 740,
+             "w": 40.0,
+             "h": 44.0,
+             "d": 6,
+             "fills": [
+              "#1C232C/1.0"
+             ],
+             "strokeW": 1.0,
+             "r": 5.0,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:398",
+               "name": "file-check-2",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45862,
+               "ay": 752,
+               "w": 20.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "227:399",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 45865,
+                 "ay": 754,
+                 "w": 13.3,
+                 "h": 16.7,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.6
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "227:348",
+             "name": "슬롯 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45904,
+             "ay": 736,
+             "w": 381.0,
+             "h": 53.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.0,
+             "c": [
+              {
+               "id": "227:349",
+               "name": "저장 이름",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 736,
+               "w": 126.0,
+               "h": 17.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 8.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "227:350",
+                 "name": "슬롯 이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45904,
+                 "ay": 736,
+                 "w": 75.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "수동 저장 01",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "227:351",
+                 "name": "저장 상태",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45987,
+                 "ay": 738,
+                 "w": 43.0,
+                 "h": 13.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "최근 저장",
+                 "fontSize": 11.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 13.2
+                }
+               ]
+              },
+              {
+               "id": "227:352",
+               "name": "저장 위치",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 757,
+               "w": 125.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "전초기지 · 24일차 18:30",
+               "fontSize": 12.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 14.4
+              },
+              {
+               "id": "227:353",
+               "name": "플레이 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 775,
+               "w": 126.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "PLAY TIME  12:48:06",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "227:354",
+             "name": "지금 저장",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46297,
+             "ay": 744,
+             "w": 83.0,
+             "h": 36.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.078"
+             ],
+             "strokes": [
+              "#58A6FF/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "r": 7.0,
+             "layout": "HORIZONTAL",
+             "pl": 14.0,
+             "pr": 14.0,
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:355",
+               "name": "버튼 문구",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 46311,
+               "ay": 754,
+               "w": 55.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "지금 저장",
+               "fontSize": 14.0,
+               "font": "Noto Sans KR 700 Bold",
+               "lineH": 16.8
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "227:411",
+           "name": "수동 저장 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45838,
+           "ay": 813,
+           "w": 556.0,
+           "h": 81.0,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.02"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:412",
+             "name": "슬롯 아이콘",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45852,
+             "ay": 832,
+             "w": 40.0,
+             "h": 44.0,
+             "d": 6,
+             "fills": [
+              "#1C232C/1.0"
+             ],
+             "strokeW": 1.0,
+             "r": 5.0,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:413",
+               "name": "file-check-2",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45862,
+               "ay": 844,
+               "w": 20.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "227:414",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 45865,
+                 "ay": 845,
+                 "w": 13.3,
+                 "h": 16.7,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.6
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "227:415",
+             "name": "슬롯 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45904,
+             "ay": 827,
+             "w": 381.0,
+             "h": 53.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.0,
+             "c": [
+              {
+               "id": "227:416",
+               "name": "저장 이름",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 827,
+               "w": 122.0,
+               "h": 17.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 8.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "227:417",
+                 "name": "슬롯 이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45904,
+                 "ay": 827,
+                 "w": 75.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "수동 저장 02",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "227:418",
+                 "name": "저장 상태",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45987,
+                 "ay": 829,
+                 "w": 39.0,
+                 "h": 13.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "2시간 전",
+                 "fontSize": 11.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 13.2
+                }
+               ]
+              },
+              {
+               "id": "227:419",
+               "name": "저장 위치",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 848,
+               "w": 125.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "전초기지 · 24일차 16:30",
+               "fontSize": 12.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 14.4
+              },
+              {
+               "id": "227:420",
+               "name": "플레이 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 866,
+               "w": 126.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "PLAY TIME  12:30:42",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "227:421",
+             "name": "지금 저장",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46297,
+             "ay": 836,
+             "w": 83.0,
+             "h": 36.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.078"
+             ],
+             "strokes": [
+              "#58A6FF/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "r": 7.0,
+             "layout": "HORIZONTAL",
+             "pl": 14.0,
+             "pr": 14.0,
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:422",
+               "name": "버튼 문구",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 46311,
+               "ay": 845,
+               "w": 55.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "지금 저장",
+               "fontSize": 14.0,
+               "font": "Noto Sans KR 700 Bold",
+               "lineH": 16.8
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "227:423",
+           "name": "수동 저장 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45838,
+           "ay": 904,
+           "w": 556.0,
+           "h": 81.0,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.02"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:424",
+             "name": "슬롯 아이콘",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45852,
+             "ay": 922,
+             "w": 40.0,
+             "h": 44.0,
+             "d": 6,
+             "fills": [
+              "#1C232C/1.0"
+             ],
+             "strokeW": 1.0,
+             "r": 5.0,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:425",
+               "name": "file-check-2",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45862,
+               "ay": 934,
+               "w": 20.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "227:426",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 45865,
+                 "ay": 936,
+                 "w": 13.3,
+                 "h": 16.7,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.6
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "227:427",
+             "name": "슬롯 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45904,
+             "ay": 918,
+             "w": 381.0,
+             "h": 53.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.0,
+             "c": [
+              {
+               "id": "227:428",
+               "name": "저장 이름",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 918,
+               "w": 122.0,
+               "h": 17.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 8.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "227:429",
+                 "name": "슬롯 이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45904,
+                 "ay": 918,
+                 "w": 75.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "수동 저장 03",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "227:430",
+                 "name": "저장 상태",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45987,
+                 "ay": 920,
+                 "w": 39.0,
+                 "h": 13.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "4시간 전",
+                 "fontSize": 11.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 13.2
+                }
+               ]
+              },
+              {
+               "id": "227:431",
+               "name": "저장 위치",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 939,
+               "w": 125.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "전초기지 · 24일차 14:30",
+               "fontSize": 12.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 14.4
+              },
+              {
+               "id": "227:432",
+               "name": "플레이 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 957,
+               "w": 126.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "PLAY TIME  11:58:18",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "227:433",
+             "name": "지금 저장",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46297,
+             "ay": 926,
+             "w": 83.0,
+             "h": 36.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.078"
+             ],
+             "strokes": [
+              "#58A6FF/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "r": 7.0,
+             "layout": "HORIZONTAL",
+             "pl": 14.0,
+             "pr": 14.0,
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:434",
+               "name": "버튼 문구",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 46311,
+               "ay": 936,
+               "w": 55.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "지금 저장",
+               "fontSize": 14.0,
+               "font": "Noto Sans KR 700 Bold",
+               "lineH": 16.8
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "227:435",
+           "name": "수동 저장 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45838,
+           "ay": 995,
+           "w": 556.0,
+           "h": 81.0,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.02"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:436",
+             "name": "슬롯 아이콘",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45852,
+             "ay": 1014,
+             "w": 40.0,
+             "h": 44.0,
+             "d": 6,
+             "fills": [
+              "#1C232C/1.0"
+             ],
+             "strokeW": 1.0,
+             "r": 5.0,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:437",
+               "name": "file-check-2",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45862,
+               "ay": 1026,
+               "w": 20.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "227:438",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 45865,
+                 "ay": 1027,
+                 "w": 13.3,
+                 "h": 16.7,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.6
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "227:439",
+             "name": "슬롯 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45904,
+             "ay": 1009,
+             "w": 381.0,
+             "h": 53.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.0,
+             "c": [
+              {
+               "id": "227:440",
+               "name": "저장 이름",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 1009,
+               "w": 122.0,
+               "h": 17.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 8.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "227:441",
+                 "name": "슬롯 이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45904,
+                 "ay": 1009,
+                 "w": 75.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "수동 저장 04",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "227:442",
+                 "name": "저장 상태",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45987,
+                 "ay": 1011,
+                 "w": 39.0,
+                 "h": 13.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "6시간 전",
+                 "fontSize": 11.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 13.2
+                }
+               ]
+              },
+              {
+               "id": "227:443",
+               "name": "저장 위치",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 1030,
+               "w": 125.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "전초기지 · 24일차 12:30",
+               "fontSize": 12.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 14.4
+              },
+              {
+               "id": "227:444",
+               "name": "플레이 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 1048,
+               "w": 126.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "PLAY TIME  11:22:05",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "227:445",
+             "name": "지금 저장",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46297,
+             "ay": 1018,
+             "w": 83.0,
+             "h": 36.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.078"
+             ],
+             "strokes": [
+              "#58A6FF/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "r": 7.0,
+             "layout": "HORIZONTAL",
+             "pl": 14.0,
+             "pr": 14.0,
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:446",
+               "name": "버튼 문구",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 46311,
+               "ay": 1027,
+               "w": 55.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "지금 저장",
+               "fontSize": 14.0,
+               "font": "Noto Sans KR 700 Bold",
+               "lineH": 16.8
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "227:447",
+           "name": "수동 저장 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45838,
+           "ay": 1086,
+           "w": 556.0,
+           "h": 81.0,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.02"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "227:448",
+             "name": "슬롯 아이콘",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45852,
+             "ay": 1104,
+             "w": 40.0,
+             "h": 44.0,
+             "d": 6,
+             "fills": [
+              "#1C232C/1.0"
+             ],
+             "strokeW": 1.0,
+             "r": 5.0,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:449",
+               "name": "file-check-2",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45862,
+               "ay": 1116,
+               "w": 20.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "227:450",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 45865,
+                 "ay": 1118,
+                 "w": 13.3,
+                 "h": 16.7,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.6
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "227:451",
+             "name": "슬롯 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45904,
+             "ay": 1100,
+             "w": 381.0,
+             "h": 53.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.0,
+             "c": [
+              {
+               "id": "227:452",
+               "name": "저장 이름",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 1100,
+               "w": 122.0,
+               "h": 17.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 8.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "227:453",
+                 "name": "슬롯 이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45904,
+                 "ay": 1100,
+                 "w": 75.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "수동 저장 05",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "227:454",
+                 "name": "저장 상태",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 45987,
+                 "ay": 1102,
+                 "w": 39.0,
+                 "h": 13.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "8시간 전",
+                 "fontSize": 11.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 13.2
+                }
+               ]
+              },
+              {
+               "id": "227:455",
+               "name": "저장 위치",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 1121,
+               "w": 125.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "전초기지 · 24일차 10:30",
+               "fontSize": 12.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 14.4
+              },
+              {
+               "id": "227:456",
+               "name": "플레이 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45904,
+               "ay": 1139,
+               "w": 126.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "PLAY TIME  10:45:31",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "227:457",
+             "name": "지금 저장",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46297,
+             "ay": 1108,
+             "w": 83.0,
+             "h": 36.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.078"
+             ],
+             "strokes": [
+              "#58A6FF/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "r": 7.0,
+             "layout": "HORIZONTAL",
+             "pl": 14.0,
+             "pr": 14.0,
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "227:458",
+               "name": "버튼 문구",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 46311,
+               "ay": 1118,
+               "w": 55.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "지금 저장",
+               "fontSize": 14.0,
+               "font": "Noto Sans KR 700 Bold",
+               "lineH": 16.8
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "227:459",
+         "name": "스크롤바",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46406,
+         "ay": 722,
+         "w": 8.0,
+         "h": 248.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 999.0,
+         "layout": "VERTICAL",
+         "c": [
+          {
+           "id": "227:460",
+           "name": "스크롤바_thumb",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 46406,
+           "ay": 722,
+           "w": 8.0,
+           "h": 96.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "r": 999.0
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "227:356",
+   "name": "수면 실행",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45838,
+   "ay": 990,
+   "w": 576.0,
+   "h": 90.0,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 12.0,
+   "pt": 18.0,
+   "c": [
+    {
+     "id": "227:357",
+     "name": "실행 버튼",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 1008,
+     "w": 576.0,
+     "h": 46.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "gap": 12.0,
+     "c": [
+      {
+       "id": "227:358",
+       "name": "취소",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45838,
+       "ay": 1008,
+       "w": 124.0,
+       "h": 46.0,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.02"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 7.0,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:359",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45887,
+         "ay": 1022,
+         "w": 26.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "취소",
+         "fontSize": 14.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 16.8
+        }
+       ]
+      },
+      {
+       "id": "227:360",
+       "name": "수면 시작",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45974,
+       "ay": 1008,
+       "w": 440.0,
+       "h": 46.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "r": 7.0,
+       "layout": "HORIZONTAL",
+       "gap": 8.0,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "227:401",
+         "name": "moon",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46131,
+         "ay": 1022,
+         "w": 18.0,
+         "h": 18.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "227:402",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 46133,
+           "ay": 1024,
+           "w": 13.5,
+           "h": 13.5,
+           "d": 5,
+           "strokes": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.8
+          }
+         ]
+        },
+        {
+         "id": "227:362",
+         "name": "버튼 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46157,
+         "ay": 1022,
+         "w": 100.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "저장 후 수면 시작",
+         "fontSize": 14.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 16.8
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "227:363",
+     "name": "단축키 안내",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 45838,
+     "ay": 1066,
+     "w": 576.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "Enter  확인     ·     Esc  닫기",
+     "fontSize": 12.0,
+     "font": "Noto Sans KR 400 Regular",
+     "lineH": 14.4,
+     "align": "CENTER"
+    }
+   ]
+  }
+ ]
+}

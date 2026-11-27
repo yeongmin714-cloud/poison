@@ -21,7 +21,9 @@ namespace ProjectName.UI.Toolkit
     ///    🐟 수집:        FishCaught
     ///    💰 경제:        FormatGold(GoldEarned) / FormatGold(GoldSpent) / FormatGold(GoldNet)
     ///
-    /// 폴링 400ms(schedule.Execute().Every, Pause 정지) + U키 토글 / ESC 닫기 (Updater).
+    /// 폴링 400ms(schedule.Execute().Every, Pause 정지) + O키 토글 / ESC 닫기 (Updater).
+    /// [91차 F1] 토글키 O 단일화 — 구 U키는 건설 관리 창(ConstructionWindowUTK)과 충돌해
+    /// GameStats가 위에 떠 "건설창 안뜸" 체감(마을씬 실측). U키 = 건설 관리 창 전용.
     /// [GameStatsUTK] 로그.
     /// </summary>
     public class GameStatsUTK : UTKWindowBase
@@ -46,7 +48,7 @@ namespace ProjectName.UI.Toolkit
                 var go = new GameObject("GameStatsUTK_UPD");
                 Object.DontDestroyOnLoad(go);
                 go.AddComponent<Updater>().window = _instance;
-                Debug.Log("[GameStatsUTK] 인스턴스 생성 — U키로 토글");
+                Debug.Log("[GameStatsUTK] 인스턴스 생성 — O키로 토글");
             }
         }
 
@@ -91,7 +93,7 @@ namespace ProjectName.UI.Toolkit
                 root.Add(this);
             StartRefreshLoop();
             RefreshDisplay();
-            Debug.Log("[GameStatsUTK] 통계 창 열림 (키: U)");
+            Debug.Log("[GameStatsUTK] 통계 창 열림 (키: O)");
         }
 
         public override void Hide()
@@ -252,7 +254,8 @@ namespace ProjectName.UI.Toolkit
                 var kb = UnityEngine.InputSystem.Keyboard.current;
                 if (kb != null && window != null)
                 {
-                    if (kb.uKey.wasPressedThisFrame)
+                    // [91차 F1] O키 토글 — 구 uKey는 건설 관리 창(ConstructionWindowUTK) 전용으로 단일화.
+                    if (kb.oKey.wasPressedThisFrame)
                     {
                         if (window.IsOpen) window.Close(); else GameStatsUTK.Open();
                     }

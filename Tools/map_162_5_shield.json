@@ -1,0 +1,41 @@
+[
+ {
+  "src": "Assets/Resources/Models/Polyfork/kite-shield-343e62.glb",
+  "dst": "TestOutput/tmp_162_5/shield_steel.glb",
+  "note": "shield_steel",
+  "ops": [
+   {
+    "zone": 0,
+    "hue-deg": 176.1,
+    "sat": 0.35,
+    "val": 1.25
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/kite-shield-343e62.glb",
+  "dst": "TestOutput/tmp_162_5/shield_stone.glb",
+  "note": "shield_stone",
+  "ops": [
+   {
+    "zone": 0,
+    "hue-deg": -4.0,
+    "sat": 0.3,
+    "val": 0.85
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/Polyfork/kite-shield-343e62.glb",
+  "dst": "TestOutput/tmp_162_5/shield_crystal.glb",
+  "note": "shield_crystal",
+  "ops": [
+   {
+    "zone": 0,
+    "hue-deg": 151.1,
+    "sat": 1.8,
+    "val": 1.25
+   }
+  ]
+ }
+]

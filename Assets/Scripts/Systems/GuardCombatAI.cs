@@ -33,6 +33,7 @@ namespace ProjectName.Systems
             foreach (var guard in guards)
             {
                 if (!guard.IsAlive || !guard.IsRecruited) continue;
+                if (guard.IsGatekeeper || guard.IsHolding) continue;   // [51차] 문지기/홀드 = 합세 금지(제자리 수비 — 자리를 지킴)
                 if (!GuardStatusSystem.CanFight(guard.Role)) continue;
 
                 float dist = Vector3.Distance(guard.transform.position, target.transform.position);
@@ -61,6 +62,12 @@ namespace ProjectName.Systems
                 return;
 
             if (guard == null || !guard.IsAlive || !guard.IsRecruited || playerTransform == null)
+                return;
+
+            // [51차 사용자 요구 — "문지기는 나를 따라오지 않고 영지를 지킨다"] 문지기(IsGatekeeper)와
+            //   홀드(제자리 고정) 병사는 플레이어 자동 추종 금지 — 아래 8m 이탈 추종 명령이 문지기를
+            //   영지에서 끌어다닌 근원. 명시적 우클릭 명령은 SetCommandTarget이 홀드를 해제하므로 그대로 작동.
+            if (guard.IsGatekeeper || guard.IsHolding)
                 return;
 
             // 전투 중이면 귀환 시간 체크
@@ -96,14 +103,19 @@ namespace ProjectName.Systems
             // 비전투 상태: 플레이어 추종
             float dist = Vector3.Distance(guard.transform.position, playerTransform.position);
 
-            if (dist > MAX_FOLLOW_DISTANCE)
+            // [53차 수리 — "이동이 자꾸 끊긴다"] 활성 명령 존중 — 기존은 dist>8m마다
+            //   SetCommandTarget(플레이어)을 재발행해 사용자 이동 명령을 매 프레임 덮어썼다
+            //   (병사1 정체 목적지가 계속 플레이어 좌표였던 실측 근거). 이제 명령이 없을 때만 추종 발행.
+            if (!guard.HasCommand && dist > MAX_FOLLOW_DISTANCE)
             {
                 // 너무 멀어지면 이동 명령
                 guard.SetCommandTarget(playerTransform.position, false);
             }
-            else if (dist <= FOLLOW_DISTANCE && guard.HasCommand && !guard.IsAttackCommand)
+            else if (dist <= FOLLOW_DISTANCE && guard.HasCommand && !guard.IsAttackCommand
+                     && (guard.CommandTarget - playerTransform.position).sqrMagnitude <= 2.25f)
             {
-                // 충분히 가까우면 명령 해제
+                // 충분히 가까우면 명령 해제 — [53차] 추종 명령(목표=플레이어 근처)만 정리.
+                //   사용자가 직접 명령한 목적지는 가까이 있어도 지우지 않는다(자연 도착 판정에 맡김).
                 guard.ClearCommand();
             }
         }

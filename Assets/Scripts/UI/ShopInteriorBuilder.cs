@@ -23,7 +23,7 @@ namespace ProjectName.UI
             const float roomDepth = 8f;
 
             // ===== 텍스처 생성 (C11-03, C11-04 프리셋) =====
-            Texture2D floorTex = IndoorTextureGenerator.GenerateShopFloor();
+            // [무번호 32] Shop 전용 바닥 텍스처 폐기 — 영지 실내 공통 석타일(씬 통일 계약).
             Texture2D wallTex = IndoorTextureGenerator.GenerateShopWall();
             // 천장은 회반죽 기본
             Texture2D ceilingTex = IndoorTextureGenerator.GeneratePlasterWall(256, 256,
@@ -37,9 +37,8 @@ namespace ProjectName.UI
                 return null;
             }
 
-            Material floorMat = new Material(shader) { name = "Shop_FloorMat" };
-            floorMat.mainTexture = floorTex;
-            floorMat.color = Color.white;
+            // [무번호 32] 영지 실내 공통 석타일 — 국가 무관 단일 바닥(1m 타일, UV 0..1 쿼드 스케일 정합).
+            Material floorMat = InteriorQualityBaseline.CreateCommonInteriorFloorMat(roomWidth, roomDepth, "Shop");
 
             Material wallMat = new Material(shader) { name = "Shop_WallMat" };
             wallMat.mainTexture = wallTex;
@@ -159,7 +158,7 @@ namespace ProjectName.UI
             // ===== 조명 설정 (C11-05) =====
             // 따뜻한 앰비언트 + 천장 중앙 Point Light + 깜빡임
             Color ambientWarm = new Color(0.15f, 0.10f, 0.05f);
-            ProjectName.Systems.IndoorLighting.SetupIndoorLighting(room, ambientWarm, 0.3f, true);
+            ProjectName.Systems.IndoorLighting.SetupIndoorLighting(room, ambientWarm, 0.4f, true);   // [125차 후속5] 앰비언트 0.3→0.4 상향
 
             // 추가 포인트 라이트 (카운터 위)
             ProjectName.Systems.IndoorLighting.AddPointLight(room,
@@ -189,6 +188,11 @@ namespace ProjectName.UI
             exitBt.BuildingType = "Exit";
             exitBt.InteractRange = 3f;
 
+            // [수조 통일] 천장 제거+남측(카메라 측) 벽 시각 절단(콜라이더 유지) — 9/20 실내씬 예시 기준
+            ProjectName.Systems.IndoorDioramaKit.Apply(room);
+
+            // [실내 고품질화 P3] 가구/조명/소품 가산 패스.
+            ProjectName.Systems.InteriorFurnishingPass.ApplyBuilding(room, "shop", roomWidth, roomDepth, null, roomHeight);
             return room;
         }
 

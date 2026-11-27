@@ -1,0 +1,6038 @@
+{
+ "id": "269:322",
+ "name": "훈련소 병사 훈련 관리",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 53265,
+ "ay": 3,
+ "w": 1600.0,
+ "h": 1040.0,
+ "d": 0,
+ "fills": [
+  "#0B0E14/1.0"
+ ],
+ "strokeW": 1.0,
+ "layout": "VERTICAL",
+ "gap": 24.0,
+ "pl": 64.0,
+ "pr": 64.0,
+ "pt": 36.0,
+ "pb": 28.0,
+ "c": [
+  {
+   "id": "269:323",
+   "name": "관리 화면 헤더",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 53329,
+   "ay": 39,
+   "w": 1472.0,
+   "h": 18.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "269:324",
+     "name": "현재 위치",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 53329,
+     "ay": 39,
+     "w": 170.0,
+     "h": 18.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "gap": 12.0,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "269:325",
+       "name": "전초기지",
+       "type": "VECTOR",
+       "x": null,
+       "y": null,
+       "ax": 53329,
+       "ay": 39,
+       "w": 18.0,
+       "h": 18.0,
+       "d": 3,
+       "strokes": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.6
+      },
+      {
+       "id": "269:326",
+       "name": "위치",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 53359,
+       "ay": 40,
+       "w": 48.0,
+       "h": 16.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "전초기지",
+       "fontSize": 13.0,
+       "font": "Noto Sans KR 400 Regular",
+       "lineH": 15.6
+      },
+      {
+       "id": "269:327",
+       "name": "구분",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 53419,
+       "ay": 40,
+       "w": 5.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#586473/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "/",
+       "fontSize": 12.0,
+       "font": "Inter 400 Regular",
+       "lineH": 14.5
+      },
+      {
+       "id": "269:328",
+       "name": "화면 이름",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 53436,
+       "ay": 40,
+       "w": 63.0,
+       "h": 16.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "훈련소 관리",
+       "fontSize": 13.0,
+       "font": "Noto Sans KR 500 Medium",
+       "lineH": 15.6
+      }
+     ]
+    },
+    {
+     "id": "269:329",
+     "name": "게임 시간",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 54668,
+     "ay": 40,
+     "w": 133.0,
+     "h": 17.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "gap": 10.0,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "269:330",
+       "name": "시계",
+       "type": "VECTOR",
+       "x": null,
+       "y": null,
+       "ax": 54668,
+       "ay": 40,
+       "w": 15.0,
+       "h": 15.0,
+       "d": 3,
+       "strokes": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.5
+      },
+      {
+       "id": "269:331",
+       "name": "날짜",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 54693,
+       "ay": 41,
+       "w": 59.0,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "24일차 · 낮",
+       "fontSize": 12.0,
+       "font": "Noto Sans KR 400 Regular",
+       "lineH": 14.4
+      },
+      {
+       "id": "269:332",
+       "name": "시각",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 54762,
+       "ay": 40,
+       "w": 39.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "14:30",
+       "fontSize": 13.0,
+       "font": "Geist Mono 400 Regular",
+       "lineH": 16.9
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "269:333",
+   "name": "병사 훈련 관리",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 53329,
+   "ay": 81,
+   "w": 1472.0,
+   "h": 882.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 24.0,
+   "c": [
+    {
+     "id": "269:334",
+     "name": "병사 명부",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 53329,
+     "ay": 81,
+     "w": 480.0,
+     "h": 882.0,
+     "d": 2,
+     "fills": [
+      "#13181F/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 14.0,
+     "fx": [
+      "DROP_SHADOW:38.0:#000000/0.251"
+     ],
+     "layout": "VERTICAL",
+     "gap": 16.0,
+     "pl": 24.0,
+     "pr": 24.0,
+     "pt": 24.0,
+     "pb": 24.0,
+     "c": [
+      {
+       "id": "269:335",
+       "name": "패널 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53353,
+       "ay": 105,
+       "w": 432.0,
+       "h": 48.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "pb": 18.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "269:564",
+         "name": "users-round",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53353,
+         "ay": 108,
+         "w": 23.0,
+         "h": 23.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "269:565",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 53355,
+           "ay": 111,
+           "w": 19.2,
+           "h": 17.2,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "269:337",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 53388,
+         "ay": 107,
+         "w": 86.0,
+         "h": 26.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "병사 명부",
+         "fontSize": 22.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 26.4
+        },
+        {
+         "id": "269:338",
+         "name": "보조 제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 53486,
+         "ay": 114,
+         "w": 257.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "훈련 중인 병사 목록",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 13.2
+        },
+        {
+         "id": "269:339",
+         "name": "닫기",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53755,
+         "ay": 105,
+         "w": 30.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "269:340",
+           "name": "닫기 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 53766,
+           "ay": 116,
+           "w": 9.0,
+           "h": 9.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "269:341",
+       "name": "필터",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53353,
+       "ay": 169,
+       "w": 432.0,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 6.0,
+       "c": [
+        {
+         "id": "271:343",
+         "name": "필터 탭",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53353,
+         "ay": 169,
+         "w": 140.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "271:344",
+           "name": "분류명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 53405,
+           "ay": 180,
+           "w": 36.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "대기 중",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        },
+        {
+         "id": "269:344",
+         "name": "필터 탭",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53499,
+         "ay": 169,
+         "w": 140.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "269:345",
+           "name": "분류명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 53551,
+           "ay": 180,
+           "w": 36.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "훈련 중",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        },
+        {
+         "id": "269:348",
+         "name": "필터 탭",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53645,
+         "ay": 169,
+         "w": 140.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "269:349",
+           "name": "분류명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 53704,
+           "ay": 180,
+           "w": 23.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "완료",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "269:350",
+       "name": "병사 검색",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53353,
+       "ay": 221,
+       "w": 432.0,
+       "h": 34.0,
+       "d": 3,
+       "fills": [
+        "#0F141B/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 6.0,
+       "layout": "HORIZONTAL",
+       "gap": 8.0,
+       "pl": 12.0,
+       "pr": 12.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "269:567",
+         "name": "search",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53365,
+         "ay": 230,
+         "w": 15.0,
+         "h": 15.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "269:568",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 53367,
+           "ay": 232,
+           "w": 11.3,
+           "h": 11.3,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "269:352",
+         "name": "검색 안내",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 53388,
+         "ay": 231,
+         "w": 361.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#586473/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "병사 이름 검색",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 14.4
+        },
+        {
+         "id": "269:570",
+         "name": "arrow-down-wide-narrow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53757,
+         "ay": 230,
+         "w": 16.0,
+         "h": 16.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "269:571",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 53759,
+           "ay": 233,
+           "w": 12.0,
+           "h": 10.7,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "271:390",
+       "name": "병사 목록 영역",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53353,
+       "ay": 271,
+       "w": 432.0,
+       "h": 668.0,
+       "d": 3,
+       "fills": [
+        "#13181F/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "VERTICAL",
+       "c": [
+        {
+         "id": "269:354",
+         "name": "병사 목록",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53353,
+         "ay": 271,
+         "w": 432.0,
+         "h": 461.2,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 10.0,
+         "pl": 12.0,
+         "pr": 12.0,
+         "pt": 12.0,
+         "pb": 24.0,
+         "c": [
+          {
+           "id": "271:345",
+           "name": "대기중 제목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 53365,
+           "ay": 283,
+           "w": 408.0,
+           "h": 14.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "mainAlign": "SPACE_BETWEEN",
+           "c": [
+            {
+             "id": "271:346",
+             "name": "제목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 53365,
+             "ay": 283,
+             "w": 72.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "대기 중인 병사",
+             "fontSize": 12.0,
+             "font": "Noto Sans KR 700 Bold",
+             "lineH": 14.4
+            },
+            {
+             "id": "271:347",
+             "name": "개방 현황",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 53756,
+             "ay": 283,
+             "w": 17.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "2명",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            }
+           ]
+          },
+          {
+           "id": "271:348",
+           "name": "병사 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 53365,
+           "ay": 307,
+           "w": 408.0,
+           "h": 86.4,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.8,
+           "r": 9.6,
+           "layout": "HORIZONTAL",
+           "gap": 14.399999618530273,
+           "pl": 14.399999618530273,
+           "pr": 14.399999618530273,
+           "pt": 14.399999618530273,
+           "pb": 14.399999618530273,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "271:349",
+             "name": "등급 표시",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 53365,
+             "ay": 307,
+             "w": 4.8,
+             "h": 86.4,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "271:350",
+             "name": "병사 아바타",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53379,
+             "ay": 324,
+             "w": 52.8,
+             "h": 52.8,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 26.4,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:351",
+               "name": "병사 아이콘",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53394,
+               "ay": 338,
+               "w": 24.0,
+               "h": 24.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "271:352",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 53396,
+                 "ay": 341,
+                 "w": 19.7,
+                 "h": 18.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:353",
+             "name": "병사 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53447,
+             "ay": 319,
+             "w": 168.0,
+             "h": 62.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.800000190734863,
+             "c": [
+              {
+               "id": "271:354",
+               "name": "이름과 레벨",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53447,
+               "ay": 319,
+               "w": 168.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "SPACE_BETWEEN",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:355",
+                 "name": "이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53447,
+                 "ay": 319,
+                 "w": 47.0,
+                 "h": 20.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "박지훈",
+                 "fontSize": 16.799999237060547,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 20.2
+                },
+                {
+                 "id": "271:356",
+                 "name": "레벨",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53571,
+                 "ay": 320,
+                 "w": 44.0,
+                 "h": 19.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "Lv.38",
+                 "fontSize": 14.399999618530273,
+                 "font": "Geist Mono 700 Bold",
+                 "lineH": 18.7
+                }
+               ]
+              },
+              {
+               "id": "271:357",
+               "name": "병과와 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53447,
+               "ay": 344,
+               "w": 168.0,
+               "h": 37.2,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "SPACE_BETWEEN",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:358",
+                 "name": "병과",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53447,
+                 "ay": 354,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "기갑",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 17.3
+                },
+                {
+                 "id": "271:359",
+                 "name": "상태와 비용",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53564,
+                 "ay": 344,
+                 "w": 50.4,
+                 "h": 37.2,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 2.4000000953674316,
+                 "crossAlign": "MAX",
+                 "c": [
+                  {
+                   "id": "271:360",
+                   "name": "상태 표시",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53564,
+                   "ay": 344,
+                   "w": 50.4,
+                   "h": 18.8,
+                   "d": 9,
+                   "fills": [
+                    "#000000/1.0@0.251"
+                   ],
+                   "strokes": [
+                    "#30363D/1.0@0.502"
+                   ],
+                   "strokeW": 1.2,
+                   "r": 4.8,
+                   "layout": "HORIZONTAL",
+                   "pl": 7.199999809265137,
+                   "pr": 7.199999809265137,
+                   "pt": 2.4000000953674316,
+                   "pb": 2.4000000953674316,
+                   "c": [
+                    {
+                     "id": "271:361",
+                     "name": "상태",
+                     "type": "TEXT",
+                     "x": null,
+                     "y": null,
+                     "ax": 53571,
+                     "ay": 346,
+                     "w": 36.0,
+                     "h": 14.0,
+                     "d": 10,
+                     "fills": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 1.0,
+                     "text": "대기 중",
+                     "fontSize": 12.0,
+                     "font": "Noto Sans KR 700 Bold",
+                     "lineH": 14.4
+                    }
+                   ]
+                  },
+                  {
+                   "id": "271:362",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53586,
+                   "ay": 365,
+                   "w": 29.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.1",
+                   "fontSize": 12.0,
+                   "font": "Geist Mono 700 Bold",
+                   "lineH": 15.6
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:363",
+             "name": "완료 상태",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53629,
+             "ay": 332,
+             "w": 129.6,
+             "h": 36.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 9.600000381469727,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:364",
+               "name": "훈련 버튼",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53629,
+               "ay": 332,
+               "w": 60.0,
+               "h": 36.0,
+               "d": 7,
+               "fills": [
+                "#8B5CF6/1.0"
+               ],
+               "strokes": [
+                "#8B5CF6/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 7.2,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:365",
+                 "name": "버튼 문구",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53646,
+                 "ay": 342,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "훈련",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 17.3
+                }
+               ]
+              },
+              {
+               "id": "271:366",
+               "name": "취소 버튼",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53699,
+               "ay": 332,
+               "w": 60.0,
+               "h": 36.0,
+               "d": 7,
+               "fills": [
+                "#FFFFFF/1.0@0.02"
+               ],
+               "strokes": [
+                "#30363D/1.0@0.502"
+               ],
+               "strokeW": 1.2,
+               "r": 7.2,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:367",
+                 "name": "버튼 문구",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53715,
+                 "ay": 342,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "취소",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 17.3
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "271:368",
+           "name": "병사 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 53365,
+           "ay": 403,
+           "w": 408.0,
+           "h": 86.4,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.8,
+           "r": 9.6,
+           "layout": "HORIZONTAL",
+           "gap": 14.399999618530273,
+           "pl": 14.399999618530273,
+           "pr": 14.399999618530273,
+           "pt": 14.399999618530273,
+           "pb": 14.399999618530273,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "271:369",
+             "name": "등급 표시",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 53365,
+             "ay": 403,
+             "w": 4.8,
+             "h": 86.4,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "271:370",
+             "name": "병사 아바타",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53379,
+             "ay": 420,
+             "w": 52.8,
+             "h": 52.8,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 26.4,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:371",
+               "name": "병사 아이콘",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53394,
+               "ay": 435,
+               "w": 24.0,
+               "h": 24.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "271:372",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 53396,
+                 "ay": 438,
+                 "w": 19.7,
+                 "h": 18.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:373",
+             "name": "병사 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53447,
+             "ay": 416,
+             "w": 168.0,
+             "h": 62.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.800000190734863,
+             "c": [
+              {
+               "id": "271:374",
+               "name": "이름과 레벨",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53447,
+               "ay": 416,
+               "w": 168.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "SPACE_BETWEEN",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:375",
+                 "name": "이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53447,
+                 "ay": 416,
+                 "w": 47.0,
+                 "h": 20.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "최유나",
+                 "fontSize": 16.799999237060547,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 20.2
+                },
+                {
+                 "id": "271:376",
+                 "name": "레벨",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53571,
+                 "ay": 416,
+                 "w": 44.0,
+                 "h": 19.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "Lv.31",
+                 "fontSize": 14.399999618530273,
+                 "font": "Geist Mono 700 Bold",
+                 "lineH": 18.7
+                }
+               ]
+              },
+              {
+               "id": "271:377",
+               "name": "병과와 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53447,
+               "ay": 440,
+               "w": 168.0,
+               "h": 37.2,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "SPACE_BETWEEN",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:378",
+                 "name": "병과",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53447,
+                 "ay": 450,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "공병",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 17.3
+                },
+                {
+                 "id": "271:379",
+                 "name": "상태와 비용",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53564,
+                 "ay": 440,
+                 "w": 50.4,
+                 "h": 37.2,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 2.4000000953674316,
+                 "crossAlign": "MAX",
+                 "c": [
+                  {
+                   "id": "271:380",
+                   "name": "상태 표시",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53564,
+                   "ay": 440,
+                   "w": 50.4,
+                   "h": 18.8,
+                   "d": 9,
+                   "fills": [
+                    "#000000/1.0@0.251"
+                   ],
+                   "strokes": [
+                    "#30363D/1.0@0.502"
+                   ],
+                   "strokeW": 1.2,
+                   "r": 4.8,
+                   "layout": "HORIZONTAL",
+                   "pl": 7.199999809265137,
+                   "pr": 7.199999809265137,
+                   "pt": 2.4000000953674316,
+                   "pb": 2.4000000953674316,
+                   "c": [
+                    {
+                     "id": "271:381",
+                     "name": "상태",
+                     "type": "TEXT",
+                     "x": null,
+                     "y": null,
+                     "ax": 53571,
+                     "ay": 443,
+                     "w": 36.0,
+                     "h": 14.0,
+                     "d": 10,
+                     "fills": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 1.0,
+                     "text": "대기 중",
+                     "fontSize": 12.0,
+                     "font": "Noto Sans KR 700 Bold",
+                     "lineH": 14.4
+                    }
+                   ]
+                  },
+                  {
+                   "id": "271:382",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53586,
+                   "ay": 462,
+                   "w": 29.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.1",
+                   "fontSize": 12.0,
+                   "font": "Geist Mono 700 Bold",
+                   "lineH": 15.6
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:383",
+             "name": "완료 상태",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53629,
+             "ay": 429,
+             "w": 129.6,
+             "h": 36.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 9.600000381469727,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:384",
+               "name": "훈련 버튼",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53629,
+               "ay": 429,
+               "w": 60.0,
+               "h": 36.0,
+               "d": 7,
+               "fills": [
+                "#8B5CF6/1.0"
+               ],
+               "strokes": [
+                "#8B5CF6/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 7.2,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:385",
+                 "name": "버튼 문구",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53646,
+                 "ay": 438,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "훈련",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 17.3
+                }
+               ]
+              },
+              {
+               "id": "271:386",
+               "name": "취소 버튼",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53699,
+               "ay": 429,
+               "w": 60.0,
+               "h": 36.0,
+               "d": 7,
+               "fills": [
+                "#FFFFFF/1.0@0.02"
+               ],
+               "strokes": [
+                "#30363D/1.0@0.502"
+               ],
+               "strokeW": 1.2,
+               "r": 7.2,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:387",
+                 "name": "버튼 문구",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53715,
+                 "ay": 438,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "취소",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 17.3
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "269:355",
+           "name": "목록 제목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 53365,
+           "ay": 500,
+           "w": 408.0,
+           "h": 14.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "mainAlign": "SPACE_BETWEEN",
+           "c": [
+            {
+             "id": "269:356",
+             "name": "제목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 53365,
+             "ay": 500,
+             "w": 72.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "훈련 중인 병사",
+             "fontSize": 12.0,
+             "font": "Noto Sans KR 700 Bold",
+             "lineH": 14.4
+            },
+            {
+             "id": "269:357",
+             "name": "개방 현황",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 53756,
+             "ay": 500,
+             "w": 17.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "2명",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            }
+           ]
+          },
+          {
+           "id": "269:358",
+           "name": "병사 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 53365,
+           "ay": 524,
+           "w": 408.0,
+           "h": 86.4,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.8,
+           "r": 9.6,
+           "layout": "HORIZONTAL",
+           "gap": 14.399999618530273,
+           "pl": 14.399999618530273,
+           "pr": 14.399999618530273,
+           "pt": 14.399999618530273,
+           "pb": 14.399999618530273,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "269:360",
+             "name": "등급 표시",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 53365,
+             "ay": 524,
+             "w": 4.8,
+             "h": 86.4,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "269:359",
+             "name": "병사 아바타",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53379,
+             "ay": 541,
+             "w": 52.8,
+             "h": 52.8,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 26.4,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:4",
+               "name": "병사 아이콘",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53394,
+               "ay": 555,
+               "w": 24.0,
+               "h": 24.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "271:5",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 53396,
+                 "ay": 558,
+                 "w": 19.7,
+                 "h": 18.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:6",
+             "name": "병사 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53447,
+             "ay": 536,
+             "w": 168.0,
+             "h": 62.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.800000190734863,
+             "c": [
+              {
+               "id": "271:7",
+               "name": "이름과 레벨",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53447,
+               "ay": 536,
+               "w": 168.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "SPACE_BETWEEN",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "269:363",
+                 "name": "이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53447,
+                 "ay": 536,
+                 "w": 47.0,
+                 "h": 20.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "김민수",
+                 "fontSize": 16.799999237060547,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 20.2
+                },
+                {
+                 "id": "269:364",
+                 "name": "레벨",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53571,
+                 "ay": 536,
+                 "w": 44.0,
+                 "h": 19.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "Lv.45",
+                 "fontSize": 14.399999618530273,
+                 "font": "Geist Mono 700 Bold",
+                 "lineH": 18.7
+                }
+               ]
+              },
+              {
+               "id": "269:365",
+               "name": "병과와 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53447,
+               "ay": 561,
+               "w": 168.0,
+               "h": 37.2,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 7.0,
+               "mainAlign": "SPACE_BETWEEN",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:8",
+                 "name": "병과",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53447,
+                 "ay": 571,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "보병",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 17.3
+                },
+                {
+                 "id": "271:9",
+                 "name": "상태와 비용",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53564,
+                 "ay": 561,
+                 "w": 50.4,
+                 "h": 37.2,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 2.4000000953674316,
+                 "crossAlign": "MAX",
+                 "c": [
+                  {
+                   "id": "271:10",
+                   "name": "상태 표시",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53564,
+                   "ay": 561,
+                   "w": 50.4,
+                   "h": 18.8,
+                   "d": 9,
+                   "fills": [
+                    "#000000/1.0@0.251"
+                   ],
+                   "strokes": [
+                    "#30363D/1.0@0.502"
+                   ],
+                   "strokeW": 1.2,
+                   "r": 4.8,
+                   "layout": "HORIZONTAL",
+                   "pl": 7.199999809265137,
+                   "pr": 7.199999809265137,
+                   "pt": 2.4000000953674316,
+                   "pb": 2.4000000953674316,
+                   "c": [
+                    {
+                     "id": "269:369",
+                     "name": "상태",
+                     "type": "TEXT",
+                     "x": null,
+                     "y": null,
+                     "ax": 53571,
+                     "ay": 563,
+                     "w": 36.0,
+                     "h": 14.0,
+                     "d": 10,
+                     "fills": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 1.0,
+                     "text": "훈련 중",
+                     "fontSize": 12.0,
+                     "font": "Noto Sans KR 700 Bold",
+                     "lineH": 14.4
+                    }
+                   ]
+                  },
+                  {
+                   "id": "269:370",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53586,
+                   "ay": 582,
+                   "w": 29.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.3",
+                   "fontSize": 12.0,
+                   "font": "Geist Mono 700 Bold",
+                   "lineH": 15.6
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "269:371",
+             "name": "완료 상태",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53629,
+             "ay": 549,
+             "w": 129.6,
+             "h": 36.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 9.600000381469727,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:11",
+               "name": "완료 버튼",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53629,
+               "ay": 549,
+               "w": 60.0,
+               "h": 36.0,
+               "d": 7,
+               "fills": [
+                "#58A6FF/1.0"
+               ],
+               "strokes": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 7.2,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "269:373",
+                 "name": "버튼 문구",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53646,
+                 "ay": 558,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#0B0E14/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "완료",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 17.3
+                }
+               ]
+              },
+              {
+               "id": "271:12",
+               "name": "취소 버튼",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53699,
+               "ay": 549,
+               "w": 60.0,
+               "h": 36.0,
+               "d": 7,
+               "fills": [
+                "#FFFFFF/1.0@0.02"
+               ],
+               "strokes": [
+                "#30363D/1.0@0.502"
+               ],
+               "strokeW": 1.2,
+               "r": 7.2,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "269:375",
+                 "name": "버튼 문구",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53715,
+                 "ay": 558,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "취소",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 17.3
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "271:322",
+           "name": "병사 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 53365,
+           "ay": 620,
+           "w": 408.0,
+           "h": 88.0,
+           "d": 5,
+           "fills": [
+            "#FFFFFF/1.0@0.078"
+           ],
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.8,
+           "r": 9.6,
+           "layout": "HORIZONTAL",
+           "gap": 14.399999618530273,
+           "pl": 14.399999618530273,
+           "pr": 14.399999618530273,
+           "pt": 14.399999618530273,
+           "pb": 14.399999618530273,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "271:323",
+             "name": "등급 표시",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 53365,
+             "ay": 620,
+             "w": 4.8,
+             "h": 88.4,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "271:324",
+             "name": "병사 아바타",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53379,
+             "ay": 638,
+             "w": 52.8,
+             "h": 52.8,
+             "d": 6,
+             "fills": [
+              "#21262D/1.0@0.6"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 26.4,
+             "layout": "HORIZONTAL",
+             "mainAlign": "CENTER",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:325",
+               "name": "병사 아이콘",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53394,
+               "ay": 652,
+               "w": 24.0,
+               "h": 24.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "c": [
+                {
+                 "id": "271:326",
+                 "name": "Vector",
+                 "type": "VECTOR",
+                 "x": null,
+                 "y": null,
+                 "ax": 53396,
+                 "ay": 655,
+                 "w": 19.7,
+                 "h": 18.0,
+                 "d": 8,
+                 "strokes": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 2.4
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:327",
+             "name": "병사 정보",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53447,
+             "ay": 633,
+             "w": 168.0,
+             "h": 62.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 4.800000190734863,
+             "c": [
+              {
+               "id": "271:328",
+               "name": "이름과 레벨",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53447,
+               "ay": 633,
+               "w": 168.0,
+               "h": 20.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "SPACE_BETWEEN",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:329",
+                 "name": "이름",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53447,
+                 "ay": 633,
+                 "w": 47.0,
+                 "h": 20.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "정하늘",
+                 "fontSize": 16.799999237060547,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 20.2
+                },
+                {
+                 "id": "271:330",
+                 "name": "레벨",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53571,
+                 "ay": 634,
+                 "w": 44.0,
+                 "h": 19.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "Lv.42",
+                 "fontSize": 14.399999618530273,
+                 "font": "Geist Mono 700 Bold",
+                 "lineH": 18.7
+                }
+               ]
+              },
+              {
+               "id": "271:331",
+               "name": "병과와 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53447,
+               "ay": 658,
+               "w": 168.0,
+               "h": 37.2,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 7.0,
+               "mainAlign": "SPACE_BETWEEN",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:332",
+                 "name": "병과",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53447,
+                 "ay": 668,
+                 "w": 40.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "정찰병",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 17.3
+                },
+                {
+                 "id": "271:333",
+                 "name": "상태와 비용",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53564,
+                 "ay": 658,
+                 "w": 50.4,
+                 "h": 37.2,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 2.4000000953674316,
+                 "crossAlign": "MAX",
+                 "c": [
+                  {
+                   "id": "271:334",
+                   "name": "상태 표시",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53564,
+                   "ay": 658,
+                   "w": 50.4,
+                   "h": 18.8,
+                   "d": 9,
+                   "fills": [
+                    "#000000/1.0@0.251"
+                   ],
+                   "strokes": [
+                    "#30363D/1.0@0.502"
+                   ],
+                   "strokeW": 1.2,
+                   "r": 4.8,
+                   "layout": "HORIZONTAL",
+                   "pl": 7.199999809265137,
+                   "pr": 7.199999809265137,
+                   "pt": 2.4000000953674316,
+                   "pb": 2.4000000953674316,
+                   "c": [
+                    {
+                     "id": "271:335",
+                     "name": "상태",
+                     "type": "TEXT",
+                     "x": null,
+                     "y": null,
+                     "ax": 53571,
+                     "ay": 660,
+                     "w": 36.0,
+                     "h": 14.0,
+                     "d": 10,
+                     "fills": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 1.0,
+                     "text": "훈련 중",
+                     "fontSize": 12.0,
+                     "font": "Noto Sans KR 700 Bold",
+                     "lineH": 14.4
+                    }
+                   ]
+                  },
+                  {
+                   "id": "271:336",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53586,
+                   "ay": 679,
+                   "w": 29.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.2",
+                   "fontSize": 12.0,
+                   "font": "Geist Mono 700 Bold",
+                   "lineH": 15.6
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:337",
+             "name": "완료 상태",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53629,
+             "ay": 646,
+             "w": 129.6,
+             "h": 36.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 9.600000381469727,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:338",
+               "name": "완료 버튼",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53629,
+               "ay": 646,
+               "w": 60.0,
+               "h": 36.0,
+               "d": 7,
+               "fills": [
+                "#58A6FF/1.0"
+               ],
+               "strokes": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.2,
+               "r": 7.2,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:339",
+                 "name": "버튼 문구",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53646,
+                 "ay": 656,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#0B0E14/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "완료",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 17.3
+                }
+               ]
+              },
+              {
+               "id": "271:340",
+               "name": "취소 버튼",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53699,
+               "ay": 646,
+               "w": 60.0,
+               "h": 36.0,
+               "d": 7,
+               "fills": [
+                "#FFFFFF/1.0@0.02"
+               ],
+               "strokes": [
+                "#30363D/1.0@0.502"
+               ],
+               "strokeW": 1.2,
+               "r": 7.2,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:341",
+                 "name": "버튼 문구",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 53715,
+                 "ay": 656,
+                 "w": 27.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "취소",
+                 "fontSize": 14.399999618530273,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 17.3
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "271:391",
+         "name": "스크롤바 트랙",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 53775,
+         "ay": 283,
+         "w": 4.0,
+         "h": 644.0,
+         "d": 4,
+         "fills": [
+          "#20262E/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 2.0
+        },
+        {
+         "id": "271:392",
+         "name": "스크롤바_thumb",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 53775,
+         "ay": 403,
+         "w": 4.0,
+         "h": 156.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 2.0
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "269:430",
+     "name": "훈련 진행 현황",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 53833,
+     "ay": 81,
+     "w": 968.0,
+     "h": 882.0,
+     "d": 2,
+     "fills": [
+      "#13181F/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 14.0,
+     "fx": [
+      "DROP_SHADOW:38.0:#000000/0.251"
+     ],
+     "layout": "VERTICAL",
+     "gap": 16.0,
+     "pl": 24.0,
+     "pr": 24.0,
+     "pt": 24.0,
+     "pb": 24.0,
+     "c": [
+      {
+       "id": "269:431",
+       "name": "패널 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53857,
+       "ay": 105,
+       "w": 920.0,
+       "h": 48.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "pb": 18.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "269:615",
+         "name": "castle",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53857,
+         "ay": 108,
+         "w": 23.0,
+         "h": 23.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "269:616",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 53859,
+           "ay": 111,
+           "w": 19.2,
+           "h": 17.2,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "269:433",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 53892,
+         "ay": 107,
+         "w": 132.0,
+         "h": 26.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "훈련 진행 현황",
+         "fontSize": 22.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 26.4
+        },
+        {
+         "id": "269:434",
+         "name": "보조 제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 54036,
+         "ay": 114,
+         "w": 699.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "훈련 진행률, 레벨, 완료 상태",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 13.2
+        },
+        {
+         "id": "269:435",
+         "name": "닫기",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 54747,
+         "ay": 105,
+         "w": 30.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "269:436",
+           "name": "닫기 아이콘",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 54758,
+           "ay": 116,
+           "w": 9.0,
+           "h": 9.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "269:437",
+       "name": "훈련소 운영 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53857,
+       "ay": 169,
+       "w": 920.0,
+       "h": 62.0,
+       "d": 3,
+       "fills": [
+        "#191F27/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "pl": 16.0,
+       "pr": 16.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "269:438",
+         "name": "시설 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53873,
+         "ay": 182,
+         "w": 36.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#20262E/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "269:618",
+           "name": "flag",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 53881,
+           "ay": 190,
+           "w": 20.0,
+           "h": 20.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "269:619",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 53884,
+             "ay": 192,
+             "w": 13.3,
+             "h": 16.7,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.6
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "269:440",
+         "name": "시설 정보",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53921,
+         "ay": 184,
+         "w": 766.0,
+         "h": 33.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 3.0,
+         "c": [
+          {
+           "id": "269:441",
+           "name": "시설명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 53921,
+           "ay": 184,
+           "w": 169.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "전초기지 · 제1 훈련소  Lv.3",
+           "fontSize": 14.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 16.8
+          },
+          {
+           "id": "269:442",
+           "name": "운영 설명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 53921,
+           "ay": 204,
+           "w": 358.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "한 번에 최대 20명 · 훈련 중인 병사와 완료 병력을 확인 · 완료 후 병력 배치 가능",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "269:443",
+         "name": "운영 상태",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 54699,
+         "ay": 188,
+         "w": 62.0,
+         "h": 23.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0@0.078"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "gap": 6.0,
+         "pl": 9.0,
+         "pr": 9.0,
+         "pt": 5.0,
+         "pb": 5.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "269:444",
+           "name": "상태 표시",
+           "type": "ELLIPSE",
+           "x": null,
+           "y": null,
+           "ax": 54708,
+           "ay": 198,
+           "w": 5.0,
+           "h": 5.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0
+          },
+          {
+           "id": "269:445",
+           "name": "상태",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 54719,
+           "ay": 194,
+           "w": 33.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "훈련 중",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "269:446",
+       "name": "훈련 진행 목록",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53857,
+       "ay": 247,
+       "w": 920.0,
+       "h": 464.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "VERTICAL",
+       "c": [
+        {
+         "id": "269:447",
+         "name": "목록 열 제목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53857,
+         "ay": 247,
+         "w": 920.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#0F141B/1.0"
+         ],
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 14.0,
+         "pl": 14.0,
+         "pr": 14.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "269:448",
+           "name": "병사 열",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 53871,
+           "ay": 256,
+           "w": 238.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "병사",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          },
+          {
+           "id": "269:449",
+           "name": "병과 열",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 54123,
+           "ay": 256,
+           "w": 120.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "병과",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          },
+          {
+           "id": "269:450",
+           "name": "레벨 열",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 54257,
+           "ay": 256,
+           "w": 60.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "레벨",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2,
+           "align": "RIGHT"
+          },
+          {
+           "id": "271:134",
+           "name": "진행 열",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 54331,
+           "ay": 256,
+           "w": 110.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "훈련 진행",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          },
+          {
+           "id": "271:135",
+           "name": "남은 시간 열",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 54455,
+           "ay": 256,
+           "w": 112.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "남은 시간",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2,
+           "align": "RIGHT"
+          },
+          {
+           "id": "271:136",
+           "name": "완료 예정 열",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 54581,
+           "ay": 256,
+           "w": 84.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "완료 예정",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2,
+           "align": "RIGHT"
+          },
+          {
+           "id": "271:137",
+           "name": "상태 열",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 54679,
+           "ay": 256,
+           "w": 84.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "상태",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2,
+           "align": "RIGHT"
+          }
+         ]
+        },
+        {
+         "id": "271:397",
+         "name": "훈련 항목 스크롤 영역",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53857,
+         "ay": 277,
+         "w": 920.0,
+         "h": 434.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "271:398",
+           "name": "훈련 항목 목록",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 53857,
+           "ay": 277,
+           "w": 920.0,
+           "h": 434.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "c": [
+            {
+             "id": "271:284",
+             "name": "훈련 항목",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53857,
+             "ay": 277,
+             "w": 920.0,
+             "h": 62.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.078"
+             ],
+             "strokes": [
+              "#58A6FF/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 14.0,
+             "pl": 14.0,
+             "pr": 14.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:285",
+               "name": "병사",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53871,
+               "ay": 290,
+               "w": 238.0,
+               "h": 36.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 10.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:286",
+                 "name": "병사 아이콘",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53871,
+                 "ay": 290,
+                 "w": 36.0,
+                 "h": 36.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 6.0,
+                 "layout": "HORIZONTAL",
+                 "mainAlign": "CENTER",
+                 "crossAlign": "CENTER",
+                 "c": [
+                  {
+                   "id": "271:287",
+                   "name": "병사 아이콘",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53878,
+                   "ay": 296,
+                   "w": 23.0,
+                   "h": 23.0,
+                   "d": 9,
+                   "strokeW": 1.0,
+                   "c": [
+                    {
+                     "id": "271:288",
+                     "name": "Vector",
+                     "type": "VECTOR",
+                     "x": null,
+                     "y": null,
+                     "ax": 53879,
+                     "ay": 299,
+                     "w": 18.9,
+                     "h": 17.2,
+                     "d": 10,
+                     "strokes": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 2.4
+                    }
+                   ]
+                  }
+                 ]
+                },
+                {
+                 "id": "271:289",
+                 "name": "병사 정보",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53917,
+                 "ay": 292,
+                 "w": 36.0,
+                 "h": 33.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 4.0,
+                 "c": [
+                  {
+                   "id": "271:290",
+                   "name": "이름",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 292,
+                   "w": 36.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#F0F6FC/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "김민수",
+                   "fontSize": 13.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 15.6
+                  },
+                  {
+                   "id": "271:291",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 312,
+                   "w": 30.0,
+                   "h": 13.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.45",
+                   "fontSize": 10.0,
+                   "font": "Geist Mono 400 Regular",
+                   "lineH": 13.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:292",
+               "name": "병과",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54123,
+               "ay": 300,
+               "w": 120.0,
+               "h": 16.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "보병",
+               "fontSize": 13.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 15.6
+              },
+              {
+               "id": "271:293",
+               "name": "레벨",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54257,
+               "ay": 300,
+               "w": 60.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "Lv.3",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:294",
+               "name": "진행 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54331,
+               "ay": 294,
+               "w": 110.0,
+               "h": 27.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 7.0,
+               "c": [
+                {
+                 "id": "271:295",
+                 "name": "진행률",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 294,
+                 "w": 22.0,
+                 "h": 16.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "70%",
+                 "fontSize": 12.0,
+                 "font": "Geist Mono 400 Regular",
+                 "lineH": 15.6
+                },
+                {
+                 "id": "271:296",
+                 "name": "진행 막대",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 318,
+                 "w": 110.0,
+                 "h": 4.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0,
+                 "layout": "HORIZONTAL",
+                 "c": [
+                  {
+                   "id": "271:297",
+                   "name": "진행량",
+                   "type": "RECTANGLE",
+                   "x": null,
+                   "y": null,
+                   "ax": 54331,
+                   "ay": 318,
+                   "w": 77.0,
+                   "h": 4.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "r": 2.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:298",
+               "name": "남은 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54455,
+               "ay": 300,
+               "w": 112.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "00:12:00",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:299",
+               "name": "완료 예정",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54581,
+               "ay": 300,
+               "w": 84.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "14:42",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:300",
+               "name": "상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54679,
+               "ay": 299,
+               "w": 84.0,
+               "h": 18.8,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "MAX",
+               "c": [
+                {
+                 "id": "271:301",
+                 "name": "상태 표시",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54713,
+                 "ay": 299,
+                 "w": 50.4,
+                 "h": 18.8,
+                 "d": 8,
+                 "fills": [
+                  "#000000/1.0@0.251"
+                 ],
+                 "strokes": [
+                  "#30363D/1.0@0.502"
+                 ],
+                 "strokeW": 1.2,
+                 "r": 4.8,
+                 "layout": "HORIZONTAL",
+                 "pl": 7.199999809265137,
+                 "pr": 7.199999809265137,
+                 "pt": 2.4000000953674316,
+                 "pb": 2.4000000953674316,
+                 "c": [
+                  {
+                   "id": "271:302",
+                   "name": "상태",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 54720,
+                   "ay": 301,
+                   "w": 36.0,
+                   "h": 14.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "훈련 중",
+                   "fontSize": 12.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 14.4
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:303",
+             "name": "훈련 항목",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53857,
+             "ay": 339,
+             "w": 920.0,
+             "h": 62.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.078"
+             ],
+             "strokes": [
+              "#58A6FF/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 14.0,
+             "pl": 14.0,
+             "pr": 14.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:304",
+               "name": "병사",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53871,
+               "ay": 352,
+               "w": 238.0,
+               "h": 36.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 10.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:305",
+                 "name": "병사 아이콘",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53871,
+                 "ay": 352,
+                 "w": 36.0,
+                 "h": 36.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 6.0,
+                 "layout": "HORIZONTAL",
+                 "mainAlign": "CENTER",
+                 "crossAlign": "CENTER",
+                 "c": [
+                  {
+                   "id": "271:306",
+                   "name": "병사 아이콘",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53878,
+                   "ay": 358,
+                   "w": 23.0,
+                   "h": 23.0,
+                   "d": 9,
+                   "strokeW": 1.0,
+                   "c": [
+                    {
+                     "id": "271:307",
+                     "name": "Vector",
+                     "type": "VECTOR",
+                     "x": null,
+                     "y": null,
+                     "ax": 53879,
+                     "ay": 361,
+                     "w": 18.9,
+                     "h": 17.2,
+                     "d": 10,
+                     "strokes": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 2.4
+                    }
+                   ]
+                  }
+                 ]
+                },
+                {
+                 "id": "271:308",
+                 "name": "병사 정보",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53917,
+                 "ay": 354,
+                 "w": 36.0,
+                 "h": 33.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 4.0,
+                 "c": [
+                  {
+                   "id": "271:309",
+                   "name": "이름",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 354,
+                   "w": 36.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#F0F6FC/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "정하늘",
+                   "fontSize": 13.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 15.6
+                  },
+                  {
+                   "id": "271:310",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 374,
+                   "w": 30.0,
+                   "h": 13.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.42",
+                   "fontSize": 10.0,
+                   "font": "Geist Mono 400 Regular",
+                   "lineH": 13.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:311",
+               "name": "병과",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54123,
+               "ay": 362,
+               "w": 120.0,
+               "h": 16.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "정찰병",
+               "fontSize": 13.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 15.6
+              },
+              {
+               "id": "271:312",
+               "name": "레벨",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54257,
+               "ay": 362,
+               "w": 60.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "Lv.2",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:313",
+               "name": "진행 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54331,
+               "ay": 356,
+               "w": 110.0,
+               "h": 27.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 7.0,
+               "c": [
+                {
+                 "id": "271:314",
+                 "name": "진행률",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 356,
+                 "w": 22.0,
+                 "h": 16.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "85%",
+                 "fontSize": 12.0,
+                 "font": "Geist Mono 400 Regular",
+                 "lineH": 15.6
+                },
+                {
+                 "id": "271:315",
+                 "name": "진행 막대",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 380,
+                 "w": 110.0,
+                 "h": 4.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0,
+                 "layout": "HORIZONTAL",
+                 "c": [
+                  {
+                   "id": "271:316",
+                   "name": "진행량",
+                   "type": "RECTANGLE",
+                   "x": null,
+                   "y": null,
+                   "ax": 54331,
+                   "ay": 380,
+                   "w": 93.5,
+                   "h": 4.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "r": 2.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:317",
+               "name": "남은 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54455,
+               "ay": 362,
+               "w": 112.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "00:05:00",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:318",
+               "name": "완료 예정",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54581,
+               "ay": 362,
+               "w": 84.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "14:35",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:319",
+               "name": "상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54679,
+               "ay": 361,
+               "w": 84.0,
+               "h": 18.8,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "MAX",
+               "c": [
+                {
+                 "id": "271:320",
+                 "name": "상태 표시",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54713,
+                 "ay": 361,
+                 "w": 50.4,
+                 "h": 18.8,
+                 "d": 8,
+                 "fills": [
+                  "#000000/1.0@0.251"
+                 ],
+                 "strokes": [
+                  "#30363D/1.0@0.502"
+                 ],
+                 "strokeW": 1.2,
+                 "r": 4.8,
+                 "layout": "HORIZONTAL",
+                 "pl": 7.199999809265137,
+                 "pr": 7.199999809265137,
+                 "pt": 2.4000000953674316,
+                 "pb": 2.4000000953674316,
+                 "c": [
+                  {
+                   "id": "271:321",
+                   "name": "상태",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 54720,
+                   "ay": 363,
+                   "w": 36.0,
+                   "h": 14.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "훈련 중",
+                   "fontSize": 12.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 14.4
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:399",
+             "name": "훈련 항목",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53857,
+             "ay": 401,
+             "w": 920.0,
+             "h": 62.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.039"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 14.0,
+             "pl": 14.0,
+             "pr": 14.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:400",
+               "name": "병사",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53871,
+               "ay": 414,
+               "w": 238.0,
+               "h": 36.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 10.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:401",
+                 "name": "병사 아이콘",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53871,
+                 "ay": 414,
+                 "w": 36.0,
+                 "h": 36.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 6.0,
+                 "layout": "HORIZONTAL",
+                 "mainAlign": "CENTER",
+                 "crossAlign": "CENTER",
+                 "c": [
+                  {
+                   "id": "271:402",
+                   "name": "병사 아이콘",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53878,
+                   "ay": 420,
+                   "w": 23.0,
+                   "h": 23.0,
+                   "d": 9,
+                   "strokeW": 1.0,
+                   "c": [
+                    {
+                     "id": "271:403",
+                     "name": "Vector",
+                     "type": "VECTOR",
+                     "x": null,
+                     "y": null,
+                     "ax": 53879,
+                     "ay": 423,
+                     "w": 18.9,
+                     "h": 17.2,
+                     "d": 10,
+                     "strokes": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 2.4
+                    }
+                   ]
+                  }
+                 ]
+                },
+                {
+                 "id": "271:404",
+                 "name": "병사 정보",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53917,
+                 "ay": 416,
+                 "w": 36.0,
+                 "h": 33.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 4.0,
+                 "c": [
+                  {
+                   "id": "271:405",
+                   "name": "이름",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 416,
+                   "w": 36.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#F0F6FC/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "이재원",
+                   "fontSize": 13.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 15.6
+                  },
+                  {
+                   "id": "271:406",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 436,
+                   "w": 30.0,
+                   "h": 13.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.37",
+                   "fontSize": 10.0,
+                   "font": "Geist Mono 400 Regular",
+                   "lineH": 13.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:407",
+               "name": "병과",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54123,
+               "ay": 424,
+               "w": 120.0,
+               "h": 16.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "공병",
+               "fontSize": 13.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 15.6
+              },
+              {
+               "id": "271:408",
+               "name": "레벨",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54257,
+               "ay": 424,
+               "w": 60.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "Lv.5",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:409",
+               "name": "진행 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54331,
+               "ay": 418,
+               "w": 110.0,
+               "h": 27.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 7.0,
+               "c": [
+                {
+                 "id": "271:410",
+                 "name": "진행률",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 418,
+                 "w": 22.0,
+                 "h": 16.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "42%",
+                 "fontSize": 12.0,
+                 "font": "Geist Mono 400 Regular",
+                 "lineH": 15.6
+                },
+                {
+                 "id": "271:411",
+                 "name": "진행 막대",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 442,
+                 "w": 110.0,
+                 "h": 4.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0,
+                 "layout": "HORIZONTAL",
+                 "c": [
+                  {
+                   "id": "271:412",
+                   "name": "진행량",
+                   "type": "RECTANGLE",
+                   "x": null,
+                   "y": null,
+                   "ax": 54331,
+                   "ay": 442,
+                   "w": 46.0,
+                   "h": 4.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "r": 2.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:413",
+               "name": "남은 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54455,
+               "ay": 424,
+               "w": 112.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "00:34:20",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:414",
+               "name": "완료 예정",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54581,
+               "ay": 424,
+               "w": 84.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "15:04",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:415",
+               "name": "상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54679,
+               "ay": 423,
+               "w": 84.0,
+               "h": 18.8,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "MAX",
+               "c": [
+                {
+                 "id": "271:416",
+                 "name": "상태 표시",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54713,
+                 "ay": 423,
+                 "w": 50.4,
+                 "h": 18.8,
+                 "d": 8,
+                 "fills": [
+                  "#000000/1.0@0.251"
+                 ],
+                 "strokes": [
+                  "#30363D/1.0@0.502"
+                 ],
+                 "strokeW": 1.2,
+                 "r": 4.8,
+                 "layout": "HORIZONTAL",
+                 "pl": 7.199999809265137,
+                 "pr": 7.199999809265137,
+                 "pt": 2.4000000953674316,
+                 "pb": 2.4000000953674316,
+                 "c": [
+                  {
+                   "id": "271:417",
+                   "name": "상태",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 54720,
+                   "ay": 425,
+                   "w": 36.0,
+                   "h": 14.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "훈련 중",
+                   "fontSize": 12.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 14.4
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:418",
+             "name": "훈련 항목",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53857,
+             "ay": 463,
+             "w": 920.0,
+             "h": 62.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.039"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 14.0,
+             "pl": 14.0,
+             "pr": 14.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:419",
+               "name": "병사",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53871,
+               "ay": 476,
+               "w": 238.0,
+               "h": 36.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 10.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:420",
+                 "name": "병사 아이콘",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53871,
+                 "ay": 476,
+                 "w": 36.0,
+                 "h": 36.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 6.0,
+                 "layout": "HORIZONTAL",
+                 "mainAlign": "CENTER",
+                 "crossAlign": "CENTER",
+                 "c": [
+                  {
+                   "id": "271:421",
+                   "name": "병사 아이콘",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53878,
+                   "ay": 482,
+                   "w": 23.0,
+                   "h": 23.0,
+                   "d": 9,
+                   "strokeW": 1.0,
+                   "c": [
+                    {
+                     "id": "271:422",
+                     "name": "Vector",
+                     "type": "VECTOR",
+                     "x": null,
+                     "y": null,
+                     "ax": 53879,
+                     "ay": 485,
+                     "w": 18.9,
+                     "h": 17.2,
+                     "d": 10,
+                     "strokes": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 2.4
+                    }
+                   ]
+                  }
+                 ]
+                },
+                {
+                 "id": "271:423",
+                 "name": "병사 정보",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53917,
+                 "ay": 478,
+                 "w": 36.0,
+                 "h": 33.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 4.0,
+                 "c": [
+                  {
+                   "id": "271:424",
+                   "name": "이름",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 478,
+                   "w": 36.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#F0F6FC/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "한소희",
+                   "fontSize": 13.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 15.6
+                  },
+                  {
+                   "id": "271:425",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 498,
+                   "w": 30.0,
+                   "h": 13.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.29",
+                   "fontSize": 10.0,
+                   "font": "Geist Mono 400 Regular",
+                   "lineH": 13.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:426",
+               "name": "병과",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54123,
+               "ay": 486,
+               "w": 120.0,
+               "h": 16.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "기갑",
+               "fontSize": 13.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 15.6
+              },
+              {
+               "id": "271:427",
+               "name": "레벨",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54257,
+               "ay": 486,
+               "w": 60.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "Lv.4",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:428",
+               "name": "진행 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54331,
+               "ay": 480,
+               "w": 110.0,
+               "h": 27.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 7.0,
+               "c": [
+                {
+                 "id": "271:429",
+                 "name": "진행률",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 480,
+                 "w": 22.0,
+                 "h": 16.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "58%",
+                 "fontSize": 12.0,
+                 "font": "Geist Mono 400 Regular",
+                 "lineH": 15.6
+                },
+                {
+                 "id": "271:430",
+                 "name": "진행 막대",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 504,
+                 "w": 110.0,
+                 "h": 4.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0,
+                 "layout": "HORIZONTAL",
+                 "c": [
+                  {
+                   "id": "271:431",
+                   "name": "진행량",
+                   "type": "RECTANGLE",
+                   "x": null,
+                   "y": null,
+                   "ax": 54331,
+                   "ay": 504,
+                   "w": 64.0,
+                   "h": 4.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "r": 2.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:432",
+               "name": "남은 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54455,
+               "ay": 486,
+               "w": 112.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "00:28:15",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:433",
+               "name": "완료 예정",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54581,
+               "ay": 486,
+               "w": 84.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "14:58",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:434",
+               "name": "상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54679,
+               "ay": 485,
+               "w": 84.0,
+               "h": 18.8,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "MAX",
+               "c": [
+                {
+                 "id": "271:435",
+                 "name": "상태 표시",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54713,
+                 "ay": 485,
+                 "w": 50.4,
+                 "h": 18.8,
+                 "d": 8,
+                 "fills": [
+                  "#000000/1.0@0.251"
+                 ],
+                 "strokes": [
+                  "#30363D/1.0@0.502"
+                 ],
+                 "strokeW": 1.2,
+                 "r": 4.8,
+                 "layout": "HORIZONTAL",
+                 "pl": 7.199999809265137,
+                 "pr": 7.199999809265137,
+                 "pt": 2.4000000953674316,
+                 "pb": 2.4000000953674316,
+                 "c": [
+                  {
+                   "id": "271:436",
+                   "name": "상태",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 54720,
+                   "ay": 487,
+                   "w": 36.0,
+                   "h": 14.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "훈련 중",
+                   "fontSize": 12.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 14.4
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:437",
+             "name": "훈련 항목",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53857,
+             "ay": 525,
+             "w": 920.0,
+             "h": 62.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.039"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 14.0,
+             "pl": 14.0,
+             "pr": 14.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:438",
+               "name": "병사",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53871,
+               "ay": 538,
+               "w": 238.0,
+               "h": 36.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 10.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:439",
+                 "name": "병사 아이콘",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53871,
+                 "ay": 538,
+                 "w": 36.0,
+                 "h": 36.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 6.0,
+                 "layout": "HORIZONTAL",
+                 "mainAlign": "CENTER",
+                 "crossAlign": "CENTER",
+                 "c": [
+                  {
+                   "id": "271:440",
+                   "name": "병사 아이콘",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53878,
+                   "ay": 544,
+                   "w": 23.0,
+                   "h": 23.0,
+                   "d": 9,
+                   "strokeW": 1.0,
+                   "c": [
+                    {
+                     "id": "271:441",
+                     "name": "Vector",
+                     "type": "VECTOR",
+                     "x": null,
+                     "y": null,
+                     "ax": 53879,
+                     "ay": 547,
+                     "w": 18.9,
+                     "h": 17.2,
+                     "d": 10,
+                     "strokes": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 2.4
+                    }
+                   ]
+                  }
+                 ]
+                },
+                {
+                 "id": "271:442",
+                 "name": "병사 정보",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53917,
+                 "ay": 540,
+                 "w": 36.0,
+                 "h": 33.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 4.0,
+                 "c": [
+                  {
+                   "id": "271:443",
+                   "name": "이름",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 540,
+                   "w": 36.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#F0F6FC/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "오준혁",
+                   "fontSize": 13.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 15.6
+                  },
+                  {
+                   "id": "271:444",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 560,
+                   "w": 30.0,
+                   "h": 13.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.33",
+                   "fontSize": 10.0,
+                   "font": "Geist Mono 400 Regular",
+                   "lineH": 13.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:445",
+               "name": "병과",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54123,
+               "ay": 548,
+               "w": 120.0,
+               "h": 16.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "포병",
+               "fontSize": 13.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 15.6
+              },
+              {
+               "id": "271:446",
+               "name": "레벨",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54257,
+               "ay": 548,
+               "w": 60.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "Lv.6",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:447",
+               "name": "진행 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54331,
+               "ay": 542,
+               "w": 110.0,
+               "h": 27.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 7.0,
+               "c": [
+                {
+                 "id": "271:448",
+                 "name": "진행률",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 542,
+                 "w": 22.0,
+                 "h": 16.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "21%",
+                 "fontSize": 12.0,
+                 "font": "Geist Mono 400 Regular",
+                 "lineH": 15.6
+                },
+                {
+                 "id": "271:449",
+                 "name": "진행 막대",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 566,
+                 "w": 110.0,
+                 "h": 4.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0,
+                 "layout": "HORIZONTAL",
+                 "c": [
+                  {
+                   "id": "271:450",
+                   "name": "진행량",
+                   "type": "RECTANGLE",
+                   "x": null,
+                   "y": null,
+                   "ax": 54331,
+                   "ay": 566,
+                   "w": 23.0,
+                   "h": 4.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "r": 2.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:451",
+               "name": "남은 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54455,
+               "ay": 548,
+               "w": 112.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "01:02:40",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:452",
+               "name": "완료 예정",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54581,
+               "ay": 548,
+               "w": 84.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "15:32",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:453",
+               "name": "상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54679,
+               "ay": 547,
+               "w": 84.0,
+               "h": 18.8,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "MAX",
+               "c": [
+                {
+                 "id": "271:454",
+                 "name": "상태 표시",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54713,
+                 "ay": 547,
+                 "w": 50.4,
+                 "h": 18.8,
+                 "d": 8,
+                 "fills": [
+                  "#000000/1.0@0.251"
+                 ],
+                 "strokes": [
+                  "#30363D/1.0@0.502"
+                 ],
+                 "strokeW": 1.2,
+                 "r": 4.8,
+                 "layout": "HORIZONTAL",
+                 "pl": 7.199999809265137,
+                 "pr": 7.199999809265137,
+                 "pt": 2.4000000953674316,
+                 "pb": 2.4000000953674316,
+                 "c": [
+                  {
+                   "id": "271:455",
+                   "name": "상태",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 54720,
+                   "ay": 549,
+                   "w": 36.0,
+                   "h": 14.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "훈련 중",
+                   "fontSize": 12.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 14.4
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:456",
+             "name": "훈련 항목",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53857,
+             "ay": 587,
+             "w": 920.0,
+             "h": 62.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.039"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 14.0,
+             "pl": 14.0,
+             "pr": 14.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:457",
+               "name": "병사",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53871,
+               "ay": 600,
+               "w": 238.0,
+               "h": 36.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 10.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:458",
+                 "name": "병사 아이콘",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53871,
+                 "ay": 600,
+                 "w": 36.0,
+                 "h": 36.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 6.0,
+                 "layout": "HORIZONTAL",
+                 "mainAlign": "CENTER",
+                 "crossAlign": "CENTER",
+                 "c": [
+                  {
+                   "id": "271:459",
+                   "name": "병사 아이콘",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53878,
+                   "ay": 606,
+                   "w": 23.0,
+                   "h": 23.0,
+                   "d": 9,
+                   "strokeW": 1.0,
+                   "c": [
+                    {
+                     "id": "271:460",
+                     "name": "Vector",
+                     "type": "VECTOR",
+                     "x": null,
+                     "y": null,
+                     "ax": 53879,
+                     "ay": 609,
+                     "w": 18.9,
+                     "h": 17.2,
+                     "d": 10,
+                     "strokes": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 2.4
+                    }
+                   ]
+                  }
+                 ]
+                },
+                {
+                 "id": "271:461",
+                 "name": "병사 정보",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53917,
+                 "ay": 602,
+                 "w": 36.0,
+                 "h": 33.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 4.0,
+                 "c": [
+                  {
+                   "id": "271:462",
+                   "name": "이름",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 602,
+                   "w": 36.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#F0F6FC/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "윤서진",
+                   "fontSize": 13.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 15.6
+                  },
+                  {
+                   "id": "271:463",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 622,
+                   "w": 30.0,
+                   "h": 13.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.40",
+                   "fontSize": 10.0,
+                   "font": "Geist Mono 400 Regular",
+                   "lineH": 13.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:464",
+               "name": "병과",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54123,
+               "ay": 610,
+               "w": 120.0,
+               "h": 16.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "보병",
+               "fontSize": 13.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 15.6
+              },
+              {
+               "id": "271:465",
+               "name": "레벨",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54257,
+               "ay": 610,
+               "w": 60.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "Lv.7",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:466",
+               "name": "진행 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54331,
+               "ay": 604,
+               "w": 110.0,
+               "h": 27.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 7.0,
+               "c": [
+                {
+                 "id": "271:467",
+                 "name": "진행률",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 604,
+                 "w": 22.0,
+                 "h": 16.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "93%",
+                 "fontSize": 12.0,
+                 "font": "Geist Mono 400 Regular",
+                 "lineH": 15.6
+                },
+                {
+                 "id": "271:468",
+                 "name": "진행 막대",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 628,
+                 "w": 110.0,
+                 "h": 4.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0,
+                 "layout": "HORIZONTAL",
+                 "c": [
+                  {
+                   "id": "271:469",
+                   "name": "진행량",
+                   "type": "RECTANGLE",
+                   "x": null,
+                   "y": null,
+                   "ax": 54331,
+                   "ay": 628,
+                   "w": 102.0,
+                   "h": 4.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "r": 2.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:470",
+               "name": "남은 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54455,
+               "ay": 610,
+               "w": 112.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "00:02:10",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:471",
+               "name": "완료 예정",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54581,
+               "ay": 610,
+               "w": 84.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "14:32",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:472",
+               "name": "상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54679,
+               "ay": 609,
+               "w": 84.0,
+               "h": 18.8,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "MAX",
+               "c": [
+                {
+                 "id": "271:473",
+                 "name": "상태 표시",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54713,
+                 "ay": 609,
+                 "w": 50.4,
+                 "h": 18.8,
+                 "d": 8,
+                 "fills": [
+                  "#000000/1.0@0.251"
+                 ],
+                 "strokes": [
+                  "#30363D/1.0@0.502"
+                 ],
+                 "strokeW": 1.2,
+                 "r": 4.8,
+                 "layout": "HORIZONTAL",
+                 "pl": 7.199999809265137,
+                 "pr": 7.199999809265137,
+                 "pt": 2.4000000953674316,
+                 "pb": 2.4000000953674316,
+                 "c": [
+                  {
+                   "id": "271:474",
+                   "name": "상태",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 54720,
+                   "ay": 611,
+                   "w": 36.0,
+                   "h": 14.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "훈련 중",
+                   "fontSize": 12.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 14.4
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "271:475",
+             "name": "훈련 항목",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 53857,
+             "ay": 649,
+             "w": 920.0,
+             "h": 62.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0@0.039"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.251"
+             ],
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 14.0,
+             "pl": 14.0,
+             "pr": 14.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "271:476",
+               "name": "병사",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 53871,
+               "ay": 662,
+               "w": 238.0,
+               "h": 36.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "gap": 10.0,
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "271:477",
+                 "name": "병사 아이콘",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53871,
+                 "ay": 662,
+                 "w": 36.0,
+                 "h": 36.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 6.0,
+                 "layout": "HORIZONTAL",
+                 "mainAlign": "CENTER",
+                 "crossAlign": "CENTER",
+                 "c": [
+                  {
+                   "id": "271:478",
+                   "name": "병사 아이콘",
+                   "type": "FRAME",
+                   "x": null,
+                   "y": null,
+                   "ax": 53878,
+                   "ay": 668,
+                   "w": 23.0,
+                   "h": 23.0,
+                   "d": 9,
+                   "strokeW": 1.0,
+                   "c": [
+                    {
+                     "id": "271:479",
+                     "name": "Vector",
+                     "type": "VECTOR",
+                     "x": null,
+                     "y": null,
+                     "ax": 53879,
+                     "ay": 671,
+                     "w": 18.9,
+                     "h": 17.2,
+                     "d": 10,
+                     "strokes": [
+                      "#58A6FF/1.0"
+                     ],
+                     "strokeW": 2.4
+                    }
+                   ]
+                  }
+                 ]
+                },
+                {
+                 "id": "271:480",
+                 "name": "병사 정보",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 53917,
+                 "ay": 664,
+                 "w": 36.0,
+                 "h": 33.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "layout": "VERTICAL",
+                 "gap": 4.0,
+                 "c": [
+                  {
+                   "id": "271:481",
+                   "name": "이름",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 664,
+                   "w": 36.0,
+                   "h": 16.0,
+                   "d": 9,
+                   "fills": [
+                    "#F0F6FC/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "강도현",
+                   "fontSize": 13.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 15.6
+                  },
+                  {
+                   "id": "271:482",
+                   "name": "레벨",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 53917,
+                   "ay": 684,
+                   "w": 30.0,
+                   "h": 13.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "Lv.51",
+                   "fontSize": 10.0,
+                   "font": "Geist Mono 400 Regular",
+                   "lineH": 13.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:483",
+               "name": "병과",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54123,
+               "ay": 672,
+               "w": 120.0,
+               "h": 16.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "기갑",
+               "fontSize": 13.0,
+               "font": "Noto Sans KR 400 Regular",
+               "lineH": 15.6
+              },
+              {
+               "id": "271:484",
+               "name": "레벨",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54257,
+               "ay": 672,
+               "w": 60.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "Lv.8",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:485",
+               "name": "진행 상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54331,
+               "ay": 666,
+               "w": 110.0,
+               "h": 27.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 7.0,
+               "c": [
+                {
+                 "id": "271:486",
+                 "name": "진행률",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 666,
+                 "w": 22.0,
+                 "h": 16.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "35%",
+                 "fontSize": 12.0,
+                 "font": "Geist Mono 400 Regular",
+                 "lineH": 15.6
+                },
+                {
+                 "id": "271:487",
+                 "name": "진행 막대",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54331,
+                 "ay": 690,
+                 "w": 110.0,
+                 "h": 4.0,
+                 "d": 8,
+                 "fills": [
+                  "#20262E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0,
+                 "layout": "HORIZONTAL",
+                 "c": [
+                  {
+                   "id": "271:488",
+                   "name": "진행량",
+                   "type": "RECTANGLE",
+                   "x": null,
+                   "y": null,
+                   "ax": 54331,
+                   "ay": 690,
+                   "w": 38.5,
+                   "h": 4.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "r": 2.0
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "271:489",
+               "name": "남은 시간",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54455,
+               "ay": 672,
+               "w": 112.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "00:49:55",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:490",
+               "name": "완료 예정",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 54581,
+               "ay": 672,
+               "w": 84.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "15:19",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9,
+               "align": "RIGHT"
+              },
+              {
+               "id": "271:491",
+               "name": "상태",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 54679,
+               "ay": 671,
+               "w": 84.0,
+               "h": 18.8,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "MAX",
+               "c": [
+                {
+                 "id": "271:492",
+                 "name": "상태 표시",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 54713,
+                 "ay": 671,
+                 "w": 50.4,
+                 "h": 18.8,
+                 "d": 8,
+                 "fills": [
+                  "#000000/1.0@0.251"
+                 ],
+                 "strokes": [
+                  "#30363D/1.0@0.502"
+                 ],
+                 "strokeW": 1.2,
+                 "r": 4.8,
+                 "layout": "HORIZONTAL",
+                 "pl": 7.199999809265137,
+                 "pr": 7.199999809265137,
+                 "pt": 2.4000000953674316,
+                 "pb": 2.4000000953674316,
+                 "c": [
+                  {
+                   "id": "271:493",
+                   "name": "상태",
+                   "type": "TEXT",
+                   "x": null,
+                   "y": null,
+                   "ax": 54720,
+                   "ay": 673,
+                   "w": 36.0,
+                   "h": 14.0,
+                   "d": 9,
+                   "fills": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.0,
+                   "text": "훈련 중",
+                   "fontSize": 12.0,
+                   "font": "Noto Sans KR 700 Bold",
+                   "lineH": 14.4
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "271:494",
+           "name": "스크롤바 트랙",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 54767,
+           "ay": 285,
+           "w": 4.0,
+           "h": 418.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokeW": 1.0,
+           "r": 2.0
+          },
+          {
+           "id": "271:495",
+           "name": "스크롤바_thumb",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 54767,
+           "ay": 285,
+           "w": 4.0,
+           "h": 142.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "r": 2.0
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "271:272",
+       "name": "훈련 완료 병력",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53857,
+       "ay": 727,
+       "w": 920.0,
+       "h": 80.0,
+       "d": 3,
+       "fills": [
+        "#22C55E/1.0@0.078"
+       ],
+       "strokes": [
+        "#22C55E/1.0@0.251"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "pl": 16.0,
+       "pr": 16.0,
+       "pt": 16.0,
+       "pb": 16.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "269:642",
+         "name": "badge-check",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53873,
+         "ay": 754,
+         "w": 26.0,
+         "h": 26.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "269:643",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 53875,
+           "ay": 756,
+           "w": 21.7,
+           "h": 21.7,
+           "d": 5,
+           "strokes": [
+            "#22C55E/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "271:273",
+         "name": "완료 정보",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53911,
+         "ay": 750,
+         "w": 618.0,
+         "h": 34.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 5.0,
+         "c": [
+          {
+           "id": "271:274",
+           "name": "완료 병력",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 53911,
+           "ay": 750,
+           "w": 113.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "훈련 완료 정찰병 8명",
+           "fontSize": 13.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 15.6
+          },
+          {
+           "id": "271:275",
+           "name": "배치 후 병력",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 53911,
+           "ay": 771,
+           "w": 171.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "배치 후 주둔 병력 128 → 136 / 240명",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "271:276",
+         "name": "병력 배치",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 54541,
+         "ay": 746,
+         "w": 220.0,
+         "h": 42.0,
+         "d": 4,
+         "fills": [
+          "#22C55E/1.0@0.078"
+         ],
+         "strokes": [
+          "#22C55E/1.0@0.251"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "gap": 8.0,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "269:645",
+           "name": "user-round-check",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 54600,
+           "ay": 758,
+           "w": 17.0,
+           "h": 17.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "269:646",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 54601,
+             "ay": 761,
+             "w": 14.2,
+             "h": 12.8,
+             "d": 6,
+             "strokes": [
+              "#22C55E/1.0"
+             ],
+             "strokeW": 1.6
+            }
+           ]
+          },
+          {
+           "id": "271:277",
+           "name": "배치 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 54624,
+           "ay": 759,
+           "w": 78.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#22C55E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "완료 병력 배치",
+           "fontSize": 13.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 15.6
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "271:278",
+       "name": "운영 안내",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 53857,
+       "ay": 823,
+       "w": 920.0,
+       "h": 13.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 7.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "269:648",
+         "name": "info",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 53857,
+         "ay": 823,
+         "w": 13.0,
+         "h": 13.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "269:649",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 53858,
+           "ay": 824,
+           "w": 10.8,
+           "h": 10.8,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.6
+          }
+         ]
+        },
+        {
+         "id": "271:279",
+         "name": "안내 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 53877,
+         "ay": 823,
+         "w": 332.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "훈련소를 닫아도 훈련은 계속되며, 완료된 병사는 바로 배치할 수 있습니다.",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 13.2
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "269:560",
+   "name": "화면 도움말",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 53329,
+   "ay": 987,
+   "w": 1472.0,
+   "h": 14.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "269:561",
+     "name": "훈련 안내",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 53329,
+     "ay": 987,
+     "w": 445.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "병사 목록에서 훈련 중인 병사를 확인하고, 오른쪽 창에서 진행률과 완료 상태를 확인하세요.",
+     "fontSize": 12.0,
+     "font": "Noto Sans KR 400 Regular",
+     "lineH": 14.4
+    },
+    {
+     "id": "269:562",
+     "name": "단축키",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 54582,
+     "ay": 987,
+     "w": 219.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "클릭 병사 선택 · Enter 완료 확인 · Esc 닫기",
+     "fontSize": 12.0,
+     "font": "Noto Sans KR 400 Regular",
+     "lineH": 14.4
+    }
+   ]
+  }
+ ]
+}

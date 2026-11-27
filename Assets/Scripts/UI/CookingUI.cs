@@ -4,6 +4,7 @@ using ProjectName.Core;
 using ProjectName.Systems;
 using ProjectName.Core.Data;
 using ProjectName.Core.Themes;
+using ProjectName.Core.Utils;
 #pragma warning disable 0414
 
 namespace ProjectName.UI
@@ -27,6 +28,7 @@ namespace ProjectName.UI
         // ── 상태 ──
         private PlayerInventory.ItemData _selectedMeat;
         private PlayerInventory.ItemData _selectedHerb;
+        private PlayerInventory.ItemData _selectedDrug; // D3-A2: 마약 재료 (null = 미선택)
         private string _resultMessage = "";
         private string _resultItemName = "";
         private string _resultEffect = "";
@@ -34,6 +36,7 @@ namespace ProjectName.UI
         private bool _hasResult = false;
         private Vector2 _meatScrollPos;
         private Vector2 _herbScrollPos;
+        private Vector2 _drugScrollPos; // D3-A2
 
         // ── 스타일 ──
         private GUIStyle _titleStyle;
@@ -53,12 +56,16 @@ namespace ProjectName.UI
         private Texture2D _herbFoodBg;
         private Texture2D _meatFoodSelectedBg;
         private Texture2D _herbFoodSelectedBg;
+        private Texture2D _drugSlotBg;         // D3-A2: 마약 재료 슬롯 배경
+        private Texture2D _drugFoodBg;         // D3-A2: 마약 인벤 슬롯 배경
+        private Texture2D _drugFoodSelectedBg; // D3-A2: 마약 인벤 슬롯 선택 배경
 
         protected override void OnShow()
         {
             base.OnShow();
             _selectedMeat = null;
             _selectedHerb = null;
+            _selectedDrug = null;
             _resultMessage = "";
             _hasResult = false;
             _stylesInitialized = false;
@@ -80,6 +87,9 @@ namespace ProjectName.UI
             if (_herbFoodBg != null) Destroy(_herbFoodBg);
             if (_meatFoodSelectedBg != null) Destroy(_meatFoodSelectedBg);
             if (_herbFoodSelectedBg != null) Destroy(_herbFoodSelectedBg);
+            if (_drugSlotBg != null) Destroy(_drugSlotBg);
+            if (_drugFoodBg != null) Destroy(_drugFoodBg);
+            if (_drugFoodSelectedBg != null) Destroy(_drugFoodSelectedBg);
             base.OnDestroy();
         }
 
@@ -160,12 +170,15 @@ namespace ProjectName.UI
             // ── 재료 슬롯 배경 텍스처 캐싱 ──
             _meatSlotBg = UIStyleManager.MakeTexture(1, 1, new Color(Color.green.r * 0.3f, Color.green.g * 0.3f, Color.green.b * 0.3f, 0.7f));
             _herbSlotBg = UIStyleManager.MakeTexture(1, 1, new Color(Color.cyan.r * 0.3f, Color.cyan.g * 0.3f, Color.cyan.b * 0.3f, 0.7f));
+            _drugSlotBg = UIStyleManager.MakeTexture(1, 1, new Color(0.4f, 0.15f, 0.45f, 0.7f)); // D3-A2: 보라 계열
 
             // ── 인벤토리 슬롯 배경 텍스처 캐싱 ──
             _meatFoodBg = UIStyleManager.MakeTexture(1, 1, new Color(0.5f, 0.25f, 0.1f, 0.8f));
             _herbFoodBg = UIStyleManager.MakeTexture(1, 1, new Color(0.15f, 0.4f, 0.15f, 0.8f));
             _meatFoodSelectedBg = UIStyleManager.MakeTexture(1, 1, new Color(0.6f, 0.4f, 0.2f, 0.9f));
             _herbFoodSelectedBg = UIStyleManager.MakeTexture(1, 1, new Color(0.3f, 0.6f, 0.3f, 0.9f));
+            _drugFoodBg = UIStyleManager.MakeTexture(1, 1, new Color(0.3f, 0.12f, 0.4f, 0.8f));
+            _drugFoodSelectedBg = UIStyleManager.MakeTexture(1, 1, new Color(0.45f, 0.2f, 0.55f, 0.9f));
 
             _stylesInitialized = true;
         }
@@ -204,12 +217,20 @@ namespace ProjectName.UI
             DrawIngredientSlot("고기", ref _selectedMeat, Color.green, true);
             GUILayout.FlexibleSpace();
             DrawIngredientSlot("약초", ref _selectedHerb, Color.cyan, false);
+            GUILayout.FlexibleSpace();
+            DrawIngredientSlot("마약", ref _selectedDrug, Color.magenta, false, true); // D3-A2
             GUILayout.EndHorizontal();
 
             GUILayout.Space(6);
 
             // ── 요리하기 버튼 ──
             bool canCook = _selectedMeat != null && _selectedHerb != null;
+            // D3-A2: 마약 선택 시 마약 보유 여부도 활성 조건에 포함 (기존 재료 체크 패턴 준용)
+            if (canCook && _selectedDrug != null)
+            {
+                var invForCook = PlayerInventory.Instance;
+                canCook = invForCook != null && invForCook.HasItem(_selectedDrug.id) && invForCook.GetItemCount(_selectedDrug.id) >= 1;
+            }
             GUI.enabled = canCook;
             if (GUILayout.Button("▼ 요리하기 ▼", GUILayout.Height(54)))
             {
@@ -245,7 +266,7 @@ namespace ProjectName.UI
             // ── 고기 인벤토리 그리드 ──
             float availableWidth = effW - 30;
             float itemSlotSize = Mathf.Min(80, (availableWidth - 3 * 6) / 4f);
-            float gridHeight = (effH - 340) / 2f;
+            float gridHeight = (effH - 400) / 3f; // D3-A2: 마약 인벤 그리드 추가로 3분할
             if (gridHeight < 60) gridHeight = 60;
 
             _meatScrollPos = GUILayout.BeginScrollView(_meatScrollPos, GUILayout.Height(gridHeight));
@@ -333,20 +354,71 @@ namespace ProjectName.UI
 
             GUILayout.EndScrollView();
 
+            GUILayout.Space(2);
+
+            // ── 구분선 ──
+            GUILayout.Label("─── 인벤토리 (마약) ───", _categoryHeaderStyle);
+
+            // ── 마약 인벤토리 그리드 (D3-A2: ItemCategory.Drug 필터) ──
+            _drugScrollPos = GUILayout.BeginScrollView(_drugScrollPos, GUILayout.Height(gridHeight));
+
+            if (inventory != null)
+            {
+                var allSlots = inventory.GetAllSlots();
+                int cols = Mathf.Max(1, (int)(availableWidth / (itemSlotSize + 6)));
+                if (cols < 1) cols = 1;
+
+                GUILayout.BeginVertical();
+                int idx = 0;
+                int drawnCount = 0;
+                foreach (var slot in allSlots)
+                {
+                    if (slot == null || slot.item == null || slot.count <= 0)
+                    {
+                        idx++;
+                        continue;
+                    }
+                    if (slot.item.category != PlayerInventory.ItemCategory.Drug)
+                    {
+                        idx++;
+                        continue;
+                    }
+
+                    if (idx % cols == 0)
+                        GUILayout.BeginHorizontal();
+
+                    DrawInventoryFoodSlot(slot, itemSlotSize, false, true);
+
+                    drawnCount++;
+                    idx++;
+                    if (idx % cols == 0)
+                        GUILayout.EndHorizontal();
+                }
+                if (idx % cols != 0)
+                    GUILayout.EndHorizontal();
+                GUILayout.EndVertical();
+
+                // D3-A2: 마약 인벤토리가 비어 있으면 '마약 없음' 안내 표시
+                if (drawnCount == 0)
+                    GUILayout.Label("마약 없음", _slotLabelStyle);
+            }
+
+            GUILayout.EndScrollView();
+
             GUILayout.EndArea();
         }
 
         /// <summary>
         /// 재료 슬롯 (고기/약초 선택)
         /// </summary>
-        private void DrawIngredientSlot(string label, ref PlayerInventory.ItemData slot, Color accentColor, bool isMeat)
+        private void DrawIngredientSlot(string label, ref PlayerInventory.ItemData slot, Color accentColor, bool isMeat, bool isDrug = false)
         {
             GUILayout.BeginVertical(GUILayout.Width(240), GUILayout.Height(120));
 
             GUILayout.Label(label, _slotLabelStyle, GUILayout.Height(48));
 
             Rect slotRect = GUILayoutUtility.GetRect(120, 54);
-            Texture2D slotBg = isMeat ? _meatSlotBg : _herbSlotBg;
+            Texture2D slotBg = isDrug ? _drugSlotBg : (isMeat ? _meatSlotBg : _herbSlotBg);
             GUI.Box(slotRect, "", _slotStyle);
             GUI.DrawTexture(slotRect, slotBg);
 
@@ -381,7 +453,7 @@ namespace ProjectName.UI
         /// <summary>
         /// 인벤토리 아이템 슬롯 (고기 또는 약초)
         /// </summary>
-        private void DrawInventoryFoodSlot(PlayerInventory.ItemSlot invSlot, float size, bool isMeat)
+        private void DrawInventoryFoodSlot(PlayerInventory.ItemSlot invSlot, float size, bool isMeat, bool isDrug = false)
         {
             var item = invSlot.item;
             string label = $"{item.displayName}\nx{invSlot.count}";
@@ -389,20 +461,23 @@ namespace ProjectName.UI
             Rect rect = GUILayoutUtility.GetRect(size, size);
 
             // 캐싱된 배경 텍스처 사용 (GC-safe)
-            bool isSelected = isMeat
-                ? (_selectedMeat != null && _selectedMeat.id == item.id)
-                : (_selectedHerb != null && _selectedHerb.id == item.id);
+            bool isSelected = isDrug
+                ? (_selectedDrug != null && _selectedDrug.id == item.id)
+                : isMeat
+                    ? (_selectedMeat != null && _selectedMeat.id == item.id)
+                    : (_selectedHerb != null && _selectedHerb.id == item.id);
 
             Texture2D bgTexture;
             if (isSelected)
-                bgTexture = isMeat ? _meatFoodSelectedBg : _herbFoodSelectedBg;
+                bgTexture = isDrug ? _drugFoodSelectedBg : (isMeat ? _meatFoodSelectedBg : _herbFoodSelectedBg);
             else
-                bgTexture = isMeat ? _meatFoodBg : _herbFoodBg;
+                bgTexture = isDrug ? _drugFoodBg : (isMeat ? _meatFoodBg : _herbFoodBg);
 
             GUI.DrawTexture(rect, bgTexture);
 
             // 아이콘 (색상 사각형 fallback)
-            Color iconColor = isMeat ? new Color(0.8f, 0.4f, 0.2f) : new Color(0.2f, 0.7f, 0.2f);
+            Color iconColor = isDrug ? new Color(0.7f, 0.3f, 0.9f)
+                : isMeat ? new Color(0.8f, 0.4f, 0.2f) : new Color(0.2f, 0.7f, 0.2f);
             GUI.color = iconColor;
             GUI.DrawTexture(new Rect(rect.x + 4, rect.y + 4, size - 8, size - 24), Texture2D.whiteTexture);
             GUI.color = Color.white;
@@ -413,7 +488,9 @@ namespace ProjectName.UI
             // 클릭 감지
             if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && rect.Contains(Event.current.mousePosition))
             {
-                if (isMeat)
+                if (isDrug)
+                    _selectedDrug = item;
+                else if (isMeat)
                     _selectedMeat = item;
                 else
                     _selectedHerb = item;
@@ -469,6 +546,18 @@ namespace ProjectName.UI
                 return;
             }
 
+            // D3-A2: 마약 선택 시 마약 보유 확인 (기존 재료 체크 패턴 준용)
+            if (_selectedDrug != null &&
+                (!inventory.HasItem(_selectedDrug.id) || inventory.GetItemCount(_selectedDrug.id) < 1))
+            {
+                _resultMessage = $"'{_selectedDrug.displayName}'이(가) 인벤토리에 없습니다.";
+                _hasResult = false;
+                _resultItemName = "";
+                _resultEffect = "";
+                _resultGrade = "";
+                return;
+            }
+
             // CookingDatabase에서 레시피 검색 (displayName 기반)
             var cookingResult = CookingDatabase.GetCooking(_selectedMeat.displayName, _selectedHerb.displayName);
 
@@ -489,11 +578,41 @@ namespace ProjectName.UI
                         // 재료 차감
                         inventory.RemoveItem(_selectedMeat.id, 1);
                         inventory.RemoveItem(_selectedHerb.id, 1);
+                        // D3-A2: 마약 확장 — 마약 선택 시 마약 1개를 세 번째 재료로 소모
+                        if (_selectedDrug != null)
+                            inventory.RemoveItem(_selectedDrug.id, 1);
 
                         // 요리 아이템 생성 및 지급
                         var dishItem = DishDatabase.GetItemData(result.DishName);
                         if (dishItem != null)
-                            inventory.AddItem(dishItem, 1);
+                        {
+                            if (_selectedDrug != null)
+                            {
+                                // D3-A2: 마약 뿌려진 음식 지급 — CookingDrugHelper 규약 문자열로 파생,
+                                // 기존 지급 경로(AddItem)는 그대로 유지. ParseDrugStage 실패(-1) 시 stage 0 방어.
+                                int drugStage = CookingDrugHelper.ParseDrugStage(_selectedDrug.id);
+                                if (drugStage < 0) drugStage = 0;
+                                var drugged = CookingDrugHelper.MakeDruggedFood(result, drugStage);
+                                var druggedItem = new PlayerInventory.ItemData
+                                {
+                                    id = drugged.itemId,
+                                    displayName = drugged.displayName,
+                                    description = drugged.description,
+                                    category = dishItem.category,
+                                    icon = dishItem.icon,
+                                    maxStack = dishItem.maxStack,
+                                    maxDurability = dishItem.maxDurability,
+                                    rarity = dishItem.rarity,
+                                    effects = dishItem.effects,
+                                    basePrice = dishItem.basePrice
+                                };
+                                inventory.AddItem(druggedItem, 1);
+                            }
+                            else
+                            {
+                                inventory.AddItem(dishItem, 1);
+                            }
+                        }
 
                         // 발견 등록
                         RecipeDiscoverySystem.MarkDiscovered(result.DishName);
@@ -513,21 +632,33 @@ namespace ProjectName.UI
                             gradeStr = "일반";
                         }
 
-                        _resultMessage = $"🟢 요리 성공! '{result.DishName}' 획득!";
+                        // D3-A2: 마약 선택 시 결과 문구에 마약 마커 반영 (_resultItemName/_resultEffect 흐름은 기존 그대로)
+                        _resultMessage = _selectedDrug != null
+                            ? $"🟢 요리 성공! '마약 뿌려진 {result.DishName}' 획득!"
+                            : $"🟢 요리 성공! '{result.DishName}' 획득!";
                         _resultItemName = result.DishName;
                         _resultEffect = result.Effect;
                         _resultGrade = gradeStr;
                         _hasResult = true;
 
+                        // [129차 Q1] 요리 성공 — 애니 없이 환호만 발화
+                        var player = GameObject.FindGameObjectWithTag("Player");
+                        var driver = player != null ? (player.GetComponent<HumanoidClipDriver>() ?? player.GetComponentInChildren<HumanoidClipDriver>()) : null;
+                        driver?.TriggerCheer();
+
                         // 경험치 획득 (요리 성공 시 +5~15)
                         if (PlayerStats.Instance != null)
                             PlayerStats.Instance.AddExp(Random.Range(5, 16));
+
+                        // [133차-P2] 요리 성공 징글 — SFX_Acquire_Common(반2D). 실패 분기는 무음(추가 클립 없음).
+                        GatherFeedbackSystem.PlayAcquireJingle(0);
 
                         Debug.Log($"[CookingUI] 요리 성공: {_selectedMeat.displayName} + {_selectedHerb.displayName} → {result.DishName}");
 
                         // 슬롯 비우기
                         _selectedMeat = null;
                         _selectedHerb = null;
+                        _selectedDrug = null;
                         break;
 
                     case CraftResult.Fail_MaterialPreserved:

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.1347106">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="478" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.134711" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1535" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="469" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.117284" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="12352" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1536" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="469" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.106688" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1537" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="469" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.097107" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1538" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="454" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.089857" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1183" name="FigmaCanvasLayoutTests" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.063571" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1188" name="InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" methodname="InventoryClusterPanelRegions_StorageBodyRegionsUsePanelLocalFigma15BoundsAndScaleFromResolvedRoot" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="160790743" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.024642" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1192" name="InventoryClusterPanelRegions_StorageCellBottomMargin_IsOmittedOnlyOnFinalRow" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageCellBottomMargin_IsOmittedOnlyOnFinalRow" methodname="InventoryClusterPanelRegions_StorageCellBottomMargin_IsOmittedOnlyOnFinalRow" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="1518882724" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.003892" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1190" name="InventoryClusterPanelRegions_StorageGridContentHeight_FitsSixVisibleRows" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageGridContentHeight_FitsSixVisibleRows" methodname="InventoryClusterPanelRegions_StorageGridContentHeight_FitsSixVisibleRows" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="1822468395" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.011829" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1191" name="InventoryClusterPanelRegions_StorageGridContentHeight_PreservesOverflowRows" fullname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests.InventoryClusterPanelRegions_StorageGridContentHeight_PreservesOverflowRows" methodname="InventoryClusterPanelRegions_StorageGridContentHeight_PreservesOverflowRows" classname="ProjectName.Tests.EditMode.FigmaCanvasLayoutTests" runstate="Runnable" seed="1466181185" result="Passed" start-time="2026-10-05 01:00:39Z" end-time="2026-10-05 01:00:39Z" duration="0.000538" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,1222 @@
+{
+ "id": "72:4",
+ "name": "fishing-result-ui",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 17017,
+ "ay": 3,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "IMAGE",
+  "#0B0E14/1.0@0.8"
+ ],
+ "strokeW": 1.2,
+ "layout": "VERTICAL",
+ "gap": 57.60000228881836,
+ "pl": 76.80000305175781,
+ "pr": 76.80000305175781,
+ "pt": 88.80000305175781,
+ "pb": 12.0,
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "72:5",
+   "name": "HUDHeader",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 17017,
+   "ay": 3,
+   "w": 1920.0,
+   "h": 76.8,
+   "d": 1,
+   "fills": [
+    "#0D1117/1.0@0.502"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "pl": 48.0,
+   "pr": 48.0,
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "72:6",
+     "name": "LeftInfo",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17065,
+     "ay": 31,
+     "w": 297.6,
+     "h": 20.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 14.40000057220459,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:65",
+       "name": "fishing-hook",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17065,
+       "ay": 32,
+       "w": 19.2,
+       "h": 19.2,
+       "d": 3,
+       "strokeW": 1.2,
+       "c": [
+        {
+         "id": "72:66",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 17066,
+         "ay": 37,
+         "w": 16.0,
+         "h": 10.4,
+         "d": 4,
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 2.4
+        }
+       ]
+      },
+      {
+       "id": "72:8",
+       "name": "북부 침엽수림 지대 - 숨겨진 깊은 호수",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17098,
+       "ay": 31,
+       "w": 264.0,
+       "h": 20.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "북부 침엽수림 지대 - 숨겨진 깊은 호수",
+       "fontSize": 16.80000114440918,
+       "font": "Roboto 700 Bold",
+       "lineH": 19.7
+      }
+     ]
+    },
+    {
+     "id": "72:9",
+     "name": "RightStats",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 18481,
+     "ay": 31,
+     "w": 407.8,
+     "h": 20.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 28.80000114440918,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:10",
+       "name": "Stamina",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18481,
+       "ay": 31,
+       "w": 186.4,
+       "h": 20.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:71",
+         "name": "zap",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 18481,
+         "ay": 33,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "72:72",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 18483,
+           "ay": 34,
+           "w": 12.6,
+           "h": 14.0,
+           "d": 5,
+           "strokes": [
+            "#FF7300/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        },
+        {
+         "id": "72:12",
+         "name": "STAMINA: 84 / 100",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18507,
+         "ay": 31,
+         "w": 160.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#FF7300/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "STAMINA: 84 / 100",
+         "fontSize": 15.600000381469727,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 20.3
+        }
+       ]
+      },
+      {
+       "id": "72:13",
+       "name": "XP",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18696,
+       "ay": 32,
+       "w": 192.6,
+       "h": 18.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:14",
+         "name": "낚시 레벨. 12",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18696,
+         "ay": 32,
+         "w": 87.0,
+         "h": 18.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "낚시 레벨. 12",
+         "fontSize": 15.600000381469727,
+         "font": "Roboto 400 Regular",
+         "lineH": 18.3
+        },
+        {
+         "id": "72:15",
+         "name": "XPBar",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 18793,
+         "ay": 39,
+         "w": 96.0,
+         "h": 4.8,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.078"
+         ],
+         "strokeW": 1.2,
+         "r": 2.4,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "72:16",
+           "name": "XPFill",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 18793,
+           "ay": 39,
+           "w": 57.6,
+           "h": 4.8,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.2,
+           "r": 2.4
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "72:17",
+   "name": "ResultPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 17689,
+   "ay": 114,
+   "w": 576.0,
+   "h": 859.8,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.502"
+   ],
+   "layout": "VERTICAL",
+   "gap": 24.0,
+   "pl": 28.80000114440918,
+   "pr": 28.80000114440918,
+   "pt": 28.80000114440918,
+   "pb": 28.80000114440918,
+   "c": [
+    {
+     "id": "72:18",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17689,
+     "ay": 114,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:19",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 17689,
+       "ay": 114,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "72:20",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 17689,
+       "ay": 114,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "72:21",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 18250,
+     "ay": 114,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:22",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 18250,
+       "ay": 114,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "72:23",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 18250,
+       "ay": 114,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "72:24",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17689,
+     "ay": 960,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:25",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 17689,
+       "ay": 960,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "72:26",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 17689,
+       "ay": 960,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "72:27",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 18250,
+     "ay": 960,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:28",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 18250,
+       "ay": 960,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "72:29",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 18250,
+       "ay": 960,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "72:30",
+     "name": "PanelHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17717,
+     "ay": 143,
+     "w": 518.4,
+     "h": 39.0,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 14.40000057220459,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:31",
+       "name": "TitleGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17717,
+       "ay": 146,
+       "w": 121.0,
+       "h": 19.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "72:33",
+         "name": "Subtitle",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 17717,
+         "ay": 146,
+         "w": 121.0,
+         "h": 19.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "FISHING RESULT",
+         "fontSize": 14.40000057220459,
+         "font": "Geist Mono 500 Medium",
+         "lineH": 18.7
+        }
+       ]
+      },
+      {
+       "id": "72:34",
+       "name": "Badge",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18159,
+       "ay": 143,
+       "w": 77.2,
+       "h": 24.6,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0@0.082"
+       ],
+       "strokes": [
+        "#58A6FF/1.0@0.2"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 4.800000190734863,
+       "pb": 4.800000190734863,
+       "c": [
+        {
+         "id": "72:35",
+         "name": "SUCCESS",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18168,
+         "ay": 148,
+         "w": 58.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "SUCCESS",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "72:36",
+     "name": "NotificationTitle",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17717,
+     "ay": 206,
+     "w": 518.4,
+     "h": 59.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 4.800000190734863,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:37",
+       "name": "ResultVerb",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17920,
+       "ay": 206,
+       "w": 114.0,
+       "h": 21.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "대어 획득 성공!",
+       "fontSize": 18.0,
+       "font": "Roboto 500 Medium",
+       "lineH": 21.1
+      },
+      {
+       "id": "72:38",
+       "name": "FishCatchName",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17717,
+       "ay": 232,
+       "w": 518.4,
+       "h": 34.0,
+       "d": 3,
+       "fills": [
+        "#D4AF37/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "고대 심해 아로와나을(를) 낚았습니다!",
+       "fontSize": 28.80000114440918,
+       "font": "Roboto 800 ExtraBold",
+       "lineH": 33.8,
+       "align": "CENTER"
+      }
+     ]
+    },
+    {
+     "id": "72:39",
+     "name": "ItemImageSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17717,
+     "ay": 290,
+     "w": 518.4,
+     "h": 312.0,
+     "d": 2,
+     "fills": [
+      "#1C2128/1.0@0.502"
+     ],
+     "strokes": [
+      "#D4AF37/1.0"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "72:40",
+       "name": "TierStrip",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 17717,
+       "ay": 290,
+       "w": 516.0,
+       "h": 4.8,
+       "d": 3,
+       "fills": [
+        "#D4AF37/1.0"
+       ],
+       "strokeW": 1.2
+      },
+      {
+       "id": "72:41",
+       "name": "LEGENDARY CLASS",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17732,
+       "ay": 304,
+       "w": 119.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#D4AF37/1.0"
+       ],
+       "strokeW": 1.2,
+       "op": 0.8,
+       "text": "LEGENDARY CLASS",
+       "fontSize": 13.200000762939453,
+       "font": "Geist Mono 700 Bold",
+       "lineH": 17.2
+      },
+      {
+       "id": "72:42",
+       "name": "FishImage",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 17717,
+       "ay": 290,
+       "w": 518.4,
+       "h": 312.0,
+       "d": 3,
+       "fills": [
+        "IMAGE"
+       ],
+       "strokeW": 1.2
+      }
+     ]
+    },
+    {
+     "id": "72:43",
+     "name": "FishSpecs",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17717,
+     "ay": 626,
+     "w": 518.4,
+     "h": 70.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "72:44",
+       "name": "SpecBox",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17717,
+       "ay": 626,
+       "w": 166.4,
+       "h": 68.6,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:45",
+         "name": "희귀도",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 17782,
+         "ay": 640,
+         "w": 37.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "희귀도",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 400 Regular",
+         "lineH": 15.5
+        },
+        {
+         "id": "72:46",
+         "name": "전설 등급",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 17767,
+         "ay": 660,
+         "w": 67.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#D4AF37/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "전설 등급",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        }
+       ]
+      },
+      {
+       "id": "72:47",
+       "name": "SpecBox",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17893,
+       "ay": 626,
+       "w": 166.4,
+       "h": 70.6,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:48",
+         "name": "길이",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 17964,
+         "ay": 640,
+         "w": 25.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "길이",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 400 Regular",
+         "lineH": 15.5
+        },
+        {
+         "id": "72:49",
+         "name": "142.8 cm",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 17936,
+         "ay": 660,
+         "w": 81.0,
+         "h": 22.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "142.8 cm",
+         "fontSize": 16.80000114440918,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 21.8
+        }
+       ]
+      },
+      {
+       "id": "72:50",
+       "name": "SpecBox",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 18069,
+       "ay": 626,
+       "w": 166.4,
+       "h": 70.6,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:51",
+         "name": "무게",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18140,
+         "ay": 640,
+         "w": 25.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "무게",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 400 Regular",
+         "lineH": 15.5
+        },
+        {
+         "id": "72:52",
+         "name": "24.5 kg",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18117,
+         "ay": 660,
+         "w": 71.0,
+         "h": 22.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "24.5 kg",
+         "fontSize": 16.80000114440918,
+         "font": "Geist Mono 700 Bold",
+         "lineH": 21.8
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "72:53",
+     "name": "DescriptionSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17717,
+     "ay": 720,
+     "w": 518.4,
+     "h": 152.0,
+     "d": 2,
+     "fills": [
+      "#1C2128/1.0@0.502"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "pl": 19.200000762939453,
+     "pr": 19.200000762939453,
+     "pt": 19.200000762939453,
+     "pb": 19.200000762939453,
+     "c": [
+      {
+       "id": "72:54",
+       "name": "DescriptionHeader",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17737,
+       "ay": 740,
+       "w": 70.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "물고기 특징",
+       "fontSize": 14.40000057220459,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      },
+      {
+       "id": "72:55",
+       "name": "DescriptionBody",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 17737,
+       "ay": 766,
+       "w": 480.0,
+       "h": 87.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "깊은 심해의 차가운 수온 속에서만 서식하는 전설 속의 어종입니다. 찬란한 금빛 비늘은 어둠 속에서도 스스로 ",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 400 Regular",
+       "lineH": 21.6
+      }
+     ]
+    },
+    {
+     "id": "72:56",
+     "name": "ActionButtons",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17717,
+     "ay": 896,
+     "w": 518.4,
+     "h": 48.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "72:59",
+       "name": "KeepButton",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17717,
+       "ay": 896,
+       "w": 253.2,
+       "h": 48.8,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:60",
+         "name": "KeepText",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 17788,
+         "ay": 911,
+         "w": 113.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "인벤토리에 놓기",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        }
+       ]
+      },
+      {
+       "id": "72:57",
+       "name": "DiscardButton",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 17980,
+       "ay": 896,
+       "w": 255.6,
+       "h": 48.8,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.059"
+       ],
+       "strokes": [
+        "#F85149/1.0@0.2"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 14.40000057220459,
+       "pr": 14.40000057220459,
+       "pt": 14.40000057220459,
+       "pb": 14.40000057220459,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "72:58",
+         "name": "DiscardText",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 18085,
+         "ay": 911,
+         "w": 47.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F85149/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "버리기",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "72:61",
+   "name": "SystemTip",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 17692,
+   "ay": 1032,
+   "w": 569.4,
+   "h": 17.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "op": 0.6,
+   "layout": "HORIZONTAL",
+   "gap": 9.600000381469727,
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "72:68",
+     "name": "info",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 17692,
+     "ay": 1032,
+     "w": 16.8,
+     "h": 16.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "72:69",
+       "name": "Vector",
+       "type": "VECTOR",
+       "x": null,
+       "y": null,
+       "ax": 17693,
+       "ay": 1033,
+       "w": 14.0,
+       "h": 14.0,
+       "d": 3,
+       "strokes": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 2.4
+      }
+     ]
+    },
+    {
+     "id": "72:63",
+     "name": "인벤토리에 빈 공간이 충분한지 확인하십시오. 보관 시 4.2kg의 무게가 적재량에 추가됩니다.",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 17718,
+     "ay": 1032,
+     "w": 543.0,
+     "h": 17.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "인벤토리에 빈 공간이 충분한지 확인하십시오. 보관 시 4.2kg의 무게가 적재량에 추가됩니다.",
+     "fontSize": 14.40000057220459,
+     "font": "Roboto 400 Regular",
+     "lineH": 16.9
+    }
+   ]
+  }
+ ]
+}

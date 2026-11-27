@@ -698,6 +698,26 @@ namespace ProjectName.Systems
                 }
             }
 
+            // ===== [123차] 공격 국가 대표 영주 결정론 산정 (소유권 갱신 "전"에 수행) =====
+            // 규칙 근거: HandleVictory(국가 간 전쟁)에는 AIWarData와 달리 공격 영지 식별자가 없으므로
+            // 계획서 P1-3의 폴백 규칙을 채택 — 공격 국가 소속 영지 목록을 사전순 정렬 후
+            // 인덱스 0 영지의 원래 영주(def.lord.lordName)를 대표 영주로 기록.
+            // * L703의 _currentNationOwners[territoryId] = attacker 갱신 "이전"에 산정해야
+            //   방금 정복한 영지가 공격 국가 소속 목록에 섞여 대표 영주가 방어측 영주로 오염되지 않음.
+            // * GetNationTerritoryIds는 사전 순회(_currentNationOwners)이므로 순서 비결정론 가능성이
+            //   있어 Sort()로 키 결정화 — "Nation_XX" 키 사전순이면 어떤 실행에서도 같은 영지가 선정.
+            var victoryDb = TerritoryDatabase.Instance;
+            if (victoryDb != null)
+            {
+                var attackerNationTerritories = GetNationTerritoryIds(attacker);
+                if (attackerNationTerritories.Count > 0)
+                {
+                    attackerNationTerritories.Sort(); // 결정론 — 사전 순회 순서 무관 인덱스 0 고정
+                    var repDef = victoryDb.GetDefinition(attackerNationTerritories[0]);
+                    victoryDb.SetOwnerLord(territoryId, repDef.lord.lordName);
+                }
+            }
+
             // ===== 영지 소유권 변경 =====
             NationType oldOwner = GetCurrentNationOwner(territoryId);
             _currentNationOwners[territoryId] = attacker;

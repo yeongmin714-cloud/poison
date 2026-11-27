@@ -154,6 +154,61 @@ namespace ProjectName.Systems
                     new MonsterSkillData(MonsterSkill.PoisonSting, 3f, 1.5f, 3f, "PoisonSting")
                 }
             },
+            // [무번호 180] 전기고슴도치 — 접근 감전 범위 폭발 (4m, 1.2배)
+            { "electric_porcupine", new MonsterSkillData[]
+                {
+                    new MonsterSkillData(MonsterSkill.AoEExplosion, 4f, 1.2f, 4f, "AoE")
+                }
+            },
+
+            // [무번호 180] 늪악어 — 숨어있다가 덤벼들기 (6m, 1.8배)
+            { "swamp_croc", new MonsterSkillData[]
+                {
+                    new MonsterSkillData(MonsterSkill.Leap, 5f, 1.8f, 6f, "Leap")
+                }
+            },
+
+            // [무번호 180] 숲정령 — 약화(이동감소) (빛나는 이끼)
+            { "forest_spirit", new MonsterSkillData[]
+                {
+                    new MonsterSkillData(MonsterSkill.Debuff, 5f, 0f, 3f, "Debuff")
+                }
+            },
+
+            // [무번호 180] 들트롤 — 강력한 돌진 (8m, 1.5배)
+            { "wild_troll", new MonsterSkillData[]
+                {
+                    new MonsterSkillData(MonsterSkill.Charge, 5f, 1.5f, 8f, "Charge")
+                }
+            },
+
+            // [무번호 180] 오거 — 강력한 타격 범위 폭발 (5m, 2배)
+            { "ogre", new MonsterSkillData[]
+                {
+                    new MonsterSkillData(MonsterSkill.AoEExplosion, 6f, 2f, 5f, "AoE")
+                }
+            },
+
+            // [무번호 180] 밴시 — 영혼 공격 약화
+            { "banshee", new MonsterSkillData[]
+                {
+                    new MonsterSkillData(MonsterSkill.Debuff, 6f, 0f, 3f, "Debuff")
+                }
+            },
+
+            // [무번호 180] 그리핀 — 하늘에서 덤벼들기 (8m, 2배)
+            { "griffin", new MonsterSkillData[]
+                {
+                    new MonsterSkillData(MonsterSkill.Leap, 6f, 2f, 8f, "Leap")
+                }
+            },
+
+            // [무번호 180] 살라맨더 — 용의 혈통 화염구 (10m, 1.8배)
+            { "salamander", new MonsterSkillData[]
+                {
+                    new MonsterSkillData(MonsterSkill.Fireball, 5f, 1.8f, 10f, "Fireball")
+                }
+            },
         };
 
         // ===== 드라큘라 영주 — 보스 패턴 (SummonMinion + Heal + Teleport) =====
@@ -368,6 +423,8 @@ namespace ProjectName.Systems
 
             // 시각 효과: 파티클
             // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
+            // [무번호 180] 발사 시점 — 발밑 마법진 캐스트(시각만 — 즉시 리턴, 로직 지연 없음)
+            MonsterSkillVfx.PlayCastCircle(monsterPos);
             Debug.Log($"[MonsterSkill] 🔥 {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 화염구 발사!");
         }
 
@@ -393,6 +450,7 @@ namespace ProjectName.Systems
 
             // 시각 효과
             // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
+            MonsterSkillVfx.PlayImpactSmall(target.transform.position);   // [무번호 180] 피격점 임팩트(BasicHit2)
         }
 
         /// <summary>
@@ -437,6 +495,7 @@ namespace ProjectName.Systems
                 {
                     Vector3 hitDir = (target.transform.position - monster.transform.position).normalized;
                     damageable.TakeDamage(Mathf.RoundToInt(chargeDamage), hitDir, "charge");
+                    MonsterSkillVfx.PlayImpact(target.transform.position);   // [무번호 180] 히트 임팩트(BasicHit)
                 }
             }
 
@@ -493,6 +552,8 @@ namespace ProjectName.Systems
 
             // 시각 효과 (더 강하게)
             // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
+            Vector3 leapHitPos = target != null ? target.transform.position : monster.transform.position;
+            MonsterSkillVfx.PlayImpact(leapHitPos);   // [무번호 180] 착지 임팩트(BasicHit)
             Debug.Log($"[MonsterSkill] 🦘 {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 덤벼들기!");
         }
 
@@ -517,6 +578,8 @@ namespace ProjectName.Systems
 
             // 시각 효과
             // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
+            MonsterSkillVfx.PlaySmoke(monsterPos);     // [무번호 180] 원 위치 스모크(사라짐)
+            MonsterSkillVfx.PlaySmoke(teleportPos);    // [무번호 180] 도착 위치 스모크(등장)
             Debug.Log($"[MonsterSkill] ⚡ {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 순간이동! → {teleportPos}");
         }
 
@@ -543,6 +606,9 @@ namespace ProjectName.Systems
                     }
                 }
             }
+
+            // [무번호 180] 폭발 임팩트 시퀀스 — MeteoriteVFXRunner 임팩트 레이어 재사용(46차 절차 파티클 금지 계약)
+            MeteoriteVFXRunner.PlayImpactSequence(monsterPos);
 
             // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
 
@@ -575,6 +641,8 @@ namespace ProjectName.Systems
 
                 // 시각 효과
                 // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
+                Vector3 healCasterPos = monster != null ? monster.transform.position : dracula.transform.position;
+                MonsterSkillVfx.PlayBuff(healCasterPos);   // [무번호 180] 시전자 발밑 버프 링
             }
             else
             {
@@ -640,10 +708,11 @@ namespace ProjectName.Systems
         /// </summary>
         private void ExecuteDebuff(AnimalAI monster, MonsterSkillData skillData, GameObject target)
         {
-            if (BuffManager.Instance == null) return;
+            // [63-B] 상태이상 시스템 경유 — 구 BuffManager Slowness 경로 치환(이중 적용 금지) + 약화(공격력) 추가.
+            if (PlayerHealth.Instance == null) return;
 
-            // 이동속도 50% 감소, 5초 지속
-            BuffManager.Instance.AddBuff("Slowness", 0.5f, 5f);
+            PlayerStatusEffectSystem.AddEffect(StatusEffectId.Slowness, 5f);   // 이동속도 50% 감소, 5초 지속(기존 계약 유지)
+            PlayerStatusEffectSystem.AddEffect(StatusEffectId.Weaken, 8f);     // 공격력 −30%, 8초
 
             // 추가 독 데미지 (PoisonSting과 함께 사용됨)
             if (PlayerHealth.Instance != null)
@@ -654,6 +723,7 @@ namespace ProjectName.Systems
 
             // 시각 효과 (보라색/초록색)
             // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
+            MonsterSkillVfx.PlayDebuffCircle(target.transform.position);   // [무번호 180] 대상 발밑 마법진(감쇠)
             Debug.Log($"[MonsterSkill] 🐌 {MonsterDatabase.Get(monster.MonsterId)?.displayName ?? monster.MonsterId} 디버프 적용! (이속 -50%, 5초)");
         }
 
@@ -748,6 +818,102 @@ namespace ProjectName.Systems
         {
             return ai != null && ai.GetComponent<DraculaLord>() != null;
         }
+
+        // ===== [무번호 180] 몬스터 스킬 VFX 공용 헬퍼 =====
+
+        /// <summary>
+        /// [무번호 180] 몬스터 스킬 VFX 정적 헬퍼 — Resources 프리팹 지연 로드 + static 캐시 + 인스턴스화 + 수명 자동 소멸.
+        /// 계약 준수: 절차 파티클 금지(46차 — 에셋 경로 Instantiate만) · 벡터메시 금지(84차) ·
+        /// 색/머티리얼 조작 없음(LDR 선례 — 인스턴스화+배치만) · 모든 Play* 즉시 리턴(로직 지연 없음 — 수명은 시각 요소가 스스로 관리).
+        /// </summary>
+        internal static class MonsterSkillVfx
+        {
+            // ── Resources 경로 상수(단일 소스 — 확장자 제외, 전부 Resources 실재) ──
+            internal const string CastCirclePath = "FX/Selection/MagicCircle2";
+            internal const string MagicImpactPath = "FX/Impact/MagicHit";
+            internal const string BasicImpactPath = "FX/Impact/BasicHit";
+            internal const string SmallImpactPath = "FX/Impact/BasicHit2";
+            internal const string SmokePath = "FX/Death/DeathSmoke";
+            internal const string BuffPath = "FX/Selection/Buff";
+
+            // ── 수명 상수(시각 요소 스스로 소멸 — 로직 지연 없음) ──
+            internal const float CastCircleFadeSec = 0.5f;      // 마법진 스케일업+소멸 시간(시각만)
+            internal const float CastCircleStartScale = 0.6f;   // 스케일업 시작(0.6 → 1.0)
+            internal const float CastCircleEndScale = 1.0f;
+            internal const float ImpactLifetimeSec = 2f;        // 임팩트 계열 수명(2~3s 소멸)
+            internal const float SmokeLifetimeSec = 3f;         // 스모크 수명
+            internal const float DebuffCircleLifetimeSec = 3f;  // 디버프 마법진 수명(감쇠)
+            internal const float BuffLifetimeSec = 2f;          // 버프 링 수명
+
+            private static readonly Dictionary<string, GameObject> _prefabCache =
+                new Dictionary<string, GameObject>();
+            private static bool _loadWarned;   // 로드 실패 1회 경고(MeteoriteVFXRunner 선례 — 스팸 방지)
+
+            /// <summary>임팩트 프리팹 변형 — Basic=BasicHit(Charge/Leap), Magic=MagicHit(Fireball 히트).</summary>
+            internal enum ImpactVfxVariant { Basic, Magic }
+
+            /// <summary>화염구 발사 시점 — 발밑 마법진 캐스트(0.5s 스케일업 0.6→1.0 후 소멸, 시각만/즉시 리턴).</summary>
+            internal static void PlayCastCircle(Vector3 position)
+            {
+                var go = Spawn(CastCirclePath, position, CastCircleFadeSec + 0.1f);
+                if (go == null) return;
+                var fader = go.AddComponent<MonsterSkillVfxFader>();
+                fader.Play(Vector3.one * CastCircleStartScale, Vector3.one * CastCircleEndScale, CastCircleFadeSec);
+            }
+
+            /// <summary>히트/착지 임팩트 — 기본 BasicHit(Charge/Leap), Magic 지정 시 MagicHit(Fireball).</summary>
+            internal static void PlayImpact(Vector3 position, ImpactVfxVariant variant = ImpactVfxVariant.Basic)
+            {
+                Spawn(variant == ImpactVfxVariant.Magic ? MagicImpactPath : BasicImpactPath, position, ImpactLifetimeSec);
+            }
+
+            /// <summary>소형 임팩트 — 독침 피격점(BasicHit2).</summary>
+            internal static void PlayImpactSmall(Vector3 position)
+            {
+                Spawn(SmallImpactPath, position, ImpactLifetimeSec);
+            }
+
+            /// <summary>스모크 — 순간이동 사라짐/등장(DeathSmoke).</summary>
+            internal static void PlaySmoke(Vector3 position)
+            {
+                Spawn(SmokePath, position, SmokeLifetimeSec);
+            }
+
+            /// <summary>디버프 마법진 — 대상 발밑 감쇠 마법진(MagicCircle2).</summary>
+            internal static void PlayDebuffCircle(Vector3 position)
+            {
+                Spawn(CastCirclePath, position, DebuffCircleLifetimeSec);
+            }
+
+            /// <summary>버프 링 — 시전자 발밑(Buff).</summary>
+            internal static void PlayBuff(Vector3 position)
+            {
+                Spawn(BuffPath, position, BuffLifetimeSec);
+            }
+
+            /// <summary>
+            /// 프리팹 지연 로드+캐시 → 인스턴스화+배치 → 수명 자동 소멸(Object.Destroy(go, 수명)).
+            /// 파티클 컴포넌트 파라미터/색/머티리얼 일절 조작 없음(인스턴스화+배치만 — LDR 계약 선례).
+            /// </summary>
+            private static GameObject Spawn(string resourcePath, Vector3 position, float lifetimeSec)
+            {
+                if (!_prefabCache.TryGetValue(resourcePath, out GameObject prefab) || prefab == null)
+                {
+                    prefab = Resources.Load<GameObject>(resourcePath);
+                    _prefabCache[resourcePath] = prefab;   // null도 캐시(반복 로드 시도 방지)
+                    if (prefab == null && !_loadWarned)
+                    {
+                        _loadWarned = true;
+                        Debug.LogWarning($"[MonsterSkillVfx] Resources 프리팹 로드 실패: {resourcePath} — 임포트 상태 확인 필요, 스킵(전투 흐름 무영향)");
+                    }
+                }
+                if (prefab == null) return null;
+
+                var go = Object.Instantiate(prefab, position, Quaternion.identity);
+                Object.Destroy(go, lifetimeSec);   // 수명 자동 소멸 — 잔존 GO 누출 금지
+                return go;
+            }
+        }
     }
 
     // ===== FireballProjectile: 화염구 발사체 스크립트 =====
@@ -797,6 +963,9 @@ namespace ProjectName.Systems
 
             // 시각 효과
             // 2026-09-13(46차): 절차 파티클 제외 — 피격 표현은 CombatFXGate 단일 경로
+            // [무번호 180] 충돌 지점 임팩트(MagicHit) — 발사체 충돌마다 발화
+            MonsterSkillSystem.MonsterSkillVfx.PlayImpact(other.transform.position,
+                MonsterSkillSystem.MonsterSkillVfx.ImpactVfxVariant.Magic);
 
             // 제거
             Destroy(gameObject);
@@ -805,6 +974,37 @@ namespace ProjectName.Systems
         private void OnCollisionEnter(Collision collision)
         {
             OnTriggerEnter(collision.collider);
+        }
+    }
+
+    // ===== [무번호 180] 마법진 페이더 — 시각 전용 수명 컴포넌트 =====
+
+    /// <summary>
+    /// [무번호 180] 마법진 스케일업 페이더 — 시각 요소가 스스로 수명을 관리(호출 즉시 리턴 보장 — 로직 지연 없음).
+    /// transform 스케일만 조작(색/머티리얼/파티클 파라미터 일절 조작 없음 — 46차·LDR 계약), unscaled 진행([23-X1] 규약).
+    /// </summary>
+    internal sealed class MonsterSkillVfxFader : MonoBehaviour
+    {
+        private Vector3 _startScale;
+        private Vector3 _endScale;
+        private float _durationSec;
+        private float _elapsed;
+
+        public void Play(Vector3 startScale, Vector3 endScale, float durationSec)
+        {
+            _startScale = startScale;
+            _endScale = endScale;
+            _durationSec = Mathf.Max(0.01f, durationSec);
+            _elapsed = 0f;
+            transform.localScale = startScale;
+        }
+
+        private void Update()
+        {
+            _elapsed += Time.unscaledDeltaTime;   // unscaled — 히트스톱 중에도 시각만 진행
+            float t = Mathf.Clamp01(_elapsed / _durationSec);
+            transform.localScale = Vector3.Lerp(_startScale, _endScale, t);
+            if (t >= 1f) Destroy(gameObject);     // 시각 요소 스스로 소멸
         }
     }
 }

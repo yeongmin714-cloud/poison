@@ -41,8 +41,6 @@ namespace ProjectName.UI.Toolkit
         private GameObject _worldRoot;
         private TextMesh _label;
         private Transform _labelT;
-        private Camera _cam;
-        private float _camNextRefresh;
         private float _scanNext;
         private Transform _player;
         private float _playerNextRefresh;
@@ -115,7 +113,10 @@ namespace ProjectName.UI.Toolkit
             // 라벨 — TextMesh(월드 텍스트, 빌보드 쿼드 자식)
             var labelGo = new GameObject("PromptLabel");
             labelGo.transform.SetParent(_worldRoot.transform, false);
-            labelGo.transform.localPosition = new Vector3(TextLocalX, 0f, -0.02f);   // 쿼드보다 카메라 쪽
+            // [44차] +Z(카메라 쪽)에 배치 — 로컬 +Z가 카메라를 향하는 관례에서 +0.02가 패널보다
+            //   카메라 쪽(투명 정렬 후순위 → 텍스트가 패널 위에 선명 렌더). 기존 -0.02는 주석과
+            //   반대(뒤쪽)로 배치돼 패널 반투명에 가려졌다.
+            labelGo.transform.localPosition = new Vector3(TextLocalX, 0f, 0.02f);
             _labelT = labelGo.transform;
             _label = labelGo.AddComponent<TextMesh>();
             _label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -132,80 +133,111 @@ namespace ProjectName.UI.Toolkit
 
         private void Update()
         {
-            if (_worldRoot == null)
-                BuildWorldRig();
-
-            RefreshCamera();
-
             // 창 열림 or 채널링 진행 중 → 숨김(기존 계약 유지).
             bool hidden = ProjectName.Core.UITransitionState.AnyWindowOpen
                           || GatherChannelSystem.Instance.IsActive;
             Candidate candidate = hidden ? null : FindNearestInteractable();
+            _screenCandidate = candidate;   // [45차] OnGUI(체력바 동일 스크린스페이스) 소비용
 
             if (candidate == null || candidate.tr == null)
-            {
-                if (_worldRoot.activeSelf) _worldRoot.SetActive(false);
                 return;
-            }
 
-            // ── 월드 앵커: 대상 렌더러 bounds — [33차 사용자 지정] 작은 대상=위, 큰 대상(나무)=우측 ──
-            Bounds b = GetTargetBounds(candidate.tr);
-            Vector3 anchor;
-            if (b.size.y <= SmallTargetMaxHeight)
+            // [진단] 후보가 바뀔 때 1회 — "프롬프트 안 뜸/멀리 뜸" 잔여 판별용
+            if (candidate.tr != _lastLoggedTarget)
             {
-                anchor = new Vector3(b.center.x, b.max.y + AboveGap, b.center.z);      // 돌/약초/밭 위
+                Bounds bb = GetTargetBounds(candidate.tr);
+                Debug.Log($"[EInteractionPrompt] 대상 표시 — {candidate.tr.name} label=\"{candidate.label}\" dist={(_player != null ? Vector3.Distance(_player.position, candidate.tr.position) : 0f):F1}m anchorY={bb.max.y:F1}m");
+                _lastLoggedTarget = candidate.tr;
             }
-            else
-            {
-                Vector3 camRight = Vector3.forward;
-                if (_cam != null)
-                {
-                    camRight = _cam.transform.right;
-                    camRight.y = 0f;
-                    camRight = camRight.sqrMagnitude > 0.0001f ? camRight.normalized : Vector3.right;
-                }
-                anchor = b.center + camRight * (b.size.x * 0.5f + SideGap);            // 나무 우측
-                anchor.y = b.center.y + b.size.y * 0.10f;
-            }
-            _worldRoot.transform.position = anchor;
-
-            // 빌보딩 — [35차] "아까처럼(세워진 패널) 하되 탑다운에서 보이게 기울임" — 카메라
-            //   수직 성분을 절반만 반영(34차 풀 직면은 LookRotation이 up과 거의 평행해져
-            //   비틀려 오히려 가시성 저하 — 사용자 재보고). 세로 기울임 = 가독+자연스러움.
-            if (_cam != null)
-            {
-                Vector3 toCam = _worldRoot.transform.position - _cam.transform.position;
-                if (toCam.sqrMagnitude > 0.0001f)
-                {
-                    Vector3 dir = new Vector3(toCam.x, toCam.y * 0.55f, toCam.z);   // 기울임 절반
-                    if (dir.sqrMagnitude < 0.0001f) dir = Vector3.forward;
-                    dir.Normalize();
-                    if (Mathf.Abs(dir.y) > 0.995f)
-                    {
-                        dir.y = 0f;
-                        dir = dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector3.forward;   // 수직 추월 가드
-                    }
-                    _worldRoot.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
-                }
-            }
-
-            string text = candidate.label ?? "E키를 눌러 상호작용";
-            if (_label.text != text) _label.text = text;
-
-            if (!_worldRoot.activeSelf)
-            {
-                _worldRoot.SetActive(true);
-                // [진단] 후보가 바뀔 때 1회 — "프롬프트 안 뜸/멀리 뜸" 잔여 판별용
-                Debug.Log($"[EInteractionPrompt] 대상 표시 — {candidate.tr.name} label=\"{text}\" dist={(_player != null ? Vector3.Distance(_player.position, candidate.tr.position) : 0f):F1}m anchor=({anchor.x:F1},{anchor.y:F1},{anchor.z:F1}) bounds={b.size.y:F1}m");
-            }
-            else if (candidate.tr != _lastLoggedTarget)
-            {
-                Debug.Log($"[EInteractionPrompt] 대상 표시 — {candidate.tr.name} label=\"{text}\" dist={(_player != null ? Vector3.Distance(_player.position, candidate.tr.position) : 0f):F1}m anchor=({anchor.x:F1},{anchor.y:F1},{anchor.z:F1}) bounds={b.size.y:F1}m");
-            }
-            _lastLoggedTarget = candidate.tr;
         }
 
+        private Candidate _screenCandidate;   // [45차] Update에서 확정한 최근접 대상 — OnGUI가 그린다
         private Transform _lastLoggedTarget;
+
+        // ── [45차] 스크린스페이스 프롬프트 — 몬스터/병사 체력바(MonsterHeadUI)와 동일 메커니즘 ──
+        //  월드 쿼드 빌보드 폐지(29~44차 반복 재보고: 기울임/부호/카메라 의존 가독성 문제).
+        //  체력바처럼: 대상 머리 위 지점을 화면 투영 → 고정 픽셀 크기로 항상 정면 판독.
+        //  피그마 스타일 유지: 베이크 PNG(EInteractionPromptPanel — 라운드+스트로크+좌측 액센트 바) 그대로.
+        private Texture2D _panelTex;
+        private GUIStyle _promptStyle;
+        private GUIStyle _promptShadowStyle;
+        private bool _stylesReady;
+
+        private const float PanelW = 160f;                 // [46차 사용자 요구] 고정 화면 폭 절반(300→160) — 1024×174 PNG 등비
+        private const float PanelH = 27f;                  // 174/1024×160 ≈ 27
+        private const float TextPadX = 24f;                // 액센트 바+패딩 — 절반 비율(44×160/300)
+        private const float TextFontSize = 11f;            // [46차] 20→11 — 패널 절반에 정합(체력바 폰트급)
+        private const float AnchorGapM = 0.5f;             // 대상 상면 위 여유(m)
+        private const float ScreenMargin = 12f;            // 화면 가장자리 클램프(px)
+
+        // [94차 F4] 정면 앵커 정합 상수 — NPC 계열 대상은 상호작용 패널(InteractionPanelUTK)과 동일
+        //   정면 앵커(bounds center + forward×0.6m, 높이 클램프 1.2~2.2m — 92차 후속 F-C 계약 승계).
+        //   비NPC 대상(채집/문/스테이션 등)은 기존 상면 앵커(AnchorGapM) 무변경 — 회귀 방지.
+        private const float FrontOffsetM = 0.6f;
+        private const float AnchorClampMinM = 1.2f;
+        private const float AnchorClampMaxM = 2.2f;
+        private static Transform _frontAnchorProxy;   // 정면 지점 투영 프록시(렌더러 없음 — 폴백 산식 유도)
+
+        private void OnGUI()
+        {
+            if (_screenCandidate == null || _screenCandidate.tr == null) return;
+            EnsurePromptStyles();
+
+            // [94차 F4] 정면 앵커 정합 — NPC 계열 대상(NPCAmbientDialogue/TerritoryNPCBehaviour/GuardPlaceholder)
+            //   은 상호작용 패널과 동일 정면 앵커로 투영(즉시 부착 정합). 그 외 기존 경로 무변경.
+            bool projected;
+            Vector2 screenPx;
+            if (IsFrontAnchorCandidate(_screenCandidate.tr))
+                projected = TryProjectFrontAnchor(_screenCandidate.tr, out screenPx);
+            else
+            {
+                // [91차 F3 → 92차 결함2] 투영 공용 유틸 — Camera.main → allCameras 폴백 일원화(멀티 카메라 씬 대응).
+                //   [92차 결함2] 유효 = z>0(카메라 전방)만 — 화면 밖 좌표도 반환되며 아래 클램프로 가장자리 읽힘 보장.
+                projected = TargetScreenProjector.TryProject(_screenCandidate.tr, AnchorGapM, out screenPx, out _);
+            }
+            if (!projected)
+                return;   // 전 카메라 뒤(z≤0) — 미표시(구 z<0 스킵 계약 승계)
+
+            float guiX = screenPx.x;
+            float guiY = Screen.height - screenPx.y;   // GUI 좌표계 y 반전(기존 산식 유지)
+
+            // 패널 — 대상 위 중앙 정렬, 화면 클램프(가장자리에서도 읽힘)
+            float px = Mathf.Clamp(guiX - PanelW * 0.5f, ScreenMargin, Screen.width - PanelW - ScreenMargin);
+            float py = Mathf.Clamp(guiY - PanelH - 2f, ScreenMargin, Screen.height - PanelH - ScreenMargin);
+            Rect panelRect = new Rect(px, py, PanelW, PanelH);
+
+            if (_panelTex == null)
+                _panelTex = Resources.Load<Texture2D>("UI/EInteractionPromptPanel");
+            if (_panelTex != null)
+                GUI.DrawTexture(panelRect, _panelTex, ScaleMode.ScaleToFit);
+            else
+            {
+                // 폴백 — PNG 누락 시에도 판독 보장(어두운 라운드 느낌 단색)
+                GUI.color = new Color(0.086f, 0.106f, 0.133f, 0.92f);
+                GUI.DrawTexture(panelRect, Texture2D.whiteTexture);
+                GUI.color = Color.white;
+            }
+
+            // 텍스트 — 좌측 액센트 바 뒤 시작(월드 리그와 동일 배치), 2회 렌더 그림자(체력바 선례)
+            string text = _screenCandidate.label ?? "E키를 눌러 상호작용";
+            var textRect = new Rect(px + TextPadX, py, PanelW - TextPadX - 12f, PanelH);
+            GUI.Label(new Rect(textRect.x + 1f, textRect.y + 1f, textRect.width, textRect.height), text, _promptShadowStyle);
+            GUI.Label(textRect, text, _promptStyle);
+        }
+
+        private void EnsurePromptStyles()
+        {
+            if (_stylesReady) return;
+            _promptStyle = new GUIStyle();
+            _promptStyle.fontSize = (int)TextFontSize;
+            _promptStyle.fontStyle = FontStyle.Bold;
+            _promptStyle.alignment = TextAnchor.MiddleLeft;
+            _promptStyle.normal.textColor = new Color32(0xF0, 0xF6, 0xFC, 0xFF);   // #F0F6FC
+            _promptStyle.richText = false;
+            _promptShadowStyle = new GUIStyle(_promptStyle);
+            _promptShadowStyle.normal.textColor = new Color(0f, 0f, 0f, 0.85f);
+            _stylesReady = true;
+        }
 
         private static readonly Bounds _zeroBounds = new Bounds(Vector3.zero, Vector3.zero);
 
@@ -221,11 +253,53 @@ namespace ProjectName.UI.Toolkit
             return b;
         }
 
+        // ── [94차 F4] 정면 앵커 정합 — 상호작용 패널(InteractionPanelUTK)과 동일 산식 ──
+
+        /// <summary>[94차 F4] NPC 계열 대상 판정 — 주민/마을NPC/병사 계열만 정면 앵커 적용.
+        /// GetComponentInParent(자식 콜라이더 히트 커버 — ContextCommandRouter 동일 규약).</summary>
+        private static bool IsFrontAnchorCandidate(Transform tr)
+        {
+            if (tr == null) return false;
+            return tr.GetComponentInParent<NPCAmbientDialogue>() != null
+                   || tr.GetComponentInParent<GuardPlaceholder>() != null
+                   || tr.GetComponentInParent<TerritoryNPCBehaviour>() != null;
+        }
+
+        /// <summary>
+        /// [94차 F4] 정면 앵커 투영 — 앵커 = bounds center + 대상 forward×FrontOffset(0.6m, 수평 —
+        /// NPC 정면 발 앞), 높이 = 기존 공용 산식(center.y + extents.y×0.15)을 기존 클램프(1.2~2.2m)로
+        /// 제한(InteractionPanelUTK/NPCDialoguePanelUTK 동일 계약). 지점은 렌더러 없는 프록시 Transform으로
+        /// 공용 유틸(z>0 가드/카메라 폴백)에 실어 투영(NPCDialoguePanelUTK 프록시 선례 — 복제 금지).
+        /// </summary>
+        private static bool TryProjectFrontAnchor(Transform tr, out Vector2 screenPx)
+        {
+            screenPx = default;
+            Bounds b = GetTargetBounds(tr);
+            bool has = tr.GetComponentsInChildren<Renderer>().Length > 0;
+            Vector3 basePoint = has ? b.center : tr.position;
+            float rawY = has ? b.center.y + b.extents.y * 0.15f : tr.position.y + AnchorGapM;
+            float clampedY = Mathf.Clamp(rawY, AnchorClampMinM, AnchorClampMaxM);
+            Vector3 fwd = tr.forward;
+            fwd.y = 0f;   // 수평 정면 — 높이는 클램프 산식 전담(발 앞 지점 유지)
+            if (fwd.sqrMagnitude < 1e-6f) fwd = Vector3.forward;
+            Vector3 anchor = new Vector3(basePoint.x, clampedY, basePoint.z) + fwd.normalized * FrontOffsetM;
+
+            if (_frontAnchorProxy == null)
+            {
+                var proxyGo = new GameObject("EInteractionPromptFrontAnchorProxy");
+                _frontAnchorProxy = proxyGo.transform;
+            }
+            _frontAnchorProxy.position = anchor;
+            return TargetScreenProjector.TryProject(_frontAnchorProxy, 0f, out screenPx, out _);
+        }
+
         // ── 대상 스캔 (0.2s 스로틀, 타입별 scratch 재사용 → GC 최소) — 기존 로직 불변 ──
         private sealed class Candidate
         {
             public Transform tr;
             public string label;
+            public Vector3 sideDir = Vector3.right;                         // [44차] 고정 측면 오프셋 방향(대상 변경 시 1회 확정)
+            public Quaternion frozenRot = Quaternion.Euler(-60f, 0f, 0f);   // [44차] 고정 기울임(빌보딩 폐지 — 탑다운 판독 기본값)
         }
 
         private readonly List<HerbPickup> _herbs = new List<HerbPickup>(16);
@@ -260,11 +334,12 @@ namespace ProjectName.UI.Toolkit
             foreach (var r in _nodes)
                 Collect(r.transform, r.IsAvailable, "E키를 눌러 상호작용", 2.8f, ref best, ref bestSqr, playerPos);
 
-            // FarmPlot(Farm — 소유·성장중 제외: Empty=파종 / Ready=수확)
+            // FarmPlot [26차 — 농경 업그레이드 8상태]: Grass/Dirt=굉이질, Tilled=파종,
+            // Planted/Growing=물주기, Ready=수확, Withered/Rotted=정리. 성장 진행 중(Planted/Growing)도 물주기 가능.
             Object.FindObjectsByType<FarmPlot>(FindObjectsSortMode.None).ToListShell(_plots);
             foreach (var f in _plots)
             {
-                bool avail = f.IsOwned && f.Phase != FarmPlot.CropPhase.Growing;
+                bool avail = f.IsOwned;
                 Collect(f.transform, avail, "E키를 눌러 상호작용", 2.8f, ref best, ref bestSqr, playerPos);
             }
 
@@ -307,13 +382,6 @@ namespace ProjectName.UI.Toolkit
             if (best == null) best = new Candidate();
             best.tr = tr;
             best.label = label;
-        }
-
-        private void RefreshCamera()
-        {
-            if (_cam != null && Time.unscaledTime < _camNextRefresh) return;
-            _cam = Camera.main;   // 빌보딩 전용 — WorkProgressBar와 동일 소스(투영 없음)
-            _camNextRefresh = Time.unscaledTime + 0.5f;
         }
 
         private void RefreshPlayer()

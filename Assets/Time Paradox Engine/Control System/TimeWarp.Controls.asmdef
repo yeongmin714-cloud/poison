@@ -1,0 +1,17 @@
+{
+    "name": "TimeWarp.Controls",
+    "rootNamespace": "TimeWarp.Gameplay",
+    "references": [
+        "TimeWarp.Runtime",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

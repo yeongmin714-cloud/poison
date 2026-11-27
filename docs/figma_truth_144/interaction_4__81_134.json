@@ -1,0 +1,621 @@
+{
+ "id": "81:134",
+ "name": "interaction-panel",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 26370,
+ "ay": 3,
+ "w": 288.0,
+ "h": 98.4,
+ "d": 0,
+ "fills": [
+  "#161B22/1.0@0.702"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.2,
+ "r": 9.6,
+ "fx": [
+  "BACKGROUND_BLUR:24.0:None",
+  "DROP_SHADOW:19.200000762939453:#000000/0.4"
+ ],
+ "layout": "VERTICAL",
+ "gap": 7.200000286102295,
+ "pl": 9.600000381469727,
+ "pr": 9.600000381469727,
+ "pt": 9.600000381469727,
+ "pb": 9.600000381469727,
+ "c": [
+  {
+   "id": "81:135",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 26370,
+   "ay": 3,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "81:136",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 26370,
+     "ay": 3,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "81:137",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 26370,
+     "ay": 3,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "81:138",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 26648,
+   "ay": 3,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "81:139",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 26648,
+     "ay": 3,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "81:140",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 26648,
+     "ay": 3,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "81:141",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 26370,
+   "ay": 92,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "81:142",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 26370,
+     "ay": 92,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "81:143",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 26370,
+     "ay": 92,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "81:144",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 26648,
+   "ay": 92,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "81:145",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 26648,
+     "ay": 92,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "81:146",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 26648,
+     "ay": 92,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "81:147",
+   "name": "ActionGrid",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 26380,
+   "ay": 13,
+   "w": 268.8,
+   "h": 79.2,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "VERTICAL",
+   "gap": 7.200000286102295,
+   "c": [
+    {
+     "id": "81:148",
+     "name": "GridRow1",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 26380,
+     "ay": 13,
+     "w": 268.8,
+     "h": 36.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 7.200000286102295,
+     "c": [
+      {
+       "id": "81:149",
+       "name": "ActionActive",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 26380,
+       "ay": 13,
+       "w": 130.8,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#30363D/1.0@0.8"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 7.200000286102295,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "81:150",
+         "name": "eye",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 26389,
+         "ay": 22,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "81:151",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 26391,
+           "ay": 26,
+           "w": 14.0,
+           "h": 9.8,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        },
+        {
+         "id": "81:152",
+         "name": "Label",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 26413,
+         "ay": 23,
+         "w": 87.6,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "상태보기",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      },
+      {
+       "id": "81:153",
+       "name": "ActionTalk",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 26518,
+       "ay": 13,
+       "w": 130.8,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 7.200000286102295,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "81:154",
+         "name": "message-square",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 26527,
+         "ay": 22,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "81:155",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 26529,
+           "ay": 24,
+           "w": 14.0,
+           "h": 13.3,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        },
+        {
+         "id": "81:156",
+         "name": "Label",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 26551,
+         "ay": 23,
+         "w": 87.6,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "대화하기",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 500 Medium",
+         "lineH": 15.5
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "81:157",
+     "name": "GridRow2",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 26380,
+     "ay": 56,
+     "w": 268.8,
+     "h": 36.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 7.200000286102295,
+     "c": [
+      {
+       "id": "81:158",
+       "name": "ActionShop",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 26380,
+       "ay": 56,
+       "w": 130.8,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 7.200000286102295,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "81:159",
+         "name": "shop",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 26389,
+         "ay": 65,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "81:172",
+           "name": "store",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 26389,
+           "ay": 65,
+           "w": 16.8,
+           "h": 16.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "81:173",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 26391,
+             "ay": 67,
+             "w": 14.0,
+             "h": 13.3,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "81:162",
+         "name": "Label",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 26413,
+         "ay": 66,
+         "w": 87.6,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "상점",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 500 Medium",
+         "lineH": 15.5
+        }
+       ]
+      },
+      {
+       "id": "81:163",
+       "name": "ActionOffer",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 26518,
+       "ay": 56,
+       "w": 130.8,
+       "h": 36.0,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "gap": 7.200000286102295,
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 9.600000381469727,
+       "pb": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "81:164",
+         "name": "offer",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 26527,
+         "ay": 65,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "81:175",
+           "name": "handshake",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 26527,
+           "ay": 65,
+           "w": 16.8,
+           "h": 16.8,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "81:176",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 26529,
+             "ay": 68,
+             "w": 14.0,
+             "h": 12.7,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "81:167",
+         "name": "Label",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 26551,
+         "ay": 66,
+         "w": 87.6,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "세금 제안",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 500 Medium",
+         "lineH": 15.5
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

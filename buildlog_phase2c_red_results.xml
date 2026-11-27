@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Failed(Child)" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-13 05:22:59Z" end-time="2026-10-13 05:23:00Z" duration="0.2162607">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="756" result="Failed" site="Child" start-time="2026-10-13 05:22:59Z" end-time="2026-10-13 05:23:00Z" duration="0.216261" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1852" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="747" result="Failed" site="Child" start-time="2026-10-13 05:22:59Z" end-time="2026-10-13 05:23:00Z" duration="0.205529" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="136" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1853" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="744" result="Failed" site="Child" start-time="2026-10-13 05:22:59Z" end-time="2026-10-13 05:23:00Z" duration="0.203664" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1854" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="744" result="Failed" site="Child" start-time="2026-10-13 05:22:59Z" end-time="2026-10-13 05:23:00Z" duration="0.202379" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1855" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="729" result="Failed" site="Child" start-time="2026-10-13 05:22:59Z" end-time="2026-10-13 05:23:00Z" duration="0.200824" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1100" name="AttackTargetRingTests" fullname="ProjectName.Tests.EditMode.AttackTargetRingTests" classname="ProjectName.Tests.EditMode.AttackTargetRingTests" runstate="Runnable" testcasecount="15" result="Failed" site="Child" start-time="2026-10-13 05:22:59Z" end-time="2026-10-13 05:23:00Z" duration="0.177045" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1116" name="AttackGroup_SingleEnemyInRange_AllGuardsFocusThatEnemy" fullname="ProjectName.Tests.EditMode.AttackTargetRingTests.AttackGroup_SingleEnemyInRange_AllGuardsFocusThatEnemy" methodname="AttackGroup_SingleEnemyInRange_AllGuardsFocusThatEnemy" classname="ProjectName.Tests.EditMode.AttackTargetRingTests" runstate="Runnable" seed="1601711240" result="Passed" start-time="2026-10-13 05:22:59Z" end-time="2026-10-13 05:23:00Z" duration="0.129905" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[이동진단] 경비병 공격 타겟 확정 → LoneEnemy (2.0,0.0)
+[TerrainGenerator] 대형 호수 추가: center=(400,300) r=180 depth=5.0 waterLevel=6.84
+[TerrainGenerator] 대형 호수 추가: center=(-560,-520) r=150 depth=4.5 waterLevel=12.32
+[TerrainGenerator] 대형 호수 추가: center=(423,906) r=130 depth=5.5 waterLevel=10.52
+[TerrainGenerator] Lake_0: center=(1339,250) r=53 baseH=8.92 depth=4.95 ringMax=10.50 waterLevel→5.47
+[TerrainGenerator] Lake_1: center=(793,93) r=50 baseH=8.01 depth=3.34 ringMax=18.67 waterLevel→6.16
+[TerrainGenerator] Lake_2: center=(-661,1191) r=44 baseH=12.64 depth=3.58 ringMax=25.47 waterLevel→10.56
+[TerrainGenerator] Lake_3: center=(1193,-804) r=50 baseH=10.99 depth=3.94 ringMax=10.66 waterLevel→8.55
+[TerrainGenerator] Lake_4: center=(-845,-312) r=53 baseH=18.45 depth=3.70 ringMax=29.22 waterLevel→16.25
+[TerrainGenerator] Lake_5: center=(-1196,-253) r=55 baseH=18.53 depth=3.30 ringMax=27.21 waterLevel→16.73
+[TerrainGenerator] Lake_6: center=(-250,391) r=40 baseH=21.15 depth=4.94 ringMax=25.35 waterLevel→17.71
+[TerrainGenerator] Lake_7: center=(-234,-372) r=48 baseH=3.14 depth=4.20 ringMax=8.94 waterLevel→0.44
+[TerrainGenerator] Lake_8: center=(1015,-550) r=58 baseH=6.10 depth=4.65 ringMax=21.66 waterLevel→2.95
+[TerrainGenerator] Lake_9: center=(58,-577) r=43 baseH=3.41 depth=3.62 ringMax=12.59 waterLevel→1.29
+[TerrainGenerator] Lake_10: center=(864,769) r=66 baseH=4.77 depth=5.00 ringMax=18.63 waterLevel→1.27
+[TerrainGenerator] Lake_11: center=(-720,288) r=65 baseH=16.99 depth=3.87 ringMax=22.47 waterLevel→14.62
+[TerrainGenerator] Lake_12: center=(-964,542) r=57 baseH=10.82 depth=4.29 ringMax=18.98 waterLevel→8.04
+[TerrainGenerator] Lake_13: center=(426,-123) r=66 baseH=10.70 depth=3.10 ringMax=17.33 waterLevel→9.09
+[TerrainGenerator] T-D2 호수 승격: center=(1339,250) r=108 depth=5.5 wl=4.90
+[TerrainGenerator] T-D2 호수 승격: center=(-661,1191) r=106 depth=4.6 wl=9.53
+[TerrainGenerator] T-D2 호수 승격: center=(-250,391) r=110 depth=5.6 wl=17.07
+[TerrainGenerator] 호수 배치 완료: 17개 (절차적 14목표 + 대형 3, 승격 3, AA2 시드 20260914)
+[이동진단] 경비병 공격 타겟 확정 → LoneEnemy (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → LoneEnemy (2.0,0.0)
+]]></output>
+              </test-case>
+              <test-case id="1114" name="AttackGroup_ThreeGuardsSharedGroundPoint_DistributeOverThreeAliveEnemies" fullname="ProjectName.Tests.EditMode.AttackTargetRingTests.AttackGroup_ThreeGuardsSharedGroundPoint_DistributeOverThreeAliveEnemies" methodname="AttackGroup_ThreeGuardsSharedGroundPoint_DistributeOverThreeAliveEnemies" classname="ProjectName.Tests.EditMode.AttackTargetRingTests" runstate="Runnable" seed="1270200456" result="Failed" start-time="2026-10-13 05:23:00Z" end-time="2026-10-13 05:23:00Z" duration="0.014915" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  3 attackers on a shared ground point must spread across 3 distinct enemies, not pile onto one.
+  Expected: 3
+  But was:  1
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.AttackTargetRingTests.AttackGroup_ThreeGuardsSharedGroundPoint_DistributeOverThreeAliveEnemies () [0x00085] in C:\Unity\code\Assets\Scripts\Tests\EditMode\AttackTargetRingTests.cs:292
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+]]></output>
+              </test-case>
+              <test-case id="1115" name="AttackGroup_ThreeGuardsSharedGroundPoint_DistributionIsDeterministic" fullname="ProjectName.Tests.EditMode.AttackTargetRingTests.AttackGroup_ThreeGuardsSharedGroundPoint_DistributionIsDeterministic" methodname="AttackGroup_ThreeGuardsSharedGroundPoint_DistributionIsDeterministic" classname="ProjectName.Tests.EditMode.AttackTargetRingTests" runstate="Runnable" seed="430295172" result="Passed" start-time="2026-10-13 05:23:00Z" end-time="2026-10-13 05:23:00Z" duration="0.008847" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+[이동진단] 경비병 공격 타겟 확정 → GroupEnemyA (2.0,0.0)
+Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

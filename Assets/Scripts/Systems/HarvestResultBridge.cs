@@ -49,6 +49,22 @@ namespace ProjectName.Systems
             string description, ItemRarity rarity, int count, string tip,
             PlayerInventory.ItemData itemData = null, bool immediate = false)
         {
+            // [133차] 획득 징글 — Publish 1회당 1회(immediate 여부·throttle 무관하게 호출 시점 1회).
+            //   rarity 티어 산출(ItemRarity 실측: Common=0/Uncommon=1/Rare=2/Epic=3/Legendary=4/Unique=5):
+            //   0=일반(Common) / 1=희귀(Uncommon·Rare) / 2=영웅 이상(Epic·Legendary·Unique).
+            int jingleTier = rarity == ItemRarity.Common ? 0
+                : (rarity == ItemRarity.Uncommon || rarity == ItemRarity.Rare) ? 1
+                : 2;
+            GatherFeedbackSystem.PlayAcquireJingle(jingleTier);
+
+            // [133차 SourceContract] 병사 경로 배제 판정(130차 병사 배제 계약) — Publish 호출부 전수 grep 실측(133차 시점):
+            //   ① FishingSystem.cs L381/L431 — 플레이어 낚시 성공(자동릴/TryCatch). 병사 낚시 경로 없음.
+            //   ② GatheringSystem.cs L116 TryGather — 런타임 호출부 없음(GuardTaskSystem은 CanGather만 사용,
+            //      L922 주석에 "TryGather는 ... 호출하지 않고" 명시 — 병사 원정은 자체 집계 경로).
+            //   ③ HerbPickup.cs L340 Harvest — 플레이어 채널 완료 콜백(E키). 병사 자동채집 TryAutoGather는 Publish 미경유.
+            //   ④ ResourceNode.cs L163 HarvestForPlayer — 플레이어 채널 완료 콜백(E키). 병사 TryAutoMine은 Publish 미경유.
+            //   → 병사 전용 경로가 Publish를 경유하지 않으므로 태그 필터 불필요. 향후 병사가 Publish를
+            //     경유하게 되면 이 주석 위치에 플레이어 태그 게이트를 추가할 것.
             LatestKind = kind;
             LatestResultVerb = resultVerb ?? "";
             LatestItemName = itemName ?? "";

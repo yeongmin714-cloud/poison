@@ -1,0 +1,326 @@
+=== TESTS ===
+tests = 1242
+passed = 1231
+failures = 11
+errors = 0
+skipped = 0
+FAIL: ProjectName.Tests.Rendering.AeroLocalizedGasPhase4BTests.IsolatedSessionWithoutConfiguredPipeline_LeavesGlobalPipelineSettingsUntouched
+Expected log did not appear: [Error] [AERO Phase4B] Assign an isolated cloned URP asset before enabling the session.
+FAIL: ProjectName.Tests.EditMode.CraftBenchTests.CookingDatabase_AllRecipes_Loaded
+신규 요리 카탈로그 760종 로드
+  Expected: 760
+  But was:  2024
+FAIL: ProjectName.Tests.EditMode.InstrumentTests.Performance_DoubleStart_Blocked_WhilePerforming
+바드 고용
+  Expected: True
+  But was:  False
+FAIL: ProjectName.Tests.EditMode.InstrumentTests.Performance_EndPerformance_ClearsState_AndCooldownBlocks
+바드 고용
+  Expected: True
+  But was:  False
+FAIL: ProjectName.Tests.EditMode.InstrumentTests.Performance_TryStart_Success_IsPerforming
+바드 고용
+  Expected: True
+  But was:  False
+FAIL: ProjectName.Tests.EditMode.InvadedLordEncounterTests.DamageIsIgnoredUntilAttackIsChosen_ThenDefeatDoesNotResolveTerritory
+Expected: True
+  But was:  False
+FAIL: ProjectName.Tests.EditMode.InvadedLordEncounterTests.Initialize_StartsNeutralAndRegistersAnUnresolvedLivingLord
+Expected: True
+  But was:  False
+FAIL: ProjectName.Tests.EditMode.MeleeClickOwnershipTests.EachAcceptedAttack_IncrementsStreakUpToExpectedCount(2,2)
+Attack call 2 should be accepted when its cooldown is ready.
+  Expected: True
+  But was:  False
+FAIL: ProjectName.Tests.EditMode.MeleeClickOwnershipTests.EachAcceptedAttack_IncrementsStreakUpToExpectedCount(3,3)
+Attack call 2 should be accepted when its cooldown is ready.
+  Expected: True
+  But was:  False
+FAIL: ProjectName.Tests.EditMode.RecipeCatalogTests.FindRecipe_UnknownCombo_ReturnsNull
+Expected: null
+  But was:  ProjectName.Systems.RecipeCatalog+RecipeDef
+FAIL: ProjectName.Tests.EditMode.ThemeUssSanityTests.ThemeUss_HasBakedBackgroundPngs
+윈도우 배경 베이크 PNG
+  Expected: String containing "bg_window.png"
+  But was:  "/* =====================================================================
+   Theme.uss — UI Toolkit 전역 테마 (팔레트 + 폰트 + 공통 컴포넌트)
+   Phase U0 (인프라) — 참조: docs/UI_TOOLKIT_MIGRATION.md / docs/UI_DESIGN_GUIDELINES.md
+
+   팔레트: GitHub-dark 기반 + Fluent 상호작용 색상.
+   희귀도 등급색: EquipmentRarityData.GetRarityColor() (Core 계층) 통일.
+   폰트: 기존 UIFont 체계 승격 (Assets/Resources/Fonts/NotoSansKR-VF.ttf)
+         실제 폰트 에셋 할당은 코드(UTKWindowBase.ApplyFont)에서 수행.
+   ===================================================================== */
+
+:root {
+    /* ---- Canonical GitHub-dark / UTKTheme palette ---- */
+    --c-bg-base:        #0B0E14;
+    --c-bg-panel:       #161B22;
+    --c-bg-panel-dark:  #21262D;
+    --c-stroke:         #2E343D;
+    --c-iron-line:      var(--c-stroke);
+    --c-border-default: var(--c-stroke);
+    --c-border-strong:  var(--c-stroke);
+    --c-text-primary:   #F0F6FC;
+    --c-text-secondary: #8B949E;
+    --c-accent-magic:   #58A6FF;
+    --c-accent-rare:    #E3B341;
+    --c-gold:           #E3B341;
+    --c-health-red:     #F85149;
+    --c-guild-green:    #3FB950;
+    --c-warn:           #D29922;
+    --c-accent-hover:   #79C0FF;
+    --c-hover-blue:     rgba(88, 166, 255, 0.18);
+
+    /* ---- 희귀도 등급색 (EquipmentRarityData 통일) ---- */
+    --c-rank-common:    #999999;   /* 일반 */
+    --c-rank-uncommon:  #33CC33;   /* 고급 */
+    --c-rank-rare:      #3366FF;   /* 희귀 */
+    --c-rank-epic:      #9933FF;   /* 영웅 */
+    --c-rank-legendary: #FF3333;   /* 전설 */
+    --c-rank-unique:    #FFD900;   /* 유니크 */
+
+    /* ---- 폰트 타입스케일 5단 (UIFont: Display/Title/Body/Caption/Badge) ---- */
+    --fs-xl: 60px;
+    --fs-lg: 38px;
+    --fs-md: 24px;
+    --fs-sm: 17px;
+    --fs-xs: 13px;
+}
+
+/* ───────────────────────── 윈도우 ───────────────────────── */
+.utk-window {
+    position: absolute;
+    background-color: var(--c-bg-panel);
+    border-width: 2px;
+    border-color: var(--c-border-default);
+    border-radius: 8px;
+    color: var(--c-text-primary);
+    font-size: var(--fs-sm);
+    overflow: hidden;
+}
+
+/* Soft drop shadow, rendered behind the window without intercepting interaction. */
+.utk-window-shadow {
+    position: absolute;
+    background-image: url("shadow_glow.png");
+    -unity-slice-top: 14;
+    -unity-slice-bottom: 14;
+    -unity-slice-left: 14;
+    -unity-slice-right: 14;
+    -unity-background-scale-mode: slice-enabled;
+    background-size: 100% 100%;
+    pointer-events: none;
+}
+
+.utk-title-bar {
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--c-bg-panel-dark);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--c-border-default);
+    padding: 6px 8px;
+    flex-shrink: 0;
+}
+
+.utk-title-label {
+    flex-grow: 1;
+    font-size: var(--fs-lg);
+    color: var(--c-text-primary);
+    -unity-font-style: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.utk-close-btn {
+    width: 28px;
+    height: 28px;
+    font-size: var(--fs-md);
+    color: var(--c-text-primary);
+    background-color: var(--c-bg-panel-dark);
+    border-width: 1px;
+    border-color: var(--c-border-default);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.utk-close-btn:hover {
+    background-color: var(--c-health-red);
+    color: white;
+}
+
+.utk-content {
+    flex-grow: 1;
+    padding: 10px;
+    overflow: visible;
+}
+
+/* ───────────────────────── 버튼 ───────────────────────── */
+.utk-btn {
+    font-size: var(--fs-sm);
+    color: var(--c-text-primary);
+    background-color: var(--c-bg-panel-dark);
+    border-width: 1px;
+    border-color: var(--c-border-strong);
+    border-radius: 3px;
+    padding: 4px 14px;
+    align-items: center;
+    justify-content: center;
+}
+
+.utk-btn:hover {
+    background-color: var(--c-hover-blue);
+    border-color: var(--c-accent-hover);
+    color: var(--c-text-primary);
+}
+
+.utk-btn:active {
+    border-color: var(--c-accent-magic);
+}
+
+.utk-btn--primary {
+    background-color: var(--c-accent-magic);
+    color: white;
+    border-color: var(--c-accent-magic);
+}
+
+.utk-btn--secondary {
+    background-color: var(--c-bg-panel-dark);
+}
+
+.utk-btn--danger {
+    background-color: var(--c-health-red);
+    color: white;
+    border-color: var(--c-health-red);
+}
+
+.utk-btn:disabled {
+    opacity: 0.4;
+    color: var(--c-text-secondary);
+}
+
+/* ───────────────────────── 슬롯 ───────────────────────── */
+.utk-slot {
+    width: 64px;
+    height: 64px;
+    background-color: #010409;
+    border-top-width: 2px;
+    border-left-width: 2px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+    border-top-color: var(--c-border-default);
+    border-left-color: var(--c-border-default);
+    border-bottom-color: var(--c-border-strong);
+    border-right-color: var(--c-border-strong);
+    border-radius: 4px;
+    margin: 3px;
+}
+
+.utk-slot--hover {
+    background-color: var(--c-hover-blue);
+    border-color: var(--c-accent-magic);
+}
+
+.utk-slot__icon {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.utk-slot__count {
+    font-size: var(--fs-xs);
+    color: var(--c-text-primary);
+    -unity-font-style: bold;
+    -unity-text-align: middle-right;
+    margin-right: 3px;
+    margin-bottom: 2px;
+}
+
+/* 선택된 레시피 행 강조 */
+.utk-selected-row {
+    background-color: rgba(88, 166, 255, 0.12);
+    border-left-width: 3px;
+    border-left-color: var(--c-accent-magic);
+    border-top-width: 1px;
+    border-top-color: var(--c-border-default);
+}
+
+/* 희귀도 테두리 오라 */
+.utk-rank--common    { border-color: var(--c-rank-common); }
+.utk-rank--uncommon  { border-color: var(--c-rank-uncommon); }
+.utk-rank--rare      { border-color: var(--c-rank-rare); }
+.utk-rank--epic      { border-color: var(--c-rank-epic); }
+.utk-rank--legendary { border-color: var(--c-rank-legendary); }
+.utk-rank--unique    { border-color: var(--c-rank-unique); }
+
+/* ───────────────────────── 툴팁 / 모달 / 토스트 ───────────────────────── */
+.utk-tooltip {
+    position: absolute;
+    background-color: var(--c-bg-panel-dark);
+    border-width: 1px;
+    border-color: var(--c-border-default);
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-size: var(--fs-xs);
+    color: var(--c-text-primary);
+    max-width: 300px;
+    pointer-events: none;
+}
+
+.utk-modal {
+    position: absolute;
+    background-color: var(--c-bg-panel);
+    border-width: 2px;
+    border-color: var(--c-accent-magic);
+    border-radius: 4px;
+    padding: 16px;
+    min-width: 260px;
+}
+
+.utk-modal__overlay {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.utk-toast {
+    position: absolute;
+    background-color: var(--c-bg-panel-dark);
+    border-width: 1px;
+    border-color: var(--c-border-default);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: var(--fs-sm);
+    color: var(--c-text-primary);
+}
+
+.utk-toast--fadeout {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.4s;
+}
+
+/* ───────────────────────── 몬스터 정보 ───────────────────────── */
+.monster-info__name,
+.monster-info__value {
+    color: var(--c-text-primary);
+}
+
+.monster-info__secondary {
+    color: var(--c-text-secondary);
+}
+
+.monster-info__section-title {
+    color: var(--c-gold);
+}
+
+.monster-info__separator {
+    background-color: var(--c-stroke);
+}
+
+.monster-info__hp-frame {
+    background-color: var(--c-bg-base);
+    border-color: var(--c-stroke);
+}"

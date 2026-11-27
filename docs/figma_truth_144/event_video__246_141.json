@@ -1,0 +1,843 @@
+{
+ "id": "246:141",
+ "name": "이벤트 발생 영상 패널",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 51086,
+ "ay": 3,
+ "w": 312.0,
+ "h": 396.0,
+ "d": 0,
+ "fills": [
+  "#13181F/1.0"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.0,
+ "r": 10.0,
+ "fx": [
+  "DROP_SHADOW:24.0:#000000/0.251"
+ ],
+ "layout": "VERTICAL",
+ "gap": 12.0,
+ "pl": 16.0,
+ "pr": 16.0,
+ "pt": 16.0,
+ "pb": 16.0,
+ "c": [
+  {
+   "id": "246:142",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 51086,
+   "ay": 3,
+   "w": 8.0,
+   "h": 8.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "246:144",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51086,
+     "ay": 3,
+     "w": 1.0,
+     "h": 8.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "246:143",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51086,
+     "ay": 3,
+     "w": 8.0,
+     "h": 1.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "246:145",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 51390,
+   "ay": 3,
+   "w": 8.0,
+   "h": 8.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "246:147",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51397,
+     "ay": 3,
+     "w": 1.0,
+     "h": 8.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "246:146",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51390,
+     "ay": 3,
+     "w": 8.0,
+     "h": 1.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "246:148",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 51086,
+   "ay": 391,
+   "w": 8.0,
+   "h": 8.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "246:150",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51086,
+     "ay": 391,
+     "w": 1.0,
+     "h": 8.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "246:149",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51086,
+     "ay": 398,
+     "w": 8.0,
+     "h": 1.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "246:151",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 51390,
+   "ay": 391,
+   "w": 8.0,
+   "h": 8.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "246:153",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51397,
+     "ay": 391,
+     "w": 1.0,
+     "h": 8.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "246:152",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 51390,
+     "ay": 398,
+     "w": 8.0,
+     "h": 1.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "246:160",
+   "name": "이벤트 영상 플레이어",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 51102,
+   "ay": 19,
+   "w": 280.0,
+   "h": 256.0,
+   "d": 1,
+   "fills": [
+    "#0B0E14/1.0"
+   ],
+   "strokes": [
+    "#58A6FF/1.0@0.251"
+   ],
+   "strokeW": 1.0,
+   "r": 7.2,
+   "layout": "VERTICAL",
+   "c": [
+    {
+     "id": "246:161",
+     "name": "이벤트 장면",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 51102,
+     "ay": 19,
+     "w": 280.0,
+     "h": 214.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "VERTICAL",
+     "c": [
+      {
+       "id": "246:162",
+       "name": "북부 성문 전경",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 51102,
+       "ay": 19,
+       "w": 280.0,
+       "h": 214.0,
+       "d": 3,
+       "fills": [
+        "IMAGE"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "246:163",
+       "name": "장면 그라데이션",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 51102,
+       "ay": 19,
+       "w": 280.0,
+       "h": 214.0,
+       "d": 3,
+       "fills": [
+        "LINEAR:(#0B0E14/0.125@0.0,#0B0E14/0.0@0.58,#0B0E14/0.8@1.0)"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "246:164",
+       "name": "영상 구분",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 51112,
+       "ay": 29,
+       "w": 72.0,
+       "h": 20.0,
+       "d": 3,
+       "fills": [
+        "#0B0E14/1.0@0.6"
+       ],
+       "strokeW": 1.0,
+       "r": 4.0,
+       "layout": "HORIZONTAL",
+       "gap": 5.0,
+       "pl": 7.0,
+       "pr": 7.0,
+       "pt": 4.0,
+       "pb": 4.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "246:165",
+         "name": "기록 표시",
+         "type": "ELLIPSE",
+         "x": null,
+         "y": null,
+         "ax": 51119,
+         "ay": 37,
+         "w": 4.0,
+         "h": 4.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0
+        },
+        {
+         "id": "246:166",
+         "name": "영상 구분 문구",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 51128,
+         "ay": 33,
+         "w": 49.0,
+         "h": 12.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "이벤트 기록",
+         "fontSize": 10.0,
+         "font": "Roboto 500 Medium",
+         "lineH": 11.7
+        }
+       ]
+      },
+      {
+       "id": "246:167",
+       "name": "영상 재생 버튼",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 51220,
+       "ay": 104,
+       "w": 44.0,
+       "h": 44.0,
+       "d": 3,
+       "fills": [
+        "#0B0E14/1.0@0.6"
+       ],
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "r": 22.0,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "246:168",
+         "name": "재생",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 51234,
+         "ay": 118,
+         "w": 16.0,
+         "h": 16.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0
+        }
+       ]
+      },
+      {
+       "id": "246:169",
+       "name": "장면 위치",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 51114,
+       "ay": 204,
+       "w": 112.0,
+       "h": 13.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 5.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "246:198",
+         "name": "map-pin",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 51114,
+         "ay": 204,
+         "w": 12.0,
+         "h": 12.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "246:199",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 51116,
+           "ay": 205,
+           "w": 8.0,
+           "h": 10.0,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.5
+          }
+         ]
+        },
+        {
+         "id": "246:171",
+         "name": "장소",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 51131,
+         "ay": 204,
+         "w": 95.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "아르덴 성 · 북부 성문",
+         "fontSize": 11.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 12.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "246:172",
+     "name": "재생 컨트롤",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 51102,
+     "ay": 233,
+     "w": 280.0,
+     "h": 42.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "VERTICAL",
+     "gap": 8.0,
+     "pl": 10.0,
+     "pr": 10.0,
+     "pt": 4.0,
+     "pb": 8.0,
+     "c": [
+      {
+       "id": "246:173",
+       "name": "영상 탐색 막대",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 51112,
+       "ay": 237,
+       "w": 260.0,
+       "h": 3.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "c": [
+        {
+         "id": "246:174",
+         "name": "전체 길이",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 51112,
+         "ay": 237,
+         "w": 260.0,
+         "h": 3.0,
+         "d": 4,
+         "fills": [
+          "#30363D/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 2.0
+        },
+        {
+         "id": "246:175",
+         "name": "재생된 구간",
+         "type": "RECTANGLE",
+         "x": null,
+         "y": null,
+         "ax": 51112,
+         "ay": 237,
+         "w": 65.0,
+         "h": 3.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 2.0
+        },
+        {
+         "id": "246:176",
+         "name": "재생 위치",
+         "type": "ELLIPSE",
+         "x": null,
+         "y": null,
+         "ax": 51174,
+         "ay": 236,
+         "w": 6.0,
+         "h": 6.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0
+        }
+       ]
+      },
+      {
+       "id": "246:177",
+       "name": "재생 도구",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 51112,
+       "ay": 248,
+       "w": 260.0,
+       "h": 16.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "246:178",
+         "name": "재생과 시간",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 51112,
+         "ay": 250,
+         "w": 96.0,
+         "h": 13.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 8.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "246:179",
+           "name": "재생",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 51112,
+           "ay": 251,
+           "w": 10.0,
+           "h": 10.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0
+          },
+          {
+           "id": "246:180",
+           "name": "재생 시간",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 51130,
+           "ay": 250,
+           "w": 78.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "00:08 / 00:32",
+           "fontSize": 10.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 13.0
+          }
+         ]
+        },
+        {
+         "id": "246:181",
+         "name": "영상 설정",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 51332,
+         "ay": 249,
+         "w": 40.0,
+         "h": 14.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 12.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "246:201",
+           "name": "volume-2",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 51332,
+           "ay": 249,
+           "w": 14.0,
+           "h": 14.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "246:202",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 51333,
+             "ay": 251,
+             "w": 11.7,
+             "h": 9.3,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.5
+            }
+           ]
+          },
+          {
+           "id": "246:204",
+           "name": "maximize",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 51358,
+           "ay": 249,
+           "w": 14.0,
+           "h": 14.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "246:205",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 51360,
+             "ay": 251,
+             "w": 10.5,
+             "h": 10.5,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.5
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "246:184",
+   "name": "이벤트 정보",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 51102,
+   "ay": 287,
+   "w": 280.0,
+   "h": 96.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 8.0,
+   "c": [
+    {
+     "id": "246:185",
+     "name": "이벤트 분류",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 51102,
+     "ay": 287,
+     "w": 280.0,
+     "h": 22.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "246:186",
+       "name": "이벤트 유형",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 51102,
+       "ay": 288,
+       "w": 58.0,
+       "h": 19.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0@0.078"
+       ],
+       "strokes": [
+        "#58A6FF/1.0@0.251"
+       ],
+       "strokeW": 1.0,
+       "r": 4.0,
+       "layout": "HORIZONTAL",
+       "pl": 7.0,
+       "pr": 7.0,
+       "pt": 3.0,
+       "pb": 3.0,
+       "c": [
+        {
+         "id": "246:187",
+         "name": "유형",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 51109,
+         "ay": 292,
+         "w": 44.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "영지 방어",
+         "fontSize": 11.0,
+         "font": "Roboto 700 Bold",
+         "lineH": 12.9
+        }
+       ]
+      },
+      {
+       "id": "246:188",
+       "name": "발생 시각",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 51338,
+       "ay": 292,
+       "w": 44.0,
+       "h": 13.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "방금 발생",
+       "fontSize": 11.0,
+       "font": "Roboto 400 Regular",
+       "lineH": 12.9
+      }
+     ]
+    },
+    {
+     "id": "246:189",
+     "name": "이벤트 제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 51102,
+     "ay": 317,
+     "w": 280.0,
+     "h": 22.0,
+     "d": 2,
+     "fills": [
+      "#F0F6FC/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "북부 성문에 적군 출현",
+     "fontSize": 16.0,
+     "font": "Roboto 700 Bold",
+     "lineH": 22.0
+    },
+    {
+     "id": "246:190",
+     "name": "이벤트 설명",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 51102,
+     "ay": 347,
+     "w": 280.0,
+     "h": 36.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "정찰병이 적 부대의 접근을 포착했습니다. 성문 수비를 준비하세요.",
+     "fontSize": 13.0,
+     "font": "Roboto 400 Regular",
+     "lineH": 18.0
+    }
+   ]
+  }
+ ]
+}

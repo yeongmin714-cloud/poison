@@ -98,18 +98,21 @@ namespace ProjectName.UI.Toolkit
                 case UTKButton.Variant.Danger:
                     baseBg = UTKTheme.Danger; hoverBg = UTKTheme.DangerHover; textColor = UTKTheme.TextMain; break;
                 default:
-                    baseBg = UTKTheme.PanelSub; hoverBg = UTKTheme.Stroke; textColor = UTKTheme.TextMain; break;
+                    // [136차 B2-L] 세컨더리 진실화 — bg #FFFFFF@0.059, 텍스트 #F0F6FC
+                    baseBg = new Color(1f, 1f, 1f, 0.059f); hoverBg = UTKTheme.Stroke; textColor = UTKTheme.TextMain; break;
             }
 
             btn.style.backgroundImage = new StyleBackground(StyleKeyword.None);
             btn.style.backgroundColor = baseBg;
             btn.style.color = textColor;
             btn.style.borderTopWidth = btn.style.borderBottomWidth = btn.style.borderLeftWidth = btn.style.borderRightWidth = 1f;
-            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(baseBg);
-            btn.style.borderTopLeftRadius = 6f;
-            btn.style.borderTopRightRadius = 6f;
-            btn.style.borderBottomLeftRadius = 6f;
-            btn.style.borderBottomRightRadius = 6f;
+            // [136차 B2-L] 버튼 스트로크 — Primary=배경 동색, Secondary=#30363D@0.502 / r7.2 진실화
+            var btnStroke = variant == UTKButton.Variant.Primary ? baseBg : UTKTheme.GlassPanelStroke;
+            btn.style.borderTopColor = btn.style.borderBottomColor = btn.style.borderLeftColor = btn.style.borderRightColor = new StyleColor(btnStroke);
+            btn.style.borderTopLeftRadius = 7.2f;
+            btn.style.borderTopRightRadius = 7.2f;
+            btn.style.borderBottomLeftRadius = 7.2f;
+            btn.style.borderBottomRightRadius = 7.2f;
 
             btn.RegisterCallback<PointerEnterEvent>(_ => btn.style.backgroundColor = hoverBg);
             btn.RegisterCallback<PointerLeaveEvent>(_ => btn.style.backgroundColor = baseBg);
@@ -121,18 +124,29 @@ namespace ProjectName.UI.Toolkit
         {
             if (slot == null) return;
             slot.style.backgroundImage = new StyleBackground(StyleKeyword.None);
-            slot.style.backgroundColor = UTKTheme.BgBase;
-            slot.style.borderTopWidth = 2f;   // 등급색 상단 강조선 (피그마 슬롯 상단 유색 선)
+            slot.style.backgroundColor = new StyleColor(new Color(0x21 / 255f, 0x26 / 255f, 0x2D / 255f, 0.6f));   // [136차 B2-L] 셀 bg #21262D@0.6
+            slot.style.borderTopWidth = 3.6f;   // [136차 B2-L] TierStrip h3.6 상단 풀폭 (등급색)
             slot.style.borderBottomWidth = 1f;
             slot.style.borderLeftWidth = 1f;
             slot.style.borderRightWidth = 1f;
             var rank = RankColor(rarityIndex);
             slot.style.borderTopColor = new StyleColor(rank);
-            slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
-            slot.style.borderTopLeftRadius = 6f;
-            slot.style.borderTopRightRadius = 6f;
-            slot.style.borderBottomLeftRadius = 6f;
-            slot.style.borderBottomRightRadius = 6f;   // 서브 반경 r6
+            slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(UTKTheme.GlassPanelStroke);   // [136차 B2-L] 셀 stroke #30363D@0.502
+            slot.style.borderTopLeftRadius = 9.6f;
+            slot.style.borderTopRightRadius = 9.6f;
+            slot.style.borderBottomLeftRadius = 9.6f;
+            slot.style.borderBottomRightRadius = 9.6f;   // [136차 B2-L] 셀 반경 r9.6 진실화
+        }
+
+        // [136차 B2-L] Geist Mono 로드(Figma 패밀리 계약) — 에셋 미보유 실측(2026-10-24) → UIFont 폴백
+        // (ItemDescriptionWindowUTK/WorldMapWindowUTK 선례). Resources/Fonts/GeistMono 추가 시 자동 적용.
+        private static Font _geistMono;
+
+        private static Font GetGeistMonoFont()
+        {
+            if (_geistMono == null)
+                _geistMono = Resources.Load<Font>("Fonts/GeistMono");
+            return _geistMono != null ? _geistMono : UIFont.Load();
         }
 
         // ===== 레퍼런스 =====
@@ -162,22 +176,28 @@ namespace ProjectName.UI.Toolkit
             var panelHeader = new VisualElement { name = "LootPanelHeader" };
             panelHeader.style.flexDirection = FlexDirection.Row;
             panelHeader.style.alignItems = Align.Center;
+            panelHeader.style.justifyContent = Justify.SpaceBetween;   // [136차 B2-L] 타이틀 좌측 + 클로즈 우측 에지(진실 x=424.8)
             panelHeader.style.height = 48f;
             panelHeader.style.minHeight = 48f;
             panelHeader.style.flexShrink = 0f;
-            var lootTitle = MkTextLabel("전리품", UTKTheme.FontTitle, UTKTheme.TextMain);   // [Figma] 21.6/700
+            UTKTheme.ApplyElementBorder(panelHeader);   // [144차 P3-LOOT #44] 70:18 헤더 프레임 스트로크 #30363D@0.502 4면(테두리 미설정 → 전면)
+            // [144차 P3-LOOT #17] 70:18 헤더 pb 9.6 — 콘텐트박스 38.4 중앙정렬로 Title y≈5.2 귀결(#18, 감사 산식).
+            panelHeader.style.paddingBottom = 9.6f;
+            var lootTitle = MkTextLabel("전리품", UTKTheme.FontTitleLarge, UTKTheme.TextMain);   // [136차 B2-L] 21.6→24/700 진실화
             lootTitle.style.unityFontStyleAndWeight = FontStyle.Bold;
             panelHeader.Add(lootTitle);
-            var lootSub = MkTextLabel("LOOT SECURED", 12f, UTKTheme.TextSub);
-            lootSub.style.marginLeft = 12f;
-            lootSub.style.marginTop = 5f;
-            lootSub.style.flexGrow = 1f;
+            var lootSub = MkTextLabel("LOOT SECURED", 13.2f, UTKTheme.TextSub);   // [136차 B2-L] 12→13.2 진실화
+            lootSub.style.unityFontStyleAndWeight = FontStyle.Bold;               // [136차 B2-L] 13.2/700
+            lootSub.style.position = Position.Absolute;                            // [144차 P3-LOOT #20] 헤더-로컬 진실좌표 @(79,15.2) — 재실측 정정(구 10.2)
+            lootSub.style.left = 79f;
+            lootSub.style.top = 15.2f;
             panelHeader.Add(lootSub);
             var headerClose = new Button(Hide) { text = "×", name = "LootHeaderCloseButton" };
             headerClose.style.width = 31.2f;
             headerClose.style.height = 31.2f;
             headerClose.style.flexShrink = 0f;
             StyleButton(headerClose, UTKButton.Variant.Secondary);
+            headerClose.style.color = new StyleColor(UTKTheme.TextSub);   // [144차 P3-LOOT #22] 70:23 x-circle 벡터→글리프 근사 유지, 색 TextMain→#8B949E
             panelHeader.Add(headerClose);
             _content.Add(panelHeader);
             SetDragHandle(panelHeader);
@@ -189,26 +209,28 @@ namespace ProjectName.UI.Toolkit
             stats.style.height = 26.6f;
             stats.style.minHeight = 26.6f;
             stats.style.flexShrink = 0f;
+            stats.style.marginTop = 14.4f;   // [136차 B2-L] LootStats 진실 y=86.4 (헤더 하단 72 + gap 14.4)
             stats.style.marginBottom = 14.4f;
             _content.Add(stats);
 
             _badgeLabel = new Label("습득 가능") { name = "LootBadge" };
-            _badgeLabel.style.backgroundColor = UTKTheme.Accent;
-            _badgeLabel.style.color = UTKTheme.BgBase;
-            _badgeLabel.style.fontSize = UTKTheme.FontBadge;   // [Figma] 12/700
+            _badgeLabel.style.backgroundColor = new StyleColor(new Color(1f, 1f, 1f, 0.039f));   // [136차 B2-L] BadgeItem bg #FFFFFF@0.039 진실화
+            _badgeLabel.style.color = UTKTheme.Accent;                                            // [136차 B2-L] 배지 텍스트 #58A6FF 진실화
+            _badgeLabel.style.fontSize = 14.4f;   // [136차 B2-L] 12→14.4/700 진실화
             _badgeLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
             _badgeLabel.style.paddingTop = 4.8f;
             _badgeLabel.style.paddingBottom = 4.8f;
             _badgeLabel.style.paddingLeft = 9.6f;
             _badgeLabel.style.paddingRight = 9.6f;
-            _badgeLabel.style.borderTopLeftRadius = 4f;
-            _badgeLabel.style.borderTopRightRadius = 4f;
-            _badgeLabel.style.borderBottomLeftRadius = 4f;
-            _badgeLabel.style.borderBottomRightRadius = 4f;
+            _badgeLabel.style.borderTopLeftRadius = 4.8f;    // [136차 B2-L] r4→4.8 진실화
+            _badgeLabel.style.borderTopRightRadius = 4.8f;
+            _badgeLabel.style.borderBottomLeftRadius = 4.8f;
+            _badgeLabel.style.borderBottomRightRadius = 4.8f;
             stats.Add(_badgeLabel);
 
             _countLabel = new Label("");
-            _countLabel.style.fontSize = UTKTheme.FontBody;   // [Figma] 14.4/400
+            _countLabel.style.fontSize = 15.6f;   // [136차 B2-L] SlotCapacity 14.4→15.6 진실화
+            _countLabel.style.unityFont = GetGeistMonoFont();   // [136차 B2-L] Geist Mono/400 계약(에셋 미보유 → UIFont 폴백)
             _countLabel.style.unityFontStyleAndWeight = FontStyle.Normal;
             _countLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _countLabel.style.unityTextAlign = TextAnchor.MiddleRight;
@@ -234,13 +256,16 @@ namespace ProjectName.UI.Toolkit
             _emptyLabel.style.fontSize = 14.4f;
             _emptyLabel.style.color = new StyleColor(UTKTheme.TextSub);
             _emptyLabel.style.marginTop = 12f;
+            _emptyLabel.style.display = DisplayStyle.None;   // [136차 B2-L] 빈바구니=창 자동 Hide로 미표시 — 플로우 제외(푸터 진실 y=314.6 유지)
             _content.Add(_emptyLabel);
 
             // ── LootFooter [Figma 456×61.2, gap 9.6]: 전부 습득 222×46.8 + 닫기 224.4×46.8 ──
             var footer = new VisualElement { name = "LootFooter" };
             footer.style.flexDirection = FlexDirection.Row;
-            footer.style.alignItems = Align.Center;
-            footer.style.marginTop = 14.4f;
+            footer.style.height = 61.2f;   // [136차 B2-L] 푸터 진실 456×61.2
+            footer.style.alignItems = Align.FlexEnd;   // [136차 B2-L] ActionButtonGroup (0,14.4) — 버튼 하단 정렬(61.2-46.8=14.4)
+            UTKTheme.ApplyElementBorder(footer);   // [144차 P3-LOOT #30] 70:75 푸터 스트로크 #30363D@0.502 4면(상단 1면 → 전면, V2 어휘)
+            footer.style.marginTop = 14.4f;   // [136차 B2-L] 그리드 하단(300.2) + 14.4 = 진실 y=314.6
             footer.style.flexShrink = 0f;
             _content.Add(footer);
 
@@ -248,6 +273,8 @@ namespace ProjectName.UI.Toolkit
             _acquireAllBtn.text = "전부 습득하기";
             _acquireAllBtn.style.width = 222f;
             _acquireAllBtn.style.height = 46.8f;
+            _acquireAllBtn.style.fontSize = 15.6f;                      // [136차 B2-L] 버튼 텍스트 15.6/700 진실화
+            _acquireAllBtn.style.unityFontStyleAndWeight = FontStyle.Bold;
             _acquireAllBtn.style.marginRight = 9.6f;
             StyleButton(_acquireAllBtn, UTKButton.Variant.Primary);
             footer.Add(_acquireAllBtn);
@@ -256,6 +283,8 @@ namespace ProjectName.UI.Toolkit
             closeBtnFooter.text = "닫기";
             closeBtnFooter.style.width = 224.4f;
             closeBtnFooter.style.height = 46.8f;
+            closeBtnFooter.style.fontSize = 15.6f;                      // [136차 B2-L] 버튼 텍스트 15.6/700 진실화
+            closeBtnFooter.style.unityFontStyleAndWeight = FontStyle.Bold;
             StyleButton(closeBtnFooter, UTKButton.Variant.Secondary);
             footer.Add(closeBtnFooter);
 
@@ -272,7 +301,9 @@ namespace ProjectName.UI.Toolkit
             style.top = FigmaBounds.y;
         }
 
-        /// <summary>[Figma 70:4] 패널 4모서리 L자 데칼(12선, 14.4 영역) — 시각 전용.</summary>
+        /// <summary>[Figma 70:4] 패널 4모서리 L자 데칼(12선) — 시각 전용.
+        /// [144차 P3-LOOT #40] 70:7 진실화 — 색 Stroke(#2E343D)→Accent(#58A6FF), 두께 1→1.8.
+        /// 구조(선 요소 12-long)는 V1 헬퍼(4 L자 데칼)와 상이 → 감사 지시대로 색/두께만 수리.</summary>
         private static void AddCornerDecals(VisualElement host)
         {
             float w = FigmaBounds.width, h = FigmaBounds.height;
@@ -284,14 +315,14 @@ namespace ProjectName.UI.Toolkit
                 l.style.top = top;
                 l.style.width = lw;
                 l.style.height = lh;
-                l.style.backgroundColor = new StyleColor(UTKTheme.Stroke);
+                l.style.backgroundColor = new StyleColor(UTKTheme.Accent);   // [144차 P3-LOOT #40] 70:7 #58A6FF(구 UTKTheme.Stroke #2E343D)
                 l.pickingMode = PickingMode.Ignore;
                 host.Add(l);
             }
-            Line(0f, 0f, 12f, 1f); Line(0f, 0f, 1f, 12f);                       // TL
-            Line(w - 12f, 0f, 12f, 1f); Line(w - 1f, 0f, 1f, 12f);              // TR
-            Line(0f, h - 1f, 12f, 1f); Line(0f, h - 12f, 1f, 12f);              // BL
-            Line(w - 12f, h - 1f, 12f, 1f); Line(w - 1f, h - 12f, 1f, 12f);     // BR
+            Line(0f, 0f, 12f, 1.8f); Line(0f, 0f, 1.8f, 12f);                       // TL
+            Line(w - 12f, 0f, 12f, 1.8f); Line(w - 1.8f, 0f, 1.8f, 12f);            // TR
+            Line(0f, h - 1.8f, 12f, 1.8f); Line(0f, h - 12f, 1.8f, 12f);            // BL
+            Line(w - 12f, h - 1.8f, 12f, 1.8f); Line(w - 1.8f, h - 12f, 1.8f, 12f); // BR
         }
 
         private static Label MkTextLabel(string text, float size, Color color)
@@ -355,6 +386,7 @@ namespace ProjectName.UI.Toolkit
         {
             base.Hide();
             StopRefreshLoop();
+            ItemDescriptionWindowUTK.Clear();   // [전리품설명 C2] 창 닫힘 시 설명 동기 해제(스테일 설명 방지)
             Debug.Log("[LootUTK] 전리품 창 닫힘");
         }
 
@@ -461,17 +493,29 @@ namespace ProjectName.UI.Toolkit
 
         private VisualElement BuildEmptySlot(int index, int renderedSlotCount)
         {
-            var slot = new VisualElement { name = "LootSlotEmpty_" + index };
+            // [144차 P3-LOOT #14(P0)/#15(P1)] 빈 셀 — UTKSlot V3 어휘(square-dashed 플레이스홀더) + TierStrip 보더 근사.
+            // 진실치(loot__70_4.json): 70:48 square-dashed 38.4×38.4(#8B949E stroke 2.4) + 70:56 TierStrip #8B949E h3.6 상단 — 빈 셀에 둘다 존재.
+            var slot = new UTKSlot { name = "LootSlotEmpty_" + index, pickingMode = PickingMode.Ignore };
             slot.style.width = SlotSize;
             slot.style.height = SlotSize;
+            // .utk-slot USS margin 3px 상쇄(InventoryWindowUTK 선례) — 채움 셀(플레인 요소)과 그리드 피치 정렬 일치.
+            slot.style.marginLeft = 0f;
+            slot.style.marginTop = 0f;
             slot.style.marginRight = SlotGap;
             slot.style.marginBottom = GetGridSlotBottomMargin(index, renderedSlotCount);
-            slot.style.backgroundColor = UTKTheme.BgBase;
-            slot.style.borderTopWidth = slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = 1f;
-            slot.style.borderTopColor = slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(UTKTheme.Stroke);
-            slot.style.borderTopLeftRadius = slot.style.borderTopRightRadius = 6f;
-            slot.style.borderBottomLeftRadius = slot.style.borderBottomRightRadius = 6f;
-            slot.pickingMode = PickingMode.Ignore;
+            slot.style.backgroundColor = new StyleColor(new Color(0x21 / 255f, 0x26 / 255f, 0x2D / 255f, 0.6f));   // [136차 B2-L] 빈 셀 bg #21262D@0.6
+            // [144차 P3-LOOT #15] TierStrip #8B949E h3.6 상단 — 채움 셀과 동일 보더 어휘(ApplyDarkSlotStyle 선례, 감사 #9 어휘계약 PASS).
+            // UTKSlot 내부 스트립은 SetEmpty(true) 프레임 모드에서 자동 숨김(shop ItemSlotEmpty 자식 0 진실) → loot 진실(70:56 스트립 有)은
+            // borderTop 3.6으로 렌더하고 SetTierStrip(true)는 어휘 계약 호출로 남긴다(내부 요소는 프레임 모드에서 숨김 유지).
+            slot.style.borderTopWidth = 3.6f;
+            slot.style.borderTopColor = new StyleColor(UTKTheme.TextSub);   // #8B949E(70:56)
+            slot.style.borderBottomWidth = slot.style.borderLeftWidth = slot.style.borderRightWidth = 1f;
+            slot.style.borderBottomColor = slot.style.borderLeftColor = slot.style.borderRightColor = new StyleColor(UTKTheme.GlassPanelStroke);   // [136차 B2-L] stroke #30363D@0.502
+            slot.style.borderTopLeftRadius = slot.style.borderTopRightRadius = 9.6f;    // [136차 B2-L] r6→9.6 진실화
+            slot.style.borderBottomLeftRadius = slot.style.borderBottomRightRadius = 9.6f;
+            slot.SetEmpty(true);                          // V3 프레임 모드 — 아이콘 호스트/카운트 숨김(프레임+플레이스홀더만 렌더)
+            slot.SetEmptyIcon(true, UTKTheme.TextSub);    // [144차 P3-LOOT #14] square-dashed 38.4 #8B949E(70:48-49 — V3 사각 보더 근사, dashed 미지원)
+            slot.SetTierStrip(true, UTKTheme.TextSub);    // [144차 P3-LOOT #15] 어휘 계약 호출 — 실렌더는 상단 borderTop 3.6 담당
             return slot;
         }
 
@@ -487,29 +531,30 @@ namespace ProjectName.UI.Toolkit
             slot.style.justifyContent = Justify.Center;
             ApplyDarkSlotStyle(slot, (int)entry.Item.rarity);   // [GitHub-dark] 슬롯 + 등급 상단 테두리
 
-            // 아이콘 (중앙 32×32 — Figma 아이콘 규격)
+            // 아이콘 (중앙 38.4×38.4 — [136차 B2-L] 32→38.4 진실화, 셀-로컬 (21.6,21.6)=중앙)
             var icon = ItemIconDatabase.GetOrCreateIcon(entry.Item);
             var slotIcon = new VisualElement();
-            slotIcon.style.width = 32f;
-            slotIcon.style.height = 32f;
+            slotIcon.style.width = 38.4f;
+            slotIcon.style.height = 38.4f;
             slotIcon.style.alignSelf = Align.Center;
             slotIcon.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
             slotIcon.style.backgroundImage = UTKTextureSafe.ToBackground(icon);
             slot.Add(slotIcon);
 
             // 카운트 (우하단)
-            var countLabel = new Label("x" + entry.Count);
+            var countLabel = new Label(entry.Count.ToString());   // [144차 P3-LOOT #12] 순수 숫자(70:35) — "x" 접두사 제거
             countLabel.style.position = Position.Absolute;
-            countLabel.style.right = 4f;
-            countLabel.style.bottom = 2f;
-            countLabel.style.fontSize = 14.4f;   // Figma 카운트 14px
-            countLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            countLabel.style.color = new StyleColor(UTKTheme.Gold);   // 카운트 — 골드 의미색
+            countLabel.style.right = 7.6f;    // [144차 P3-LOOT #13] 진실 우단 엣지=셀−7.6(70:35) — 구 0
+            countLabel.style.bottom = 4.6f;   // [144차 P3-LOOT #13] 진실 하단 4.6(70:35 ay514) — 구 2
+            countLabel.style.fontSize = 13.2f;   // [136차 B2-L] 카운트 14.4→13.2 진실화
+            countLabel.style.unityFont = GetGeistMonoFont();   // [136차 B2-L] Geist Mono/500 계약(에셋 미보유 → UIFont 폴백)
+            countLabel.style.unityFontStyleAndWeight = FontStyle.Normal;   // [136차 B2-L] 500 → 폴백 Normal(위조 금지 계약)
+            countLabel.style.color = new StyleColor(UTKTheme.TextSub);     // [136차 B2-L] #8B949E 진실화(골드 의미색 해제)
             slot.Add(countLabel);
 
-            // ② 슬롯 드래그 소스 (좌클릭) + 좌클릭 획득 없음/우클릭 획득
+            // ② 슬롯 드래그 소스 + [전리품설명 C1] 좌클릭=중앙 설명창 갱신(인벤 OnSlotClick 선례 계약)/우클릭=즉시 획득
             // Overflow cells retain their basket index for drag and acquisition actions.
-            UTKDragDrop.MakeDraggable(slot, () => MakePayload(itemIndex, entry.Item), null, () => TakeLootRow(itemIndex));
+            UTKDragDrop.MakeDraggable(slot, () => MakePayload(itemIndex, entry.Item), () => ShowLootDescription(itemIndex, entry), () => TakeLootRow(itemIndex));
 
             return slot;
         }
@@ -523,6 +568,19 @@ namespace ProjectName.UI.Toolkit
             p.Item = item;
             p.Icon = item != null ? ItemIconDatabase.GetOrCreateIcon(item) : null;
             return p;
+        }
+
+        /// <summary>[전리품설명 C1] 슬롯 좌클릭 → 중앙 아이템 설명창(ItemDescriptionWindowUTK) 갱신.
+        ///   인벤 OnSlotClick 선례 동일 계약(ShowItem — 닫힘 상태면 개방). 빈 항목이면 Clear(선택 해제).</summary>
+        private void ShowLootDescription(int index, LootEntry entry)
+        {
+            if (entry == null || entry.Item == null)
+            {
+                ItemDescriptionWindowUTK.Clear();
+                return;
+            }
+            ItemDescriptionWindowUTK.ShowItem(entry.Item, entry.Count);   // [독립 창] 중앙 설명창 갱신
+            Debug.Log($"[LootUTK] 슬롯 선택(좌클릭): {entry.Item.displayName} (슬롯 {index})");
         }
 
         // =====================================================================
@@ -564,6 +622,7 @@ namespace ProjectName.UI.Toolkit
             if (_basket == null) return;
             if (_basket.TakeItem(index))
             {
+                ItemDescriptionWindowUTK.Clear();   // [전리품설명 C2] 획득된 항목 설명 스테일 방지
                 Debug.Log("[LootUTK] 아이템 획득 완료 (우클릭)");
             }
             else

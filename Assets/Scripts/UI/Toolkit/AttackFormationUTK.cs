@@ -356,6 +356,47 @@ namespace ProjectName.UI.Toolkit
             });
             tools.Add(resetChip);
 
+            // [90차 B2] 건설 관리 진입 — 계획 도구 행 우측(구분선 1×22 #30363D/0.6 후 버튼 2개).
+            // 기존 명부/배치도 로직 무변경 — 버튼 추가만. AttackFormationUTK/ConstructionWindowUTK는
+            // 동일 UI 어셈블리라 직접 호출 가능(Systems→UI 참조 불가 규약과 무관).
+            var constructionDivider = new VisualElement { name = "PlanToolsConstructionDivider" };
+            constructionDivider.style.width = 1f;
+            constructionDivider.style.height = 22f;
+            constructionDivider.style.marginLeft = 14.4f;
+            constructionDivider.style.marginRight = 9.6f;
+            constructionDivider.style.backgroundColor = new StyleColor(new Color(0x30 / 255f, 0x36 / 255f, 0x3D / 255f, 0.6f)); // #30363D/0.6
+            constructionDivider.pickingMode = PickingMode.Ignore;
+            tools.Add(constructionDivider);
+
+            // '건물짓기' — 신규 건설 관리 창(Figma 239:683) 개방. UTKButton.Secondary 높이 32 글자 13/500.
+            var buildButton = UTKButton.Create("건물짓기", () => ConstructionWindowUTK.Open(), UTKButton.Variant.Secondary);
+            buildButton.name = "PlanToolsBuildButton";
+            buildButton.style.height = 32f;
+            buildButton.style.fontSize = 13f;
+            buildButton.style.color = new StyleColor(Dark.TextSub);
+            buildButton.style.unityFontStyleAndWeight = FontStyle.Normal;   // 13/500 — FontStyle.Medium 부재 → Normal 규약
+            buildButton.style.marginRight = 6f;
+            buildButton.style.flexShrink = 0f;
+            buildButton.RegisterCallback<PointerEnterEvent>(_ => buildButton.style.color = new StyleColor(Dark.TextMain));
+            buildButton.RegisterCallback<PointerLeaveEvent>(_ => buildButton.style.color = new StyleColor(Dark.TextSub));
+            tools.Add(buildButton);
+
+            // '음식점 배치' — 건설 관리 창 개방 후 음식점 자동 선택(선택 시설 = bp_restaurant 우측 패널 갱신).
+            var restaurantButton = UTKButton.Create("음식점 배치", () =>
+            {
+                ConstructionWindowUTK.Open();
+                ConstructionWindowUTK.SelectBlueprint("bp_restaurant");
+            }, UTKButton.Variant.Secondary);
+            restaurantButton.name = "PlanToolsRestaurantButton";
+            restaurantButton.style.height = 32f;
+            restaurantButton.style.fontSize = 13f;
+            restaurantButton.style.color = new StyleColor(Dark.TextSub);
+            restaurantButton.style.unityFontStyleAndWeight = FontStyle.Normal;
+            restaurantButton.style.flexShrink = 0f;
+            restaurantButton.RegisterCallback<PointerEnterEvent>(_ => restaurantButton.style.color = new StyleColor(Dark.TextMain));
+            restaurantButton.RegisterCallback<PointerLeaveEvent>(_ => restaurantButton.style.color = new StyleColor(Dark.TextSub));
+            tools.Add(restaurantButton);
+
             // 적 방향 [Figma 적 방향 1032×32] — 배치도 상단 = 적 진영
             var enemyStrip = new VisualElement { name = "EnemyDirectionStrip" };
             enemyStrip.style.height = 32f;
@@ -598,8 +639,11 @@ namespace ProjectName.UI.Toolkit
         private void ApplyFormationNow()
         {
             // 전투 기준점 — 실내 = 로비 중앙(문 앞), 월드 = (배치 시스템이 공격 목표로 대체)
+            // [45차 근원 수리] 플레이어 성 실내 루트 = "PlayerCastleRoom" — "Room"만 찾으면
+            //   anchor가 (0,0,0)에 고정돼 병사가 엉뚱한 곳(월드 원점 방향)으로 보행했다.
             Vector3 anchor = Vector3.zero;
-            var room = GameObject.Find("Room");
+            var room = GameObject.Find("PlayerCastleRoom");
+            if (room == null) room = GameObject.Find("Room");
             if (room != null) anchor = room.transform.position;
             int n = AttackFormationSystem.ApplyFormation(anchor);
             _applyStatusLabel.text = $"전투 배치 적용 — {n}명 편성 위치로 이동 개시. 미배치 대원은 예비 인원.";

@@ -25,7 +25,11 @@ namespace ProjectName.UI.Toolkit
         };
 
         private VisualElement _row;
-        private Label _dayLabel;   // [30차] DAY n 표시
+        private VisualElement _dayRow;      // [142차 E2] DAY 행(워드 라벨+글래스 글리프)
+        private VisualElement _dayGlyphs;   // [142차 E2] DAY 숫자 글리프 스트립
+        private Label _dayLabel;   // [30차] DAY 워드 라벨
+        private int _lastDay = -1;
+        private const float DayGlyphHeight = 20f;   // [142차 E2] 시간 글리프(46f) 축소판 — 동일 소스/스타일
         private readonly Dictionary<char, Texture2D> _tex = new Dictionary<char, Texture2D>();
         private string _lastText;
 
@@ -71,19 +75,11 @@ namespace ProjectName.UI.Toolkit
             style.alignItems = Align.Center;
             style.paddingLeft = 8f;
             style.paddingRight = 8f;
-            style.backgroundColor = new StyleColor(new Color32(0x0D, 0x11, 0x17, 0xF2)); // GitHub #0D1117
-            style.borderTopColor = new StyleColor(new Color32(0x58, 0xA6, 0xFF, 0xFF)); // GitHub blue accent
-            style.borderBottomColor = new StyleColor(new Color32(0x30, 0x36, 0x3D, 0xFF));
-            style.borderLeftColor = new StyleColor(new Color32(0x30, 0x36, 0x3D, 0xFF));
-            style.borderRightColor = new StyleColor(new Color32(0x30, 0x36, 0x3D, 0xFF));
-            style.borderTopWidth = 2f;
-            style.borderBottomWidth = 1f;
-            style.borderLeftWidth = 1f;
-            style.borderRightWidth = 1f;
-            style.borderTopLeftRadius = 8f;
-            style.borderTopRightRadius = 8f;
-            style.borderBottomLeftRadius = 8f;
-            style.borderBottomRightRadius = 8f;
+            // [142차 E] 시계 카드 박스 제거(사용자 지시: "사각 박스 없이 숫자와 밑에 day") —
+            // GitHub-dark 카드/액센트 테두리/라운드 전면 폐기 → 글리프 숫자+DAY 라벨만 부유(플루언트).
+            // .utk-clock USS 배경이 있어도 인라인 투명이 우선한다.
+            style.backgroundColor = new StyleColor(new Color(0f, 0f, 0f, 0f));
+            style.borderTopWidth = style.borderBottomWidth = style.borderLeftWidth = style.borderRightWidth = 0f;
             pickingMode = PickingMode.Ignore;   // [P23 규약] HUD는 클릭 흡수 금지
 
             _row = new VisualElement();
@@ -96,14 +92,30 @@ namespace ProjectName.UI.Toolkit
                 _tex[c] = Resources.Load<Texture2D>("UI/GlassDig_" + c);
             _tex[':'] = Resources.Load<Texture2D>("UI/GlassColon");
 
-            // [2026-10-11 30차 사용자 요구] DAY 표시 — 좌상단 시계 카드 하단 "DAY n".
+            // [142차 E2] DAY 표시 — 시간 표시와 동일 글래스 글리프 스타일(사용자 지시: "밑에 day도
+            //   시간 표시와 동일한 스타일"). "DAY" 워드 라벨 + 숫자는 시간과 같은 GlassDig 텍스처 글리프.
             //   날짜 = TimeManager.CurrentDay + 1(0기반 → 1일차 표시).
-            _dayLabel = new Label("DAY 1");
-            _dayLabel.style.fontSize = 10.5f;
-            _dayLabel.style.color = new StyleColor(new Color32(0x58, 0xA6, 0xFF, 0xFF));   // GitHub 액센트
-            _dayLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+            _dayRow = new VisualElement();
+            _dayRow.name = "DayRow";
+            _dayRow.style.flexDirection = FlexDirection.Row;
+            _dayRow.style.alignItems = Align.Center;
+            _dayRow.style.justifyContent = Justify.Center;
+            _dayRow.pickingMode = PickingMode.Ignore;
+            Add(_dayRow);
+
+            _dayLabel = new Label("DAY");
+            _dayLabel.style.fontSize = 13f;
+            _dayLabel.style.color = new StyleColor(new Color32(0x58, 0xA6, 0xFF, 0xFF));   // GitHub 액센트(기존 계약색)
+            _dayLabel.style.marginRight = 6f;
             _dayLabel.pickingMode = PickingMode.Ignore;
-            Add(_dayLabel);
+            _dayRow.Add(_dayLabel);
+
+            _dayGlyphs = new VisualElement();
+            _dayGlyphs.name = "DayGlyphs";
+            _dayGlyphs.style.flexDirection = FlexDirection.Row;
+            _dayGlyphs.style.alignItems = Align.Center;
+            _dayGlyphs.pickingMode = PickingMode.Ignore;
+            _dayRow.Add(_dayGlyphs);
 
             Refresh();
         }
@@ -116,11 +128,29 @@ namespace ProjectName.UI.Toolkit
             var tm = TimeManager.GetOrCreate();
             if (tm == null) return;
 
-            // [30차] DAY 갱신 — 시간 텍스트 무변경 조기 반환보다 앞에서(자정 넘어갈 때 즉시).
-            if (_dayLabel != null)
+            // [142차 E2] DAY 갱신 — 숫자를 시간과 동일 GlassDig 글리프로 렌더(자정 넘어갈 때 즉시).
+            int dayNum = tm.CurrentDay + 1;
+            if (dayNum != _lastDay && _dayGlyphs != null)
             {
-                string dayText = $"DAY {tm.CurrentDay + 1:0}";
-                if (_dayLabel.text != dayText) _dayLabel.text = dayText;
+                _lastDay = dayNum;
+                for (int i = _dayGlyphs.childCount - 1; i >= 0; i--)
+                    _dayGlyphs[i].RemoveFromHierarchy();
+                string dayStr = dayNum.ToString("0");
+                for (int i = 0; i < dayStr.Length; i++)
+                {
+                    char c = dayStr[i];
+                    if (!_tex.TryGetValue(c, out var tex) || tex == null) continue;
+                    float w = GlyphW.TryGetValue(c, out var ww) ? ww : 28f;
+                    var g = new VisualElement();
+                    g.name = "DayGlyph_" + c;
+                    g.pickingMode = PickingMode.Ignore;
+                    g.style.width = w * (DayGlyphHeight / GlyphHeight);
+                    g.style.height = DayGlyphHeight;
+                    g.style.backgroundImage = UTKTextureSafe.ToBackground(tex);
+                    g.style.unityBackgroundScaleMode = ScaleMode.ScaleToFit;
+                    if (i < dayStr.Length - 1) g.style.marginRight = 2f;
+                    _dayGlyphs.Add(g);
+                }
             }
 
             string text = tm.GetFormattedTime();   // "HH:MM"

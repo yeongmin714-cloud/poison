@@ -19,9 +19,11 @@ namespace ProjectName.Tests.EditMode
         [Test]
         public void BuilderSource_CallsTimberFrameAfterPortalTrim()
         {
+            // [2026-10-14 갱신] 빌더가 GetTopologyWalls()를 지역변수 topologyWalls로 추출해 호출하도록
+            //   리팩터링됨(PlayerCastleInteriorBuilder :823/:829). 어서션을 실제 소스 정합으로 갱신.
             string src = System.IO.File.ReadAllText(BuilderPath);
-            int portalCall = src.IndexOf("AddNonCollidingPortalStonework(room, GetTopologyWalls()", System.StringComparison.Ordinal);
-            int timberCall = src.IndexOf("AddTimberWallFrame(room, GetTopologyWalls()", System.StringComparison.Ordinal);
+            int portalCall = src.IndexOf("AddNonCollidingPortalStonework(room, topologyWalls", System.StringComparison.Ordinal);
+            int timberCall = src.IndexOf("AddTimberWallFrame(room, topologyWalls", System.StringComparison.Ordinal);
             Assert.That(portalCall, Is.GreaterThanOrEqualTo(0), "포탈 트림 호출부가 존재해야 한다(선례).");
             Assert.That(timberCall, Is.GreaterThan(portalCall),
                 "D3 팀버 프레임은 포탈 트림(스케일 패스 후 벽 로컬 미터) 다음에 호출돼야 한다(문설주 선례 패턴).");

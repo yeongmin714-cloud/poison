@@ -61,6 +61,8 @@ namespace ProjectName.Systems
 
             _pool.Add(guard);
             guard.SetRecruited(false); // 더 이상 플레이어 아군 아님
+            // [119차] 방출 병사 방랑자 전환 — 시장 풀 등록 유지(AI 재고용 대상), 세계 배회 개시
+            guard.BecomeWanderer("방출(시장 풀)");
             Debug.Log($"[LaborMarket] 병사 방출 → 시장 풀 등록: {guard.GuardName} (Lv.{guard.Level}, 충성도 {guard.Loyalty}) — 풀 {MarketPoolSize()}명");
         }
 
@@ -120,7 +122,7 @@ namespace ProjectName.Systems
                 GuardPlaceholder guard = TakeNextHireable(playerGuards);
                 if (guard == null) break; // 풀에 고용 가능한 병사 없음
 
-                int hireCost = AITerritoryEconomySystem.GetHireCost(guard);
+                int hireCost = GetAIAdmissionFee(guard);
                 TerritoryId affordableLord = default;
                 bool foundAffordableLord = false;
                 for (int offset = 0; offset < lordIds.Count; offset++)
@@ -144,8 +146,11 @@ namespace ProjectName.Systems
                     break;
                 }
 
-                TerritoryDatabase.Instance.GetState(affordableLord).territoryGold -= hireCost;
-                AssignToLord(guard, affordableLord);
+                if (!TryAdmitToLord(guard, affordableLord, hireCost))
+                {
+                    // 입단 실패(예외 롤백 완료) — 병사는 풀 앞으로 복귀, 이번 틱 고용 중단.
+                    break;
+                }
                 hired++;
             }
 
@@ -238,11 +243,20 @@ namespace ProjectName.Systems
             guard.SetRecruited(false); // 플레이어 아군 아님 유지 — 소속만 AI 영주로 이전
 
             // 시장 병사가 기존 영지에 등록돼 있었다면 이전한 뒤 AI 영지 병력으로 등록한다.
-            GuardManager manager = GuardManager.Instance;
+            GuardManager? manager = ResolveGuardManager();
             if (manager != null)
             {
                 manager.RemoveGuardFromAllTerritories(guard);
                 manager.RegisterGuard(lordId, guard);
+            }
+            // AI 고용 마커 — 저장 시 마커 + 영지 등록으로 AI 고용 병사 로스터를 구성한다.
+            guard.IsAIHired = true;
+
+            // [119차] 방랑자 재고용 — 방랑 해제 후 고용 영지로 이동
+            if (guard.IsWanderer)
+            {
+                Vector3 center = ResolveTerritoryCenter(lordId);
+                if (center != Vector3.zero) guard.EndWanderer(center);
             }
 
             _hiredCounts.TryGetValue(lordId, out int count);
@@ -252,10 +266,119 @@ namespace ProjectName.Systems
             Debug.Log($"[LaborMarket] AI 영주 재고용: {guard.GuardName} → {lordId} (영지 누적 {_hiredCounts[lordId]}명)");
         }
 
+        /// <summary>
+        /// AI 재고용 입단비 — 플레이어 편입과 동일한 단위 입단비 산식(SoldierWageSystem.PeekGuardAdmissionFee).
+        /// PlayerStats를 사용하지 않는다. null 병사 → 0.
+        /// </summary>
+        internal static int GetAIAdmissionFee(GuardPlaceholder guard)
+            => SoldierWageSystem.PeekGuardAdmissionFee(guard);
+
+        /// <summary>
+        /// 입단 게이트: [금고 확인 → 입단비 차감 → 로스터 등록] 순서. 금고 부족이면 아무것도 바꾸지 않고
+        /// 병사를 풀 앞으로 복귀시킨다. 등록 중 예외가 나면 차감을 환불하고, 로스터 변경을 원래 상태로
+        /// 되돌린 뒤 병사를 풀 앞으로 복귀시킨다. 성공 시 true.
+        /// </summary>
+        internal static bool TryAdmitToLord(GuardPlaceholder guard, TerritoryId lordId, int admissionFee)
+        {
+            if (guard == null) return false;
+
+            TerritoryState state = TerritoryDatabase.Instance.GetState(lordId);
+            if (state == null || state.territoryGold < admissionFee)
+            {
+                ReturnToMarketPool(guard);
+                return false;
+            }
+
+            List<TerritoryId> priorTerritories = SnapshotRosterMemberships(guard);
+            bool priorAIHired = guard.IsAIHired;
+            state.territoryGold -= admissionFee;
+            try
+            {
+                AssignToLord(guard, lordId);
+                // 입단 성공 기록 (AI 입단비는 이미 lord 금고에서 차감됨 — PlayerStats 미사용).
+                // 배정 실패 시 이 줄에 도달하지 않으므로 카운트는 증가하지 않는다.
+                SoldierWageSystem.RecordExternalGuardAdmission(guard);
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                state.territoryGold += admissionFee; // 원장 환불 (롤백)
+                RestoreRosterMemberships(guard, priorTerritories);
+                guard.IsAIHired = priorAIHired;      // AI 마커 롤백
+                ReturnToMarketPool(guard);
+                Debug.LogWarning($"[LaborMarket] 입단 등록 실패 — {admissionFee}G 환불, 병사 풀 복귀: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>병사가 현재 등록된 영지 목록 스냅샷 (롤백용).</summary>
+        private static List<TerritoryId> SnapshotRosterMemberships(GuardPlaceholder guard)
+        {
+            var result = new List<TerritoryId>();
+            GuardManager? manager = ResolveGuardManager();
+            TerritoryDatabase db = TerritoryDatabase.Instance;
+            if (manager == null || db == null) return result;
+
+            foreach (TerritoryDefinition def in db.GetAllDefinitions())
+            {
+                if (manager.GetGuardsInTerritory(def.id).Contains(guard))
+                    result.Add(def.id);
+            }
+            return result;
+        }
+
+        /// <summary>스냅샷 기준으로 로스터 등록 상태를 복원한다 (부분 등록 제거 후 원래 영지에 재등록).</summary>
+        private static void RestoreRosterMemberships(GuardPlaceholder guard, List<TerritoryId> priorTerritories)
+        {
+            GuardManager? manager = ResolveGuardManager();
+            if (manager == null) return;
+            try
+            {
+                manager.RemoveGuardFromAllTerritories(guard);
+                foreach (TerritoryId id in priorTerritories)
+                    manager.RegisterGuard(id, guard);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[LaborMarket] 로스터 롤백 실패: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 고용 실패 시 병사를 풀의 '앞'으로 되돌려 선입선출 순서를 보존한다 (중복 등록 방지, 사망 병사 제외).
+        /// </summary>
         private static void ReturnToMarketPool(GuardPlaceholder guard)
         {
             if (guard == null || !guard.IsAlive || _pool.Contains(guard)) return;
-            _pool.Add(guard);
+            _pool.Insert(0, guard);
+        }
+
+        /// <summary>GuardManager.Instance 우선, 없으면 씬에서 검색 (로드 시점 Instance null 대응).</summary>
+        private static GuardManager? ResolveGuardManager()
+        {
+            GuardManager? manager = GuardManager.Instance;
+            if (manager == null) manager = Object.FindAnyObjectByType<GuardManager>();
+            return manager;
+        }
+
+        /// <summary>에디터 편집 모드(테스트)에서도 안전하게 게임오브젝트를 제거한다.</summary>
+        private static void DestroyGuardObject(GuardPlaceholder guard)
+        {
+            if (guard == null || guard.gameObject == null) return;
+            if (Application.isPlaying) Object.Destroy(guard.gameObject);
+            else Object.DestroyImmediate(guard.gameObject);
+        }
+
+        /// <summary>[119차] 영지 중심 좌표 조회 — 미발견/예외 시 Vector3.zero(호출측에서 스킵).</summary>
+        private static Vector3 ResolveTerritoryCenter(TerritoryId id)
+        {
+            try
+            {
+                foreach (TerritoryDefinition def in TerritoryDatabase.Instance.GetAllDefinitions())
+                    if (def.id.Equals(id)) return def.worldPosition;
+            }
+            catch (System.Exception) { }
+            return Vector3.zero;
         }
 
         /// <summary>
@@ -283,6 +406,249 @@ namespace ProjectName.Systems
 
         /// <summary>AI가 고용한 총 병사 수 (디버그/하루 로그용).</summary>
         public static int TotalHiredByAI() => _totalHiredByAI;
+
+        // ===== 저장/복원 =====
+        /// <summary>
+        /// 고용 시장 AI 카운트를 DTO로 내보낸다 (영지 ID 문자열 오름차순 — 결정론).
+        /// 방출 풀(_pool)은 Unity 병사 참조이므로 저장하지 않는다. 0 이하 카운트는 제외.
+        /// </summary>
+        public static LaborMarketSaveData ExportSaveData()
+        {
+            var data = new LaborMarketSaveData
+            {
+                lastProcessedDay = _lastProcessedDay,
+                totalHiredByAI = _totalHiredByAI,
+            };
+
+            var keys = new List<TerritoryId>();
+            foreach (var kv in _hiredCounts)
+            {
+                if (kv.Value > 0) keys.Add(kv.Key);
+            }
+            keys.Sort((a, b) => string.CompareOrdinal(a.ToString(), b.ToString()));
+
+            foreach (TerritoryId id in keys)
+            {
+                data.hiredCounts.Add(new TerritoryHireCountEntry
+                {
+                    territoryId = id.ToString(),
+                    count = _hiredCounts[id],
+                });
+            }
+
+            data.hiredGuards = CollectAIHiredRosterEntries();
+            return data;
+        }
+
+        /// <summary>
+        /// 실제 등록된(GuardManager 영지 목록) AI 고용 마커 병사를 스캔해 로스터 DTO로 만든다.
+        /// 병사 1명은 한 번만 기록하며, 사망/마커 없음 병사는 제외. 정렬: 영지ID → stableId (결정론).
+        /// </summary>
+        private static List<AIHiredGuardSaveEntry> CollectAIHiredRosterEntries()
+        {
+            var entries = new List<AIHiredGuardSaveEntry>();
+            GuardManager? manager = ResolveGuardManager();
+            if (manager == null) return entries;
+
+            var seen = new HashSet<GuardPlaceholder>();
+            foreach (KeyValuePair<TerritoryId, GuardPlaceholder> pair in manager.GetAllRegisteredGuards())
+            {
+                GuardPlaceholder guard = pair.Value;
+                if (guard == null || !guard.IsAIHired || !guard.IsAlive) continue;
+                if (!seen.Add(guard)) continue;
+
+                AIHiredGuardSaveEntry? entry = guard.ToPersistentRosterEntry(pair.Key.ToString());
+                if (entry != null) entries.Add(entry);
+            }
+
+            entries.Sort((a, b) =>
+            {
+                int byTerritory = string.CompareOrdinal(a.territoryId, b.territoryId);
+                return byTerritory != 0 ? byTerritory : string.CompareOrdinal(a.stableId, b.stableId);
+            });
+            return entries;
+        }
+
+        /// <summary>
+        /// 저장 데이터로 고용 카운트/누적/마지막 처리일을 복원한다. _hiredCounts는 먼저 비운다.
+        /// 음수 값은 0으로 클램프(마지막 처리일은 -1 미만이면 -1), 유효하지 않은 영지 ID 항목은 건너뛴다.
+        /// 풀(_pool)은 건드리지 않는다. data == null 이면 기본 상태(카운트 0, 미처리)로 초기화한다.
+        /// </summary>
+        public static void ImportSaveData(LaborMarketSaveData? data)
+        {
+            _hiredCounts.Clear();
+            _totalHiredByAI = 0;
+            _lastProcessedDay = -1;
+            if (data == null)
+            {
+                RestoreAIHiredRoster(null);
+                return;
+            }
+
+            _lastProcessedDay = Mathf.Max(-1, data.lastProcessedDay);
+            _totalHiredByAI = Mathf.Max(0, data.totalHiredByAI);
+
+            if (data.hiredCounts != null)
+            {
+                foreach (TerritoryHireCountEntry e in data.hiredCounts)
+                {
+                    if (e == null) continue;
+                    if (!TryParseTerritoryId(e.territoryId, out TerritoryId id)) continue;
+                    int count = Mathf.Max(0, e.count);
+                    if (count == 0) continue;
+                    _hiredCounts[id] = count; // 중복 키는 마지막 값으로 덮어씀 (입력 순서 의존 — 저장 측은 정렬 출력)
+                }
+            }
+
+            // 구버전 세이브(hiredGuards 없음)는 null/빈 리스트 → 마커 병사 전부 정리 (세이브 상태가 권위)
+            RestoreAIHiredRoster(data.hiredGuards);
+        }
+
+        /// <summary>
+        /// AI 고용 병사 로스터 복원. 저장 DTO마다 (1) 같은 stableId의 기존 마커 병사가 있으면 재사용,
+        /// (2) 없으면 TerritoryBuilder.SpawnAIHiredGuard로 누락 병사를 생성한다. 이후 영지에 재등록한다.
+        /// 마커(IsAIHired)가 없는 기본 영지 병사는 절대 건드리지 않는다. 등록되지 않은 마커 병사는 제거한다.
+        /// 사망 엔트리·stableId 없음·중복 stableId·잘못된 영지 ID는 건너뛴다.
+        /// TerritoryDatabase/GuardManager가 없으면 물리 병사를 건드리지 않고 복원을 건너뛴다.
+        /// </summary>
+        private static void RestoreAIHiredRoster(List<AIHiredGuardSaveEntry>? entries)
+        {
+            GuardManager? manager = ResolveGuardManager();
+            if (manager == null)
+            {
+                if (entries != null && entries.Count > 0)
+                    Debug.LogWarning("[LaborMarket] AI 고용 병사 복원 건너뜀 — GuardManager 없음");
+                return;
+            }
+
+            TerritoryDatabase? db = TerritoryDatabase.Instance;
+            if (db == null && entries != null && entries.Count > 0)
+                Debug.LogWarning("[LaborMarket] TerritoryDatabase 없음 — AI 고용 병사 생성 없이 마커 병사만 정리");
+
+            // 1) 유효 엔트리 정리 (DB 없으면 생성 대상 없음 → 전부 제외되어 마커 병사만 정리됨)
+            var wanted = new List<KeyValuePair<TerritoryId, AIHiredGuardSaveEntry>>();
+            var wantedIds = new HashSet<string>();
+            if (entries != null && db != null)
+            {
+                foreach (AIHiredGuardSaveEntry e in entries)
+                {
+                    if (e == null || !e.isAlive) continue;
+                    if (string.IsNullOrEmpty(e.stableId))
+                    {
+                        Debug.LogWarning("[LaborMarket] stableId 없는 AI 고용 병사 엔트리 — 건너뜀");
+                        continue;
+                    }
+                    if (!GuardManager.TryParseTerritoryKey(e.territoryId, out TerritoryId owner))
+                    {
+                        Debug.LogWarning($"[LaborMarket] AI 고용 병사 영지 ID 파싱 실패({e.territoryId}) — 건너뜀");
+                        continue;
+                    }
+                    if (db.GetState(owner) == null)
+                    {
+                        Debug.LogWarning($"[LaborMarket] AI 고용 병사 영지 미존재({owner}) — 건너뜀");
+                        continue;
+                    }
+                    if (!wantedIds.Add(e.stableId)) continue; // 중복 stableId 방지
+                    wanted.Add(new KeyValuePair<TerritoryId, AIHiredGuardSaveEntry>(owner, e));
+                }
+            }
+
+            // 2) 기존 마커 병사 분류: 재사용(stableId 일치) / 정리 대상(일치 없음·중복)
+            var reuse = new Dictionary<string, GuardPlaceholder>();
+            var stale = new HashSet<GuardPlaceholder>();
+            foreach (KeyValuePair<TerritoryId, GuardPlaceholder> pair in manager.GetAllRegisteredGuards())
+            {
+                GuardPlaceholder g = pair.Value;
+                if (g == null || !g.IsAIHired) continue;
+                string sid = g.StableId;
+                if (reuse.TryGetValue(sid, out GuardPlaceholder? prev))
+                {
+                    if (prev != g) stale.Add(g);
+                }
+                else if (wantedIds.Contains(sid))
+                {
+                    reuse[sid] = g;
+                }
+                else
+                {
+                    stale.Add(g);
+                }
+            }
+            // 풀에 있는 마커 병사: 같은 stableId면 재사용, 그 외 마커 병사는 정리 대상
+            foreach (GuardPlaceholder pooled in _pool.ToArray())
+            {
+                if (pooled == null || !pooled.IsAIHired) continue;
+                if (stale.Contains(pooled)) continue;
+                string sid = pooled.StableId;
+                if (reuse.TryGetValue(sid, out GuardPlaceholder? kept))
+                {
+                    if (kept != pooled) stale.Add(pooled);
+                }
+                else if (wantedIds.Contains(sid))
+                {
+                    reuse[sid] = pooled;
+                }
+                else
+                {
+                    stale.Add(pooled);
+                }
+            }
+
+
+            // 3) 정리: 마커 병사 중 저장 로스터에 없는 것 제거 (기본 병사 제외)
+            foreach (GuardPlaceholder g in stale)
+            {
+                manager.RemoveGuardFromAllTerritories(g);
+                _pool.Remove(g);
+                DestroyGuardObject(g);
+            }
+
+            // 4) 복원/생성 후 영지 등록
+            var perOwnerSlot = new Dictionary<string, int>();
+            int restored = 0;
+            foreach (KeyValuePair<TerritoryId, AIHiredGuardSaveEntry> pair in wanted)
+            {
+                TerritoryId owner = pair.Key;
+                AIHiredGuardSaveEntry e = pair.Value;
+
+                GuardPlaceholder? guard;
+                if (reuse.TryGetValue(e.stableId, out GuardPlaceholder? existing) && existing != null)
+                {
+                    guard = existing;
+                    guard.ApplyPersistentRosterEntry(e);
+                    _pool.Remove(guard);
+                }
+                else
+                {
+                    string ownerKey = owner.ToString();
+                    perOwnerSlot.TryGetValue(ownerKey, out int slot);
+                    perOwnerSlot[ownerKey] = slot + 1;
+
+                    guard = TerritoryBuilder.SpawnAIHiredGuard(db!.GetDefinition(owner), slot, e);
+                    if (guard == null)
+                    {
+                        Debug.LogWarning($"[LaborMarket] AI 고용 병사 생성 실패({e.guardName}, {ownerKey}) — 물리 복원 안 됨");
+                        continue;
+                    }
+                }
+
+                guard.SetRecruited(false);
+                guard.IsAIHired = true;
+                manager.RemoveGuardFromAllTerritories(guard);
+                manager.RegisterGuard(owner, guard);
+                restored++;
+            }
+
+            Debug.Log($"[LaborMarket] AI 고용 병사 복원: 저장 {wanted.Count}명 중 {restored}명 물리 등록 (정리 {stale.Count}명)");
+        }
+
+        /// <summary>
+        /// TerritoryId.ToString() 형식("East_01")만 유효로 인정하는 파서. 왕복 일치 검사로
+        /// 비정규 표기("East_1", 숫자 국가값 등)를 거부해 키 중복을 막는다.
+        /// </summary>
+        private static bool TryParseTerritoryId(string? text, out TerritoryId id)
+            => GuardManager.TryParseTerritoryKey(text ?? string.Empty, out id);
+
 
         // ===== 리셋 (테스트) =====
         /// <summary>모든 static 상태 초기화 (테스트용).</summary>

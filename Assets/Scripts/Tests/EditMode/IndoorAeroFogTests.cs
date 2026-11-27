@@ -103,8 +103,8 @@ namespace ProjectName.Tests.EditMode
             Assert.That(src, Does.Contain("m_AmbientSkyColor: {r: 0.44, g: 0.3, b: 0.2, a: 1}"),
                 "씬 앰비언트 삼분광은 10-11 20차 ×2 값이어야 한다.");
             var fogCtrl = System.IO.File.ReadAllText("Assets/Scripts/Systems/IndoorAeroFogController.cs");
-            Assert.That(fogCtrl, Does.Contain("public const float IndoorDensity = 0.12f"),
-                "AERO 실내 포그 밀도는 0.12(흰 포그 밝기 축소)여야 한다.");
+            Assert.That(fogCtrl, Does.Contain("public const float IndoorDensity = 0.09f"),
+                "[157차] AERO 실내 포그 밀도는 0.09(사용자 지시 추가 축소 — 0.12에서 한 단계)여야 한다.");
         }
 
         [Test]

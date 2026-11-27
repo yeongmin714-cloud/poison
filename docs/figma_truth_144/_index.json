@@ -1,0 +1,555 @@
+[
+ {
+  "name": "shop_buy",
+  "id": "74:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/shop_buy__74_4.json",
+  "bytes": 110918,
+  "classes": [
+   "ShopWindowUTK"
+  ],
+  "title": "game-shop-ui"
+ },
+ {
+  "name": "shop_sell",
+  "id": "76:7",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/shop_sell__76_7.json",
+  "bytes": 110928,
+  "classes": [
+   "ShopWindowUTK"
+  ],
+  "title": "game-shop-ui"
+ },
+ {
+  "name": "inventory",
+  "id": "15:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/inventory__15_4.json",
+  "bytes": 173887,
+  "classes": [
+   "InventoryWindowUTK",
+   "InventoryClusterFigmaLayout"
+  ],
+  "title": "fluent-game-inventory-ui"
+ },
+ {
+  "name": "equipment",
+  "id": "84:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/equipment__84_4.json",
+  "bytes": 133897,
+  "classes": [
+   "EquipmentWindowUTK",
+   "StatusWindowUTK"
+  ],
+  "title": "equipment-inventory-panel"
+ },
+ {
+  "name": "crafting_v1",
+  "id": "63:5",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/crafting_v1__63_5.json",
+  "bytes": 135172,
+  "classes": [
+   "CraftingWindowUTK",
+   "CraftBenchBaseUTK"
+  ],
+  "title": "crafting-panel"
+ },
+ {
+  "name": "crafting_v2",
+  "id": "64:2",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/crafting_v2__64_2.json",
+  "bytes": 135177,
+  "classes": [
+   "CraftingWindowUTK",
+   "CookingWindowUTK"
+  ],
+  "title": "crafting-panel"
+ },
+ {
+  "name": "crafting_v3",
+  "id": "64:337",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/crafting_v3__64_337.json",
+  "bytes": 137667,
+  "classes": [
+   "WeaponForgeUTK",
+   "CraftingWindowUTK"
+  ],
+  "title": "crafting-panel"
+ },
+ {
+  "name": "loot",
+  "id": "70:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/loot__70_4.json",
+  "bytes": 30000,
+  "classes": [
+   "LootWindowUTK"
+  ],
+  "title": "loot-panel"
+ },
+ {
+  "name": "result_fishing",
+  "id": "72:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/result_fishing__72_4.json",
+  "bytes": 24359,
+  "classes": [
+   "HarvestResultUTK"
+  ],
+  "title": "fishing-result-ui"
+ },
+ {
+  "name": "result_gathering",
+  "id": "72:80",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/result_gathering__72_80.json",
+  "bytes": 24982,
+  "classes": [
+   "HarvestResultUTK"
+  ],
+  "title": "gathering-result-ui"
+ },
+ {
+  "name": "result_mining",
+  "id": "72:143",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/result_mining__72_143.json",
+  "bytes": 24891,
+  "classes": [
+   "HarvestResultUTK"
+  ],
+  "title": "mining-result-ui"
+ },
+ {
+  "name": "fishing",
+  "id": "160:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/fishing__160_4.json",
+  "bytes": 20469,
+  "classes": [
+   "FishingUTK"
+  ],
+  "title": "fishing-panel"
+ },
+ {
+  "name": "interaction_1",
+  "id": "81:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/interaction_1__81_4.json",
+  "bytes": 10890,
+  "classes": [
+   "InteractionPanelUTK"
+  ],
+  "title": "interaction-panel"
+ },
+ {
+  "name": "interaction_2",
+  "id": "81:51",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/interaction_2__81_51.json",
+  "bytes": 11629,
+  "classes": [
+   "InteractionPanelUTK"
+  ],
+  "title": "interaction-panel"
+ },
+ {
+  "name": "interaction_3",
+  "id": "81:91",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/interaction_3__81_91.json",
+  "bytes": 11646,
+  "classes": [
+   "InteractionPanelUTK"
+  ],
+  "title": "interaction-panel"
+ },
+ {
+  "name": "interaction_4",
+  "id": "81:134",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/interaction_4__81_134.json",
+  "bytes": 11649,
+  "classes": [
+   "InteractionPanelUTK"
+  ],
+  "title": "interaction-panel"
+ },
+ {
+  "name": "interaction_5",
+  "id": "82:2",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/interaction_5__82_2.json",
+  "bytes": 11621,
+  "classes": [
+   "InteractionPanelUTK"
+  ],
+  "title": "interaction-panel"
+ },
+ {
+  "name": "interaction_6",
+  "id": "82:45",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/interaction_6__82_45.json",
+  "bytes": 5479,
+  "classes": [
+   "InteractionPanelUTK"
+  ],
+  "title": "interaction-panel"
+ },
+ {
+  "name": "interaction_7",
+  "id": "93:185",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/interaction_7__93_185.json",
+  "bytes": 7943,
+  "classes": [
+   "InteractionPanelUTK"
+  ],
+  "title": "interaction-panel"
+ },
+ {
+  "name": "panel_fishing",
+  "id": "163:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/panel_fishing__163_4.json",
+  "bytes": 5547,
+  "classes": [
+   "FishingUTK"
+  ],
+  "title": "interaction-panel-fishing"
+ },
+ {
+  "name": "panel_sleep",
+  "id": "163:45",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/panel_sleep__163_45.json",
+  "bytes": 5545,
+  "classes": [
+   "SleepPanelUTK"
+  ],
+  "title": "interaction-panel-sleep"
+ },
+ {
+  "name": "panel_lordroom",
+  "id": "163:64",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/panel_lordroom__163_64.json",
+  "bytes": 6001,
+  "classes": [
+   "LordAudienceUTK"
+  ],
+  "title": "interaction-panel-lordroom"
+ },
+ {
+  "name": "panel_lockpick",
+  "id": "163:83",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/panel_lockpick__163_83.json",
+  "bytes": 5997,
+  "classes": [
+   "LockpickingUTK"
+  ],
+  "title": "interaction-panel-lockpick"
+ },
+ {
+  "name": "panel_arena_act",
+  "id": "261:3",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/panel_arena_act__261_3.json",
+  "bytes": 7395,
+  "classes": [
+   "ArenaBattleUTK"
+  ],
+  "title": "대화·베팅 상호작용 패널"
+ },
+ {
+  "name": "dialogue_149",
+  "id": "163:23",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/dialogue_149__163_23.json",
+  "bytes": 6254,
+  "classes": [
+   "NPCDialoguePanelUTK"
+  ],
+  "title": "npc-dialogue-panel"
+ },
+ {
+  "name": "dialogue_172",
+  "id": "187:14",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/dialogue_172__187_14.json",
+  "bytes": 10654,
+  "classes": [
+   "NPCDialoguePanelUTK",
+   "NPCDialogueUTK"
+  ],
+  "title": "npc-dialogue-panel"
+ },
+ {
+  "name": "status",
+  "id": "83:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/status__83_4.json",
+  "bytes": 32755,
+  "classes": [
+   "StatusWindowUTK"
+  ],
+  "title": "character-status-panel"
+ },
+ {
+  "name": "potion",
+  "id": "173:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/potion__173_4.json",
+  "bytes": 12289,
+  "classes": [
+   "PotionStatusUTK"
+  ],
+  "title": "potion-status-panel"
+ },
+ {
+  "name": "quest",
+  "id": "93:230",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/quest__93_230.json",
+  "bytes": 93655,
+  "classes": [
+   "QuestWindowUTK"
+  ],
+  "title": "quest-window-ui"
+ },
+ {
+  "name": "combatlog",
+  "id": "94:6",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/combatlog__94_6.json",
+  "bytes": 61765,
+  "classes": [
+   "QuestJournalUTK"
+  ],
+  "title": "daily-combat-log"
+ },
+ {
+  "name": "worldmap",
+  "id": "95:167",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/worldmap__95_167.json",
+  "bytes": 6049,
+  "classes": [
+   "WorldMapWindowUTK"
+  ],
+  "title": "medieval-world-map-ui"
+ },
+ {
+  "name": "map_pin_cur",
+  "id": "95:238",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/map_pin_cur__95_238.json",
+  "bytes": 2192,
+  "classes": [
+   "WorldMapWindowUTK"
+  ],
+  "title": "지역 마커 · 현재지"
+ },
+ {
+  "name": "map_pin_fortress",
+  "id": "95:244",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/map_pin_fortress__95_244.json",
+  "bytes": 2247,
+  "classes": [
+   "WorldMapWindowUTK"
+  ],
+  "title": "지역 마커 · 부서진 차원의 문 요새"
+ },
+ {
+  "name": "map_pin_factory",
+  "id": "95:250",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/map_pin_factory__95_250.json",
+  "bytes": 1879,
+  "classes": [
+   "WorldMapWindowUTK"
+  ],
+  "title": "지역 마커 · 엘리시온 공업지구"
+ },
+ {
+  "name": "map_explorelist",
+  "id": "95:188",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/map_explorelist__95_188.json",
+  "bytes": 20787,
+  "classes": [
+   "WorldMapWindowUTK",
+   "FastTravelUTK"
+  ],
+  "title": "지역 탐색 리스트"
+ },
+ {
+  "name": "map_regioninfo",
+  "id": "95:255",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/map_regioninfo__95_255.json",
+  "bytes": 28525,
+  "classes": [
+   "WorldMapWindowUTK",
+   "FastTravelUTK"
+  ],
+  "title": "선택 지역정보"
+ },
+ {
+  "name": "arena_lose",
+  "id": "280:381",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/arena_lose__280_381.json",
+  "bytes": 45466,
+  "classes": [
+   "ArenaResultWindowUTK"
+  ],
+  "title": "투기장 패배 결과"
+ },
+ {
+  "name": "arena_win",
+  "id": "280:163",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/arena_win__280_163.json",
+  "bytes": 44257,
+  "classes": [
+   "ArenaResultWindowUTK"
+  ],
+  "title": "투기장 승리 결과"
+ },
+ {
+  "name": "arena_betting",
+  "id": "255:647",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/arena_betting__255_647.json",
+  "bytes": 101711,
+  "classes": [
+   "ArenaWindowUTK"
+  ],
+  "title": "투기장 베팅"
+ },
+ {
+  "name": "soldier_mgmt",
+  "id": "69:4",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/soldier_mgmt__69_4.json",
+  "bytes": 122468,
+  "classes": [
+   "SoldierManagementUTK",
+   "GuardInfoUTK"
+  ],
+  "title": "soldier-management-ui"
+ },
+ {
+  "name": "training_hall",
+  "id": "269:322",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/training_hall__269_322.json",
+  "bytes": 162109,
+  "classes": [
+   "TrainingHallWindowUTK"
+  ],
+  "title": "훈련소 병사 훈련 관리"
+ },
+ {
+  "name": "construction",
+  "id": "239:683",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/construction__239_683.json",
+  "bytes": 132852,
+  "classes": [
+   "ConstructionWindowUTK"
+  ],
+  "title": "전초기지 건설 관리"
+ },
+ {
+  "name": "restaurant",
+  "id": "237:792",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/restaurant__237_792.json",
+  "bytes": 144849,
+  "classes": [
+   "RestaurantWindowUTK"
+  ],
+  "title": "음식점 판매 관리"
+ },
+ {
+  "name": "tax_single",
+  "id": "244:281",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/tax_single__244_281.json",
+  "bytes": 33718,
+  "classes": [
+   "Tax",
+   "RecommendedTaxWindowUTK"
+  ],
+  "title": "단일 영지 세금 관리 패널"
+ },
+ {
+  "name": "tax_weekly",
+  "id": "243:3",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/tax_weekly__243_3.json",
+  "bytes": 56237,
+  "classes": [
+   "Tax",
+   "RevengeListUTK"
+  ],
+  "title": "영지별 주간 세금 패널"
+ },
+ {
+  "name": "sleep_panel",
+  "id": "227:262",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/sleep_panel__227_262.json",
+  "bytes": 79289,
+  "classes": [
+   "SleepUTK"
+  ],
+  "title": "수면 시스템 패널"
+ },
+ {
+  "name": "hire_notice",
+  "id": "210:169",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/hire_notice__210_169.json",
+  "bytes": 76787,
+  "classes": [
+   "MercenaryPaymentNoticeUTK"
+  ],
+  "title": "고용비 알림 패널"
+ },
+ {
+  "name": "attack_formation",
+  "id": "204:1963",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/attack_formation__204_1963.json",
+  "bytes": 177380,
+  "classes": [
+   "AttackFormationUTK"
+  ],
+  "title": "공격조 전투 배치"
+ },
+ {
+  "name": "hud",
+  "id": "23:6",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/hud__23_6.json",
+  "bytes": 31851,
+  "classes": [
+   "HUDUTK",
+   "HotbarUIUTK",
+   "QuickSlotUTK"
+  ],
+  "title": "HUD_Canvas"
+ },
+ {
+  "name": "minimap",
+  "id": "40:44",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/minimap__40_44.json",
+  "bytes": 1128,
+  "classes": [
+   "MinimapUTK"
+  ],
+  "title": "empty-circular-minimap"
+ },
+ {
+  "name": "monster_hp",
+  "id": "101:5",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/monster_hp__101_5.json",
+  "bytes": 1753,
+  "classes": [
+   "MonsterInfoUTK"
+  ],
+  "title": "monster-health-bar"
+ },
+ {
+  "name": "monster_hp_ref",
+  "id": "110:14",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/monster_hp_ref__110_14.json",
+  "bytes": 11378,
+  "classes": [
+   "MonsterInfoUTK"
+  ],
+  "title": "reference-monster-health-bar"
+ },
+ {
+  "name": "gauge_bar",
+  "id": "175:65",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/gauge_bar__175_65.json",
+  "bytes": 807,
+  "classes": [
+   "UTKGaugeStripArc"
+  ],
+  "title": "fluent-gauge-bar"
+ },
+ {
+  "name": "event_video",
+  "id": "246:141",
+  "file": "/mnt/c/Unity/code/docs/figma_truth_144/event_video__246_141.json",
+  "bytes": 16002,
+  "classes": [
+   "DynamicEventUTK"
+  ],
+  "title": "이벤트 발생 영상 패널"
+ }
+]

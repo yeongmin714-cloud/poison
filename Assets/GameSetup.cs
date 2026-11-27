@@ -325,6 +325,8 @@ public class GameSetup : MonoBehaviour
         // 별도 부모 'IdyllicDeco' 아래 배치(기존 GLB 데코 유지), 결정론 시드 + 최소 간격.
         IdyllicDecoPlacer.PlaceAll(decoGO.transform, decoGO.transform);
         Debug.Log("[GameSetup][TerrainDeco] ✅ IdyllicDecoPlacer.PlaceAll 완료");
+        PolyforkOutdoorStructures.PlaceAll(decoGO.transform, decoGO.transform); // [161차 P2] 야외 건축물 패스
+        Debug.Log("[GameSetup][TerrainDeco] ✅ PolyforkOutdoorStructures.PlaceAll 완료");
         // [T-R1 09-04] Idyllic 총 프리팹 수 검증 로그 (배치 완료 후)
         var idyllicRoot = GameObject.Find("IdyllicDeco");
         if (idyllicRoot != null)

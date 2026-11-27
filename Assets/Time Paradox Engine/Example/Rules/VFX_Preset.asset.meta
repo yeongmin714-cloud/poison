@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 387440b2dbb69f14783cf949f071ef2f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Example/Rules/VFX_Preset.asset
+  uploadId: 898796

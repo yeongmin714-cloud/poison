@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 21ca3e3efd6af3c42b83e0d64bde7ddd
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Demo/Character/ENEMY.prefab
+  uploadId: 898796

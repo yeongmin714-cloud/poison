@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e666a082b32890d46a5ce887c8677b5a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Example/Time Slow Motion Profile.asset
+  uploadId: 898796

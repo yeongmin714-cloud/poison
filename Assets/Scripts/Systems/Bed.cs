@@ -79,6 +79,24 @@ namespace ProjectName.Systems
         /// <summary>[U8 배선] UTK 수면 UI 우선 경로 — UI 어셈블리가 구독(UTKWireUp). 미구독 시 기존 경로.</summary>
         public static event System.Action<Bed> OnInteractRequestedUTK;
 
+        // [43차] 공용 E 월드 프롬프트 등록 상태 — 근접 판정은 PlayerMovement OverlapSphere가 담당하므로
+        //   침대 쪽 Update는 최소 폴링(0.3s)으로 플레이어 거리만 확인해 등록/해제를 브리지에 전달.
+        private float _promptNextCheck;
+
+        private void Update()
+        {
+            if (Time.unscaledTime < _promptNextCheck) return;
+            _promptNextCheck = Time.unscaledTime + 0.3f;
+
+            var player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null) return;
+            float dist = Vector3.Distance(transform.position, player.transform.position);
+            if (dist <= _interactionRange + 0.5f)   // PlayerMovement 반경 2.5와 정합(+여유)
+                EInteractionPromptBridge.RaiseRegister(transform, "E - 잠자기/세이브", _interactionRange + 0.5f);
+            else
+                EInteractionPromptBridge.RaiseUnregister(transform);
+        }
+
         public void OnInteract()
         {
             // [U8 배선] UTK 우선 — 구독자가 처리하면 리턴, 아니면 기존 IMGUI 경로 유지

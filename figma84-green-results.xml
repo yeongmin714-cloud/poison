@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Failed(Child)" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.7057215">
+  <test-suite type="TestSuite" id="1000" name="포이즌" fullname="포이즌" runstate="Runnable" testcasecount="503" result="Failed" site="Child" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.705722" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1564" name="ProjectName.Tests.EditMode.dll" fullname="C:/Unity/code/Library/ScriptAssemblies/ProjectName.Tests.EditMode.dll" runstate="Runnable" testcasecount="494" result="Failed" site="Child" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.546194" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="14172" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1565" name="ProjectName" fullname="ProjectName" runstate="Runnable" testcasecount="494" result="Failed" site="Child" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.538031" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1566" name="Tests" fullname="ProjectName.Tests" runstate="Runnable" testcasecount="494" result="Failed" site="Child" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.530485" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1567" name="EditMode" fullname="ProjectName.Tests.EditMode" runstate="Runnable" testcasecount="479" result="Failed" site="Child" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.523275" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1513" name="StatusEquipmentFigma84Tests" fullname="ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests" classname="ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests" runstate="Runnable" testcasecount="3" result="Failed" site="Child" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.509896" total="3" passed="2" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1514" name="Figma84Bounds_AreCanvasLocalAfterSubtractingFrameOrigin" fullname="ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests.Figma84Bounds_AreCanvasLocalAfterSubtractingFrameOrigin" methodname="Figma84Bounds_AreCanvasLocalAfterSubtractingFrameOrigin" classname="ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests" runstate="Runnable" seed="977552640" result="Passed" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.031476" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1515" name="RuntimeComposition_HasTwoCanvasPanelSiblings_AndKeepsStatusBelowFoldContent" fullname="ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests.RuntimeComposition_HasTwoCanvasPanelSiblings_AndKeepsStatusBelowFoldContent" methodname="RuntimeComposition_HasTwoCanvasPanelSiblings_AndKeepsStatusBelowFoldContent" classname="ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests" runstate="Runnable" seed="1406759297" result="Passed" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.445716" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1516" name="ToggleRoute_UsesPKey_AndLifecycleStillExposesEscapeClose" fullname="ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests.ToggleRoute_UsesPKey_AndLifecycleStillExposesEscapeClose" methodname="ToggleRoute_UsesPKey_AndLifecycleStillExposesEscapeClose" classname="ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests" runstate="Runnable" seed="1918924420" result="Failed" start-time="2026-10-05 03:33:12Z" end-time="2026-10-05 03:33:12Z" duration="0.016028" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  The post-scene status bootstrap must remain in place.
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at ProjectName.Tests.EditMode.StatusEquipmentFigma84Tests.ToggleRoute_UsesPKey_AndLifecycleStillExposesEscapeClose () [0x00039] in C:\Unity\code\Assets\Scripts\Tests\EditMode\StatusEquipmentFigma84Tests.cs:75
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Saving results to: C:/Users/korea/AppData/LocalLow/DefaultCompany/포이즌\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

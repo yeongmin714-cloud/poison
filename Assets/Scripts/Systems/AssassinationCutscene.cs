@@ -258,6 +258,9 @@ namespace ProjectName.Systems
             TerritoryLootSystem.EnsureTerritoryGold(territoryId);
             TerritoryLootSystem.ConfiscateOnCapture(territoryId);
 
+            // [F1] 플레이어 깃발 게양 — 암살 경로
+            TerritoryCaptureSystem.OnTerritoryCaptured(territoryId, NationType.East, true);
+
             OnAssassinationExecuted?.Invoke(territoryId);
 
             Debug.Log($"[AssassinationCutscene] ⚔️ {db.GetDefinition(territoryId).territoryName} 영주 암살 완료!");

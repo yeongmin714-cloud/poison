@@ -22,7 +22,7 @@ namespace ProjectName.UI
             const float roomDepth = 10f;
 
             // ===== 텍스처 생성 =====
-            Texture2D floorTex = IndoorTextureGenerator.GenerateCraftHouseFloor();
+            // [무번호 32] CraftHouse 전용 바닥 텍스처 폐기 — 영지 실내 공통 석타일(씬 통일 계약).
             Texture2D wallTex = IndoorTextureGenerator.GenerateCraftHouseWall();
             Texture2D ceilingTex = IndoorTextureGenerator.GeneratePlasterWall(256, 256,
                 new Color(0.65f, 0.62f, 0.58f));
@@ -40,9 +40,8 @@ namespace ProjectName.UI
                 return null;
             }
 
-            Material floorMat = new Material(shader) { name = "CraftHouse_FloorMat" };
-            floorMat.mainTexture = floorTex;
-            floorMat.color = Color.white;
+            // [무번호 32] 영지 실내 공통 석타일 — 국가 무관 단일 바닥(1m 타일, UV 0..1 쿼드 스케일 정합).
+            Material floorMat = InteriorQualityBaseline.CreateCommonInteriorFloorMat(roomWidth, roomDepth, "CraftHouse");
 
             Material wallMat = new Material(shader) { name = "CraftHouse_WallMat" };
             wallMat.mainTexture = wallTex;
@@ -158,7 +157,7 @@ namespace ProjectName.UI
             // ===== 조명 설정 =====
             // 중간 밝기, 깜빡임 없음
             Color ambientMid = new Color(0.12f, 0.12f, 0.12f);
-            IndoorLighting.SetupIndoorLighting(room, ambientMid, 0.25f, false);
+            IndoorLighting.SetupIndoorLighting(room, ambientMid, 0.35f, false);   // [125차 후속5] 앰비언트 0.25→0.35 상향
 
             Debug.Log("[CraftHouseInteriorBuilder] 크래프트하우스 실내 생성 완료!");
 
@@ -204,6 +203,12 @@ namespace ProjectName.UI
                 var warehouseLabel = warehouseShelf.AddComponent<NameplateDisplay>();
                 warehouseLabel.DisplayName = "📦 창고";
             }
+
+            // [수조 통일] 천장 제거+남측 벽 시각 절단(콜라이더 유지) — 9/20 실내씬 예시 기준
+            ProjectName.Systems.IndoorDioramaKit.Apply(room);
+
+            // [실내 고품질화 P3] 가구/조명/소품 가산 패스.
+            ProjectName.Systems.InteriorFurnishingPass.ApplyBuilding(room, "crafthouse", roomWidth, roomDepth, null, roomHeight);
 
             return room;
         }

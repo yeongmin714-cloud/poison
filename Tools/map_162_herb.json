@@ -1,0 +1,602 @@
+[
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a1.glb",
+  "note": "A1 쓴풀",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.99897,
+     0.87608,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a10.glb",
+  "note": "A10 불꽃꽃잎",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.85911,
+     1.0,
+     0.85938
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a2.glb",
+  "note": "A2 가시덤불",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.99897,
+     0.87608,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a3.glb",
+  "note": "A3 붉은줄기",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.99897,
+     1.0,
+     0.99928
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a4.glb",
+  "note": "A4 독가시꽃",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.99897,
+     1.0,
+     0.99928
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a5.glb",
+  "note": "A5 검은진액풀",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.99897,
+     1.0,
+     0.99928
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a6.glb",
+  "note": "A6 괴사뿌리",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.85911,
+     0.75343,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a7.glb",
+  "note": "A7 맹독이끼",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.85911,
+     0.75343,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a8.glb",
+  "note": "A8 썩은덩굴",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.85911,
+     0.86051,
+     0.85938
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_red.glb",
+  "dst": "Assets/Resources/Models/UserProvided/a9.glb",
+  "note": "A9 재앙의씨앗",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.85911,
+     1.0,
+     0.85938
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h1.glb",
+  "note": "H1 회복꽃",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     0.95938,
+     0.99932
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h10.glb",
+  "note": "H10 정신안정잎",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.70089,
+     0.8598,
+     0.85942
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h2.glb",
+  "note": "H2 생명수뿌리",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     0.99977,
+     0.99932
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h3.glb",
+  "note": "H3 활력잎",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.99862,
+     0.99977,
+     0.99932
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h4.glb",
+  "note": "H4 진정초",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.9068,
+     0.99977,
+     0.99932
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h5.glb",
+  "note": "H5 근육강화풀",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.81498,
+     0.99977,
+     0.99932
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h6.glb",
+  "note": "H6 피부재생풀",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.97725,
+     0.82506,
+     0.85942
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h7.glb",
+  "note": "H7 해독초",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.93777,
+     0.8598,
+     0.85942
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h8.glb",
+  "note": "H8 시야확장풀",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.85881,
+     0.8598,
+     0.85942
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_green.glb",
+  "dst": "Assets/Resources/Models/UserProvided/h9.glb",
+  "note": "H9 속도증가꽃",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.77985,
+     0.8598,
+     0.85942
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m1.glb",
+  "note": "M1 향기꽃",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.8664,
+     0.9997,
+     0.99994
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m10.glb",
+  "note": "M10 마비버섯",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.93726,
+     0.85974,
+     0.82574
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m2.glb",
+  "note": "M2 환각포자",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.93309,
+     0.9997,
+     0.99994
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m3.glb",
+  "note": "M3 신경마비꽃",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.99979,
+     0.9997,
+     0.99994
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m4.glb",
+  "note": "M4 안개꽃",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     0.9997,
+     0.99994
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m5.glb",
+  "note": "M5 영혼꽃",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     0.9997,
+     0.96016
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m6.glb",
+  "note": "M6 그림자덩굴",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.7451,
+     0.85974,
+     0.85995
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m7.glb",
+  "note": "M7 시간지연꽃",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.80246,
+     0.85974,
+     0.85995
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m8.glb",
+  "note": "M8 변이초",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.85982,
+     0.85974,
+     0.85995
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_purple.glb",
+  "dst": "Assets/Resources/Models/UserProvided/m9.glb",
+  "note": "M9 차가운서리풀",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.91718,
+     0.85974,
+     0.85995
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p1.glb",
+  "note": "P1 잡초",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p10.glb",
+  "note": "P10 황금약초",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.86062,
+     0.65613,
+     0.86091
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p2.glb",
+  "note": "P2 맑은잎",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p3.glb",
+  "note": "P3 끈끈이풀",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p4.glb",
+  "note": "P4 푸른이끼",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     0.88191,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p5.glb",
+  "note": "P5 마른뿌리",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     1.0,
+     0.76295,
+     1.0
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p6.glb",
+  "note": "P6 이슬맺힌잎",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.86062,
+     1.0,
+     0.86091
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p7.glb",
+  "note": "P7 빛나는이끼",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.86062,
+     0.96306,
+     0.86091
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p8.glb",
+  "note": "P8 용의숨결풀",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.86062,
+     0.86075,
+     0.86091
+    ]
+   }
+  ]
+ },
+ {
+  "src": "Assets/Resources/Models/UserProvided/herb_blue.glb",
+  "dst": "Assets/Resources/Models/UserProvided/p9.glb",
+  "note": "P9 타락한뿌리",
+  "ops": [
+   {
+    "zone": 0,
+    "rgb": [
+     0.86062,
+     0.75844,
+     0.86091
+    ]
+   }
+  ]
+ }
+]

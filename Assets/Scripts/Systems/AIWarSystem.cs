@@ -177,15 +177,38 @@ namespace ProjectName.Systems
 
             OnWarStarted?.Invoke(warData);
 
+            // [55차] 가시 행진 연결 — AI 전쟁 선언 즉시 공격 영지 → 방어 영지 **실제 행진**(메인 씬 포함).
+            //   행진 종료(야외 교전 완료) 시 잔존 전력 판정으로 전쟁이 즉시 정산된다(점령/격퇴).
+            //   연결 실패 시에도 기존 수치 전쟁은 그대로 진행(무손상). 실내 씬에서는 발화하지 않는다.
+            // 배치 경로는 단 하나: 가시 행진이 시작되면 행진이 양측 병력을 스폰하므로 레거시 주둔군을 추가 스폰하지 않는다.
+            // 행진이 시작되지 않은 경우(상한 도달, 실내, 국가 없음, 예외)에만 레거시 주둔군 폴백을 사용한다.
+            bool visibleMarchStarted = false;
+            try
+            {
+                if (!ProjectName.Core.UITransitionState.IndoorActive
+                    && defAttacker.id.nation != NationType.None && defDefender.id.nation != NationType.None)
+                {
+                    visibleMarchStarted = WarMarchSimulation.TryStartMarch(defAttacker, defAttacker.worldPosition,
+                        defDefender.worldPosition, defDefender, warData.warId);
+                }
+            }
+            catch (System.Exception marchEx)
+            {
+                Debug.LogWarning($"[AIWarSystem] 가시 행진 연결 실패(전쟁 수치는 계속): {marchEx.Message}");
+            }
+
             // [Phase H] 일일 전쟁 전보(하루 종합 로그)에 시작 기록
             DailyWarLogSystem.RecordWarStarted(attacker, defender);
 
-            // R3-2: 전쟁 시작 시 양측 영지에서 주둔군이 성 내부→외부로 출격
-            var attackerGarrison = TerritoryBuilder.SpawnGarrison(defAttacker, defAttacker.worldPosition);
-            var defenderGarrison = TerritoryBuilder.SpawnGarrison(defDefender, defDefender.worldPosition);
-            var all = new System.Collections.Generic.List<GameObject>(attackerGarrison);
-            all.AddRange(defenderGarrison);
-            _warGarrisons[warData.warId] = all;
+            if (ShouldSpawnLegacyGarrison(visibleMarchStarted))
+            {
+                // R3-2: 전쟁 시작 시 양측 영지에서 주둔군이 성 내부→외부로 출격 (레거시 폴백)
+                var attackerGarrison = TerritoryBuilder.SpawnGarrison(defAttacker, defAttacker.worldPosition);
+                var defenderGarrison = TerritoryBuilder.SpawnGarrison(defDefender, defDefender.worldPosition);
+                var all = new System.Collections.Generic.List<GameObject>(attackerGarrison);
+                all.AddRange(defenderGarrison);
+                _warGarrisons[warData.warId] = all;
+            }
 
             return true;
         }
@@ -486,6 +509,11 @@ namespace ProjectName.Systems
             // TerritoryLootSystem은 PlayerOwned 점령에서만 몰수하므로 별도 몰수 호출은 하지 않는다.
             db.SetOwnership(war.defenderTerritoryId, TerritoryOwnership.LordOwned);
 
+            // [123차] 소유 영주 갱신 — 정복 영지의 소유 영주를 공격 영지의 원래 영주로 결정론 기록.
+            // AIWarData에 attackerTerritoryId가 존재하므로 그 영주(defAttacker.lord.lordName)가
+            // 승리 영주가 된다. 플레이어 영지 탈환(→AI 영주)도 동일 배선으로 자동 커버.
+            db.SetOwnerLord(defKey, defAttacker.lord.lordName);
+
             // 완료된 전쟁 정보는 큐에 저장
             AIWarData completed = war;
             completed.isCompleted = true;
@@ -516,6 +544,41 @@ namespace ProjectName.Systems
             DailyWarLogSystem.RecordTerritoryLost(war.defenderTerritoryId);
         }
 
+        /// <summary>[55차] 전투 결과 기반 전쟁 정산 — 가시 행진의 잔존 전력 판정([영지전쟁 판정])을
+        ///   전쟁에 즉시 반영한다. 공격 승리 = 즉시 점령(CompleteWar — 소유권 이전/알림/전보 동행),
+        ///   방어 승리 = 전쟁 격퇴(활성 전쟁 제거 + 수비 상태 해제 + 격퇴 알림).
+        ///   이미 종료/정산된 전쟁 ID는 무시(이중 정산 방지).</summary>
+        public static void SettleWarByBattle(int warId, bool attackerWon)
+        {
+            int idx = _activeWars.FindIndex(w => w.warId == warId && !w.isCompleted);
+            if (idx < 0) return;
+
+            if (attackerWon)
+            {
+                AIWarData war = _activeWars[idx];
+                war.progress = 100f;
+                _activeWars[idx] = war;
+                OnWarProgressed?.Invoke(war);
+                CompleteWar(war, idx);
+                return;
+            }
+
+            // 방어 승리 — 침공 격퇴(활성 전쟁 제거)
+            AIWarData repelled = _activeWars[idx];
+            _activeWars.RemoveAt(idx);
+            _activeWarsReadOnly = null;
+            // 격퇴 시에는 UpdateAIWars의 완료 정리가 돌지 않으므로 레거시 주둔군을 여기서 즉시 해제(누수 방지).
+            DespawnWarGarrison(warId);
+            var db = TerritoryDatabase.Instance;
+            var stateDef = db != null ? db.GetState(repelled.defenderTerritoryId) : null;
+            if (stateDef != null) stateDef.isUnderAttack = false;
+            TerritoryDefinition? defDef = db != null ? db.GetDefinition(repelled.defenderTerritoryId) : (TerritoryDefinition?)null;
+            Debug.Log($"[AIWarSystem] 🛡️ 방어 승리 — 침공 격퇴 (ID:{warId}) {defDef?.territoryName} 수비 성공 (전쟁 제거)");
+            WarNotificationUI.ShowNotification(
+                $"🛡️ {defDef?.territoryName} 방어 성공 — 침공 격퇴!",
+                WarNotificationUI.NotificationType.WarEnd);
+        }
+
         /// <summary>
         /// 공격자-방어자 쌍의 쿨다운 키를 생성합니다.
         /// </summary>
@@ -524,6 +587,12 @@ namespace ProjectName.Systems
             return $"{attacker}_{defender}";
         }
     
+        /// <summary>
+        /// [배치 경로 정책] 레거시 주둔군 스폰 여부. 가시 행진이 시작되었으면 false(행진이 병력 스폰을 담당),
+        /// 행진이 시작되지 않았으면 true(레거시 폴백). 순수 함수 — 테스트 가능.
+        /// </summary>
+        internal static bool ShouldSpawnLegacyGarrison(bool visibleMarchStarted) => !visibleMarchStarted;
+
         /// <summary>R3-2: 전쟁 종료 시 해당 전쟁의 주둔군 병사 오브젝트를 해제합니다.</summary>
         private static void DespawnWarGarrison(int warId)
         {

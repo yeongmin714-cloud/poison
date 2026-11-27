@@ -1,6 +1,7 @@
 // U9-W2 (2026-09-19): 콘솔 경고 소음 정리 — Phase 46 애니메이션 마이그레이션 잔여 경고 억제(실수리는 ROADMAP_NEURAL_ANIMATION). 신규 경고는 억제되지 않는다.
 #pragma warning disable 162,618
 using UnityEngine;
+using System.Collections.Generic;
 using ProjectName.Core;
 
 namespace ProjectName.Systems
@@ -32,7 +33,7 @@ namespace ProjectName.Systems
 
         public bool CanAcceptFollowup(float now, float clickWindow)
         {
-            return _active && _acceptedClicks < 3 && now - _lastClickTime < clickWindow;
+            return _active && _acceptedClicks < 2 && now - _lastClickTime < clickWindow;   // [168-P1] 수용 상한 3→2 (2클릭 콤보 계약)
         }
 
         public bool IsFollowupWindowExpired(float now, float clickWindow)
@@ -54,12 +55,12 @@ namespace ProjectName.Systems
         {
             if (!_active) return Decision.Inactive;
             DidExitBecauseFollowupWindowExpired = false;
-            if (_acceptedClicks == 3 && normalizedTime >= 1f)
+            if (_acceptedClicks == 2 && normalizedTime >= 1f)   // [168-P1] ==3→==2 — 전체 수용 시 클립 종료 판정
             {
                 _active = false;
                 return Decision.Exit;
             }
-            float playbackLimit = _acceptedClicks / 3f;
+            float playbackLimit = _acceptedClicks / 2f;   // [168-P1] /3f→/2f — 1클릭=클립 1/2 보유
             if (_acceptedClicks < 3 && now - _lastClickTime >= clickWindow
                 && normalizedTime >= playbackLimit - 0.001f)
             {
@@ -97,11 +98,12 @@ namespace ProjectName.Systems
     ///
     /// 각 런타임 AnimatorController가 정의한 공통 파라미터를 구동한다:
     ///   Speed(float) / 트리거 Attack, AttackCombo, Hit, Death
-    ///   (Player_AC에만 추가) Roll, Jump
+    ///   (Player_AC에만 추가) Roll, RollBack, RollSideL, RollSideR, Jump
     ///
     /// ■ Player 모드 — CharacterController.velocity(수평)를 Speed로, PlayerCombat.AcceptedAttackSequence
     ///   변화(허용된 클릭 엣지)를 등록된 AttackCombo/2/3 상태의 순차 재생 및 strike 타이밍으로 변환하며,
-    ///   PlayerMovement.IsRolling/IsJumping 상승엣지를 Roll/Jump 트리거로 변환한다.
+    ///   PlayerMovement.IsRolling/IsJumping 상승엣지를 Roll/RollBack/RollSideL/RollSideR(Jump) 트리거로 변환한다.
+    ///   ([132차] 구르기 방향은 PlayerMovement.LastRollKind로 분기 — Shift+방향 키 체계.)
     /// ■ Soldier 모드 — transform 위치 델타로 Speed를 계산하고, 공격은 GuardCombatAI가
     ///   TriggerAttack()으로 호출한다.
     /// </summary>
@@ -112,21 +114,83 @@ namespace ProjectName.Systems
         [Header("드라이브 모드")]
         public DriveMode mode = DriveMode.Player;
 
+        /// <summary>[59차] 같은 오브젝트에 활성 드라이버(Player/Soldier) 존재 — RigAnimationController의 Speed 이중 서술 게이트용.</summary>
+        public static bool HasActiveDriverOn(GameObject go)
+            => go != null && go.GetComponent<HumanoidClipDriver>() is HumanoidClipDriver d && d.enabled
+               && (d.mode == DriveMode.Player || d.mode == DriveMode.Soldier);
+
         private static readonly string[] StageStateNames = { "AttackCombo", "AttackCombo2", "AttackCombo3" };
         private const string MeleeComboStateName = "WeaponCombo"; // retained for the separate Spear follow-up route
         private const string MeleeComboExitStateName = "Idle";
         private const string SpearOpenerStateName = "AttackThrust";
         private const string SpearOpenerExitStateName = "Idle";
-        // Weapon_Combo_2 authors two sword swings: click 1 opens the first half, click 2 unlocks the rest.
-        private const int MaxMeleeComboClicks = 3;
+        // [168-P1] 2클릭 콤보: 클릭1=1휘두르기(1/2 보유), 0.85s 내 클릭2=전체. 4.53s 클립 3등분이 1클릭=2스윙 체감 원인(11-21 실측)
+        private const int MaxMeleeComboClicks = 2;
         private const float StageStrikeSyncNormT = 0.32f;
         private const float StageAdvanceNormT = 0.90f;
         private const float MeleeComboClickWindow = 0.85f;
+        /// <summary>
+        /// [205차 배치B-1] 스피어 전용 팔로업 클릭 윈도우 — 세그먼트2 데미지 미발화 근원 수리.
+        /// 근원(11-26 Editor.log 실측): 스피어 쿨다운(WeaponData.Spear.attackSpeed=1.5s — PlayerCombat.CanAttack)
+        /// 가 구 melee 공용 윈도우(0.85s)보다 길어 2클릭 팔로업이 구조적으로 도달 불능이었다.
+        /// ① 0.85s 내 클릭2 = PlayerCombat 거부(쿨다운 미개시 — 세션 로그 "attack rejected ... spearFollowup=True" 14건,
+        ///   쿨다운이 spearFollowup 승인보다 우선됨 — PlayerCombat L1498 구조는 P4 보고 별도).
+        /// ② 0.85s 경과 클릭 = 만료 재시작(새 오프너 → 스윙1 데미지만 — IsSpearSequenceExpired).
+        ///   세션 전체에서 "Spear segment accepted=2" 및 "[Spear] WeaponCombo follow-up hit resolved" 0건.
+        /// 1.8s = 쿨다운 1.5s + 0.3s 수용 밴드 — 쿨다운 개시(1.5s) 직후 접수되는 클릭2가 팔로업으로 승인되고,
+        /// 1.8s 경과 클릭은 기존과 동일하게 만료 재시작한다. 주먹/검 melee 콤보 윈도우(0.85s)와 [168-P1] 계약 무수정.
+        /// </summary>
+        private const float SpearFollowupClickWindow = 1.8f;
         private const float ComboSegmentStrikeNormT = 0.32f;
-        private const float SpearOpenerStrikeNormT = 0.50f;
+        private const float ComboSlashVfxLeadNormT = 0.12f;   // [168-P1] 슬래시 VFX를 데미지 스트라이크보다 먼저 발화(사용자: 아크가 늦다)
+        /// <summary>
+        /// [174차] 콤보 스테이지 간격 실측 하한(초) — FX 쿨다운(슬래시/찌르기 각 0.25s)이 절대 이보다 길지 않아야
+        /// 하는 근거값. ① 스피어 오프너 스윙 1→2 간격 = (0.75−0.30)×오프너 클립 — 폴백 길이 1.2s 기준 최악 0.54s
+        /// (실측 클립 3.77s면 1.70s). ② 근접 콤보 세그먼트 간격 = 0.5×4.53s÷3속도 ≈ 0.76s. 최소 0.54s ≫ 0.25s —
+        /// 쿨다운 return에 의한 스테이지 소실 없음 → 상수 트림 불요. 부등식은 CombatFxThrustSeparationTests가 고정.
+        /// </summary>
+        internal const float MinComboStageGapSeconds = 0.54f;
         private const float ComboExitBlend = 0.10f;
+        // ═════════ [166-B] 무기별 스윙 임팩트 시간 테이블 — 스윙별 멀티임팩트 단일 소스 ═════════
+        // 그립테이블(WeaponEquipManager._gripTable) 패턴 준수 — 타입 테이블 + 미등록 폴백.
+        // 사용자 관측([166-B]): 찌르기(스피어 오프너) 애니 클립에 휘두르기 2회 박혀 있음 → 판정도 스윙별 2회.
+        // 초기값(예: 0.30/0.75)은 Play 실측 트림 대상 — 영상→판정→트림 루프로 정점 상수 갱신(계획 §B 검증).
+        internal static readonly Dictionary<WeaponType, float[]> LegacySwingImpactTable = new Dictionary<WeaponType, float[]>
+        {
+            { WeaponType.Spear, new[] { 0.30f, 0.75f } },   // 오프너 클립(플레이어 창 휘두르기.fbx, Take 001 3.77s) 스윙 1/2 정점 초기값
+        };
+
+        /// <summary>[166-B] 테이블 미등록 무기 폴백 — 기존 단일 임팩트 시점(0.50) 유지(레거시 Attack/AttackBase 등).</summary>
+        internal const float LegacySwingImpactNormTFallback = 0.50f;
+
+        /// <summary>[무번호 45-SPEAR-TIMEGATE] 오프너 스윙 1 정점 — [166-B] 테이블(Spear[0]=0.30) 단일 소스.
+        /// 기존 0.50 단일 임팩트 → 스윙별 분리로 0.30 조정. P45 시간 게이트 산식(SpearOpenerStrikeNormT) 식별자 유지.</summary>
+        private static readonly float SpearOpenerStrikeNormT = GetLegacySwingImpactNormT(WeaponType.Spear, 0);
+
+        /// <summary>[166-B→176차] 오프너 스윙 2 정점 — Spear 테이블[1](0.75). 자동 게이트는 철수됐으나
+        /// 판정 함수(단위테스트 리플렉션 핀)가 이 상수를 계속 소비한다.</summary>
+        private static readonly float SpearOpenerSwing2NormT = GetLegacySwingImpactNormT(WeaponType.Spear, 1);
+
+        /// <summary>[166-B] 무기별 스윙 임팩트 시간 조회 — 테이블 미등록/인덱스 초과 시 폴백(0.50 단일 시점).</summary>
+        internal static float GetLegacySwingImpactNormT(WeaponType weaponType, int swingIndex)
+        {
+            if (LegacySwingImpactTable.TryGetValue(weaponType, out var times) && times != null
+                && swingIndex >= 0 && swingIndex < times.Length)
+                return times[swingIndex];
+            return LegacySwingImpactNormTFallback;
+        }
+
+        /// <summary>[166-B] 무기별 등록 스윙 수 — 미등록 무기는 1회(기존 단일 임팩트 동작 유지).</summary>
+        internal static int GetLegacySwingImpactCount(WeaponType weaponType)
+        {
+            if (LegacySwingImpactTable.TryGetValue(weaponType, out var times) && times != null && times.Length > 0)
+                return times.Length;
+            return 1;
+        }
+
         private int _comboStage;          // 0=inactive, 1..3=current registered Animator stage
         private readonly bool[] _stageHitResolved = new bool[3];
+        private readonly bool[] _stageVfxResolved = new bool[3];   // [168-P1] 슬래시 VFX 조기발화 1회 가드 — _stageHitResolved 미러(리셋 동기)
         private bool _expiredComboRestartAvailable;
         private int _comboBufferedClicks; // accepted followups queued for distinct registered states
         private int _comboAcceptedClicks;
@@ -140,15 +204,19 @@ namespace ProjectName.Systems
         private float _spearStateTransitionTime;
         // [2026-09-25 프리미엄 AttackArcVFX A/B] 인스펙터에서 켜면 실제 무기 궤적 3D 스윕 리본을 켠다(기본 OFF).
         [SerializeField, Header("AttackArcVFX (프리미엄 스윕 리본) A/B")]
-        private bool _premiumArcEnabled;
+        private bool _premiumArcEnabled = true;   // [무번호 35-S1] 프리미엄 참격 리본 기본 활성(F6 토글로 A/B 비교 유지)
         private float _comboStartTime = -999f;
-        private int _legacyImpactFired;   // 레거시 Attack* 상태 1회 슬래시 플래그
+        // [166-B] 레거시 Attack* 스윙별 해결 플래그 — 무기별 스윙 임팩트 테이블 인덱스별 1회 가드(최대 3스윙 여유).
+        private readonly bool[] _legacySwingResolved = new bool[3];
         private int _prevAttackStateHash = -1;
 
         private Animator _anim;
+        private bool? _tillParamExists;   // [153차 P2] "Till" 파라미터 유무 1회 판정 캐시 — TriggerTill 전용
+        private bool? _mineParamExists;   // [156차 P5] "Mine" 파라미터 유무 1회 판정 캐시 — TriggerMine 전용
         private CharacterController _cc;
         private PlayerMovement _movement;
         private PlayerCombat _combat;
+        private SoldierSwingTrail _soldierSwingTrail;   // [무번호 26-ST4] 병사 스윙 트레일 캐시 — null이면 조용히 무시(무기 부착 실패 병사 무해)
 
         private Vector3 _lastPos;
         private long _consumedAttackSequence;       // 마지막으로 소비한 accepted-attack sequence
@@ -161,6 +229,24 @@ namespace ProjectName.Systems
         private bool _prevBow, _prevSpear, _prevThrow;   // T-D3: 무기 모드 엣지 감지
         private WeaponType _prevWType = WeaponType.Fist; // M2: CurrentType 엣지 감지
         private bool _deathFired;
+
+        // ── [134차 E-3] 측면 롤 바디 스핀 — 진행축 기준 360° 스핀(구 요잉 ±140° 치환) + 종료 원복 ──
+        // 근거(계획 §7 E 재판정): 요잉(±140°) 후에도 어색 — 롤클립 자체가 전방 텈 구르기를 옆으로 눕힌
+        // 형태라 요잉만으론 "옆으로 구르는" 돕법이 안 만들어짐 → 요잉 로직을 스핀으로 치환(제거 아님).
+        // 스핀축: 롤 방향의 월드 진행축(좌=−transform.right, 우=+transform.right)을 로컬축으로 변환해 회전 —
+        // 톱다운에서 실린더 굴림 독법. Left=−360°/Right=+360°를 롤 지속시간에 걸쳐 선형 회전하고,
+        // 종료 시 저장 localRotation 복원(기존 타이머/OnDisable 가드 재사용). 앞/뒤 롤(Roll/RollBack) 무수정.
+        private const float SideRollSpinFallbackSeconds = 0.5f;  // _movement 접근 불가 폴백(PlayerMovement._rollDuration 기본값과 동일 값)
+        private const float SideRollSpinDegrees = 360f;          // 스핀 총 회전각 — 진행축 기준 1회전
+        private Transform _sideRollVisual;           // 스핀 대상 비주얼 트랜스폼(Animator 부착 트랜스폼 — _anim.transform)
+        private Quaternion _sideRollSavedLocalRot;   // 발화 시점 localRotation(원복 기준 — 저장값 복원)
+        private Vector3 _sideRollSpinLocalAxis;      // 스핀 로컬축 — 월드 진행축(좌=−right/우=+right)을 로컬로 변환
+        private float _sideRollSpinSign;             // 스핀 부호(Left=-1/Right=+1)
+        private float _sideRollDuration;             // 스핀 총 지속(초) — 롤 타이머 duration과 동일 값
+        private float _sideRollSpinLeft;             // 스핀 잔여 시간(초) — >0 = 진행 중, 0 = 휴면
+        private const float SideRollCrouchScaleY = 0.65f;   // [134차 E5] 딥웅크림 — 스핀 중 비주얼 localScale.y 배율(높이 65%)
+        private const float SideRollBulgeScaleXZ = 1.08f;   // [134차 E5] 공 말림 — 스핀 중 localScale.x/z 배율(딥웅크림 대응 부풀림)
+        private Vector3 _sideRollSavedLocalScale;    // [134차 E4] 발화 시점 localScale(웅크림 원복 기준 — 저장값 복원)
 
         public bool CanPlayPlayerMeleeCombo => mode == DriveMode.Player && _anim != null
             && _anim.isActiveAndEnabled && _anim.isInitialized && _anim.runtimeAnimatorController != null;
@@ -201,14 +287,80 @@ namespace ProjectName.Systems
                 long pending = _pendingAcceptedAttackInputs + (unconsumed > 0 ? unconsumed : 0L);
                 float openerTime = _spearAcceptedClicks > 0 ? _spearOpenerAcceptedTime : _combat.LastAttackTime;
                 return EvaluateSpearFollowupAcceptance(_spearAcceptedClicks > 0, _spearAcceptedClicks, pending,
-                    openerTime, Time.time, MeleeComboClickWindow);
+                    openerTime, Time.time, SpearFollowupClickWindow);   // [205차 배치B-1] 스피어 전용 윈도우(쿨다운 1.5s > 구 0.85s — 근원 수리)
             }
         }
         public bool IsSpearSequenceActive => CanPlayPlayerMeleeCombo && _spearAcceptedClicks > 0;
         public bool CanRestartExpiredSpearSequence => IsSpearSequenceActive
-            && Time.time - _spearOpenerAcceptedTime >= MeleeComboClickWindow;
+            && Time.time - _spearOpenerAcceptedTime >= SpearFollowupClickWindow;   // [205차 배치B-1] 스피어 전용 윈도우 — 만료 재시작 게이트와 팔로업 수용 상수 일치
         /// <summary>T-D3+: 외부 시스템 발화용 퍼블릭 트리거(채집/경직/스턴/다운).</summary>
-        public void TriggerHarvest() { if (_anim != null) _anim.SetTrigger("Harvest"); }
+        // [129차] 액션 애니 트리거 — Player_AC 신규 상태(Gather/Craft/Cheer) 배선. 발화 가드: 액션 상태 중 Gather/Craft 재발화 무시.
+        public void TriggerHarvest() { TriggerGather(); } // [129차 Q4] TriggerGather 위임
+        public void TriggerGather() { if (CanFireAction) _anim.SetTrigger("Gather"); }
+        public void TriggerCraft() { if (CanFireAction) _anim.SetTrigger("Craft"); }
+        public void TriggerCheer() { if (_anim != null) _anim.SetTrigger("Cheer"); }
+        public void TriggerActionEnd() { if (_anim != null) _anim.SetTrigger("ActionEnd"); }
+
+        /// <summary>[153차 P2] 굉이질/정리 채널용 트리거 — "Till" 파라미터 미보유 컨트롤러에서 무해.
+        ///   파라미터 유무는 1회 판정 후 캐시 → 미보유 컨트롤러에서는 SetTrigger를 스킵(경고 로그 억제).</summary>
+        public void TriggerTill()
+        {
+            if (_anim == null) return;
+            if (!_tillParamExists.HasValue)
+            {
+                if (!_anim.isInitialized) return;   // [153차 P2] 미초기화 — 판정 보류(캐시 오염 방지).
+                bool found = false;
+                foreach (AnimatorControllerParameter p in _anim.parameters)
+                {
+                    if (p.name != "Till") continue;
+                    found = true;
+                    break;
+                }
+                _tillParamExists = found;   // [153차 P2] 1회 판정 캐시 — 미보유 시 이후 발화 전부 스킵.
+            }
+            if (_tillParamExists.Value) _anim.SetTrigger("Till");
+        }
+
+        /// <summary>[156차 P5] 채굴 채널용 트리거 — 곡갱이질 애니(Player_AC "Mine" 상태) 발화.
+        ///   TriggerTill 선례 1:1(파라미터 유무 1회 판정 캐시 — "Mine" 미보유 컨트롤러에서 무해·경고 억제)에
+        ///   CanFireAction 게이트 동일 적용(Gather/Craft/Cheer 상태 중 재발화 무시 — TriggerGather 선례).</summary>
+        public void TriggerMine()
+        {
+            if (_anim == null) return;
+            if (!CanFireAction) return;
+            if (!_mineParamExists.HasValue)
+            {
+                if (!_anim.isInitialized) return;   // [156차 P5] 미초기화 — 판정 보류(캐시 오염 방지).
+                bool found = false;
+                foreach (AnimatorControllerParameter p in _anim.parameters)
+                {
+                    if (p.name != "Mine") continue;
+                    found = true;
+                    break;
+                }
+                _mineParamExists = found;   // [156차 P5] 1회 판정 캐시 — 미보유 시 이후 발화 전부 스킵.
+            }
+            if (_mineParamExists.Value) _anim.SetTrigger("Mine");
+        }
+
+        /// <summary>[153차 P2] 액션 상태 재시작 — 지정 상태를 0프레임부터 다시 재생(채널 리듬 동작 유지용).
+        ///   CanFireAction 재트리거 가드의 우회 목적이 아니라, 채널 타격 리듬마다 굉이질/채집 동작을
+        ///   이어서 유지하기 위한 상태 재발화다. null/비활성 _anim에서 무영향(가드).</summary>
+        public void ReplayAction(string stateName)
+        {
+            if (_anim == null || !_anim.isActiveAndEnabled) return;
+            if (string.IsNullOrEmpty(stateName)) return;
+            _anim.Play(stateName, 0, 0f);
+        }
+        private bool CanFireAction
+        {
+            get
+            {
+                if (_anim == null || mode != DriveMode.Player) return false;
+                var cur = _anim.GetCurrentAnimatorStateInfo(0);
+                return !(cur.IsName("Gather") || cur.IsName("Craft") || cur.IsName("Cheer"));
+            }
+        }
         public void TriggerHitLight()
         {
             if (_anim == null) return;
@@ -254,7 +406,7 @@ namespace ProjectName.Systems
             Debug.Log("[HumanoidClipDriver] ArcheryShot 트리거 (활 발사)");
         }
 
-        /// <summary>[A 고품질] 활 드로 애니 — 사용자 애니 'Draw_and_Shoot_from_Back_1' 트리거(DrawShoot).
+        /// <summary>[A 고품질] 활 드로 애니 — 사용자 애니 '플레이어 활쏘기.fbx' 트리거(DrawShoot).
         /// 좌클릭 홀드 드로 시작 시 발화해 '당기고 쏘기' 2단계 feel을 준다(릴리즈 시 ArcheryShot이 이어서).</summary>
         public void TriggerBowDraw()
         {
@@ -264,19 +416,97 @@ namespace ProjectName.Systems
             Debug.Log("[HumanoidClipDriver] DrawShoot 트리거 (활 드로—사용자 애니)");
         }
 
-        /// <summary>[테스트45 P5] 좌클릭 패링 애니 — Player_AC 'Parry' 상태 트리거(사용자 FBX: Sword_Parry_Backward_1).
+        /// <summary>[테스트45 P5] V키 패링 애니(171차 정정 — 좌클릭은 공격/큐잉) — Player_AC 'Parry' 상태 트리거(사용자 FBX: Sword_Parry_Backward_1).
         /// 실클립 재생 + 홀드 → 성공/종료 시 자연 복귀.</summary>
         public void TriggerParry()
         {
             if (_anim == null) return;
             _anim.SetTrigger("Parry");
             _attackHoldUntil = Mathf.Max(_attackHoldUntil, Time.time + 0.45f);   // 패링 모션 중 Speed 0 홀드
-            Debug.Log("[HumanoidClipDriver] Parry 트리거 (좌클릭 패링—사용자 애니)");
+            Debug.Log("[HumanoidClipDriver] Parry 트리거 (V키 패링—사용자 애니)");
         }
 
         private void OnDestroy()
         {
             PlayerHealth.OnPlayerDamaged -= OnPlayerDamagedFX;
+        }
+
+        private void OnDisable()
+        {
+            // [134차 E-3/E5] 스핀·딥웅크림 원복 가드 — 비활성화 시점에 측면 롤 스핀 진행 중이면 저장 회전/스케일(y+xz) 즉시 복원
+            // (롤 중 컴포넌트 정지/파괴로 스핀·딥웅크림이 잔존하는 영구 비틀림 방지 — 원복은 멱등).
+            if (_sideRollSpinLeft > 0f) EndSideRollSpin();
+        }
+
+        // ── [134차 E-3] 측면 롤 바디 스핀 연출 ──
+
+        /// <summary>
+        /// [134차 E-3/E4] 측면 롤(RollSideL/RollSideR) 발화 시 스핀 개시 — 비주얼 트랜스폼(Animator 부착
+        /// 트랜스폼 — _anim.transform)의 localRotation·localScale 저장 후, 롤 지속시간(PlayerMovement.RollDuration
+        /// 실측 — 기존 롤 타이머 상수와 동일 값, 접근 불가 시 폴백 상수) 동안:
+        ///  · 360° 스핀(E-3 유지) — 월드 진행축(좌=−transform.right, 우=+transform.right)을 로컬축으로 변환해
+        ///    Left=−360°/Right=+360° 선형 회전(localRotation = 저장값 × 스핀쿼터니언 양산).
+        ///  · [134차 E5] 딥웅크림 — 스핀 중 비주얼 localScale.y ×0.65 + x/z ×1.08(공처럼 말린 체감), 종료 시 저장값 원복.
+        /// 종료 시 저장값 복원(기존 타이머/OnDisable 가드 재사용). 루트 이동/무적/쿨다운 계약 무변경.
+        /// 롤클립은 미재생(E4 — SetTrigger 미발화, 현재 상태 유지). 앞/뒤 롤(Roll/RollBack)은 호출 없음(무수정).
+        /// </summary>
+        private void BeginSideRollSpin(bool isLeft)
+        {
+            Transform visual = _anim != null ? _anim.transform : transform;
+            if (_sideRollSpinLeft > 0f) EndSideRollSpin();   // 중복 발화 — 이전 스핀 원복 후 재적용
+            float duration = _movement != null && _movement.RollDuration > 0f
+                ? _movement.RollDuration
+                : SideRollSpinFallbackSeconds;
+            _sideRollVisual = visual;
+            _sideRollSavedLocalRot = visual.localRotation;
+            // [134차 E5] 딥웅크림 가드 — localScale.y ×0.65 + x/z ×1.08(공처럼 말린 체감 — 저장/원복 쌍, 스핀 종료·OnDisable 양쪽 복원).
+            _sideRollSavedLocalScale = visual.localScale;
+            Vector3 crouched = _sideRollSavedLocalScale;
+            crouched.y *= SideRollCrouchScaleY;
+            crouched.x *= SideRollBulgeScaleXZ;
+            crouched.z *= SideRollBulgeScaleXZ;
+            visual.localScale = crouched;
+            Vector3 worldAxis = isLeft ? -visual.right : visual.right;   // 월드 진행축 — 좌=−right/우=+right
+            _sideRollSpinLocalAxis = visual.InverseTransformDirection(worldAxis).normalized;   // 로컬축 변환
+            _sideRollSpinSign = isLeft ? -1f : 1f;
+            _sideRollDuration = Mathf.Max(0.01f, duration);
+            ApplySideRollSpin(0f);         // 0°에서 시작 — duration에 걸쳐 ±360° 선형 진행
+            _sideRollSpinLeft = duration;
+            Debug.Log($"[134차 E5] 측면 롤 — 스핀+딥웅크림(0.65) duration={duration:F2} " +
+                      $"{(isLeft ? "Left" : "Right")} " +
+                      $"axis=({_sideRollSpinLocalAxis.x:F2},{_sideRollSpinLocalAxis.y:F2},{_sideRollSpinLocalAxis.z:F2})");
+        }
+
+        /// <summary>[134차 E-3] 스핀 적용 — 저장 localRotation × (부호×360°×진행률) 스핀쿼터니언 양산.</summary>
+        private void ApplySideRollSpin(float t01)
+        {
+            if (_sideRollVisual == null) return;
+            Quaternion spin = Quaternion.AngleAxis(_sideRollSpinSign * SideRollSpinDegrees * t01, _sideRollSpinLocalAxis);
+            _sideRollVisual.localRotation = _sideRollSavedLocalRot * spin;
+        }
+
+        /// <summary>[134차 E-3] 스핀 타이머 틱 — duration 경과까지 선형 진행, 완료 시 저장값 복원
+        /// (구르기 엣지 블록 직후 매 프레임 호출).</summary>
+        private void TickSideRollSpin()
+        {
+            if (_sideRollVisual == null) return;
+            if (_sideRollSpinLeft <= 0f) return;
+
+            _sideRollSpinLeft -= Time.deltaTime;
+            float t01 = 1f - Mathf.Clamp01(_sideRollSpinLeft / _sideRollDuration);
+            ApplySideRollSpin(t01);
+            if (_sideRollSpinLeft <= 0f) EndSideRollSpin();
+        }
+
+        /// <summary>[134차 E-3/E5] 스핀 원복 — 발화 시점 localRotation·localScale(딥웅크림 y+xz) 복원 + 상태 리셋
+        /// (멱등 — 중복 호출 무해).</summary>
+        private void EndSideRollSpin()
+        {
+            _sideRollSpinLeft = 0f;
+            if (_sideRollVisual == null) return;
+            _sideRollVisual.localRotation = _sideRollSavedLocalRot;   // 저장값 복원
+            _sideRollVisual.localScale = _sideRollSavedLocalScale;    // [134차 E5] 딥웅크림 원복 — localScale(y/xz) 저장값 전체 복원
+            _sideRollVisual = null;
         }
 
         /// <summary>플레이어 피격 확정 이벤트 핸들러 — 임팩트 FX + 데미지넘버 일괄 발화.</summary>
@@ -300,6 +530,18 @@ namespace ProjectName.Systems
         }
         public void TriggerStun() { if (_anim != null) _anim.SetTrigger("Stun"); }
         public void TriggerKnockdown() { if (_anim != null) _anim.SetTrigger("Knockdown"); }
+        public void TriggerBlock() { if (_anim != null) _anim.SetTrigger("Block"); }   // [무번호 87] 아레나 맨손 — 막기(병사 신규 FBX)
+
+        // [무번호 86-P2] 승마 자세 — 기존 Sit 파이프라인(SitDown→SitHold→SitUp) 재용. 컨트롤러 무수정.
+        /// <summary>탑승 중 앉기 홀드 플래그. _anim 부재(EditMode 등) 환경에서도 플래그만 전이한다.</summary>
+        public bool IsMountedPose { get; private set; }
+        public void SetMounted(bool mounted)
+        {
+            if (IsMountedPose == mounted) return;
+            IsMountedPose = mounted;
+            if (_anim == null) return;
+            _anim.SetTrigger(mounted ? "SitDown" : "SitUp");
+        }
         public void TriggerSitDown() { if (_anim != null) _anim.SetTrigger("SitDown"); }
         public void TriggerSitUp() { if (_anim != null) _anim.SetTrigger("SitUp"); }
         public void TriggerToss() { if (_anim != null) _anim.SetTrigger("Toss"); }
@@ -310,8 +552,8 @@ namespace ProjectName.Systems
         public void TriggerThrow() { if (_anim != null) _anim.SetTrigger("Throw"); }
         public void TriggerCarry() { if (_anim != null) _anim.SetTrigger("Carry"); }
         public void TriggerCast() { if (_anim != null) _anim.SetTrigger("Cast"); }
-        public void TriggerHarvestObject() { if (_anim != null) _anim.SetTrigger("HarvestObject"); }
-        public void TriggerHarvestPickUp() { if (_anim != null) _anim.SetTrigger("HarvestPickUp"); }
+        public void TriggerHarvestObject() { TriggerGather(); } // [129차 Q4] TriggerGather 위임
+        public void TriggerHarvestPickUp() { TriggerGather(); } // [129차 Q4] TriggerGather 위임
         public void TriggerOpenDoor() { if (_anim != null) _anim.SetTrigger("OpenDoor"); }
         public void TriggerTalkA() { if (_anim != null) _anim.SetTrigger("Talk"); }
         public void TriggerTalkB() { if (_anim != null) _anim.SetTrigger("Talk2"); }
@@ -351,6 +593,27 @@ namespace ProjectName.Systems
         // Jump 종료 후 Walk/Run 복귀 시 클립 팝(급가속) 체감 완화. 블렌드 시간은
         // 애니메이터 컨트롤러(에셋)가 담당하므로 여기서는 속도 파라미터 램프만 완화한다.
         private float _landingSoftTimer;
+
+        // [무번호 44-SPEAR-DIAG] 오프너 미해결 원인 관측 버퍼 — 클릭당 상한 6회, 0.4s 간격 샘플.
+        private float _spearDiagNextLog;
+        private int _spearDiagSamples;
+
+        // [무번호 45-SPEAR-TIMEGATE] 오프너 히트 시간 게이트 — 상태 머신이 AttackThrust에 진입하지 않는
+        // 실측(11-15 21:00 세션 [Spear] hit resolved 0건 + 45차 [44-SPEAR-DIAG] opener/exit/followup/idle
+        // 전부 False·해시 불변·normT 루핑)에도 게임플레이 타격이 반드시 해결되도록 발화 시각+클립 길이로 판정.
+        private float _spearOpenerResolveAtTime;
+        private float _spearOpenerClipLength = -1f;
+        private const float SpearOpenerClipLengthFallback = 1.2f;
+        // [176차] [166-B] 스윙 2 자동 게이트 필드 2종 철수 — 2타는 2클릭 승인 경로(팔로업) 단일 소스
+        // (사용자 지시 1클릭=1타·2클릭=2타 콤보 분리).
+        // [무번호 84] 오프너 클립 교체 — 사용자 제공 "플레이어 창 휘두르기.fbx"(단일 테이크 Take 001, 3.77s)를
+        //   Player_AC AttackThrust 모션으로 배선(배치 스크립트 SpearThrustClipWiring). 이 Unity 버전은
+        //   clipAnimations 자동 생성이 없어 리네임 경로가 무효(11-20 실측) → 테이크명 원직 프래그먼트 계약.
+        private const string SpearOpenerClipNameFragment = "Take 001";
+
+        // [무번호 47-P1] 스윙 방출 상태 추적 — 안전왕치용(스윙 중 아크 원칙).
+        private bool _swingEmitOn;
+        private float _swingEmitSince;
 
         private void Start()
         {
@@ -577,6 +840,10 @@ namespace ProjectName.Systems
         }
 
         private static readonly int RollStateShortNameHash = Animator.StringToHash("Roll");
+        // [132차] 방향 구르기 상태 3종 — Roll과 동일한 HitLight 면책 계약(IsHigherPriorityHitLightState 포함)
+        private static readonly int RollBackStateShortNameHash = Animator.StringToHash("RollBack");
+        private static readonly int RollSideLStateShortNameHash = Animator.StringToHash("RollSideL");
+        private static readonly int RollSideRStateShortNameHash = Animator.StringToHash("RollSideR");
         private static readonly int ParryStateShortNameHash = Animator.StringToHash("Parry");
         private static readonly int StunStateShortNameHash = Animator.StringToHash("Stun");
         private static readonly int DeathStateShortNameHash = Animator.StringToHash("Death");
@@ -592,6 +859,9 @@ namespace ProjectName.Systems
         private static bool IsHigherPriorityHitLightState(int stateShortNameHash)
         {
             return stateShortNameHash == RollStateShortNameHash
+                || stateShortNameHash == RollBackStateShortNameHash
+                || stateShortNameHash == RollSideLStateShortNameHash
+                || stateShortNameHash == RollSideRStateShortNameHash
                 || stateShortNameHash == ParryStateShortNameHash
                 || stateShortNameHash == StunStateShortNameHash
                 || stateShortNameHash == DeathStateShortNameHash
@@ -811,7 +1081,7 @@ namespace ProjectName.Systems
                         // buffered follow-up remains a follow-up even if the driver updates after expiry.
                         float acceptedInputTime = _combat != null ? _combat.LastAttackTime : Time.time;
                         bool expiredSpearRestart = IsSpearSequenceExpired(_spearAcceptedClicks > 0,
-                            _spearOpenerAcceptedTime, acceptedInputTime, MeleeComboClickWindow);
+                            _spearOpenerAcceptedTime, acceptedInputTime, SpearFollowupClickWindow);   // [205차 배치B-1] 쿨다운(1.5s) 개시 후 클릭2 = 만료 아님 → 팔로업 승인 경로 도달
                         if (expiredSpearRestart)
                         {
                             // AttackThrust disallows a self-transition; explicitly replay its opener.
@@ -831,7 +1101,7 @@ namespace ProjectName.Systems
                             _spearOpenerAcceptedTime = Time.time; // restart cooldown window from the latest accepted stage
                             _spearFollowupAuthorized = true;
                             _spearFollowupHitResolved = false;
-                            _attackHoldUntil = Time.time + MeleeComboClickWindow;
+                            _attackHoldUntil = Time.time + SpearFollowupClickWindow;   // [205차 배치B-1] 팔로업(WeaponCombo×3속도 ≈1.0s) 전 구간 Speed 0 홀드
                         }
                         else
                         {
@@ -888,6 +1158,7 @@ namespace ProjectName.Systems
             var st = _anim.GetCurrentAnimatorStateInfo(0);
             MonitorSpearSequence(st);
             MonitorMeleeComboClip();
+            WatchSwingEmitDeadline();   // [무번호 47-P1] 스윙 방출 상한 감시 — 아크 잔존 원천 차단
 
             // ── 레거시 Attack* 상태 보존(기존 경로: TriggerAttack/창 등) — 상태 진입 1회 전방 슬래시 ──
             bool legacyAttack = st.IsName("Attack") || st.IsName("AttackBase") || st.IsName("AttackThrust");
@@ -897,16 +1168,27 @@ namespace ProjectName.Systems
                 if (atkHash != _prevAttackStateHash)
                 {
                     _prevAttackStateHash = atkHash;
-                    _legacyImpactFired = 0; // 상태 진입/전환 시 1회 플래그 리셋
+                    // [166-B] 상태 진입/전환 시 스윙별 해결 플래그 리셋(기존 _legacyImpactFired 1회 리셋 대체)
+                    for (int i = 0; i < _legacySwingResolved.Length; i++) _legacySwingResolved[i] = false;
                 }
-                if (_legacyImpactFired == 0 && st.normalizedTime >= 0.5f)
+
+                // [166-B] 스윙별 멀티임팩트 — 무기별 스윙 임팩트 시간 테이블(스피어 초기값 2회: 0.30/0.75,
+                // 그립테이블 패턴 준수; 미등록 무기는 폴백 0.50 단일 시점 유지). 트레일/Slash VFX 발화를
+                // 스윙 정점마다로 분리(기존 0.50 1회 → 스윙별 1회). 판정은 AttackThrust(스피어 오프너)의 경우
+                // MonitorSpearSequence가 스윙별 소유(ResolveComboSwingHit 재사용 — 계획 §B-2) — 이중 발화 차단.
+                int legacySwings = Mathf.Min(GetLegacySwingImpactCount(WeaponEquipManager.CurrentType),
+                    _legacySwingResolved.Length);
+                for (int swing = 0; swing < legacySwings; swing++)
                 {
-                    _legacyImpactFired = 1;
-                    // [2026-09-12 P2 스윙 트레일 전환] 레거시 Attack* 스윙 슬래시 쿼드(SlashVFXRunner.PlaySlash) 제거 —
-                    // 무기 팁 WeaponSwingTrail(TrailRenderer)이 대체한다(창 찌르기 등 레거시 상태에서도 팁 궤적 잔상).
-                    // 상태 탈출(아래 else 엣지)에서 SetEmitting(false)로 방출 종료.
-                    WeaponSwingTrail.SetEmitting(true);
-                    Debug.Log("[Combo] 레거시 Attack* 스윙 트레일 방출 (PlaySlash → 무기 트레일 대체)");
+                    if (_legacySwingResolved[swing]) continue;
+                    if (st.normalizedTime < GetLegacySwingImpactNormT(WeaponEquipManager.CurrentType, swing)) continue;
+                    _legacySwingResolved[swing] = true;
+                    if (st.IsName(SpearOpenerStateName)) continue;   // 오프너는 MonitorSpearSequence 전담 — 이중 방출 차단
+                    // [2026-09-12 P2 스윙 트레일 전환] 유지 — 무기 팁 WeaponSwingTrail 궤적 잔상 +
+                    // [166-C] Slash VFX 스윙 1회당 1장(스윙 정점 발화). 상태 탈출(else 엣지)에서 방출 종료.
+                    FireComboTrail(swing + 1);
+                    FireComboSlash(swing + 1);
+                    Debug.Log($"[Combo] 레거시 Attack* 스윙별 발화 (swing={swing + 1}, normT>={GetLegacySwingImpactNormT(WeaponEquipManager.CurrentType, swing):F2})");
                 }
             }
             else
@@ -915,15 +1197,27 @@ namespace ProjectName.Systems
                 {
                     // [2026-09-12 P2] 레거시 Attack* 탈출 엣지에서만 OFF — 무조건 OFF하면 WeaponCombo 진행
                     // 프레임(레거시 상태 아님)마다 방출이 강제 종료된다(콤보 방출은 EndCombo/인터럽트가 담당).
-                    WeaponSwingTrail.SetEmitting(false);
+                    SetSwingTrailEmitting(false);
                 }
                 _prevAttackStateHash = -1;
             }
 
-            // 구르기 — 상승엣지 1회
+            // 구르기 — 상승엣지 1회 ([132차] LastRollKind 방향 분기 / [134차 E4] 측면은 롤클립 미재생 —
+            //   RollSideL·RollSideR 트리거는 미발화(미사용 경로 — Player_AC 상태/트리거는 존중 유지, 삭제 별도 승인).
+            //   앞/뒤 롤(Roll/RollBack)은 기존 롤클립+기존 경로 무수정.)
             bool rolling = _movement != null && _movement.IsRolling;
-            if (rolling && !_prevRolling) _anim.SetTrigger("Roll");
+            if (rolling && !_prevRolling)
+            {
+                switch (_movement.LastRollKind)
+                {
+                    case RollKind.Back:  _anim.SetTrigger("RollBack"); break;
+                    case RollKind.Left:  BeginSideRollSpin(true); break;   // [134차 E4] SetTrigger("RollSideL") 미발화(클립 미재생) — 스핀+웅크림 연출만(현재 상태 유지)
+                    case RollKind.Right: BeginSideRollSpin(false); break;  // [134차 E4] SetTrigger("RollSideR") 미발화(클립 미재생) — 스핀+웅크림 연출만(현재 상태 유지)
+                    default:             _anim.SetTrigger("Roll"); break; // Forward(기본) — [134차 E4] 앞/뒤 롤 무수정
+                }
+            }
             _prevRolling = rolling;
+            TickSideRollSpin();  // [134차 E-3] 스핀 타이머 틱 — 롤 지속 경과 후 원복
 
             // 점프 — 상승엣지 1회 (후진 입력 중 점프면 Back_Jump)
             bool jumping = _movement != null && _movement.IsJumping;
@@ -976,6 +1270,54 @@ namespace ProjectName.Systems
             bool isOpenerState = state.IsName(SpearOpenerStateName);
             bool isFollowupState = state.IsName(MeleeComboStateName);
             bool isOpenerExitState = state.IsName(SpearOpenerExitStateName);
+
+            // [무번호 44-SPEAR-DIAG] 오프너 미해결 상태 관측 — 11-15 21:00 세션에서 "[Combo] Spear segment
+            // accepted"는 2건 기록됐는데 "[Spear] AttackThrust hit resolved"가 0건(몬스터 무피해·전리품 부재 직결).
+            // 상태 머신이 AttackThrust에 실제 진입했는지/마커(0.50)까지 진행했는지를 클릭 후 2.4s 동안 샘플한다.
+            // 판별 축: ①isOpener=false 지속 = _anim.Play가 상태 진입에 실패(컨트롤러/상태명/레이어 불일치)
+            // ②isOpener=true인데 normT 정체 = 상태 재시작 루프 ③isOpener=true+진행 정상 = 마커 판정식 문제.
+            bool isIdleState = state.IsName(SpearOpenerExitStateName);
+
+            // [무번호 45-SPEAR-TIMEGATE] 시간 게이트 히트 해결 — 상태 진입 실패(opener:False 지속, 45차 실측)와
+            // 무관하게 발화 시각+오프너 클립 길이×마커(0.50)로 타격을 반드시 해결한다. 상태 기반 해결(아래)은
+            // 정상 세션의 조기 해결용으로 병행 유지 — 어느 쪽이 먼저 와도 resolved 플래그가 이중 발화를 차단.
+            if (!_spearOpenerHitResolved && Time.time >= _spearOpenerResolveAtTime)
+            {
+                _spearOpenerHitResolved = true;
+                FireComboTrail(1);
+                FireComboSlash(1);   // [176차] 스윙1 슬래시 복원(사용자 정정 — 창은 찌르기가 없고 2스윙 콤보) — [166-C] 스윙별 1회 발화 계약 유지
+                _combat?.ResolveComboSwingHit(1);
+                Debug.Log($"[Spear] AttackThrust hit resolved (time-gate) expect={_spearOpenerResolveAtTime:F2} " +
+                    $"stateHash={state.fullPathHash} clipLen={ResolveSpearOpenerClipLength():F2}");
+            }
+
+            // [무번호 44-SPEAR-DIAG] 오프너 미해결 상태 관측 — 11-15 21:00 세션에서 "[Combo] Spear segment
+            // accepted"는 2건 기록됐는데 "[Spear] AttackThrust hit resolved"가 0건(몬스터 무피해·전리품 부재 직결).
+            // 상태 머신이 AttackThrust에 실제 진입했는지/마커(0.50)까지 진행했는지를 클릭 후 2.4s 동안 샘플한다.
+            // 45차 확정: opener/exit/followup/idle 전부 False + 해시 불변 + normT 루핑 → 상태 미진입. 근원 식별을
+            // 위해 실제 재생 클립명과 컨트롤러명을 동반 기록한다(시간 게이트가 게임플레이를 담당하므로 관측 전용).
+            bool isIdleStateDiag = isIdleState;
+            if (!_spearOpenerHitResolved && Time.unscaledTime >= _spearDiagNextLog && _spearDiagSamples < 6)
+            {
+                _spearDiagNextLog = Time.unscaledTime + 0.4f;
+                _spearDiagSamples++;
+                float normT = Mathf.Max(0f, state.normalizedTime);
+                string clipName = "?";
+                string ctrlName = "?";
+                if (_anim != null)
+                {
+                    var clipInfos = _anim.GetCurrentAnimatorClipInfo(0);
+                    if (clipInfos != null && clipInfos.Length > 0 && clipInfos[0].clip != null)
+                        clipName = clipInfos[0].clip.name;
+                    var rc = _anim.runtimeAnimatorController;
+                    ctrlName = rc != null ? rc.name : "null";
+                }
+                Debug.Log($"[44-SPEAR-DIAG] opener 미해결 감시 #{_spearDiagSamples} — " +
+                    $"state=opener:{isOpenerState}/exit:{isOpenerExitState}/followup:{isFollowupState}/idle:{isIdleStateDiag} " +
+                    $"normT={normT:F2} marker={SpearOpenerStrikeNormT:F2} hash={state.fullPathHash} " +
+                    $"clip={clipName} ctrl={ctrlName} " +
+                    $"transitioning={(_anim != null && _anim.IsInTransition(0))} accepted={_spearAcceptedClicks}");
+            }
             bool recentlyDispatched = Time.time - _spearStateTransitionTime <= 0.15f;
 
             // Follow-up approval is retained until the authored opener reaches its strike marker.
@@ -1004,9 +1346,15 @@ namespace ProjectName.Systems
             {
                 _spearOpenerHitResolved = true;
                 FireComboTrail(1);
+                FireComboSlash(1);   // [176차] 스윙1 슬래시 복원(사용자 정정 — 창은 찌르기가 없고 2스윙 콤보) — [166-C] 스윙별 1회 발화 계약 유지
                 _combat?.ResolveComboSwingHit(1);
                 Debug.Log($"[Spear] AttackThrust hit resolved normT={state.normalizedTime:F2}");
             }
+
+            // [176차] 오프너 내장 2스윙 자동 해결 게이트 철수 — [166-B] 이중 가드(시간·상태)가 1클릭만으로
+            // 2타까지 발화시켜 콤보가 분리되지 않았다(사용자 지시: 1클릭=1타, 2클릭=2타). 스윙 2는 기존
+            // 2클릭 승인 경로(_spearFollowupAuthorized → WeaponCombo stage 2 → ShouldResolveSpearFollowupHit)가
+            // 단일 소스로 담당한다. ShouldResolveSpearOpenerSwing2 판정 함수는 정의 존속(단위테스트 리플렉션 핀).
 
             // No follow-up was authorized: retire the opener once its real exit state is reached.
             if (!_spearFollowupAuthorized && _spearOpenerHitResolved && isOpenerExitState)
@@ -1042,6 +1390,9 @@ namespace ProjectName.Systems
             _spearFollowupAuthorized = false;
             _spearFollowupStarted = false;
             _spearStateTransitionTime = Time.time;
+            _spearDiagNextLog = 0f;   // [무번호 44-SPEAR-DIAG] 클릭 즉시 샘플 개시
+            _spearDiagSamples = 0;
+            _spearOpenerResolveAtTime = Time.time + ResolveSpearOpenerClipLength() * SpearOpenerStrikeNormT;   // [무번호 45-SPEAR-TIMEGATE]
             if (restart)
             {
                 // AttackThrust disallows a self-transition; explicitly rewind the authored state.
@@ -1065,6 +1416,11 @@ namespace ProjectName.Systems
             _spearFollowupHitResolved = false;
             _spearFollowupAuthorized = false;
             _spearFollowupStarted = false;
+            // [무번호 47-P1] 시퀀스 은퇴 = 스윙 종료 — 흰 아크는 스윙 중에만 존재. 45차 실측: 상태 미진입
+            //   경로에서는 콤보 종료(EndCombo)·레거시 상태 탈출 OFF가 영영 발화하지 않아 트레일이 이동/패링
+            //   중에도 계속 방출됐다. 은퇴 지점에서 즉시 종료+아크 세틀(만료 샘플 페이드아웃).
+            SetSwingTrailEmitting(false);
+            AttackArcVFX.Settle();
         }
 
         private static bool IsSpearSequenceExpired(bool sequenceActive, float openerTime, float now, float clickWindow)
@@ -1136,6 +1492,42 @@ namespace ProjectName.Systems
             return isSpearOpener && !alreadyResolved && normalizedTime >= SpearOpenerStrikeNormT;
         }
 
+        /// <summary>[166-B] 오프너 스윙 2 마커 판정 — 스윙 1(ShouldResolveSpearOpenerHit)과 동형 정책(정점 통과 1회).</summary>
+        private static bool ShouldResolveSpearOpenerSwing2(float normalizedTime, bool alreadyResolved)
+        {
+            return !alreadyResolved && normalizedTime >= SpearOpenerSwing2NormT;
+        }
+
+        /// <summary>
+        /// [무번호 45-SPEAR-TIMEGATE] 오프너 클립 길이 — 런타임 컨트롤러의 클립 목록에서 프래그먼트
+        /// 일치 클립 길이를 1회 캐싱. 미발견 시 폴백(1.2s). 상태 머신이 AttackThrust에 진입하지 않는 실측 하에서
+        /// 시간 게이트 판정의 기준값. Player_AC의 AttackThrust 상태 모션 = [무번호 84 교체] 사용자 제공
+        /// "플레이어 창 휘두르기.fbx"(SpearSwing, non-loop) — 이름 프래그먼트로 매칭(임포트 클립명 변화 무관화).
+        /// </summary>
+        private float ResolveSpearOpenerClipLength()
+        {
+            if (_spearOpenerClipLength > 0f) return _spearOpenerClipLength;
+            float resolved = SpearOpenerClipLengthFallback;
+            if (_anim != null)
+            {
+                var rc = _anim.runtimeAnimatorController;
+                if (rc != null && rc.animationClips != null)
+                {
+                    foreach (var clip in rc.animationClips)
+                    {
+                        if (clip != null && !string.IsNullOrEmpty(clip.name)
+                            && clip.name.IndexOf(SpearOpenerClipNameFragment, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            resolved = Mathf.Max(0.2f, clip.length);
+                            break;
+                        }
+                    }
+                }
+            }
+            _spearOpenerClipLength = resolved;
+            return resolved;
+        }
+
         private static bool ShouldResolveSpearFollowupHit(bool authorized, float normalizedTime, bool alreadyResolved)
         {
             return authorized && !alreadyResolved && normalizedTime >= GetSpearFollowupStrikeNormalizedTime();
@@ -1160,6 +1552,7 @@ namespace ProjectName.Systems
             {
                 _comboStage = 1;
                 for (int i = 0; i < _stageHitResolved.Length; i++) _stageHitResolved[i] = false;
+                for (int i = 0; i < _stageVfxResolved.Length; i++) _stageVfxResolved[i] = false;   // [168-P1] VFX 미러 동기 리셋
                 _comboBufferedClicks = 0;
                 _comboAcceptedClicks = 1;
                 _expiredComboRestartAvailable = false;
@@ -1195,8 +1588,7 @@ namespace ProjectName.Systems
                 if (previousSegment > 0 && TryResolveMeleeComboHit(previousSegment,
                     Mathf.Max(0f, previousState.normalizedTime), _stageHitResolved))
                 {
-                    _combat?.ResolveComboSwingHit(previousSegment);
-                    FireComboSlash(previousSegment);
+                    _combat?.ResolveComboSwingHit(previousSegment);   // [168-P1] 데미지만 — VFX는 모니터 조기발화 소유(이중발화 방지)
                 }
                 ResetInterruptedCombo("Weapon_Combo_2 follow-up window expired before accepted click dispatch", true);
                 return AcceptPlayerMeleeComboClick();
@@ -1222,7 +1614,7 @@ namespace ProjectName.Systems
             return acceptedClicks + pendingAcceptedInputs < MaxMeleeComboClicks;
         }
 
-        /// <summary>One Weapon_Combo_2 clip segmented at click-count boundaries (1/3, 2/3, 1).</summary>
+        /// <summary>One Weapon_Combo_2 clip segmented at click-count boundaries (1/2, 1) — [168-P1] 2클릭 재절단.</summary>
         private void MonitorMeleeComboClip()
         {
             if (_anim == null || _comboStage <= 0) return;
@@ -1233,9 +1625,19 @@ namespace ProjectName.Systems
                 float normalizedTime = Mathf.Max(0f, state.normalizedTime);
                 for (int segment = 1; segment <= _comboAcceptedClicks; segment++)
                 {
+                    // [168-P1] 슬래시 VFX 조기발화 — 데미지 스트라이크(정점 0.32)보다 LeadNormT(0.12) 선행 1회(플래그 가드).
+                    // 임계값 = max(세그먼트 시작+0.02, 스트라이크-0.12) — 세그먼트 미개시 조기발화 차단.
+                    if (!_stageVfxResolved[segment - 1] && normalizedTime >= Mathf.Max(
+                            (segment - 1) / (float)MaxMeleeComboClicks + 0.02f,
+                            GetMeleeComboStrikeNormalizedTime(segment) - ComboSlashVfxLeadNormT))
+                    {
+                        _stageVfxResolved[segment - 1] = true;
+                        FireComboSlash(segment);
+                        Debug.Log($"[Combo] slash VFX early segment={segment} normT={normalizedTime:F2}");
+                    }
+
                     if (!TryResolveMeleeComboHit(segment, normalizedTime, _stageHitResolved)) continue;
-                    _combat?.ResolveComboSwingHit(segment);
-                    FireComboSlash(segment);
+                    _combat?.ResolveComboSwingHit(segment);   // [168-P1] 데미지 스트라이크만 — VFX는 상단 조기발화 소유(이중발화 방지)
                     Debug.Log($"[Combo] Weapon_Combo_2 strike resolved segment={segment} normT={normalizedTime:F2}");
                 }
 
@@ -1268,7 +1670,7 @@ namespace ProjectName.Systems
             _comboAcceptedClicks = 0;
             _expiredComboRestartAvailable = allowExpiredRestart;
             _meleeCombo.Reset();
-            WeaponSwingTrail.SetEmitting(false);
+            SetSwingTrailEmitting(false);
             AttackArcVFX.Settle();
             WeaponSwingTrail.SetComboStage(0);
             Debug.Log($"[Combo] {reason}");
@@ -1286,7 +1688,7 @@ namespace ProjectName.Systems
                 {
                     WeaponSwingTrail.EnsureBareFist(transform.root);
                     WeaponSwingTrail.SetComboStage(stage);
-                    WeaponSwingTrail.SetEmitting(true);
+                    SetSwingTrailEmitting(true);
                     // [2026-09-25 프리미엄] 실제 블레이드 궤적 스윕 리본(선택) — 기본 OFF. 활성 시 트레일과 중첩.
                     if (AttackArcVFX.PremiumArcEnabled)
                     {
@@ -1323,34 +1725,13 @@ namespace ProjectName.Systems
                     // fwd 0.55 + up 1.25로 조정(플레이어 루트 기준). ← 튜닝 포인트: 아크가 몸에서 떠 보이면 fwd를,
                     // 높이가 어색하면 up 값을 조정할 것. (앵커 계산은 호출부 단일 소스 — 러너 내부 계산 없음, 불일치 제거)
                     var t = transform;
-                    Vector3 pos = t.position + t.forward * 0.8f + Vector3.up * 1.25f;   // 47차 후속9: 아크 전방 배치(0.55→0.8) — 스월 아크를 대상 방향 전방에 위치
-
-                    // [2026-09-15 Phase A] 슬래시 호가 피격 대상(몬스터)을 향하도록 방향 계산
-                    // LastHitPoint(최근 적중 지점) 또는 CurrentTarget 위치 기준으로 방향 계산
-                    Vector3 dir;
-                    if (ProjectName.Systems.PlayerCombat.LastHitValid && Time.time - ProjectName.Systems.PlayerCombat.LastHitTime <= 0.5f)
-                    {
-                        dir = (ProjectName.Systems.PlayerCombat.LastHitPoint - pos).normalized;  // 슬래시 앵커 → 타격 지점 방향
-                    }
-                    else if (ProjectName.Systems.PlayerCombat.Instance != null && ProjectName.Systems.PlayerCombat.Instance.CurrentTarget != null)
-                    {
-                        var targetComp = ProjectName.Systems.PlayerCombat.Instance.CurrentTarget as Component;
-                        dir = (targetComp.transform.position - pos).normalized;  // 슬래시 앵커 → 현재 타겟 방향
-                    }
-                    else
-                    {
-                        dir = ComboStageDirection(stage, t);  // 폴백: 기존 스윙 방향
-                    }
-                    dir.y = 0f; // 수평 방향만 사용 (수직 성분 제거)
-                    if (dir.sqrMagnitude < 0.0001f)
-                        dir = t.forward; // 극단 케이스 폴백
-
-                    // yawSign — 타겟 방향의 수평 yaw 부호: 좌측이면 -1, 우측이면 +1 (아크 진행 좌우 플립용)
-                    Vector3 fwdFlat = new Vector3(t.forward.x, 0f, t.forward.z);
-                    Vector3 dirFlat = new Vector3(dir.x, 0f, dir.z);
-                    float yawSign = (fwdFlat.sqrMagnitude > 0.000001f && dirFlat.sqrMagnitude > 0.000001f
-                        && Vector3.SignedAngle(fwdFlat.normalized, dirFlat.normalized, Vector3.up) < 0f)
-                        ? -1f : 1f;
+                    // [174차] 부착 지연 해소 — 앵커를 무기 팁(WeaponSwingTrail.GetTrailTipAnchor — 손 본 추적 앵커)
+                    // 기준으로 발화한다. 기존 47차 후속9 고정점(t.position + fwd 0.8 + up 1.25)은 스윙 초반/후반에
+                    // 팁과 어긋나 "슬래시 부착이 늦다" 체감의 주원인(사용자 리포트 11-23). strike 마커/조기발화 리드
+                    // 시점의 팁은 스윙 궤적 위 → 아크가 궤적 위에서 즉시 시작된다. 팁 앵커 부재 시 기존 고정점 폴백.
+                    Vector3 pos = ComboFxAnchorPos(t);
+                    // [2026-09-15 Phase A] 방향/yaw 산식 — [174차] 찌르기 분리(FireComboThrust)와 공용화(ComboFxDir, 로직 무변경).
+                    Vector3 dir = ComboFxDir(pos, stage, t, out float yawSign);
 
                     // 46차 후속: playerRoot = 플레이어 루트(transform.root — EnsureBareFist와 동일 기준) 전달 —
                     // 슬래시 인스턴스가 플레이어에 부착되어 이동/회전을 추종한다(부착감). null이면 러너가 폴백.
@@ -1358,20 +1739,110 @@ namespace ProjectName.Systems
                     // 공격 연출을 젤다(BOTW)식 '무기 궤적 흰 트레일(WeaponSwingTrail.SetEmitting)'로 일원화한다.
                     // 피격 임펙트(Magic Hit 2, PlayImpactMulti)는 별도 경로(CombatFXGate/PlayerCombat)로 그대로 유지.
                     // 복원 필요 시 아래 주석만 해제.
-                    // SlashVFXRunner.PlaySlashStage(pos, dir, stage, yawSign, transform.root);
+                    // [167-C] 재부착 — 사용자 지시 11-21("Free Slash 에셋 여전히 미부착")로 스윙 아크 재활성.
+                    //   흰 트레일(WeaponSwingTrail) 유지 + Free Slash 아크 병행(중첩 허용). 60차 우선 경로/쿨다운/스테이지 롤 규격 무수정.
+                    SlashVFXRunner.PlaySlashStage(pos, dir, stage, yawSign, transform.root);
                 }
-                WeaponSwingTrail.SetEmitting(true);
+                SetSwingTrailEmitting(true);
                 // [2026-09-25 프리미엄] 실제 블레이드 궤적 스윕 리본(선택) — 기본 OFF. 활성 시 트레일과 중첩.
                 if (AttackArcVFX.PremiumArcEnabled)
                 {
                     AttackArcVFX.Swing(WeaponSwingTrail.GetCurrentWeaponType(), transform.root);
                     AttackArcVFX.SetTint(WeaponSwingTrail.GetCurrentWeaponType(), stage);   // [QA_fix] 콤보 스테이지 틴트 배선
                 }
+                // [무번호 70-U2] 스윙 발화 무기 발광 펄스 — 플레이어 모드 전용(병사 SoldierSwingTrail 기존 계약 무수정).
+                //   색=FXPalette.AttackPrimary 단일 소스(공격 이펙트 통일색), 지속 0.15s. CurrentVisual==null(주먹/미장착)은 조용 스킵(내부 가드).
+                //   [무번호 80-P3] Pulse 내부에서 트레일 층(칼날 팁 즉발 잔상) 동시 발화 — 별도 호출/키/파라미터 없음(Task 3.3).
+                if (mode == DriveMode.Player)
+                    FxWeaponGlow.Pulse(WeaponEquipManager.CurrentVisual, FXPalette.AttackPrimary, 0.15f);   // [79-R20] 공격 이펙트 통일색
                 Debug.Log($"[Combo] 스윙 트레일 방출 (stage={stage})");
             }
             catch (System.Exception fxEx)
             {
                 Debug.LogWarning($"[Combo] 스윙 트레일 토글 실패(전투 계속): {fxEx.Message}");
+            }
+        }
+
+        /// <summary>
+        /// [174차] 콤보 FX 공용 앵커 — 무기 팁(WeaponSwingTrail.GetTrailTipAnchor — 손 본 추적 공짜 동기) 우선.
+        /// strike 마커/조기발화 리드 시점의 팁은 스윙 궤적 위에 있으므로 아크/찌르기가 궤적에서 즉시 시작된다
+        /// (부착 지연 해소). 팁 앵커 부재(트레일 미부착 등) 시 기존 전방 고정점 폴백(47차 후속9 규격 — 변경 전 값 유지).
+        /// </summary>
+        private static Vector3 ComboFxAnchorPos(Transform t)
+        {
+            var tipGo = WeaponSwingTrail.GetTrailTipAnchor();
+            if (tipGo != null && tipGo.transform != null)
+                return tipGo.transform.position;
+            return t.position + t.forward * 0.8f + Vector3.up * 1.25f;   // 폴백: 47차 후속9 규격(변경 전 값)
+        }
+
+        /// <summary>
+        /// [174차] 콤보 FX 공용 방향/yaw 산출 — 기존 FireComboSlash 본문(2026-09-15 Phase A)의 로직 이동, 무변경.
+        /// 슬래시 호/찌르기 스트릭이 피격 대상(몬스터)을 향하도록 — LastHitPoint(최근 적중 지점) 또는
+        /// CurrentTarget 위치 기준, 폴백 ComboStageDirection. yawSign은 아크 진행 좌우 플립 판정용.
+        /// </summary>
+        private static Vector3 ComboFxDir(Vector3 pos, int stage, Transform t, out float yawSign)
+        {
+            Vector3 dir;
+            if (ProjectName.Systems.PlayerCombat.LastHitValid && Time.time - ProjectName.Systems.PlayerCombat.LastHitTime <= 0.5f)
+            {
+                dir = (ProjectName.Systems.PlayerCombat.LastHitPoint - pos).normalized;  // FX 앵커 → 타격 지점 방향
+            }
+            else if (ProjectName.Systems.PlayerCombat.Instance != null && ProjectName.Systems.PlayerCombat.Instance.CurrentTarget != null)
+            {
+                var targetComp = ProjectName.Systems.PlayerCombat.Instance.CurrentTarget as Component;
+                dir = (targetComp.transform.position - pos).normalized;  // FX 앵커 → 현재 타겟 방향
+            }
+            else
+            {
+                dir = ComboStageDirection(stage, t);  // 폴백: 기존 스윙 방향
+            }
+            dir.y = 0f; // 수평 방향만 사용 (수직 성분 제거)
+            if (dir.sqrMagnitude < 0.0001f)
+                dir = t.forward; // 극단 케이스 폴백
+
+            // yawSign — 타겟 방향의 수평 yaw 부호: 좌측이면 -1, 우측이면 +1 (아크 진행 좌우 플립용)
+            Vector3 fwdFlat = new Vector3(t.forward.x, 0f, t.forward.z);
+            Vector3 dirFlat = new Vector3(dir.x, 0f, dir.z);
+            yawSign = (fwdFlat.sqrMagnitude > 0.000001f && dirFlat.sqrMagnitude > 0.000001f
+                && Vector3.SignedAngle(fwdFlat.normalized, dirFlat.normalized, Vector3.up) < 0f)
+                ? -1f : 1f;
+            return dir;
+        }
+
+        /// <summary>
+        /// [174차] 찌르기(스피어 오프너 AttackThrust) 전용 FX 발화 — 슬래시 아크(PlaySlashStage) 대신
+        /// 선형 찌르기 스트릭(PlayThrustStage). 사용자 리포트(11-23): 오프너(찌르기)와 팔로업 WeaponCombo(스윙)가
+        /// 같은 슬래시 아크를 써서 시각적으로 구분 불가 → AttackThrust 경로(오프너 스윙 1·2) 전체를 찌르기 FX로
+        /// 분리하고, 팔로업/근접 콤보는 기존 슬래시 아크 유지(찌르기=직선 / 스윙=아크 — 명백한 시각 분리).
+        /// [166-C] 스윙별 1회 발화 계약 유지(발화 시점도 기존 strike 마커 — 변경 없음). 스윙 트레일은 각
+        /// 오프너 사이트의 선행 FireComboTrail이 담당(기존 배선 무수정), 발광 펄스는 기존 FireComboSlash 배선 동형.
+        /// </summary>
+        private void FireComboThrust(int stage)
+        {
+            try
+            {
+                if (mode == DriveMode.Player)
+                {
+                    WeaponSwingTrail.EnsureBareFist(transform.root);
+                    WeaponSwingTrail.SetComboStage(stage);
+
+                    // 앵커/방향 — FireComboSlash와 공용 산식([174차] 무기 팁 앵커 우선 + 대상 방향).
+                    var t = transform;
+                    Vector3 pos = ComboFxAnchorPos(t);
+                    Vector3 dir = ComboFxDir(pos, stage, t, out float yawSign);
+
+                    // 찌르기 전용 경로 — AttackThrust에서는 슬래시 아크(PlaySlashStage)를 발화하지 않는다(계약).
+                    SlashVFXRunner.PlayThrustStage(pos, dir, stage, transform.root);
+                    SetSwingTrailEmitting(true);
+                    // [무번호 70-U2] 스윙 발화 무기 발광 펄스 — 찌르기도 동일 발광(FireComboSlash 배선 동형, 색=공격 이펙트 통일색).
+                    FxWeaponGlow.Pulse(WeaponEquipManager.CurrentVisual, FXPalette.AttackPrimary, 0.15f);
+                    Debug.Log($"[Combo] 찌르기 FX 발화 (stage={stage}, yawSign={yawSign}, AttackThrust — 슬래시 아크 아님)");
+                }
+            }
+            catch (System.Exception fxEx)
+            {
+                Debug.LogWarning($"[Combo] 찌르기 FX 발화 실패(전투 계속): {fxEx.Message}");
             }
         }
 
@@ -1400,9 +1871,41 @@ namespace ProjectName.Systems
             return ClampForwardHemisphere(dir, t, stage);
         }
 
+        /// <summary>[무번호 26-ST4] 스윙 트레일 발화 분기 — Player=기존 WeaponSwingTrail(static), Soldier=root의 SoldierSwingTrail(인스턴스).
+        ///   문자열 계약 보존: Player 경로의 "WeaponSwingTrail.SetEmitting(" 표현 유지.</summary>
+        private void SetSwingTrailEmitting(bool on)
+        {
+            // [무번호 47-P1] 방출 상태 추적 — 안전왕치(아래)가 어떤 OFF 누락 경로에도 아크 잔존을 차단한다.
+            if (on) { _swingEmitOn = true; _swingEmitSince = Time.time; }
+            else _swingEmitOn = false;
+            if (mode == DriveMode.Soldier)
+            {
+                if (_soldierSwingTrail == null) _soldierSwingTrail = GetComponentInParent<SoldierSwingTrail>();
+                if (_soldierSwingTrail == null) _soldierSwingTrail = GetComponentInChildren<SoldierSwingTrail>();   // 트레일은 무기 GLB 자식 GO 부착 — 드라이버(root) 기준 자손 탐색 폴백
+                if (_soldierSwingTrail != null) _soldierSwingTrail.SetEmittingLocal(on);
+                return;
+            }
+            WeaponSwingTrail.SetEmitting(on);   // 기존 경로 그대로 — 계약 문자열 유지
+        }
+
+        /// <summary>[무번호 47-P1] 스윙 방출 상한 — ON 후 이 시각을 넘으면 어떤 OFF 누락 경로든 강제 종료.
+        /// 콤보 1스테이지가 이 값보다 짧음을 근거로 상한 설정(2.0s — 히트 리듬 유지에 충분).</summary>
+        private const float SwingEmitMaxSeconds = 2.0f;
+
+        /// <summary>[무번호 47-P1] 안전왕치 — UpdatePlayer 매 프레임 감시. ON 상태로 상한 경과 시 강제 OFF+세틀.</summary>
+        private void WatchSwingEmitDeadline()
+        {
+            if (!_swingEmitOn) return;
+            if (Time.time - _swingEmitSince <= SwingEmitMaxSeconds) return;
+            _swingEmitOn = false;
+            SetSwingTrailEmitting(false);
+            AttackArcVFX.Settle();
+            Debug.Log("[47-ARC] 스윙 방출 안전왕치 — 상한 초과 강제 종료(스윙 중 아크 원칙 복원)");
+        }
+
         /// <summary>
         /// [2026-09-11] 스윙 방향 전방 반구 클램프 — 뒤방향 스윙 금지(스윙 FX는 항상 앞방향).
-        /// dir의 수평 성분이 플레이어 forward 뒤쪽(dot(dir.xz, forward.xz) &lt; 0, 즉 수평 |yaw| &gt; 90°)이면
+        /// dir의 수평 성분이 플레이어 forward 뒤쪽(dot(dir.xz, forward.xz) < 0, 즉 수평 |yaw| > 90°)이면
         /// yaw를 전방측으로 미러(θ → 180°−θ: 전방 성분 부호 반전, 측면 성분 유지)하고 수직 성분(dir.y)은 그대로 유지한다.
         /// → 모든 스테이지에서 수평 |yaw| ≤ 90°(전방 반구) 보장. 이미 전방이면 무변경·무로그.
         /// [2026-09-13 스타일라이즈드 슬래시 복원] FireComboSlash(스윙, ComboStageDirection 경유)가 복원되어
@@ -1610,6 +2113,9 @@ namespace ProjectName.Systems
             if (sinfo.IsName("Attack")) return "Attack";
             if (sinfo.IsName("AttackCombo")) return "AttackCombo";
             if (sinfo.IsName("Roll")) return "Roll";
+            if (sinfo.IsName("RollBack")) return "RollBack";
+            if (sinfo.IsName("RollSideL")) return "RollSideL";
+            if (sinfo.IsName("RollSideR")) return "RollSideR";
             if (sinfo.IsName("Jump")) return "Jump";
             if (sinfo.IsName("Death")) return "Death";
             return sinfo.shortNameHash.ToString("X8");
@@ -1637,6 +2143,18 @@ namespace ProjectName.Systems
         private float _soldierStallTime;
         private float _soldierLastTarget;
 
+        /// <summary>[59차] 이동 명령 도착 즉시 정지 — 스무딩/홀드 상태를 0으로 스냅해 제자리걸음 잔상을 제거.
+        /// GuardPlaceholder 도착 분기(ClearCommand 직후)에서 호출. Soldier 모드 외 무시.</summary>
+        public void NotifyStop()
+        {
+            if (mode != DriveMode.Soldier) return;
+            _soldierStallTime = 0f;
+            _soldierLastTarget = 0f;
+            _soldierSmoothedSpeed = 0f;
+            _lastPos = transform.position;
+            if (_anim != null) _anim.SetFloat("Speed", 0f);
+        }
+
         private void UpdateSoldier()
         {
             float dt = Time.deltaTime;
@@ -1658,6 +2176,12 @@ namespace ProjectName.Systems
             float k = 1f - Mathf.Exp(-10f * dt);
             _soldierSmoothedSpeed = Mathf.Lerp(_soldierSmoothedSpeed, target, k);
             _anim.SetFloat("Speed", _soldierSmoothedSpeed);
+            // [61차] Move 클립 재생속도 정합 — 병사 실측 이동속도(m/s)를 보행 배속으로 정규화해 공급.
+            //   MoveRate = Speed(m/s) / 기준 3.0 — 이동 3.0m/s = 1배(클립 원속), 감속 시 비례 축소(0.4~1.4 클램프).
+            //   이동 중 슬라이드(보폭-이동속도 불일치) 완화. 정지(Idle)는 Speed 전이 임계가 먼저 처리.
+            //   (_anim은 Update() 진입 가드에서 null 확인 — UpdateSoldier 내부는 안전.)
+            float moveRate = Mathf.Clamp(_soldierSmoothedSpeed / 3f, 0.4f, 1.4f);
+            _anim.SetFloat("MoveRate", moveRate);
             _lastPos = transform.position;
         }
 
@@ -1668,7 +2192,7 @@ namespace ProjectName.Systems
         /// Blender FBX export는 텍스처를 유실하므로 흰색으로 보이는 문제의 해결책.
         /// URP Lit 재생성 + GLB의 _BaseMap 텍스처 이식.
         /// </summary>
-        public static void CopyMaterialsFromGlb(GameObject fbxBody, string glbResourcePath, Color fallbackTint = default)
+        public static void CopyMaterialsFromGlb(GameObject fbxBody, string glbResourcePath, Color fallbackTint = default, bool skipTexturedTargets = false)
         {
             var glbPrefab = Resources.Load<GameObject>(glbResourcePath);
             if (glbPrefab == null)
@@ -1687,6 +2211,28 @@ namespace ProjectName.Systems
                     Debug.LogWarning("[HumanoidClipDriver] 머티리얼 복사 대상 렌더러 없음");
                     return;
                 }
+
+                // [무번호5/P0] 텍스처 보유 대상 스킵 가드 — 플레이어처럼 FBX 본체+GLB 장비가 같은 계층에
+                // 공존하면 전 렌더러 덮어쓰기가 장비 GLB의 정상 텍스처(예: wood_*)를 파괴한다.
+                // 가드: 현재 머티리얼에 이미 바인딩된 텍스처가 있으면(셰이더 텍스처 프로퍼티 전수 검사) 스킵.
+                if (skipTexturedTargets)
+                {
+                    var filtered = new List<Renderer>();
+                    foreach (var r in dstRends)
+                    {
+                        if (r == null) continue;
+                        var cur = r.sharedMaterial;
+                        if (cur != null && HasAnyBoundTexture(cur)) continue;
+                        filtered.Add(r);
+                    }
+                    dstRends = filtered.ToArray();
+                    if (dstRends.Length == 0)
+                    {
+                        Debug.Log("[HumanoidClipDriver] 스킵 가드 — 전 대상이 이미 텍스처 보유(재이식 불요)");
+                        return;
+                    }
+                }
+
                 var src = srcRends[0].sharedMaterial;
                 Texture baseTex = src != null && src.HasProperty("_BaseMap")
                     ? src.GetTexture("_BaseMap") : (src != null ? src.mainTexture : null);
@@ -1730,6 +2276,20 @@ namespace ProjectName.Systems
             if (r is SkinnedMeshRenderer smr) return smr.sharedMesh;
             var mf = r.GetComponent<MeshFilter>();
             return mf != null ? mf.sharedMesh : null;
+        }
+
+        /// <summary>[무번호5/P0] 머티리얼에 바인딩된 텍스처 존재 여부 — 셰이더 텍스처 프로퍼티 전수 검사.</summary>
+        private static bool HasAnyBoundTexture(Material m)
+        {
+            if (m == null || m.shader == null) return false;
+            var shader = m.shader;
+            int count = shader.GetPropertyCount();
+            for (int i = 0; i < count; i++)
+            {
+                if (shader.GetPropertyType(i) != UnityEngine.Rendering.ShaderPropertyType.Texture) continue;
+                if (m.GetTexture(shader.GetPropertyName(i)) != null) return true;
+            }
+            return m.mainTexture != null;   // 비표준 셰이더 폴백(mainTexture=첫 텍스처 프로퍼티)
         }
 
         // ───────────────────── 외부 트리거 ─────────────────────

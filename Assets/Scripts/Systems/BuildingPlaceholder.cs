@@ -17,6 +17,7 @@ namespace ProjectName.Systems
             Church,
             NPCHouse,
             Tavern,
+            Arena,   // [125차 후속7] 4방위국 아레나 외관(임시 경기장) — TerritoryBuilder.BuildArenaExteriorPlaceholder 전용
             Other
         }
 
@@ -91,6 +92,7 @@ namespace ProjectName.Systems
                 case BuildingType.Church: return new Color(0.2f, 0.6f, 0.8f); // 파란색
                 case BuildingType.NPCHouse: return new Color(0.8f, 0.2f, 0.6f); // 분홍색
                 case BuildingType.Tavern: return new Color(0.6f, 0.3f, 0.1f); // 갈색 (선술집)
+                case BuildingType.Arena: return new Color(0.55f, 0.35f, 0.18f); // [125차 후속7] 아레나 — 모래·목재 갈색톤
                 default: return Color.grey;
             }
         }

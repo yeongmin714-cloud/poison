@@ -33,6 +33,7 @@ namespace ProjectName.Core
             public ItemRarity rarity = ItemRarity.Common;
             public string effects = "";
             public bool isBomb = false; // 폭탄 — 퀵슬롯 사용 시 무장(소모 금지), 좌클릭 투척
+            public float bombDamage = 25f;   // [193차] 폭탄 중심 피해량(스탯 기반 — Bomb.bombDamage 주입)
             public int basePrice = 0; // O2 C-O2-02: 기본가 (0 = 무가격 → EconomyPricing 등급표 폴백. 기존 정의 하위호환)
         }
 
@@ -52,6 +53,9 @@ namespace ProjectName.Core
             Arrow,      // 화살 (AB-01)
             Bomb        // 폭탄 (퀵슬롯 무장/투척 전용)
         }
+
+        /// <summary>[193차] 인벤 수량 변동 이벤트 — UI(핫바)가 구독해 투척 즉시 개수 갱신(1초 틱 대체).</summary>
+        public event System.Action OnInventoryChanged;
 
         [SerializeField] private int _maxSlots = 40;
         private ItemSlot[] _slots;
@@ -94,6 +98,10 @@ namespace ProjectName.Core
             }
             if (count <= 0) return true;
 
+            // [70차] 골드는 아이템이 아닌 지갑(PlayerStats) 단일소스 — AddItem 선두 인터셉트(계획 Phase 1).
+            // ItemData.Gold 정의(데이터 참조용)는 유지하고, 인벤 슬롯 저장 흐름만 이 지점에서 차단한다.
+            if (item.id == "gold") return RouteGoldToWallet(count);
+
             // 같은 아이템이 있는 슬롯 먼저 찾기 (stack)
             for (int i = 0; i < _slots.Length; i++)
             {
@@ -123,11 +131,36 @@ namespace ProjectName.Core
         }
 
         /// <summary>
+        /// [70차] 골드 → 지갑(PlayerStats) 라우팅 — 인벤 슬롯 저장 없이 원장에 반영(계획 Phase 1).
+        /// 전수 커버: 드랍 폴백/이벤트 보상/테스트 시드/수령/구세이드 마이그레이션(ApplyInventoryData) 경로.
+        /// </summary>
+        private bool RouteGoldToWallet(int count)
+        {
+            var stats = PlayerStats.Instance;
+            if (stats != null)
+            {
+                stats.AddGold(count, "loot_gold");
+                return true;
+            }
+            // Instance null(EditMode 등) — 호출자 경고 소음 방지를 위해 1회만 로그하고 성공 처리.
+            if (!_goldRouteWarned)
+            {
+                _goldRouteWarned = true;
+                Debug.LogWarning("[PlayerInventory] [70차] PlayerStats.Instance 없음 — 골드 지갑 라우팅 스킵(1회만 로그).");
+            }
+            return true;
+        }
+
+        /// <summary>[70차] 골드 라우팅 경고 1회 억제 플래그.</summary>
+        private static bool _goldRouteWarned;
+
+        /// <summary>
         /// 아이템 제거. count만큼 제거 후 bool 반환.
         /// </summary>
         public bool RemoveItem(string itemId, int count = 1)
         {
             int remaining = count;
+            bool changed = false;
             for (int i = 0; i < _slots.Length; i++)
             {
                 if (_slots[i] != null && _slots[i].item != null && _slots[i].item.id == itemId)
@@ -135,12 +168,14 @@ namespace ProjectName.Core
                     int remove = Mathf.Min(remaining, _slots[i].count);
                     _slots[i].count -= remove;
                     remaining -= remove;
+                    changed = true;
                     if (_slots[i].count <= 0)
                         _slots[i] = null;
-                    if (remaining <= 0) return true;
+                    if (remaining <= 0) break;
                 }
             }
-            return false;
+            if (changed) OnInventoryChanged?.Invoke();   // [193차] 투척 즉시 UI 개수 갱신 이벤트
+            return remaining <= 0;
         }
 
         /// <summary>
@@ -249,6 +284,9 @@ namespace ProjectName.Core
         public static readonly ItemData Fruit_Apple      = new ItemData { id = "fruit_apple",      displayName = "사과",   description = "달콤한 과일. 나무에서 따서 먹을 수 있다.", category = ItemCategory.Food, maxStack = 99 };
         public static readonly ItemData Fruit_AppleSeed  = new ItemData { id = "fruit_apple_seed", displayName = "사과씨", description = "과일나무를심을 수 있는 씨앗.",             category = ItemCategory.Food, maxStack = 20 };
 
+        // ===== 들꽃 (야생 꽃 채집 — HerbType.Flower_Wild, [126차] 영주 딸 선물 재료) =====
+        public static readonly ItemData Flower_Wild = new ItemData { id = "flower_wild", displayName = "들꽃", description = "들에서 피는 꽃. 정성을 담아 선물할 수 있다.", category = ItemCategory.Material, maxStack = 50 };
+
         // ===== 땅작물 (농경 — HerbType.Crop_*, FarmPlot) =====
         public static readonly ItemData Crop_Carrot  = new ItemData { id = "crop_carrot",  displayName = "당근",   description = "땅에서 재배한 당근.",       category = ItemCategory.Food, maxStack = 99 };
         public static readonly ItemData Crop_Corn    = new ItemData { id = "crop_corn",    displayName = "옥수수", description = "옥수수. 노란 알갱이.",       category = ItemCategory.Food, maxStack = 99 };
@@ -286,6 +324,8 @@ namespace ProjectName.Core
         public static readonly ItemData BoarTusk    = new ItemData { id = "mat_boar_tusk",    displayName = "멧돼지 엄니", description = "날카로운 멧돼지 엄니. 기본 무기 재료.",   category = ItemCategory.Material, maxStack = 10 };
         public static readonly ItemData WolfTooth   = new ItemData { id = "mat_wolf_tooth",   displayName = "늑대 이빨",   description = "날카로운 늑대 이빨. 날카로운 무기 재료.", category = ItemCategory.Material, maxStack = 10 };
         public static readonly ItemData WolfFur     = new ItemData { id = "mat_wolf_fur",     displayName = "늑대 모피",   description = "고급 늑대 모피. 고급 방어구 재료.",     category = ItemCategory.Material, maxStack = 10 };
+        // [무번호 85-P2] 말 안장 — 야생 말 길들이기 필수 아이템(멧돼지 가죽 5개 크래프트).
+        public static readonly ItemData Saddle      = new ItemData { id = "mat_saddle", displayName = "말 안장", description = "야생 말에게 씌워 길들이는 안장. 말 가까이에서 E키로 길들이기를 시작한다.", category = ItemCategory.Material, maxStack = 5 };
 
         public static readonly ItemData EstateDeed  = new ItemData { id = "quest_deed",  displayName = "영지 증서", description = "튜토리얼 영주의 영지 증서.",     category = ItemCategory.Quest,   maxStack = 1 };
         public static readonly ItemData Gold    = new ItemData { id = "gold",    displayName = "금",    description = "통화",    category = ItemCategory.Material,    maxStack = 99 };
@@ -306,6 +346,9 @@ namespace ProjectName.Core
         public static readonly ItemData Shovel       = new ItemData { id = "tool_shovel",      displayName = "삽",       description = "땅 파기/약초 수확용 도구.",   category = ItemCategory.Tool,   maxStack = 1, maxDurability = 30 };
         // [P29] 낚시대는 FishingRodItem(id=fishing_rod)이 단일 정의 — 시스템(HasItem("fishing_rod")) 기준과 일치.
         //       (기존 중복 FishingRod(tool_fishing_rod)는 사용처 0건이라 제거 — 상점/시스템 아이디 불일치 버그 방지)
+        // [26차 농경 업그레이드] 물뿌리개 — 내구도 없음, 대신 물 저장량(WateringCanWater 0~20회) 별도 관리.
+        //       물은 호수 물가 상호작용(물담기)으로만 충전. 상점 판매.
+        public static readonly ItemData WateringCan = new ItemData { id = "tool_watering_can", displayName = "물뿌리개", description = "밭에 물을 주는 도구. 물은 호수에서 담는다 (20회분).", category = ItemCategory.Tool, maxStack = 1 };
 
         // ===== [Milestone B] 광물 재료 (채광 산출 → 무기/방어구/장신구 재료) =====
         public static readonly ItemData Mat_Wood  = new ItemData { id = "mat_wood",     displayName = "통나무", description = "채광/벌목으로 얻는 기본 목재. Wood 티어 장비 재료.", category = ItemCategory.Material, maxStack = 99 };

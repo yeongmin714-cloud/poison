@@ -117,6 +117,10 @@ namespace ProjectName.Systems
         // 현재 부착된 검 인스턴스 (null = 비장착)
         static GameObject _current;
 
+        // [105차] 바디 측정 오염 제외용 — ArmorVisualAttachSystem의 플레이어 바디 측정에서
+        //   무기 GLB(예: wood_spear bounds z=1.27m)를 제외하기 위한 읽기 전용 노출.
+        public static GameObject CurrentVisual => _current;
+
         /// <summary>현재 장착 중인 검 id (steel/crystal/stone/wood). null = 비장착.</summary>
         public static string CurrentId { get; private set; }
 
@@ -128,6 +132,27 @@ namespace ProjectName.Systems
 
         /// <summary>검이 장착 중인지 여부.</summary>
         public static bool IsEquipped => _current != null;
+
+        /// <summary>
+        /// [68차 P3] 손 본 탐색 public static 추출 — ItemHoldManager 재사용.
+        /// 1) Animator HumanMapping(GetBoneTransform) → 2) 이름 기반 폴백
+        /// ([2026-09-15 Phase H-GRIP2] 선례 — Generic/미매핑 아바타의 조용한 장착 스킵 차단).
+        /// </summary>
+        public static Transform GetHandBone(Animator animator, bool bowLeft)
+        {
+            if (animator == null) return null;
+            var handBone = animator.GetBoneTransform(bowLeft ? HumanBodyBones.LeftHand : HumanBodyBones.RightHand);
+            if (handBone != null) return handBone;
+            foreach (var t in animator.GetComponentsInChildren<Transform>(true))
+            {
+                string tn = t.name.ToLowerInvariant();
+                bool match = bowLeft
+                    ? (tn.Contains("lefthand") || tn.Contains("left_hand") || tn.Contains("hand_l") || tn.EndsWith(":lefthand"))
+                    : (tn.Contains("righthand") || tn.Contains("right_hand") || tn.Contains("hand_r") || tn.EndsWith(":righthand"));
+                if (match) return t;
+            }
+            return null;
+        }
 
         /// <summary>검 장착 (하위 호환 오버로드 — WeaponType.Sword로 위임).</summary>
         public static void Equip(string id, Transform player)
@@ -154,6 +179,10 @@ namespace ProjectName.Systems
                 return;
             }
 
+            // ⓪ [68차 P3] 아이템 홀드 중이면 먼저 정리 — 손에 무기+아이템 동시 부착 방지.
+            //    ItemHoldManager.UnholdIfHolding은 Equip을 호출하지 않아 상호 정리 무한루프 없음.
+            ItemHoldManager.UnholdIfHolding();
+
             // ① 기존 무기 제거 (중복 장착 방지)
             UnequipInternal(logOnDestroy: false);
 
@@ -174,22 +203,8 @@ namespace ProjectName.Systems
             // ③ 플레이어 자식 중 Animator → 그립 손 본 획득 — [TEST28-69차 후속6] 활=왼손(활쏘기 자세: 왼손 활대/오른손 시위), 그 외=오른손
             bool bowLeft = type == WeaponType.Bow;
             var animator = player.GetComponentInChildren<Animator>();
-            var handBone = animator != null
-                ? animator.GetBoneTransform(bowLeft ? HumanBodyBones.LeftHand : HumanBodyBones.RightHand)
-                : null;
-            // [2026-09-15 Phase H-GRIP2] 폴백 — 아바타가 Generic/미매핑이면 GetBoneTransform이 null을 반환해
-            //   무기 장착이 조용히 스킵된다("손에 아무것도 없음" 현상). 이름 기반으로 손 본을 재탐색.
-            if (handBone == null && animator != null)
-            {
-                foreach (var t in animator.GetComponentsInChildren<Transform>(true))
-                {
-                    string tn = t.name.ToLowerInvariant();
-                    bool match = bowLeft
-                        ? (tn.Contains("lefthand") || tn.Contains("left_hand") || tn.Contains("hand_l") || tn.EndsWith(":lefthand"))
-                        : (tn.Contains("righthand") || tn.Contains("right_hand") || tn.Contains("hand_r") || tn.EndsWith(":righthand"));
-                    if (match) { handBone = t; break; }
-                }
-            }
+            // [68차 P3] 손 본 탐색 GetHandBone으로 추출 — ItemHoldManager 재사용(로직 동일 보장).
+            var handBone = GetHandBone(animator, bowLeft);
             if (handBone == null)
             {
                 Debug.LogWarning($"[WeaponEquipManager] 플레이어에서 Animator/{(bowLeft ? "LeftHand" : "RightHand")} 본 미발견 — 장착 스킵");
@@ -269,6 +284,12 @@ namespace ProjectName.Systems
                 EquipmentManager.Instance.SetWeaponSlot(id);
             else
                 Debug.LogWarning("[WeaponEquipManager] EquipmentManager.Instance 없음 — 무기 슬롯 미동기화");
+
+            // ⑩ [65차 P1] 로드아웃 2슬롯 등록 — 장착 무기를 로드아웃 슬롯 1·2 + 핫바 1·2에 자동 등록
+            //    (숫자키 1·2 즉시 전환 — 핫바 ActivateAssignedItem의 무기 토글 경로 재사용).
+            //    RegisterWeaponLoadout 내부 전체 try-catch 격리 — 로드아웃/핫바 연동 실패가
+            //    장착 자체를 중단시키지 않는다.
+            RegisterWeaponLoadout(id, type);
         }
 
         /// <summary>타입별 그립 포즈 조회. [TEST25-66차] id 전용 오버라이드 우선 → 타입 테이블. dagger full-id는 Sword 포즈에 TargetLen만 0.45로 오버라이드. [후속6] 반환 포즈에 유형 스탬프.</summary>
@@ -312,18 +333,22 @@ namespace ProjectName.Systems
                 if (pose.GripStrategy == 3 && ComputeWeaponDataGrip(weapon, handBone, pose, out var tipData))
                 {
                     tipWorld = tipData;
-                    // [테스트 42 #3] 스윙 트레일 팁-끝 검증 진단 — 선택된 칼끝이 그립보다 '손에서 더 먼 쪽'인지.
-                    //   (검: 칼날 끝=손에서 먼 쪽, 손잡이=가까운 쪽). 0=손에서 더 먼 쪽=정상, 1=손잡이 쪽으로 뒤집힘(=튜닝 필요).
+                    // [테스트 42 #3] 스윙 트레일 팁-끝 검증 진단 — 선택된 칼끝(tipWorld)이 그립보다 '손에서 더 먼 쪽'인지.
+                    //   [무번호 27-P2] 기존 판정(tipIsFar = handDistMax >= handDistMin)은 "칼끝=max 코너"를 암시 가정했다.
+                    //   wood_spear는 피벗=창두(65차)로 칼끝이 mesh min 끝 — 실제 팁이 손에서 먼 쪽(1.08m)임에도
+                    //   max 코너(0.49m)와의 비교로 ⚠뒤집힘 오경보(11-12 Play 로그 실측, 선택값은 정상).
+                    //   수리: 실제 선택된 tipWorld의 손 거리 vs 메시 중심 손 거리 비교 — 선택값을 직접 검증한다.
                     var mf = weapon.GetComponentInChildren<MeshFilter>(true);
                     if (mf != null && mf.sharedMesh != null)
                     {
                         var tb = mf.sharedMesh.bounds;
                         float handDistMin = Vector3.Distance(handBone.position, weapon.transform.TransformPoint(tb.min));
                         float handDistMax = Vector3.Distance(handBone.position, weapon.transform.TransformPoint(tb.max));
-                        bool tipIsFar = handDistMax >= handDistMin;
-                        string tipAxis = tipIsFar ? "max축" : "min축";
+                        float handDistTip = Vector3.Distance(handBone.position, tipWorld);
+                        float handDistCenter = Vector3.Distance(handBone.position, weapon.transform.TransformPoint(tb.center));
+                        bool tipIsFar = handDistTip >= handDistCenter;
                         string tipDirection = tipIsFar ? "먼 쪽(정상)" : "가까운 쪽 ⚠뒤집힘";
-                        Debug.Log($"[Weapon] 팁-끝 진단: 손 거리 min={handDistMin:F2}m / max={handDistMax:F2}m → 칼끝({tipAxis}) = 손에서 {tipDirection}, tipWorld={tipWorld:F2}");
+                        Debug.Log($"[Weapon] 팁-끝 진단: 손 거리 min={handDistMin:F2}m / max={handDistMax:F2}m, 팁={handDistTip:F2}m/중심={handDistCenter:F2}m → 칼끝 = 손에서 {tipDirection}, tipWorld={tipWorld:F2}");
                     }
                     return true;
                 }
@@ -538,14 +563,21 @@ namespace ProjectName.Systems
                 }
                 else
                 {
-                    // 검/단검: 칼끝 = 끝 3슬라이스 평균 단면이 작은 쪽(테이퍼), 가드 = 최대 단면
+                    // [176차] 검 판정 교정(사용자 리포트: stone_sword 칼날/손잡이 반대) — 기존 테이퍼 단판정
+                    // (끝 3슬라이스 평균 단면이 작은 쪽 = 칼끝)은 끝 단면 차가 근소하면 뒤집힌다(GLB 정점 실측:
+                    // stone_sword 끝 단면 −0.100 vs +0.090 — 10% 차로 오판 → 그립이 칼날 쪽에 스냅).
+                    // 검의 기하 진실 = 가드(최대 단면)에서 칼날 쪽 스팬이 손잡이보다 길다 → 가드가 스팬 중앙에서
+                    // 유의하게 벗어나면(±0.1 초과) 스팬 판정을 따르고, 중앙 근처면 기존 테이퍼 판정을 유지한다
+                    // (wood_sword 가드 T0.47 중앙 실측 대응 — 16종 GLB 전수 대조에서 기존 15종 판정 무변경 확인).
                     float endMinus = (Cross(0) + Cross(1) + Cross(2)) / 3f;
                     float endPlus = (Cross(Slices - 3) + Cross(Slices - 2) + Cross(Slices - 1)) / 3f;
-                    tipEnd = endPlus <= endMinus ? +1 : -1;
                     int guardSlice = 0; float bestCross = -1f;
                     for (int s = 0; s < Slices; s++) { if (Cross(s) > bestCross) { bestCross = Cross(s); guardSlice = s; } }
                     float guardT = (guardSlice + 0.5f) / Slices;
-                    gripT = guardT + 0.45f * ((tipEnd < 0 ? 1f : 0f) - guardT);   // 가드→손잡이 끝 45%
+                    int taperTip = endPlus <= endMinus ? +1 : -1;
+                    int spanTip = guardT < 0.5f ? +1 : -1;
+                    tipEnd = Mathf.Abs(guardT - 0.5f) > 0.1f ? spanTip : taperTip;
+                    gripT = guardT + 0.45f * ((tipEnd < 0 ? 1f : 0f) - guardT);   // 가드→손잡이 끝 45% (계약 유지)
                 }
 
                 // 그립점 = gripT 위치 ±2슬라이스 정점 무게중심(메시 로컬)
@@ -574,7 +606,12 @@ namespace ProjectName.Systems
                         elbow = IsLeftHandBone(handBone)
                             ? animator.GetBoneTransform(HumanBodyBones.LeftLowerArm)
                             : animator.GetBoneTransform(HumanBodyBones.RightLowerArm);
-                    desiredWorld = elbow != null ? (elbow.position - handBone.position).normalized : Vector3.up;
+                    // [무번호 83] 창: 촉 = 팔뚝 반대 방향(손→전방) — 검의 "칼날 하늘"(촉=elbow 방향) 계약이 창에
+                    //   그대로 적용되면 찌르기 시 촉이 뒤를 향함(사용자 실측 11-20: "창을 반대로 들고 있는 것 같아").
+                    //   검/단검은 기존 칼날 하늘 계약 유지.
+                    desiredWorld = pose.PoseType == WeaponType.Spear
+                        ? (elbow != null ? (handBone.position - elbow.position).normalized : Vector3.up)
+                        : (elbow != null ? (elbow.position - handBone.position).normalized : Vector3.up);
                 }
                 Vector3 bladeInHand = handBone.InverseTransformDirection(bladeWorld);
                 Vector3 desiredInHand = handBone.InverseTransformDirection(desiredWorld);
@@ -587,6 +624,21 @@ namespace ProjectName.Systems
                 // 회전 후 그립점 재스냅 — 그립 → 손 원점
                 Vector3 gripWorld = best.transform.TransformPoint(gripMesh);
                 weapon.transform.localPosition -= handBone.InverseTransformPoint(gripWorld);
+
+                // [207차 P3] 플레이어 활 스케일 정규화 — wood_bow 장축 1.9m가 바디 배율 1.56
+                //   (TerritoryBuilder 신장 1.16→1.80 전파)을 타고 월드 2.96m로 렌더(11-27 Editor.log:
+                //   bounds=(0.55,2.96,0.72), 팁 y=-0.20m 지면 관통). 병사 선례 준용
+                //   (GuardVisualAttachSystem: 활 목표길이=0.75×신장, NormalizeHandItemScale) —
+                //   플레이어 신장 1.8m 기준 0.75×1.8=1.35m로 부착 직후 1회 균일 보정.
+                //   중앙 그립(gripT=0.5)·LocalEuler=(0,90,0)·desiredWorld=up 유지 — 이번 라운드는
+                //   크기만(방향 트림은 Play 체감 후 별도).
+                if (pose.PoseType == WeaponType.Bow)
+                {
+                    NormalizePlayerBowScale(weapon, handBone, best);
+                    // 스케일 보정으로 그립점이 이동할 수 있으므로 재스냅 — 그립=손 원점 유지(무보정 시 무동작)
+                    gripWorld = best.transform.TransformPoint(gripMesh);
+                    weapon.transform.localPosition -= handBone.InverseTransformPoint(gripWorld);
+                }
 
                 // 팁(월드) = 그립에서 가장 먼 정점(스윙 트레일 부착용)
                 Vector3 farW = gripWorld; float farD = -1f;
@@ -605,6 +657,52 @@ namespace ProjectName.Systems
                 Debug.LogWarning($"[Weapon] DATA 그립 실패(기존 경로 폴백): {e.Message}");
                 return false;
             }
+        }
+
+        // ────── [207차 P3] 플레이어 활 DATA 그립 스케일 정규화 — 병사 선례 준용 ──────
+        // 목표 = 활 비율 0.75 × 플레이어 신장 1.8m = 1.35m 월드(GuardVisualAttachSystem.WeaponLengthRatio의
+        //   활 0.75×신장과 동일 규격 — NormalizeHandItemScale의 "실측 bounds 기반 균일 배수 보정 1회" 방식 이식).
+        //   실측 1순위: 활 루트 자식 렌더러 bounds 합산의 y 성분 — DATA 그립이 장축을 월드 up으로 정렬한
+        //   직후이므로 world AABB y=장축(wood_bow는 Y축 장축, 11-27 실측 bounds=(0.55,2.96,0.72)).
+        //   폴백: 렌더러 bounds 무효 시 대표 메시 로컬 bounds.y × 손 본 체인 lossyScale.y
+        //   (활 루트는 손 본 자식 — lossyScale.y에 바디 전파 배율 누적).
+        //   실측 실패/보정 배율 상식 밖(0.05~20)이면 무동작 — 파손 방지(병사 선례 bounds 무효 가드 준용).
+        static void NormalizePlayerBowScale(GameObject weapon, Transform handBone, MeshFilter primaryMesh)
+        {
+            const float PlayerHeight = 1.8f;                  // 플레이어 기준 신장(m) — TerritoryBuilder 전파 완료 값
+            const float BowLengthRatio = 0.75f;               // 병사 선례와 동일 활 비율
+            float targetLen = PlayerHeight * BowLengthRatio;  // = 1.35m
+
+            // 1순위 — 렌더러 world bounds 합산 y(장축이 월드 up으로 정렬된 직후의 실측)
+            var rends = weapon.GetComponentsInChildren<Renderer>();
+            if (rends.Length > 0)
+            {
+                var b = rends[0].bounds;
+                for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+                if (b.size.y > 0.01f) { ApplyPlayerBowScale(weapon, b.size.y, targetLen); return; }
+            }
+
+            // 폴백 — 손 본 체인 배율 근사: 대표 메시 로컬 장축 × 손 본 lossyScale.y
+            var mf = primaryMesh != null && primaryMesh.sharedMesh != null
+                ? primaryMesh : weapon.GetComponentInChildren<MeshFilter>();
+            var mesh = mf != null ? mf.sharedMesh : null;
+            if (mesh == null || handBone == null) return;
+            ApplyPlayerBowScale(weapon, mesh.bounds.size.y * Mathf.Abs(handBone.lossyScale.y), targetLen);
+        }
+
+        /// <summary>실측 월드 장축 → 목표 길이 균일 배수 보정 1회. 실측 무효/배율 상식 밖이면 무동작(false).</summary>
+        static bool ApplyPlayerBowScale(GameObject weapon, float worldLen, float targetLen)
+        {
+            if (worldLen <= 0.01f) return false;
+            float k = targetLen / worldLen;
+            if (float.IsNaN(k) || k < 0.05f || k > 20f)
+            {
+                Debug.LogWarning($"[Weapon] 활 스케일 정규화 스킵[207차 P3]: 실측 {worldLen:F2}m → 배율 {k:F3} 상식 밖 — 무동작");
+                return false;
+            }
+            weapon.transform.localScale *= k;
+            Debug.Log($"[Weapon] 활 스케일 정규화[207차 P3]: 실측 장축 {worldLen:F2}m → ×{k:F3} (목표 {targetLen:F2}m = 0.75×1.8m)");
+            return true;
         }
 
         /// <summary>손 본이 왼손인지 — 이름 토큰 판정(LeftHand/left_hand/hand_l 등).</summary>
@@ -723,6 +821,10 @@ namespace ProjectName.Systems
         /// <summary>내부 해제 경로 (Equip 재사용 시 로그 억제).</summary>
         static void UnequipInternal(bool logOnDestroy)
         {
+            // [65차 P1] 해제되는 무기의 로드아웃 Equipped 플래그만 해제 — 등록(ItemId) 자체는 유지
+            // (핫바 등록도 유지 = 재장착 토글 가능). Equip의 선제 해제 경로(logOnDestroy=false)도 동일 통과.
+            ClearLoadoutEquippedFlag(CurrentId);
+
             if (_current != null)
             {
                 Object.Destroy(_current);
@@ -736,6 +838,176 @@ namespace ProjectName.Systems
             _current = null;
             CurrentId = null;
             CurrentType = WeaponType.Fist;
+        }
+
+        // =====================================================================
+        //  [65차 P1] 무기 로드아웃 2슬롯 — 피그마 15:33/221:8(무기 슬롯 1·2 + 핫키 배지 1/2).
+        //  장착 무기를 핫바 1·2번에 자동 등록해 숫자키 1·2로 즉시 전환
+        //  (핫바 ActivateAssignedItem의 무기 토글 경로 재사용).
+        // =====================================================================
+
+        /// <summary>로드아웃 슬롯 1개 — id/타입/장착 여부. Equipped는 런타임 상태(저장 대상 아님).</summary>
+        public struct WeaponLoadoutEntry { public string ItemId; public WeaponType Type; public bool Equipped; }
+
+        private static readonly WeaponLoadoutEntry[] _loadout = new WeaponLoadoutEntry[2];
+        private const string LoadoutPrefsId = "poison_weapon_loadout_{0}";
+
+        /// <summary>지연 로드 게이트 — 게임 부팅 1회(최초 로드아웃 접근 시) PlayerPrefs 복원.</summary>
+        static bool _loadoutLoaded;
+
+        /// <summary>로드아웃 슬롯 조회(index0 = 0/1). 범위 밖 = default(빈 슬롯). 최초 접근 시 prefs에서 복원.</summary>
+        public static WeaponLoadoutEntry GetLoadoutSlot(int index0)
+        {
+            LoadLoadoutFromPrefs();
+            return (uint)index0 < 2u ? _loadout[index0] : default;
+        }
+
+        /// <summary>
+        /// 장착 무기를 로드아웃 2슬롯에 등록(Equip 성공 분기 후크 — public: EditMode 테스트 직접 호출용).
+        ///   - 동일 id 기등록 → 그 슬롯 유지(등록 갱신만, 재배치 금지).
+        ///   - [0] 비어 있으면 [0], 아니면 [1] — [1]도 차면 [1] 덮어쓰기(최근 장착 우선).
+        ///   - 등록 직후 핫바 연동: HotbarUIUTK.AssignItem(슬롯index, GetItemById(id)) —
+        ///     Systems는 UI 어셈블리 참조 불가(asmdef 방향)라 리플렉션 호출
+        ///     (TerritoryManager.FindTypeInAssemblies 선례). 조회 실패 시 경고 1건 + 로드아웃 등록은 유지.
+        /// 전체 try-catch 격리 — 핫바/로드아웃 실패가 장착을 중단시키지 않는다.
+        /// </summary>
+        public static void RegisterWeaponLoadout(string id, WeaponType type)
+        {
+            try
+            {
+                LoadLoadoutFromPrefs();
+                if (string.IsNullOrEmpty(id)) return;
+
+                // 동일 id 기등록 슬롯 탐색 — 있으면 그 슬롯 유지
+                int target = -1;
+                for (int i = 0; i < _loadout.Length; i++)
+                {
+                    if (_loadout[i].ItemId == id) { target = i; break; }
+                }
+                if (target < 0)
+                    target = string.IsNullOrEmpty(_loadout[0].ItemId) ? 0 : 1;   // [0] 우선, 포화 시 [1] 덮어쓰기
+
+                _loadout[target].ItemId = id;
+                _loadout[target].Type = type;
+                _loadout[target].Equipped = true;
+                SaveLoadoutSlot(target);
+
+                // 등록 직후 핫바 연동 — 로드아웃 슬롯 0/1 = 핫바 슬롯 1/2(index 0/1)
+                PushWeaponToHotbar(target, id);
+
+                Debug.Log($"[WeaponLoadout] 무기 {id} → 로드아웃 슬롯 {target + 1} + 핫바 {target + 1}번 등록");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[WeaponLoadout] 로드아웃 등록 실패(장착은 유지): {e.Message}");
+            }
+        }
+
+        /// <summary>poison_weapon_loadout_{0}/{1}에서 ItemId/Type 복원(부팅 1회 게이트). Equipped는 항상 false 시작.</summary>
+        static void LoadLoadoutFromPrefs()
+        {
+            if (_loadoutLoaded) return;
+            _loadoutLoaded = true;
+            for (int i = 0; i < _loadout.Length; i++)
+            {
+                string baseKey = string.Format(LoadoutPrefsId, i);
+                string id = PlayerPrefs.GetString(baseKey, "");
+                if (string.IsNullOrEmpty(id))
+                {
+                    _loadout[i] = default;   // 키 부재 = 빈 슬롯 — in-memory 잔재 정리(재부팅/테스트 일관성)
+                    continue;
+                }
+                _loadout[i].ItemId = id;
+                _loadout[i].Type = (WeaponType)PlayerPrefs.GetInt(baseKey + "_type", (int)WeaponType.Sword);
+            }
+        }
+
+        /// <summary>슬롯별 PlayerPrefs 저장(id + type int). 빈 슬롯은 키 삭제.</summary>
+        static void SaveLoadoutSlot(int index)
+        {
+            if ((uint)index >= 2u) return;
+            string baseKey = string.Format(LoadoutPrefsId, index);
+            var e = _loadout[index];
+            if (string.IsNullOrEmpty(e.ItemId))
+            {
+                PlayerPrefs.DeleteKey(baseKey);
+                PlayerPrefs.DeleteKey(baseKey + "_type");
+            }
+            else
+            {
+                PlayerPrefs.SetString(baseKey, e.ItemId);
+                PlayerPrefs.SetInt(baseKey + "_type", (int)e.Type);
+            }
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>해제된 무기 슬롯의 Equipped 플래그 해제(등록 유지). Equipped는 비저장 상태라 prefs 쓰기 없음.</summary>
+        static void ClearLoadoutEquippedFlag(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            try
+            {
+                LoadLoadoutFromPrefs();
+                for (int i = 0; i < _loadout.Length; i++)
+                {
+                    if (_loadout[i].ItemId == id && _loadout[i].Equipped)
+                    {
+                        _loadout[i].Equipped = false;
+                        return;
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[WeaponLoadout] Equipped 플래그 갱신 실패: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 핫바 자동 등록 — HotbarUIUTK.AssignItem(index, PlayerInventory.GetItemById(id)) 리플렉션 호출.
+        /// Systems→UI 어셈블리 직접 참조 불가(asmdef 방향, TerritoryManager 선례).
+        /// ItemData는 Core 타입이라 리플렉션 인자로 직접 전달 가능.
+        /// 실패(타입/메서드 미발견, 아이템 조회 실패) 시 경고 1건 — 로드아웃 등록은 유지.
+        /// </summary>
+        static void PushWeaponToHotbar(int slotIndex, string id)
+        {
+            try
+            {
+                var hotbarType = System.Type.GetType("ProjectName.UI.Toolkit.HotbarUIUTK, ProjectName.UI");
+                if (hotbarType == null)
+                {
+                    // 폴백: 로드된 전체 어셈블리 스캔(TerritoryManager.FindTypeInAssemblies 선례)
+                    foreach (var asm in System.AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        hotbarType = asm.GetType("ProjectName.UI.Toolkit.HotbarUIUTK");
+                        if (hotbarType != null) break;
+                    }
+                }
+                if (hotbarType == null)
+                {
+                    Debug.LogWarning("[WeaponLoadout] HotbarUIUTK 타입 미발견 — 핫바 자동 등록 스킵(로드아웃 등록은 유지)");
+                    return;
+                }
+
+                var item = PlayerInventory.GetItemById(id);
+                if (item == null)
+                {
+                    Debug.LogWarning($"[WeaponLoadout] 핫바 등록용 ItemData 조회 실패: {id} — 로드아웃 등록은 유지");
+                    return;
+                }
+
+                var assign = hotbarType.GetMethod("AssignItem", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                if (assign == null)
+                {
+                    Debug.LogWarning("[WeaponLoadout] HotbarUIUTK.AssignItem 미발견 — 핫바 자동 등록 스킵(로드아웃 등록은 유지)");
+                    return;
+                }
+                assign.Invoke(null, new object[] { slotIndex, item });
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[WeaponLoadout] 핫바 연동 실패(로드아웃 등록은 유지): {e.Message}");
+            }
         }
 
         /// <summary>PlayerCombat에 해당 타입의 WeaponData를 반영 (전투 스탯/클립 모드 동기화).

@@ -1,0 +1,21 @@
+[
+ {
+  "src": "Assets/Resources/Models/UserProvided/mat_mythril_ore.glb",
+  "dst": "TestOutput/tmp_mythril.glb",
+  "note": "미스릴 파생 — 암석 회청/결정 청록 발광",
+  "ops": [
+   {
+    "zone": 0,
+    "hue-deg": 210.0,
+    "sat": 0.55,
+    "val": 1.0
+   },
+   {
+    "zone": 1,
+    "hue-deg": 174.0,
+    "sat": 1.0,
+    "val": 1.0
+   }
+  ]
+ }
+]

@@ -54,6 +54,12 @@ namespace ProjectName.UI
             float distSqr = (_player.position - transform.position).sqrMagnitude;
             _isPlayerNearby = distSqr <= _interactRange * _interactRange;
 
+            // [43차] 공용 E 월드 프롬프트 — 근접 시 등록, 이탈 시 해제(창 열림 시 UI가 자동 숨김).
+            if (_isPlayerNearby)
+                EInteractionPromptBridge.RaiseRegister(transform, "E - 크래프트 테이블 사용", _interactRange);
+            else
+                EInteractionPromptBridge.RaiseUnregister(transform);
+
             // E 키로 크래프트 UI 열기
             if (_isPlayerNearby && Input.GetKeyDown(KeyCode.E))
             {

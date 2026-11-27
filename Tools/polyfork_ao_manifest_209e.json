@@ -1,0 +1,136 @@
+{
+ "target": "Polyfork/anvil-1286cb",
+ "source": "Assets/Resources/Models/Polyfork/anvil-1286cb.glb",
+ "backup": "Tools/ao_prebake_backup209/anvil-1286cb.glb",
+ "md5_original": "6e4297cbda4308e86a636e96796ffdbc",
+ "md5_backup": "6e4297cbda4308e86a636e96796ffdbc",
+ "note": "[209차-E] AO 수술 전 백업(진실원) — vertex_ao_bake.bake_file 곱셈 전용, BIN 길이 불변 계약",
+ "bake": {
+  "bake": {
+   "verts": 2058,
+   "radius": 0.05,
+   "ao_p05": 0.6,
+   "ao_min": 0.6,
+   "prims": 2
+  },
+  "color0_before": [
+   {
+    "count": 1296,
+    "ncomp": 3,
+    "min": [
+     0.09538,
+     0.04571,
+     0.02292
+    ],
+    "max": [
+     0.47932,
+     0.32778,
+     0.16827
+    ],
+    "mean": [
+     0.22618,
+     0.1251,
+     0.0613
+    ]
+   },
+   {
+    "count": 762,
+    "ncomp": 3,
+    "min": [
+     0.02711,
+     0.03571,
+     0.04813
+    ],
+    "max": [
+     0.04519,
+     0.05951,
+     0.08022
+    ],
+    "mean": [
+     0.04193,
+     0.05522,
+     0.07444
+    ]
+   }
+  ],
+  "color0_after": [
+   {
+    "count": 1296,
+    "ncomp": 3,
+    "min": [
+     0.05723,
+     0.02743,
+     0.01375
+    ],
+    "max": [
+     0.47932,
+     0.32778,
+     0.16827
+    ],
+    "mean": [
+     0.22029,
+     0.12216,
+     0.05985
+    ]
+   },
+   {
+    "count": 762,
+    "ncomp": 3,
+    "min": [
+     0.01627,
+     0.02142,
+     0.02888
+    ],
+    "max": [
+     0.04519,
+     0.05951,
+     0.08022
+    ],
+    "mean": [
+     0.03976,
+     0.05237,
+     0.07059
+    ]
+   }
+  ],
+  "bin_len_before": 76680,
+  "bin_len_after": 76680,
+  "bin_delta": 0,
+  "md5_before": "6e4297cbda4308e86a636e96796ffdbc",
+  "md5_after": "e84d6245d8a2a234c8cc827e8ce172f7",
+  "md5_backup": "6e4297cbda4308e86a636e96796ffdbc"
+ },
+ "bake_ts": "2026-11-27T16:11:50",
+ "compare": {
+  "panels": [
+   {
+    "panel": "polyfork_anvil_before.png",
+    "label": "원본 (AO 수술 전)",
+    "luma_mean": 66.97,
+    "luma_std": 59.6,
+    "center3_avgRGB": [
+     148.203,
+     123.521,
+     101.353
+    ]
+   },
+   {
+    "panel": "polyfork_anvil_full.png",
+    "label": "AO 수술 (COLOR_0 × 정점AO)",
+    "luma_mean": 66.1,
+    "luma_std": 59.32,
+    "center3_avgRGB": [
+     147.81,
+     123.208,
+     101.11
+    ]
+   }
+  ],
+  "out_png": "TestOutput/icon_compare209/polyfork_anvil_compare209e.png",
+  "probe": "Assets/Editor/IconCompare209C.cs RunAnvilBefore/RunAnvilAfter",
+  "batch_logs": [
+   "TestOutput/icon_compare209/batch_209e_before.log",
+   "TestOutput/icon_compare209/batch_209e_after.log"
+  ]
+ }
+}

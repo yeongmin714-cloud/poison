@@ -1,0 +1,1048 @@
+{
+ "id": "95:188",
+ "name": "지역 탐색 리스트",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 36274,
+ "ay": 109,
+ "w": 456.0,
+ "h": 888.0,
+ "d": 0,
+ "fills": [
+  "#161B22/1.0@0.8"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.2,
+ "r": 14.4,
+ "fx": [
+  "BACKGROUND_BLUR:36.0:None",
+  "DROP_SHADOW:38.400001525878906:#000000/0.251"
+ ],
+ "layout": "VERTICAL",
+ "gap": 19.200000762939453,
+ "pl": 24.0,
+ "pr": 24.0,
+ "pt": 24.0,
+ "pb": 24.0,
+ "c": [
+  {
+   "id": "95:189",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36274,
+   "ay": 109,
+   "w": 14.4,
+   "h": 14.4,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "c": [
+    {
+     "id": "95:190",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 36274,
+     "ay": 109,
+     "w": 12.0,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "95:191",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 36274,
+     "ay": 109,
+     "w": 0.0,
+     "h": 12.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "95:192",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36716,
+   "ay": 109,
+   "w": 14.4,
+   "h": 14.4,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "c": [
+    {
+     "id": "95:193",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 36716,
+     "ay": 109,
+     "w": 12.0,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "95:194",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 36716,
+     "ay": 109,
+     "w": 0.0,
+     "h": 12.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "95:195",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36274,
+   "ay": 982,
+   "w": 14.4,
+   "h": 14.4,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "c": [
+    {
+     "id": "95:196",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 36274,
+     "ay": 982,
+     "w": 12.0,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "95:197",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 36274,
+     "ay": 982,
+     "w": 0.0,
+     "h": 12.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "95:198",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36716,
+   "ay": 982,
+   "w": 14.4,
+   "h": 14.4,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "c": [
+    {
+     "id": "95:199",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 36716,
+     "ay": 982,
+     "w": 12.0,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "95:200",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 36716,
+     "ay": 982,
+     "w": 0.0,
+     "h": 12.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "288:7",
+   "name": "CloseButton",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36684,
+   "ay": 123,
+   "w": 32.0,
+   "h": 32.0,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.8"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 16.0,
+   "fx": [
+    "DROP_SHADOW:9.600000381469727:#000000/0.251"
+   ],
+   "layout": "VERTICAL",
+   "mainAlign": "CENTER",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "288:12",
+     "name": "x-circle",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 36692,
+     "ay": 131,
+     "w": 16.0,
+     "h": 16.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "c": [
+      {
+       "id": "288:13",
+       "name": "Vector",
+       "type": "VECTOR",
+       "x": null,
+       "y": null,
+       "ax": 36693,
+       "ay": 132,
+       "w": 13.3,
+       "h": 13.3,
+       "d": 3,
+       "strokes": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 2.0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "95:201",
+   "name": "PanelHeader",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36298,
+   "ay": 133,
+   "w": 408.0,
+   "h": 37.4,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "pb": 14.40000057220459,
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "95:202",
+     "name": "TitleGroup",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 36298,
+     "ay": 133,
+     "w": 209.0,
+     "h": 23.0,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "gap": 12.0,
+     "crossAlign": "BASELINE",
+     "c": [
+      {
+       "id": "95:203",
+       "name": "지역 탐색 리스트",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 36298,
+       "ay": 133,
+       "w": 134.0,
+       "h": 23.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "지역 탐색 리스트",
+       "fontSize": 19.200000762939453,
+       "font": "Roboto 700 Bold",
+       "lineH": 22.5
+      },
+      {
+       "id": "95:204",
+       "name": "REGIONS",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 36444,
+       "ay": 139,
+       "w": 63.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "REGIONS",
+       "fontSize": 13.200000762939453,
+       "font": "Roboto 500 Medium",
+       "lineH": 15.5,
+       "letterSp": 1.2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "95:205",
+   "name": "FilterTabs",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36298,
+   "ay": 189,
+   "w": 408.0,
+   "h": 36.2,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "gap": 4.800000190734863,
+   "c": [
+    {
+     "id": "95:206",
+     "name": "TabActive",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 36298,
+     "ay": 189,
+     "w": 200.4,
+     "h": 36.2,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "pl": 12.0,
+     "pr": 12.0,
+     "pt": 9.600000381469727,
+     "pb": 9.600000381469727,
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "95:207",
+       "name": "퀘스트",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 36378,
+       "ay": 199,
+       "w": 40.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#0B0E14/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "퀘스트",
+       "fontSize": 14.40000057220459,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    },
+    {
+     "id": "95:208",
+     "name": "TabInactive",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 36503,
+     "ay": 189,
+     "w": 202.8,
+     "h": 36.2,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "pl": 12.0,
+     "pr": 12.0,
+     "pt": 9.600000381469727,
+     "pb": 9.600000381469727,
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "95:209",
+       "name": "지역",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 36591,
+       "ay": 199,
+       "w": 27.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "지역",
+       "fontSize": 14.40000057220459,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "95:210",
+   "name": "QuestSlotsContainer",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 36298,
+   "ay": 245,
+   "w": 408.0,
+   "h": 728.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "VERTICAL",
+   "gap": 9.600000381469727,
+   "c": [
+    {
+     "id": "95:211",
+     "name": "QuestSlot",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 36298,
+     "ay": 245,
+     "w": 408.0,
+     "h": 120.8,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.078"
+     ],
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 14.40000057220459,
+     "pl": 14.40000057220459,
+     "pr": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "pb": 14.40000057220459,
+     "c": [
+      {
+       "id": "95:212",
+       "name": "TierStrip",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 36298,
+       "ay": 245,
+       "w": 4.8,
+       "h": 121.0,
+       "d": 3,
+       "fills": [
+        "#39D353/1.0"
+       ],
+       "strokeW": 1.2
+      },
+      {
+       "id": "95:213",
+       "name": "CardHeader",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 36312,
+       "ay": 259,
+       "w": 379.2,
+       "h": 18.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "95:214",
+         "name": "CategoryPill",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 259,
+         "w": 62.4,
+         "h": 18.8,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 4.8,
+         "layout": "HORIZONTAL",
+         "pl": 7.200000286102295,
+         "pr": 7.200000286102295,
+         "pt": 2.4000000953674316,
+         "pb": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:215",
+           "name": "현재 진행",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 36320,
+           "ay": 261,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#39D353/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "현재 진행",
+           "fontSize": 12.0,
+           "font": "Roboto 700 Bold",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "95:216",
+         "name": "Lv.35 - 45",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36628,
+         "ay": 260,
+         "w": 64.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "Lv.35 - 45",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "95:217",
+       "name": "CardBody",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 36312,
+       "ay": 292,
+       "w": 379.2,
+       "h": 58.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "95:218",
+         "name": "고원 레이더 방해 해제",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 292,
+         "w": 379.2,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "고원 레이더 방해 해제",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        },
+        {
+         "id": "95:219",
+         "name": "잊혀진 혹성 고원에서 송출되는 레이더 방해 전파를 차단하고 관측망을 복구하라.",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 317,
+         "w": 379.2,
+         "h": 34.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "잊혀진 혹성 고원에서 송출되는 레이더 방해 전파를 차단하고 관측망을 복구하라.",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "95:220",
+     "name": "QuestSlot",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 36298,
+     "ay": 375,
+     "w": 408.0,
+     "h": 120.8,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 14.40000057220459,
+     "pl": 14.40000057220459,
+     "pr": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "pb": 14.40000057220459,
+     "c": [
+      {
+       "id": "95:221",
+       "name": "TierStrip",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 36298,
+       "ay": 375,
+       "w": 4.8,
+       "h": 121.0,
+       "d": 3,
+       "fills": [
+        "#FF9E2C/1.0"
+       ],
+       "strokeW": 1.2
+      },
+      {
+       "id": "95:222",
+       "name": "CardHeader",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 36312,
+       "ay": 389,
+       "w": 379.2,
+       "h": 18.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "95:223",
+         "name": "CategoryPill",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 389,
+         "w": 62.4,
+         "h": 18.8,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 4.8,
+         "layout": "HORIZONTAL",
+         "pl": 7.200000286102295,
+         "pr": 7.200000286102295,
+         "pt": 2.4000000953674316,
+         "pb": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:224",
+           "name": "메인 임무",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 36320,
+           "ay": 392,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#FF9E2C/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "메인 임무",
+           "fontSize": 12.0,
+           "font": "Roboto 700 Bold",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "95:225",
+         "name": "Lv.45",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36658,
+         "ay": 390,
+         "w": 34.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#FF9E2C/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "Lv.45",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "95:226",
+       "name": "CardBody",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 36312,
+       "ay": 423,
+       "w": 379.2,
+       "h": 58.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "95:227",
+         "name": "차원 문 요새 작전",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 423,
+         "w": 379.2,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "차원 문 요새 작전",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        },
+        {
+         "id": "95:228",
+         "name": "부서진 차원의 문 요새에 침투해 크로노스 연료 장치를 회수하고 작전지 지휘소를 무력화하라.",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 447,
+         "w": 379.2,
+         "h": 34.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "부서진 차원의 문 요새에 침투해 크로노스 연료 장치를 회수하고 작전지 지휘소를 무력화하라.",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "95:229",
+     "name": "QuestSlot",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 36298,
+     "ay": 505,
+     "w": 408.0,
+     "h": 120.8,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "VERTICAL",
+     "gap": 14.40000057220459,
+     "pl": 14.40000057220459,
+     "pr": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "pb": 14.40000057220459,
+     "c": [
+      {
+       "id": "95:230",
+       "name": "TierStrip",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 36298,
+       "ay": 505,
+       "w": 4.8,
+       "h": 121.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.2
+      },
+      {
+       "id": "95:231",
+       "name": "CardHeader",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 36312,
+       "ay": 520,
+       "w": 379.2,
+       "h": 18.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "mainAlign": "SPACE_BETWEEN",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "95:232",
+         "name": "CategoryPill",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 520,
+         "w": 62.4,
+         "h": 18.8,
+         "d": 4,
+         "fills": [
+          "#0B0E14/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 4.8,
+         "layout": "HORIZONTAL",
+         "pl": 7.200000286102295,
+         "pr": 7.200000286102295,
+         "pt": 2.4000000953674316,
+         "pb": 2.4000000953674316,
+         "c": [
+          {
+           "id": "95:233",
+           "name": "보조 임무",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 36320,
+           "ay": 522,
+           "w": 48.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "보조 임무",
+           "fontSize": 12.0,
+           "font": "Roboto 700 Bold",
+           "lineH": 14.1
+          }
+         ]
+        },
+        {
+         "id": "95:234",
+         "name": "Lv.25 - 30",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36628,
+         "ay": 521,
+         "w": 64.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "Lv.25 - 30",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "95:235",
+       "name": "CardBody",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 36312,
+       "ay": 553,
+       "w": 379.2,
+       "h": 58.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "95:236",
+         "name": "공업지구 보급 지원",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 553,
+         "w": 379.2,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "공업지구 보급 지원",
+         "fontSize": 16.80000114440918,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        },
+        {
+         "id": "95:237",
+         "name": "엘리시온 정착 공업지구로 중수소 운송선과 보급 물자를 안전하게 인도하라.",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 36312,
+         "ay": 578,
+         "w": 379.2,
+         "h": 34.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "엘리시온 정착 공업지구로 중수소 운송선과 보급 물자를 안전하게 인도하라.",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 400 Regular",
+         "lineH": 16.9
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

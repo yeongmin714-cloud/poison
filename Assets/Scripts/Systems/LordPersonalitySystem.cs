@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ProjectName.Core.Data;
 using UnityEngine;
 #pragma warning disable 0414
@@ -95,7 +96,9 @@ namespace ProjectName.Systems
 
         /// <summary>
         /// 영지의 현재 병력 기준 배분 계획.
-        /// 총 병력 = 정의의 guardCount × state.guardAliveRatio (기본 1) 를 반올림한 값.
+        /// 총 병력 = round(정의 guardCount × guardAliveRatio) + 살아있는 AI 재고용 병력(GetLiveHiredCount).
+        /// 재고용 누적 카운트(LaborMarketSystem.GetHiredCount)는 사망을 차감하지 않으므로 사용하지 않는다.
+        /// 보유 병력 자체에는 상한이 없으며, 전쟁 공격 파견은 WarMarchSimulation이 영주별 합계 20명으로 별도 제한한다.
         /// </summary>
         public static LordDeploymentPlan GetDeploymentPlan(TerritoryId id)
         {
@@ -104,9 +107,42 @@ namespace ProjectName.Systems
             TerritoryState state = db.GetState(id);
 
             float aliveRatio = state != null ? state.guardAliveRatio : 1f;
-            int totalGuardCount = RoundHalfUp(definition.guardCount * Mathf.Clamp01(aliveRatio));
+            int baseGuardCount = RoundHalfUp(definition.guardCount * Mathf.Clamp01(aliveRatio));
+            int liveHiredCount = GetLiveHiredCount(id);
+            int totalGuardCount = baseGuardCount + liveHiredCount;
 
             return GetDeploymentPlan(id, totalGuardCount);
+        }
+
+        /// <summary>
+        /// 영지 등록(GuardManager) 기준 살아있는 AI 재고용 병력 수.
+        /// null/사망 병사는 제외하며, 같은 병사는 한 번만 집계한다.
+        /// 재고용은 병사의 국가(Nation)를 바꾸지 않으므로 국가 일치로 거르지 않는다.
+        /// GuardManager 인스턴스가 없으면 0.
+        /// </summary>
+        public static int GetLiveHiredCount(TerritoryId id)
+        {
+            return GetLiveHiredCount(id, GuardManager.Instance);
+        }
+
+        /// <summary>
+        /// 지정된 GuardManager 기준 살아있는 AI 재고용(IsAIHired) 병력 수 (정적 Instance 비의존 순수 오버로드).
+        /// 테스트 등에서 로컬 GuardManager를 직접 주입할 때 사용한다.
+        /// manager가 null이면 0. 일반 영지 병사(IsAIHired=false)는 제외하고, 같은 병사는 한 번만 집계한다.
+        /// </summary>
+        public static int GetLiveHiredCount(TerritoryId id, GuardManager manager)
+        {
+            if (manager == null) return 0;
+
+            var counted = new HashSet<GuardPlaceholder>();
+            int count = 0;
+            foreach (GuardPlaceholder guard in manager.GetGuardsInTerritory(id))
+            {
+                if (guard == null || !guard.IsAlive || !guard.IsAIHired) continue;
+                if (!counted.Add(guard)) continue;
+                count++;
+            }
+            return count;
         }
 
         /// <summary>

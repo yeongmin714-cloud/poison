@@ -213,7 +213,7 @@ namespace ProjectName.UI
             Image iconImg = iconGo.AddComponent<Image>();
             iconImg.color = new Color(0.5f, 0.5f, 0.5f, 0.5f); // gray placeholder
             iconImg.preserveAspect = true;
-            RectTransform iconRect = iconGo.AddComponent<RectTransform>();
+            RectTransform iconRect = iconImg.rectTransform;   // [125차 후속4] Image가 RectTransform 자동 부착 — 중복 AddComponent는 null 반환(NRE 원인)
             iconRect.sizeDelta = new Vector2(68, 68);
             iconImageOut = iconImg;
 
@@ -242,16 +242,25 @@ namespace ProjectName.UI
         {
             GameObject go = new GameObject("Button");
             go.transform.SetParent(parent.transform, false);
+            Text txt = go.AddComponent<Text>();   // [125차 후속6] fresh GO에 Text 최우선 — CreateRowWithIcon 실증 정상 패턴 이식
             Image bg = go.AddComponent<Image>();
-            bg.color = _themeOverride != null ? _themeOverride.AccentColor : new Color(0.2f, 0.6f, 0.2f, 0.9f);
-            buttonOut = go.AddComponent<Button>();
-            Text txt = go.AddComponent<Text>();
+            if (bg == null) bg = go.GetComponent<Image>();   // [125차 후속9] 환경 특이 AddComponent null 폴백(후속5 동일 규약)
+            if (bg != null)   // [125차 후속9] bg.color NRE(CreateButton:247 반복) 차단 — 테스트씬 시딩 폐기와 이중 방어
+                bg.color = _themeOverride != null ? _themeOverride.AccentColor : new Color(0.2f, 0.6f, 0.2f, 0.9f);
+            buttonOut = go.AddComponent<Button>();   // [125차 후속5] 중복 AddComponent null 폴백
+            if (buttonOut == null) buttonOut = go.GetComponent<Button>();
+            if (txt == null) txt = go.GetComponent<Text>();   // [125차 후속5] 중복 AddComponent null 폴백
+            if (txt == null)
+            {
+                Debug.LogWarning("[AlchemyUI] CreateButton: Text 확보 실패 — 라벨 없이 버튼 유지 [125차 후속5]");
+                return go;
+            }
             txt.text = text;
             txt.font = UIFont.Load(); // P7-1: 한글 서포트 커스텀 폰트
             txt.alignment = TextAnchor.MiddleCenter;
             txt.fontSize = 64;
             txt.color = Color.white;
-            RectTransform rect = go.AddComponent<RectTransform>();
+            RectTransform rect = txt.rectTransform;   // [125차 후속4] 동일 규약 — Text가 자동 부착한 RectTransform 사용
             rect.sizeDelta = new Vector2(0, 90);
             return go;
         }
@@ -263,7 +272,7 @@ namespace ProjectName.UI
             Image bg = go.AddComponent<Image>();
             bg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
             dropdown = go.AddComponent<Dropdown>();
-            RectTransform rect = go.AddComponent<RectTransform>();
+            RectTransform rect = bg.rectTransform;   // [125차 후속4] 동일 규약 — Image가 자동 부척한 RectTransform 사용
             rect.sizeDelta = new Vector2(450, 68);
             return go;
         }
@@ -431,7 +440,7 @@ namespace ProjectName.UI
 
             return new PlayerInventory.ItemData
             {
-                id = $"combo_{result.resultId}",
+                id = result.resultId,
                 displayName = result.resultName,
                 description = result.description,
                 category = category,

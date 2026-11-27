@@ -36,6 +36,7 @@ namespace ProjectName.Systems
 
         private IEnumerator Boot()
         {
+            bool heatSwapped = false; // [무번호 27-P4] 리그 교체 실시 여부(heat 교체 성공 시 true 설정) — 사후 재실측 게이트
             // ── 1) PlayerModel 대기 (최대 5초) ──────────────────────────────
             Transform model = null;
             float deadline = Time.realtimeSinceStartup + FindTimeout;
@@ -56,6 +57,19 @@ namespace ProjectName.Systems
                 yield break;
             }
 
+            // ── 0) 멱등/본씬 보호 가드 [125차 후속29 후속2] — 이미 클립 체계면 재스왑 금지.
+            //   ①루트 하위에 HumanoidClipDriver 존재(부트 완료 or 본씬 경로) ②모델 Animator에
+            //   컨트롤러 존재(본씬 Player_AC 경로) → 재스왑/재정규화 파괴 방지(이중 부착 멱등).
+            var guardRoot = GameObject.FindWithTag("Player");
+            var guardAnim = model.GetComponentInChildren<Animator>(true);
+            bool alreadyWired = (guardRoot != null && guardRoot.GetComponentInChildren<HumanoidClipDriver>(true) != null)
+                || (guardAnim != null && guardAnim.runtimeAnimatorController != null);
+            if (alreadyWired)
+            {
+                Debug.Log("[TestPlayerAnimatorBoot] 이미 클립 애니 체계 존재(드라이버/컨트롤러) — 부트 스킵(멱등 가드 [125차 후속29 후속2])");
+                yield break;
+            }
+
             // ── 2-a) 리그 소스 교체 — GLB(non-humanoid 제네릭 리그) → Humanoid FBX 2026-09-10 ──
             // 근거: RuntimeModelLoader가 Player_Rigged.glb를 RiggedMonster(non-humanoid)로 판정(log: "지연 로드: 'Player_Rigged' (RiggedMonster)")
             // → GLB 인스턴스의 Animator.avatar가 null(휴머노이드 아님) → Player_AC(휴머노이드 전용) 재생 불가 = T포즈 근본원인.
@@ -69,6 +83,7 @@ namespace ProjectName.Systems
                 {
                     var oldModel = model.gameObject;
                     var heat = Object.Instantiate(heatPrefab, playerRootNow.transform);
+                    heatSwapped = true; // [무번호 27-P4] 리그 교체 실시 — 사후 재실측 게이트
                     heat.name = ModelName;                       // 기존 "PlayerModel" 이름 계승 — 드라이버/감시 경로 호환
                     heat.transform.localPosition = Vector3.zero;
                     heat.transform.localRotation = Quaternion.identity;
@@ -76,12 +91,33 @@ namespace ProjectName.Systems
                     // GLB 모델은 컨텐츠/로직 참조가 없는 비주얼이므로 제거 안전(레거시 애니 컴포넌트도 함께 소멸)
                     Object.Destroy(oldModel);
                     model = heat.transform;
+                    // [51차 키 1.8m 통일 → 54차 측정 모드] 리그 교체 후에도 플레이어 비주얼 = 1.8m 유지.
+                    //   플레이어 모델은 localBounds 오측(0.61m→×2.95 폭발)이라 **월드 bounds 측정** 사용.
+                    // [무번호 27-P4] heat 키 이원 실측(정규화 전) — 월드 bounds(즉시 판) vs localBounds(바인드 포즈).
+                    //   11-12 Play 실측: heat 정규화가 1.16m를 읽어 ×1.552 과스케일 → 최종 2.43m(계약 1.8m ×1.35)
+                    //   → fullBody 오염("input" y[0.79~3.22])·투구 앵커 y=2.21m. 두 값의 대비로 다음 Play에서
+                    //   오측 메커니즘(stale 월드 bounds vs 바인드-애니 포즈 불일치)을 확정한다(수리는 그 후).
+                    float hWorldPre = TerritoryBuilder.MeasureStandingHeight(heat, skinnedLocalBounds: false);
+                    float hLocalPre = TerritoryBuilder.MeasureStandingHeight(heat, skinnedLocalBounds: true);
+                    Debug.Log($"[TestPlayerAnimatorBoot] [27-P4] heat 키 이원 실측(정규화 전) — world={hWorldPre:F2}m localBounds={hLocalPre:F2}m");
+                    TerritoryBuilder.NormalizeSoldierHeight(heat, TerritoryBuilder.SoldierTargetHeight, skinnedLocalBounds: false);
+                    // [무번호5/P0] 재질 이식 누락 수리 — 병사와 동일 59차 검증 조합(FBX 본체+GLB 재질).
+                    //   근거: Heat FBX는 텍스처 미포함(314KB 실측) → 임포트 기본 URP/Lit(0.8 회백) = 흰 무광 실루엣.
+                    //   장비 GLB(wood_*)는 이미 텍스처 보유이므로 스킵 가드로 본체만 이식(장비 보호).
+                    HumanoidClipDriver.CopyMaterialsFromGlb(heat, "Models/UserProvided/Player_Rigged", default, skipTexturedTargets: true);
                     Debug.Log("[TestPlayerAnimatorBoot] ✅ 리그 소스 교체: Player_Rigged.glb(non-humanoid) → Player_Rigged_Heat.fbx(Humanoid avatar 보유)");
                 }
             }
 
             // ── 2) PlayerPlaceholder.Start + ForceBiped 완료 보장 1프레임 ─────
             yield return null;
+            // [무번호 27-P4] 정규화 후 실측(스키닝 1프레임 경과) — 실제 월드 스팬 기록(오측 판별 증거).
+            //   정규화가 옳았으면 계약 1.80m에 수렴, 오측정이면 ×1.552 과스케일 값(≈2.43m)이 그대로 관측된다.
+            if (heatSwapped && model != null)
+            {
+                float hPost = TerritoryBuilder.MeasureStandingHeight(model.gameObject, skinnedLocalBounds: false);
+                Debug.Log($"[TestPlayerAnimatorBoot] [27-P4] heat 정규화 후 실측(1프레임 경과) — world={hPost:F2}m (계약 {TerritoryBuilder.SoldierTargetHeight:F2}m, 편차 {Mathf.Abs(hPost - TerritoryBuilder.SoldierTargetHeight):F2}m)");
+            }
 
             var playerRoot = GameObject.FindWithTag("Player");
             if (playerRoot == null || model == null)

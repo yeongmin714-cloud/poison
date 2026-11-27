@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectName.Core;
+using ProjectName.Systems; // [129차] HumanoidClipDriver — 액션 애니 배선
 
 namespace ProjectName.UI.Toolkit
 {
@@ -125,6 +126,10 @@ namespace ProjectName.UI.Toolkit
                     if (PlayerStats.Instance != null)
                         PlayerStats.Instance.AddExp(Random.Range(5, 16));
                     message = $"🟢 요리 성공! '{result.DishName}' — {result.Effect}";
+                    // [129차 Q1] 요리 성공 — 애니 없이 환호만 발화
+                    var cheerPlayer = GameObject.FindGameObjectWithTag("Player");
+                    var cheerDriver = cheerPlayer != null ? (cheerPlayer.GetComponent<HumanoidClipDriver>() ?? cheerPlayer.GetComponentInChildren<HumanoidClipDriver>()) : null;
+                    cheerDriver?.TriggerCheer();
                     ProjectName.Core.CraftingHelper.NotifyCraftSucceeded(result.DishId ?? "dish");
                     return true;
 

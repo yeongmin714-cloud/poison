@@ -100,3 +100,180 @@
 5. 증거에 맞춰 수정 후 docs와 루트 QA handoff를 동기화한다. Play 확인 전 완료/시각 승인 표현은 금지한다.
 
 > 테스트 통과와 실제 Play/화질 검증은 서로 다른 게이트다. 현재는 focused code tests 통과, 전체 EditMode 부분 실패, Play 시각 승인 대기 상태다.
+
+## [144차 Figma 패리티] Phase 4 — 상태/포션/대화/상호작용/컴팩트 3종 (2026-10-31)
+
+### 적용 범위 (감사: TestOutput/figma_audit_144/{status_potion,dialogue,interaction,side_panels}.md · 진실치: docs/figma_truth_144/)
+- **StatusWindowUTK(CSP 본체, status-only)**: P0 8건 — 코너 데칼 4개(14.4·#58A6FF 1.8·코너 밖), IdentitySection 카드(528×84 @0.02 r9.6 pad14.4 gap7.2)+Rarity 14.4/700 #BC8CFF+ClassType 행(실데이터 소스 부재→"클래스: —" 플레이스홀더 기록), StatsSection 카드화(@0.012 r9.6 pad14.4·LevelBlock marginRight 19.2), SpecialStatsSection 카드+(24,724) 528×157, 게이지 VERTICAL 2단 재구성(도트 7.2[O10 치환색]·게이지명 15.6/700 #F0F6FC·값 16.8/700·BarBg 7.2 @0.059 r3.6), 특수헤더 2분할(14.4/700 #8B949E + SPECIAL VITALS 12/400 #484F58). P1: 글래스 override 제거(BuildPanel 0.702 상속)·테두리 4면 균일 1.2·pad24(보상 80→74)·타이틀 24/부제 13.2·CloseBtn @0.059 r7.2 stroke 1.2 pad7.2+필드 갱신·EXP 12/400 #56E39F·CoreStatsGrid 무배경·라벨 "공격력 (ATK)" 등 4종·값 다색(ATK #58A6FF/DEF #F0F6FC/HP #FF7B72/AGI #F2C94C)·라벨 자동폭+구분선 제거·hsep #30363D@0.502·Portrait r9.6(요소 단위)·HudOvelay 투명화·오버레이 라벨 #58A6FF·LEVEL 13.2. 유지(계약): CharacterName 미구현(위조 금지 주석), BarFill [O10] 치환색, 우측 LegacySupplementaryDetails, 게임 전용 Lv.- 배지/HP 트랙.
+- ⭐ 잠재버그 수리: `special-gauge-root` 클래스가 미부여되어 ApplyStatusOnlyComposition의 폴백 부모 워크가 _statusContent를 반환하던 결함 — _figSpecialSection에 AddToClassList로 수리(Q 경로 확보).
+- **PotionStatusUTK**: 데칼 4개, fill 0.851/stroke #30363D@0.8 1.2/r14.4/pad19.2/간격 19.2 체계, wrapper 187.2×274.8 @0.502 r9.6(게임 전용 목록=내부 하단 오버레이 이동 보존), **btn-spray-toggle "G키 분사/종료"+"활성화 전환" 2단 = GasSprayerController StartSpray/StopSpray 실배선**, 복용=목록 행 클릭 경로 보존, 닫기 14.4/500 #8B949E glass r7.2, badge #58A6FF@0.082 체계(텍스트는 실상태 유지), 게이지 트랙/fill/라벨 수치 정합.
+- **NPCDialoguePanelUTK**: bg #161B22@0.45(74차 정정), 테두리 #30363D@0.3 1.2 추가, 패딩 14.4, 간격 gap 9.6 체계, NpcNameRow h15, ContinueHint 96px 고정, **187:14 순서 교정(Dialogue→Hint→Grid)**, 카드 테두리 @0.302 1.2+패딩 9.6/4.8, 데칼을 공용 UTKTheme.AddCornerDecals(코너 밖·#58A6FF·1.8)로 일원화(로컬 구현 삭제), LSB 색 4건 정정(#33E5D9/#30363D/#EBEDF0/#58A6FF), 3열 주석 오기 정정. 계약테스트 NPCDialoguePanelFigmaTests 5건 갱신.
+- **InteractionPanelUTK(7판본)**: P0 — **Ally(81:51)=상태보기★/대화하기/물약주기/음식주기**(하드코딩 뇌물/포섭 정정, IsActionSupported·SoldierInteractUTK 기존 경로 연결), 버튼 아이콘 16.8(Resources/UI/icons 실에셋 근사 매핑 16종+좌측행 pad8/gap6), 7판본 공통 코너 데칼(Show 멱등 부착, Fishing 제외). P1/P2 — Theme.uss .utk-btn(0.6알파·보더 #30363D@0.502 1.2·r4.8 전 창 공용), 하이라이트 크롬(bg #30363D@0.8+보더 #58A6FF 인라인), SingleRowGridHeight 38→30(Figma 36px), HighlightText #58A6FF/NormalText #8B949E LSB, "세금 제안" 라벨+라우팅키 3곳 동기(계약테스트 TaxProposalWiringTests 갱신), Fishing 데칼 inside→outside 정정.
+- **컴팩트 3종 D2(163:45/64/83)**: TargetKind.Bed 신설(ClassifyOne/ResolveInteractionTarget Bed 컴포넌트), Door 리졸버 회복(구: 미소비로 패널 개방 경로 부재), GetLayoutSize(288×60/288×64.8), Bed="잠자기" 전폭 카드(moon ☾ 글리프 근사, 클릭=Bed.OnInteract()=E키 동일), Door=영주실 문(house_lord_room→"E키를 눌러 영주실 들어가기")/일반 문("E키를 눌러 자물쇠 따기") keycap-E 칩+라벨, 클릭=**LockedDoor.RequestLockpick() 신설 공용 래퍼**(마스터 키 우선→OnLockpickRequested — E키와 동일 처리, CS0079 회피). IsActionSupported(잠긴 문만 활성 — 피드백 계약). E키 프롬프트 병행 유지(후속 사용자 판정 항목 기록).
+- Theme.uss는 전 창 공용 — .utk-btn 변경이 타 창 버튼에도 적용(§2 공용 어휘 1회 정비 방향).
+
+### 검증
+- compile_test.sh: **exit 0, error CS 0** (최종 3회차 — CS0826 혼합배열, CS0079 이벤트 발화 2건 자가 수리 후 통과).
+- 전수 EditMode(run_editmode_check.sh): **total=1777 / passed=1767 / failed=10** — 실패집합은 기존 baseline+병행WIP의 부분집합(AERO expected-log, CookingDatabase 760≠2024, RecipeCatalog unknown-combo, ThemeUss bg_window.png, Instrument×3, InvadedLord×2, 실내 H2 blob-shadow) — **신규 실패 0**, 직전 게이트(12건) 대비 2건 감소(기존 flaky/baseline 통과).
+- 미완료: Play 스크린샷 픽셀 비교(사용자 승인 게이트), 커밋(별도 승인). Phase 5(퀘스트/월드맵/전투일지) 대기.
+
+## [144차 Figma 패리티] Phase 5 — 퀘스트/전투일지 매핑/월드맵 (2026-10-31)
+
+### 적용 범위 (감사: figma_audit_144/{quest,worldmap}.md · 진실치: figma_truth_144/)
+- **QuestWindowUTK(93:230)**: P0 — 루트 디밍 #0B0E14@0.82(_content 배경 — RuntimePanelRoots 계약 보존), 패널 데칼 ×3(14.4·#58A6FF 1.8), 히어로 부제 행(tag 정보 재배치), 보상행 부제(데이터 가드), **DeploymentFooter 구축**(TrackingRow 레이더+라벨+TogglePill / 포기·추적 적용 버튼). P1 ~40건 — 글래스 0.702(D1), 헤더 구분선, 제목 "퀘스트 창/줄거리"+색 #F0F6FC, 서브타이틀 3종+letterSpacing 1.2, 탭 간격/색/r, 슬롯 배경 @0.078(선택)/@0.02+테두리 체계+r9.6+선택 하이라이트 분기, Pill #0B0E14+스트로크, Lv 우측정렬, 게이지 간격/트랙/필/#라벨, 푸터 2요소 분리+보더, 히어로/스토리/목표/보상 카드화+폰트·색·간격 전반. 유지(기록): 닫기×3·수락/완료 버튼·체인 UI(기능 보존), 보상 설명문(데이터 부재), TierStrip 상태색/아이콘 등급색(의미색 사용자 판정 항목), 이모지 어휘.
+- **QuestJournalUTK**: ⭐ **daily-combat-log 매핑 폐기 확정** — 123차 사용자 요청 전투로그 폐기(no-op 스텁)와 충돌 → 퀘스트 저널로서 현상 유지 + 93:230 공유 크롬 정합(ApplyFigmaGlass 0.702/stroke 1.2/r14.4/데칼 #58A6FF 공용 어휘/헤더 구분선).
+- **WorldMapWindowUTK**: P0 — **좌/우 패널 독립 창화**: 신규 WorldMapSidePanelWindow(풀캔버스 투명 호스트+디자인 공간 1920×1080 축별 스케일 동일 모델, picking Ignore로 지도 클릭 통과)가 기존 패널 트리를 통째 재부착 — 필드/갱신/폴링 경로 무재배선, 맵 Show/Hide 동기 개폐. 패널 CloseButton ×2(288:7/9 32×32 r16 #161B22@0.8+⊗글리프) 단독 닫힘. TitleGroup 가로 조합 ×2(HORIZONTAL gap12). 영지 핀 라벨 2행화 — 제2행 난이도 **실데이터 링 표기**(링N/황제국, Figma 샘플 "Lv.45" 수치 부재 — 샘플 치환 프로토콜). P1 — 패널/SystemGroup/Coordinates y −3 정정, letterSp 1.2 ×3, 비선택 카드 @0.02+스트로크 1.2(선택만 accent 1.8), 카드 간격 9.6, Decal 12, 플레이스홀더 문자열 전문 복원, 브리핑 lineH(기록 — IStyle lineHeight 미지원), LordItem x/y, TrackingRow top 14.4, radar y16, 루트 fill #0B0E14+r0, 플레이어 핀 라벨 13.2. 유지: 패널@0.80 계약, 전송=미니맵경로, 핀 폴링/툴팁/소유색 계약.
+- ⚠ 위임 2건 타임아웃 → 퀘스트=부모 착지분 검증+letterSpacing 오타 수리(unityCharacterSpacing→letterSpacing), 월드맵=부모 직접 수술(폴백).
+
+### 검증
+- compile_test.sh: **exit 0, error CS 0** (중간 CS1061 lineHeight 미지원 1건 기록 전환).
+- 전수 EditMode: **total=1777 / passed=1765 / failed=12 = baseline 11+병행WIP 1 정확 일치, 신규 실패 0**. WorldMapFigma124 계약테스트 3건은 같은 차 소스-어서션 갱신으로 해소(칩 r4.8/문자열 전문/핀폰트 13.2). MeleeClickOwnership ×2는 격리 재현 확인 — PlayerCombat mtime 10-24 무변경으로 본 변경 귀속 불가(타이밍 민감 기저 계열 — 분리 조사 항목 기록).
+- 미완료: Play 스크린샷 픽셀 비교(사용자 승인), 커밋(별도 승인). Phase 6(투기장/병사/훈련) 대기.
+
+## [144차] Phase 6 — 투기장/병사관리/훈련소 (2026-10-31)
+
+### 작업
+- **ArenaResultWindowUTK(280:163/381)**: P0 8건(베팅한선수 가이드·레벨칩 Lv.— 실데이터부재기록·특성 슬롯=출신 이식·상대 썸네일 프레임 52×68·상대결과 텍스트·획득 골드 라벨·지급상태 x826+순이익 라인·정산 요약 2행 JSON 원문) + P1 전면(판테두리 0.502/폭1.0, 제목 fs22 y24, 사진테두리 액센트1.5, 통산전적 fs18, 상태배지 JSON 문구, 마크 76×76 α0.078, 메시지 fs34, 금액 fs56 mono, 정산칩 무배경 x16/333/649, 내역 fs15/내행 fs12·fs14 right=920, 최종행 stroke만, 보유골드 fs13/최종값 fs25 #F0F6FC, 확인버튼, 도움말바 배경제거 x1334 w138, 패배판 구분선 1×40 ×2 신설). 기록: Geist Mono 폰트 폴백(UIFont 단일 정책 — 사용자 판정 항목), 코인 'G'/마크 '✓✕' 글리프 유지.
+- **ArenaWindowUTK(베팅 255:647)**: P0 12건(닫기버튼 30×30, 크레스트 42×44 shield 부재→프레임기록, 레벨칩 Lv.— 기록, circle-check 선택 전용, 상태배지 실데이터 바인딩, 개요 카드 920×144 재배치, 전적 3칸 — 최근5경기 모델 부재 '—' 기록, 능력치 가로3열+게이지, 금액 입력박스 통합, 예상수령액 카드 재배치, 확인 카드, 유의사항 JSON 원문) + P1 전면(판테두리 0.502, 카드 #191F27 r6/선택 #1A2839+액센트1.5, 배율 fs21, 전적 fs11, 능력치 스트립, 보유골드 coins 15×15, 빠른금액 '+100/+500/+1,000/최대' fs12, 수령금액 fs32 #58A6FF 좌정렬, 확정버튼 244×44+coins, 도움말 x1202 w270). 계약: [125차 후속12/13] 루트투명+헤더제거 유지, 베팅 상한 5000 유지(Figma 10,000 미채택 — 실상한 동적 표기). 이전 중단 세션 무마커 잔여 흔적 정정(BuildInfoGlyph 정의 보완).
+- **SoldierManagementUTK(69:4)**: P0 2건(MissionText 2행 한국명+영문 부제 7개 JSON 원문, 데칼 TR/BL/BR 오배치→UTKTheme.AddCornerDecals 전환) + P1 14건 전부(글래스 0.702, 비활성 탭 투명+스트로크, PanelHeader 테두리, Title↔Subtitle mt8, StatusPill α0.251, AvatarFrame α0.6, 아바타 24, SummaryFooter 테두리+pt, Footer '총원 / 최대 수용력'+'N / M 명'(침대 수용력 API 부재→recruited/totalRegistered 실데이터 바인딩 기록), 등급배지 #BC8CFF r4.8, ImageFrame 배경, Stat 라벨 영문 4개 JSON 원문, Stat max 400/400/500/300, MissionOption pad, CountBadge r7.2). 임무명 5개 교정(경작지 농사단 등 — 표시 문자열만, 라우팅 무손상). 계약 유지: 라디오 원 제거(39차)·8번째 대기 카드·침대 표시(37차).
+- **TrainingHallWindowUTK(269:322)**: P0 3건(헤더 VECTOR 2종→map-pin/clock 근사 매핑, 대기중 '취소' 버튼, 루트 pad-top 36 계통 시프트) + P1 핵심(크롬 r14+테두리 0.502, 폰트 스케일 상향, 4열 우측 정렬, 상태 pill 폭) — 마커 #1~#16 착지.
+- **InteractionPanelUTK 261:3 잔여**: 베팅하기 x 148→138(gap 7.2, 행 우단 오버플로 정정) — P1 #6. 142차 B′ 배경판 계약으로 크롬 수치는 기록 전용.
+
+### 검증
+- compile_test.sh: exit 0, error CS 0 (중간 CS0246 StyleFontStyle 6건 → FontStyle 암시변환 직접 수리 — 구현/QA 게이트 경계 내 컴파일 수리).
+- 전수 EditMode: **total=1778 / passed=1768 / failed=10 = 문서화 baseline 10건과 완전 동일(AERO·CookingDatabase·실내H2·Instrument×3·InvadedLord×2·RecipeCatalog·ThemeUss), 신규 실패 0**. Phase 5의 병행WIP MeleeClick×2 이번 게이트 자연 해소(통과). Phase 5에서 발생했던 SoldierManagementLifecycleSummary 1건 신규 → Figma 69:117 진실치 갱신(계약 갱신: 푸터 'N / M 명', 임무배치 수는 배치 패널 소관) 후 집중 4/4 PASS.
+- 위임 운용: 3병렬은 OpenRouter in-flight 402+600s 미착지 → 순차 단일 위임으로 전환 후 성공(병사→결과 P0→결과 P1→베팅 P0 6건→베팅 P0 6건→베팅 P1). 베팅 1회 타임아웃 무착지 후 재분할 성공.
+- 미완료: Play 스크린샷 픽셀 비교(사용자 승인), 커밋(별도 승인). 다음: Phase 7(건설/음식점/세금/수면/고용비).
+
+## [144차] Phase 7 — 건설/음식점/세금/수면/고용비 (2026-11-01)
+
+### 작업
+- **ConstructionWindowUTK(239:683)**: P0 11건(재료표 ColX 5열 전면 재매핑 14/374/490/606/752 — 구 한 열씩 좌시프트, 충족수 'N / M' 실데이터 라벨, 설계도 벡터 그리드+입체선, 조건 카드 아이콘 3종 글리프, 부족 안내 circle-alert, 유의사항 info, 좌 닫기 버튼 제거) + P1 45건 전부(V2 표 stroke, 제목행 가로 병렬, 상태 배지 (332,21), '수정석'→'마력석' D7 표시만, DROP_SHADOW 기록 전용, 닫기 y24, 비활성 필터 700 등). 계약: 루트 불투명 헤더 소실([125차 후속13]) 유지, '기타' 탭 역반영 제안 기록.
+- **RestaurantWindowUTK(237:792)**: P0 3건(빈슬롯 square-dashed 근사 25×25, 수령버튼 wallet 글리프 18×18 gap8, 정산 안내 info 13×13 + y 852) + P1 62건 전부(창 DisableWindowShadow, 우 목록 열 x −24px 14/394/500/610/680/768/888, 열 정렬 R/C, 하단 스택 −10~13px, 4블록 보더 V2, TextSub→#8B949E 6요소, 슬롯 열간 8(구10), 닫기 y24, 영업배지 r6 @0.078, 판매 목록 fill 제거, GeistMono 헬퍼). 134차 좌패널 진실치 유효(재실측 일치).
+- **RecommendedTaxWindowUTK(244:281)**: P1 27건 전부(테두리 실측 1.2/1.8/2.4/1 요소별 — 코드 0.5 고정 관행 수리, 호감도 항목 x −33.6, 권장 표시선 x 182, 색 7건 #58A6FF/#F0887D/#D29922 체계, '감소 기준' 후단 문구 추가, 버튼/문구 Bold). 구조·좌표 PASS 22건 유지.
+- **WeeklyTaxWindowUTK(243:3) 신규 창 (D4 승인)**: 624×984 — 제목/보조, 영지 필터 3탭, 세금 목록 7행(등급바 4색 TierColor 체계+상징+이름+주간 징수액 GeistMono), 주간 요약(합계 박스 @0.078/stroke@0.251 r9.6), TaxManager/AITerritoryEconomySystem 실데이터 연결. 배선(UTKWireUp 등록)은 후속 wiring 사이클(기록). 계약테스트 WeeklyTaxWindowFigmaTests.cs 신규.
+- **SleepPanelUTK(227:262)**: P0 3건(회복 항목명 '체력'/'기력' 라벨, 슬롯 정보 3행(저장 상태+PLAY TIME — SaveData에 플레이타임 필드 부재 '플레이 시간 —' 위조금지, file-check-2 글리프 20×20) + P1 전부(루트 테두리 V2, 보조제목 인라인, moon/bed/shield 색 액센트, 기상미리보기, 칩 스트로크, 활성칩, 스크롤바, 스위치 손잡이 #0B0E14 등). BACKGROUND_BLUR 36은 기록 전용(UTK 미지원).
+- **MercenaryPaymentNoticeUTK(210:169)**: P0 4건(코너 데칼 V1 UTKTheme.AddCornerDecals, 행 등급바 4.8×86.4 4색(grade DTO 신설), Lv.NN 배지 GeistMono 700 액센트 — 별표 폐기, 지불 요약 카드 구조(divider+단일 라벨 → 수용 인원 행+합계 카드 @0.078, y 852→844)) + P1 21건(루트 #13181F+테두리 1.2, 제목 fs21.6, 탭 h36.2, 선택 탭 Accent, 명부 y151, 행 r9.6/pad14.4, 행 배경/테두리, 아바타 원형 r26.4@0.6, 아이콘 24×24, 병과, 상태 배지 프레임, 고용비 GeistMono 700 액센트, 승인/방출 버튼, 방출 버튼 Secondary). Lv 배지는 MercenaryData에 level 필드 부재 → '—' 표기+기록(위조 금지).
+
+### 게이트 경계 내 컴파일 수리 (구현/QA 경계)
+- ConstructionWindowUTK.cs `style.lineHeight`(CS1061 미지원) → white-space+maxHeight 근사 [144차 P7-CON #44 보정]
+- WeeklyTaxWindowFigmaTests.cs `.value.value` 이중 접근(CS1061) → 단일 `.value` [144차 P7-WTX 보정]
+
+### 검증
+- compile_test.sh: exit 0, error CS 0.
+- 전수 EditMode: **total 1782 / passed 1772 / failed 10 = baseline 10건과 이름·메시지 1:1 동일, 신규 실패 0**. 주시 계열 교차 검증: Restaurant 103/103 · Construction 63/63 · Sleep 10/10 · Tax 49/49 · Mercenary 27/27 · WeeklyTax 15/15 · SoldierManagement 4/4. Phase 6의 SoldierManagementLifecycle 잔여 1건도 이번 차 통과 확인.
+- 위임 운용: 600s 무착지 타임아웃 3회(건설 P1 전반 → 행 분할, 음식점 P1 전반 → 행 분할, 음식점 P1-C → 보고서 행을 인라인 진실치로 동봉하는 전략 전환 — 이후 위임 13~25콜로 안정화). 신규 창(WeeklyTax) 위임은 검증 단계 타임아웃이나 산출물 완결 확인.
+- 미완료: ① WeeklyTaxWindowUTK UTKWireUp 등록 배선(후속 wiring 사이클) ② Play 스크린샷 픽셀 비교(사용자 승인) ③ 커밋(별도 승인). 다음: Phase 8(HUD 계열).
+
+## [144차] Phase 8 — HUD 계열 (2026-11-01)
+
+### 작업
+- **HUDUTK(23:6 stamina-gauge×2)**: P1 4건 전부 — bg-radial-glow 틴트 알파 0.30→0.094, outer-track white 0.28→0.102, inner-plate stroke white 0.92→0.2, center-light 0.62→0.149(시맨틱색 계약 유지, 알파만) + P2 GaugeGap 24→24.4(JSON raw 4433−(4271+137.6)). 도넛 채움(텍스처 위임)/베이크 스트립(85차 계약)/rim 단색 근사 유지 기록, inner-plate blur/inner-shadow 미지원 기록.
+- **HotbarUIUTK(23:68 + 39:30)**: P0 3건 — corner-brackets 8개(#8C734B@0.251 w2.4, PickingMode.Ignore), 캡션 'HOTKEY QUICK SLOTS · ACTIVE COMBAT MODE'(23:142), HintIcon 배지 36×36 #F0F3F5+rotate-cw. P1 9건 — Theme.uss .utk-slot #0D1015@0.902(itemBg #120D08@0.85는 2026-10-10 사용자 계약 유지), r 9.6, HotkeyBadge #F0F3F5 밝은배지+숫자색 Geist Mono+stroke #0D1015 1.8, 활성 슬롯 #D4AF37 2.4 fill #1D2430@0.902, TabBadge 골드+TAB 텍스트 #0D1015, 힌트 배경판 제거(Figma 투명), INNER_SHADOW 기록. P2 2건 — 바 x 630, 힌트 (926,28).
+- **NameplateOverlayUTK(101:5 + 110:14)**: P0 1건 — floating-stats 수직 3행(HP/공격/의약 — JSON 원문 패널 30.6×27.2 정정, 의약 데이터 부재 '—' 위조 금지). P1 9건 — pill r, 글래스 배경 #161B22@0.702, 루트/container stroke 2종 분리, trough fill #1F242C(101:5 기준), level-badge 15.6×19.2+stroke 0.6, monster-name 13.2, track 98.4×6, stats fill @0.22 + stroke #7CE2FE@0.4 0.46 r1.8. [80차] 폭 통일 계약 유지+기록, 그라디언트 fill P2 근사 유지.
+- **MinimapUTK(40:44)**: P1 3건 — Diameter 220→264, 여백 24/24 + dead FigmaBezel 상수 제거, mapFrame border white@0.3 2px → #E5E7EB 1.2(outer-ring). 3링→텍스처 1매 구조 근사 기록, 베젤 다크 팔레트 유지 판단 기록.
+- **DynamicEventUTK(246:141)**: P0 3건 — 코너 데칼 8×8(#58A6FF), 이벤트 유형 배지 58×19 @0.078/stroke@0.251, 발생 시각 '방금 발생'. 영상 플레이어 체계 신설 — 프레임 280×256 r7.2 stroke@0.251, 장면+그라데이션, 재생 44×44 r22, 탐색 막대 260×3(#58A6FF 65), 시간 Geist Mono 10, volume/maximize — 전부 정적(영상 소스 부재, 위조 금지 기록), PickingMode.Ignore. P1 4건 — 패널 312×396, fill #13181F/stroke@0.502, 장소 표기 장면 내부 이동, 제목 fs16. P2 2건 — 설명 fs13.2, 타이틀 0.8pt 근사. 게임 전용(타이머 카드/이동하기·무시) 유지.
+- **기록만**: QuickSlotUTK — [U8 은퇴] 게이트 계약(사용자 지정 제거) → 수리 대상 아님 대조 기록 주석. MonsterInfoUTK — 매핑 정정 기록(101:5/110:14는 오버헤드 이름표 목업, 실 대응=NameplateOverlayUTK). UTKGaugeStripArc — 어휘 계약 PASS(형태 강요 금지 준수).
+
+### 게이트 경계 내 컴파일 수리 (구현/QA 경계)
+- DynamicEventUTK.cs:383 `Background{scaleMode}` → 1인자 Background(기본 ScaleAndStretch) [144차 P8-EV #5 보정2]
+- HudBottomAnchorTests.cs GaugeSpacing 어서션 24.0→24.4 [144차 P8-HUD #3 승계] — JSON raw 갱신(같은 차 계약 갱신)
+
+### 검증
+- compile_test.sh: exit 0, error CS 0.
+- 전수 EditMode: **total 1782 / passed 1770 / failed 12 — baseline 전 건(12개 테스트) 1:1 매칭, 신규 실패 0**. 집중 HudBottomAnchorTests 6/6(간격 24.4 갱신 포함). MeleeClickOwnership×2는 144차 이전부터 기록된 타이밍 민감 기저 계열(분리 조사 항목).
+- QA 경계: 위임 자가검증 이후 부모(QA) 3차 재검증 — 1차(scaleMode CS0117)/2차(2인자 오버로드 CS1729) 컴파일 차단 2건은 구현 수리가 아닌 QA 게이트 경계 수리 기록.
+- 미완료: Play 스크린샷 픽셀 비교(사용자 승인), 커밋(별도 승인). 다음: Phase 9(부재 창 마무리).
+
+## [144차] Phase 9 — Figma 부재 창(D6) + 마무리 (2026-11-01, 텔레그램)
+
+### 작업
+- **환호 GLB 폴백 [144차 P9-ACQ]** — 143 감사표 §2-1① 잔존분 종결:
+  · 갭 진단(TestOutput/acq_resolver_gap.txt): Publish 도달 id 전수 vs resolver 커버리지 대조 — 커버 유지(fish_glb_* 333/herb_*/crop_* 100/mat_wood·mat_stone 임시), **매핑 추가 3건(실GLB File.Exists 실측)**: fruit_apple→crop-apple.glb · flower_wild→angular-nature-flowering GLB(에디터 전용) · wood_dagger→UserProvided/wood_dagger.glb(MissingWeaponGlbKeys 제외 해제 — 130차 부재 판정이 현재 부정확). **폴백 대상**(GLB 실측 부재 → 위조 매핑 금지): iron_ore·mat_silver/gold/mythril_ore+미상 전부. meat_*/herb_seed_*는 Publish 미호출(연출 미도달, 기록만).
+  · AcquisitionCinema 생략 계약 폐기: visual==null → CreateHandFallback — SpriteRenderer(ProceduralIconGenerator 기존 아이콘 서비스)+TextMesh(아이템명), 결정론(스케일 0.25m 고정, 아이콘 실패 시에도 텍스트 반드시 표시), 기존 _handItem 정리 경로 재사용. 로그 [144차 P9-ACQ].
+  · 계약테스트 AcquisitionCinemaTests 5건 신규(경로 단정+File.Exists 실측+부재 id null 유지+폴백 소스계약).
+- **WeeklyTaxWindowUTK 배선 보류 확정 [144차 P9]** — 진입 경로 후보(단일 영지 창 내부 버튼 vs 상점NPC 패널 5번 버튼) 사용자 지명 요청(10분 무응답) → 기존검증 최소설계 원칙으로 **기록만**. 소스 헤더 계약 주석 갱신(상점NPC 패널 신설은 81:134 Figma 1:1 위반 우려 명기).
+- **D6 결정 기록 + 상태표 승계**: docs/144_figma_parity_audit.md §6 신설 — A그룹(실배선 24종)=현상 유지 기록(역반영은 사용자 지명 시 창 단위 별도 사이클), B그룹(미배선 22종+FastTravel+SleepUTK)=폐기 후보(실제 삭제는 별도 승인 게이트 — 기록 우선, SleepUTK만 선행 폐기 완료). 143 감사표의 승계처 확정.
+
+### 검증
+- 컴파일: compile_test.sh exit 0, error CS 0 (위임 자가검증 + 부모 마커 착지 확인 7/5/14건).
+- 전수 EditMode: **total 1787 / passed 1775 / failed 12 = 기존 baseline 12건 1:1 매칭(AERO·CookingDatabase·Instrument×3·InvadedLord×2·MeleeClick×2·RecipeCatalog·ThemeUss + 병행WIP H2_Catalog), 신규 실패 0**. 신규 테스트 5건(+1782→1787) 전부 통과.
+- **[144차 Figma 패리티 Phase 0~9 전체 완료]** — 남은 공통 게이트: ①Play 스크린샷 픽셀 비교(사용자 승인) ②커밋(별도 승인, 128~144 누적) ③B그룹 폐기 실행 여부(별도 승인) ④WeeklyTax 진입 경로(사용자 지명).
+
+## [145차] 마을 설계도 5종+마을 GLB 46종 — 10마을 설계/배치 + Test_15 고산 검증 씬 (2026-11-01, 텔레그램)
+
+- **계획**: docs/145_VILLAGE_5_DESIGNS_PLAN.md — 사용자 승인(표준 5종+고산 5종 확장+Test_15 검증 지정). 설계도 1~5 vision 판독(강변자급/종교교역/광산군사/성벽행정/숲속휴양) → 10마을 테마 확정.
+- **P0 실측**: 마을 GLB 46종 파서 전수(TestOutput/village5_glb_audit.txt+detail.json) — 46/46 glTF 정상, 5~6.2k 삼각형/머티리얼 1/이미지 2(4K+2K)/minY=0. **핵심: 전종목 유닛 큐브 정규화(1unit 스케일) → 역할별 목표높이 스케일 계수 필수(주거 4~5.5/상점 5~6.5/랜드마크 8~14m)**. Bell Tower "(1)"=원본 완전 동일(중복→2인스턴스 배치로 전수 충족), 변형 1종(a5ae8861)은 별개 에셋→V2 제2종탑. Whimsical Fantasy Village=마을 통째 미니어처 디오라마(단일 병합 메시/봉우리 분산 근거)→V1 외곽 기념물 배치. Wooden Dock=4말뚝+데크 1m 모듈→**목교 세그먼트 재활용 확정**. 시스템 실측(TestOutput/village5_p0_systems.txt): LakeGenerator(_radius/_depth/_surfaceY/EnforceSurfaceAboveTerrain 리스크), TerrainPathGenerator(공개 경로 주입 API 부재→흙길은 별도 스트립 경로), TerrainLayerDef L4 dirt_path=west_dirt_albedo 실존.
+- **P1 [145차 P1]**: Village5DesignCatalog.cs — 46종 BuildingDef(목표높이표 하드코딩)+10마을 VillageDesign(표준 5+고산 5, 배치 엔트리 82+44)+HighlandProfile(가우시안 고원+분지, **SampleHeight 단일소스** — 메시/접지 동일 함수)+전수 검산 API(FindMissingStandard 등). 좌표 설계=workspace 그리디 검산 0 위반(MinSpacing 6m+footprint 1.2×TargetHeight/광장 반경 6m/플롯 경계/프로파일 불변식/경사 ≤25°).
+- **P2 [145차 P2]**: Village5DesignRenderer.cs — BuildAll(200m 피치 2줄)+표준 플롯(지면 패치)+고산 플롯(64×64 미니 지형 메시+MeshCollider 동일 샘플러+수면 원판+**Wooden Dock 1m 모듈 목교**+절차 지지 기둥)+프리미티브 폴백. 빌드 중 발견·수리: 월드/로컬 좌표 오프셋 누락(InstantiateAtGround 계약).
+- **P2b [145차 P2b]**: ①렌더러 BuildPlot(string,Vector3) 단일 플롯 API 추출(BuildAll 동작 동일성 유지) ②Test_15 고산 분기 — SetupTest15VillageDrugEconomy: 기존 BuildVillageGroundPatch 자리에 H1 호수반도 고지 실배치, 생활기술 클러스터 앵커=고원 가장자리(계약 유지), 플레이어 텔레포트=브릿지 진입 하단, **생산 마을 건물 스킵 가드**(겹침 방지 — 마약 경영 상태 유지), H1 미발견 시 기존 흐름 폴백 유지 ③부모 직접 수리(위임 600s 타임아웃 후 빈 부분): 수면 머티리얼을 **메인씬 동일 WaterMaterialUpgrader.CreateNationTintedWaterMaterial**(Idyllic 워터)로 교체+폴백 유지, **Idyllic 흙길 신설**(BuildDirtPaths — 브릿지 상륙지→광장 직선+광장 링 24분할, west_dirt_albedo 텍스처 스트립, SampleHeight 접지 추종) ④계약테스트 3건 추가(BuildPlot API/Idyllic 소스/Test_15 분기).
+- **검증**: 컴파일 error CS **0**(자가+부모 3회 — CS0103 MaterialHelper using 누락/CS1503 Transform 전달/테스트 리터럴 오염 자가 수리 포함) + EditMode 전수 **1807/1795 — 실패 12 = 기존 baseline 12건 1:1(병행WIP H2 포함), 신규 실패 0**. Village5DesignCatalogTests **20/20 GREEN**(46종 전수/유일성·랜드마크 1마을 1개·MinSpacing·광장 반경·프로파일 불변식·다리 육지착지·P2b 계약). 과정 기록: HTML 엔티티 일괄 치환이 테스트 자체 리터럴("&gt;" 단언문)까지 오염시켜 1건 실패→원복 후 집중 20/20→전수 재게이트 통과.
+- **미완료/대기**: ①**사용자 Test_15 Play 판정** — 고도차(분지 호수→목교→고원 마을)+Idyllic 지면/흙길/호수+건물 접지 실감 확인 ②나머지 9마을 쇼케이스/프로덕션 반영(P4 별도 승인) ③LakeGenerator 완전 재사용(파라미터 주입)은 15씬 판정 후 ④커밋(별도 승인).
+
+## [145차 후속] P3 쇼케이스 전체 빌드 — 10마을 한 번에 확인 (2026-11-01, 텔레그램)
+
+- **사용자 지시**: "일단 모두 진행하고 한번에 확인하자" → P3 전면 실행.
+- **[145차 P3-STD] 표준 5종 Idyllic 승격**: 지면 머티리얼을 고산과 동일 east_grass1_albedo 공용 팩토리로(폴백 유지) + 표준 플롯 흙길(외곽 진입→광장 직선+광장 링 — BuildDirtPaths/BuildDirtStrip 샘플러 파라미터화 공용화).
+- **[145차 P3-NATURE] Idyllic 자연 산포**: Resources/IdyllicPrefabs Trees 122종/Bushes 88종 실측 → 나무 14(3종 사이클 6~9m)+덤불 8(0.8~1.2m) 마을당 결정론 산포(xorshift32 지터 — Random API 0건). 제약 검산: 건물 footprint+2m/흙길 3m/수면·분지/다리 폴리라인 밖/플롯 경계 내/서로 4m. 프리팹 로드 실패 시 스킵(자연물 위조 금지 원칙).
+- **[145차 P3-TOUR] 쇼케이스 투어**: BuildAll(Vector3 origin) 오버로드 + PlotPitch 130m(2줄×5). Test_15 고산 분기에서 showcaseOrigin = 마을 중심+(300,0,−300)에 10마을 전체 빌드 — H1 게임 플롯(best.center, "_Game" 접미사 인스턴스)에서 도보 투어 가능.
+- **부모 직접 수리 2건**: ①BuildAll 루트 존재 가드가 BuildPlot 선빈(테스트 씬 순서) 시 전체를 스킵하는 충돌 → 플롯 단위 멱등 가드로 교정 ②동일 설계 다중 인스턴스(게임 H1 vs 쇼케이스 H1) 플롯명 충돌 → BuildPlot suffix 파라미터(기본 시그니처 보존).
+- **계약 진화(94차 규칙)**: Random 0건 계약 2건 → "Random API 사용 0건"으로(주석 언급 허용 — xorshift32 문서 주석이 문자열 계약과 충돌), Test_15 분기 계약 → _Game 시그니처 갱신.
+- **검증**: 컴파일 error CS **0** + EditMode 전수 **1811/1799 — 실패 12 = 기존 baseline 1:1, 신규 실패 0**. Village5DesignCatalogTests **24/24 GREEN**.
+- **사용자 확인 대기(단일 Play)**: Test_15 Play → ①H1 게임 플롯(분지 호수→목교→고원 마을+생활기술) ②남동쪽 300m 쇼케이스 10마을 투어(표준 5종 Idyllic+흙길+나무 / 고산 4종 호수·목교·흙길) — 건물 46종 전수·접지·과밀·자연감 일괄 판정.
+
+## [145차 후속2] P4 접지감 패키지 A~E — "붙여놓은 느낌" 해결 (2026-11-01, 텔레그램)
+
+- **사용자 질문**: "지형에 GLB를 부착하면 어색한 부분" → 원인 5건 진단(점 접지/지형 미순응/바닥 전이 부재/수면 하드엣지/섀도우 부재) → **A~E 패키지 사용자 승인** 후 전부 적용.
+- **[145차 P4-PAD] A. 고산 지형 평탄화 패드**: Village5HighlandProfile.SampleHeightWithPads 래퍼 신설(기존 SampleHeight 무수정 — 계약 보존) — 패드 반경 75% 내 padY 평탄, +4m smoothstep 블렌드. 렌더러 고산 빌드 순서 재배치: 자연 산포 후보 선결정 → 패드 목록(건물 footprint/2+1.5m, 나무 1.6m, 다리 양끝 2.5m) → **메시/흙길/다리/건물/나무 전부 동일 래퍼 샘플러**(단일소스 계약 유지). 표준 플롯은 이미 평탄(기록).
+- **[145차 P4-FOUNDATION] B. 기초 링**: 건물마다 코블스톤 실린더(footprint×0.62, 상면 지면+0.25 — 바닥 0.25m 파묻힘), empire_cobble_albedo(Idyllic, Resources 실존), 공유 머티리얼 캐시.
+- **[145차 P4-DIRTDECAL] C. 베이스 디퍼링**: footprint×0.85 흙 디스크(west_dirt_albedo — 흙길과 동일 CreateDirtMaterial 팩토리 일원화), B보다 하층.
+- **[145차 P4-SHORE] D. 수변 처리**: 분지 수변 24지점 링(15° 스텝), y>WaterY+0.3(수면 위 육지) 스킵 — 잠김 지점만, Idyllic Shore 프리팹 3종 사이클(Cattail_01/Reeds_01/Cattail_02 — 폴더 실측), 스케일 1.0~1.4, 로드 실패 스킵.
+- **[145차 P4-BLOB] E. 블롭섀도우**: 기존 BlobShadow.cs는 전역 TerrainGenerator.GetHeightAt(seed42) 고정이라 미니 지형에 부적합 → 렌더러 로컬 정적 쿼드 섀도우(IndoorMaterialFactory.GetBlobShadowTexture/CreateBlobShadowMat 공유+static 캐시), 건물 footprint×1.6/나무 3.0, 사유 주석 기록.
+- **계약테스트 +3**: SampleHeightWithPads 수치 어서션(코어=padY 정확일치/블렌드 밖=자연 1e-4 일치/밴드 내 범위/null 위임) + 패키지 소스계약. 기존 계약 파손 0.
+- **검증**: 컴파일 error CS **0** + EditMode 전수 **1814/1804 — 실패 10 = 기존 baseline 부분집합(이번 게이트 flaky 2건 자연 통과), 신규 실패 0**. Village5DesignCatalogTests **27/27 GREEN**.
+- **대기**: 사용자 Test_15 Play 일괄 판정(접지감 패키지 반영 상태).
+
+## [145차 후속3] P5 완전 자연화 패키지 1~6 (2026-11-01, 텔레그램)
+
+- **사용자 질문**: "더 자연스럽게 하려면?" → 원인/방법 6건 제시 → **1~6 전부 승인**.
+- **[145차 P5-EDGE] 표준 플롯 가장자리 블렌딩**: 박스 패치 완전 제거 → BuildTerrainMeshCore 공용 미니 지형(표준/고산 단일 팩토리 65×65+MeshCollider) — 중심부 2옥타브 밸류 노이즈(진폭 ≤0.3m, id 해시 시드)+가장자리 smoothstep falloff(기저 GROUND_BASE−0.1). **표준도 고산과 동일 단일소스 샘플러**(StandardGroundSampler — 접지/흙길/기초/디퍼링/섀도우 전부 동일 함수).
+- **[145차 P5-CURVE] 곡선 보행로**: CurvedRoads 수학 이식(진폭 2.5~3.5m/주기 1~1.5, 설계 id별 정적 캐시) + 세그먼트별 폭 변화(halfW 1.0~1.4) + 광장→랜드마크 가지길(곡률 0.8). 산포 제약도 곡선 폴리라인 판정으로 갱신.
+- **[145차 P5-GRASS] 풀/꽃 산포**: 마을당 잔디 105+개별 꽃 16+FlowerMeadow 덩어리 2 — IdyllicGrassCover는 플레이어 추종 컬링 구조라 **미채용 판정**(근거 주석) → 정적 프리팹 산포, 콜라이더 제거.
+- **[145차 P5-TEXMIX] 지면 텍스처 혼합**: east_moss_albedo 이끼 패치 6~8(지면추종 팬 메시 — 기복 클리핑 없음)+고원 스커트 empire_rock_albedo 바위 노출 3.
+- **[145차 P5-CLUSTER] 나무 클러스터링**: 균등 링→클러스터 3~5개×3~5그루(가우시안 유사, 반경 3~6m)+단독 외곽 링 예약+덤불 페어링(1.2m 이내)+크기 분산 5~10m. 패드 재계산(빌드 순서 유지).
+- **[145차 P5-WATERFX] 물·불 마감**: 수련/수련잎 7(Waterlily/LilyPads 5종 사이클, WaterY+0.02)+수변 바위 4(Rock_Big, 갈대와 각도 오프셋)+캠프파이어 화염 VFX_Fire_01_Big(0.35~0.5 부착, 파티클 재생 로그). 전부 실존 에셋만(위조 금지).
+- **플롯당 GO 추정**: 표준 ≈241 / 고산 ≈280~300(상한 350 내).
+- **검증**: 컴파일 error CS **0** + EditMode 전수 **1820/1808 — 실패 12 = 기존 baseline 1:1, 신규 실패 0**. Village5DesignCatalogTests **33/33 GREEN**(같은 차 갱신: 박스 패치 제거 확인 역전 어서션/크기 분산 5~10m 등 + 신규 6건).
+- **대기**: 사용자 Test_15 Play 일괄 판정.
+
+## [146차] 던전 1→2층 하강 수리(P0진단+P1수리) + 실내 미니맵 P2 (2026-11-05, 텔레그램)
+
+- **계획**: docs/plans/2026-11-05_dungeon-floor2-outside-judgment-and-indoor-minimap.md — 사용자 승인("진행") 후 P0→P1→P2 순행.
+- **[P0 진단]** 정적 검산(다각형 내부 판정 — 스폰/포탈 전부 내부, 후보 ①② 배제) + Cave146LevelProbe 배치 Play 프로브 3회 실측(run_cave146_probe.sh): ①GoDeeper 시 `_tier` 미초기화(부트 2인자 경유) → 2층 리빌드가 tier1(스케일 1.0, 바닥 21.6×7.0 실측) ②실내에서 ClampToGroundByHeight 월드 공식(GetHeightAt+1) 발동 → 플레이어 바닥 위 1.2m 영구 부유(y=2.21=GetHeightAt+2 정확 일치 실측) ③F2 스폰이 상승 포탈 2.2m 반경 내부(1.0m)+하강 직후 E프롬프트 타깃=채굴노드 실측. 카메라 (0,0,0) 고정은 프로브 배치환경 한계 미확정(에디터 재현 대조 필요). 프로브 부작용 수리: ArenaWindowUTK 배치모드 GLB 초상화 부트 크래시 → isBatchMode 가드 1줄.
+- **[P1 수리]** CaveLevelDirector.SyncContext(territoryId,tier,floor) 신설+BuildCaveInteriorCore 초반 동기화+TeleportPlayerToFloorSpawn 2인자화 / PlayerMovement ClampToGroundByHeight·ApplySlopeAlignment에 UITransitionState.IndoorActive 게이트 / GetFloorSpawnPosition 2인자 tierScale 동행+F2 스폰 (−8.0,0.6)→(−7.0,2.2)(포탈 2.56m 이격 — 재상승 바운스 차단). 위임 600s 타임아웃 → 부모 폴백 검증(반영 전량 확인).
+- **[P2 실내 미니맵]** IndoorMinimapBaker(상공 직교 RT 512² 캡처+MapToUv 순수함수+앰비언트 ×6 임시 상향/정확 복원) 신설, MinimapUTK 실내 브랜치(Refresh 내 분기 — UpdateMapCrop 본체 무수정, 영지/퀘스트/경로 숨김+핀·블립 유지, IsIndoor∨(IndoorActive∧HasCapture)), 훅 3곳(BuildAndSettleIndoor L409/CaveLevelDirector.BuildFloor/CaveInteriorTestSetup — Systems→UI는 FindCrossAssemblyType 리플렉션).
+- **검증**: 컴파일 CS 0 + Cave 집중 27/27 + Minimap 집중 20/20 + IndoorMinimapTests 17/17 GREEN + 프로브 회귀 실측(F2 바닥 27.0×8.8m=×1.25 ✓, 플레이어 착지 y=1.08/feet 0.03m ✓, 스폰-포탈 이격 ✓) + EditMode 전수 1925/1913 — 실패 12 = 기존 baseline 1:1, 신규 실패 0.
+- **대기**: ①사용자 Play 판정(테스트씬 1→2층 하강+실내 미니맵 표시) ②카메라 (0,0,0) 미확정분 — 유저 영상 대조 ③커밋(별도 승인).
+
+## [147차] Phase A — 던전 팩 수용 파이프라인 (2026-11-05, 텔레그램)
+
+- **계획**: docs/plans/2026-11-05_asset-rebuild-dungeon-interior-arena.md — B0(방 크기 고정 계약, tierScale 폐기·tier는 난이도 파라미터로 전환) 사용자 확정 포함.
+- **P-A1 파서 감사**: DUNGEON EXPORT GLB 320종 전수(glTF JSON 파싱) — 파싱 에러 0, 삼각형 중앙값 314/최대 3,648(저폴리), 실스케일(벽 4×3×1.03m/바닥타일 2×2×0.13m/의자 0.95m), 모델당 텍스처 1장 임베드 → TestOutput/147_dungeon_glb_audit.txt.
+- **P-A2 반영 경로**: GLB 320종+New Atlas.png → Assets/Resources/Models/Dungeon/ 복사 + RuntimeModelLoader.LoadModelByKey에 "Models/Dungeon/" 2차 폴백(UserProvided 무손상).
+- **P-A3 임포트 계약**: Dungeon147ImportQuality(에디터 배치) — 스탠드얼론 아틀라스 BC7+quality100/maxTextureSize 4096 적용(141차 패턴), GLB 임베드 320종 실측 리포트(전부 New Atlas 1024² — 2048 초과 0, 포프로 계약 유지) → TestOutput/147_dungeon_import_quality.txt. 위임 600s 타임아웃 2회 → 부모 폴백 완료(CS0623 튜플 배열 초기화/TextureImporter API 교정 포함).
+- **P-A4 매핑**: DungeonAssetCatalog 신설 — 소문자 접두어 규칙표 단일소스(Structural 105/Decor 71/Props 96/Furniture 39/Lighting 9/Misc 0 = 320), ResourceRoot="Models/Dungeon/", CategoryOf/NamesIn/TotalCount API.
+- **검증**: 컴파일 CS 0 + Dungeon147CatalogTests 5/5 GREEN + EditMode 전수 1930/1920 — 실패 10 = 기존 baseline 부분집합(flaky 2건 자연 통과), 신규 실패 0.
+- **대기**: Phase B(던전 테스트씬 리빌딩) 승인 — B2 바닥 방식(타일 그리드 vs 리스킨) 시안 후 사용자 Play 판정.
+
+## [147차] Phase B — 던전 테스트씬 에셋화 시안 (2026-11-05, 텔레그램)
+
+- **계획**: docs/plans/2026-11-05_asset-rebuild-dungeon-interior-arena.md Phase B — 승인("승인") 후 B0~B3 실행. 위임 600s 타임아웃 → 부모 폴백(전량 반영 확인).
+- **B0 방 크기 고정(사용자 확정 계약)**: tierScale 3 지점(Core/입구스폰/층스폰) `= 1f` 고정 — tier는 난이도 파라미터로 전환, 기하 적용 폐기. 실측: CaveFloor 21.6×7.0 유지.
+- **B1 에셋 벽**: CreateAssetWalls — 변별 4m 세그먼트 분할(결정론 사이클 Wall_1_1A/Wall_2_1A/Wall_3_1A), 잔여 구간 X스케일(Clamp 0.4~1.3), 밑면 접지, 입구 변 스킵, StripColliders(충돌=기존 박스 유지 계약), 로드 실패 시 박스 벽 렌더러 복원 폴백.
+- **B2 에셋 바닥 타일**: CreateAssetFloorTiles — 2×2m 그리드(코너/중심 내부+꼭짓점 포함 규칙), 상면 +0.01(z-fight 회피), 콜라이더 스트립(충돌=CaveFloor 유지), 실패 시 레이어 스킵 폴백.
+- **B3 소품 승격**: 횟불 비주얼→Torch GLB(Light+TorchFlicker 무수정, 폴백 로그 1행 플래그), 채굴노드→Stone=Rocks_1_1/IronOre=Crystal_1(루트·콜라이더·ResourceNode 무수정). 보석상자 무수정(기존 GLB).
+- **검증**: 컴파일 CS 0 + Dungeon147|Cave 집중 39/39 GREEN + 프로브 회귀(F2 스폰 (−7.0,2.2) 착지 y=1.08 ✓, 바닥 레이캐스트 0.03m ✓) + 시안 캡처 판독(1층: 벽돌 벽/바위/횟불 렌더 정상 — 검은 사각형 2건=143차 포탈 장식 터널 박스 기존 요소; 2층 탑다운: 에셋 돌담 링/노드 반영, 바닥 타일 어두움+벽캡 부유 의심 — Play 판정 지점).
+- **대기**: 사용자 Test_21 Play 판정(1→2층 하강+시안 외관) — 벽캡 3.2m↔에셋 벽 3m 정합, 바닥 타일 밝기는 판정 후 후속 수리. 커밋 별도 승인.
+
+
+

@@ -1,0 +1,3497 @@
+{
+ "id": "210:169",
+ "name": "고용비 알림 패널",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 45150,
+ "ay": 3,
+ "w": 624.0,
+ "h": 984.0,
+ "d": 0,
+ "fills": [
+  "#13181F/1.0"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.502"
+ ],
+ "strokeW": 1.2,
+ "r": 14.4,
+ "fx": [
+  "BACKGROUND_BLUR:36.0:None",
+  "DROP_SHADOW:38.400001525878906:#000000/0.251"
+ ],
+ "layout": "VERTICAL",
+ "gap": 19.200000762939453,
+ "pl": 24.0,
+ "pr": 24.0,
+ "pt": 24.0,
+ "pb": 24.0,
+ "c": [
+  {
+   "id": "210:170",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45150,
+   "ay": 3,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "210:172",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 45150,
+     "ay": 3,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "210:171",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 45150,
+     "ay": 3,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "210:173",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45762,
+   "ay": 3,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "210:175",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 45772,
+     "ay": 3,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "210:174",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 45762,
+     "ay": 3,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "210:176",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45150,
+   "ay": 975,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "210:178",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 45150,
+     "ay": 975,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "210:177",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 45150,
+     "ay": 985,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "210:179",
+   "name": "모서리 장식",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45762,
+   "ay": 975,
+   "w": 12.0,
+   "h": 12.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "c": [
+    {
+     "id": "210:181",
+     "name": "세로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 45772,
+     "ay": 975,
+     "w": 1.8,
+     "h": 12.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    },
+    {
+     "id": "210:180",
+     "name": "가로 장식",
+     "type": "RECTANGLE",
+     "x": null,
+     "y": null,
+     "ax": 45762,
+     "ay": 985,
+     "w": 12.0,
+     "h": 1.8,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.0
+    }
+   ]
+  },
+  {
+   "id": "210:182",
+   "name": "패널 제목",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45174,
+   "ay": 27,
+   "w": 576.0,
+   "h": 52.8,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 12.0,
+   "pb": 14.399999618530273,
+   "crossAlign": "BASELINE",
+   "c": [
+    {
+     "id": "210:183",
+     "name": "제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 27,
+     "w": 105.0,
+     "h": 25.0,
+     "d": 2,
+     "fills": [
+      "#F0F6FC/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "고용비 알림",
+     "fontSize": 21.600000381469727,
+     "font": "Roboto 700 Bold",
+     "lineH": 25.3
+    },
+    {
+     "id": "210:184",
+     "name": "보조 제목",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 45291,
+     "ay": 35,
+     "w": 104.0,
+     "h": 15.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "부대원 고용비 확인",
+     "fontSize": 13.199999809265137,
+     "font": "Roboto 500 Medium",
+     "lineH": 15.5
+    }
+   ]
+  },
+  {
+   "id": "210:185",
+   "name": "명부 필터",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45174,
+   "ay": 99,
+   "w": 576.0,
+   "h": 36.2,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 4.800000190734863,
+   "c": [
+    {
+     "id": "210:186",
+     "name": "필터 탭",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 99,
+     "w": 188.8,
+     "h": 36.2,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokes": [
+      "#000000/1.0@0.0"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "pl": 12.0,
+     "pr": 12.0,
+     "pt": 9.600000381469727,
+     "pb": 9.600000381469727,
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:187",
+       "name": "필터 문구",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 45255,
+       "ay": 109,
+       "w": 27.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#0B0E14/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "전체",
+       "fontSize": 14.399999618530273,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    },
+    {
+     "id": "210:188",
+     "name": "필터 탭",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45368,
+     "ay": 99,
+     "w": 188.8,
+     "h": 36.2,
+     "d": 2,
+     "fills": [
+      "#000000/1.0@0.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "pl": 12.0,
+     "pr": 12.0,
+     "pt": 9.600000381469727,
+     "pb": 9.600000381469727,
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:189",
+       "name": "필터 문구",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 45448,
+       "ay": 109,
+       "w": 27.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "전투",
+       "fontSize": 14.399999618530273,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    },
+    {
+     "id": "210:190",
+     "name": "필터 탭",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45561,
+     "ay": 99,
+     "w": 188.8,
+     "h": 36.2,
+     "d": 2,
+     "fills": [
+      "#000000/1.0@0.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 7.2,
+     "layout": "HORIZONTAL",
+     "pl": 12.0,
+     "pr": 12.0,
+     "pt": 9.600000381469727,
+     "pb": 9.600000381469727,
+     "mainAlign": "CENTER",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:191",
+       "name": "필터 문구",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 45642,
+       "ay": 109,
+       "w": 27.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "용병",
+       "fontSize": 14.399999618530273,
+       "font": "Roboto 700 Bold",
+       "lineH": 16.9
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "210:192",
+   "name": "부대원 명부",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45174,
+   "ay": 154,
+   "w": 576.0,
+   "h": 673.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 9.600000381469727,
+   "c": [
+    {
+     "id": "210:193",
+     "name": "부대원 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 154,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.078"
+     ],
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:194",
+       "name": "등급 표시",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 45174,
+       "ay": 154,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#BC8CFF/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "210:195",
+       "name": "부대원 아바타",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45188,
+       "ay": 171,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:196",
+         "name": "부대원 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45203,
+         "ay": 186,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "210:197",
+           "name": "부대원",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45205,
+           "ay": 189,
+           "w": 19.7,
+           "h": 18.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:198",
+       "name": "부대원 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45256,
+       "ay": 167,
+       "w": 336.0,
+       "h": 62.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "210:199",
+         "name": "이름과 레벨",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 167,
+         "w": 336.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:200",
+           "name": "이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 167,
+           "w": 82.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "알렉스 카터",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "210:201",
+           "name": "레벨",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45548,
+           "ay": 167,
+           "w": 44.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "Lv.45",
+           "fontSize": 14.399999618530273,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          }
+         ]
+        },
+        {
+         "id": "210:202",
+         "name": "병과와 고용비",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 191,
+         "w": 336.0,
+         "h": 37.2,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:203",
+           "name": "병과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 202,
+           "w": 84.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "베테랑 돌격병",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          },
+          {
+           "id": "210:204",
+           "name": "상태와 비용",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45540,
+           "ay": 191,
+           "w": 51.4,
+           "h": 37.2,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 2.4000000953674316,
+           "crossAlign": "MAX",
+           "c": [
+            {
+             "id": "210:205",
+             "name": "상태 표시",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45540,
+             "ay": 191,
+             "w": 51.4,
+             "h": 18.8,
+             "d": 6,
+             "fills": [
+              "#000000/1.0@0.251"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 4.8,
+             "layout": "HORIZONTAL",
+             "pl": 7.199999809265137,
+             "pr": 7.199999809265137,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "210:206",
+               "name": "상태",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45547,
+               "ay": 194,
+               "w": 37.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "대기 중",
+               "fontSize": 12.0,
+               "font": "Roboto 700 Bold",
+               "lineH": 14.1
+              }
+             ]
+            },
+            {
+             "id": "210:207",
+             "name": "고용비",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45548,
+             "ay": 213,
+             "w": 44.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "1,200g",
+             "fontSize": 12.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 15.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:208",
+       "name": "고용 결정",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45606,
+       "ay": 180,
+       "w": 129.6,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:209",
+         "name": "승인 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45606,
+         "ay": 180,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:210",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45622,
+           "ay": 189,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승인",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "210:211",
+         "name": "방출 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45676,
+         "ay": 180,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:212",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45692,
+           "ay": 189,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "방출",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "210:213",
+     "name": "부대원 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 250,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:214",
+       "name": "등급 표시",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 45174,
+       "ay": 250,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#1F6FEB/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "210:215",
+       "name": "부대원 아바타",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45188,
+       "ay": 267,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:216",
+         "name": "부대원 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45203,
+         "ay": 282,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "210:217",
+           "name": "부대원",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45205,
+           "ay": 285,
+           "w": 19.7,
+           "h": 18.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:218",
+       "name": "부대원 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45256,
+       "ay": 263,
+       "w": 336.0,
+       "h": 62.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "210:219",
+         "name": "이름과 레벨",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 263,
+         "w": 336.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:220",
+           "name": "이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 263,
+           "w": 51.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "지나 박",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "210:221",
+           "name": "레벨",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45548,
+           "ay": 263,
+           "w": 44.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "Lv.38",
+           "fontSize": 14.399999618530273,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          }
+         ]
+        },
+        {
+         "id": "210:222",
+         "name": "병과와 고용비",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 287,
+         "w": 336.0,
+         "h": 37.2,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:223",
+           "name": "병과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 298,
+           "w": 70.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "정밀 저격수",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          },
+          {
+           "id": "210:224",
+           "name": "상태와 비용",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45529,
+           "ay": 287,
+           "w": 62.4,
+           "h": 37.2,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 2.4000000953674316,
+           "crossAlign": "MAX",
+           "c": [
+            {
+             "id": "210:225",
+             "name": "상태 표시",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45529,
+             "ay": 287,
+             "w": 62.4,
+             "h": 18.8,
+             "d": 6,
+             "fills": [
+              "#000000/1.0@0.251"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 4.8,
+             "layout": "HORIZONTAL",
+             "pl": 7.199999809265137,
+             "pr": 7.199999809265137,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "210:226",
+               "name": "상태",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45536,
+               "ay": 290,
+               "w": 48.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#39D353/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "순찰 수비",
+               "fontSize": 12.0,
+               "font": "Roboto 700 Bold",
+               "lineH": 14.1
+              }
+             ]
+            },
+            {
+             "id": "210:227",
+             "name": "고용비",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45548,
+             "ay": 309,
+             "w": 44.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "1,100g",
+             "fontSize": 12.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 15.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:228",
+       "name": "고용 결정",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45606,
+       "ay": 276,
+       "w": 129.6,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:229",
+         "name": "승인 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45606,
+         "ay": 276,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:230",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45622,
+           "ay": 285,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승인",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "210:231",
+         "name": "방출 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45676,
+         "ay": 276,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:232",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45692,
+           "ay": 285,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "방출",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "210:233",
+     "name": "부대원 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 346,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:234",
+       "name": "등급 표시",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 45174,
+       "ay": 346,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#1F6FEB/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "210:235",
+       "name": "부대원 아바타",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45188,
+       "ay": 363,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:236",
+         "name": "부대원 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45203,
+         "ay": 378,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "210:237",
+           "name": "부대원",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45205,
+           "ay": 381,
+           "w": 19.7,
+           "h": 18.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:238",
+       "name": "부대원 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45256,
+       "ay": 359,
+       "w": 336.0,
+       "h": 62.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "210:239",
+         "name": "이름과 레벨",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 359,
+         "w": 336.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:240",
+           "name": "이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 359,
+           "w": 51.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "리안 장",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "210:241",
+           "name": "레벨",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45548,
+           "ay": 359,
+           "w": 44.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "Lv.42",
+           "fontSize": 14.399999618530273,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          }
+         ]
+        },
+        {
+         "id": "210:242",
+         "name": "병과와 고용비",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 383,
+         "w": 336.0,
+         "h": 37.2,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:243",
+           "name": "병과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 394,
+           "w": 70.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "숙련 전술가",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          },
+          {
+           "id": "210:244",
+           "name": "상태와 비용",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45529,
+           "ay": 383,
+           "w": 62.4,
+           "h": 37.2,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 2.4000000953674316,
+           "crossAlign": "MAX",
+           "c": [
+            {
+             "id": "210:245",
+             "name": "상태 표시",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45529,
+             "ay": 383,
+             "w": 62.4,
+             "h": 18.8,
+             "d": 6,
+             "fills": [
+              "#000000/1.0@0.251"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 4.8,
+             "layout": "HORIZONTAL",
+             "pl": 7.199999809265137,
+             "pr": 7.199999809265137,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "210:246",
+               "name": "상태",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45536,
+               "ay": 386,
+               "w": 48.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#FF9E2C/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "외교 특사",
+               "fontSize": 12.0,
+               "font": "Roboto 700 Bold",
+               "lineH": 14.1
+              }
+             ]
+            },
+            {
+             "id": "210:247",
+             "name": "고용비",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45548,
+             "ay": 405,
+             "w": 44.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "1,350g",
+             "fontSize": 12.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 15.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:248",
+       "name": "고용 결정",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45606,
+       "ay": 372,
+       "w": 129.6,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:249",
+         "name": "승인 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45606,
+         "ay": 372,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:250",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45622,
+           "ay": 381,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승인",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "210:251",
+         "name": "방출 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45676,
+         "ay": 372,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:252",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45692,
+           "ay": 381,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "방출",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "210:253",
+     "name": "부대원 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 442,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:254",
+       "name": "등급 표시",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 45174,
+       "ay": 442,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "210:255",
+       "name": "부대원 아바타",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45188,
+       "ay": 459,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:256",
+         "name": "부대원 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45203,
+         "ay": 474,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "210:257",
+           "name": "부대원",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45205,
+           "ay": 477,
+           "w": 19.7,
+           "h": 18.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:258",
+       "name": "부대원 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45256,
+       "ay": 455,
+       "w": 336.0,
+       "h": 62.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "210:259",
+         "name": "이름과 레벨",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 455,
+         "w": 336.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:260",
+           "name": "이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 455,
+           "w": 67.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "강 타쿠야",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "210:261",
+           "name": "레벨",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45548,
+           "ay": 455,
+           "w": 44.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "Lv.31",
+           "fontSize": 14.399999618530273,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          }
+         ]
+        },
+        {
+         "id": "210:262",
+         "name": "병과와 고용비",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 479,
+         "w": 336.0,
+         "h": 37.2,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:263",
+           "name": "병과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 490,
+           "w": 70.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "중장갑 기사",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          },
+          {
+           "id": "210:264",
+           "name": "상태와 비용",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45529,
+           "ay": 479,
+           "w": 62.4,
+           "h": 37.2,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 2.4000000953674316,
+           "crossAlign": "MAX",
+           "c": [
+            {
+             "id": "210:265",
+             "name": "상태 표시",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45529,
+             "ay": 479,
+             "w": 62.4,
+             "h": 18.8,
+             "d": 6,
+             "fills": [
+              "#000000/1.0@0.251"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 4.8,
+             "layout": "HORIZONTAL",
+             "pl": 7.199999809265137,
+             "pr": 7.199999809265137,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "210:266",
+               "name": "상태",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45536,
+               "ay": 482,
+               "w": 48.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "광산 대기",
+               "fontSize": 12.0,
+               "font": "Roboto 700 Bold",
+               "lineH": 14.1
+              }
+             ]
+            },
+            {
+             "id": "210:267",
+             "name": "고용비",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45563,
+             "ay": 501,
+             "w": 29.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "980g",
+             "fontSize": 12.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 15.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:268",
+       "name": "고용 결정",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45606,
+       "ay": 468,
+       "w": 129.6,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:269",
+         "name": "승인 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45606,
+         "ay": 468,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:270",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45622,
+           "ay": 477,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승인",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "210:271",
+         "name": "방출 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45676,
+         "ay": 468,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:272",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45692,
+           "ay": 477,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "방출",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "210:273",
+     "name": "부대원 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 538,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:274",
+       "name": "등급 표시",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 45174,
+       "ay": 538,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "210:275",
+       "name": "부대원 아바타",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45188,
+       "ay": 555,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:276",
+         "name": "부대원 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45203,
+         "ay": 570,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "210:277",
+           "name": "부대원",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45205,
+           "ay": 573,
+           "w": 19.7,
+           "h": 18.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:278",
+       "name": "부대원 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45256,
+       "ay": 551,
+       "w": 336.0,
+       "h": 62.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "210:279",
+         "name": "이름과 레벨",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 551,
+         "w": 336.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:280",
+           "name": "이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 551,
+           "w": 128.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "엘레나 바실리예프",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "210:281",
+           "name": "레벨",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45548,
+           "ay": 551,
+           "w": 44.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "Lv.27",
+           "fontSize": 14.399999618530273,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          }
+         ]
+        },
+        {
+         "id": "210:282",
+         "name": "병과와 고용비",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 575,
+         "w": 336.0,
+         "h": 37.2,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:283",
+           "name": "병과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 586,
+           "w": 70.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "기동 개척자",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          },
+          {
+           "id": "210:284",
+           "name": "상태와 비용",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45529,
+           "ay": 575,
+           "w": 62.4,
+           "h": 37.2,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 2.4000000953674316,
+           "crossAlign": "MAX",
+           "c": [
+            {
+             "id": "210:285",
+             "name": "상태 표시",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45529,
+             "ay": 575,
+             "w": 62.4,
+             "h": 18.8,
+             "d": 6,
+             "fills": [
+              "#000000/1.0@0.251"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 4.8,
+             "layout": "HORIZONTAL",
+             "pl": 7.199999809265137,
+             "pr": 7.199999809265137,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "210:286",
+               "name": "상태",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45536,
+               "ay": 578,
+               "w": 48.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "소수 수집",
+               "fontSize": 12.0,
+               "font": "Roboto 700 Bold",
+               "lineH": 14.1
+              }
+             ]
+            },
+            {
+             "id": "210:287",
+             "name": "고용비",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45563,
+             "ay": 597,
+             "w": 29.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "920g",
+             "fontSize": 12.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 15.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:288",
+       "name": "고용 결정",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45606,
+       "ay": 564,
+       "w": 129.6,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:289",
+         "name": "승인 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45606,
+         "ay": 564,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:290",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45622,
+           "ay": 573,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승인",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "210:291",
+         "name": "방출 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45676,
+         "ay": 564,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:292",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45692,
+           "ay": 573,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "방출",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "210:293",
+     "name": "부대원 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 634,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:294",
+       "name": "등급 표시",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 45174,
+       "ay": 634,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "210:295",
+       "name": "부대원 아바타",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45188,
+       "ay": 651,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:296",
+         "name": "부대원 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45203,
+         "ay": 666,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "210:297",
+           "name": "부대원",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45205,
+           "ay": 669,
+           "w": 19.7,
+           "h": 18.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:298",
+       "name": "부대원 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45256,
+       "ay": 647,
+       "w": 336.0,
+       "h": 62.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "210:299",
+         "name": "이름과 레벨",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 647,
+         "w": 336.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:300",
+           "name": "이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 647,
+           "w": 67.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "한스 피셔",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "210:301",
+           "name": "레벨",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45548,
+           "ay": 647,
+           "w": 44.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "Lv.19",
+           "fontSize": 14.399999618530273,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          }
+         ]
+        },
+        {
+         "id": "210:302",
+         "name": "병과와 고용비",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 671,
+         "w": 336.0,
+         "h": 37.2,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:303",
+           "name": "병과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 682,
+           "w": 97.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "전문 자원조달관",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          },
+          {
+           "id": "210:304",
+           "name": "상태와 비용",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45529,
+           "ay": 671,
+           "w": 62.4,
+           "h": 37.2,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 2.4000000953674316,
+           "crossAlign": "MAX",
+           "c": [
+            {
+             "id": "210:305",
+             "name": "상태 표시",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45529,
+             "ay": 671,
+             "w": 62.4,
+             "h": 18.8,
+             "d": 6,
+             "fills": [
+              "#000000/1.0@0.251"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 4.8,
+             "layout": "HORIZONTAL",
+             "pl": 7.199999809265137,
+             "pr": 7.199999809265137,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "210:306",
+               "name": "상태",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45536,
+               "ay": 674,
+               "w": 48.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#39D353/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "농사 투입",
+               "fontSize": 12.0,
+               "font": "Roboto 700 Bold",
+               "lineH": 14.1
+              }
+             ]
+            },
+            {
+             "id": "210:307",
+             "name": "고용비",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45563,
+             "ay": 693,
+             "w": 29.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "760g",
+             "fontSize": 12.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 15.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:308",
+       "name": "고용 결정",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45606,
+       "ay": 660,
+       "w": 129.6,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:309",
+         "name": "승인 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45606,
+         "ay": 660,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:310",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45622,
+           "ay": 669,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승인",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "210:311",
+         "name": "방출 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45676,
+         "ay": 660,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:312",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45692,
+           "ay": 669,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "방출",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "210:313",
+     "name": "부대원 항목",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 730,
+     "w": 576.0,
+     "h": 86.4,
+     "d": 2,
+     "fills": [
+      "#FFFFFF/1.0@0.02"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "gap": 14.399999618530273,
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:314",
+       "name": "등급 표시",
+       "type": "RECTANGLE",
+       "x": null,
+       "y": null,
+       "ax": 45174,
+       "ay": 730,
+       "w": 4.8,
+       "h": 86.4,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0
+      },
+      {
+       "id": "210:315",
+       "name": "부대원 아바타",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45188,
+       "ay": 747,
+       "w": 52.8,
+       "h": 52.8,
+       "d": 3,
+       "fills": [
+        "#21262D/1.0@0.6"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 26.4,
+       "layout": "HORIZONTAL",
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:316",
+         "name": "부대원 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45203,
+         "ay": 762,
+         "w": 24.0,
+         "h": 24.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "210:317",
+           "name": "부대원",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 45205,
+           "ay": 765,
+           "w": 19.7,
+           "h": 18.0,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:318",
+       "name": "부대원 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45256,
+       "ay": 743,
+       "w": 336.0,
+       "h": 62.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "210:319",
+         "name": "이름과 레벨",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 743,
+         "w": 336.0,
+         "h": 20.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:320",
+           "name": "이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 743,
+           "w": 113.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "클라라 베르나르",
+           "fontSize": 16.799999237060547,
+           "font": "Roboto 700 Bold",
+           "lineH": 19.7
+          },
+          {
+           "id": "210:321",
+           "name": "레벨",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45548,
+           "ay": 743,
+           "w": 44.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "Lv.15",
+           "fontSize": 14.399999618530273,
+           "font": "Geist Mono 700 Bold",
+           "lineH": 18.7
+          }
+         ]
+        },
+        {
+         "id": "210:322",
+         "name": "병과와 고용비",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45256,
+         "ay": 767,
+         "w": 336.0,
+         "h": 37.2,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:323",
+           "name": "병과",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45256,
+           "ay": 778,
+           "w": 57.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "숲 추적자",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 400 Regular",
+           "lineH": 16.9
+          },
+          {
+           "id": "210:324",
+           "name": "상태와 비용",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 45529,
+           "ay": 767,
+           "w": 62.4,
+           "h": 37.2,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 2.4000000953674316,
+           "crossAlign": "MAX",
+           "c": [
+            {
+             "id": "210:325",
+             "name": "상태 표시",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 45529,
+             "ay": 767,
+             "w": 62.4,
+             "h": 18.8,
+             "d": 6,
+             "fills": [
+              "#000000/1.0@0.251"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.2,
+             "r": 4.8,
+             "layout": "HORIZONTAL",
+             "pl": 7.199999809265137,
+             "pr": 7.199999809265137,
+             "pt": 2.4000000953674316,
+             "pb": 2.4000000953674316,
+             "c": [
+              {
+               "id": "210:326",
+               "name": "상태",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 45536,
+               "ay": 770,
+               "w": 48.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#39D353/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "사냥 탐색",
+               "fontSize": 12.0,
+               "font": "Roboto 700 Bold",
+               "lineH": 14.1
+              }
+             ]
+            },
+            {
+             "id": "210:327",
+             "name": "고용비",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 45563,
+             "ay": 789,
+             "w": 29.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "680g",
+             "fontSize": 12.0,
+             "font": "Geist Mono 700 Bold",
+             "lineH": 15.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "210:328",
+       "name": "고용 결정",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45606,
+       "ay": 756,
+       "w": 129.6,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "210:329",
+         "name": "승인 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45606,
+         "ay": 756,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:330",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45622,
+           "ay": 765,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "승인",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        },
+        {
+         "id": "210:331",
+         "name": "방출 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 45676,
+         "ay": 756,
+         "w": 60.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.02"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "210:332",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 45692,
+           "ay": 765,
+           "w": 27.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "방출",
+           "fontSize": 14.399999618530273,
+           "font": "Roboto 700 Bold",
+           "lineH": 16.9
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "210:333",
+   "name": "지불 금액 요약",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 45174,
+   "ay": 847,
+   "w": 576.0,
+   "h": 116.4,
+   "d": 1,
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.0,
+   "layout": "VERTICAL",
+   "gap": 14.399999618530273,
+   "pt": 14.399999618530273,
+   "c": [
+    {
+     "id": "210:334",
+     "name": "수용 인원",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 861,
+     "w": 576.0,
+     "h": 20.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:335",
+       "name": "인원 항목",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 45174,
+       "ay": 862,
+       "w": 119.0,
+       "h": 18.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "총원 / 최대 수용력",
+       "fontSize": 15.600000381469727,
+       "font": "Roboto 400 Regular",
+       "lineH": 18.3
+      },
+      {
+       "id": "210:336",
+       "name": "인원 수",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 45660,
+       "ay": 861,
+       "w": 90.0,
+       "h": 20.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "12 / 20 명",
+       "fontSize": 15.600000381469727,
+       "font": "Geist Mono 700 Bold",
+       "lineH": 20.3
+      }
+     ]
+    },
+    {
+     "id": "210:337",
+     "name": "총 지불 금액",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 45174,
+     "ay": 895,
+     "w": 576.0,
+     "h": 67.6,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0@0.078"
+     ],
+     "strokes": [
+      "#58A6FF/1.0@0.251"
+     ],
+     "strokeW": 1.2,
+     "r": 9.6,
+     "layout": "HORIZONTAL",
+     "pl": 14.399999618530273,
+     "pr": 14.399999618530273,
+     "pt": 14.399999618530273,
+     "pb": 14.399999618530273,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "210:338",
+       "name": "금액 설명",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 45188,
+       "ay": 910,
+       "w": 152.0,
+       "h": 38.8,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 4.800000190734863,
+       "c": [
+        {
+         "id": "210:339",
+         "name": "총액 항목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45188,
+         "ay": 910,
+         "w": 86.0,
+         "h": 20.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "총 지불 금액",
+         "fontSize": 16.799999237060547,
+         "font": "Roboto 700 Bold",
+         "lineH": 19.7
+        },
+        {
+         "id": "210:340",
+         "name": "합산 대상",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 45188,
+         "ay": 935,
+         "w": 152.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "명부에 표시된 7명 고용비 합계",
+         "fontSize": 12.0,
+         "font": "Roboto 400 Regular",
+         "lineH": 14.1
+        }
+       ]
+      },
+      {
+       "id": "210:341",
+       "name": "합계",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 45641,
+       "ay": 912,
+       "w": 95.0,
+       "h": 34.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "6,990g",
+       "fontSize": 26.399999618530273,
+       "font": "Geist Mono 700 Bold",
+       "lineH": 34.3
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

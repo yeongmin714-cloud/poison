@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: eb8020229e2c2244abc3124448570327
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 9100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 321081
+  packageName: 'Time Paradox Engine: Time Manipulation System'
+  packageVersion: 1.5
+  assetPath: Assets/Time Paradox Engine/Demo/Character/Character Animator.controller
+  uploadId: 898796

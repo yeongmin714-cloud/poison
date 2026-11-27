@@ -111,7 +111,10 @@ namespace ProjectName.Systems
                 int level = PlayerStats.Instance?.Level ?? 1;
                 if (!ContentGate.IsUnlocked("gem_chest", level))
                 {
-                    Debug.LogWarning("[GemChest] " + ContentGate.GetLockedMessage("gem_chest"));
+                    string msg = ContentGate.GetLockedMessage("gem_chest");
+                    // [158차 P1] 차단 피드백 — 콘솔 전용 → 대화 패널 표출(UI 계약: 상호작용불가=피드백 필수).
+                    PlayerNotify.Notify(msg);
+                    Debug.LogWarning("[GemChest] " + msg);
                     return;
                 }
             }

@@ -116,14 +116,15 @@ namespace ProjectName.Tests.EditMode
             Assert.That(source, Does.Contain("RefreshGrid(force: true)"),
                 "탭 클릭/열림은 PointerOverUI 가드를 우회하는 강제 재렌더여야 한다.");
 
-            // 푸터 계약 — WeightRow "적재량" + 슬롯 기반 값(위조 금지).
-            Assert.That(source, Does.Contain("\"적재량\""), "WeightRow 라벨 텍스트 '적재량' 잔존.");
+            // 푸터 계약 — WeightRow "인벤토리 적재량"([68차] Figma 15:4 재실측 진실치 — 구 "적재량"은 개정 전 값)
+            //   + 슬롯 기반 값(위조 금지).
+            Assert.That(source, Does.Contain("\"인벤토리 적재량\""), "WeightRow 라벨 텍스트 '인벤토리 적재량' 잔존(68차 Figma 재실측).");
             Assert.That(source, Does.Contain("$\"사용 {usedSlots}/{capacity}\""),
                 "푸터 값은 슬롯 기반 '사용 N/40' 표기여야 한다(요리 푸터 선례).");
             Assert.That(source, Does.Contain("위조 금지"),
                 "kg 목업 대신 슬롯 기반 표기임을 위조 금지 규약 주석으로 기록해야 한다.");
-            Assert.That(source, Does.Contain("UTKTheme.FontRowLabel"),
-                "WeightRow 폰트는 Figma 15.6(FontRowLabel)이어야 한다.");
+            Assert.That(source, Does.Contain("18f"),
+                "WeightRow 폰트는 [185차 후속] 사용자 가독성 조정 18px(기존 Figma 15.6→상향)이어야 한다.");
             Assert.That(source, Does.Contain("TextAnchor.MiddleRight"),
                 "WeightValue는 우측정렬이어야 한다.");
         }
@@ -147,6 +148,23 @@ namespace ProjectName.Tests.EditMode
             Assert.That(actual.y, Is.EqualTo(expected.y).Within(0.001f), because ?? "rect.y 불일치");
             Assert.That(actual.width, Is.EqualTo(expected.width).Within(0.001f), because ?? "rect.width 불일치");
             Assert.That(actual.height, Is.EqualTo(expected.height).Within(0.001f), because ?? "rect.height 불일치");
+        }
+
+        [Test]
+        public void Inventory_WindowPlacement_FigmaSingleSource_149()
+        {
+            string src = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/InventoryWindowUTK.cs");
+            Assert.That(src, Does.Contain("InventoryClusterFigmaLayout.ApplyInventory(this, _content, root)"),
+                "[149차 P3] 창 배치 단일 소스 — Figma 등배수 ApplyInventory.");
+            Assert.That(src, Does.Not.Contain("UTKThreeColumnLayout.Place"),
+                "[149차 P3] 3분할 좌측 배치 소멸 — Figma 배치와 경합해 창이 흔들린 원인.");
+            Assert.That(src, Does.Contain("FigmaCanvasLayout.DesignScale(rootSize)"),
+                "[149차 P3] contentOrigin 단위 정합 — 창-로컬 px(k 배수) ↔ raw Figma px 환산.");
+            Assert.That(src, Does.Contain("[149차 P3]"), "149차 P3 마커.");
+
+            string layout = System.IO.File.ReadAllText("Assets/Scripts/UI/Toolkit/InventoryClusterFigmaLayout.cs");
+            Assert.That(layout, Does.Contain("new Rect(144f, 84f, 504f, 912f)"),
+                "[149차 P3] Figma 15:4 창박스 진실치 — InventoryBounds (144,84,504,912).");
         }
     }
 }

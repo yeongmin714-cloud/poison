@@ -114,6 +114,24 @@ namespace ProjectName.Systems
         /// <summary>자물쇠 따기 요청 이벤트 (LockpickingUI가 구독)</summary>
         public static event System.Action<string, LockpickingSystem.LockDifficulty> OnLockpickRequested;
 
+        /// <summary>[144차 D2-LOCK] 상호작용 패널(163:64/83) 액션 경유 발화 — E키 입력과 동일 처리
+        ///   (마스터 키 우선 → OnLockpickRequested). 이벤트는 선언 클래스 외부 발화 불가(CS0079) → 공용 래퍼.</summary>
+        public void RequestLockpick()
+        {
+            if (!_isLocked || _hasBeenOpened) return;   // E키 경로와 동일 가드
+            if (LockpickItem.HasMasterKey())
+            {
+                Debug.Log("[LockedDoor] 마스터 키 사용 — 문 즉시 오픈");
+                _isLocked = false;
+                _hasBeenOpened = true;
+                PlayerInventory.Instance.RemoveItem("lockpick_master_key", 1);
+                LockpickingSystem.MasterKeyOpen(_difficulty, _locationId);
+                return;
+            }
+            Debug.Log($"[LockedDoor] 패널 액션 — 자물쇠 따기 시작: 위치={_locationId}, 난이도={_difficulty}");
+            OnLockpickRequested?.Invoke(_locationId, _difficulty);
+        }
+
         private void OnGUI()
         {
             if (!_isLocked || _hasBeenOpened) return;

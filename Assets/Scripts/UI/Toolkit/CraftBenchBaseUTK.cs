@@ -36,10 +36,27 @@ namespace ProjectName.UI.Toolkit
         public static readonly Rect DetailDescriptionBounds = new Rect(696f, 678f, 528f, 294f);
         public static readonly Rect StorageStatsBounds = new Rect(1296f, 180f, 456f, 24.6f);
         public static readonly Rect StorageGridBounds = new Rect(1296f, 223.8f, 456f, 537.6f);
+        // [144차 P2-CRAFT W25/W58] 공통 진실치 — Divider(63:64 · 패널-로컬 (24,366,456,1.2)) · StorageFooter(63:297 · (24,697,456,56)).
+        public static readonly Rect CraftDividerBounds = new Rect(168f, 450f, 456f, 1.2f);
+        public static readonly Rect StorageFooterBounds = new Rect(1296f, 781f, 456f, 56f);
         public const int StorageCellCount = 25;
         public const int StorageColumnCount = 5;
         public const float StorageCellSize = 81.6f;
         public const float StorageCellGap = 9.6f;
+
+        // ── [제작완료 연출] 3페이즈 상수 — A 빛 차오름(왼→오 물결) → B 번쩍 → C 조합품 등장 ──
+        // 골드 #D4AF37(프로젝트 골드) · 플래시 순백 · 벡터메시 금지(84차 계약) — 일반 VisualElement+스타일만.
+        private const float CraftFxGlowStagger = 0.12f;    // 페이즈 A — 슬롯당 스태거 (s)
+        private const float CraftFxGlowInOut = 0.3f;       // 페이즈 A — 슬롯당 글로우 인/아웃 (s)
+        private const float CraftFxFlashAt = 0.72f;        // 페이즈 B — 번쩍 시작 시점 (s)
+        private const float CraftFxFlashFade = 0.35f;      // 페이즈 B — 플래시 페이드아웃 (s)
+        private const float CraftFxFlashPeak = 0.85f;      // 페이즈 B — 플래시 알파 스파이크
+        private const float CraftFxResultAt = 0.84f;       // 페이즈 C — 결과 등장 시점 (s)
+        private const float CraftFxResultPop = 0.25f;      // 페이즈 C — 결과 스케일업 시간 (s)
+        private const float CraftFxGlowPeak = 0.8f;        // 재료 슬롯 글로우 피크 알파
+        private const float CraftFxResultGlowPeak = 0.9f;  // 결과 슬롯 글로우 피크 알파
+        private long _craftFxGeneration;                   // [제작완료 연출] 세대 토큰 — 연속 재조합 시 이전 세션 정리가 신규 세션 요소를 조기 제거하는 레이스 방지
+        private static readonly Color CraftFxGold = new Color(0xD4 / 255f, 0xAF / 255f, 0x37 / 255f, 1f); // 골드 #D4AF37
 
         protected virtual bool IsDiscovered(BenchRecipe recipe) => true;
         protected virtual string RateHint(BenchRecipe recipe) => "";
@@ -51,6 +68,11 @@ namespace ProjectName.UI.Toolkit
         protected virtual string StorageHeading => "재료 보관함";
         protected virtual string StorageSource => "플레이어 인벤토리";
         protected virtual string CraftActionText => "아이템 제작하기 (CRAFT)";
+        // [144차 P2-CRAFT W23] 성공확률 좌측 라벨 슬롯 — 파생별 문구 주입용(v1 "제작 성공 확률"/v2 "조리 성공 확률"/v3 "제조 성공 확률" — 파생 태스크에서 override).
+        protected virtual string SuccessRateLabel => "제작 성공 확률";
+        // [144차 P2-CRAFT W58] StorageFooter 라벨 슬롯 — PlayerInventory 무게 데이터 부재 → D7 슬롯 표기 계약(CookingWindowUTK C39 선례).
+        // kg 위조 금지 — 실사용 슬롯수 표기. 파생 판본이 실무게 데이터를 확보하면 override로 문구 주입.
+        protected virtual string StorageFooterWeightLabel => "사용 슬롯";
         protected virtual bool ShowThirdIngredientPlaceholder => false;
         protected virtual IReadOnlyList<string> RecipeFilters => new[] { "전체" };
         protected virtual bool MatchesFilter(BenchRecipe recipe, string filter) => filter == "전체";
@@ -72,12 +94,15 @@ namespace ProjectName.UI.Toolkit
         private Label _detailDescription;
         private readonly Label _storageStats;
         private readonly Label _storageSourceLabel;
+        private Label _storageFooterValue;              // [144차 P2-CRAFT W58] StorageFooter 값 라벨 — 갱신은 RefreshStorage
+        private VisualElement _storageProgressFill;     // [144차 P2-CRAFT W58] StorageFooter 진행바 fill — 갱신은 RefreshStorage
         private VisualElement _detailImage;
         private readonly ScrollView _book;
         private readonly VisualElement _filterBar;
         private readonly Button _craftButton;
         private readonly UTKSlot _resultSlot;
         private readonly Label _resultLabel;
+        private VisualElement _combinationContainer;   // [제작완료 연출] 조합 영역 컨테이너 — 화이트 플래시 오버레이 호스트
         private readonly VisualElement[] _storageCells = new VisualElement[StorageCellCount];
         private BenchRecipe _matched;
         private BenchRecipe _selected;
@@ -135,6 +160,7 @@ namespace ProjectName.UI.Toolkit
 
             var combination = CreateRegion("craft-bench-combination-section", new Rect(24f, 152.4f, 456f, 194.4f));
             CraftPanelRoot.Add(combination);
+            _combinationContainer = combination;   // [제작완료 연출] 조합 영역 보관 — 플래시 오버레이 호스트
             var comboTitle = MakeLabel(CombinationHeading, 14.4f, UTKColor.TextSecondary);
             comboTitle.name = "craft-bench-combination-heading";
             comboTitle.style.position = Position.Absolute;
@@ -161,6 +187,8 @@ namespace ProjectName.UI.Toolkit
                 slot.style.height = ingredientSlotSize;
                 slot.style.marginRight = showThirdSlot ? 4f : 7.2f;
                 slot.SetRank("common");
+                // [144차 P2-CRAFT W18] TierStrip — 배치 전 숨김(데이터 위조 금지), 배치 시 실등급색 표시(SetSlotIcon).
+                slot.SetTierStrip(false, UTKColor.TextSecondary);
                 slot.RegisterCallback<PointerDownEvent>(evt =>
                 {
                     if (evt.button == 0) CyclePlace(index);
@@ -176,6 +204,7 @@ namespace ProjectName.UI.Toolkit
                 placeholder.style.height = ingredientSlotSize;
                 placeholder.style.marginRight = 4f;
                 placeholder.SetRank("common");
+                placeholder.SetTierStrip(false, UTKColor.TextSecondary);   // [144차 P2-CRAFT W18] 플레이스홀더 — 실아이콘 부재 → 스트립 숨김 유지
                 placeholder.tooltip = "추가 재료 슬롯 (시각 전용)";
                 flow.Add(placeholder);
             }
@@ -718,12 +747,149 @@ namespace ProjectName.UI.Toolkit
             }
         }
 
+        // =====================================================================
+        //  [제작완료 연출] 3페이즈 완료 연출 — 순수 장식(로직 결합 금지)
+        //  A 빛 차오름(0~0.72s): 재료 슬롯 왼→오 골드 글로우 물결(스태거 0.12s · 인/아웃 0.3s)
+        //  B 번쩍(0.72s): 조합 영역 화이트 플래시 — 알파 0.85 스파이크 후 0.35s 페이드아웃
+        //  C 조합품 등장(0.84s): 결과 슬롯 scale 0.6→1.0 0.25s EaseOutQuad + 골드 글로우 페이드
+        //  드라이버: schedule.Execute().Every(16ms) — 진행도 기반 순수함수 업데이트.
+        //  파괴/탈착 시 조기 종료(EditMode/배치 안전 — 스케줄러 미구동 시에도 로직은 이미 반영 완료라 무해).
+        //  벡터메시 금지(84차 계약) — 일반 VisualElement+스타일만.
+        // =====================================================================
+        private void StartCraftCompletionFx()
+        {
+            if (SlotCount <= 0 || _combinationContainer == null) return;
+            long generation = ++_craftFxGeneration;   // 신규 세션 선점 — 이전 세션의 종료 정리가 본 세션 요소를 건드리지 않는다
+            RemoveCraftCompletionFxElements();   // 재연출 방어 — 잔여 연출 요소 제거 후 시작
+
+            // 페이즈 A — 재료 슬롯 글로우 오버레이(연출 시작 시에만 생성 → 기존 창 렌더 무변화)
+            var glows = new VisualElement[SlotCount];
+            for (int i = 0; i < SlotCount; i++)
+                glows[i] = CreateCraftGlowOverlay(_slots[i]);
+
+            // 페이즈 B — 조합(combination) 영역 절대좌표 풀사이즈 화이트 플래시 오버레이
+            var flash = new VisualElement { name = "CraftFlashOverlay", pickingMode = PickingMode.Ignore };
+            flash.style.position = Position.Absolute;
+            flash.style.left = flash.style.top = 0f;
+            flash.style.width = flash.style.height = new Length(100f, LengthUnit.Percent);
+            flash.style.backgroundColor = new StyleColor(Color.white);   // 플래시 순백
+            flash.style.opacity = 0f;
+            _combinationContainer.Add(flash);
+
+            // 페이즈 C — 결과 슬롯 골드 글로우(팝과 함께 페이드)
+            var resultGlow = CreateCraftGlowOverlay(_resultSlot);
+
+            // 드라이버 — 16ms 틱, 진행도 기반 순수함수 업데이트
+            long tick = 0L;
+            IVisualElementScheduledItem task = null;
+            task = schedule.Execute(() =>
+            {
+                // 조기 종료 가드 — 창 닫힘/파괴(탈착) 시 연출 중단(아이템 수령은 이미 완료)
+                if (panel == null || _combinationContainer.panel == null)
+                {
+                    task.Pause();
+                    return;
+                }
+                tick += 16L;
+                float t = tick / 1000f;
+                bool done = true;
+
+                // 페이즈 A — 왼쪽→오른쪽 글로우 물결(스태거 0.12s · 인/아웃 0.3s 삼각파)
+                float glowHalf = CraftFxGlowInOut * 0.5f;
+                for (int i = 0; i < glows.Length; i++)
+                {
+                    var glow = glows[i];
+                    if (glow == null) continue;
+                    float local = t - i * CraftFxGlowStagger;
+                    float a = local <= 0f || local >= CraftFxGlowInOut ? 0f
+                        : local < glowHalf ? local / glowHalf
+                        : 1f - (local - glowHalf) / glowHalf;
+                    if (glow.panel != null) glow.style.opacity = a * CraftFxGlowPeak;
+                    if (local < CraftFxGlowInOut) done = false;
+                }
+
+                // 페이즈 B — 화이트 플래시(0.72s 스파이크 → 0.35s 페이드아웃)
+                float flashLocal = t - CraftFxFlashAt;
+                float flashAlpha = flashLocal < 0f || flashLocal >= CraftFxFlashFade ? 0f
+                    : CraftFxFlashPeak * (1f - flashLocal / CraftFxFlashFade);
+                if (flash.panel != null) flash.style.opacity = flashAlpha;
+                if (flashLocal < CraftFxFlashFade) done = false;
+
+                // 페이즈 C — 결과 팝(0.84s → 0.25s EaseOutQuad 0.6→1.0) + 결과 글로우 페이드
+                float popLocal = t - CraftFxResultAt;
+                if (popLocal < 0f)
+                {
+                    done = false;
+                }
+                else if (popLocal <= CraftFxResultPop)
+                {
+                    float u = popLocal / CraftFxResultPop;
+                    float ease = 1f - (1f - u) * (1f - u);   // EaseOutQuad
+                    float s = 0.6f + 0.4f * ease;
+                    _resultSlot.style.scale = new Scale(new Vector2(s, s));
+                    if (resultGlow != null && resultGlow.panel != null)
+                        resultGlow.style.opacity = CraftFxResultGlowPeak * (1f - u);
+                    done = false;
+                }
+                else if (resultGlow != null && resultGlow.panel != null)
+                {
+                    resultGlow.style.opacity = 0f;
+                }
+
+                if (done)
+                {
+                    if (generation == _craftFxGeneration)
+                    {
+                        RemoveCraftCompletionFxElements();   // 페이드 후 제거(신규 세션 없을 때만)
+                        _resultSlot.style.scale = new Scale(new Vector2(1f, 1f));   // 원복(1,1)
+                    }
+                    task.Pause();
+                }
+            }).Every(16L);
+        }
+
+        /// <summary>[제작완료 연출] 슬롯에 절대좌표 풀사이즈 골드 글로우 오버레이 부착 — 호출 시에만 생성(파라미터 없는 기본 렌더 무변화).</summary>
+        private VisualElement CreateCraftGlowOverlay(VisualElement slot)
+        {
+            if (slot == null) return null;
+            var glow = new VisualElement { name = "CraftGlowOverlay", pickingMode = PickingMode.Ignore };
+            glow.style.position = Position.Absolute;
+            glow.style.left = glow.style.top = 0f;
+            glow.style.width = glow.style.height = new Length(100f, LengthUnit.Percent);
+            glow.style.backgroundColor = new StyleColor(CraftFxGold);   // 골드 #D4AF37
+            glow.style.opacity = 0f;   // 개별 opacity 제어
+            slot.Add(glow);
+            return glow;
+        }
+
+        /// <summary>[제작완료 연출] 잔여 연출 요소 제거 — 재연출/재창 멱등(연출 요소는 연출 시작 시에만 존재).</summary>
+        private void RemoveCraftCompletionFxElements()
+        {
+            for (int i = 0; i < SlotCount; i++)
+            {
+                if (_slots[i] != null) RemoveCraftFxChildren(_slots[i]);
+            }
+            if (_resultSlot != null) RemoveCraftFxChildren(_resultSlot);
+            if (_combinationContainer != null) RemoveCraftFxChildren(_combinationContainer);
+        }
+
+        private static void RemoveCraftFxChildren(VisualElement host)
+        {
+            for (int i = host.childCount - 1; i >= 0; i--)
+            {
+                var child = host[i];
+                if (child != null && (child.name == "CraftGlowOverlay" || child.name == "CraftFlashOverlay"))
+                    child.RemoveFromHierarchy();
+            }
+        }
+
         private void ExecuteCraft()
         {
             if (!_craftable) return;
             var placed = new List<string>();
             foreach (var id in _placed) if (!string.IsNullOrEmpty(id)) placed.Add(id);
-            if (TryCraft(_matched, placed, out string message))
+            bool craftSucceeded = TryCraft(_matched, placed, out string message);   // [제작완료 연출] 성공 판정 지역화 — 기존 분기 흐름 동일
+            if (craftSucceeded)
             {
                 OnCraftSuccess();
                 _status.text = message;
@@ -735,6 +901,14 @@ namespace ProjectName.UI.Toolkit
             }
             RebuildBook();
             RefreshStorage();
+            if (craftSucceeded) StartCraftCompletionFx();   // [제작완료 연출] 로직(수령/책갈피/보관함) 전부 반영 후 순수 장식 시작 — 실패 분기는 연출 없음
+        }
+
+        protected override void OnWindowClosed()
+        {
+            base.OnWindowClosed();
+            RemoveCraftCompletionFxElements();              // [제작완료 연출] 연출 중 창 닫힘 — 잔여 오버레이 제거(재창 시 기존 렌더 무변화)
+            _resultSlot.style.scale = new Scale(new Vector2(1f, 1f));
         }
     }
 }

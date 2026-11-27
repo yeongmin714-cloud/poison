@@ -302,8 +302,77 @@ namespace ProjectName.Systems
                 visual.name = visualId;
                 visual.transform.localPosition = Vector3.zero;
                 visual.transform.localScale = Vector3.one; // 본 공간 — 덩치 1.8x는 부모 스케일이 자동 전파
+                // [201차] 손에 쥐는 슬롯(무기/방패)은 병사 신장 비율로 월드 크기 정규화 —
+                //   GLB 자연 크기 편차·덩치 차이와 무관하게 "병사 크기에 맞춘" 부착(사용자 요구).
+                //   신체 착용 슬롯(Helmet/Armor/Shoes/Gloves)은 부모 스케일 자동 전파 유지(본 핏 보존).
+                if (slot == VisualSlot.Weapon || slot == VisualSlot.Back)
+                    NormalizeHandItemScale(visual, body, visualId);
                 st.visuals.Add(visual);
+
+                // [무번호 26-ST3] 병사 스윙 휘적 리본 부착 — 무기 GLB 인스턴스 자식으로 팁 트레일(플레이어 WeaponSwingTrail과 별개 인스턴스)
+                // 슬롯 판정(실측): 병사 무기는 VisualSlot.Weapon으로만 해석(ResolveWeaponVisualId → desired[VisualSlot.Weapon]) —
+                // Shoes/Gloves(.L/.R 사이드 GLB) 등 비무기 슬롯에는 부착하지 않는다. try/catch는 GuardPlaceholder 선례 준용.
+                if (slot == VisualSlot.Weapon)
+                {
+                    try { SoldierSwingTrail.AttachTo(visual); } catch (System.Exception) { }
+                }
             }
+        }
+
+        // ────── [201차] 손에 쥐는 장비 신장 비율 정규화 ──────
+
+        /// <summary>무기 kind별 목표 길이(병사 신장 배수) — 검 0.70·창 0.95·활 0.75·단검 0.40. 미확정(kind 없음) 0.70.</summary>
+        internal static float WeaponLengthRatio(string visualId)
+        {
+            if (string.IsNullOrEmpty(visualId)) return 0.70f;
+            string low = visualId.ToLowerInvariant();
+            if (low.Contains("spear"))  return 0.95f;
+            if (low.Contains("bow"))    return 0.75f;
+            if (low.Contains("dagger")) return 0.40f;
+            return 0.70f;   // sword 및 기타
+        }
+
+        /// <summary>방패(Back 슬롯 — hand.L 부착) 목표 최대폭(병사 신장 배수).</summary>
+        internal const float ShieldWidthRatio = 0.40f;
+
+        /// <summary>
+        /// 병사 신장(body 렌더러 bounds 높이) 대비 목표 최대축으로 균일 스케일 보정 1회.
+        /// GLB를 부착 직후 실측 bounds로 보정 — 본 공간 localScale=one 유지(부모 전파와 합산되지 않게 명시 배수로 재조정).
+        /// bounds 무효(0)면 무동작 — 파손 방지.
+        /// </summary>
+        void NormalizeHandItemScale(GameObject visual, GameObject body, string visualId)
+        {
+            float guardH = MeasureGuardHeight(body);
+            if (guardH <= 0.01f) return;
+
+            var rends = visual.GetComponentsInChildren<Renderer>();
+            float curMax = 0f;
+            foreach (var r in rends)
+            {
+                if (r == null || r.bounds.size == Vector3.zero) continue;
+                curMax = Mathf.Max(curMax, Mathf.Max(r.bounds.size.x, Mathf.Max(r.bounds.size.y, r.bounds.size.z)));
+            }
+            if (curMax <= 0.001f) return;
+
+            float ratio = (visualId != null && visualId.Contains("shield")) ? ShieldWidthRatio : WeaponLengthRatio(visualId);
+            float desired = guardH * ratio;
+            visual.transform.localScale *= desired / curMax;
+        }
+
+        /// <summary>병사 신장 — 전 렌더러 world bounds 높이(캡슐/레챗 등 절차 폴백 포함).</summary>
+        static float MeasureGuardHeight(GameObject body)
+        {
+            if (body == null) return 0f;
+            var rends = body.GetComponentsInChildren<Renderer>();
+            bool any = false;
+            var b = new Bounds(Vector3.zero, Vector3.zero);
+            foreach (var r in rends)
+            {
+                if (r == null) continue;
+                if (!any) { b = r.bounds; any = true; }
+                else b.Encapsulate(r.bounds);
+            }
+            return any ? b.size.y : 0f;
         }
 
         /// <summary>

@@ -1,0 +1,389 @@
+{
+ "id": "163:23",
+ "name": "npc-dialogue-panel",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 39104,
+ "ay": 3,
+ "w": 528.0,
+ "h": 148.8,
+ "d": 0,
+ "fills": [
+  "#161B22/1.0@0.45"
+ ],
+ "strokes": [
+  "#30363D/1.0@0.3"
+ ],
+ "strokeW": 1.2,
+ "r": 9.6,
+ "fx": [
+  "BACKGROUND_BLUR:24.0:None",
+  "DROP_SHADOW:19.200000762939453:#000000/0.4"
+ ],
+ "layout": "VERTICAL",
+ "gap": 9.600000381469727,
+ "pl": 14.40000057220459,
+ "pr": 14.40000057220459,
+ "pt": 14.40000057220459,
+ "pb": 14.40000057220459,
+ "c": [
+  {
+   "id": "163:24",
+   "name": "DecalTL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39100,
+   "ay": -2,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "163:25",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39100,
+     "ay": -2,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "163:26",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39100,
+     "ay": -9,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "163:27",
+   "name": "DecalTR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39628,
+   "ay": -2,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "163:28",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39630,
+     "ay": -2,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "163:29",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39637,
+     "ay": -9,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "163:30",
+   "name": "DecalBL",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39100,
+   "ay": 147,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "163:31",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39100,
+     "ay": 157,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "163:32",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39100,
+     "ay": 142,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "163:33",
+   "name": "DecalBR",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39628,
+   "ay": 142,
+   "w": 9.6,
+   "h": 9.6,
+   "d": 1,
+   "strokeW": 1.2,
+   "c": [
+    {
+     "id": "163:34",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39630,
+     "ay": 152,
+     "w": 7.2,
+     "h": 0.0,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    },
+    {
+     "id": "163:35",
+     "name": "Line",
+     "type": "LINE",
+     "x": null,
+     "y": null,
+     "ax": 39637,
+     "ay": 137,
+     "w": 0.0,
+     "h": 7.2,
+     "d": 2,
+     "strokes": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.8
+    }
+   ]
+  },
+  {
+   "id": "163:36",
+   "name": "NpcNameRow",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39120,
+   "ay": 19,
+   "w": 496.8,
+   "h": 15.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "gap": 9.600000381469727,
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "163:37",
+     "name": "npc-indicator",
+     "type": "ELLIPSE",
+     "x": null,
+     "y": null,
+     "ax": 39120,
+     "ay": 22,
+     "w": 7.2,
+     "h": 7.2,
+     "d": 2,
+     "fills": [
+      "#33E5D9/1.0"
+     ],
+     "strokeW": 1.2,
+     "fx": [
+      "DROP_SHADOW:7.200000286102295:#33E5D9/0.5"
+     ]
+    },
+    {
+     "id": "163:38",
+     "name": "NpcName",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 39137,
+     "ay": 19,
+     "w": 25.0,
+     "h": 15.0,
+     "d": 2,
+     "fills": [
+      "#33E5D9/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "드류",
+     "fontSize": 13.200000762939453,
+     "font": "Roboto 700 Bold",
+     "lineH": 15.5
+    }
+   ]
+  },
+  {
+   "id": "163:39",
+   "name": "Separator",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39120,
+   "ay": 43,
+   "w": 496.8,
+   "h": 1.2,
+   "d": 1,
+   "fills": [
+    "#30363D/1.0@0.6"
+   ],
+   "strokeW": 1.2
+  },
+  {
+   "id": "163:40",
+   "name": "DialogueContent",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39120,
+   "ay": 54,
+   "w": 496.8,
+   "h": 43.2,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "VERTICAL",
+   "gap": 7.200000286102295,
+   "c": [
+    {
+     "id": "163:41",
+     "name": "DialogueLine1",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 39120,
+     "ay": 54,
+     "w": 496.8,
+     "h": 18.0,
+     "d": 2,
+     "fills": [
+      "#EBEDF0/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "대요정님...",
+     "fontSize": 15.600000381469727,
+     "font": "Roboto 500 Medium",
+     "lineH": 18.3
+    },
+    {
+     "id": "163:42",
+     "name": "DialogueLine2",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 39120,
+     "ay": 79,
+     "w": 496.8,
+     "h": 18.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "분명 놀신한 미인이시겠지...",
+     "fontSize": 15.600000381469727,
+     "font": "Roboto 400 Regular",
+     "lineH": 18.3
+    }
+   ]
+  },
+  {
+   "id": "163:43",
+   "name": "ActionRow",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 39120,
+   "ay": 107,
+   "w": 496.8,
+   "h": 14.0,
+   "d": 1,
+   "strokeW": 1.2,
+   "layout": "HORIZONTAL",
+   "gap": 9.600000381469727,
+   "mainAlign": "MAX",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "163:44",
+     "name": "ContinueHint",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 39521,
+     "ay": 107,
+     "w": 96.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#58A6FF/1.0"
+     ],
+     "strokeW": 1.2,
+     "text": "계속하려면 클릭 ▶",
+     "fontSize": 12.0,
+     "font": "Roboto 500 Medium",
+     "lineH": 14.1
+    }
+   ]
+  }
+ ]
+}

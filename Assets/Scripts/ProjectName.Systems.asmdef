@@ -11,7 +11,8 @@
       "Unity.Mathematics",
       "Unity.Burst",
       "Unity.InferenceEngine",
-      "MagicPigGames.MagicTime"
+      "MagicPigGames.MagicTime",
+      "TimeWarp.Runtime"
     ],
   "autoReferenced": true,
   "overrideReferences": false,

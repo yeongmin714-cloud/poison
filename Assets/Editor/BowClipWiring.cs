@@ -142,5 +142,66 @@ public static class BowClipWiring
         Debug.Log($"[BowClipWiring] 전이 추가: {from.name} → {to.name} ({string.Join(", ", conditions.Select(c => $"{c.param}:{c.mode}:{c.threshold}"))})");
     }
 
+    // ── [195차 P3] 활쏘기 애니 트랜지션 위상 수리 — Any State 경로 신설 ──
+    // 근원(실측): 컨트롤러에 Any State 부재 + 'ArcheryShot' 조건 트랜지션이 단일 소스 상태에서만 존재 +
+    //   DrawShoot 아웃고잉은 무조건 ExitTime 0.92 자동전환 → 이동 중 발사 시 트리거 소멸(애니 미재생,
+    //   트리거 로그는 11회씩 실측). Any State→ArcheryShot/DrawShoot 조건 전이를 신설해 전 상태에서 발화 보장.
+    //   멱등 — 동일 목적지+조건의 anyState 전이가 이미 있으면 스킵.
+    public static void Run195()
+    {
+        var ctrl = AssetDatabase.LoadAssetAtPath<AnimatorController>(CtrlPath);
+        if (ctrl == null) { Debug.LogError("[BowClipWiring][195] 컨트롤러 로드 실패: " + CtrlPath); Fail(); return; }
+        var sm = ctrl.layers[0].stateMachine;
+
+        // 진단 ① — 기존 'ArcheryShot' 조건 트랜지션의 소유 상태(소스) 전수 로그
+        foreach (var st in sm.states)
+        {
+            if (st.state == null) continue;
+            foreach (var t in st.state.transitions)
+                if (t.conditions.Any(c => c.parameter == "ArcheryShot"))
+                    Debug.Log($"[BowClipWiring][195] 기존 ArcheryShot 조건 전이 소유 상태: {st.state.name}");
+        }
+        // 진단 ② — DrawShoot 아웃고잉 목적지(무조건 ExitTime 자동전환 행선지)
+        var draw = FindState(sm, "DrawShoot");
+        if (draw != null)
+            foreach (var t in draw.transitions)
+                Debug.Log($"[BowClipWiring][195] DrawShoot 아웃고잉 → {(t.destinationState != null ? t.destinationState.name : t.destinationStateMachine != null ? t.destinationStateMachine.name : "null")} (exitTime={t.exitTime})");
+
+        var archery = FindState(sm, "ArcheryShot");
+        if (archery == null) { Debug.LogError("[BowClipWiring][195] ArcheryShot 상태 미발견"); Fail(); return; }
+        if (draw == null) { Debug.LogError("[BowClipWiring][195] DrawShoot 상태 미발견"); Fail(); return; }
+
+        int added = 0;
+        if (AddAnyState(sm, archery, "ArcheryShot")) added++;
+        if (AddAnyState(sm, draw, "DrawShoot")) added++;
+        int skipped = 2 - added;
+
+        EditorUtility.SetDirty(ctrl);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+        Debug.Log($"[BowClipWiring][195] ✅ Any State 전이 신설 {added}건 / 기존 존재 스킵 {skipped}건 — 전 상태에서 활 트리거 발화 보장");
+        EditorApplication.Exit(0);
+    }
+
+    static bool AddAnyState(AnimatorStateMachine sm, AnimatorState to, string conditionParam)
+    {
+        foreach (var t in sm.anyStateTransitions)
+        {
+            if (t.destinationState != to) continue;
+            if (t.conditions.Any(c => c.parameter == conditionParam && c.mode == AnimatorConditionMode.If))
+            {
+                Debug.Log($"[BowClipWiring][195] AnyState→{to.name} 이미 존재 — 스킵(멱등)");
+                return false;
+            }
+        }
+        var tNew = sm.AddAnyStateTransition(to);
+        tNew.hasExitTime = false;
+        tNew.hasFixedDuration = true;
+        tNew.duration = 0.1f;
+        tNew.AddCondition(AnimatorConditionMode.If, 0f, conditionParam);
+        Debug.Log($"[BowClipWiring][195] AnyState→{to.name} 전이 신설 (condition={conditionParam}, duration=0.1, hasExitTime=false)");
+        return true;
+    }
+
     static void Fail() => EditorApplication.Exit(1);
 }

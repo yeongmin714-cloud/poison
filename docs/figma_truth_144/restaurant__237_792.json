@@ -1,0 +1,5959 @@
+{
+ "id": "237:792",
+ "name": "음식점 판매 관리",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 46478,
+ "ay": 3,
+ "w": 1600.0,
+ "h": 1040.0,
+ "d": 0,
+ "fills": [
+  "#0B0E14/1.0"
+ ],
+ "strokeW": 1.0,
+ "layout": "VERTICAL",
+ "gap": 24.0,
+ "pl": 64.0,
+ "pr": 64.0,
+ "pt": 36.0,
+ "pb": 28.0,
+ "c": [
+  {
+   "id": "237:793",
+   "name": "관리 화면 헤더",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 46542,
+   "ay": 39,
+   "w": 1472.0,
+   "h": 18.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "237:794",
+     "name": "현재 위치",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 46542,
+     "ay": 39,
+     "w": 170.0,
+     "h": 18.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "gap": 12.0,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "237:1062",
+       "name": "house",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46542,
+       "ay": 39,
+       "w": 18.0,
+       "h": 18.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "c": [
+        {
+         "id": "237:1063",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 46544,
+         "ay": 40,
+         "w": 13.5,
+         "h": 14.3,
+         "d": 4,
+         "strokes": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.6
+        }
+       ]
+      },
+      {
+       "id": "237:796",
+       "name": "위치",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 46572,
+       "ay": 40,
+       "w": 48.0,
+       "h": 16.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "전초기지",
+       "fontSize": 13.0,
+       "font": "Noto Sans KR 400 Regular",
+       "lineH": 15.6
+      },
+      {
+       "id": "237:797",
+       "name": "구분",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 46632,
+       "ay": 40,
+       "w": 5.0,
+       "h": 15.0,
+       "d": 3,
+       "fills": [
+        "#586473/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "/",
+       "fontSize": 12.0,
+       "font": "Inter 400 Regular",
+       "lineH": 14.5
+      },
+      {
+       "id": "237:798",
+       "name": "화면 이름",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 46649,
+       "ay": 40,
+       "w": 63.0,
+       "h": 16.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "음식점 관리",
+       "fontSize": 13.0,
+       "font": "Noto Sans KR 500 Medium",
+       "lineH": 15.6
+      }
+     ]
+    },
+    {
+     "id": "237:799",
+     "name": "게임 시간",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 47881,
+     "ay": 40,
+     "w": 133.0,
+     "h": 17.0,
+     "d": 2,
+     "strokeW": 1.0,
+     "layout": "HORIZONTAL",
+     "gap": 10.0,
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "237:1065",
+       "name": "clock-3",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 47881,
+       "ay": 40,
+       "w": 15.0,
+       "h": 15.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "c": [
+        {
+         "id": "237:1066",
+         "name": "Vector",
+         "type": "VECTOR",
+         "x": null,
+         "y": null,
+         "ax": 47882,
+         "ay": 42,
+         "w": 12.5,
+         "h": 12.5,
+         "d": 4,
+         "strokes": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.5
+        }
+       ]
+      },
+      {
+       "id": "237:801",
+       "name": "날짜",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 47906,
+       "ay": 41,
+       "w": 59.0,
+       "h": 14.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "24일차 · 낮",
+       "fontSize": 12.0,
+       "font": "Noto Sans KR 400 Regular",
+       "lineH": 14.4
+      },
+      {
+       "id": "237:802",
+       "name": "시각",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 47975,
+       "ay": 40,
+       "w": 39.0,
+       "h": 17.0,
+       "d": 3,
+       "fills": [
+        "#F0F6FC/1.0"
+       ],
+       "strokeW": 1.0,
+       "text": "14:30",
+       "fontSize": 13.0,
+       "font": "Geist Mono 400 Regular",
+       "lineH": 16.9
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "237:803",
+   "name": "인벤토리와 음식점",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 46542,
+   "ay": 81,
+   "w": 1472.0,
+   "h": 882.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "gap": 24.0,
+   "c": [
+    {
+     "id": "237:804",
+     "name": "음식 인벤토리",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 46542,
+     "ay": 81,
+     "w": 480.0,
+     "h": 882.0,
+     "d": 2,
+     "fills": [
+      "#13181F/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 14.0,
+     "fx": [
+      "DROP_SHADOW:38.0:#000000/0.251"
+     ],
+     "layout": "VERTICAL",
+     "gap": 16.0,
+     "pl": 24.0,
+     "pr": 24.0,
+     "pt": 24.0,
+     "pb": 24.0,
+     "c": [
+      {
+       "id": "237:805",
+       "name": "패널 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46566,
+       "ay": 105,
+       "w": 432.0,
+       "h": 48.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "pb": 18.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "237:1068",
+         "name": "backpack",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 108,
+         "w": 23.0,
+         "h": 23.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "237:1069",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 46570,
+           "ay": 110,
+           "w": 15.3,
+           "h": 19.2,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.7
+          }
+         ]
+        },
+        {
+         "id": "237:807",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46601,
+         "ay": 107,
+         "w": 81.0,
+         "h": 26.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "인벤토리",
+         "fontSize": 22.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 26.4
+        },
+        {
+         "id": "237:808",
+         "name": "보조 제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46694,
+         "ay": 114,
+         "w": 262.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "보유 음식",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 13.2
+        },
+        {
+         "id": "237:809",
+         "name": "닫기",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46968,
+         "ay": 105,
+         "w": 30.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:1071",
+           "name": "x",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46976,
+           "ay": 112,
+           "w": 15.0,
+           "h": 15.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "237:1072",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 46979,
+             "ay": 116,
+             "w": 7.5,
+             "h": 7.5,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "237:811",
+       "name": "음식 분류",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46566,
+       "ay": 169,
+       "w": 432.0,
+       "h": 36.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 6.0,
+       "c": [
+        {
+         "id": "237:812",
+         "name": "분류 탭",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 169,
+         "w": 81.6,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokes": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:813",
+           "name": "분류명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46595,
+           "ay": 180,
+           "w": 23.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "전체",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        },
+        {
+         "id": "237:814",
+         "name": "분류 탭",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46654,
+         "ay": 169,
+         "w": 81.6,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:815",
+           "name": "분류명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46683,
+           "ay": 180,
+           "w": 23.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "요리",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        },
+        {
+         "id": "237:816",
+         "name": "분류 탭",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46741,
+         "ay": 169,
+         "w": 81.6,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:817",
+           "name": "분류명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46765,
+           "ay": 180,
+           "w": 34.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "디저트",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        },
+        {
+         "id": "237:818",
+         "name": "분류 탭",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46829,
+         "ay": 169,
+         "w": 81.6,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:819",
+           "name": "분류명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46858,
+           "ay": 180,
+           "w": 23.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "음료",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        },
+        {
+         "id": "237:820",
+         "name": "분류 탭",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46916,
+         "ay": 169,
+         "w": 81.6,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:821",
+           "name": "분류명",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46946,
+           "ay": 180,
+           "w": 23.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "재료",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "237:822",
+       "name": "음식 검색",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46566,
+       "ay": 221,
+       "w": 432.0,
+       "h": 34.0,
+       "d": 3,
+       "fills": [
+        "#0F141B/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 6.0,
+       "layout": "HORIZONTAL",
+       "gap": 8.0,
+       "pl": 12.0,
+       "pr": 12.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "237:1074",
+         "name": "search",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46578,
+         "ay": 230,
+         "w": 15.0,
+         "h": 15.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "237:1075",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 46580,
+           "ay": 232,
+           "w": 11.3,
+           "h": 11.3,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.5
+          }
+         ]
+        },
+        {
+         "id": "237:824",
+         "name": "검색 안내",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46601,
+         "ay": 231,
+         "w": 361.0,
+         "h": 14.0,
+         "d": 4,
+         "fills": [
+          "#586473/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "음식 이름 검색",
+         "fontSize": 12.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 14.4
+        },
+        {
+         "id": "237:1077",
+         "name": "arrow-down-wide-narrow",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46970,
+         "ay": 230,
+         "w": 16.0,
+         "h": 16.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "237:1078",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 46972,
+           "ay": 233,
+           "w": 12.0,
+           "h": 10.7,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.5
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "237:826",
+       "name": "보유 음식",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46566,
+       "ay": 271,
+       "w": 432.0,
+       "h": 325.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 10.0,
+       "c": [
+        {
+         "id": "237:827",
+         "name": "목록 제목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 271,
+         "w": 432.0,
+         "h": 14.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "c": [
+          {
+           "id": "237:828",
+           "name": "제목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46566,
+           "ay": 271,
+           "w": 83.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "판매 가능한 음식",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 14.4
+          },
+          {
+           "id": "237:829",
+           "name": "수량",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46936,
+           "ay": 271,
+           "w": 62.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "10종 · 158개",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "237:830",
+         "name": "슬롯 행",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 295,
+         "w": 432.0,
+         "h": 86.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 8.0,
+         "c": [
+          {
+           "id": "237:831",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46566,
+           "ay": 295,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#253346/1.0"
+           ],
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.5,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:832",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46572,
+             "ay": 295,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1080",
+             "name": "soup",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46590,
+             "ay": 308,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1081",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46594,
+               "ay": 312,
+               "w": 25.3,
+               "h": 24.0,
+               "d": 7,
+               "strokes": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:834",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46586,
+             "ay": 345,
+             "w": 40.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "버섯 수프",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:835",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46628,
+             "ay": 299,
+             "w": 12.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "24",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          },
+          {
+           "id": "237:836",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46654,
+           "ay": 295,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:837",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46660,
+             "ay": 295,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1083",
+             "name": "fish",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46678,
+             "ay": 308,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1084",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46681,
+               "ay": 312,
+               "w": 26.7,
+               "h": 24.0,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:839",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46676,
+             "ay": 345,
+             "w": 37.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "생선구이",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:840",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46716,
+             "ay": 299,
+             "w": 12.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "16",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          },
+          {
+           "id": "237:841",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46742,
+           "ay": 295,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:842",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46748,
+             "ay": 295,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1086",
+             "name": "beef",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46766,
+             "ay": 308,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1087",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46769,
+               "ay": 311,
+               "w": 25.3,
+               "h": 26.7,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:844",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46764,
+             "ay": 345,
+             "w": 37.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "스테이크",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:845",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46804,
+             "ay": 299,
+             "w": 12.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "12",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          },
+          {
+           "id": "237:846",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46830,
+           "ay": 295,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:847",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46836,
+             "ay": 295,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1089",
+             "name": "salad",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46854,
+             "ay": 308,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1090",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46858,
+               "ay": 312,
+               "w": 24.7,
+               "h": 23.6,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:849",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46846,
+             "ay": 345,
+             "w": 49.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "채소 샐러드",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:850",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46892,
+             "ay": 299,
+             "w": 12.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "30",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          },
+          {
+           "id": "237:851",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46918,
+           "ay": 295,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:852",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46924,
+             "ay": 295,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1092",
+             "name": "sandwich",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46942,
+             "ay": 308,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1093",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46945,
+               "ay": 313,
+               "w": 26.7,
+               "h": 21.3,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:854",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46938,
+             "ay": 345,
+             "w": 40.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "달걀 샌드",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:855",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46980,
+             "ay": 299,
+             "w": 12.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "18",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "237:856",
+         "name": "슬롯 행",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 391,
+         "w": 432.0,
+         "h": 86.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 8.0,
+         "c": [
+          {
+           "id": "237:857",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46566,
+           "ay": 391,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:858",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46572,
+             "ay": 391,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1095",
+             "name": "croissant",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46590,
+             "ay": 404,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1096",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46593,
+               "ay": 407,
+               "w": 26.0,
+               "h": 26.0,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:860",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46588,
+             "ay": 441,
+             "w": 37.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "크루아상",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:861",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46628,
+             "ay": 395,
+             "w": 12.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "10",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          },
+          {
+           "id": "237:862",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46654,
+           "ay": 391,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:863",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46660,
+             "ay": 391,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1098",
+             "name": "cake-slice",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46678,
+             "ay": 404,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1099",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46682,
+               "ay": 408,
+               "w": 24.0,
+               "h": 23.7,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:865",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46670,
+             "ay": 441,
+             "w": 49.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "베리 타르트",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:866",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46722,
+             "ay": 395,
+             "w": 6.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "8",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          },
+          {
+           "id": "237:867",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46742,
+           "ay": 391,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:868",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46748,
+             "ay": 391,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1101",
+             "name": "cup-soda",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46766,
+             "ay": 404,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1102",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46773,
+               "ay": 407,
+               "w": 18.7,
+               "h": 26.7,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:870",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46767,
+             "ay": 441,
+             "w": 30.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "허브 차",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:871",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46804,
+             "ay": 395,
+             "w": 12.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "20",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          },
+          {
+           "id": "237:872",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46830,
+           "ay": 391,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:873",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46836,
+             "ay": 391,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1104",
+             "name": "apple",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46854,
+             "ay": 404,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1105",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46857,
+               "ay": 407,
+               "w": 26.7,
+               "h": 26.7,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:875",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46860,
+             "ay": 441,
+             "w": 19.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "사과",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:876",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46892,
+             "ay": 395,
+             "w": 12.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "14",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          },
+          {
+           "id": "237:877",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46918,
+           "ay": 391,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:878",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46924,
+             "ay": 391,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1107",
+             "name": "cookie",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46942,
+             "ay": 404,
+             "w": 32.0,
+             "h": 32.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1108",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46945,
+               "ay": 407,
+               "w": 26.7,
+               "h": 26.7,
+               "d": 7,
+               "strokes": [
+                "#A6B2BF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            },
+            {
+             "id": "237:880",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46943,
+             "ay": 441,
+             "w": 30.0,
+             "h": 12.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "꿀 쿠키",
+             "fontSize": 10.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 12.0
+            },
+            {
+             "id": "237:881",
+             "name": "보유 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46986,
+             "ay": 395,
+             "w": 6.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "6",
+             "fontSize": 10.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 13.0
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "237:882",
+         "name": "슬롯 행",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 487,
+         "w": 432.0,
+         "h": 86.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 8.0,
+         "c": [
+          {
+           "id": "237:883",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46566,
+           "ay": 487,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:884",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46572,
+             "ay": 487,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1110",
+             "name": "square-dashed",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46594,
+             "ay": 500,
+             "w": 25.0,
+             "h": 25.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1111",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46597,
+               "ay": 503,
+               "w": 18.8,
+               "h": 18.8,
+               "d": 7,
+               "strokes": [
+                "#586473/1.0"
+               ],
+               "strokeW": 1.4
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "237:886",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46654,
+           "ay": 487,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:887",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46660,
+             "ay": 487,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1113",
+             "name": "square-dashed",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46682,
+             "ay": 500,
+             "w": 25.0,
+             "h": 25.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1114",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46685,
+               "ay": 503,
+               "w": 18.8,
+               "h": 18.8,
+               "d": 7,
+               "strokes": [
+                "#586473/1.0"
+               ],
+               "strokeW": 1.4
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "237:889",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46742,
+           "ay": 487,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:890",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46748,
+             "ay": 487,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1116",
+             "name": "square-dashed",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46770,
+             "ay": 500,
+             "w": 25.0,
+             "h": 25.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1117",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46773,
+               "ay": 503,
+               "w": 18.8,
+               "h": 18.8,
+               "d": 7,
+               "strokes": [
+                "#586473/1.0"
+               ],
+               "strokeW": 1.4
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "237:892",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46830,
+           "ay": 487,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:893",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46836,
+             "ay": 487,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1119",
+             "name": "square-dashed",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46858,
+             "ay": 500,
+             "w": 25.0,
+             "h": 25.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1120",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46861,
+               "ay": 503,
+               "w": 18.8,
+               "h": 18.8,
+               "d": 7,
+               "strokes": [
+                "#586473/1.0"
+               ],
+               "strokeW": 1.4
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "237:895",
+           "name": "음식 슬롯",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46918,
+           "ay": 487,
+           "w": 80.0,
+           "h": 86.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "pt": 13.0,
+           "pb": 6.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:896",
+             "name": "슬롯 등급",
+             "type": "RECTANGLE",
+             "x": null,
+             "y": null,
+             "ax": 46924,
+             "ay": 487,
+             "w": 68.0,
+             "h": 2.0,
+             "d": 6,
+             "fills": [
+              "#65768A/1.0@0.4"
+             ],
+             "strokeW": 1.0
+            },
+            {
+             "id": "237:1122",
+             "name": "square-dashed",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46946,
+             "ay": 500,
+             "w": 25.0,
+             "h": 25.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1123",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46949,
+               "ay": 503,
+               "w": 18.8,
+               "h": 18.8,
+               "d": 7,
+               "strokes": [
+                "#586473/1.0"
+               ],
+               "strokeW": 1.4
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "237:898",
+         "name": "재고 안내",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 583,
+         "w": 185.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "판매대에 배치되지 않은 보유 수량입니다.",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 13.2
+        }
+       ]
+      },
+      {
+       "id": "237:899",
+       "name": "선택 음식 배치",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46566,
+       "ay": 612,
+       "w": 432.0,
+       "h": 213.0,
+       "d": 3,
+       "fills": [
+        "#58A6FF/1.0@0.078"
+       ],
+       "strokes": [
+        "#58A6FF/1.0@0.251"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "VERTICAL",
+       "gap": 14.0,
+       "pl": 16.0,
+       "pr": 16.0,
+       "pt": 16.0,
+       "pb": 16.0,
+       "c": [
+        {
+         "id": "237:900",
+         "name": "선택 음식 정보",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46582,
+         "ay": 628,
+         "w": 400.0,
+         "h": 48.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 12.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:901",
+           "name": "음식 미리보기",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46582,
+           "ay": 628,
+           "w": 48.0,
+           "h": 48.0,
+           "d": 5,
+           "fills": [
+            "#20262E/1.0"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "HORIZONTAL",
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:1125",
+             "name": "soup",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 46591,
+             "ay": 637,
+             "w": 30.0,
+             "h": 30.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1126",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 46595,
+               "ay": 641,
+               "w": 23.8,
+               "h": 22.5,
+               "d": 7,
+               "strokes": [
+                "#58A6FF/1.0"
+               ],
+               "strokeW": 1.65
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "237:903",
+           "name": "선택 정보",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46642,
+           "ay": 634,
+           "w": 283.0,
+           "h": 35.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 4.0,
+           "c": [
+            {
+             "id": "237:904",
+             "name": "음식명",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46642,
+             "ay": 634,
+             "w": 59.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "버섯 수프",
+             "fontSize": 15.0,
+             "font": "Noto Sans KR 700 Bold",
+             "lineH": 18.0
+            },
+            {
+             "id": "237:905",
+             "name": "보유량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46642,
+             "ay": 656,
+             "w": 77.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "보유 24개 · 요리",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            }
+           ]
+          },
+          {
+           "id": "237:906",
+           "name": "권장 가격",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46937,
+           "ay": 642,
+           "w": 45.0,
+           "h": 20.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "120 G",
+           "fontSize": 15.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 19.5
+          }
+         ]
+        },
+        {
+         "id": "237:907",
+         "name": "수량 선택",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46582,
+         "ay": 690,
+         "w": 400.0,
+         "h": 32.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:908",
+           "name": "항목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46582,
+           "ay": 699,
+           "w": 47.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "배치 수량",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          },
+          {
+           "id": "237:909",
+           "name": "수량 조절",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46724,
+           "ay": 690,
+           "w": 116.0,
+           "h": 32.0,
+           "d": 5,
+           "fills": [
+            "#0F141B/1.0"
+           ],
+           "strokes": [
+            "#58A6FF/1.0@0.251"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "HORIZONTAL",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:910",
+             "name": "수량 감소",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46724,
+             "ay": 696,
+             "w": 32.0,
+             "h": 19.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "−",
+             "fontSize": 16.0,
+             "font": "Inter 400 Regular",
+             "lineH": 19.4,
+             "align": "CENTER"
+            },
+            {
+             "id": "237:911",
+             "name": "선택 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46756,
+             "ay": 697,
+             "w": 52.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "10",
+             "fontSize": 14.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 18.2,
+             "align": "CENTER"
+            },
+            {
+             "id": "237:912",
+             "name": "수량 증가",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 46808,
+             "ay": 696,
+             "w": 32.0,
+             "h": 19.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "+",
+             "fontSize": 16.0,
+             "font": "Inter 400 Regular",
+             "lineH": 19.4,
+             "align": "CENTER"
+            }
+           ]
+          },
+          {
+           "id": "237:913",
+           "name": "최대 수량",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46936,
+           "ay": 700,
+           "w": 46.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "최대 24개",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "237:914",
+         "name": "실행 버튼",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46582,
+         "ay": 736,
+         "w": 400.0,
+         "h": 46.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0@0.078"
+         ],
+         "strokes": [
+          "#58A6FF/1.0@0.251"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "gap": 8.0,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:1128",
+           "name": "arrow-right",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 46725,
+           "ay": 750,
+           "w": 18.0,
+           "h": 18.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "237:1129",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 46729,
+             "ay": 754,
+             "w": 10.5,
+             "h": 10.5,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.7
+            }
+           ]
+          },
+          {
+           "id": "237:916",
+           "name": "버튼 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46751,
+           "ay": 750,
+           "w": 88.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "10개 추가 배치",
+           "fontSize": 14.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 16.8
+          }
+         ]
+        },
+        {
+         "id": "237:917",
+         "name": "배치 후 안내",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 46582,
+         "ay": 796,
+         "w": 400.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "배치 후 보유 14개 · 예상 판매금 1,200 G",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 13.2,
+         "align": "CENTER"
+        }
+       ]
+      },
+      {
+       "id": "237:918",
+       "name": "요약 구분 간격",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46566,
+       "ay": 841,
+       "w": 432.0,
+       "h": 38.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL"
+      },
+      {
+       "id": "237:919",
+       "name": "인벤토리 요약",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 46566,
+       "ay": 895,
+       "w": 432.0,
+       "h": 44.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 10.0,
+       "pt": 14.0,
+       "c": [
+        {
+         "id": "237:920",
+         "name": "보유량",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 909,
+         "w": 432.0,
+         "h": 16.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "c": [
+          {
+           "id": "237:921",
+           "name": "소지금",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46566,
+           "ay": 909,
+           "w": 89.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "소지금  1,240 G",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          },
+          {
+           "id": "237:922",
+           "name": "사용 슬롯",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 46918,
+           "ay": 909,
+           "w": 80.0,
+           "h": 16.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "10 / 15 슬롯",
+           "fontSize": 12.0,
+           "font": "Geist Mono 400 Regular",
+           "lineH": 15.6
+          }
+         ]
+        },
+        {
+         "id": "237:923",
+         "name": "슬롯 사용량",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 46566,
+         "ay": 935,
+         "w": 432.0,
+         "h": 4.0,
+         "d": 4,
+         "fills": [
+          "#20262E/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 2.0,
+         "layout": "HORIZONTAL",
+         "c": [
+          {
+           "id": "237:924",
+           "name": "사용량",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 46566,
+           "ay": 935,
+           "w": 288.0,
+           "h": 4.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "r": 2.0
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "237:925",
+     "name": "음식점 배치",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 47046,
+     "ay": 81,
+     "w": 968.0,
+     "h": 882.0,
+     "d": 2,
+     "fills": [
+      "#13181F/1.0"
+     ],
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.0,
+     "r": 14.0,
+     "fx": [
+      "DROP_SHADOW:38.0:#000000/0.251"
+     ],
+     "layout": "VERTICAL",
+     "gap": 18.0,
+     "pl": 24.0,
+     "pr": 24.0,
+     "pt": 24.0,
+     "pb": 24.0,
+     "c": [
+      {
+       "id": "237:926",
+       "name": "패널 제목",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 47070,
+       "ay": 105,
+       "w": 920.0,
+       "h": 48.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "pb": 18.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "237:1131",
+         "name": "store",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47070,
+         "ay": 108,
+         "w": 23.0,
+         "h": 23.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "c": [
+          {
+           "id": "237:1132",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 47072,
+           "ay": 110,
+           "w": 19.2,
+           "h": 18.2,
+           "d": 5,
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.7
+          }
+         ]
+        },
+        {
+         "id": "237:928",
+         "name": "제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 47105,
+         "ay": 107,
+         "w": 107.0,
+         "h": 26.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "음식점 배치",
+         "fontSize": 22.0,
+         "font": "Noto Sans KR 700 Bold",
+         "lineH": 26.4
+        },
+        {
+         "id": "237:929",
+         "name": "보조 제목",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 47224,
+         "ay": 114,
+         "w": 724.0,
+         "h": 13.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.0,
+         "text": "음식 판매 및 정산",
+         "fontSize": 11.0,
+         "font": "Noto Sans KR 400 Regular",
+         "lineH": 13.2
+        },
+        {
+         "id": "237:930",
+         "name": "닫기",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47960,
+         "ay": 105,
+         "w": 30.0,
+         "h": 30.0,
+         "d": 4,
+         "fills": [
+          "#191F27/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:1134",
+           "name": "x",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47968,
+           "ay": 112,
+           "w": 15.0,
+           "h": 15.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "237:1135",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 47971,
+             "ay": 116,
+             "w": 7.5,
+             "h": 7.5,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.6
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "237:932",
+       "name": "음식점 운영 정보",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 47070,
+       "ay": 171,
+       "w": 920.0,
+       "h": 62.0,
+       "d": 3,
+       "fills": [
+        "#191F27/1.0"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "r": 10.0,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "pl": 16.0,
+       "pr": 16.0,
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "237:933",
+         "name": "음식점 아이콘",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47086,
+         "ay": 184,
+         "w": 36.0,
+         "h": 36.0,
+         "d": 4,
+         "fills": [
+          "#20262E/1.0"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:1137",
+           "name": "utensils",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47094,
+           "ay": 192,
+           "w": 20.0,
+           "h": 20.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "237:1138",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 47096,
+             "ay": 194,
+             "w": 15.0,
+             "h": 16.7,
+             "d": 6,
+             "strokes": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.6
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "237:935",
+         "name": "점포 정보",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47134,
+         "ay": 186,
+         "w": 766.0,
+         "h": 33.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "VERTICAL",
+         "gap": 3.0,
+         "c": [
+          {
+           "id": "237:936",
+           "name": "음식점 이름",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 47134,
+           "ay": 186,
+           "w": 134.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "전초기지 · 모닥불 식당",
+           "fontSize": 14.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 16.8
+          },
+          {
+           "id": "237:937",
+           "name": "영업 시간",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 47134,
+           "ay": 206,
+           "w": 280.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "영업 시간 08:00–22:00 · 배치한 음식이 자동으로 판매됩니다.",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "237:938",
+         "name": "영업 상태",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47912,
+         "ay": 190,
+         "w": 62.0,
+         "h": 23.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0@0.078"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "gap": 6.0,
+         "pl": 9.0,
+         "pr": 9.0,
+         "pt": 5.0,
+         "pb": 5.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:939",
+           "name": "상태 표시",
+           "type": "ELLIPSE",
+           "x": null,
+           "y": null,
+           "ax": 47921,
+           "ay": 200,
+           "w": 5.0,
+           "h": 5.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0
+          },
+          {
+           "id": "237:940",
+           "name": "상태",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 47932,
+           "ay": 196,
+           "w": 33.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "영업 중",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 500 Medium",
+           "lineH": 13.2
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "237:941",
+       "name": "판매 음식 관리",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 47070,
+       "ay": 251,
+       "w": 920.0,
+       "h": 415.0,
+       "d": 3,
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 12.0,
+       "c": [
+        {
+         "id": "237:942",
+         "name": "판매 목록 제목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47070,
+         "ay": 251,
+         "w": 920.0,
+         "h": 19.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:943",
+           "name": "제목과 개수",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 251,
+           "w": 124.0,
+           "h": 19.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 10.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:944",
+             "name": "제목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47070,
+             "ay": 251,
+             "w": 78.0,
+             "h": 19.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "판매할 음식",
+             "fontSize": 16.0,
+             "font": "Noto Sans KR 700 Bold",
+             "lineH": 19.2
+            },
+            {
+             "id": "237:945",
+             "name": "배치 슬롯",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47158,
+             "ay": 252,
+             "w": 36.0,
+             "h": 16.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "4 / 6",
+             "fontSize": 12.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 15.6
+            }
+           ]
+          },
+          {
+           "id": "237:946",
+           "name": "목록 안내",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 47821,
+           "ay": 254,
+           "w": 169.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "판매 가격은 개당 기준 · 수량 단위: 개",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "237:947",
+         "name": "판매 목록",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47070,
+         "ay": 282,
+         "w": 920.0,
+         "h": 330.0,
+         "d": 4,
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 10.0,
+         "layout": "VERTICAL",
+         "c": [
+          {
+           "id": "237:948",
+           "name": "목록 열 제목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 282,
+           "w": 920.0,
+           "h": 34.0,
+           "d": 5,
+           "fills": [
+            "#0F141B/1.0"
+           ],
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:949",
+             "name": "음식 열",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47084,
+             "ay": 292,
+             "w": 368.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "음식",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            },
+            {
+             "id": "237:950",
+             "name": "권장 가격 열",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47464,
+             "ay": 292,
+             "w": 94.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "권장 가격",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:951",
+             "name": "판매 가격 열",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47570,
+             "ay": 292,
+             "w": 98.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "판매 가격",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2,
+             "align": "CENTER"
+            },
+            {
+             "id": "237:952",
+             "name": "배치 열",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47680,
+             "ay": 292,
+             "w": 58.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "배치",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:953",
+             "name": "판매 열",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47750,
+             "ay": 292,
+             "w": 76.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "판매 / 배치",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:954",
+             "name": "판매금 열",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47838,
+             "ay": 292,
+             "w": 108.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "판매금",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:955",
+             "name": "관리 열",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47958,
+             "ay": 293,
+             "w": 18.0,
+             "h": 12.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL"
+            }
+           ]
+          },
+          {
+           "id": "237:956",
+           "name": "음식 판매 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 316,
+           "w": 920.0,
+           "h": 74.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0@0.078"
+           ],
+           "strokes": [
+            "#58A6FF/1.0@0.251"
+           ],
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:957",
+             "name": "판매 음식",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47084,
+             "ay": 331,
+             "w": 368.0,
+             "h": 44.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 12.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "237:958",
+               "name": "음식 미리보기",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47084,
+               "ay": 331,
+               "w": 44.0,
+               "h": 44.0,
+               "d": 7,
+               "fills": [
+                "#20262E/1.0"
+               ],
+               "strokeW": 1.0,
+               "r": 6.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "237:1140",
+                 "name": "soup",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 47092,
+                 "ay": 339,
+                 "w": 28.0,
+                 "h": 28.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "c": [
+                  {
+                   "id": "237:1141",
+                   "name": "Vector",
+                   "type": "VECTOR",
+                   "x": null,
+                   "y": null,
+                   "ax": 47096,
+                   "ay": 342,
+                   "w": 22.2,
+                   "h": 21.0,
+                   "d": 9,
+                   "strokes": [
+                    "#58A6FF/1.0"
+                   ],
+                   "strokeW": 1.65
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "237:960",
+               "name": "음식 정보",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47140,
+               "ay": 336,
+               "w": 312.0,
+               "h": 34.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 5.0,
+               "c": [
+                {
+                 "id": "237:961",
+                 "name": "음식명",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 47140,
+                 "ay": 336,
+                 "w": 312.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "버섯 수프",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "237:962",
+                 "name": "음식 설명",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 47140,
+                 "ay": 358,
+                 "w": 312.0,
+                 "h": 12.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "요리 · 따뜻한 수프",
+                 "fontSize": 10.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 12.0
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "237:963",
+             "name": "권장 가격",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47464,
+             "ay": 344,
+             "w": 94.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "120 G",
+             "fontSize": 13.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 16.9,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:964",
+             "name": "판매 가격",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47570,
+             "ay": 337,
+             "w": 98.0,
+             "h": 32.0,
+             "d": 6,
+             "fills": [
+              "#0F141B/1.0"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.0,
+             "r": 6.0,
+             "layout": "HORIZONTAL",
+             "pl": 10.0,
+             "pr": 10.0,
+             "mainAlign": "SPACE_BETWEEN",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "237:965",
+               "name": "가격",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47580,
+               "ay": 344,
+               "w": 24.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "120",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "237:966",
+               "name": "화폐",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47651,
+               "ay": 346,
+               "w": 7.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "G",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "237:967",
+             "name": "배치 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47680,
+             "ay": 344,
+             "w": 58.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "30",
+             "fontSize": 13.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 16.9,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:968",
+             "name": "판매 진행",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47750,
+             "ay": 340,
+             "w": 76.0,
+             "h": 27.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 7.0,
+             "crossAlign": "MAX",
+             "c": [
+              {
+               "id": "237:969",
+               "name": "판매 수량",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47771,
+               "ay": 340,
+               "w": 55.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "18 / 30",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "237:970",
+               "name": "진행률",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47760,
+               "ay": 364,
+               "w": 66.0,
+               "h": 3.0,
+               "d": 7,
+               "fills": [
+                "#20262E/1.0"
+               ],
+               "strokeW": 1.0,
+               "r": 2.0,
+               "layout": "HORIZONTAL",
+               "c": [
+                {
+                 "id": "237:971",
+                 "name": "판매 비율",
+                 "type": "RECTANGLE",
+                 "x": null,
+                 "y": null,
+                 "ax": 47760,
+                 "ay": 364,
+                 "w": 40.0,
+                 "h": 3.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "237:972",
+             "name": "판매금",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47838,
+             "ay": 344,
+             "w": 108.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "2,160 G",
+             "fontSize": 14.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 18.2,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:1143",
+             "name": "ellipsis",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47958,
+             "ay": 344,
+             "w": 18.0,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1144",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 47961,
+               "ay": 352,
+               "w": 12.0,
+               "h": 1.5,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.5
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "237:974",
+           "name": "음식 판매 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 390,
+           "w": 920.0,
+           "h": 74.0,
+           "d": 5,
+           "fills": [
+            "#191F27/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:975",
+             "name": "판매 음식",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47084,
+             "ay": 405,
+             "w": 368.0,
+             "h": 44.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 12.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "237:976",
+               "name": "음식 미리보기",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47084,
+               "ay": 405,
+               "w": 44.0,
+               "h": 44.0,
+               "d": 7,
+               "fills": [
+                "#20262E/1.0"
+               ],
+               "strokeW": 1.0,
+               "r": 6.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "237:1146",
+                 "name": "fish",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 47092,
+                 "ay": 413,
+                 "w": 28.0,
+                 "h": 28.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "c": [
+                  {
+                   "id": "237:1147",
+                   "name": "Vector",
+                   "type": "VECTOR",
+                   "x": null,
+                   "y": null,
+                   "ax": 47094,
+                   "ay": 416,
+                   "w": 23.3,
+                   "h": 21.0,
+                   "d": 9,
+                   "strokes": [
+                    "#A6B2BF/1.0"
+                   ],
+                   "strokeW": 1.65
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "237:978",
+               "name": "음식 정보",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47140,
+               "ay": 410,
+               "w": 312.0,
+               "h": 34.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 5.0,
+               "c": [
+                {
+                 "id": "237:979",
+                 "name": "음식명",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 47140,
+                 "ay": 410,
+                 "w": 312.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "생선구이",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "237:980",
+                 "name": "음식 설명",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 47140,
+                 "ay": 432,
+                 "w": 312.0,
+                 "h": 12.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "요리 · 갓 구운 생선",
+                 "fontSize": 10.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 12.0
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "237:981",
+             "name": "권장 가격",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47464,
+             "ay": 418,
+             "w": 94.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "180 G",
+             "fontSize": 13.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 16.9,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:982",
+             "name": "판매 가격",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47570,
+             "ay": 411,
+             "w": 98.0,
+             "h": 32.0,
+             "d": 6,
+             "fills": [
+              "#0F141B/1.0"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.0,
+             "r": 6.0,
+             "layout": "HORIZONTAL",
+             "pl": 10.0,
+             "pr": 10.0,
+             "mainAlign": "SPACE_BETWEEN",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "237:983",
+               "name": "가격",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47580,
+               "ay": 418,
+               "w": 24.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "180",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "237:984",
+               "name": "화폐",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47651,
+               "ay": 420,
+               "w": 7.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "G",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "237:985",
+             "name": "배치 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47680,
+             "ay": 418,
+             "w": 58.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "20",
+             "fontSize": 13.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 16.9,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:986",
+             "name": "판매 진행",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47750,
+             "ay": 414,
+             "w": 76.0,
+             "h": 27.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 7.0,
+             "crossAlign": "MAX",
+             "c": [
+              {
+               "id": "237:987",
+               "name": "판매 수량",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47771,
+               "ay": 414,
+               "w": 55.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "12 / 20",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "237:988",
+               "name": "진행률",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47760,
+               "ay": 438,
+               "w": 66.0,
+               "h": 3.0,
+               "d": 7,
+               "fills": [
+                "#20262E/1.0"
+               ],
+               "strokeW": 1.0,
+               "r": 2.0,
+               "layout": "HORIZONTAL",
+               "c": [
+                {
+                 "id": "237:989",
+                 "name": "판매 비율",
+                 "type": "RECTANGLE",
+                 "x": null,
+                 "y": null,
+                 "ax": 47760,
+                 "ay": 438,
+                 "w": 40.0,
+                 "h": 3.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "237:990",
+             "name": "판매금",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47838,
+             "ay": 418,
+             "w": 108.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "2,160 G",
+             "fontSize": 14.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 18.2,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:1149",
+             "name": "ellipsis",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47958,
+             "ay": 418,
+             "w": 18.0,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1150",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 47961,
+               "ay": 426,
+               "w": 12.0,
+               "h": 1.5,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.5
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "237:992",
+           "name": "음식 판매 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 464,
+           "w": 920.0,
+           "h": 74.0,
+           "d": 5,
+           "fills": [
+            "#191F27/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:993",
+             "name": "판매 음식",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47084,
+             "ay": 479,
+             "w": 368.0,
+             "h": 44.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 12.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "237:994",
+               "name": "음식 미리보기",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47084,
+               "ay": 479,
+               "w": 44.0,
+               "h": 44.0,
+               "d": 7,
+               "fills": [
+                "#20262E/1.0"
+               ],
+               "strokeW": 1.0,
+               "r": 6.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "237:1152",
+                 "name": "beef",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 47092,
+                 "ay": 487,
+                 "w": 28.0,
+                 "h": 28.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "c": [
+                  {
+                   "id": "237:1153",
+                   "name": "Vector",
+                   "type": "VECTOR",
+                   "x": null,
+                   "y": null,
+                   "ax": 47094,
+                   "ay": 489,
+                   "w": 22.2,
+                   "h": 23.3,
+                   "d": 9,
+                   "strokes": [
+                    "#A6B2BF/1.0"
+                   ],
+                   "strokeW": 1.65
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "237:996",
+               "name": "음식 정보",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47140,
+               "ay": 484,
+               "w": 312.0,
+               "h": 34.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 5.0,
+               "c": [
+                {
+                 "id": "237:997",
+                 "name": "음식명",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 47140,
+                 "ay": 484,
+                 "w": 312.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "스테이크",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "237:998",
+                 "name": "음식 설명",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 47140,
+                 "ay": 506,
+                 "w": 312.0,
+                 "h": 12.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "요리 · 든든한 한 끼",
+                 "fontSize": 10.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 12.0
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "237:999",
+             "name": "권장 가격",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47464,
+             "ay": 492,
+             "w": 94.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "240 G",
+             "fontSize": 13.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 16.9,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:1000",
+             "name": "판매 가격",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47570,
+             "ay": 485,
+             "w": 98.0,
+             "h": 32.0,
+             "d": 6,
+             "fills": [
+              "#0F141B/1.0"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.0,
+             "r": 6.0,
+             "layout": "HORIZONTAL",
+             "pl": 10.0,
+             "pr": 10.0,
+             "mainAlign": "SPACE_BETWEEN",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "237:1001",
+               "name": "가격",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47580,
+               "ay": 492,
+               "w": 24.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "240",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "237:1002",
+               "name": "화폐",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47651,
+               "ay": 494,
+               "w": 7.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "G",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "237:1003",
+             "name": "배치 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47680,
+             "ay": 492,
+             "w": 58.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "15",
+             "fontSize": 13.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 16.9,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:1004",
+             "name": "판매 진행",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47750,
+             "ay": 488,
+             "w": 76.0,
+             "h": 27.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 7.0,
+             "crossAlign": "MAX",
+             "c": [
+              {
+               "id": "237:1005",
+               "name": "판매 수량",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47779,
+               "ay": 488,
+               "w": 47.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "9 / 15",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "237:1006",
+               "name": "진행률",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47760,
+               "ay": 512,
+               "w": 66.0,
+               "h": 3.0,
+               "d": 7,
+               "fills": [
+                "#20262E/1.0"
+               ],
+               "strokeW": 1.0,
+               "r": 2.0,
+               "layout": "HORIZONTAL",
+               "c": [
+                {
+                 "id": "237:1007",
+                 "name": "판매 비율",
+                 "type": "RECTANGLE",
+                 "x": null,
+                 "y": null,
+                 "ax": 47760,
+                 "ay": 512,
+                 "w": 40.0,
+                 "h": 3.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "237:1008",
+             "name": "판매금",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47838,
+             "ay": 492,
+             "w": 108.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "2,160 G",
+             "fontSize": 14.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 18.2,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:1155",
+             "name": "ellipsis",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47958,
+             "ay": 492,
+             "w": 18.0,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1156",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 47961,
+               "ay": 500,
+               "w": 12.0,
+               "h": 1.5,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.5
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "id": "237:1010",
+           "name": "음식 판매 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 538,
+           "w": 920.0,
+           "h": 74.0,
+           "d": 5,
+           "fills": [
+            "#191F27/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "layout": "HORIZONTAL",
+           "gap": 12.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:1011",
+             "name": "판매 음식",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47084,
+             "ay": 553,
+             "w": 368.0,
+             "h": 44.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "HORIZONTAL",
+             "gap": 12.0,
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "237:1012",
+               "name": "음식 미리보기",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47084,
+               "ay": 553,
+               "w": 44.0,
+               "h": 44.0,
+               "d": 7,
+               "fills": [
+                "#20262E/1.0"
+               ],
+               "strokeW": 1.0,
+               "r": 6.0,
+               "layout": "HORIZONTAL",
+               "mainAlign": "CENTER",
+               "crossAlign": "CENTER",
+               "c": [
+                {
+                 "id": "237:1158",
+                 "name": "salad",
+                 "type": "FRAME",
+                 "x": null,
+                 "y": null,
+                 "ax": 47092,
+                 "ay": 561,
+                 "w": 28.0,
+                 "h": 28.0,
+                 "d": 8,
+                 "strokeW": 1.0,
+                 "c": [
+                  {
+                   "id": "237:1159",
+                   "name": "Vector",
+                   "type": "VECTOR",
+                   "x": null,
+                   "y": null,
+                   "ax": 47096,
+                   "ay": 565,
+                   "w": 21.6,
+                   "h": 20.6,
+                   "d": 9,
+                   "strokes": [
+                    "#A6B2BF/1.0"
+                   ],
+                   "strokeW": 1.65
+                  }
+                 ]
+                }
+               ]
+              },
+              {
+               "id": "237:1014",
+               "name": "음식 정보",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47140,
+               "ay": 558,
+               "w": 312.0,
+               "h": 34.0,
+               "d": 7,
+               "strokeW": 1.0,
+               "layout": "VERTICAL",
+               "gap": 5.0,
+               "c": [
+                {
+                 "id": "237:1015",
+                 "name": "음식명",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 47140,
+                 "ay": 558,
+                 "w": 312.0,
+                 "h": 17.0,
+                 "d": 8,
+                 "fills": [
+                  "#F0F6FC/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "채소 샐러드",
+                 "fontSize": 14.0,
+                 "font": "Noto Sans KR 700 Bold",
+                 "lineH": 16.8
+                },
+                {
+                 "id": "237:1016",
+                 "name": "음식 설명",
+                 "type": "TEXT",
+                 "x": null,
+                 "y": null,
+                 "ax": 47140,
+                 "ay": 580,
+                 "w": 312.0,
+                 "h": 12.0,
+                 "d": 8,
+                 "fills": [
+                  "#8B949E/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "text": "요리 · 신선한 채소",
+                 "fontSize": 10.0,
+                 "font": "Noto Sans KR 400 Regular",
+                 "lineH": 12.0
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "237:1017",
+             "name": "권장 가격",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47464,
+             "ay": 566,
+             "w": 94.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "80 G",
+             "fontSize": 13.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 16.9,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:1018",
+             "name": "판매 가격",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47570,
+             "ay": 559,
+             "w": 98.0,
+             "h": 32.0,
+             "d": 6,
+             "fills": [
+              "#0F141B/1.0"
+             ],
+             "strokes": [
+              "#30363D/1.0@0.502"
+             ],
+             "strokeW": 1.0,
+             "r": 6.0,
+             "layout": "HORIZONTAL",
+             "pl": 10.0,
+             "pr": 10.0,
+             "mainAlign": "SPACE_BETWEEN",
+             "crossAlign": "CENTER",
+             "c": [
+              {
+               "id": "237:1019",
+               "name": "가격",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47580,
+               "ay": 566,
+               "w": 16.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "80",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "237:1020",
+               "name": "화폐",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47651,
+               "ay": 568,
+               "w": 7.0,
+               "h": 14.0,
+               "d": 7,
+               "fills": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "G",
+               "fontSize": 11.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 14.3
+              }
+             ]
+            },
+            {
+             "id": "237:1021",
+             "name": "배치 수량",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47680,
+             "ay": 566,
+             "w": 58.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "25",
+             "fontSize": 13.0,
+             "font": "Geist Mono 400 Regular",
+             "lineH": 16.9,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:1022",
+             "name": "판매 진행",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47750,
+             "ay": 562,
+             "w": 76.0,
+             "h": 27.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "layout": "VERTICAL",
+             "gap": 7.0,
+             "crossAlign": "MAX",
+             "c": [
+              {
+               "id": "237:1023",
+               "name": "판매 수량",
+               "type": "TEXT",
+               "x": null,
+               "y": null,
+               "ax": 47771,
+               "ay": 562,
+               "w": 55.0,
+               "h": 17.0,
+               "d": 7,
+               "fills": [
+                "#F0F6FC/1.0"
+               ],
+               "strokeW": 1.0,
+               "text": "15 / 25",
+               "fontSize": 13.0,
+               "font": "Geist Mono 400 Regular",
+               "lineH": 16.9
+              },
+              {
+               "id": "237:1024",
+               "name": "진행률",
+               "type": "FRAME",
+               "x": null,
+               "y": null,
+               "ax": 47760,
+               "ay": 586,
+               "w": 66.0,
+               "h": 3.0,
+               "d": 7,
+               "fills": [
+                "#20262E/1.0"
+               ],
+               "strokeW": 1.0,
+               "r": 2.0,
+               "layout": "HORIZONTAL",
+               "c": [
+                {
+                 "id": "237:1025",
+                 "name": "판매 비율",
+                 "type": "RECTANGLE",
+                 "x": null,
+                 "y": null,
+                 "ax": 47760,
+                 "ay": 586,
+                 "w": 40.0,
+                 "h": 3.0,
+                 "d": 8,
+                 "fills": [
+                  "#58A6FF/1.0"
+                 ],
+                 "strokeW": 1.0,
+                 "r": 2.0
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "id": "237:1026",
+             "name": "판매금",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47838,
+             "ay": 566,
+             "w": 108.0,
+             "h": 18.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "1,200 G",
+             "fontSize": 14.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 18.2,
+             "align": "RIGHT"
+            },
+            {
+             "id": "237:1161",
+             "name": "ellipsis",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47958,
+             "ay": 566,
+             "w": 18.0,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1162",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 47961,
+               "ay": 574,
+               "w": 12.0,
+               "h": 1.5,
+               "d": 7,
+               "strokes": [
+                "#8B949E/1.0"
+               ],
+               "strokeW": 1.5
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "237:1028",
+         "name": "추가 배치 안내",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47070,
+         "ay": 624,
+         "w": 920.0,
+         "h": 42.0,
+         "d": 4,
+         "fills": [
+          "#0F141B/1.0"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.0,
+         "r": 6.0,
+         "layout": "HORIZONTAL",
+         "gap": 8.0,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:1164",
+           "name": "plus",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47358,
+           "ay": 638,
+           "w": 15.0,
+           "h": 15.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "237:1165",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 47361,
+             "ay": 641,
+             "w": 8.8,
+             "h": 8.8,
+             "d": 6,
+             "strokes": [
+              "#586473/1.0"
+             ],
+             "strokeW": 1.5
+            }
+           ]
+          },
+          {
+           "id": "237:1030",
+           "name": "안내",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 47380,
+           "ay": 638,
+           "w": 322.0,
+           "h": 14.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "왼쪽 인벤토리에서 음식을 선택해 추가 배치하세요.  2칸 사용 가능",
+           "fontSize": 12.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 14.4
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "237:1031",
+       "name": "전체 판매 정산",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 47070,
+       "ay": 684,
+       "w": 920.0,
+       "h": 262.0,
+       "d": 3,
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.0,
+       "layout": "VERTICAL",
+       "gap": 14.0,
+       "pt": 16.0,
+       "c": [
+        {
+         "id": "237:1032",
+         "name": "정산 제목",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47070,
+         "ay": 700,
+         "w": 920.0,
+         "h": 19.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "mainAlign": "SPACE_BETWEEN",
+         "c": [
+          {
+           "id": "237:1033",
+           "name": "제목",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 700,
+           "w": 96.0,
+           "h": 19.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "전체 판매 요약",
+           "fontSize": 16.0,
+           "font": "Noto Sans KR 700 Bold",
+           "lineH": 19.2
+          },
+          {
+           "id": "237:1034",
+           "name": "정산 기준",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 47832,
+           "ay": 700,
+           "w": 158.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "마지막 수령 이후 · 오늘 08:00부터",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        },
+        {
+         "id": "237:1035",
+         "name": "판매 요약 수치",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47070,
+         "ay": 733,
+         "w": 920.0,
+         "h": 80.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 12.0,
+         "c": [
+          {
+           "id": "237:1036",
+           "name": "판매 요약 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 733,
+           "w": 221.0,
+           "h": 80.0,
+           "d": 5,
+           "fills": [
+            "#191F27/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "VERTICAL",
+           "gap": 7.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "c": [
+            {
+             "id": "237:1037",
+             "name": "항목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47084,
+             "ay": 747,
+             "w": 56.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "총 배치 개수",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            },
+            {
+             "id": "237:1038",
+             "name": "수치",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47084,
+             "ay": 767,
+             "w": 42.0,
+             "h": 30.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "90 개",
+             "fontSize": 23.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 29.9
+            }
+           ]
+          },
+          {
+           "id": "237:1039",
+           "name": "판매 요약 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47303,
+           "ay": 733,
+           "w": 221.0,
+           "h": 80.0,
+           "d": 5,
+           "fills": [
+            "#191F27/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "VERTICAL",
+           "gap": 7.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "c": [
+            {
+             "id": "237:1040",
+             "name": "항목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47317,
+             "ay": 747,
+             "w": 56.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "총 판매 개수",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            },
+            {
+             "id": "237:1041",
+             "name": "수치",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47317,
+             "ay": 767,
+             "w": 42.0,
+             "h": 30.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "54 개",
+             "fontSize": 23.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 29.9
+            }
+           ]
+          },
+          {
+           "id": "237:1042",
+           "name": "판매 요약 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47536,
+           "ay": 733,
+           "w": 221.0,
+           "h": 80.0,
+           "d": 5,
+           "fills": [
+            "#191F27/1.0"
+           ],
+           "strokes": [
+            "#30363D/1.0@0.502"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "VERTICAL",
+           "gap": 7.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "c": [
+            {
+             "id": "237:1043",
+             "name": "항목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47550,
+             "ay": 747,
+             "w": 43.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "남은 음식",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            },
+            {
+             "id": "237:1044",
+             "name": "수치",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47550,
+             "ay": 767,
+             "w": 42.0,
+             "h": 30.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "36 개",
+             "fontSize": 23.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 29.9
+            }
+           ]
+          },
+          {
+           "id": "237:1045",
+           "name": "판매 요약 항목",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47769,
+           "ay": 733,
+           "w": 221.0,
+           "h": 80.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0@0.078"
+           ],
+           "strokes": [
+            "#58A6FF/1.0@0.251"
+           ],
+           "strokeW": 1.0,
+           "r": 10.0,
+           "layout": "VERTICAL",
+           "gap": 7.0,
+           "pl": 14.0,
+           "pr": 14.0,
+           "pt": 14.0,
+           "pb": 14.0,
+           "c": [
+            {
+             "id": "237:1046",
+             "name": "항목",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47783,
+             "ay": 747,
+             "w": 43.0,
+             "h": 13.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "총 판매금",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            },
+            {
+             "id": "237:1047",
+             "name": "수치",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47783,
+             "ay": 767,
+             "w": 80.0,
+             "h": 30.0,
+             "d": 6,
+             "fills": [
+              "#58A6FF/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "7,680 G",
+             "fontSize": 23.0,
+             "font": "Geist Mono 500 Medium",
+             "lineH": 29.9
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "237:1048",
+         "name": "판매금 수령",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47070,
+         "ay": 827,
+         "w": 920.0,
+         "h": 92.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0@0.078"
+         ],
+         "strokes": [
+          "#58A6FF/1.0@0.251"
+         ],
+         "strokeW": 1.0,
+         "r": 10.0,
+         "layout": "HORIZONTAL",
+         "gap": 24.0,
+         "pl": 16.0,
+         "pr": 16.0,
+         "pt": 16.0,
+         "pb": 16.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:1049",
+           "name": "수령 정보",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47086,
+           "ay": 850,
+           "w": 614.0,
+           "h": 45.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "layout": "VERTICAL",
+           "gap": 5.0,
+           "c": [
+            {
+             "id": "237:1050",
+             "name": "수령액",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47086,
+             "ay": 850,
+             "w": 195.0,
+             "h": 26.0,
+             "d": 6,
+             "fills": [
+              "#F0F6FC/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "받을 수 있는 판매금  7,680 G",
+             "fontSize": 13.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 15.6
+            },
+            {
+             "id": "237:1051",
+             "name": "수령 후 소지금",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47086,
+             "ay": 882,
+             "w": 237.0,
+             "h": 14.0,
+             "d": 6,
+             "fills": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "수령 후 소지금  1,240 → 8,920 G  · 수수료 없음",
+             "fontSize": 11.0,
+             "font": "Noto Sans KR 400 Regular",
+             "lineH": 13.2
+            }
+           ]
+          },
+          {
+           "id": "237:1052",
+           "name": "실행 버튼",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47724,
+           "ay": 850,
+           "w": 250.0,
+           "h": 46.0,
+           "d": 5,
+           "fills": [
+            "#58A6FF/1.0"
+           ],
+           "strokes": [
+            "#58A6FF/1.0"
+           ],
+           "strokeW": 1.0,
+           "r": 6.0,
+           "layout": "HORIZONTAL",
+           "gap": 8.0,
+           "mainAlign": "CENTER",
+           "crossAlign": "CENTER",
+           "c": [
+            {
+             "id": "237:1167",
+             "name": "wallet",
+             "type": "FRAME",
+             "x": null,
+             "y": null,
+             "ax": 47802,
+             "ay": 864,
+             "w": 18.0,
+             "h": 18.0,
+             "d": 6,
+             "strokeW": 1.0,
+             "c": [
+              {
+               "id": "237:1168",
+               "name": "Vector",
+               "type": "VECTOR",
+               "x": null,
+               "y": null,
+               "ax": 47804,
+               "ay": 866,
+               "w": 14.2,
+               "h": 13.5,
+               "d": 7,
+               "strokes": [
+                "#0B0E14/1.0"
+               ],
+               "strokeW": 1.7
+              }
+             ]
+            },
+            {
+             "id": "237:1054",
+             "name": "버튼 문구",
+             "type": "TEXT",
+             "x": null,
+             "y": null,
+             "ax": 47828,
+             "ay": 864,
+             "w": 68.0,
+             "h": 17.0,
+             "d": 6,
+             "fills": [
+              "#0B0E14/1.0"
+             ],
+             "strokeW": 1.0,
+             "text": "판매금 받기",
+             "fontSize": 14.0,
+             "font": "Noto Sans KR 700 Bold",
+             "lineH": 16.8
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "237:1055",
+         "name": "정산 안내",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 47070,
+         "ay": 933,
+         "w": 920.0,
+         "h": 13.0,
+         "d": 4,
+         "strokeW": 1.0,
+         "layout": "HORIZONTAL",
+         "gap": 7.0,
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "237:1170",
+           "name": "info",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 47070,
+           "ay": 933,
+           "w": 13.0,
+           "h": 13.0,
+           "d": 5,
+           "strokeW": 1.0,
+           "c": [
+            {
+             "id": "237:1171",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 47071,
+             "ay": 934,
+             "w": 10.8,
+             "h": 10.8,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 1.5
+            }
+           ]
+          },
+          {
+           "id": "237:1057",
+           "name": "안내 문구",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 47090,
+           "ay": 933,
+           "w": 320.0,
+           "h": 13.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.0,
+           "text": "판매금 수령 후에도 영업은 계속되며, 남은 음식은 판매대에 유지됩니다.",
+           "fontSize": 11.0,
+           "font": "Noto Sans KR 400 Regular",
+           "lineH": 13.2
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "237:1058",
+   "name": "화면 도움말",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 46542,
+   "ay": 987,
+   "w": 1472.0,
+   "h": 14.0,
+   "d": 1,
+   "strokeW": 1.0,
+   "layout": "HORIZONTAL",
+   "mainAlign": "SPACE_BETWEEN",
+   "crossAlign": "CENTER",
+   "c": [
+    {
+     "id": "237:1059",
+     "name": "배치 안내",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 46542,
+     "ay": 987,
+     "w": 263.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "음식을 선택하고 수량을 정해 판매 목록에 배치하세요.",
+     "fontSize": 12.0,
+     "font": "Noto Sans KR 400 Regular",
+     "lineH": 14.4
+    },
+    {
+     "id": "237:1060",
+     "name": "단축키",
+     "type": "TEXT",
+     "x": null,
+     "y": null,
+     "ax": 47744,
+     "ay": 987,
+     "w": 270.0,
+     "h": 14.0,
+     "d": 2,
+     "fills": [
+      "#8B949E/1.0"
+     ],
+     "strokeW": 1.0,
+     "text": "클릭  음식 선택     ·     Enter  배치 확인     ·     Esc  닫기",
+     "fontSize": 12.0,
+     "font": "Noto Sans KR 400 Regular",
+     "lineH": 14.4
+    }
+   ]
+  }
+ ]
+}

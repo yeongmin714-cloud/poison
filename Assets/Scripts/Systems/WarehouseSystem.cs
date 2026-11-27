@@ -15,6 +15,24 @@ namespace ProjectName.Systems
     {
         public static WarehouseSystem Instance { get; private set; }
 
+        /// <summary>
+        /// 싱글턴 보장 — TimeManager.GetOrCreate 패턴과 동일.
+        /// [EditMode 대응] Awake는 ExecuteAlways 미지정 시 EditMode에서 호출되지 않아
+        /// Instance가 null로 남는다. GetOrCreate는 AddComponent 반환값으로 Instance를 직접
+        /// 할당하므로 Play/EditMode 양쪽에서 동작한다 (Play 동작 불변 — Awake의 등록과 동일 결과).
+        /// </summary>
+        public static WarehouseSystem GetOrCreate()
+        {
+            if (Instance == null)
+            {
+                var go = new GameObject("[WarehouseSystem]");
+                Instance = go.AddComponent<WarehouseSystem>();
+                if (Application.isPlaying)
+                    DontDestroyOnLoad(go);
+            }
+            return Instance;
+        }
+
         // 기본 용량 (확장 단계 0). 사용처는 GetSlotCapacity(territoryId)로 교체 — 하드코드 직접 참조 금지.
         [SerializeField] private int _maxSlotsPerTerritory = 20;
 
@@ -31,6 +49,30 @@ namespace ProjectName.Systems
         // 영지별 폭탄 시딩 1회 마킹 (세션당 영지마다 최초 1회만 — 중복 추가/무한 생성 방지)
         private static readonly System.Collections.Generic.HashSet<string> _seededTerritories =
             new System.Collections.Generic.HashSet<string>();
+
+        // [122차] 건설된 저장고 레지스트리 — "그 영지 실내에 저장고 존재" 판정의 단일소스.
+        //   빈 실내 규칙(122차 R3)으로 자동 부착이 사라짐 → 건설(ConstructionManager) 시 MarkWarehouseBuilt,
+        //   병사 역할 배치 게이트에서 HasWarehouse 조회. 세션 누적(영속은 건설 세이브 연동 후속 — 계획 §R3).
+        private static readonly System.Collections.Generic.HashSet<string> _builtWarehouses =
+            new System.Collections.Generic.HashSet<string>();
+
+        /// <summary>[122차] 영지에 저장고 시설이 건설되어 있는지 — 병사 채집/채광/사냥 역할 배치 선행 조건.</summary>
+        public static bool HasWarehouse(string territoryId)
+        {
+            return !string.IsNullOrEmpty(territoryId) && _builtWarehouses.Contains(territoryId);
+        }
+
+        /// <summary>[122차] 저장고 건설 등록(ConstructionManager 건설 완료 시 호출). 멱등.</summary>
+        public static void MarkWarehouseBuilt(string territoryId)
+        {
+            if (!string.IsNullOrEmpty(territoryId)) _builtWarehouses.Add(territoryId);
+        }
+
+        /// <summary>[122차] 저장고 등록 해제(테스트 격리용).</summary>
+        public static void UnmarkWarehouseForTest(string territoryId)
+        {
+            if (!string.IsNullOrEmpty(territoryId)) _builtWarehouses.Remove(territoryId);
+        }
 
         // territoryId → 슬롯 리스트
         private Dictionary<string, List<PlayerInventory.ItemSlot>> _warehouses = new Dictionary<string, List<PlayerInventory.ItemSlot>>();

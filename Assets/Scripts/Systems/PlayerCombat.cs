@@ -6,6 +6,7 @@ using ProjectName.Core;
 using ProjectName.Systems.Animation.Procedural;
 using Unity.Cinemachine;
 using MagicPigGames.MagicTime;
+using System.Collections.Generic;
 
 namespace ProjectName.Systems
 {
@@ -37,6 +38,12 @@ namespace ProjectName.Systems
 
         [Header("Auto-Aim (C4-08)")]
         [SerializeField] private float _autoAimRange = 15f;           // 자동 조준 최대 거리
+
+        // [무번호 44-INPUT-DIAG] 입력 디바이스 상태 세션 1회 관측 플래그.
+        private bool _inputDiagLogged;
+
+        // [무번호 44-AIM-DIAG] 근접 미스 진단 로그 스로틀(3s).
+        private float _nextMissDiagLog;
         [SerializeField] private float _autoAimAngle = 10f;           // 조준 원뿔 각도 (도)
 
         private WeaponData _currentWeapon;
@@ -79,6 +86,12 @@ namespace ProjectName.Systems
         private int _queuedWeaponAttacks;                // Parry 모션 중 입력된 일반 무기 공격(최대 3회)
         private bool _queuedBowAction;                   // Parry 모션 중 Bow press pending
         private bool _queuedBowReleased;                 // pending Bow가 창 만료 전 해제됐는지
+        // [무번호 36-PW1] 패망 창 방어 림 — 창 유지 중 무기 골드 림(잔여 시간 비례 감쇠 — "닫히는 시계").
+        private GameObject _parryGuardRim;
+        private const float ParryGuardRimIntensity = 1.6f;   // 29-P1-2 무기 림 선례 강도
+        private bool _parryGoodTickDone;                 // [무번호 36-PW3] PERFECT→GOOD 경계 통과 1회 청색 틱
+        /// <summary>[무번호 36-PW3] GOOD 구간 큐 색 — 패망D1 청색 리터럴 승계(파일 내 단일 소스).</summary>
+        private float _parryGoodPulseUntil;   // [171차] GOOD 진입 림 맥동 종료 시각(unscaled) — 청색 큐 폐기(흰 단일)
         private float _queuedBowHeldTime;                // queued Bow의 캡처된 홀드 시간
         private Coroutine _parryImpactRoutine;
         private bool _parrySlowActive;
@@ -88,8 +101,70 @@ namespace ProjectName.Systems
         private float _animatorSpeedBeforeParry = 1f;
         private bool _parryAnimatorSpeedCaptured;
         private const float ParryActionScale = 0.10f;
+
+        // ===== [95차 F1~F4] 패링 액션감 강화 — 퍼펙트 판정/반격 보상/히스톱/카메라 펀치/방향성 스파크 =====
+        /// <summary>[95차 F1] PERFECT 판정 경계 — 창 경과(elapsed)가 이 값 이하면 PERFECT, 초과면 GOOD.</summary>
+        internal const float ParryPerfectWindow = 0.15f;
+        /// <summary>[95차 F1] PERFECT 반격 보상 — 큐 해방 첫 1타 데미지 배율.</summary>
+        internal const float ParryCounterMultiplier = 1.5f;
+        /// <summary>[95차 F2] 히스톱 로컬 타임스케일 — '완전 정지' 체감(SetParryLocalTime 클램프 하한과 동일 값).</summary>
+        internal const float ParryHitStopScale = 0.05f;
+        /// <summary>[95차 F2] 히스톱 hold 시간 — 50ms.</summary>
+        internal const float ParryHitStopHoldSeconds = 0.05f;
+        /// <summary>[95차 F3] 카메라 펀치 기준 FOV — 45.</summary>
+        internal const float ParryFovBase = 45f;
+        /// <summary>[95차 F3] 카메라 펀치 급줌 FOV — 38(45→38 = -7° 상대 펀치, 실측 FOV가 달라도 상대 적용).</summary>
+        internal const float ParryFovPunched = 38f;
+        private const float ParryFovPunchSeconds = 0.08f;    // [95차 F3] 급줌 지속(실시간 초)
+        private const float ParryFovRestoreSeconds = 0.25f;  // [95차 F3] 복원 지속(실시간 초)
+        private const float ParryCameraShakeImpulse = 0.25f; // [95차 F3] 미세 셰이크 — 공격 펀치(0.4~0.7) 대비 소형 강도
+        private float _pendingCounterAttackMultiplier = 1f;  // [95차 F1] PERFECT 반격 1타 배율 — AttackTarget 소비형(적용 후 1 리셋)
+        private Coroutine _parryCameraPunchRoutine;          // [95차 F3] FOV 펀치 코루틴
+        private Coroutine _parryRimFadeRoutine;              // [무번호 61] 실패/빈 패링 림 자연 페이드 코루틴
+        private GameObject _parryRimFadeTarget;              // [무번호 61] 페이드 진행 중 림 캡처 참조(재패링 시 즉시 해제용)
+        private bool _parryFovPunchActive;                   // [95차 F3] 펀치 진행 중 — 재진입 시 원본 베이스 보존(HitStopManager 선례)
+        private float _parryFovPunchBase = 60f;              // [95차 F3] 펀치 전 원본 FOV(복귀 기준)
+
+        /// <summary>[95차 F1] 패링 판정 등급 — PERFECT(창 초반 0.15s 이내) / GOOD(그 외).</summary>
+        internal enum ParryGrade
+        {
+            Perfect,
+            Good
+        }
+
+        /// <summary>
+        /// [95차 F1] 순수 판정 함수 — 창 경과(0~0.45s)만으로 등급 분류. 시간 주입 불요(EditMode 직접 테스트 대상).
+        /// 경계 포함 규약: elapsed ≤ ParryPerfectWindow(0.15) → PERFECT.
+        /// </summary>
+        internal static ParryGrade EvaluateParryGrade(float elapsed)
+        {
+            return elapsed <= ParryPerfectWindow ? ParryGrade.Perfect : ParryGrade.Good;
+        }
         public string ChargedClipName = "Charged_Upward_Slash"; // [Phase 1-1] 차지 클립 플러그인 — FBX 확보 시 클립명만 갱신
         public string ParryClipName = "Sword_Parry_Backward_1"; // [Phase 1-2] 패링 클립 플러그인 — FBX 확보 시 클립명만 갱신
+
+        // ═════════ [95차 후속] 믹사모 패링 클립 연결 — Assets/Resources/Animations/Combat_Mixamo(Block/Slash FBX) ═════════
+        // 92차 VillagerWanderer 선례 재사용: 폴더 리소스 이동 + 런타임 LoadAll + Player_AC 오버라이드 컨트롤러.
+        // 새 시스템 신설 없음 — 기존 ParryClipName 플러그인 구조에 연결, 클립 부재 시 기존 동작 폴백(무해).
+        /// <summary>[95차 후속] 리소스 폴더 경로 — 방어/반격 FBX 2종(런타임 Resources 로드 계약).</summary>
+        private const string ParryClipResourceFolder = "Animations/Combat_Mixamo";
+        /// <summary>[95차 후속] 폴더 내 소스 FBX 파일명 — 파일 단위 LoadAll 판정 소스(92차 선례: 믹사모 테이크명 "mixamo.com" 대응).</summary>
+        private const string ParryBlockFileKey = "Sword And Shield Block";
+        private const string ParryCounterFileKey = "Sword And Shield Slash";
+        /// <summary>[95차 후속 실측] Player_AC Parry 상태 슬롯 원본 클립명 — 컨트롤러 YAML guid 역조회
+        /// (Parry 상태 m_Motion → MeshyUser/Sword_Parry_Backward_1.fbx, 내부 테이크
+        /// "Armature|Sword_Parry_Backward_1_withSkin"). 이 1슬롯만 교체.</summary>
+        private const string PlayerAcParrySlotClipName = "Armature|Sword_Parry_Backward_1_withSkin";
+        /// <summary>[95차 후속] Player_AC Parry 상태명 — 반격 모션 1회 크로스페이드 재사용 상태(트리거 'Parry'의 목적지 상태).</summary>
+        private const string PlayerAcParryStateName = "Parry";
+        /// <summary>[95차 후속] 와이어 감지 대상 베이스 컨트롤러명 — 부트(TestPlayerAnimatorBoot) 지연 부착 폴링용(plain Player_AC).</summary>
+        private const string PlayerAcControllerName = "Player_AC";
+        private static AnimationClip _parryBlockClip;      // [95차 후속] 방어 클립 정적 캐시(파일단위 판정 → 폴더 키워드 폴백)
+        private static AnimationClip _parryCounterClip;    // [95차 후속] 반격 클립 정적 캐시
+        private static bool _parryClipsResolved;           // [95차 후속] 클립 해석 1회 가드(연결 로그 1회)
+        private static AnimatorOverrideController _parryOverride; // [95차 후속] Player_AC 베이스 오버라이드 컨트롤러(런타임 생성)
+        private Coroutine _parryCounterOverrideRoutine;    // [95차 후속] 반격 모션 후 Parry 슬롯 복원 코루틴
+        private Animator _parryClipsWiredAnimator;         // [95차 후속] 오버라이드 부착 완료 Animator(중복 스왑 방지)
 
         // ===== 활(Bow) 드로→릴리즈 (2026-09-17): 좌클릭 홀드 = 드로(파워 축적), 해제 = 릴리즈(발사) =====
         // 근접 우클릭 차지(위)와 별개의 좌클릭 경로 — 검/창/Fist에는 영향 없음.
@@ -109,15 +184,18 @@ namespace ProjectName.Systems
         /// <summary>타겟이 있고 살아있는가?</summary>
         public bool HasTarget => _currentTarget != null && _currentTarget.IsAlive;
 
-        /// <summary>공격이 가능한지 여부 (쿨다운 기준)</summary>
-        public bool CanAttack => _currentWeapon != null && Time.time - _lastAttackTime >= _currentWeapon.attackSpeed;
+        /// <summary>공격이 가능한 여부 (쿨다운 기준 — [A3] 이계 증강 공속 배율로 게이트 단축)</summary>
+        public bool CanAttack => _currentWeapon != null && Time.time - _lastAttackTime >= _currentWeapon.attackSpeed / AfterlifeAugmentSystem.AttackSpeedMult / AfterlifeCardSystem.CooldownFactor; // [156차 P4] 이계 카드 활성 무기 쿨다운 계수
 
-        /// <summary>남은 쿨다운 시간 (0 이하이면 공격 가능)</summary>
-        public float RemainingCooldown => Mathf.Max(0f, (_lastAttackTime + _currentWeapon?.attackSpeed ?? 1f) - Time.time);
+        /// <summary>남은 쿨다운 시간 (0 이하이면 공격 가능 — [A3] 이계 증강 공속 배율 반영)</summary>
+        public float RemainingCooldown => Mathf.Max(0f, (_lastAttackTime + ((_currentWeapon?.attackSpeed ?? 1f) / AfterlifeAugmentSystem.AttackSpeedMult)) - Time.time);
         // 시간 기반 쿨다운/외부 연출용. 여러 accepted 입력의 구분은 AcceptedAttackSequence를 사용한다.
         public float LastAttackTime => _lastAttackTime;
         /// <summary>Monotonic count of accepted TryAttack inputs; unlike LastAttackTime, same-time inputs remain distinct.</summary>
         public long AcceptedAttackSequence => _acceptedAttackSequence;
+
+        /// <summary>[156차 P4] 현재 장착 무기 — 이계 카드 무기 스왑의 진입 캡처/귀환 원복용.</summary>
+        public WeaponData CurrentWeapon => _currentWeapon;
 
         /// <summary>외부 장착 시스템(WeaponEquipManager)용 — WeaponData.Sword/Spear/Bow 정적 인스턴스를 반영.</summary>
         public void SetWeapon(WeaponData weapon)
@@ -171,6 +249,7 @@ namespace ProjectName.Systems
 
         private void Start()
         {
+            ScreenEdgeDangerFX.EnsureSubscribed();   // [무번호 37-G3] 위험 방향 인디케이터 구독 보장
             _mainCamera = Camera.main;
             if (_mainCamera != null)
             {
@@ -188,14 +267,41 @@ namespace ProjectName.Systems
             _clipDriver = GetComponentInChildren<HumanoidClipDriver>();
         }
 
+        // [207차 P1] 조준 카메라 이중 불합격 경고 1회 플래그 — 세션 최초 1회만 출력(발사 시도마다 스팸 금지).
+        private bool _bowAimCameraGuardWarned;
+
         private Camera ResolveBowAimCamera()
         {
-            // Camera.main is the authoritative current producer. Refresh every release so a valid-but-old
-            // cached camera cannot solve against a different view after a camera/scene handoff.
+            // [P206-P5] 1순위: 플레이어 팔로우(실렌더) 카메라 — PlayerMovement가 LateUpdate에서 매 프레임
+            // 이동시키는 카메라로 [FollowProbe] 실측상 진짜 렌더 카메라. Camera.main은 세계 원점 매몰 별개
+            // "Main Camera"(중복 태그)를 반환해 조준이 상시 원점 방향이 되던 근원이므로 이를 우선 회피한다.
+            // (태그 독립 — 실렌더 카메라는 태그 유실 여부와 무관하게 조준의 단일 진실원.)
+            // [207차 P1] 최종 선택 카메라에 IsPlausibleAimCamera 가드 적용(활성+활성화+거리≤60m) —
+            // FollowCamera 불합격 시 아래 Camera.main을 검사하고, 둘 다 불합격이면 기존 동작(null 반환 →
+            // TryBowShot의 발사 취소 경로)으로 폴백한다 + 경고 1회.
+            Camera followCamera = PlayerMovement.FollowCamera;
+            if (PlayerMovement.IsPlausibleAimCamera(followCamera, transform))
+                return followCamera;
+
+            // Fallback: Camera.main is the authoritative current producer when no follow camera exists yet.
+            // Refresh every release so a valid-but-old cached camera cannot solve against a different view
+            // after a camera/scene handoff.
             Camera currentMainCamera = Camera.main;
             if (currentMainCamera == null || !currentMainCamera.isActiveAndEnabled
-                || !currentMainCamera.gameObject.activeInHierarchy || !currentMainCamera.CompareTag("MainCamera"))
+                || !currentMainCamera.gameObject.activeInHierarchy || !currentMainCamera.CompareTag("MainCamera")
+                || !PlayerMovement.IsPlausibleAimCamera(currentMainCamera, transform))
+            {
+                // [207차 P1] 두 후보 모두 불합격 — 기존 동작(null 반환) 폴백 + 경고 1회(스팸 방지).
+                if (!_bowAimCameraGuardWarned)
+                {
+                    _bowAimCameraGuardWarned = true;
+                    Debug.LogWarning($"[PlayerCombat][207차] 조준 카메라 불합격 — " +
+                        $"FollowCamera={(followCamera == null ? "<무효>" : followCamera.name)} " +
+                        $"Camera.main={(currentMainCamera == null ? "<부재>" : currentMainCamera.name)} " +
+                        $"모두 가드 기각(활성·활성화·거리≤{PlayerMovement.AimCameraPlausibleDistance}m). 발사를 취소합니다(이후 재발 미출력).");
+                }
                 return null;
+            }
 
             if (_mainCamera != currentMainCamera)
                 _mainCamera = currentMainCamera;
@@ -205,6 +311,27 @@ namespace ProjectName.Systems
         private void Update()
         {
             if (PlayerHealth.Instance != null && PlayerHealth.Instance.IsDead) return;
+
+            // [무번호 44-INPUT-DIAG] 입력 디바이스 상태 관측(세션 1회) — 좌클릭/WASD가 게임까지 도달했는지의
+            // 최상위 게이트. 11-15 21:00 세션에서 [CombatInput] 좌클릭 관측 2건은 있었으므로 디바이스는 살아
+            // 있었으나, "클릭했는데 아무 일도 없다" 보고의 세션별 재발 판별용 상시 게이트로 유지한다(수리 없음).
+            if (!_inputDiagLogged)
+            {
+                _inputDiagLogged = true;
+                bool mouseAlive = Mouse.current != null;
+                bool keyboardAlive = Keyboard.current != null;
+                if (!mouseAlive || !keyboardAlive)
+                    Debug.LogWarning($"[44-INPUT-DIAG] ⚠️ 입력 디바이스 부재 — mouse={mouseAlive} keyboard={keyboardAlive} " +
+                        "(Input System 디바이스 탈락 — 좌클릭·WASD가 무음 소비되는 근원 후보)");
+                else
+                    Debug.Log("[44-INPUT-DIAG] 입력 디바이스 정상 — mouse=True keyboard=True");
+            }
+
+            // [95차 후속] 패링 클립 와이어 폴링 — plain Player_AC 감지 시 1회 연결.
+            // 근거: TestPlayerAnimatorBoot가 PlayerModel 발견(최대 5초 대기) 후 Player_AC를 무조건 재부착하므로
+            // Start 시점 1회 할당은 부트와 순서 경쟁 → plain Player_AC(이름 일치) 재감지 폴링으로 어느 순서든 연결 유지.
+            // Player_AC 부재(부착 경로 없는 씬) 시 와이어 생략 = 기존 동작 폴백(무해).
+            EnsureParryClipsWired();
 
             // A dedicated, remappable keyboard action starts parry only; hovering UI suppresses it like world clicks.
             if (!ProjectName.Core.UITransitionState.PointerOverUI
@@ -220,6 +347,9 @@ namespace ProjectName.Systems
             bool parryWindowEnded = _parryActive && Time.unscaledTime >= _parryActiveUntil;
             if (parryWindowEnded)
                 EndParryWindow();
+
+            // [무번호 36-PW1/PW3] 방어 림 갱신 — 잔여 시간 비례 감쇠 + PERFECT→GOOD 경계 청색 틱(1회).
+            if (_parryActive) UpdateParryGuardRim();
 
             // Drain at most one accepted melee click per frame, starting after the window/impact frame. TryAttack keeps its own cooldown/combo gates;
             // retain the pending click when those gates reject it so each accepted click gets a distinct timestamp.
@@ -265,6 +395,13 @@ namespace ProjectName.Systems
                         ReleaseBow(relPower, true);
                     }
                 }
+                // [189차] 폭탄 릴리즈 투척 — press(조준 시작) 후 좌클릭 해제 = 투척.
+                //   활 드로→릴리즈 선례(wasReleasedThisFrame 릴리즈 패턴)와 동일 위계로 배치.
+                if (BombArmController.Instance != null && BombArmController.Instance.IsAiming && Mouse.current.leftButton.wasReleasedThisFrame)
+                {
+                    BombArmController.Instance.ThrowTowardCursor();
+                    return;
+                }
             }
 
             // 좌클릭 감지 (InputSystem)
@@ -282,10 +419,16 @@ namespace ProjectName.Systems
                 // [폭탄] 이번 프레임 이미 폭탄 투척 → 근접/무기 공격 금지 (AttackSystem과 순서 무관)
                 if (BombArmController.BombThrowIssuedThisFrame)
                     return;
-                // [폭탄] 무장 상태 좌클릭 = 폭탄 투척 — 일반/무기 공격 대신 발사하고 건너뜀
+                // [폭탄][189차] 무장 상태 좌클릭 press = 조준 시작(궤적 프리뷰) — 투척은 릴리즈 경로(위 wasReleasedThisFrame 블록)
                 if (BombArmController.Instance != null && BombArmController.Instance.IsArmed)
                 {
-                    BombArmController.Instance.ThrowTowardCursor();
+                    BombArmController.Instance.BeginAim();
+                    return;
+                }
+                // [무번호 86-P3] 승마 중 — 좌클릭은 말 발길질(HorseMountSystem)이 소비, 무기 공격(근접/활/큐) 억제
+                if (HorseMountSystem.IsMounted)
+                {
+                    Debug.Log("[CombatInput] click consumed by mount kick gate");
                     return;
                 }
                 // [TEST27-68차] 독립 클릭 프로브 — GSM이 죽어도(공유 GO 파괴) 클릭 입력 자체의 증거를 남긴다.
@@ -355,6 +498,17 @@ namespace ProjectName.Systems
             }
         }
 
+        // ── [무번호 61] 패망 창 상태 노출 — HUDUTK 패망 아크 게이지 소비(P3 창 아크 게이지 계약). ──
+        /// <summary>창 활성 여부 — HUD 게이지 표시 게이트.</summary>
+        public bool ParryWindowActive => _parryActive;
+        /// <summary>창 잔여 비율(0~1) — 게이지 채움. 비활성=0.</summary>
+        public float ParryWindowRemaining01 => _parryActive
+            ? Mathf.Clamp01((_parryActiveUntil - Time.unscaledTime) / ParryWindow)
+            : 0f;
+        /// <summary>PERFECT 구간(경과 ≤ ParryPerfectWindow) — 게이지 흰 맥동 판정(36-PW3 림 맥동과 동일 위계).</summary>
+        public bool ParryInPerfectPhase => _parryActive
+            && (ParryWindow - Mathf.Max(0f, _parryActiveUntil - Time.unscaledTime)) <= ParryPerfectWindow;
+
         private bool TryStartParry()
         {
             if (ProjectName.Core.UITransitionState.PointerOverUI || _parryActive)
@@ -362,8 +516,29 @@ namespace ProjectName.Systems
 
             _parryActive = true;
             _parryActiveUntil = Time.unscaledTime + ParryWindow;
+            RestoreParryCounterSlotBeforeParry();   // [95차 후속] 반격 슬롯 임시 교체 진행 중 신규 패링 → 방어 클립 슬롯 즉시 복원
             _proceduralAnim?.TriggerAction("parry");
             _clipDriver?.TriggerParry();
+            // [패링D1] 창 개방 즉시 피드백 — 흰 소형 확산링(플레이어 흡수점 근방). 성공 FX(금/청 대형 링+히트스톱)와 무간섭.
+            //   근거: V 입력만으로는 화면 변화가 없어 "패링 시스템이 살아있는지" 판별 불가(사용자 보고 "전혀 실행된 게 없어").
+            if (Application.isPlaying)
+            {
+                Vector3 cueP = transform.position + transform.forward * 0.8f + Vector3.up * 0.9f;
+                // [무번호 36-PW3] 개방 링 = 골드 — 창 초반(ParryPerfectWindow)이 PERFECT 구간임을 행동 전에 학습시키는 신호.
+                //   GOOD 구간 전환은 UpdateParryGuardRim의 맥동(1회)이 이어받는다.
+                ShockwaveRingFX.Spawn(cueP, 0.8f, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.5f), 0.3f);
+                _parryGoodTickDone = false;   // [무번호 36-PW3] 경계 틱 1회 플래그 리셋
+                // [무번호 61] 페이드 진행 중 재패링 — 구 림 페이드 중단 + 즉시 해제(이중 림 방지).
+                if (_parryRimFadeRoutine != null)
+                {
+                    StopCoroutine(_parryRimFadeRoutine);
+                    _parryRimFadeRoutine = null;
+                    FxRimOverlay.Release(_parryRimFadeTarget);
+                    _parryRimFadeTarget = null;
+                }
+                AttachParryGuardRim();   // [무번호 36-PW1] 창 유지 중 방어 림(잔여 시간 비례 감쇠)
+                Debug.Log($"[PlayerCombat] 🛡️ 패링 창 개방 — {ParryWindow:0.00}s (V) [패망D1]");
+            }
             return true;
         }
 
@@ -434,6 +609,14 @@ namespace ProjectName.Systems
             // 충전 강공 — 임팩트 1.5x(계획 E-2 스택 활용), 히트스톱 강화는 타격측 호출부에서
             target.TakeDamage(damage, hitDirection, _currentWeapon.weaponType.ToString());
 
+            // [166-D] 몬스터 피격 효과음 — 강공도 데미지 실제 적용 지점(히트스톱 이전 발화).
+            MonsterHitSfx.PlayMonsterHit(_currentWeapon.weaponType);
+
+            // [무번호 37-H1] 강타격 프리즈 — 피해≥15(33-D1 Heavy 기준 공유)에만 추가 프리즈(0.05s@0.06 —
+            //   36 파리 등급 0.07/0.03과 무충돌 별도 밴드). HitStopManager 계약 유지.
+            if (damage >= 15f && Application.isPlaying)
+                HitStopManager.RequestHitStop(0.05f, 0.06f);
+
             // 히트 지점 VFX — 크리티컬 룩 강화(1.5배 확대)
             if (targetBehaviour != null)
             {
@@ -459,8 +642,13 @@ namespace ProjectName.Systems
         {
             if (!_parryActive) return false;
 
+            // [95차 F1] 창 경과 산정(0~0.45s) → 퍼펙트/굿 판정. 순수 함수(EvaluateParryGrade)로 분리 — 시간 주입 불요.
+            float elapsed = Mathf.Clamp(ParryWindow - (_parryActiveUntil - Time.unscaledTime), 0f, ParryWindow);
+            ParryGrade grade = EvaluateParryGrade(elapsed);
+
             _parryActive = false;
             _parryActiveUntil = -999f;
+            ReleaseParryGuardRim();   // [무번호 36-PW1] 성공 — 방어 림 즉시 해제(28-P1 플래시 림이 이어받음 — 이중 림 방지)
 
             // Success presentation and timed effects are runtime-only. Keep TryParry's state
             // consumption valid for EditMode callers without starting coroutines or spawning FX.
@@ -470,27 +658,291 @@ namespace ProjectName.Systems
                 try { BulletTime.Get().Apply(0.35f, 0.10f, 0.38f); }
                 catch (System.Exception) { }
                 // A retrigger during the same local-time effect must retain its original baseline.
+                // [95차 F2] 히스톱(F2)은 ParryImpactRoutine 선두에서만 — 이 baseline 보존 로직과 상호 간섭 없음.
                 if (!_parrySlowActive)
                 {
                     _parrySlowRestoreValue = _parryTimeUser != null ? _parryTimeUser.LocalTimeScaleValue : 1f;
                     _parrySlowActive = true;
                 }
                 if (_parryImpactRoutine != null) StopCoroutine(_parryImpactRoutine);
-                _parryImpactRoutine = StartCoroutine(ParryImpactRoutine());
-                TryParryImpactFX();
+                _parryImpactRoutine = StartCoroutine(ParryImpactRoutine(grade));
+
+                // [95차 F1/F4] 공격자 방향 실측 — kbDir = 공격자→플레이어(피격 넉백 방향, PlayerHealth.hitDirection과 동일 의미)를
+                // 접촉 근접 공격자 위치로부터 재구성. 탐색은 기존 스윕 폴백(MeleeSweepFallback) 재사용 — 신규 파이프라인 없음.
+                Vector3 kbDir = -transform.forward; // 폴백 — 공격자는 흡수점(전방) 방향에 있다고 가정
+                MonoBehaviour attacker = MeleeSweepFallback() as MonoBehaviour;
+                if (attacker != null)
+                {
+                    Vector3 toPlayer = transform.position - attacker.transform.position;
+                    toPlayer.y = 0f;
+                    if (toPlayer.sqrMagnitude > 0.0001f)
+                        kbDir = toPlayer.normalized;
+                }
+
+                TryParryImpactFX(grade, kbDir);
+
+                if (grade == ParryGrade.Perfect && attacker != null)
+                {
+                    // [95차 F1] PERFECT 보상 ③ — 공격자 강 넉백(kbDir×1.5 — HitReaction 기존 넉백 파이프라인 재사용).
+                    ApplyPerfectParryAttackerKnockback(kbDir, attacker);
+                    StartCoroutine(ParryCounterStepInRoutine(attacker));
+                    // [무번호 28-P3] 공격자 반응 플래시 — 패망 성공 순간 공격자 몸 백색 반전 0.1s(EA1/M1 인프라 재사용).
+                    var parryAi = attacker.GetComponent<AnimalAI>();
+                    if (parryAi != null) parryAi.PlayParryFlash();
+                    // [95차 F1] PERFECT 보상 ② — 큐 해방은 ParryImpactRoutine 복원 직전에서 실행(슬로우 중 반격 연출).
+                }
+
+                // [무번호5/P3] PERFECT 패링 → 타임 스톱 연출(Time Paradox 엔진, Test_10 한정 opt-in).
+                //   게이트는 ParadoxTimeStop 내부(타 씬 무시) — 소유권 분리 계약(개인 슬로우=MagicTime 유지).
+                if (grade == ParryGrade.Perfect)
+                {
+                    ParadoxTimeStop.Trigger(transform.position);
+                }
+
+                // [95차 F3] 카메라 펀치 — 성공 시(PERFECT/GOOD 공통) FOV 급줌+미세 셰이크.
+                // 미스(빈 차지/빈 스윗) 경로의 TriggerCameraEffects는 그대로 — 무간섭.
+                // [무번호 61/37-H2] 방향성 오프셋 — 킥을 타격 방향(공격자→플레이어 kbDir)으로 보낸다.
+                TriggerParryCameraPunch(kbDir);
             }
 
-            Debug.Log("[PlayerCombat] 🛡️ 패링 성공 — 무기 중립 흡수 + Magic Time/BulletTime 액션 슬로우");
+            Debug.Log($"[PlayerCombat] 🛡️ 패링 성공({grade}) — 무기 중립 흡수 + Magic Time/BulletTime 액션 슬로우 [95차 F1]");
             return true;
+        }
+
+        /// <summary>
+        /// [95차 F1] PERFECT 반격 큐 해방 — 큐된 공격 첫 1타를 소비하고 반격 배율을 반환한다.
+        /// 큐가 비었으면 1(보상 없음). 실제 해방 발화는 ParryImpactRoutine 복원 직전(슬로우 중)에서 수행.
+        /// </summary>
+        internal float ConsumeQueuedCounterAttack()
+        {
+            if (_queuedWeaponAttacks <= 0) return 1f;
+            _queuedWeaponAttacks--;
+            return ParryCounterMultiplier;
+        }
+
+        /// <summary>[171차 C1] PERFECT 반격 스텝인 — 공격자 방향 0.4m 전진(0.1s, unscaled).
+        /// 세키로식 반격 리듬: 성공→스텝인으로 접촉 유지, 반격 애니는 기존 슬롯 스왑 메커니즘(L1080 SwapParrySlotClip)이 담당.
+        /// kinematic jolt 선례 — CharacterController 무시 transform 이동(네트워크/피직스 무관 싱글플레이 계약).
+        /// 0.1s가 너무 짧아 히트스톱(0.07s)과 겹치면 unscaled 기준이라 무간섭.</summary>
+        private System.Collections.IEnumerator ParryCounterStepInRoutine(MonoBehaviour attacker)
+        {
+            if (attacker == null) yield break;
+            Vector3 toAttacker = attacker.transform.position - transform.position;
+            toAttacker.y = 0f;
+            if (toAttacker.sqrMagnitude < 0.0001f) yield break;
+            toAttacker.Normalize();
+            Vector3 start = transform.position;
+            Vector3 target = start + toAttacker * 0.4f;
+            const float StepSeconds = 0.1f;
+            float elapsed = 0f;
+            while (elapsed < StepSeconds)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                transform.position = Vector3.Lerp(start, target, Mathf.Clamp01(elapsed / StepSeconds));
+                yield return null;
+            }
+        }
+
+        /// <summary>
+        /// [95차 F1] PERFECT 보상 ③ — 공격자 강 넉백(kbDir×1.5).
+        /// HitReaction(공격자 피격 반응 컴포넌트)이 기존 넉백 파이프라인 — 내부에서 -kbDir(공격자 쪽)로 밀어낸다.
+        /// HitReaction 부재 시 Rigidbody 임펄스 폴백(HitReaction._knockbackForce 기본 5 선례 강도).
+        /// 데미지는 0 — 밸런스 무변경, 순수 넉백/경직 반응만.
+        /// </summary>
+        private static void ApplyPerfectParryAttackerKnockback(Vector3 kbDir, MonoBehaviour attacker)
+        {
+            try
+            {
+                var reaction = attacker.GetComponent<HitReaction>();
+                if (reaction != null)
+                {
+                    reaction.PlayHitReaction(kbDir, ParryCounterMultiplier);
+                    return;
+                }
+                Rigidbody rb = attacker.GetComponent<Rigidbody>();
+                if (rb != null && !rb.isKinematic)
+                    rb.AddForce(-kbDir.normalized * 5f * ParryCounterMultiplier, ForceMode.Impulse);
+            }
+            catch (System.Exception e) { Debug.LogWarning($"[PlayerCombat] PERFECT 넉백 실패: {e.Message}"); }
+        }
+
+        /// <summary>[95차 F3] 카메라 펀치 — FOV 급줌 코루틴 + 미세 셰이크(기존 Cinemachine Impulse 인프라 재사용).</summary>
+        /// <summary>[95차 F3 → 무번호 61/37-H2 소화] 카메라 펀치 — FOV 급줌 + 방향성 오프셋 킥.
+        ///  37-H2 소화: 임팩트 impulse를 고정 Vector3.forward(중립) 대신 타격 방향(공격자→플레이어 kbDir)으로
+        ///  보낸다 — 카메라가 실제 타격 방향으로 밀려났다 복귀. CinemachineImpulseSource.GenerateImpulse는
+        ///  소스(카메라) 로컬 공간 — 월드 방향을 역변환해 주입. 방향 실측 실패 시 기존 중립 폴백 유지.</summary>
+        private void TriggerParryCameraPunch(Vector3 impactDir)
+        {
+            Camera cam = _mainCamera != null ? _mainCamera : Camera.main;
+            if (cam == null) return; // 카메라 없음 — 펀치 생략(복귀 드라이버 없는 상태를 남기지 않는다)
+            if (_parryCameraPunchRoutine != null) StopCoroutine(_parryCameraPunchRoutine);
+            _parryCameraPunchRoutine = StartCoroutine(ParryCameraPunchRoutine(cam));
+            if (_impulseSource != null)
+            {
+                Vector3 local = Vector3.forward;   // 폴백 — 기존 중립 펀치(방향 실측 실패 대비)
+                Vector3 w = new Vector3(impactDir.x, 0f, impactDir.z);   // 수평 킥만 — 수직 뒤틀림 방지
+                if (w.sqrMagnitude > 0.0001f)
+                {
+                    local = cam.transform.InverseTransformDirection(w.normalized);
+                    local.y = 0f;
+                    if (local.sqrMagnitude < 0.0001f) local = Vector3.forward;
+                }
+                _impulseSource.GenerateImpulse(local.normalized * ParryCameraShakeImpulse);
+            }
+        }
+
+        private System.Collections.IEnumerator ParryCameraPunchRoutine(Camera cam)
+        {
+            // 재진입 시 원본 베이스 보존 — 중복 펀치 누적으로 FOV가 누전하는 것을 방지(HitStopManager.StartFovPunch 선례).
+            if (!_parryFovPunchActive)
+            {
+                _parryFovPunchBase = cam.fieldOfView;
+                _parryFovPunchActive = true;
+            }
+            float punchFov = _parryFovPunchBase - (ParryFovBase - ParryFovPunched); // 45→38 = -7° 상대 급줌
+            float elapsed = 0f;
+            while (elapsed < ParryFovPunchSeconds)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                if (cam == null) { _parryFovPunchActive = false; _parryCameraPunchRoutine = null; yield break; }
+                cam.fieldOfView = Mathf.Lerp(_parryFovPunchBase, punchFov, Mathf.Clamp01(elapsed / ParryFovPunchSeconds));
+                yield return null;
+            }
+            if (cam != null) cam.fieldOfView = punchFov;
+            elapsed = 0f;
+            while (elapsed < ParryFovRestoreSeconds)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                if (cam == null) { _parryFovPunchActive = false; _parryCameraPunchRoutine = null; yield break; }
+                cam.fieldOfView = Mathf.Lerp(punchFov, _parryFovPunchBase, Mathf.Clamp01(elapsed / ParryFovRestoreSeconds));
+                yield return null;
+            }
+            if (cam != null) cam.fieldOfView = _parryFovPunchBase;
+            _parryFovPunchActive = false;
+            _parryCameraPunchRoutine = null;
+        }
+
+        /// <summary>[95차 F3] OnDisable 등 중단 경로 — 진행 중 FOV 펀치 즉시 원복(복귀 보장).</summary>
+        private void RestoreParryCameraFov()
+        {
+            if (!_parryFovPunchActive) return;
+            Camera cam = _mainCamera != null ? _mainCamera : Camera.main;
+            if (cam != null) cam.fieldOfView = _parryFovPunchBase;
+            _parryFovPunchActive = false;
         }
 
         private void EndParryWindow()
         {
             _parryActive = false;
             _parryActiveUntil = -999f;
+            // [무번호 36-PW2] 만료 신호 — 수렴 링 0.15s(개방 확산의 역방향 — 최소 신호). 히트스톱 없음.
+            //  성공 경로는 림 선행 해제로 _parryGuardRim==null — 이 분기는 자연 만료만 발화.
+            if (_parryGuardRim != null && Application.isPlaying)
+            {
+                Vector3 cp = transform.position + transform.forward * 0.8f + Vector3.up * 0.9f;
+                ShockwaveRingFX.SpawnConvergingRing(cp, 1.2f, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.4f), 0.15f);
+            }
+            // [무번호 62] 실패/빈 패링 최소 SFX — 성공 위계(Parry_Perfect/Good)와 대비하는 낮은 짧은 신호음.
+            //  클립 부재 시 SoundEffectManager 무음 폴백(133차-P2) — 에셋 미배치에도 안전. 히트스톱/시각 FX 무추가(36-PW2 최소 신호 유지).
+            if (Application.isPlaying)
+            {
+                var failSfx = SoundEffectManager.Instance;
+                if (failSfx != null)
+                    failSfx.PlaySFXAtPoint(SoundEffectManager.SFXType.Parry_Fail, transform.position);
+            }
+            // [무번호 61] 실패/빈 패링 림 자연 페이드 — 즉시 파괴(Release) 대신 0.25s 강도 페이드 후 해제.
+            //   캡처 참조 분리 — 신규 창 림 부착(TryStartParry)과 충돌 없음. EditMode는 동기 해제(테스트 안전).
+            if (_parryGuardRim != null)
+            {
+                if (Application.isPlaying)
+                {
+                    _parryRimFadeTarget = _parryGuardRim;
+                    _parryGuardRim = null;
+                    if (_parryRimFadeRoutine != null) StopCoroutine(_parryRimFadeRoutine);
+                    _parryRimFadeRoutine = StartCoroutine(ParryRimFadeRoutine(_parryRimFadeTarget));
+                }
+                else
+                {
+                    ReleaseParryGuardRim();
+                }
+            }
             _proceduralAnim?.TriggerAction("parry_end");
             if (_parryImpactRoutine == null)
                 ResumeQueuedParryAction();
+        }
+
+        // ── [무번호 36-PW] 패망 창 방어 림 — 부착/갱신/해제(멱등) ──
+
+        /// <summary>[무번호 36-PW1] 창 개방 시 방어 림 부착 — WeaponEquipManager.CurrentVisual(105차 F1 계약).
+        ///  주먹/미장착 = 스킵(개방 링은 유지). 재입력 시 선행 해제 — 이중 부착 금지.</summary>
+        private void AttachParryGuardRim()
+        {
+            ReleaseParryGuardRim();   // 멱등 — 재입력 이중 부착 방지
+            if (!Application.isPlaying) return;   // EditMode 무동작 가드
+            GameObject visual = WeaponEquipManager.CurrentVisual;
+            if (visual == null) return;
+            _parryGuardRim = FxRimOverlay.AttachRimStatic(visual, FXPalette.ParryWhite, 2.5f, ParryGuardRimIntensity);
+        }
+
+        /// <summary>[무번호 36-PW1/PW3] 방어 림 프레임 갱신 — 잔여 시간 비례 감쇠(0.45s "닫히는 시계") +
+        ///  PERFECT→GOOD 경계(ParryPerfectWindow — 95차 F1 판정과 동일 상수 공유, 이원화 금지) 통과 시
+        ///  림 맥동(강도 1.5× 0.25s)+흰 수렴링 1회 — [171차] 흰 단일, 경계=강도.</summary>
+        private void UpdateParryGuardRim()
+        {
+            if (_parryGuardRim == null) return;
+            float remaining = Time.unscaledTime < _parryActiveUntil
+                ? Mathf.Clamp01((_parryActiveUntil - Time.unscaledTime) / ParryWindow) : 0f;
+            float parryPulse = Time.unscaledTime < _parryGoodPulseUntil ? 1.5f : 1f;   // [171차] GOOD 진입 맥동
+            FxRimOverlay.SetRimIntensity(_parryGuardRim, ParryGuardRimIntensity * remaining * parryPulse);
+            float elapsed = ParryWindow - Mathf.Max(0f, _parryActiveUntil - Time.unscaledTime);
+            if (!_parryGoodTickDone && elapsed > ParryPerfectWindow)
+            {
+                _parryGoodTickDone = true;
+                // [171차] 색 통일(흰 단일) — 구 골드→청 전환 폐기. 경계 신호 = 림 맥동(강도 1.5× 0.25s)+흰 수렴링.
+                _parryGoodPulseUntil = Time.unscaledTime + 0.25f;
+                if (Application.isPlaying)
+                {
+                    Vector3 cp = transform.position + transform.forward * 0.8f + Vector3.up * 0.9f;
+                    ShockwaveRingFX.SpawnConvergingRing(cp, 1.2f, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.4f), 0.15f);
+                }
+            }
+        }
+
+        /// <summary>[무번호 36-PW1] 방어 림 해제(멱등) — 성공/만료/재입력 공용.</summary>
+        private void ReleaseParryGuardRim()
+        {
+            if (_parryGuardRim != null)
+            {
+                FxRimOverlay.Release(_parryGuardRim);
+                _parryGuardRim = null;
+            }
+        }
+
+        /// <summary>[무번호 61] 실패/빈 패링 림 자연 페이드 — 강도를 0.25s 동안 0으로 수렴 후 해제.
+        ///  unscaled 시간 기준(패망 창이 unscaledTime 계약 — 95차 F1). rim이 이미 해제됐으면(외부 수명 종료) 조용히 종료.
+        ///  EditMode는 호출부 가드로 미발화(테스트 안전).</summary>
+        private System.Collections.IEnumerator ParryRimFadeRoutine(GameObject rim)
+        {
+            const float FadeSeconds = 0.25f;
+            float elapsed = 0f;
+            while (rim != null && elapsed < FadeSeconds)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                FxRimOverlay.SetRimIntensity(rim, ParryGuardRimIntensity * (1f - Mathf.Clamp01(elapsed / FadeSeconds)));
+                yield return null;
+            }
+            FxRimOverlay.Release(rim);
+            _parryRimFadeRoutine = null;
+            _parryRimFadeTarget = null;
+        }
+
+        /// <summary>[무번호 36-PI3] 트리플 링 3박 — PERFECT 지면 링에 +0.12s 서드 원거리 잔광 링 추가.
+        ///  unscaled 대기 — 히트스톱 프리징 중에도 리듬 유지(23-X1 WaitForSecondsRealtime 선례).
+        ///  EditMode는 호출부 가드로 미발화(테스트 안전).</summary>
+        private System.Collections.IEnumerator ParryThirdRingRoutine(Vector3 groundP)
+        {
+            yield return new WaitForSecondsRealtime(0.12f);
+            ShockwaveRingFX.Spawn(groundP, 4.4f, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.45f), 0.75f);
         }
 
         private void ResumeQueuedParryAction()
@@ -518,17 +970,29 @@ namespace ProjectName.Systems
             }
         }
 
-        private System.Collections.IEnumerator ParryImpactRoutine()
+        private System.Collections.IEnumerator ParryImpactRoutine(ParryGrade grade)
         {
+            // [95차 F2] 히스톱 — 진입 직전 완전 정지(0.05×50ms hold) 후 기존 dip 진입('물림' 임팩트).
+            // 재발동 시 TryParry의 정지+재시작 경로 그대로(히스톱도 재시작) — baseline 보존 로직과 무간섭(선두에서만).
+            SetParryLocalTime(ParryHitStopScale);
+            float hitstop = 0f;
+            while (hitstop < ParryHitStopHoldSeconds)
+            {
+                hitstop += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
             float initial = _parrySlowRestoreValue;
             float dip = 0.10f;
             float hold = 0.38f;
             float restore = 0.28f;
             float elapsed = 0f;
+            // [95차 F2] dip은 히스톱 바닥(0.05)에서 순항(0.10)으로 이완 — 기존 dip(→0.10 홀드→복원) 곡선의 목적 유지,
+            // 히스톱→dip 전환 시 0.05→initial 팝(튐) 없이 자연스러운 '물림 후 이완' 연결.
             while (elapsed < dip)
             {
                 elapsed += Time.unscaledDeltaTime;
-                SetParryLocalTime(Mathf.Lerp(initial, ParryActionScale, Mathf.Clamp01(elapsed / dip)));
+                SetParryLocalTime(Mathf.Lerp(ParryHitStopScale, ParryActionScale, Mathf.Clamp01(elapsed / dip)));
                 yield return null;
             }
             SetParryLocalTime(ParryActionScale);
@@ -538,17 +1002,191 @@ namespace ProjectName.Systems
                 elapsed += Time.unscaledDeltaTime;
                 yield return null;
             }
+
+            // [95차 F1] PERFECT 보상 ② — 슬로우 복원 전 큐된 공격 첫 1타 자동 해방(×ParryCounterMultiplier).
+            // Update 드레인 게이트(_parryImpactRoutine == null)로 슬로우 중 이중 해방은 없다 — 이 호출이 유일한 창구.
+            if (grade == ParryGrade.Perfect)
+            {
+                float counter = ConsumeQueuedCounterAttack();
+                if (counter > 1f)
+                {
+                    _pendingCounterAttackMultiplier = counter;
+                    if (!TryAttack())
+                        _pendingCounterAttackMultiplier = 1f; // 쿨다운 등 게이트 거절 — 보상 미적용, 큐는 기존 드레인 경로로 보존
+                    else
+                    {
+                        PlayParryCounterMotion();   // [95차 후속] 반격 모션 1회 재생 — PERFECT 반격 타격 확정 시점(큐 해방 성공 타)
+                        // [패링P2-C] 반격 해방 임팩트 — 흰 지면 링 1겹+히트스톱 0.03s(159차 몬스터 명중 임팩트 선례의 반격 창구 적용).
+                        Vector3 cGround = transform.position + transform.forward * 1f;
+                        cGround.y = 0.05f;
+                        ShockwaveRingFX.Spawn(cGround, 1.4f, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.7f), 0.45f);
+                        if (Application.isPlaying)
+                            HitStopManager.RequestHitStop(0.03f, 0.12f);
+                        Debug.Log("[PlayerCombat] ⚔️ 반격 해방 임팩트 — 지면 링+히트스톱 [패링P2-C]");
+                    }
+                }
+            }
+
             elapsed = 0f;
             while (elapsed < restore)
             {
                 elapsed += Time.unscaledDeltaTime;
-                SetParryLocalTime(Mathf.Lerp(ParryActionScale, initial, Mathf.Clamp01(elapsed / restore)));
+                // [패링P2-D] 복원 ease-out — 빠른 이탈 후 느린 안착(물림 체감 연장).
+                float rt = Mathf.Clamp01(elapsed / restore);
+                rt = 1f - (1f - rt) * (1f - rt);
+                SetParryLocalTime(Mathf.Lerp(ParryActionScale, initial, rt));
                 yield return null;
             }
             SetParryLocalTime(initial);
             _parryImpactRoutine = null;
             _parrySlowActive = false;
             ResumeQueuedParryAction();
+        }
+
+        // ═════════ [95차 후속] 패링 클립 연결 구현 — 92차 VillagerWanderer 선례 재사용 ═════════
+
+        /// <summary>[95차 후속] Update 폴링 와이어 — 클립 1회 해석 후 plain Player_AC 감지 시 오버라이드 부착.
+        /// 근거: TestPlayerAnimatorBoot가 PlayerModel 발견 후 Player_AC를 재부착하므로 Start 시점 1회 할당은
+        /// 부트와 순서 경쟁 → plain Player_AC(이름 일치) 재감지 폴링으로 어느 순서든 연결 유지.
+        /// Player_AC 부재(부착 경로 없는 씬) 또는 오버라이드 컨트롤러 구성 실패 시 와이어 생략 = 기존 동작 폴백(무해).</summary>
+        private void EnsureParryClipsWired()
+        {
+            if (!_parryClipsResolved) ResolveParryClips();   // 1회 해석 가드(연결 로그 1회)
+            if (_parryOverride == null || _parryAnimator == null) return;
+            if (_parryClipsWiredAnimator == _parryAnimator) return;   // 이미 부착 — 중복 스왑 방지
+            var current = _parryAnimator.runtimeAnimatorController;
+            if (current == null || current.name != PlayerAcControllerName) return;   // plain Player_AC만 감지
+            _parryAnimator.runtimeAnimatorController = _parryOverride;
+            _parryClipsWiredAnimator = _parryAnimator;
+        }
+
+        /// <summary>[95차 후속] 방어/반격 클립 로드+Player_AC 오버라이드 컨트롤러 구성(정적 캐시 세션당 1회).
+        /// 폴더 레벨 LoadAll 키워드 매칭 실패 시 소스 FBX 파일 단위 LoadAll 이차 판정(92차 선례: 테이크명 "mixamo.com").
+        /// 둘 다 누락이면 오버라이드 미사용(기존 Parry 클립 유지 — 폴백 계약).</summary>
+        private static void ResolveParryClips()
+        {
+            _parryClipsResolved = true;
+            var clips = Resources.LoadAll<AnimationClip>(ParryClipResourceFolder);
+            _parryBlockClip = FirstParryClipNameContaining(clips, "block");
+            _parryCounterClip = FirstParryClipNameContaining(clips, "slash");
+
+            // 믹사모 테이크명 "mixamo.com" → 키워드 매칭 불가/모호 시 파일 단위 이차 판정 — 파일명이 곧 클립 소스 계약.
+            if (_parryBlockClip == null || _parryCounterClip == null || _parryBlockClip == _parryCounterClip)
+            {
+                var blockFileClips = Resources.LoadAll<AnimationClip>(ParryClipResourceFolder + "/" + ParryBlockFileKey);
+                var counterFileClips = Resources.LoadAll<AnimationClip>(ParryClipResourceFolder + "/" + ParryCounterFileKey);
+                if (_parryBlockClip == null && blockFileClips != null && blockFileClips.Length > 0) _parryBlockClip = blockFileClips[0];
+                if (_parryCounterClip == null && counterFileClips != null && counterFileClips.Length > 0) _parryCounterClip = counterFileClips[0];
+            }
+
+            if (_parryBlockClip == null && _parryCounterClip == null)
+            {
+                Debug.LogWarning("[PlayerCombat] 패링 클립 로드 실패 — 오버라이드 미사용, 기존 Parry 클립 유지(폴백)");
+                return;
+            }
+            var baseCtrl = Resources.Load<RuntimeAnimatorController>("Animation/Controllers/Player_AC");
+            if (baseCtrl == null)
+            {
+                Debug.LogWarning("[PlayerCombat] Player_AC 로드 실패 — 패링 클립 오버라이드 생략(폴백)");
+                return;
+            }
+            _parryOverride = BuildParryOverrideController(baseCtrl);
+            Debug.Log($"[PlayerCombat] 패링 클립 연결 — block={(_parryBlockClip != null ? _parryBlockClip.name : "없음")} " +
+                      $"counter={(_parryCounterClip != null ? _parryCounterClip.name : "없음")}");
+        }
+
+        /// <summary>[95차 후속] 클립명 키워드 매칭(lowercase contains — 첫 번째 일치 반환).</summary>
+        private static AnimationClip FirstParryClipNameContaining(AnimationClip[] clips, string keyword)
+        {
+            if (clips == null) return null;
+            foreach (var clip in clips)
+            {
+                if (clip != null && clip.name.ToLowerInvariant().Contains(keyword)) return clip;
+            }
+            return null;
+        }
+
+        /// <summary>[95차 후속] Player_AC 베이스 오버라이드 컨트롤러(런타임 API — 컨트롤러 에셋 무수정).
+        /// Parry 슬롯(실측 원본 클립 "Armature|Sword_Parry_Backward_1_withSkin")만 방어 클립으로 교체 —
+        /// 슬롯 미발견 시 교체 0 건 = 동작상 Player_AC와 동일(안전 폴백).</summary>
+        private static AnimatorOverrideController BuildParryOverrideController(RuntimeAnimatorController baseCtrl)
+        {
+            var overrideCtrl = new AnimatorOverrideController(baseCtrl);
+            var pairs = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+            overrideCtrl.GetOverrides(pairs);
+            bool swapped = false;
+            if (_parryBlockClip != null)
+            {
+                for (int i = 0; i < pairs.Count; i++)
+                {
+                    var origin = pairs[i].Key;
+                    if (origin != null && origin.name == PlayerAcParrySlotClipName)
+                    {
+                        pairs[i] = new KeyValuePair<AnimationClip, AnimationClip>(origin, _parryBlockClip);
+                        swapped = true;
+                    }
+                }
+            }
+            if (swapped) overrideCtrl.ApplyOverrides(pairs);
+            return overrideCtrl;
+        }
+
+        /// <summary>[95차 후속] PERFECT 반격 타격 확정 시 반격 모션 1회 재생 — Parry 슬롯을 반격 클립으로
+        /// 임시 교체 후 Parry 상태 크로스페이드, 클립 길이 후 방어 클립 슬롯 복원. 클립 부재 시 no-op(기존 동작 폴백).</summary>
+        private void PlayParryCounterMotion()
+        {
+            if (_parryAnimator == null || _parryCounterClip == null) return;   // 폴백 가드
+            if (!SwapParrySlotClip(_parryCounterClip)) return;
+            _parryAnimator.CrossFadeInFixedTime(PlayerAcParryStateName, 0.1f);
+            if (_parryCounterOverrideRoutine != null) StopCoroutine(_parryCounterOverrideRoutine);
+            _parryCounterOverrideRoutine = StartCoroutine(RestoreParryBlockSlotAfterCounter(_parryCounterClip.length));
+        }
+
+        /// <summary>[95차 후속] 신규 패링 진입 전 반격 슬롯 임시 교체 원복 — 코루틴 정리+방어 클립 슬롯 즉시 복원.</summary>
+        private void RestoreParryCounterSlotBeforeParry()
+        {
+            if (_parryCounterOverrideRoutine != null)
+            {
+                StopCoroutine(_parryCounterOverrideRoutine);
+                _parryCounterOverrideRoutine = null;
+            }
+            RestoreParryBlockSlot();
+        }
+
+        /// <summary>[95차 후속] Parry 슬롯을 방어 클립으로 복원 — 방어 클립/오버라이드 부재 시 no-op(무해).</summary>
+        private void RestoreParryBlockSlot()
+        {
+            if (_parryOverride != null && _parryBlockClip != null)
+                SwapParrySlotClip(_parryBlockClip);
+        }
+
+        /// <summary>[95차 후속] 반격 모션 재생 후 지정 시간(unscaled) 경과 시 방어 클립 슬롯 복원.</summary>
+        private System.Collections.IEnumerator RestoreParryBlockSlotAfterCounter(float delay)
+        {
+            float end = Time.unscaledTime + delay;
+            while (Time.unscaledTime < end) yield return null;
+            RestoreParryBlockSlot();
+            _parryCounterOverrideRoutine = null;
+        }
+
+        /// <summary>[95차 후속] Parry 슬롯(원본 클립명 일치)만 교체 — 슬롯 미발견 시 false(교체 0 건, 안전 폴백).</summary>
+        private bool SwapParrySlotClip(AnimationClip replacement)
+        {
+            if (_parryOverride == null || replacement == null) return false;
+            var pairs = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+            _parryOverride.GetOverrides(pairs);
+            bool swapped = false;
+            for (int i = 0; i < pairs.Count; i++)
+            {
+                var origin = pairs[i].Key;
+                if (origin != null && origin.name == PlayerAcParrySlotClipName)
+                {
+                    pairs[i] = new KeyValuePair<AnimationClip, AnimationClip>(origin, replacement);
+                    swapped = true;
+                }
+            }
+            if (swapped) _parryOverride.ApplyOverrides(pairs);
+            return swapped;
         }
 
         private void SetParryLocalTime(float value)
@@ -568,15 +1206,40 @@ namespace ProjectName.Systems
         private void OnDisable()
         {
             _parryActive = false;
+            if (_parryRimFadeRoutine != null)   // [무번호 61] 페이드 중 비활성화 — 구 림 즉시 해제
+            {
+                StopCoroutine(_parryRimFadeRoutine);
+                _parryRimFadeRoutine = null;
+                FxRimOverlay.Release(_parryRimFadeTarget);
+                _parryRimFadeTarget = null;
+            }
             if (_parryImpactRoutine != null)
             {
                 StopCoroutine(_parryImpactRoutine);
                 _parryImpactRoutine = null;
             }
+            if (_parryImpactSequence != null)   // [무번호 23-X1] 시퀀서 정리
+            {
+                StopCoroutine(_parryImpactSequence);
+                _parryImpactSequence = null;
+            }
+            if (_parryCameraPunchRoutine != null)
+            {
+                StopCoroutine(_parryCameraPunchRoutine);
+                _parryCameraPunchRoutine = null;
+            }
+            if (_parryCounterOverrideRoutine != null)   // [95차 후속] 반격 슬롯 복원 코루틴 정리
+            {
+                StopCoroutine(_parryCounterOverrideRoutine);
+                _parryCounterOverrideRoutine = null;
+            }
+            RestoreParryBlockSlot(); // [95차 후속] 반격 슬롯 임시 교체 원복 — 방어 클립 계약 복원(기존 정리 계약 편입)
+            RestoreParryCameraFov(); // [95차 F3] FOV 펀치 중단 시 원복 — 카메라 상태 누출 방지
             if (_parrySlowActive && _parryTimeUser != null)
                 _parryTimeUser.LocalTimeScaleValue = Mathf.Clamp(_parrySlowRestoreValue, 0.05f, 1f);
             _parrySlowActive = false;
             _queuedWeaponAttacks = 0;
+            _pendingCounterAttackMultiplier = 1f; // [95차 F1] 반격 배율 리셋 — 정리 계약에 편입
             _queuedBowAction = false;
             _queuedBowReleased = false;
             _queuedBowHeldTime = 0f;
@@ -595,18 +1258,201 @@ namespace ProjectName.Systems
             if (Instance == this) Instance = null;
         }
 
-        /// <summary>[테스트45 P5] 패링 성공 순간 시각 피드백 — 검증된 ShockwaveRingFX 확산링 + 별섬광 (피격 이펙트와 별개 감탄용).</summary>
-        private void TryParryImpactFX()
+        /// <summary>[테스트45 P5] 패링 성공 순간 시각 피드백 — 검증된 ShockwaveRingFX 확산링 + 별섬광 (피격 이펙트와 별개 감탄용).
+        /// [95차 F1] PERFECT는 링을 금색(1,0.85,0.3)으로, GOOD은 기존 청색(0.65,0.9,1) 유지. 별섬광은 등급 무관 유지.
+        /// [95차 F4] 방향성 스파크 — kbDir 역방향(공격자 방향) 원뿔 발사, 기존 링/별섬광과 병행(교체 아님).</summary>
+        private void TryParryImpactFX(ParryGrade grade, Vector3 kbDir)
         {
             try
             {
-                // 패링 흡수 지점 = 플레이어 앞 1m
-                Vector3 p = transform.position + transform.forward * 1f + Vector3.up * 0.9f;
-                ShockwaveRingFX.Spawn(p, 1.6f, new Color(0.65f, 0.9f, 1f, 0.9f), 0.5f);   // Fluent 확산링
-                // 별섬광 — 피격 StarFlare는 화살에서 제거됐지만 패링 감탄용으로는 명시 재사용
-                try { ArrowProjectile.SpawnStarFlare(p); } catch (System.Exception) { }
+                if (Application.isPlaying)
+                {
+                    // [무번호 23-X1 → 176차] 시퀀서 — wave 0(원형 링/화면 계층) 단일 발화(방사형 산란 wave 1~3 제거, 아래 ParryImpactSequence).
+                    if (_parryImpactSequence != null) StopCoroutine(_parryImpactSequence);
+                    _parryImpactSequence = StartCoroutine(ParryImpactSequence(grade, kbDir));
+                }
+                else
+                {
+                    SpawnParryImpactElements(grade, kbDir, 0);   // [176차] EditMode — wave0 원형 링 계열 단일 발화(테스트 안전)
+                }
             }
             catch (System.Exception e) { Debug.LogWarning($"[PlayerCombat] 패링 FX 실패: {e.Message}"); }
+        }
+
+        private Coroutine _parryImpactSequence;   // [무번호 23-X1] 시퀀서 코루틴 핸들(UnityEngine.Coroutine)
+
+        /// <summary>[무번호 23-X1 → 176차] 패막 임팩트 시퀀서 — [176차] 방사형 산란 제거(사용자 지시: 원형 링만 유지):
+        ///   wave 1(별섬광·십자 글린트)/wave 2(곡선 위스프·리플렉 궤적)/wave 3(12방향 버스트) 철수로
+        ///   wave 0 단일 발화로 단순화. 스태거 WaitForSecondsRealtime 체계는 산란 요소 소멸과 함께 폐기.
+        ///   코루틴 셸·정리 로직(StopCoroutine/_parryImpactSequence/OnDisable 정리)은 무손상 유지.</summary>
+        private System.Collections.IEnumerator ParryImpactSequence(ParryGrade grade, Vector3 kbDir)
+        {
+            SpawnParryImpactElements(grade, kbDir, 0);   // [176차] wave 0만 — 지면 링/아우터/트리플/수렴 링/미니링(원형 계열)
+            _parryImpactSequence = null;
+            yield break;   // [176차] 스태거 폐기 — 코루틴 셸 유지(정리 계약 무손상)
+        }
+
+        /// <summary>[무번호 23-X1 → 176차] 웨이브별 임팩트 요소 발화 — [176차] 방사형 산란 제거:
+        ///   wave 0(유지): 히트스톱/화이트 프레임/비네트/라이트/블룸/SFX/지면 링 2겹/아우터/트리플/수렴-역전 링/GOOD 미니링/보유 에셋.
+        ///   wave 1(별섬광·십자 글린트)/wave 2(곡선 위스프·리플렉 궤적)/wave 3(12방향 버스트) — 방사형 산란으로 철수(정의 무손상).</summary>
+        private void SpawnParryImpactElements(ParryGrade grade, Vector3 kbDir, params int[] waves)
+        {
+            try
+            {
+                bool wave(int n) => System.Array.IndexOf(waves, n) >= 0;
+                if (wave(0))
+                {
+                    // [159차 P3] 패링 히트스톱 — PERFECT 0.07s/GOOD 0.03s 프리징(scale 0.12).
+                    if (Application.isPlaying)
+                        HitStopManager.RequestHitStop(grade == ParryGrade.Perfect ? 0.07f : 0.03f, 0.12f);
+                    // [패링P2-A] PERFECT 화이트 프레임 — 카메라 전면 페이드 쿼드 0.07s.
+                    if (grade == ParryGrade.Perfect)
+                        SpawnParryScreenFlash();
+                    // [무번호 28-P1] 패링 무기 본체 플래시 — 장착 무기 비주얼 전체 발광 펄스(아래 WeaponFlashPulseRoutine).
+                    //   PERFECT/GOOD 공통(패망 자체 피드백) — 등급 차등은 기존 위계(J2)가 담당.
+                    if (Application.isPlaying) StartCoroutine(WeaponFlashPulseRoutine());
+                    // [무번호 23-V2] 패링 PERFECT 흰 비네트 — 판정 피드백의 화면 언어(월드 FX와 별개 계층).
+                    if (grade == ParryGrade.Perfect)
+                    {
+                        var vc = _mainCamera != null ? _mainCamera : Camera.main;
+                        ScreenVignetteFX.Begin(vc, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.25f), 0.4f, 0.05f, 0.08f, 0.3f);
+                        // [176차] 크로매틱 수차 스파이크 철수 — RGB 프린지(RGB 채널 분리)가 화이트 플래시를 청백으로 왜곡.
+                        //   완벽 패막 화면 순백 계약: 비네트(ParryWhite)/라이트(ParryWhite)/화이트 프레임(Color.white)/블룸(무채색 강도)만 유지.
+                        // [무번호 33-A2] 패망 PERFECT 흰 라이트 — 흡수점(플레이어 앞 1m) 실광 펄스
+                        //   (시퀀서 wave0 연동, 색=FXPalette.ParryWhite 단일 소스, 동시 상한 3 예산 가드).
+                        FxImpactLight.Spike(transform.position + transform.forward * 1f + Vector3.up * 0.9f,
+                            FXPalette.ParryWhite, 2.4f, 4f, 0.3f);
+                        // [무번호 33-B1] 블룸 임팩트 펄스 — 글로벌 블룸 위 스파이크(별도 볼륨 프로필 — CA 볼륨과 파라미터 충돌 없음).
+                        ScreenBloomFX.Spike(vc, 2.2f, 0.12f);
+                    }
+                }
+
+                // [95차 F4] 방향 계산 선행 — [무번호 36-PI1] 흡수점이 공격자 방향을 따라감(접촉 정합).
+                Vector3 sparkDir = -kbDir;   // kbDir 역방향 = 공격자 방향. 폴백은 전방.
+                if (sparkDir.sqrMagnitude < 0.0001f) sparkDir = transform.forward;
+                sparkDir = sparkDir.normalized;
+                // 패망 흡수 지점 = 공격자 방향 1m [무번호 36-PI1] — 기존 고정 전방 공식 대체(공격이 실제 닿는 쪽 정합).
+                //  [176차] 잔존 요소(수렴 링/SFX/보유 에셋) 전부 p 기반 — 이 1곳 수정으로 동기 이동. 폴백(kbDir 영벡터)=기존 전방 공식 동일 결과.
+                Vector3 p = transform.position + sparkDir * 1f + Vector3.up * 0.9f;
+                Vector3 groundP = new Vector3(p.x, 0.05f, p.z);
+                // [171차] 흰 단일 — 등급=강도(크기·지속 차등, 색 이원화 폐기).
+                Color ringColor = FXPalette.ParryWhite;
+
+                if (wave(0))
+                {
+                    // [159차 P3] 지면 링 파동 — PERFECT=금색 2겹(스태거)/GOOD=청색 1겹(축소 반경).
+                    //   [172차 P2] PERFECT 확산링 알파 하향 0.75→0.45 — 보유 에셋 FX+레이어드 증가분 과포화 완화.
+                    ShockwaveRingFX.Spawn(groundP, grade == ParryGrade.Perfect ? 2.2f : 1.2f,
+                        new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, grade == ParryGrade.Perfect ? 0.45f : 0.6f), 0.55f);
+                    if (grade == ParryGrade.Perfect)
+                    {
+                        // PERFECT 아우터 링 — 반경 1.5×, 반대 위상(길고 얇은 잔광) — 카운터 임팩트 확산
+                        ShockwaveRingFX.Spawn(groundP, 3.3f, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.5f), 0.75f);
+                        // [무번호 36-PI3] 트리플 링 3박 — +0.12s 서드 원거리 잔광 링(파열 리듬의 셋째 박).
+                        if (Application.isPlaying)
+                            StartCoroutine(ParryThirdRingRoutine(groundP));
+                    }
+                    // [172차 P3-L2] 수렴-역전 링 — 흡수점 단일 링(수렴 0.08s→역전 확산 0.25s ease-out).
+                    //   기존 Fluent 확산링(Spawn(p,1.6f))과 교체 판단: 보유 에셋 FX+코어글린트와 동점 배치 시
+                    //   확산 링 2겹 중첩 과포화 — 2페이즈 링 1겹으로 위계 정리(교체 보고 = 본 주석).
+                    ShockwaveRingFX.SpawnParryConvergeRing(p, 1.6f, ringColor);
+
+                    // [무번호 36-PG1] GOOD 톤 보강 — 흰 미니 링([171차] 흰 단일 — 성공이지만 만점 아님).
+                    //   PERFECT 위계(2겹+아우터+트리플 3박) 무손상 — GOOD 증분만.
+                    if (grade != ParryGrade.Perfect)
+                        ShockwaveRingFX.Spawn(p, 0.9f, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.6f), 0.35f);
+
+                    // [95차 후속 SFX] 패링 실오디오 — 등급별 금속 clang(Perfect 밝은 '딩!'/Good 무디어 clang).
+                    if (Application.isPlaying)
+                    {
+                        var parrySfx = SoundEffectManager.Instance;
+                        if (parrySfx != null)
+                        {
+                            SoundEffectManager.SFXType parrySfxType = grade == ParryGrade.Perfect
+                                ? SoundEffectManager.SFXType.Parry_Perfect
+                                : SoundEffectManager.SFXType.Parry_Good;
+                            parrySfx.PlaySFXAtPoint(parrySfxType, p);
+                        }
+                    }
+                    // [171차 → 176차] 보유 에셋 FX — 메인 시각(Guard_01/Holy hit 접촉점 배치, Sparks white 방사형 스파크 철수), 절차 링은 지면 보조.
+                    ParryAssetFX.Spawn(grade == ParryGrade.Perfect, p);
+                }
+            }
+            catch (System.Exception e) { Debug.LogWarning($"[PlayerCombat] 패링 FX 웨이브 실패: {e.Message}"); }
+        }
+
+        /// <summary>
+        /// [무번호 28-P1] 패링 무기 본체 플래시 — 장착 무기 비주얼 전체 발광 펄스 0.15s.
+        /// 대상: WeaponEquipManager.CurrentVisual(105차 F1 계약) — null(주먹/미장착)이면 즉시 종료.
+        /// GetComponentsInChildren<Renderer>(true) 전부 순회(Trail/Particle/Line 스킵 — AnimalAI M1 필터 선례),
+        /// 각 인스턴스 material에서 _EmissionColor(HasProperty 가드)를 캡처 후 FXPalette.ParryWhite.rgb × 2.2f로
+        /// 펄스하고, 캡처값으로 원복(기존 발광 무손상 — 계약 "머티리얼 인스턴스 원복 보장"). Unscaled 시간 기준.
+        /// </summary>
+        private System.Collections.IEnumerator WeaponFlashPulseRoutine()
+        {
+            GameObject visual = WeaponEquipManager.CurrentVisual;
+            if (visual == null) yield break;   // 주먹/미장착 — 즉시 종료
+
+            // [무번호 29-P1-2] 무기 플래시 림 — 가장자리만 강조하는 프레넬 계층(D-3, 단색 오버레이 탈피).
+            //   캡처/원복 계약 무손상(아래 emissive 루프 그대로) — 림은 별도 오버레이 인스턴스(누출 금지).
+            GameObject rim = FxRimOverlay.AttachRimStatic(visual, FXPalette.ParryWhite, 2.5f, 1.6f);
+
+            var captured = new System.Collections.Generic.List<(Renderer rend, Color emission)>();
+            foreach (var rend in visual.GetComponentsInChildren<Renderer>(true))
+            {
+                if (rend is TrailRenderer || rend is ParticleSystemRenderer || rend is LineRenderer)
+                    continue;   // 이펙트 렌더러 스킵 — AnimalAI M1 필터 선례
+                if (rend.sharedMaterial == null) continue;
+                var mat = rend.material;   // 인스턴스 머티리얼 — 원복은 동일 인스턴스
+                if (mat == null || !mat.HasProperty("_EmissionColor")) continue;
+                captured.Add((rend, mat.GetColor("_EmissionColor")));   // 캡처
+                mat.EnableKeyword("_EMISSION");
+                Color flashWhite = FXPalette.ParryWhite;
+                mat.SetColor("_EmissionColor", new Color(flashWhite.r * 2.2f, flashWhite.g * 2.2f, flashWhite.b * 2.2f, 1f));
+            }
+            yield return new WaitForSecondsRealtime(0.15f);
+            if (rim != null) FxRimOverlay.Release(rim);   // [무번호 29-P1-2] 림 해제(인스턴스 누출 금지)
+            foreach (var cap in captured)
+            {
+                if (cap.rend == null) continue;   // 파괴된 렌더러 — 무해 스킵
+                var mat = cap.rend.material;
+                if (mat == null || !mat.HasProperty("_EmissionColor")) continue;
+                mat.SetColor("_EmissionColor", cap.emission);   // 캡처값 원복 — 기존 발광 무손상
+            }
+        }
+
+        /// <summary>[패링P2-A] PERFECT 화이트 프레임 — 카메라 자식 풀스크린 페이드 쿼드(ParryFlashFader, 0.07s).
+        ///   Systems 계약: UI 어셈블리 직접 참조 없이 카메라 공간 쿼드. 실패 시 무음 스킵(시각 보조 요소).</summary>
+        private void SpawnParryScreenFlash()
+        {
+            try
+            {
+                Camera cam = _mainCamera != null ? _mainCamera : Camera.main;
+                if (cam == null) return;
+                // [무번호 19-D2 진단] 화이트 프레임 렌더 결손 원인 — 카메라 참조/로컬 배치/셰이더/nearClip 실측 덤프
+                var flash = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Object.Destroy(flash.GetComponent<Collider>());
+                flash.name = "ParryWhiteFrame";
+                flash.transform.SetParent(cam.transform, false);
+                float halfH = Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad) * 0.5f;
+                float halfW = halfH * cam.aspect;
+                flash.transform.localScale = new Vector3(halfW * 2.4f, halfH * 2.4f, 1f);
+                flash.transform.localPosition = new Vector3(0f, 0f, 0.5f);
+                flash.transform.localRotation = Quaternion.identity;
+                var mrD = flash.GetComponent<MeshRenderer>();
+                // [176차] 순백 화이트 프레임 유지(Color.white) — 청백 왜곡 원인(크로매틱 RGB 프린지)은 wave0 발화부 철수로 제거.
+                // [205차] 잔여 청백 왜곡 근원 특정(전수 실측) — 피크 알파 0.85(<1.0). Sprites/Default 알파 블렌드
+                //   (SrcAlpha, OneMinusSrcAlpha)에서 합성색 = a·백 + (1−a)·씬 — 피크 프레임에도 씬이 15% 잔존하고,
+                //   삼각 램프+프레임 샘플링(60fps, 0.07s 기준 스텝≈0.24)으로 실측 최대 알파 ≈0.85~0.95 → 어떤 프레임도
+                //   오파크에 도달하지 못해 청톤 씬(하늘/실내 틴트)에서 화이트 프레임이 청백으로 보임(사용자 재보고 근원).
+                //   수리: 피크 1.0(오파크 — 합성식에서 씬 기여 계수 0 = 순백 수학적 보장) + ParryFlashFader 피크 홀드.
+                //   색 단일 소스 계약 유지(171차): FXPalette.ParryWhite.rgb=(1,1,1) 불변 — 알파 교체는 171차
+                //   "알파는 용도별 조정 전제" 범위. 비네트/라이트/블룸(무채색) 경로는 176차 계약 그대로 유지.
+                var fader = flash.AddComponent<ProjectName.Systems.ParryFlashFader>();
+                fader.Init(Color.white, 1f, 0.07f);
+                Debug.Log($"[PlayerCombat][D2] 화이트프레임 스폰 parent={cam.name} pos={cam.transform.position} localPos={flash.transform.localPosition} localScale={flash.transform.localScale} mr={mrD != null} shader={(mrD != null && mrD.sharedMaterial != null ? mrD.sharedMaterial.shader.name : "NULL")} near={cam.nearClipPlane}");
+            }
+            catch (System.Exception e) { Debug.LogWarning($"[PlayerCombat] 화이트 프레임 실패(시각 생략): {e.Message}"); }
         }
 
         /// <summary>
@@ -650,6 +1496,14 @@ namespace ProjectName.Systems
 
         private bool TryAttack()
         {
+            // [63-B] 혼탁/공포/취기 — 콤보 입력 누락 판정(합산 확률, 상한 0.8 시스템 내부 클램프).
+            float missChance = PlayerStatusEffectSystem.ComboMissChance();
+            if (missChance > 0f && Random.value < missChance)
+            {
+                Debug.Log("[PlayerCombat] [63-B] 상태이상 — 공격 입력 누락(콤보 미스)");
+                return false;
+            }
+
             // Driver creation can be deferred until after PlayerCombat.Start (for example by boot/test setup).
             // Refresh only a missing/destroyed cache here, immediately before melee ownership is decided.
             if (_clipDriver == null)
@@ -833,6 +1687,7 @@ namespace ProjectName.Systems
             {
                 LastHitValid = false;
                 TriggerCameraEffects();
+                LogMeleeMissDiagnosis();   // [무번호 44-AIM-DIAG] 콤보 경로 미스 진단 — 기존 무음 사각지대 해소
             }
             if (ShouldApplyAttackMovementEffects(true))
                 StartCoroutine(AttackLungeCoroutine());
@@ -920,7 +1775,8 @@ namespace ProjectName.Systems
             }
             transform.rotation = Quaternion.LookRotation(launchForward.normalized, Vector3.up);
             Debug.LogWarning($"[BowAim] fired projectile={projectile.name} muzzle={origin} aim={aimPoint} "
-                + $"dir={dir} velocity={projectile.GetComponent<Rigidbody>().linearVelocity}");
+                + $"dir={dir} velocity={projectile.GetComponent<Rigidbody>().linearVelocity} camId={aimCamera.GetInstanceID()}"
+                + $" camPos={aimCamera.transform.position}");   // [207차 P1] 카메라 원점 좌표 — 재발 시 즉시 판별용
             // [70차 후속19/C1·C6] 발사 성공 — 소형 카메라 킥(활 전용) + 파워 기억(명중 시 크리틱 연출용)
             CombatCameraEffects.PlayFireKick();
             LastBowPower = power;
@@ -970,9 +1826,25 @@ namespace ProjectName.Systems
             if (Mouse.current == null) return false;
             Vector2 mouse = Mouse.current.position.ReadValue();
             HoverTargetClassifier.TargetKind kind = HoverTargetClassifier.ClassifyAt(mouse);
+            if (kind == HoverTargetClassifier.TargetKind.Lord)
+            {
+                Camera cam = Camera.main;
+                if (cam != null)
+                {
+                    RaycastHit[] hits = Physics.RaycastAll(cam.ScreenPointToRay(mouse), 200f, ~0, QueryTriggerInteraction.Collide);
+                    System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+                    foreach (var hit in hits)
+                    {
+                        if (hit.collider == null) continue;
+                        var encounter = hit.collider.GetComponentInParent<InvadedLordEncounter>();
+                        if (encounter != null) return !encounter.IsInCombat;
+                    }
+                }
+            }
             return kind == HoverTargetClassifier.TargetKind.NPC
                 || kind == HoverTargetClassifier.TargetKind.ShopNPC
-                || kind == HoverTargetClassifier.TargetKind.Lord;
+                || kind == HoverTargetClassifier.TargetKind.Lord
+                || kind == HoverTargetClassifier.TargetKind.LordDaughter;   // [126차] 영주 딸 — 공격 스윙 억제(영주/마을NPC 계열)
         }
 
         private IDamageable FindTargetInCursorDirection()
@@ -1036,7 +1908,11 @@ namespace ProjectName.Systems
             if (target == null || !target.IsAlive) return;
             if (IsOwnSoldier(target)) return;   // [69차 후속10] 아군 오인 피해 차단 — 내 소속 병사는 플레이어 공격으로 피해를 입지 않는다(합세 통보도 없음)
 
-            float damage = CalculateDamage();
+            // [95차 F1] PERFECT 반격 1타 배율 — 소비형(기본 1). 큐 해방 1타에만 ×1.5 적용 후 즉시 리셋.
+            float counterMultiplier = _pendingCounterAttackMultiplier;
+            if (counterMultiplier != 1f) _pendingCounterAttackMultiplier = 1f;
+
+            float damage = CalculateDamage() * counterMultiplier;
             Vector3 hitDirection = Vector3.zero;
 
             // 타겟 방향 계산
@@ -1066,6 +1942,18 @@ namespace ProjectName.Systems
             WeaponSwingTrail.Pulse();
 
             target.TakeDamage(damage, hitDirection, _currentWeapon?.weaponType.ToString() ?? "melee");
+
+            // [166-D] 몬스터 피격 효과음 — 데미지 적용 공통 종착 1줄 훅(히트스톱 이전 발화 — I-3 임팩트 선행 규약 정합).
+            MonsterHitSfx.PlayMonsterHit(_currentWeapon != null ? _currentWeapon.weaponType : ProjectName.Core.WeaponType.Fist);
+
+            // [무번호 37-H1] 강타격 프리즈 — 동일 밴드(피해≥15). 반격 배율 타 포함(무번호 36-PS2와 독립 계층).
+            if (damage >= 15f && Application.isPlaying)
+                HitStopManager.RequestHitStop(0.05f, 0.06f);
+
+            // [무번호 36-PS2] 반격 식별 링 — 큐 해방 1타(반격 배율 적용 타)에 한해 타겟 지점 흰 링(일반 타격과 구분).
+            //   크리급 라이트/실루엣/블룸은 타격 체인 공유(isCrit 아님 — 식별 링이 반격 증거).
+            if (counterMultiplier != 1f && LastHitValid && Application.isPlaying)
+                ShockwaveRingFX.Spawn(LastHitPoint, 0.8f, new Color(FXPalette.ParryWhite.r, FXPalette.ParryWhite.g, FXPalette.ParryWhite.b, 0.7f), 0.3f);
 
             // [56차 후속] 동행 병사 합세 — 포섭(recruited) 병사들이 플레이어가 공격한 대상을 함께 공격.
             if (targetBehaviour != null)
@@ -1229,6 +2117,61 @@ namespace ProjectName.Systems
                 }
             }
             return closest;
+        }
+
+        /// <summary>
+        /// [무번호 44-AIM-DIAG] 콤보/드라이버 경로 미스 1급 진단 — 11-15 21:00 세션에서 드라이버 수락 공격 2회가
+        /// 3중 조준(커서 레이/화면중앙/스윕 폴백) 전부 실패로 무피해 종료됐는데 로그가 전무한 사각지대를 해소한다.
+        /// 몬스터 무피해→사망 없음→전리품 부재 보고의 직접 관측 장치(수리 없음 — 근원 확정 후 별도 수리).
+        /// 레거시 TryAttack 경로는 AttackCenterScreen 내장 미스 로그가 이미 있으므로 본 메서드는 콤보 경로 전용.
+        /// </summary>
+        private void LogMeleeMissDiagnosis()
+        {
+            if (!Application.isPlaying || Time.unscaledTime < _nextMissDiagLog) return;
+            _nextMissDiagLog = Time.unscaledTime + 3f;
+
+            var sb = new System.Text.StringBuilder("[44-AIM-DIAG] 근접 미스 — ");
+            sb.Append($"playerPos=({transform.position.x:F1},{transform.position.y:F1},{transform.position.z:F1}) ");
+            sb.Append($"weapon={_currentWeapon?.weaponType.ToString() ?? "none"} ");
+
+            if (_mainCamera != null && Mouse.current != null)
+            {
+                Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+                RaycastHit[] cursorHits = Physics.RaycastAll(ray, _autoAimRange, _targetLayers);
+                string nearest = "없음";
+                float nearestDist = float.MaxValue;
+                foreach (var ch in cursorHits)
+                {
+                    if (ch.distance < nearestDist)
+                    {
+                        nearestDist = ch.distance;
+                        nearest = ch.collider != null ? $"{ch.collider.name}(layer={LayerMask.LayerToName(ch.collider.gameObject.layer)})" : "?";
+                    }
+                }
+                sb.Append($"cursorRay히트={cursorHits.Length}건 최근접={nearest} ");
+            }
+            else
+            {
+                sb.Append($"커서레이 불가 camera={(_mainCamera != null)} mouse={(Mouse.current != null)} ");
+            }
+
+            float sweepRange = Mathf.Max(_currentWeapon != null ? _currentWeapon.range : 2f, 5f);
+            Collider[] overlaps = Physics.OverlapSphere(transform.position, sweepRange, _targetLayers);
+            sb.Append($"주변{sweepRange:F0}m 콜라이더 {overlaps.Length}건:");
+            int listed = 0;
+            foreach (var col in overlaps)
+            {
+                if (col == null || listed >= 5) break;
+                IDamageable dmg = col.GetComponentInParent<IDamageable>();
+                MonoBehaviour dmgMb = dmg as MonoBehaviour;
+                // C# 9 보간 문자열 제약 — 구멍 내부 따옴표 금지 → 라벨 사전 계산(컴파일 계약).
+                string dmgLabel = dmg == null ? "none" : (dmg.IsAlive ? "alive" : "dead");
+                string layerName = LayerMask.LayerToName(col.gameObject.layer);
+                float dist = Vector3.Distance(transform.position, dmgMb != null ? dmgMb.transform.position : col.transform.position);
+                sb.Append($" [{col.name}|L{layerName}|dmg:{dmgLabel}|{dist:F1}m]");
+                listed++;
+            }
+            Debug.LogWarning(sb.ToString());
         }
 
         /// <summary>

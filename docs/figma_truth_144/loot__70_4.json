@@ -1,0 +1,1433 @@
+{
+ "id": "70:4",
+ "name": "loot-panel",
+ "type": "FRAME",
+ "x": null,
+ "y": null,
+ "ax": 14945,
+ "ay": 3,
+ "w": 1920.0,
+ "h": 1080.0,
+ "d": 0,
+ "fills": [
+  "IMAGE",
+  "#0B0E14/1.0@0.75"
+ ],
+ "strokeW": 1.2,
+ "layout": "VERTICAL",
+ "gap": 24.0,
+ "pl": 38.400001525878906,
+ "pr": 38.400001525878906,
+ "pt": 38.400001525878906,
+ "pb": 38.400001525878906,
+ "mainAlign": "CENTER",
+ "crossAlign": "CENTER",
+ "c": [
+  {
+   "id": "70:5",
+   "name": "LootPanel",
+   "type": "FRAME",
+   "x": null,
+   "y": null,
+   "ax": 15653,
+   "ay": 327,
+   "w": 504.0,
+   "h": 432.0,
+   "d": 1,
+   "fills": [
+    "#161B22/1.0@0.702"
+   ],
+   "strokes": [
+    "#30363D/1.0@0.502"
+   ],
+   "strokeW": 1.2,
+   "r": 14.4,
+   "fx": [
+    "BACKGROUND_BLUR:36.0:None",
+    "DROP_SHADOW:38.400001525878906:#000000/0.251"
+   ],
+   "layout": "VERTICAL",
+   "gap": 14.40000057220459,
+   "pl": 24.0,
+   "pr": 24.0,
+   "pt": 24.0,
+   "pb": 24.0,
+   "c": [
+    {
+     "id": "70:6",
+     "name": "DecalTL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 15653,
+     "ay": 327,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "70:7",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 15653,
+       "ay": 327,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "70:8",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 15653,
+       "ay": 327,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "70:9",
+     "name": "DecalTR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 16142,
+     "ay": 327,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "70:10",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 16142,
+       "ay": 327,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "70:11",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 16142,
+       "ay": 327,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "70:12",
+     "name": "DecalBL",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 15653,
+     "ay": 745,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "70:13",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 15653,
+       "ay": 745,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "70:14",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 15653,
+       "ay": 745,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "70:15",
+     "name": "DecalBR",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 16142,
+     "ay": 745,
+     "w": 14.4,
+     "h": 14.4,
+     "d": 2,
+     "strokeW": 1.2,
+     "c": [
+      {
+       "id": "70:16",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 16142,
+       "ay": 745,
+       "w": 12.0,
+       "h": 0.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      },
+      {
+       "id": "70:17",
+       "name": "Line",
+       "type": "LINE",
+       "x": null,
+       "y": null,
+       "ax": 16142,
+       "ay": 745,
+       "w": 0.0,
+       "h": 12.0,
+       "d": 3,
+       "strokes": [
+        "#58A6FF/1.0"
+       ],
+       "strokeW": 1.8
+      }
+     ]
+    },
+    {
+     "id": "70:18",
+     "name": "PanelHeader",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 15677,
+     "ay": 351,
+     "w": 456.0,
+     "h": 48.0,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "pb": 9.600000381469727,
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "70:19",
+       "name": "TitleGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 15677,
+       "ay": 356,
+       "w": 172.0,
+       "h": 28.0,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 12.0,
+       "crossAlign": "BASELINE",
+       "c": [
+        {
+         "id": "70:20",
+         "name": "Title",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 15677,
+         "ay": 356,
+         "w": 67.0,
+         "h": 28.0,
+         "d": 4,
+         "fills": [
+          "#F0F6FC/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "전리품",
+         "fontSize": 24.0,
+         "font": "Roboto 700 Bold",
+         "lineH": 28.1
+        },
+        {
+         "id": "70:21",
+         "name": "Subtitle",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 15756,
+         "ay": 366,
+         "w": 93.0,
+         "h": 15.0,
+         "d": 4,
+         "fills": [
+          "#8B949E/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "LOOT SECURED",
+         "fontSize": 13.200000762939453,
+         "font": "Roboto 700 Bold",
+         "lineH": 15.5
+        }
+       ]
+      },
+      {
+       "id": "70:22",
+       "name": "CloseBtn",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 16101,
+       "ay": 355,
+       "w": 31.2,
+       "h": 31.2,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.059"
+       ],
+       "strokes": [
+        "#30363D/1.0@0.502"
+       ],
+       "strokeW": 1.2,
+       "r": 7.2,
+       "layout": "HORIZONTAL",
+       "pl": 7.200000286102295,
+       "pr": 7.200000286102295,
+       "pt": 7.200000286102295,
+       "pb": 7.200000286102295,
+       "mainAlign": "CENTER",
+       "crossAlign": "CENTER",
+       "c": [
+        {
+         "id": "70:23",
+         "name": "x-circle",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 16109,
+         "ay": 362,
+         "w": 16.8,
+         "h": 16.8,
+         "d": 4,
+         "strokeW": 1.2,
+         "c": [
+          {
+           "id": "70:24",
+           "name": "Vector",
+           "type": "VECTOR",
+           "x": null,
+           "y": null,
+           "ax": 16109,
+           "ay": 362,
+           "w": 16.8,
+           "h": 16.8,
+           "d": 5,
+           "strokes": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 2.4
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "70:25",
+     "name": "LootStats",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 15677,
+     "ay": 413,
+     "w": 456.0,
+     "h": 26.6,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "HORIZONTAL",
+     "mainAlign": "SPACE_BETWEEN",
+     "crossAlign": "CENTER",
+     "c": [
+      {
+       "id": "70:26",
+       "name": "BadgeItem",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 15677,
+       "ay": 413,
+       "w": 76.2,
+       "h": 26.6,
+       "d": 3,
+       "fills": [
+        "#FFFFFF/1.0@0.039"
+       ],
+       "strokeW": 1.2,
+       "r": 4.8,
+       "layout": "HORIZONTAL",
+       "pl": 9.600000381469727,
+       "pr": 9.600000381469727,
+       "pt": 4.800000190734863,
+       "pb": 4.800000190734863,
+       "c": [
+        {
+         "id": "70:27",
+         "name": "BadgeText",
+         "type": "TEXT",
+         "x": null,
+         "y": null,
+         "ax": 15686,
+         "ay": 418,
+         "w": 57.0,
+         "h": 17.0,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "text": "습득 가능",
+         "fontSize": 14.40000057220459,
+         "font": "Roboto 700 Bold",
+         "lineH": 16.9
+        }
+       ]
+      },
+      {
+       "id": "70:28",
+       "name": "SlotCapacity",
+       "type": "TEXT",
+       "x": null,
+       "y": null,
+       "ax": 15977,
+       "ay": 417,
+       "w": 156.0,
+       "h": 20.0,
+       "d": 3,
+       "fills": [
+        "#8B949E/1.0"
+       ],
+       "strokeW": 1.2,
+       "text": "획득 아이템: 3 / 10",
+       "fontSize": 15.600000381469727,
+       "font": "Geist Mono 400 Regular",
+       "lineH": 20.3
+      }
+     ]
+    },
+    {
+     "id": "70:29",
+     "name": "LootGridSection",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 15677,
+     "ay": 454,
+     "w": 456.0,
+     "h": 172.8,
+     "d": 2,
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 9.600000381469727,
+     "c": [
+      {
+       "id": "70:30",
+       "name": "GridRow1",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 15677,
+       "ay": 454,
+       "w": 456.0,
+       "h": 81.6,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "c": [
+        {
+         "id": "70:31",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15677,
+         "ay": 454,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:32",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 15677,
+           "ay": 454,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#BC8CFF/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:33",
+           "name": "sword",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 15698,
+           "ay": 476,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:34",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 15698,
+             "ay": 476,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          },
+          {
+           "id": "70:35",
+           "name": "Count",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 15743,
+           "ay": 514,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "1",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 500 Medium",
+           "lineH": 17.2
+          }
+         ]
+        },
+        {
+         "id": "70:36",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15768,
+         "ay": 454,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:37",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 15768,
+           "ay": 454,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#1F6FEB/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:38",
+           "name": "battery",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 15789,
+           "ay": 476,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:39",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 15789,
+             "ay": 476,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          },
+          {
+           "id": "70:40",
+           "name": "Count",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 15834,
+           "ay": 514,
+           "w": 8.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "5",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 500 Medium",
+           "lineH": 17.2
+          }
+         ]
+        },
+        {
+         "id": "70:41",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15859,
+         "ay": 454,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:42",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 15859,
+           "ay": 454,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:43",
+           "name": "microchip",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 15881,
+           "ay": 476,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:44",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 15881,
+             "ay": 476,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          },
+          {
+           "id": "70:45",
+           "name": "Count",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 15917,
+           "ay": 514,
+           "w": 16.0,
+           "h": 17.0,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "12",
+           "fontSize": 13.200000762939453,
+           "font": "Geist Mono 500 Medium",
+           "lineH": 17.2
+          }
+         ]
+        },
+        {
+         "id": "70:46",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15950,
+         "ay": 454,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:47",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 15950,
+           "ay": 454,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:48",
+           "name": "square-dashed",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 15972,
+           "ay": 476,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:49",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 15972,
+             "ay": 476,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "70:50",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 16041,
+         "ay": 454,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:51",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 16041,
+           "ay": 454,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:52",
+           "name": "square-dashed",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 16063,
+           "ay": 476,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:53",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 16063,
+             "ay": 476,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "70:54",
+       "name": "GridRow2",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 15677,
+       "ay": 546,
+       "w": 456.0,
+       "h": 81.6,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "c": [
+        {
+         "id": "70:55",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15677,
+         "ay": 546,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:56",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 15677,
+           "ay": 546,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:57",
+           "name": "square-dashed",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 15698,
+           "ay": 567,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:58",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 15698,
+             "ay": 567,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "70:59",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15768,
+         "ay": 546,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:60",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 15768,
+           "ay": 546,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:61",
+           "name": "square-dashed",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 15789,
+           "ay": 567,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:62",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 15789,
+             "ay": 567,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "70:63",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15859,
+         "ay": 546,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:64",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 15859,
+           "ay": 546,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:65",
+           "name": "square-dashed",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 15881,
+           "ay": 567,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:66",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 15881,
+             "ay": 567,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "70:67",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15950,
+         "ay": 546,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:68",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 15950,
+           "ay": 546,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:69",
+           "name": "square-dashed",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 15972,
+           "ay": 567,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:70",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 15972,
+             "ay": 567,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "70:71",
+         "name": "ItemSlot",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 16041,
+         "ay": 546,
+         "w": 81.6,
+         "h": 81.6,
+         "d": 4,
+         "fills": [
+          "#21262D/1.0@0.6"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 9.6,
+         "layout": "VERTICAL",
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:72",
+           "name": "TierStrip",
+           "type": "RECTANGLE",
+           "x": null,
+           "y": null,
+           "ax": 16041,
+           "ay": 546,
+           "w": 81.6,
+           "h": 3.6,
+           "d": 5,
+           "fills": [
+            "#8B949E/1.0"
+           ],
+           "strokeW": 1.2
+          },
+          {
+           "id": "70:73",
+           "name": "square-dashed",
+           "type": "FRAME",
+           "x": null,
+           "y": null,
+           "ax": 16063,
+           "ay": 567,
+           "w": 38.4,
+           "h": 38.4,
+           "d": 5,
+           "strokeW": 1.2,
+           "c": [
+            {
+             "id": "70:74",
+             "name": "Vector",
+             "type": "VECTOR",
+             "x": null,
+             "y": null,
+             "ax": 16063,
+             "ay": 567,
+             "w": 38.4,
+             "h": 38.4,
+             "d": 6,
+             "strokes": [
+              "#8B949E/1.0"
+             ],
+             "strokeW": 2.4
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "70:75",
+     "name": "LootFooter",
+     "type": "FRAME",
+     "x": null,
+     "y": null,
+     "ax": 15677,
+     "ay": 642,
+     "w": 456.0,
+     "h": 61.2,
+     "d": 2,
+     "strokes": [
+      "#30363D/1.0@0.502"
+     ],
+     "strokeW": 1.2,
+     "layout": "VERTICAL",
+     "gap": 14.40000057220459,
+     "pt": 14.40000057220459,
+     "c": [
+      {
+       "id": "70:76",
+       "name": "ActionButtonGroup",
+       "type": "FRAME",
+       "x": null,
+       "y": null,
+       "ax": 15677,
+       "ay": 656,
+       "w": 456.0,
+       "h": 46.8,
+       "d": 3,
+       "strokeW": 1.2,
+       "layout": "HORIZONTAL",
+       "gap": 9.600000381469727,
+       "c": [
+        {
+         "id": "70:77",
+         "name": "AcquireAllButton",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15677,
+         "ay": 656,
+         "w": 222.0,
+         "h": 46.8,
+         "d": 4,
+         "fills": [
+          "#58A6FF/1.0"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "pl": 14.40000057220459,
+         "pr": 14.40000057220459,
+         "pt": 14.40000057220459,
+         "pb": 14.40000057220459,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:78",
+           "name": "AcquireAllText",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 15743,
+           "ay": 670,
+           "w": 90.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#0B0E14/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "전부 습득하기",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        },
+        {
+         "id": "70:79",
+         "name": "CloseButton",
+         "type": "FRAME",
+         "x": null,
+         "y": null,
+         "ax": 15908,
+         "ay": 656,
+         "w": 224.4,
+         "h": 46.8,
+         "d": 4,
+         "fills": [
+          "#FFFFFF/1.0@0.059"
+         ],
+         "strokes": [
+          "#30363D/1.0@0.502"
+         ],
+         "strokeW": 1.2,
+         "r": 7.2,
+         "layout": "HORIZONTAL",
+         "pl": 14.40000057220459,
+         "pr": 14.40000057220459,
+         "pt": 14.40000057220459,
+         "pb": 14.40000057220459,
+         "mainAlign": "CENTER",
+         "crossAlign": "CENTER",
+         "c": [
+          {
+           "id": "70:80",
+           "name": "CloseText",
+           "type": "TEXT",
+           "x": null,
+           "y": null,
+           "ax": 16006,
+           "ay": 670,
+           "w": 29.0,
+           "h": 18.0,
+           "d": 5,
+           "fills": [
+            "#F0F6FC/1.0"
+           ],
+           "strokeW": 1.2,
+           "text": "닫기",
+           "fontSize": 15.600000381469727,
+           "font": "Roboto 700 Bold",
+           "lineH": 18.3
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

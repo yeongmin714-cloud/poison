@@ -59,6 +59,8 @@ namespace ProjectName.Systems
 
             CombatVFXController.PlayHitFlash(target);
             PlayHitFXInternal(target.transform.position, hitDirection, type, isCrit, damage, numberColor);
+            // [무번호 35-S2] 히트 실루엣 화이트아웃 — BotW식 윤곽 백색 발광(FxRimOverlay 재사용, 틴트와 이원 계층).
+            FxHitSilhouette.Flash(target);
             // [2026-09-15 Phase C] 피격자 반응(플린치/넉백) — 플레이어 제외. 연출 전용, 실패해도 타격/Die 는 계속.
             try
             {
@@ -88,6 +90,8 @@ namespace ProjectName.Systems
 
             CombatVFXController.PlayHitFlash(target);
             PlayHitFXInternal(hitPos, hitDirection, type, isCrit, damage, numberColor);
+            // [무번호 35-S2] 히트 실루엣 화이트아웃 — 46차 후속(hitPos) 오버로드에도 동일 배선.
+            FxHitSilhouette.Flash(target);
             // [2026-09-15 Phase C] 피격자 반응(플린치/넉백) — 플레이어 제외. 연출 전용, 실패해도 타격/Die 는 계속.
             try
             {
@@ -118,6 +122,50 @@ namespace ProjectName.Systems
             // [Phase E-2] 크리티컬은 임팩트 1.5배 확대.
             SlashVFXRunner.PlayImpactMulti(position, type, isCrit ? 1.5f : 1f);
 
+            // [무번호 37-S3] 참격 아크 플립북 — Guz 임팩트 위 보완 레이어(교체 아님 — 계획 계약).
+            // [무번호 70-U3] [79-R20] isCrit 전달(파티클 틴트 FXPalette.AttackPrimary 위임 — 공격 이펙트 통일색, 일반/크리 동일색).
+            FxSlashFlipbookFlash.Play(position, isCrit ? 1.5f : 1f, isCrit);
+
+            // [무번호 82 사용자 결정] 피격 이펙트 Free Hit Impact 단일화 — "지금처럼 잡다한 것보다 기존의
+            //   free hit impact 에셋" 사용자 판정(11-20). 아래 보완 레이어 전부 발화 해제(시스템 본체·파일 유지 —
+            //   재배선 대비 보류). 유지: PlayImpactMulti + 참격 아크 + 데미지 숫자 + 카메라/히트스톱 + 사운드 + 극미 플래시.
+            // [무번호 71-L2] 디스토션 히트 웨이브 — 플립북 위 보완 레이어(씬 색 리프랙션 링, 크리 1.5배 위계 동일).
+            //   런타임 리플렉션 가드 내장(URP opaque 미지원 조용 스킵 — 블랙 링 방어).
+            // [무번호 82 보류] FxDistortionWave.Burst(position, isCrit ? 1.5f : 1f);
+            // [무번호 82 보류] if (isCrit) FxSecondaryRipple.Schedule(position, 0.55f, 0.12f);   // [무번호 77] 크리 2차 리플 — 1차 웨이브 잔광
+
+            // [무번호 33-A1] [79-R20] 임팩트 실시간 라이트 — 히트 지점 포인트 라이트 펄스(색=FXPalette.AttackPrimary 단일 소스,
+            //   공격 이펙트 통일색 — 크리 강도 상향, 동시 상한 3 예산 가드). 첫 동적 광원 계층(33 계획 A).
+            FxImpactLight.Spike(position, FXPalette.AttackPrimary, isCrit ? 4.2f : 2.2f, 3.8f, 0.18f);   // [무번호 83 복원] 히트 가독성 — 플래시 수명 0.11s라 임팩트 체감 부족(사용자 11-20 "hit impact 안 붙여졌고") → 라이트만 재활성(빛은 시각 클러터 아님)
+
+            // [무번호 33-B1] 크리 블룸 펄스 — 크리티컬 한정 화면 발광 스파이크(별도 볼륨 — 종료 시 글로벌 회복).
+            // [무번호 82 보류] if (isCrit) ScreenBloomFX.Spike(Camera.main, 2.8f, 0.12f);   // [무번호 39-T3] 블룸 앰프 2.2→2.8
+
+            // [무번호 33-D1] 강타격 파편 데브리 — 크리/Heavy(피해 ≥15) 한정 결정론 포물선 파편(예산 가드 내장).
+            // [무번호 82 보류] if (isCrit || damage >= 15f) FxDebrisSpawner.Burst(position, damageInt);   // 폭죽형 파편 burst
+
+            // [무번호 37-H3] 지면 크랙 데칼 — 강타격 한정(파편과 동일 게이트), 절차 텍스처·예산 2·2.5s 페이드.
+            //   [무번호 82 사용자 확정] "바닥에 남는 금(균열)" = (b) 크랙 데칼 — 제거.
+            // [무번호 82 보류] if (isCrit || damage >= 15f) FxGroundCrackFX.Burst(position);
+
+            // [무번호 76-S3] 시트애니 스파크 + 충격 먼지 컬럼 — 강타격 보완 레이어(게이트 밴드 공유 33-D1).
+            // [무번호 79 사용자 결정] 시트애니 스파크 배선 해제 — 강타격/치명타 시 노란-주황 시트 스파크가
+            //   "몬스터 피격 시 노란색 스파크 연출이 촌스럽다" 사용자 판정(11-19)으로 제거됨.
+            //   시스템 본체(FxImpactSheetSpark)는 유지(다른 소비처/재활용 대비) — 게이트 배선만 해제.
+            // [무번호 82 보류] if (isCrit || damage >= 15f) FxImpactDustColumn.Spawn(position);
+            // [무번호 82 보류] if (isCrit || damage >= 15f) MeteoriteVFXRunner.Burst(position, isCrit);   // [무번호 78-P1] Meteorite 4단계 — 강타격 보완 레이어(계획서 no78 P1) — 폭죽형
+
+            // [무번호 39-T2 → 79 사용자 결정] 히트 방향 스파이크 3본 콘 — "몬스터 피격 시 노란색 스파크 연출이
+            //   촌스럽다" 사용자 판정(11-19)으로 제거. SpawnDirectionalSpark 메서드 자체는 패링/애프터라이프
+            //   등 다른 소비처가 유지하므로 시그니처 불변(CombatFxMoveRingPhaseFTests 계약).
+            // Vector3 sparkDir = direction == Vector3.zero ? Vector3.up : -direction;
+            // for (int i = 0; i < 3; i++)
+            // {
+            //     float yaw = (i - 1) * 25f;
+            //     Vector3 d = Quaternion.Euler(0f, yaw, 0f) * sparkDir;
+            //     ShockwaveRingFX.SpawnDirectionalSpark(position + Vector3.up * 0.4f, d, FXPalette.AttackPrimary, 0.22f);
+            // }
+
             // 2. 데미지 숫자 — 치명타/백어택 구분: isCrit=true일 때 백어택인지 체크하여 타입 결정
             var dmgType = isCrit
                 ? CombatVFXController.DamageNumberType.Critical
@@ -127,7 +175,13 @@ namespace ProjectName.Systems
 
             // 3. 카메라 셰이크(히트/크리틱 2종) + 히트스톱. PlayKill은 별도 호출 책임.
             if (isCrit)
+            {
                 CombatCameraEffects.PlayCrit();
+                // [무번호 80-P4] 임팩트 프레임(hit-stop) — 크리 전용. HitStopManager 승계(0.05 스케일 0.06s → 실시간 복귀,
+                //   재진입 가드+쿨다운 0.15s+FrozenScaleGuard 내장 — P6 액션감 선례, 젤다식 임팩트 프레임).
+                //   일반 히트 미개입(위계 유지 — 계획 Task 4.2), 사망/수집/낚시 등 비전투 경로 영향 0건(전투 게이트 경로만).
+                HitStopManager.RequestHitStop(0.06f, 0.05f);
+            }
             else
                 CombatCameraEffects.PlayHit();
 
@@ -144,7 +198,7 @@ namespace ProjectName.Systems
                 // PlaySFX가 플레이스홀더 로그 후 안전 반환하므로 크래시 없음.
                 // 처치(isKill) 사운드는 CombatCameraEffects.PlayKill()을 호출하는 처치 지점에서
                 // ImpactSoundFX.PlayHit(false, true)로 별도 재생 (여기서는 타격까지만 담당).
-                ImpactSoundFX.PlayHit(isCrit, isKill: false);
+                ImpactSoundFX.PlayHit(isCrit, isKill: false, damage);   // [무번호 72-W3] 피해량 전달 — 결정론 피치 밴드 매핑
 
                 Debug.Log($"[CombatFX-HS] flash+sound crit={(isCrit ? 1 : 0)} damage={damageInt} pos={position}");
             }
